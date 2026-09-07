@@ -36,9 +36,10 @@ package.
 
 | Path | What lives there |
 |---|---|
-| `src/cpp/` | The C++17 core and the pybind11 module `pypulseqpp._ext`. |
+| `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
+| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`. |
 | `src/pypulseqpp/` | The Python package: the PyPulseq-compatible API over the core. |
-| `tests/` | pytest, including the parity fixtures against upstream. |
+| `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 
 ## Build and test
 
@@ -68,8 +69,13 @@ name states the invariant it protects, so a failure reads as a sentence.
 
 Two invariants hold everything else up, and each has a test:
 
-- **Parity.** The `.seq` a reference script writes here is byte-identical to
-  what upstream `pypulseq` writes for it.
+- **Parity.** The `.seq` a reference sequence writes here is byte-identical to
+  what upstream `pypulseq` writes for it, signature included. The comparison
+  is live rather than against a checked-in file, so it cannot go stale, and it
+  runs with deduplication both on and off: a sequence that agrees before
+  collapsing identical library rows and disagrees after has a renumbering bug
+  rather than a writing bug. A new event kind is not finished until it appears
+  in a sequence in `tests/reference.py`.
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.
