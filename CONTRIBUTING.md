@@ -25,10 +25,9 @@ there. If `pre-commit` rewrites a file, stage it and commit again.
 - pytest with plain functions and fixtures. No `unittest.TestCase` subclasses.
 - A test name states the invariant it protects, so a failure reads as a
   sentence: `test_a_double_precision_basis_does_not_reach_the_kernel`.
-- Anything that can run on both CPU and CUDA is parametrised over both, and
-  the CUDA leg skips cleanly when no device is present. A numerical check that
-  only ever ran on CPU has, in this codebase's history, passed while the CUDA
-  path was completely wrong.
+- A change to what is written, read or computed is checked against upstream
+  `pypulseq` on the reference sequences: byte-for-byte for `.seq` output,
+  numerically for calculations. Speed is never taken on assertion.
 
 ## Comments and documentation
 

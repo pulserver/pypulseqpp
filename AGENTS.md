@@ -9,15 +9,34 @@ scripts/sync_agent_docs.sh, which pre-commit runs. Edit this file, never those.
 
 Fast drop-in PyPulseq replacement over a C++ sequence core, with hardware safety checks.
 
-It is one of a family of small, single-purpose MRI packages. The layering is
-strict: `mrutils` is the base; `torchsolve`, `mrtoeplitz`, `mrllr`, `mrmotion`
-and `mrdistortion` sit on it and never import each other; `deepmr` sits on all
-of them. If you find yourself wanting a sibling's code, the answer is either to
-move it down into `mrutils` or to move the caller up into `deepmr`.
+The contract is PyPulseq's own API: a design script written against
+`pypulseq` must run here unchanged, with the same functions, the same
+signatures and the same `.seq` output. What differs is what each call does
+underneath. Events are compact compiled objects, `add_block` is one compiled
+call, and reading and writing, in text and in binary, are C++.
 
-**deepinv is a `deepmr`-only dependency.** Everything below it is plain Torch
-with duck-typed operators (`A`, `A_adjoint`, `shape`). Do not import deepinv
-here unless this package is `deepmr`.
+The package owns everything that is true about a sequence in isolation:
+parsing and writing, event deduplication, structural TR and base-block
+detection, gradient amplitude, slew and continuity checks, PNS and mechanical
+resonance, k-space and gradient-moment calculation, and sequence-level
+operations such as FOV transformation and tiling. It does not own anything
+that needs a scanner or a reconstruction in the picture. Segmentation, the
+scanner-side execution stream, protocol contracts and consoles live in
+`pulserver`; pulse, trajectory and sampling *design* lives in its own package.
+If a change here needs to know which vendor will play the sequence, it belongs
+elsewhere.
+
+The runtime dependency is NumPy alone. Upstream `pypulseq` is a test
+dependency, used for byte-parity fixtures, and is never imported by the
+package.
+
+## Layout
+
+| Path | What lives there |
+|---|---|
+| `src/cpp/` | The C++17 core and the pybind11 module `pypulseqpp._ext`. |
+| `src/pypulseqpp/` | The Python package: the PyPulseq-compatible API over the core. |
+| `tests/` | pytest, including the parity fixtures against upstream. |
 
 ## Build and test
 
@@ -30,14 +49,28 @@ pytest -q
 Build and test steps are mandatory before reporting a change complete. Run them
 and report the exact output; do not assume success.
 
+## Language rules
+
+**`src/cpp/` is C++17.** It is the hot path for million-block sequences:
+measure before adding an allocation per block. The extension links nothing but
+the standard library and threads, so a wheel is self-contained on Linux,
+macOS and Windows and an end user never needs a compiler.
+
+**Python targets 3.10+.** Python code is the API surface and the glue; a loop
+over blocks in Python is a bug, not a slow path.
+
 ## Tests
 
 pytest with plain functions and fixtures — never `unittest.TestCase`. A test
 name states the invariant it protects, so a failure reads as a sentence.
 
-Anything numerical that can run on CPU and CUDA is parametrised over both, and
-the CUDA leg skips when no device is present. A kernel-layout check that ran on
-CPU only has passed in this codebase while CUDA was 100% wrong.
+Two invariants hold everything else up, and each has a test:
+
+- **Parity.** The `.seq` a reference script writes here is byte-identical to
+  what upstream `pypulseq` writes for it.
+- **Fast path equals plain path.** Wherever a compiled call stands in for a
+  calculation PyPulseq does in Python, a test holds the two equal on the
+  reference sequences. Speed is never taken on assertion.
 
 ## Comments and docstrings
 

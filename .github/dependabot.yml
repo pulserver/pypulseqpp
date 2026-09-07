@@ -14,8 +14,6 @@ updates:
       actions:
         patterns: ["*"]
 
-  # Grouped so the numerical stack arrives as one pull request that can be
-  # tested together rather than as several that each need a full suite run.
   - package-ecosystem: pip
     directory: "/"
     schedule:
@@ -26,14 +24,13 @@ updates:
     commit-message:
       prefix: "deps"
     groups:
+      # The reference implementation moves the parity fixtures with it, so its
+      # bumps arrive alone and get a full run of their own.
+      reference:
+        patterns: ["pypulseq"]
       numerical:
-        patterns: ["numpy", "scipy", "torch*", "triton", "mri-nufft", "finufft", "cufinufft"]
-      mr-stack:
-        patterns: ["mrutils", "mrtoeplitz", "mrllr", "mrmotion", "mrdistortion", "torchsolve", "deepinv", "SimpleITK"]
+        patterns: ["numpy"]
+      build:
+        patterns: ["scikit-build-core", "pybind11", "setuptools_scm"]
       dev-tooling:
-        patterns: ["pytest*", "coverage", "ruff", "pre-commit", "build", "sphinx*"]
-    ignore:
-      # Torch major bumps move the CUDA runtime under the whole family, so they
-      # are a deliberate decision rather than a routine update.
-      - dependency-name: "torch"
-        update-types: ["version-update:semver-major"]
+        patterns: ["pytest*", "coverage", "ruff", "pre-commit", "build"]

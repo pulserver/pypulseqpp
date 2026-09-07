@@ -20,6 +20,8 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: C++",
+  "Operating System :: OS Independent",
 ]
 
 dependencies = ["numpy>=1.24"]
@@ -34,6 +36,9 @@ dev = [
   "ruff==0.16.5",
   "pre-commit>=4",
   "build",
+  # The reference implementation, for byte-parity fixtures. Never imported by
+  # the package itself.
+  "pypulseq>=1.5.0",
 ]
 
 [project.urls]
@@ -63,7 +68,6 @@ fallback_version = "0.0.0.dev0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 markers = [
-  "cuda: needs a CUDA device; skipped when none is present",
   "slow: excluded from the default run",
 ]
 
