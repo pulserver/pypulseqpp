@@ -62,6 +62,32 @@ macOS and Windows and an end user never needs a compiler.
 **Python targets 3.10+.** Python code is the API surface and the glue; a loop
 over blocks in Python is a bug, not a slow path.
 
+## Performance
+
+The design loop is the hot path: one call per block, and a protocol-scale scan
+has millions of them. Two rules follow, and both are easy to undo by accident.
+
+**A per-block call is bound by hand with `METH_FASTCALL`, not by pybind11.**
+The arguments arrive as a C array of borrowed references, so nothing is
+allocated and no tuple is built. `add_block` is bound this way, and
+`test_adding_a_block_goes_through_the_fast_calling_convention` fails if it
+stops being. Passing a bound object per block instead costs an order of
+magnitude, because constructing that object is then the whole call.
+
+**A call that does real work releases the GIL.** Deduplication, shape
+compression and writing all run without it.
+
+`benchmarks/throughput.py` reports what a block costs. Run it before and after
+touching the bindings, and quote what came back rather than asserting an
+improvement.
+
+The registration calls are the remaining cost: a design loop that registers
+each event from Python pays a binding crossing per event. The answer is
+`add_block_events(*events)`, one fastcall that unpacks compiled event objects
+and registers them inside C++, so a block costs one crossing rather than one
+per event. That needs the compiled event types, so it lands with the Python
+API rather than before it.
+
 ## Tests
 
 pytest with plain functions and fixtures — never `unittest.TestCase`. A test

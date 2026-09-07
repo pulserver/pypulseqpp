@@ -113,18 +113,17 @@ def to_core(seq) -> _ext.Sequence:
             "extension",
         )
 
+    add_block = core.add_block
     for identifier in sorted(seq.block_events):
         events = seq.block_events[identifier]
-        core.add_block(
-            _ext.Block(
-                rf=int(events[1]),
-                gx=int(events[2]),
-                gy=int(events[3]),
-                gz=int(events[4]),
-                adc=int(events[5]),
-                ext=int(events[6]),
-                duration=float(seq.block_durations[identifier]),
-            )
+        add_block(
+            int(events[1]),
+            int(events[2]),
+            int(events[3]),
+            int(events[4]),
+            int(events[5]),
+            int(events[6]),
+            float(seq.block_durations[identifier]),
         )
 
     return core
