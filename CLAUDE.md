@@ -74,6 +74,11 @@ allocated and no tuple is built. `add_block` is bound this way, and
 stops being. Passing a bound object per block instead costs an order of
 magnitude, because constructing that object is then the whole call.
 
+**A library that already exists crosses as one array, not row by row.** The
+`set_*` family replaces a whole library with one copy; registering the rows one
+at a time costs about fifty times more, and a protocol-scale scan has millions
+of them. `register_*` is for building a sequence, `set_*` for loading one.
+
 **A call that does real work releases the GIL.** Deduplication, shape
 compression and writing all run without it.
 
