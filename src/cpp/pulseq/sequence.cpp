@@ -183,6 +183,9 @@ namespace pulseq
     {
         deduplicated_ = false;
         rf_use_.push_back(use);
+        shapes_.mark(static_cast<int>(row[1]), SHAPE_ROLE_RF_MAGNITUDE);
+        shapes_.mark(static_cast<int>(row[2]), SHAPE_ROLE_RF_PHASE);
+        shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_RF_TIME);
         return rf_.append(row);
     }
 
@@ -197,6 +200,8 @@ namespace pulseq
     int Sequence::register_arbitrary(const double* row)
     {
         deduplicated_ = false;
+        shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_GRADIENT);
+        shapes_.mark(static_cast<int>(row[4]), SHAPE_ROLE_GRADIENT_TIME);
         const int slot = arb_.append(row);
         grad_slot_.push_back(-static_cast<int32_t>(slot));
         return static_cast<int>(grad_slot_.size());
@@ -205,6 +210,7 @@ namespace pulseq
     int Sequence::register_adc(const double* row)
     {
         deduplicated_ = false;
+        shapes_.mark(static_cast<int>(row[7]), SHAPE_ROLE_ADC_PHASE);
         return adc_.append(row);
     }
 

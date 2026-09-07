@@ -200,6 +200,41 @@ namespace pulseq
          * columns to speak of: every entry means the same kind of thing, and
          * how many there are is the coil's business or the waveform's.
          */
+        /**
+         * As round_run, but a zero keeps the sign it arrived with.
+         *
+         * The shape libraries are rounded where they stand rather than into a
+         * key, because `%.9g` prints a value rounded to nine significant
+         * digits exactly as it prints the value it came from -- so the file
+         * cannot tell. Negative zero is the one exception: it prints as `-0`,
+         * and folding it onto `0` would rewrite a shape the reference toolbox
+         * leaves alone. Whether two shapes that differ only there are the same
+         * shape is decided by the hash and the comparison, which both read
+         * `-0` as `0`; it is not decided by rewriting the samples.
+         */
+        void round_run_keeping_zero_sign(double* values, int count, int digit)
+        {
+            const double* powers = power_table();
+            const Mode mode = digit > 0 ? Mode::Significant : Mode::Fixed;
+            const double scale = digit > 0 ? static_cast<double>(digit)
+                                           : std::pow(10.0, static_cast<double>(-digit));
+            for (int i = 0; i < count; ++i)
+            {
+                const bool negative = std::signbit(values[i]);
+                const double rounded = round_one(values[i], mode, scale, powers);
+                values[i] = (rounded == 0.0 && negative) ? -0.0 : rounded;
+            }
+        }
+
+        /** Two shapes' samples, comparing by value so -0 equals 0. */
+        inline bool samples_equal(const double* a, const double* b, int count)
+        {
+            for (int i = 0; i < count; ++i)
+                if (a[i] != b[i])
+                    return false;
+            return true;
+        }
+
         void round_run(double* values, int count, int digit)
         {
             const double* powers = power_table();
@@ -516,11 +551,18 @@ namespace pulseq
                         {
                             const int count = shapes_.num_compressed(id);
                             double* row = const_cast<double*>(shapes_.samples(id));
-                            round_run(row, count, 9);
+                            round_run_keeping_zero_sign(row, count, 9);
                             const int32_t length = shapes_.num_uncompressed(id);
                             uint64_t h = mix(1469598103934665603ull, &length, sizeof(length));
-                            hashes[static_cast<size_t>(id)] =
-                                mix(h, row, static_cast<size_t>(count) * sizeof(double));
+                            // Sample by sample, with -0 read as 0, so two
+                            // shapes differing only in the sign of a zero land
+                            // in one bucket and the comparison below decides.
+                            for (int i = 0; i < count; ++i)
+                            {
+                                const double canonical = row[i] == 0.0 ? 0.0 : row[i];
+                                h = mix(h, &canonical, sizeof(canonical));
+                            }
+                            hashes[static_cast<size_t>(id)] = h;
                         }
                     }
                 };
@@ -560,10 +602,7 @@ namespace pulseq
                 {
                     if (shapes_.num_uncompressed(candidate) == length &&
                         shapes_.num_compressed(candidate) == count &&
-                        std::memcmp(
-                            shapes_.samples(candidate),
-                            row,
-                            static_cast<size_t>(count) * sizeof(double)) == 0)
+                        samples_equal(shapes_.samples(candidate), row, count))
                     {
                         found = candidate;
                         break;

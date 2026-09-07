@@ -97,6 +97,20 @@ and registers them inside C++, so a block costs one crossing rather than one
 per event. That needs the compiled event types, so it lands with the Python
 API rather than before it.
 
+## What a shape is played as
+
+A `[SHAPES]` entry does not say what it is; the file says so only where an
+event refers to it. Each entry therefore carries a mask of `ShapeRole`, set
+where the reference is made -- `register_rf` marks its magnitude, phase and
+time shapes, `register_arbitrary` its waveform and times, `register_adc` its
+phase modulation -- so "every gradient waveform" is answered without walking
+the event libraries. A file read back fills the mask in on the way past,
+because reading registers its events too, and nothing in the format changes.
+
+It is a mask rather than a tag because deduplication merges shapes holding the
+same numbers, and the merge ORs the roles: after it, one entry really is
+played both ways.
+
 ## Tests
 
 pytest with plain functions and fixtures — never `unittest.TestCase`. A test
@@ -111,6 +125,12 @@ Two invariants hold everything else up, and each has a test:
   collapsing identical library rows and disagrees after has a renumbering bug
   rather than a writing bug. A new event kind is not finished until it appears
   in a sequence in `tests/reference.py`.
+
+  One divergence is deliberate and has a test of its own. Upstream's
+  deduplication softens a logarithm with a `1e-12` floor, so a sample below
+  that keeps four significant digits where nine were asked for. This package
+  does not floor, and writes the sample the pulse plays.
+  `BLUNTED_BY_UPSTREAM` names the reference sequences that reach it.
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.

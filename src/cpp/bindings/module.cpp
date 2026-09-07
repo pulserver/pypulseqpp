@@ -117,6 +117,18 @@ PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
 
+    py::enum_<pulseq::ShapeRole>(module, "ShapeRole", py::arithmetic(),
+                                 "What a shape is played as. Masks, so they combine.")
+        .value("NONE", pulseq::SHAPE_ROLE_NONE)
+        .value("RF_MAGNITUDE", pulseq::SHAPE_ROLE_RF_MAGNITUDE)
+        .value("RF_PHASE", pulseq::SHAPE_ROLE_RF_PHASE)
+        .value("RF_TIME", pulseq::SHAPE_ROLE_RF_TIME)
+        .value("GRADIENT", pulseq::SHAPE_ROLE_GRADIENT)
+        .value("GRADIENT_TIME", pulseq::SHAPE_ROLE_GRADIENT_TIME)
+        .value("ADC_PHASE", pulseq::SHAPE_ROLE_ADC_PHASE)
+        .value("TIME", pulseq::SHAPE_ROLE_TIME)
+        .export_values();
+
     py::class_<pulseq::Block>(module, "Block", "One block's event ids and its duration.")
         .def(
             py::init([](int32_t rf, int32_t gx, int32_t gy, int32_t gz, int32_t adc, int32_t ext,
@@ -274,6 +286,31 @@ PYBIND11_MODULE(_ext, module)
         .def("compress_shapes", &pulseq::Sequence::compress_shapes,
              py::call_guard<py::gil_scoped_release>(),
              "Run-length encode every shape registered raw.")
+
+        /* -- what shapes are played as ----------------------------------- */
+        .def(
+            "shape_roles",
+            [](const pulseq::Sequence& self) {
+                const pulseq::ShapeLibrary& shapes = self.shape_library();
+                py::array_t<uint32_t> out(shapes.size());
+                uint32_t* values = out.mutable_data();
+                for (int id = 1; id <= shapes.size(); ++id)
+                    values[id - 1] = shapes.roles(id);
+                return out;
+            },
+            "Per shape, a mask of what it is played as. See ShapeRole.")
+        .def(
+            "shapes_with_role",
+            [](const pulseq::Sequence& self, uint32_t role) {
+                const pulseq::ShapeLibrary& shapes = self.shape_library();
+                std::vector<int32_t> found;
+                for (int id = 1; id <= shapes.size(); ++id)
+                    if (shapes.roles(id) & role)
+                        found.push_back(id);
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(found.size()), found.data());
+            },
+            py::arg("role"),
+            "The ids of every shape played as any of `role`, in id order.")
 
         /* -- extensions and labels ------------------------------------- */
         .def("extension_type_id", &pulseq::Sequence::extension_type_id, py::arg("name"),

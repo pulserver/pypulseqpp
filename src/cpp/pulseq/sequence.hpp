@@ -416,6 +416,33 @@ namespace pulseq
         int64_t cursor_ = 0;
     };
 
+    /**
+     * What a shape is played as, as a bitmask.
+     *
+     * A `[SHAPES]` entry does not say what it is. The file says so only where
+     * an event refers to it, so answering "every gradient waveform" or "every
+     * RF envelope" means walking the event libraries and following their shape
+     * columns. Recording it where the reference is made costs one OR per
+     * reference and answers the question directly, and a file read back fills
+     * it in on the way past because reading registers its events too.
+     *
+     * It is a mask rather than a tag because deduplication merges shapes that
+     * hold the same numbers: a gradient waveform and an RF envelope can be one
+     * entry, and after the merge it is both.
+     */
+    enum ShapeRole : uint32_t
+    {
+        SHAPE_ROLE_NONE = 0u,
+        SHAPE_ROLE_RF_MAGNITUDE = 1u << 0,
+        SHAPE_ROLE_RF_PHASE = 1u << 1,
+        SHAPE_ROLE_RF_TIME = 1u << 2,
+        SHAPE_ROLE_GRADIENT = 1u << 3,
+        SHAPE_ROLE_GRADIENT_TIME = 1u << 4,
+        SHAPE_ROLE_ADC_PHASE = 1u << 5,
+        /** Either time array, for a caller that does not care which. */
+        SHAPE_ROLE_TIME = SHAPE_ROLE_RF_TIME | SHAPE_ROLE_GRADIENT_TIME,
+    };
+
     class ShapeLibrary
     {
     public:
@@ -444,6 +471,18 @@ namespace pulseq
         bool is_compressed(int id) const
         {
             return is_compressed_[id - 1] != 0;
+        }
+
+        /** What @p id is played as: a mask of ShapeRole. */
+        uint32_t roles(int id) const
+        {
+            return roles_[id - 1];
+        }
+        /** Record that @p id is played as @p role too.  Id 0 means no shape. */
+        void mark(int id, uint32_t role)
+        {
+            if (id > 0)
+                roles_[static_cast<size_t>(id) - 1] |= role;
         }
 
         /** Append a shape already in its compressed form.  @return its id. */
@@ -489,6 +528,7 @@ namespace pulseq
             first_.clear();
             last_.clear();
             peak_.clear();
+            roles_.clear();
             data_.clear();
         }
 
@@ -504,6 +544,7 @@ namespace pulseq
             last_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
             peak_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
             is_compressed_.assign(static_cast<size_t>(count), 1);
+            roles_.assign(static_cast<size_t>(count), SHAPE_ROLE_NONE);
             data_.assign(starts, count, samples);
         }
 
@@ -515,6 +556,8 @@ namespace pulseq
         mutable std::vector<double> first_;
         mutable std::vector<double> last_;
         mutable std::vector<double> peak_;
+        /** Per shape, a mask of ShapeRole; filled where a reference is made. */
+        std::vector<uint32_t> roles_;
         RaggedTable data_;
     };
 
