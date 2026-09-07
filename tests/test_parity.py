@@ -15,10 +15,19 @@ import hashlib
 
 import convert
 import pytest
+import reference
 
 from pypulseqpp import _ext
 
 SIGNATURE_MARKER = "\n[SIGNATURE]\n"
+
+#: Reference sequences carrying a sample small enough for upstream's
+#: deduplication to blunt it. Upstream floors a magnitude at 1e-12 before
+#: taking its logarithm, so a sample below that keeps four significant digits
+#: where nine were asked for. pypulseqpp does not floor, and the value it
+#: writes is the one the pulse plays, so these two disagree after
+#: deduplication on purpose. See test_deduplication_keeps_the_precision below.
+BLUNTED_BY_UPSTREAM = {"arbitrary_rf"}
 
 
 def written_by_upstream(seq, path, *, deduplicate):
@@ -35,12 +44,48 @@ def written_by_core(seq, *, deduplicate):
 
 @pytest.mark.parametrize("deduplicate", [False, True], ids=["as-built", "deduplicated"])
 def test_the_written_file_is_byte_identical_to_upstream(
-    build_reference, deduplicate, tmp_path
+    build_reference, reference_name, deduplicate, tmp_path
 ):
+    if deduplicate and reference_name in BLUNTED_BY_UPSTREAM:
+        pytest.skip("upstream rounds a tiny sample away; see the precision test")
+
     expected = written_by_upstream(
         build_reference(), tmp_path / "upstream.seq", deduplicate=deduplicate
     )
     assert written_by_core(build_reference(), deduplicate=deduplicate) == expected
+
+
+@pytest.mark.parametrize("name", sorted(BLUNTED_BY_UPSTREAM))
+def test_deduplication_keeps_the_precision_upstream_rounds_away(name, tmp_path):
+    """Where the two disagree, ours is the sample the pulse actually plays.
+
+    Upstream's rounding softens a logarithm with a 1e-12 floor, so every
+    magnitude below that shares one exponent and nine significant digits keep
+    four. A pulse really does carry such samples: a sinc that crosses zero
+    leaves one at 4e-17. This holds that the disagreement is only ever that,
+    and that the value written here is the one deduplication was given.
+    """
+    build = reference.ZOO[name]
+    upstream = written_by_upstream(
+        build(), tmp_path / "upstream.seq", deduplicate=True
+    ).splitlines()
+    ours = written_by_core(build(), deduplicate=True).splitlines()
+    as_built = written_by_core(build(), deduplicate=False).splitlines()
+
+    assert len(ours) == len(upstream)
+    differing = [
+        i for i, (a, b) in enumerate(zip(upstream, ours, strict=True)) if a != b
+    ]
+    assert differing, "nothing differs, so this sequence no longer belongs here"
+
+    for line in differing:
+        if upstream[line].startswith("Hash "):
+            continue
+        theirs, mine = float(upstream[line]), float(ours[line])
+        # Same number, fewer digits: a rounding, not a different value.
+        assert mine == pytest.approx(theirs, rel=1e-3)
+        # And ours is what the sequence held before deduplication touched it.
+        assert ours[line] == as_built[line]
 
 
 def test_the_signature_is_the_digest_of_everything_above_it(build_reference):

@@ -12,6 +12,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -38,6 +39,68 @@ namespace
         return values.data();
     }
 
+    /** A capsule owning @p buffer, so an array over it keeps it alive. */
+    template <typename T> py::capsule keep_alive_capsule(std::shared_ptr<const T> buffer)
+    {
+        auto* held = new std::shared_ptr<const T>(std::move(buffer));
+        return py::capsule(held, [](void* owned) {
+            delete static_cast<std::shared_ptr<const T>*>(owned);
+        });
+    }
+
+    /**
+     * `add_block(rf, gx, gy, gz, adc, ext, duration)`, without argument parsing.
+     *
+     * A design loop makes this call once per block and a protocol-scale scan
+     * has millions of them, so it is the one place where pybind11's argument
+     * handling is worth going around: METH_FASTCALL hands the arguments over
+     * as a C array of borrowed references, which is what building a block
+     * wanted in the first place. Nothing is allocated, and no tuple is built.
+     */
+    PyObject* add_block_fast(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+    {
+        if (nargs != 7)
+        {
+            PyErr_SetString(
+                PyExc_TypeError,
+                "add_block() takes exactly 7 arguments "
+                "(rf, gx, gy, gz, adc, ext, duration)");
+            return nullptr;
+        }
+        try
+        {
+            pulseq::Block block;
+            block.rf = static_cast<int32_t>(PyLong_AsLong(args[0]));
+            block.gx = static_cast<int32_t>(PyLong_AsLong(args[1]));
+            block.gy = static_cast<int32_t>(PyLong_AsLong(args[2]));
+            block.gz = static_cast<int32_t>(PyLong_AsLong(args[3]));
+            block.adc = static_cast<int32_t>(PyLong_AsLong(args[4]));
+            block.ext = static_cast<int32_t>(PyLong_AsLong(args[5]));
+            block.duration = PyFloat_AsDouble(args[6]);
+            if (PyErr_Occurred())
+                return nullptr;
+
+            pulseq::Sequence& sequence = py::cast<pulseq::Sequence&>(py::handle(self));
+            return PyLong_FromLong(sequence.add_block(block));
+        }
+        catch (py::error_already_set& raised)
+        {
+            raised.restore();
+            return nullptr;
+        }
+        catch (const std::exception& raised)
+        {
+            PyErr_SetString(PyExc_ValueError, raised.what());
+            return nullptr;
+        }
+    }
+
+    PyMethodDef add_block_fast_def = {
+        "add_block",
+        reinterpret_cast<PyCFunction>(reinterpret_cast<void*>(add_block_fast)),
+        METH_FASTCALL,
+        PyDoc_STR("add_block(rf, gx, gy, gz, adc, ext, duration) -> int")};
+
     /** A `[DEFINITIONS]` value from whatever Python handed over. */
     pulseq::Definition definition_from(const py::object& value)
     {
@@ -53,6 +116,18 @@ namespace
 PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
+
+    py::enum_<pulseq::ShapeRole>(module, "ShapeRole", py::arithmetic(),
+                                 "What a shape is played as. Masks, so they combine.")
+        .value("NONE", pulseq::SHAPE_ROLE_NONE)
+        .value("RF_MAGNITUDE", pulseq::SHAPE_ROLE_RF_MAGNITUDE)
+        .value("RF_PHASE", pulseq::SHAPE_ROLE_RF_PHASE)
+        .value("RF_TIME", pulseq::SHAPE_ROLE_RF_TIME)
+        .value("GRADIENT", pulseq::SHAPE_ROLE_GRADIENT)
+        .value("GRADIENT_TIME", pulseq::SHAPE_ROLE_GRADIENT_TIME)
+        .value("ADC_PHASE", pulseq::SHAPE_ROLE_ADC_PHASE)
+        .value("TIME", pulseq::SHAPE_ROLE_TIME)
+        .export_values();
 
     py::class_<pulseq::Block>(module, "Block", "One block's event ids and its duration.")
         .def(
@@ -93,8 +168,9 @@ PYBIND11_MODULE(_ext, module)
         .def_readwrite("factor", &pulseq::SoftDelay::factor)
         .def_readwrite("hint", &pulseq::SoftDelay::hint);
 
-    py::class_<pulseq::Sequence>(module, "Sequence", "Event libraries and a block table.")
-        .def(py::init<>())
+    auto sequence_class =
+        py::class_<pulseq::Sequence>(module, "Sequence", "Event libraries and a block table.")
+            .def(py::init<>())
 
         /* -- header ---------------------------------------------------- */
         .def("set_version", &pulseq::Sequence::set_version, py::arg("major"), py::arg("minor"),
@@ -208,7 +284,33 @@ PYBIND11_MODULE(_ext, module)
             },
             py::arg("samples"), py::arg("divisor"))
         .def("compress_shapes", &pulseq::Sequence::compress_shapes,
+             py::call_guard<py::gil_scoped_release>(),
              "Run-length encode every shape registered raw.")
+
+        /* -- what shapes are played as ----------------------------------- */
+        .def(
+            "shape_roles",
+            [](const pulseq::Sequence& self) {
+                const pulseq::ShapeLibrary& shapes = self.shape_library();
+                py::array_t<uint32_t> out(shapes.size());
+                uint32_t* values = out.mutable_data();
+                for (int id = 1; id <= shapes.size(); ++id)
+                    values[id - 1] = shapes.roles(id);
+                return out;
+            },
+            "Per shape, a mask of what it is played as. See ShapeRole.")
+        .def(
+            "shapes_with_role",
+            [](const pulseq::Sequence& self, uint32_t role) {
+                const pulseq::ShapeLibrary& shapes = self.shape_library();
+                std::vector<int32_t> found;
+                for (int id = 1; id <= shapes.size(); ++id)
+                    if (shapes.roles(id) & role)
+                        found.push_back(id);
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(found.size()), found.data());
+            },
+            py::arg("role"),
+            "The ids of every shape played as any of `role`, in id order.")
 
         /* -- extensions and labels ------------------------------------- */
         .def("extension_type_id", &pulseq::Sequence::extension_type_id, py::arg("name"),
@@ -222,20 +324,106 @@ PYBIND11_MODULE(_ext, module)
              py::arg("ref"), py::arg("next"))
 
         /* -- blocks ---------------------------------------------------- */
-        .def("add_block", &pulseq::Sequence::add_block, py::arg("block"),
-             "Append a block; returns its 1-based index.")
-        .def("set_block", &pulseq::Sequence::set_block, py::arg("index"), py::arg("block"))
+        /* -- reading the block table back -------------------------------- */
+        //
+        // Views, not copies: a million-row table costs nothing to read a
+        // column out of. The array owns a share of the buffer it points into,
+        // and the sequence copies that buffer before writing to it while a
+        // view is out, so a view is a snapshot. It never sees a later write
+        // and it never outlives its memory -- it stays valid even if the
+        // sequence itself is collected.
+        .def(
+            "block_events",
+            [](const pulseq::Sequence& self) {
+                auto buffer = self.block_events_buffer();
+                const int32_t* first = buffer->data();
+                return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH}, first,
+                                            keep_alive_capsule(std::move(buffer)));
+            },
+            "The block table as an (N, 6) snapshot: rf, gx, gy, gz, adc, ext.")
+        .def(
+            "block_durations",
+            [](const pulseq::Sequence& self) {
+                auto buffer = self.block_durations_buffer();
+                const double* first = buffer->data();
+                return py::array_t<double>({self.num_blocks()}, first,
+                                           keep_alive_capsule(std::move(buffer)));
+            },
+            "Every block's duration in seconds, as a snapshot.")
+        // A soft delay rewrites a block's duration and nothing else about it,
+        // so it gets a scalar setter rather than a rebuild of the block.
+        .def(
+            "set_block_duration",
+            [](pulseq::Sequence& self, int index, double seconds) {
+                if (index < 1 || index > self.num_blocks())
+                    throw py::index_error("block index out of range");
+                self.block_durations()[index - 1] = seconds;
+            },
+            py::arg("index"), py::arg("seconds"))
+
+        /* -- counts ------------------------------------------------------ */
+        .def("num_rf", [](const pulseq::Sequence& self) { return self.rf_library().size(); })
+        .def("num_gradients", &pulseq::Sequence::num_gradients)
+        .def("num_adc", [](const pulseq::Sequence& self) { return self.adc_library().size(); })
+        .def("num_triggers",
+             [](const pulseq::Sequence& self) { return self.trigger_library().size(); })
+        .def("num_rotations",
+             [](const pulseq::Sequence& self) { return self.rotation_library().size(); })
+        .def("num_extensions",
+             [](const pulseq::Sequence& self) { return self.extensions_library().size(); })
+        .def("num_label_set",
+             [](const pulseq::Sequence& self) { return self.label_set_library().size(); })
+        .def("num_label_inc",
+             [](const pulseq::Sequence& self) { return self.label_inc_library().size(); })
+        .def("num_shapes",
+             [](const pulseq::Sequence& self) { return self.shape_library().size(); })
+        .def("num_soft_delays", [](const pulseq::Sequence& self) {
+            return static_cast<int>(self.soft_delay_library().size());
+        })
+
+        // `add_block` is attached after the class rather than here, because it
+        // is METH_FASTCALL. See add_block_fast above.
+        .def(
+            "set_block",
+            [](pulseq::Sequence& self, int index, int32_t rf, int32_t gx, int32_t gy, int32_t gz,
+               int32_t adc, int32_t ext, double duration) {
+                pulseq::Block block;
+                block.rf = rf;
+                block.gx = gx;
+                block.gy = gy;
+                block.gz = gz;
+                block.adc = adc;
+                block.ext = ext;
+                block.duration = duration;
+                self.set_block(index, block);
+            },
+            py::arg("index"), py::arg("rf"), py::arg("gx"), py::arg("gy"), py::arg("gz"),
+            py::arg("adc"), py::arg("ext"), py::arg("duration"))
         .def("get_block", &pulseq::Sequence::get_block, py::arg("index"))
         .def("num_blocks", &pulseq::Sequence::num_blocks)
         .def("duration", &pulseq::Sequence::duration, "Total duration in seconds.")
         .def("remove_duplicates", &pulseq::Sequence::remove_duplicates,
+             py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
         .def("__len__", &pulseq::Sequence::num_blocks);
+
+    // METH_FASTCALL has no pybind11 spelling, so the descriptor is built by
+    // hand and bound onto the type the class just created.
+    {
+        PyTypeObject* type = reinterpret_cast<PyTypeObject*>(sequence_class.ptr());
+        sequence_class.attr("add_block") =
+            py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_fast_def));
+    }
 
     module.def(
         "write_text",
         [](pulseq::Sequence& sequence, bool create_signature) {
-            return py::bytes(pulseq::write_text(sequence, create_signature));
+            std::string written;
+            {
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_text(sequence, create_signature);
+            }
+            return py::bytes(written);
         },
         py::arg("sequence"), py::arg("create_signature") = true,
         "Serialize as a Pulseq `.seq` text file.");

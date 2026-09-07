@@ -238,6 +238,96 @@ def gre_with_soft_delay() -> Sequence:
     return seq
 
 
+def arbitrary_gradients() -> Sequence:
+    """Waveforms given sample by sample, so the file carries them as shapes."""
+    system = pp.Opts()
+    seq = Sequence(system)
+    turns = np.linspace(0, 6 * math.pi, 600)
+    # Windowed so every waveform starts and ends at zero: a gradient that
+    # stopped mid-amplitude would not be continuous with the next block.
+    envelope = np.hanning(600)
+    scale = 0.4 * system.max_grad
+    seq.add_block(
+        pp.make_arbitrary_grad("x", scale * envelope * np.cos(turns), system=system),
+        pp.make_arbitrary_grad("y", scale * envelope * np.sin(turns), system=system),
+    )
+    seq.add_block(pp.make_delay(1e-3))
+    seq.add_block(pp.make_arbitrary_grad("z", scale * np.hanning(400), system=system))
+    return seq
+
+
+def extended_trapezoids() -> Sequence:
+    """Gradients given as corner points, which carry a time shape with them."""
+    system = pp.Opts()
+    seq = Sequence(system)
+    amplitude = 0.3 * system.max_grad
+    seq.add_block(
+        pp.make_extended_trapezoid(
+            "x",
+            amplitudes=np.array([0.0, amplitude, amplitude, 0.0]),
+            times=np.array([0.0, 200e-6, 1.2e-3, 1.5e-3]),
+            system=system,
+        )
+    )
+    seq.add_block(
+        pp.make_extended_trapezoid(
+            "y",
+            amplitudes=np.array([0.0, -amplitude, amplitude, 0.0]),
+            times=np.array([0.0, 300e-6, 900e-6, 1.4e-3]),
+            system=system,
+        )
+    )
+    return seq
+
+
+def arbitrary_rf() -> Sequence:
+    """An RF pulse given sample by sample, with its own magnitude and phase."""
+    system = pp.Opts()
+    seq = Sequence(system)
+    samples = np.linspace(-3, 3, 500)
+    signal = np.sinc(samples) * np.exp(1j * 0.4 * math.pi * samples)
+    seq.add_block(
+        pp.make_arbitrary_rf(
+            signal=signal,
+            flip_angle=math.pi / 4,
+            dwell=10e-6,
+            use="excitation",
+            system=system,
+        )
+    )
+    seq.add_block(pp.make_delay(10e-3))
+    seq.add_block(
+        pp.make_arbitrary_rf(
+            signal=np.hanning(250).astype(complex),
+            flip_angle=math.pi,
+            dwell=10e-6,
+            use="refocusing",
+            system=system,
+        )
+    )
+    return seq
+
+
+def adc_with_phase_modulation() -> Sequence:
+    """An ADC whose phase is stepped sample by sample, carried as a shape."""
+    system = pp.Opts()
+    seq = Sequence(system)
+    samples = 128
+    modulation = np.linspace(0.0, 2 * math.pi, samples, endpoint=False)
+    gx = pp.make_trapezoid("x", flat_area=1000, flat_time=2.56e-3, system=system)
+    seq.add_block(
+        gx,
+        pp.make_adc(
+            num_samples=samples,
+            duration=gx.flat_time,
+            delay=gx.rise_time,
+            phase_modulation=modulation,
+            system=system,
+        ),
+    )
+    return seq
+
+
 def trapezoid_only() -> Sequence:
     """One trapezoid: the file ends on its `[TRAP]` section."""
     seq = Sequence()
@@ -273,6 +363,10 @@ ZOO = {
     "gre_with_label_set": gre_with_label_set,
     "gre_with_noise_scan": gre_with_noise_scan,
     "gre_with_soft_delay": gre_with_soft_delay,
+    "arbitrary_gradients": arbitrary_gradients,
+    "extended_trapezoids": extended_trapezoids,
+    "arbitrary_rf": arbitrary_rf,
+    "adc_with_phase_modulation": adc_with_phase_modulation,
     "trapezoid_only": trapezoid_only,
     "adc_only": adc_only,
     "extension_only": extension_only,

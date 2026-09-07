@@ -167,6 +167,7 @@ namespace pulseq
             peak = std::max(peak, std::fabs(samples[i]));
         num_uncompressed_.push_back(count);
         is_compressed_.push_back(0);
+        roles_.push_back(SHAPE_ROLE_NONE);
         first_.push_back(count > 0 ? samples[0] : 0.0);
         last_.push_back(count > 0 ? samples[count - 1] : 0.0);
         peak_.push_back(peak);
@@ -179,6 +180,7 @@ namespace pulseq
             return append_raw(samples, count);
         num_uncompressed_.push_back(count);
         is_compressed_.push_back(0);
+        roles_.push_back(SHAPE_ROLE_NONE);
         const int id = data_.append_divided(samples, count, divisor);
         const double* row = data_.row(id);
         first_.push_back(count > 0 ? row[0] : 0.0);
@@ -220,6 +222,7 @@ namespace pulseq
     {
         num_uncompressed_.push_back(num_uncompressed);
         is_compressed_.push_back(1);
+        roles_.push_back(SHAPE_ROLE_NONE);
         first_.push_back(std::numeric_limits<double>::quiet_NaN());
         last_.push_back(std::numeric_limits<double>::quiet_NaN());
         peak_.push_back(std::numeric_limits<double>::quiet_NaN());
@@ -259,6 +262,18 @@ namespace pulseq
         for (int id = 1; id <= total; ++id)
             keep[static_cast<size_t>(id) - 1] = first[static_cast<size_t>(id)] == id ? 1 : 0;
 
+        /* A shape that is about to be dropped carries its roles into the
+         * shape it merges with: after the merge that entry really is played
+         * both ways. `first` maps an id onto its first appearance, which is
+         * never later than it, so one increasing pass reaches the survivor
+         * before it is copied down. */
+        for (int id = 1; id <= total; ++id)
+        {
+            const int survivor = first[static_cast<size_t>(id)];
+            if (survivor != id)
+                roles_[static_cast<size_t>(survivor) - 1] |= roles_[static_cast<size_t>(id) - 1];
+        }
+
         std::vector<int32_t> new_id(static_cast<size_t>(total) + 1, 0);
         data_.compact(keep.data(), new_id.data());
         int kept = 0;
@@ -272,6 +287,7 @@ namespace pulseq
             first_[static_cast<size_t>(kept)] = first_[static_cast<size_t>(id) - 1];
             last_[static_cast<size_t>(kept)] = last_[static_cast<size_t>(id) - 1];
             peak_[static_cast<size_t>(kept)] = peak_[static_cast<size_t>(id) - 1];
+            roles_[static_cast<size_t>(kept)] = roles_[static_cast<size_t>(id) - 1];
             ++kept;
         }
         num_uncompressed_.resize(static_cast<size_t>(kept));
@@ -279,6 +295,7 @@ namespace pulseq
         first_.resize(static_cast<size_t>(kept));
         last_.resize(static_cast<size_t>(kept));
         peak_.resize(static_cast<size_t>(kept));
+        roles_.resize(static_cast<size_t>(kept));
         for (int id = 1; id <= total; ++id)
             new_id[static_cast<size_t>(id)] =
                 new_id[static_cast<size_t>(first[static_cast<size_t>(id)])];

@@ -183,6 +183,9 @@ namespace pulseq
     {
         deduplicated_ = false;
         rf_use_.push_back(use);
+        shapes_.mark(static_cast<int>(row[1]), SHAPE_ROLE_RF_MAGNITUDE);
+        shapes_.mark(static_cast<int>(row[2]), SHAPE_ROLE_RF_PHASE);
+        shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_RF_TIME);
         return rf_.append(row);
     }
 
@@ -197,6 +200,8 @@ namespace pulseq
     int Sequence::register_arbitrary(const double* row)
     {
         deduplicated_ = false;
+        shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_GRADIENT);
+        shapes_.mark(static_cast<int>(row[4]), SHAPE_ROLE_GRADIENT_TIME);
         const int slot = arb_.append(row);
         grad_slot_.push_back(-static_cast<int32_t>(slot));
         return static_cast<int>(grad_slot_.size());
@@ -205,6 +210,7 @@ namespace pulseq
     int Sequence::register_adc(const double* row)
     {
         deduplicated_ = false;
+        shapes_.mark(static_cast<int>(row[7]), SHAPE_ROLE_ADC_PHASE);
         return adc_.append(row);
     }
 
@@ -323,31 +329,33 @@ namespace pulseq
     int Sequence::add_block(const Block& block)
     {
         deduplicated_ = false;
-        blocks_.insert(
-            blocks_.end(),
+        detach_blocks_before_growth();
+        blocks_->insert(
+            blocks_->end(),
             {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext});
-        durations_.push_back(block.duration);
-        return static_cast<int>(durations_.size());
+        durations_->push_back(block.duration);
+        return static_cast<int>(durations_->size());
     }
 
     void Sequence::set_block(int index, const Block& block)
     {
         deduplicated_ = false;
         require_block(index, num_blocks());
-        int32_t* row = blocks_.data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+        detach_blocks();
+        int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
         row[0] = block.rf;
         row[1] = block.gx;
         row[2] = block.gy;
         row[3] = block.gz;
         row[4] = block.adc;
         row[5] = block.ext;
-        durations_[index - 1] = block.duration;
+        (*durations_)[index - 1] = block.duration;
     }
 
     Block Sequence::get_block(int index) const
     {
         require_block(index, num_blocks());
-        const int32_t* row = blocks_.data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+        const int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
         Block block;
         block.rf = row[0];
         block.gx = row[1];
@@ -355,15 +363,16 @@ namespace pulseq
         block.gz = row[3];
         block.adc = row[4];
         block.ext = row[5];
-        block.duration = durations_[index - 1];
+        block.duration = (*durations_)[index - 1];
         return block;
     }
 
     void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
     {
         deduplicated_ = false;
-        blocks_.assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
-        durations_.assign(durations, durations + count);
+        detach_blocks();
+        blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
+        durations_->assign(durations, durations + count);
     }
 
     void Sequence::set_grad_slots(const int32_t* slots, int count)
@@ -447,7 +456,7 @@ namespace pulseq
 
     double Sequence::duration() const
     {
-        return pairwise_sum(durations_.data(), durations_.size());
+        return pairwise_sum(durations_->data(), durations_->size());
     }
 
 } // namespace pulseq

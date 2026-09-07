@@ -7,6 +7,7 @@ exists only for the tests -- the package itself never imports upstream.
 Nothing here interprets a row. Upstream's libraries and the core's are the
 same libraries, in the same order, with the same columns, because both are the
 file format's; so the rows cross as they stand and their ids cross with them.
+
 Every registration is checked to have landed on the id it came from, since a
 renumbering would show up as a confusing diff much later.
 """
@@ -113,18 +114,17 @@ def to_core(seq) -> _ext.Sequence:
             "extension",
         )
 
+    add_block = core.add_block
     for identifier in sorted(seq.block_events):
         events = seq.block_events[identifier]
-        core.add_block(
-            _ext.Block(
-                rf=int(events[1]),
-                gx=int(events[2]),
-                gy=int(events[3]),
-                gz=int(events[4]),
-                adc=int(events[5]),
-                ext=int(events[6]),
-                duration=float(seq.block_durations[identifier]),
-            )
+        add_block(
+            int(events[1]),
+            int(events[2]),
+            int(events[3]),
+            int(events[4]),
+            int(events[5]),
+            int(events[6]),
+            float(seq.block_durations[identifier]),
         )
 
     return core

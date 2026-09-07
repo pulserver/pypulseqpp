@@ -60,6 +60,55 @@ macOS and Windows and an end user never needs a compiler.
 **Python targets 3.10+.** Python code is the API surface and the glue; a loop
 over blocks in Python is a bug, not a slow path.
 
+## Performance
+
+The design loop is the hot path: one call per block, and a protocol-scale scan
+has millions of them. Two rules follow, and both are easy to undo by accident.
+
+**A per-block call is bound by hand with `METH_FASTCALL`, not by pybind11.**
+The arguments arrive as a C array of borrowed references, so nothing is
+allocated and no tuple is built. `add_block` is bound this way, and
+`test_adding_a_block_goes_through_the_fast_calling_convention` fails if it
+stops being. Passing a bound object per block instead costs an order of
+magnitude, because constructing that object is then the whole call.
+
+**The block table is read back as a view, not a copy.** `block_events` and
+`block_durations` return arrays pointing straight into the table, which is
+what keeps a million-row table free to read a column out of. The array owns a
+share of the buffer and the table is copied before it is written while a view
+is out, so a view is a snapshot: it does not see later writes, and it stays
+valid even if the sequence is collected. The copy-before-write check is a
+capacity comparison on the per-block path and an atomic one only when the
+table actually grows -- keep it that way.
+
+**A call that does real work releases the GIL.** Deduplication, shape
+compression and writing all run without it.
+
+`benchmarks/throughput.py` reports what a block costs. Run it before and after
+touching the bindings, and quote what came back rather than asserting an
+improvement.
+
+The registration calls are the remaining cost: a design loop that registers
+each event from Python pays a binding crossing per event. The answer is
+`add_block_events(*events)`, one fastcall that unpacks compiled event objects
+and registers them inside C++, so a block costs one crossing rather than one
+per event. That needs the compiled event types, so it lands with the Python
+API rather than before it.
+
+## What a shape is played as
+
+A `[SHAPES]` entry does not say what it is; the file says so only where an
+event refers to it. Each entry therefore carries a mask of `ShapeRole`, set
+where the reference is made -- `register_rf` marks its magnitude, phase and
+time shapes, `register_arbitrary` its waveform and times, `register_adc` its
+phase modulation -- so "every gradient waveform" is answered without walking
+the event libraries. A file read back fills the mask in on the way past,
+because reading registers its events too, and nothing in the format changes.
+
+It is a mask rather than a tag because deduplication merges shapes holding the
+same numbers, and the merge ORs the roles: after it, one entry really is
+played both ways.
+
 ## Tests
 
 pytest with plain functions and fixtures — never `unittest.TestCase`. A test
@@ -74,6 +123,12 @@ Two invariants hold everything else up, and each has a test:
   collapsing identical library rows and disagrees after has a renumbering bug
   rather than a writing bug. A new event kind is not finished until it appears
   in a sequence in `tests/reference.py`.
+
+  One divergence is deliberate and has a test of its own. Upstream's
+  deduplication softens a logarithm with a `1e-12` floor, so a sample below
+  that keeps four significant digits where nine were asked for. This package
+  does not floor, and writes the sample the pulse plays.
+  `BLUNTED_BY_UPSTREAM` names the reference sequences that reach it.
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.
