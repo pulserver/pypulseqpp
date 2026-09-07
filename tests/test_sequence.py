@@ -1,0 +1,127 @@
+"""The event libraries and the block table.
+
+A sequence is libraries of events plus a table saying which of them play
+together and for how long. These tests hold the parts of that model a caller
+depends on: that ids are handed out in append order, that a block keeps the
+ids it was given, and that collapsing duplicates renumbers every reference to
+them without changing what plays.
+"""
+
+import numpy as np
+import pytest
+
+from pypulseqpp import _ext
+
+TRAPEZOID = np.array([1.0e6, 100e-6, 1.0e-3, 100e-6, 0.0])
+BLOCK_DURATION = 1.2e-3
+
+
+@pytest.fixture
+def sequence():
+    return _ext.Sequence()
+
+
+def test_a_new_sequence_holds_nothing(sequence):
+    assert sequence.num_blocks() == 0
+    assert len(sequence) == 0
+    assert sequence.duration() == 0.0
+
+
+def test_ids_are_handed_out_in_append_order(sequence):
+    assert sequence.register_trap(TRAPEZOID) == 1
+    assert sequence.register_trap(TRAPEZOID * 2) == 2
+    assert sequence.register_trap(TRAPEZOID * 3) == 3
+
+
+def test_an_identical_row_gets_an_id_of_its_own(sequence):
+    first = sequence.register_trap(TRAPEZOID)
+    assert sequence.register_trap(TRAPEZOID) != first
+
+
+def test_a_block_keeps_the_event_ids_it_was_given(sequence):
+    sequence.register_trap(TRAPEZOID)
+    sequence.add_block(_ext.Block(gx=1, duration=BLOCK_DURATION))
+
+    block = sequence.get_block(1)
+    assert (block.gx, block.rf, block.gy, block.gz, block.adc, block.ext) == (
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+    )
+    assert block.duration == pytest.approx(BLOCK_DURATION)
+
+
+def test_block_indices_start_at_one(sequence):
+    indices = [
+        sequence.add_block(_ext.Block(duration=BLOCK_DURATION)) for _ in range(3)
+    ]
+    assert indices == [1, 2, 3]
+
+
+def test_the_duration_is_the_sum_of_the_blocks(sequence):
+    for _ in range(4):
+        sequence.add_block(_ext.Block(duration=BLOCK_DURATION))
+    assert sequence.duration() == pytest.approx(4 * BLOCK_DURATION)
+
+
+def test_collapsing_duplicates_renumbers_the_blocks_that_referenced_them(sequence):
+    sequence.register_trap(TRAPEZOID)
+    sequence.register_trap(TRAPEZOID)
+    sequence.register_trap(TRAPEZOID * 2)
+    for identifier in (1, 2, 3):
+        sequence.add_block(_ext.Block(gx=identifier, duration=BLOCK_DURATION))
+
+    sequence.remove_duplicates()
+
+    referenced = [sequence.get_block(index).gx for index in (1, 2, 3)]
+    assert referenced == [1, 1, 2]
+
+
+def test_collapsing_duplicates_leaves_the_blocks_alone(sequence):
+    sequence.register_trap(TRAPEZOID)
+    sequence.register_trap(TRAPEZOID)
+    for identifier in (1, 2):
+        sequence.add_block(_ext.Block(gx=identifier, duration=BLOCK_DURATION))
+
+    sequence.remove_duplicates()
+
+    assert sequence.num_blocks() == 2
+    assert sequence.duration() == pytest.approx(2 * BLOCK_DURATION)
+
+
+def test_text_definitions_round_trip(sequence):
+    sequence.set_definition("Name", "demo")
+    assert sequence.definitions()["Name"] == "demo"
+
+
+def test_numeric_definitions_round_trip_as_a_list(sequence):
+    sequence.set_definition("FOV", [0.256, 0.256, 0.005])
+    sequence.set_definition("TE", 0.005)
+
+    definitions = sequence.definitions()
+    assert definitions["FOV"] == pytest.approx([0.256, 0.256, 0.005])
+    assert definitions["TE"] == pytest.approx([0.005])
+
+
+def test_label_ids_are_the_numbers_the_file_format_carries(sequence):
+    assert sequence.label_id("SLC") == 1
+    assert sequence.label_id("LIN") == 8
+    assert sequence.label_id("NOISE") == 16
+
+
+def test_a_label_id_maps_back_to_its_name(sequence):
+    assert sequence.label_name(sequence.label_id("LIN")) == "LIN"
+
+
+def test_extension_ids_are_minted_in_the_order_they_are_asked_for(sequence):
+    assert sequence.extension_type_id("LABELSET") == 1
+    assert sequence.extension_type_id("TRIGGERS") == 2
+    assert sequence.extension_type_id("LABELSET") == 1
+
+
+def test_an_extension_id_can_be_pinned_to_match_a_file(sequence):
+    sequence.set_extension_type_id("DELAYS", 3)
+    assert sequence.extension_type_id("DELAYS") == 3

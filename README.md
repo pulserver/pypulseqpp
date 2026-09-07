@@ -34,8 +34,14 @@ Linux, macOS and Windows, so no compiler is needed to install.
 
 ## Status
 
-Scaffold. The core is being moved here from Pulserver; nothing is importable
-beyond the version yet.
+Early. The compiled core holds the event libraries, the block table, the shape
+codec and the text writer, and what it writes is byte-identical to PyPulseq on
+every sequence in the reference zoo, signature included. The PyPulseq-shaped
+Python API over it is being written: today the core is reachable only as
+`pypulseqpp._ext`, so a design script cannot yet run against this package.
+
+Still to come: the reader, the binary writer, k-space and moments, and the
+safety engine.
 
 ## Install
 
