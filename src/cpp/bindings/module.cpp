@@ -471,6 +471,38 @@ PYBIND11_MODULE(_ext, module)
             },
             py::arg("events"), py::arg("durations"))
 
+        /* -- reading the block table back -------------------------------- */
+        //
+        // Views, not copies: the caller reads columns out of them, and the
+        // array holds a reference to the sequence so it cannot outlive what it
+        // points into. Copying a million-row block table to read one column
+        // would cost more than everything the caller then does with it.
+        .def(
+            "block_events",
+            [](pulseq::Sequence& self) {
+                return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH},
+                                            self.block_events(),
+                                            py::cast(&self, py::return_value_policy::reference));
+            },
+            "The block table as an (N, 6) view: rf, gx, gy, gz, adc, ext.")
+        .def(
+            "block_durations",
+            [](pulseq::Sequence& self) {
+                return py::array_t<double>({self.num_blocks()}, self.block_durations(),
+                                           py::cast(&self, py::return_value_policy::reference));
+            },
+            "Every block's duration in seconds, as a view.")
+        // A soft delay rewrites a block's duration and nothing else about it,
+        // so it gets a scalar setter rather than a rebuild of the block.
+        .def(
+            "set_block_duration",
+            [](pulseq::Sequence& self, int index, double seconds) {
+                if (index < 1 || index > self.num_blocks())
+                    throw py::index_error("block index out of range");
+                self.block_durations()[index - 1] = seconds;
+            },
+            py::arg("index"), py::arg("seconds"))
+
         /* -- counts ------------------------------------------------------ */
         .def("num_rf", [](const pulseq::Sequence& self) { return self.rf_library().size(); })
         .def("num_gradients", &pulseq::Sequence::num_gradients)

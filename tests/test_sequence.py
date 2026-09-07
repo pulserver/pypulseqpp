@@ -131,3 +131,78 @@ def test_adding_a_block_goes_through_the_fast_calling_convention():
     # through pybind11. A pybind11 binding would show up here as a
     # builtin_function_or_method, and would cost an order of magnitude more.
     assert type(_ext.Sequence.add_block).__name__ == "method_descriptor"
+
+
+def test_the_block_table_is_read_back_without_copying(sequence):
+    sequence.register_trap(TRAPEZOID)
+    for _ in range(3):
+        sequence.add_block(0, 1, 0, 0, 0, 0, BLOCK_DURATION)
+
+    events = sequence.block_events()
+    durations = sequence.block_durations()
+
+    assert events.shape == (3, 6)
+    assert durations.shape == (3,)
+    # The array points into the sequence and holds it alive, so a million-row
+    # table costs nothing to read a column out of.
+    assert events.base is sequence
+    assert durations.base is sequence
+
+
+def test_rewriting_one_block_duration_shows_in_the_view(sequence):
+    sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
+    sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
+    durations = sequence.block_durations()
+
+    sequence.set_block_duration(2, 5e-3)
+
+    assert durations[1] == pytest.approx(5e-3)
+    assert sequence.get_block(2).duration == pytest.approx(5e-3)
+
+
+def test_rewriting_a_block_outside_the_table_is_refused(sequence):
+    sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
+    with pytest.raises(IndexError):
+        sequence.set_block_duration(9, 1e-3)
+
+
+def test_a_bulk_load_and_a_row_by_row_load_hold_the_same_block_table():
+    trapezoids = np.tile(TRAPEZOID, (4, 1)) * np.linspace(1.0, 2.0, 4)[:, None]
+    slots = np.arange(1, 5, dtype=np.int32)
+    events = np.zeros((4, 6), dtype=np.int32)
+    events[:, 1] = slots
+    durations = np.full(4, BLOCK_DURATION)
+
+    bulk = _ext.Sequence()
+    bulk.set_gradients(trapezoids, np.zeros((0, 6)), slots)
+    bulk.set_blocks(events, durations)
+
+    row_by_row = _ext.Sequence()
+    for row in trapezoids:
+        row_by_row.register_trap(row)
+    for identifier in range(1, 5):
+        row_by_row.add_block(0, identifier, 0, 0, 0, 0, BLOCK_DURATION)
+
+    np.testing.assert_array_equal(bulk.block_events(), row_by_row.block_events())
+    np.testing.assert_allclose(bulk.block_durations(), row_by_row.block_durations())
+    assert _ext.write_text(bulk, True) == _ext.write_text(row_by_row, True)
+
+
+def test_a_block_table_with_pulseqs_seven_columns_drops_the_legacy_delay_id():
+    # Upstream keeps a leading column for the delay id that Pulseq 1.5 no
+    # longer writes. Both widths must load to the same table.
+    wide = np.zeros((3, 7), dtype=np.int32)
+    wide[:, 0] = 99  # the legacy column, which must be ignored
+    wide[:, 2] = 1  # gx
+    durations = np.full(3, BLOCK_DURATION)
+
+    from_wide = _ext.Sequence()
+    from_wide.register_trap(TRAPEZOID)
+    from_wide.set_blocks(wide, durations)
+
+    from_narrow = _ext.Sequence()
+    from_narrow.register_trap(TRAPEZOID)
+    from_narrow.set_blocks(np.ascontiguousarray(wide[:, 1:]), durations)
+
+    np.testing.assert_array_equal(from_wide.block_events(), from_narrow.block_events())
+    assert from_wide.get_block(1).gx == 1
