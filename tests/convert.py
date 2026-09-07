@@ -8,12 +8,8 @@ Nothing here interprets a row. Upstream's libraries and the core's are the
 same libraries, in the same order, with the same columns, because both are the
 file format's; so the rows cross as they stand and their ids cross with them.
 
-There are two ways across, and the tests use both. :func:`to_core` registers
-one row at a time and checks each landed on the id it came from, which is what
-catches a renumbering. :func:`to_core_bulk` hands each library over as one
-array, which is the path a real protocol takes: registering millions of rows
-one at a time costs more than everything else put together. The two must
-produce the same file.
+Every registration is checked to have landed on the id it came from, since a
+renumbering would show up as a confusing diff much later.
 """
 
 from __future__ import annotations
@@ -131,119 +127,4 @@ def to_core(seq) -> _ext.Sequence:
             float(seq.block_durations[identifier]),
         )
 
-    return core
-
-
-def _gradient_tables(seq):
-    """Upstream's one gradient library as the core's two, plus the slot map.
-
-    A trapezoid and an arbitrary gradient share one numbering in the file, so
-    the core keeps two fixed-width tables and a map from the shared id onto
-    whichever row is real: positive indexes the trapezoids, negative the
-    arbitrary waveforms, both 1-based.
-    """
-    traps: list[np.ndarray] = []
-    arbitrary: list[np.ndarray] = []
-    slots: list[int] = []
-    for identifier in sorted(seq.grad_library.data):
-        row = np.asarray(seq.grad_library.data[identifier], dtype=float)
-        if seq.grad_library.type[identifier] == "t":
-            traps.append(row)
-            slots.append(len(traps))
-        else:
-            arbitrary.append(row)
-            slots.append(-len(arbitrary))
-    return (
-        np.asarray(traps, dtype=float).reshape(len(traps), 5),
-        np.asarray(arbitrary, dtype=float).reshape(len(arbitrary), 6),
-        np.asarray(slots, dtype=np.int32),
-    )
-
-
-def _shape_arrays(seq):
-    """The shape library as sample counts, offsets and one flat sample array."""
-    counts: list[int] = []
-    samples: list[np.ndarray] = []
-    starts = [0]
-    for identifier in sorted(seq.shape_library.data):
-        row = np.asarray(seq.shape_library.data[identifier], dtype=float)
-        counts.append(int(row[0]))
-        samples.append(row[1:])
-        starts.append(starts[-1] + len(row) - 1)
-    flat = np.concatenate(samples) if samples else np.zeros(0)
-    return np.asarray(counts, dtype=np.int32), np.asarray(starts, dtype=np.int32), flat
-
-
-def _int_rows(library, width):
-    """A whole-number library as one (N, width) int32 array, in id order."""
-    rows = [
-        np.asarray(library.data[key], dtype=np.int32) for key in sorted(library.data)
-    ]
-    return np.asarray(rows, dtype=np.int32).reshape(len(rows), width)
-
-
-def _float_rows(library, width):
-    """A real-valued library as one (N, width) float array, in id order."""
-    rows = [
-        np.asarray(library.data[key], dtype=float)[:width]
-        for key in sorted(library.data)
-    ]
-    return np.asarray(rows, dtype=float).reshape(len(rows), width)
-
-
-def to_core_bulk(seq) -> _ext.Sequence:
-    """The same sequence, loaded one library at a time rather than one row.
-
-    Parameters
-    ----------
-    seq
-        An upstream :class:`pypulseq.Sequence`.
-
-    Returns
-    -------
-    _ext.Sequence
-        The same libraries, block table and definitions.
-    """
-    core = _ext.Sequence()
-    core.set_rasters(
-        seq.rf_raster_time,
-        seq.grad_raster_time,
-        seq.adc_raster_time,
-        seq.block_duration_raster,
-    )
-    for key, value in seq.definitions.items():
-        core.set_definition(key, value)
-
-    core.set_shapes(*_shape_arrays(seq))
-
-    uses = "".join(
-        seq.rf_library.type.get(key, "u") for key in sorted(seq.rf_library.data)
-    )
-    core.set_rf(_float_rows(seq.rf_library, 10), uses)
-    core.set_gradients(*_gradient_tables(seq))
-    core.set_adc(_float_rows(seq.adc_library, _ADC_COLUMNS))
-    core.set_triggers(_float_rows(seq.trigger_library, 4))
-    core.set_label_set(_int_rows(seq.label_set_library, 2))
-    core.set_label_inc(_int_rows(seq.label_inc_library, 2))
-
-    delays = [
-        seq.soft_delay_library.data[key] for key in sorted(seq.soft_delay_library.data)
-    ]
-    core.set_soft_delays(
-        [int(row[0]) for row in delays],
-        [float(row[1]) for row in delays],
-        [float(row[2]) for row in delays],
-        [str(row[3]) for row in delays],
-    )
-
-    for identifier, name in zip(
-        seq.extension_numeric_idx, seq.extension_string_idx, strict=True
-    ):
-        core.set_extension_type_id(name, identifier)
-    core.set_extensions(_int_rows(seq.extensions_library, 3))
-
-    order = sorted(seq.block_events)
-    events = np.asarray([seq.block_events[key] for key in order], dtype=np.int32)
-    durations = np.asarray([seq.block_durations[key] for key in order], dtype=float)
-    core.set_blocks(events.reshape(len(order), -1), durations)
     return core
