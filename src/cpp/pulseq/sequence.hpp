@@ -158,6 +158,71 @@ namespace pulseq
     using IntTable = BasicTable<int32_t>;
 
     /**
+     * A vector that is handed out as a view and copied before it is written.
+     *
+     * The block table is read back as a NumPy array pointing straight into it,
+     * which is what keeps a million-row table free to read a column out of.
+     * The array holds a share of the buffer, so growing or rewriting the table
+     * copies it first and the array keeps reading what it was given: a
+     * snapshot, never a pointer into memory that has been freed.
+     *
+     * Copying one of these copies the buffer, so two sequences never share a
+     * table; the only thing that ever shares one is a view.
+     */
+    template <typename T> class CowVector
+    {
+    public:
+        CowVector() : data_(std::make_shared<std::vector<T>>())
+        {
+        }
+        CowVector(const CowVector& other)
+            : data_(std::make_shared<std::vector<T>>(*other.data_))
+        {
+        }
+        CowVector& operator=(const CowVector& other)
+        {
+            if (this != &other)
+                data_ = std::make_shared<std::vector<T>>(*other.data_);
+            return *this;
+        }
+        CowVector(CowVector&&) noexcept = default;
+        CowVector& operator=(CowVector&&) noexcept = default;
+
+        std::vector<T>* operator->()
+        {
+            return data_.get();
+        }
+        const std::vector<T>* operator->() const
+        {
+            return data_.get();
+        }
+        std::vector<T>& operator*()
+        {
+            return *data_;
+        }
+        const std::vector<T>& operator*() const
+        {
+            return *data_;
+        }
+
+        /** The buffer, for a caller handing out a view that must outlive us. */
+        std::shared_ptr<const std::vector<T>> buffer() const
+        {
+            return data_;
+        }
+
+        /** Take a private copy if anything else holds this buffer. */
+        void detach()
+        {
+            if (data_.use_count() > 1)
+                data_ = std::make_shared<std::vector<T>>(*data_);
+        }
+
+    private:
+        std::shared_ptr<std::vector<T>> data_;
+    };
+
+    /**
      * A library whose rows differ in length: shapes, and pTx shim vectors.
      *
      * Kept as one sample array plus a row-start index, so a row is a pointer
@@ -731,7 +796,7 @@ namespace pulseq
 
         int num_blocks() const
         {
-            return static_cast<int>(durations_.size());
+            return static_cast<int>(durations_->size());
         }
 
         /** Append @p block.  @return its 1-based index. */
@@ -798,21 +863,34 @@ namespace pulseq
         /** Raw block table, row-major, BLOCK_WIDTH per block. */
         const int32_t* block_events() const
         {
-            return blocks_.data();
+            return blocks_->data();
         }
         int32_t* block_events()
         {
             deduplicated_ = false;
-            return blocks_.data();
+            detach_blocks();
+            return blocks_->data();
         }
         const double* block_durations() const
         {
-            return durations_.data();
+            return durations_->data();
         }
         double* block_durations()
         {
             deduplicated_ = false;
-            return durations_.data();
+            detach_blocks();
+            return durations_->data();
+        }
+
+        /** The block table's buffers, for a caller that hands out a view over
+         *  them and needs them to outlive this sequence. */
+        std::shared_ptr<const std::vector<int32_t>> block_events_buffer() const
+        {
+            return blocks_.buffer();
+        }
+        std::shared_ptr<const std::vector<double>> block_durations_buffer() const
+        {
+            return durations_.buffer();
         }
 
         /* -- gradients --------------------------------------------------- */
@@ -1012,8 +1090,30 @@ namespace pulseq
         /** Extension chain rows by value, so a repeated chain costs one row. */
         std::map<std::array<int32_t, EXTENSION_WIDTH>, int> chain_index_;
 
-        std::vector<int32_t> blocks_;
-        std::vector<double> durations_;
+        CowVector<int32_t> blocks_;
+        CowVector<double> durations_;
+
+        /** Take a private copy of the block table if anything else holds it. */
+        void detach_blocks()
+        {
+            blocks_.detach();
+            durations_.detach();
+        }
+
+        /** Detach only if appending one block would move the table.
+         *
+         * Appending cannot reach a view unless it reallocates, and a capacity
+         * comparison is a plain load where checking for a shared buffer is an
+         * atomic one. This is on the per-block path, so it is the comparison
+         * that runs every time and the atomic that runs only when the table
+         * grows.
+         */
+        void detach_blocks_before_growth()
+        {
+            if (blocks_->capacity() - blocks_->size() < static_cast<size_t>(BLOCK_WIDTH) ||
+                durations_->capacity() == durations_->size())
+                detach_blocks();
+        }
 
         /** See deduplicated(); false until remove_duplicates() says otherwise. */
         bool deduplicated_ = false;

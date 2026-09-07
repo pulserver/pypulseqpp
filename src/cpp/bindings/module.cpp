@@ -12,6 +12,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -36,6 +37,15 @@ namespace
                 std::string(what) + " takes exactly " + std::to_string(width) +
                 " values, got " + std::to_string(values.size()));
         return values.data();
+    }
+
+    /** A capsule owning @p buffer, so an array over it keeps it alive. */
+    template <typename T> py::capsule keep_alive_capsule(std::shared_ptr<const T> buffer)
+    {
+        auto* held = new std::shared_ptr<const T>(std::move(buffer));
+        return py::capsule(held, [](void* owned) {
+            delete static_cast<std::shared_ptr<const T>*>(owned);
+        });
     }
 
     /**
@@ -279,34 +289,30 @@ PYBIND11_MODULE(_ext, module)
         /* -- blocks ---------------------------------------------------- */
         /* -- reading the block table back -------------------------------- */
         //
-        // Views, not copies: the caller reads columns out of them, and the
-        // array holds a reference to the sequence so the sequence cannot be
-        // collected while a view is alive. Copying a million-row block table
-        // to read one column would cost more than everything the caller then
-        // does with it.
-        //
-        // A view is only valid until the block table grows. Adding a block can
-        // move the table, and a view taken before that points at memory that
-        // has been freed. The reference the array holds keeps the sequence
-        // alive; it does not keep the table where it was. Take the view after
-        // the last add_block, or take it again.
+        // Views, not copies: a million-row table costs nothing to read a
+        // column out of. The array owns a share of the buffer it points into,
+        // and the sequence copies that buffer before writing to it while a
+        // view is out, so a view is a snapshot. It never sees a later write
+        // and it never outlives its memory -- it stays valid even if the
+        // sequence itself is collected.
         .def(
             "block_events",
-            [](pulseq::Sequence& self) {
-                return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH},
-                                            self.block_events(),
-                                            py::cast(&self, py::return_value_policy::reference));
+            [](const pulseq::Sequence& self) {
+                auto buffer = self.block_events_buffer();
+                const int32_t* first = buffer->data();
+                return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH}, first,
+                                            keep_alive_capsule(std::move(buffer)));
             },
-            "The block table as an (N, 6) view: rf, gx, gy, gz, adc, ext. Invalid "
-            "once a further block is added.")
+            "The block table as an (N, 6) snapshot: rf, gx, gy, gz, adc, ext.")
         .def(
             "block_durations",
-            [](pulseq::Sequence& self) {
-                return py::array_t<double>({self.num_blocks()}, self.block_durations(),
-                                           py::cast(&self, py::return_value_policy::reference));
+            [](const pulseq::Sequence& self) {
+                auto buffer = self.block_durations_buffer();
+                const double* first = buffer->data();
+                return py::array_t<double>({self.num_blocks()}, first,
+                                           keep_alive_capsule(std::move(buffer)));
             },
-            "Every block's duration in seconds, as a view. Invalid once a further "
-            "block is added.")
+            "Every block's duration in seconds, as a snapshot.")
         // A soft delay rewrites a block's duration and nothing else about it,
         // so it gets a scalar setter rather than a rebuild of the block.
         .def(

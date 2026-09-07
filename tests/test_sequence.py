@@ -143,21 +143,46 @@ def test_the_block_table_is_read_back_without_copying(sequence):
 
     assert events.shape == (3, 6)
     assert durations.shape == (3,)
-    # The array points into the sequence and holds it alive, so a million-row
-    # table costs nothing to read a column out of.
-    assert events.base is sequence
-    assert durations.base is sequence
+    np.testing.assert_array_equal(events[:, 1], [1, 1, 1])
+    np.testing.assert_allclose(durations, BLOCK_DURATION)
 
 
-def test_rewriting_one_block_duration_shows_in_the_view(sequence):
+def test_a_view_is_a_snapshot_that_later_writes_do_not_reach(sequence):
     sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
     sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
-    durations = sequence.block_durations()
+    taken_before = sequence.block_durations()
 
     sequence.set_block_duration(2, 5e-3)
 
-    assert durations[1] == pytest.approx(5e-3)
+    assert taken_before[1] == pytest.approx(BLOCK_DURATION)
+    assert sequence.block_durations()[1] == pytest.approx(5e-3)
     assert sequence.get_block(2).duration == pytest.approx(5e-3)
+
+
+def test_a_view_stays_valid_when_the_block_table_grows(sequence):
+    for _ in range(4):
+        sequence.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
+    taken_before = sequence.block_durations()
+
+    # Growing the table moves it. The view holds the buffer it was taken over,
+    # so it reads what it always read rather than freed memory.
+    for _ in range(10_000):
+        sequence.add_block(0, 0, 0, 0, 0, 0, 2e-3)
+
+    assert len(taken_before) == 4
+    np.testing.assert_allclose(taken_before, BLOCK_DURATION)
+    assert sequence.num_blocks() == 10_004
+
+
+def test_a_view_outlives_the_sequence_it_was_taken_from():
+    short_lived = _ext.Sequence()
+    for _ in range(3):
+        short_lived.add_block(0, 0, 0, 0, 0, 0, BLOCK_DURATION)
+    durations = short_lived.block_durations()
+
+    del short_lived
+
+    np.testing.assert_allclose(durations, BLOCK_DURATION)
 
 
 def test_rewriting_a_block_outside_the_table_is_refused(sequence):

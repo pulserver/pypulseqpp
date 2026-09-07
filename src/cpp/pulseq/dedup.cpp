@@ -777,7 +777,7 @@ namespace pulseq
         // never registered is a corrupt sequence, and the bounds test costs
         // nothing beside the six scattered lookups it guards.  Saying which
         // block and which library is the whole value of noticing at all.
-        const size_t blocks = durations_.size();
+        const size_t blocks = durations_->size();
         const auto follow =
             [](const std::vector<int32_t>& map, int32_t id, const char* what, size_t block)
         {
@@ -789,7 +789,7 @@ namespace pulseq
         };
         for (size_t b = 0; b < blocks; ++b)
         {
-            int32_t* row = blocks_.data() + b * BLOCK_WIDTH;
+            int32_t* row = blocks_->data() + b * BLOCK_WIDTH;
             row[0] = follow(rf_map, row[0], "RF event", b);
             row[1] = follow(grad_map, row[1], "gradient", b);
             row[2] = follow(grad_map, row[2], "gradient", b);

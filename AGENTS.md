@@ -73,10 +73,13 @@ stops being. Passing a bound object per block instead costs an order of
 magnitude, because constructing that object is then the whole call.
 
 **The block table is read back as a view, not a copy.** `block_events` and
-`block_durations` point into the sequence's own arrays. A view is valid only
-until the table grows: adding a block can move it, and the reference the array
-holds keeps the sequence alive without keeping the table where it was. Take
-the view after the last `add_block`.
+`block_durations` return arrays pointing straight into the table, which is
+what keeps a million-row table free to read a column out of. The array owns a
+share of the buffer and the table is copied before it is written while a view
+is out, so a view is a snapshot: it does not see later writes, and it stays
+valid even if the sequence is collected. The copy-before-write check is a
+capacity comparison on the per-block path and an atomic one only when the
+table actually grows -- keep it that way.
 
 **A call that does real work releases the GIL.** Deduplication, shape
 compression and writing all run without it.
