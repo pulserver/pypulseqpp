@@ -39,3 +39,41 @@ three further questions, none of which is a raster question:
   a check that writes to the sequence it is judging is a surprise, so if this
   is wanted it should be split into a check and a `set_definition` the caller
   makes.
+
+## The rest of `Sequence`
+
+The one-line methods, the aliases and the no-ops are in. What is left, by
+what it would take:
+
+**Real work, and nothing else needs it first.**
+
+- `mod_grad_axis(axis, modifier)` and `flip_grad_axis(axis)`, which scale
+  every gradient played on one axis. The scaling is a column of the trapezoid
+  and arbitrary libraries; what makes it work rather than arithmetic is that
+  a row played on two axes cannot be scaled for one of them, so those have to
+  be found and refused.
+- `apply_soft_delay(**kwargs)` and `get_default_soft_delay_values()`, which
+  turn a named soft delay into the block duration it stands for.
+- `register_rf_event` and its six siblings, which take a decoded event and
+  hand back the library ids it was stored under. The core registers from
+  rows, and `add_block_events` already builds those rows inside C++, so this
+  is exposing that path one event at a time rather than writing it again.
+- `get_raw_block_content_IDs(block_index)`, one row of the block table.
+
+**A decision before an implementation.**
+
+- `block_events`. The toolboxes hand back a dict from block index to a row of
+  seven ids, and a design script writes `for i in seq.block_events`. Here the
+  block table is a view, and building a dict of a million rows to hand it out
+  would undo what the view is for. Until that is settled the name is absent,
+  which is loud, rather than present and shaped differently, which is not.
+- `detect_rf_use` when reading a file older than 1.5.0. The flag is accepted
+  and warned about; honouring it means guessing what a pulse is for from its
+  flip angle, the way the toolbox does.
+- `install`, `sound`, `test_report` and `test_report_dict`, which nobody has
+  ruled on yet.
+
+**Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
+`calc_rf_power` -- and plotting and analysis -- `plot`, `paper_plot`,
+`calculate_kspace`, `auto_label`, `evaluate_labels`, `get_gradients`,
+`waveforms`, `waveforms_and_times`, `adc_times`, `rf_times`.

@@ -452,6 +452,8 @@ PYBIND11_MODULE(_ext, module)
              "The id for an extension name, minting one if it is new.")
         .def("set_extension_type_id", &Sequence::set_extension_type_id, py::arg("name"),
              py::arg("id"), "Pin an extension name to a chosen id.")
+        .def("extension_type_name", &Sequence::extension_type_name, py::arg("id"),
+             "The name an extension id stands for.")
         .def("label_id", &Sequence::label_id, py::arg("name"),
              "The id for a label name, minting one if it is not built in.")
         .def("label_name", &Sequence::label_name, py::arg("id"))
