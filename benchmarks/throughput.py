@@ -44,6 +44,16 @@ def register_trapezoids(count: int) -> None:
         register(TRAPEZOID * (1.0 + scale))
 
 
+def register_scaled_trapezoids(count: int) -> None:
+    """What a phase-encode loop registers: one timing at many amplitudes."""
+    sequence = _ext.Sequence()
+    register = sequence.register_trap
+    row = TRAPEZOID.copy()
+    for step in range(count):
+        row[0] = 1.0 + step
+        register(row)
+
+
 def write_a_scan(count: int) -> None:
     sequence = _ext.Sequence()
     sequence.register_trap(TRAPEZOID)
@@ -57,6 +67,7 @@ def main() -> None:
     measurements = [
         ("add_block", add_blocks, 1_000_000),
         ("register_trap", register_trapezoids, 200_000),
+        ("register_trap, scaled", register_scaled_trapezoids, 200_000),
         ("add_block + write_text", write_a_scan, 200_000),
     ]
     print(f"{'call':24s} {'ns/block':>10s} {'M blocks/s':>12s}")

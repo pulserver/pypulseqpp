@@ -401,6 +401,37 @@ PYBIND11_MODULE(_ext, module)
             py::arg("adc"), py::arg("ext"), py::arg("duration"))
         .def("get_block", &pulseq::Sequence::get_block, py::arg("index"))
         .def("num_blocks", &pulseq::Sequence::num_blocks)
+
+        /* -- definitions and instances --------------------------------- */
+        .def("num_block_definitions", &pulseq::Sequence::num_block_definitions,
+             "How many distinct block structures the scan plays.")
+        .def("num_rf_definitions", &pulseq::Sequence::num_rf_definitions)
+        .def("num_grad_definitions", &pulseq::Sequence::num_grad_definitions)
+        .def("num_adc_definitions", &pulseq::Sequence::num_adc_definitions)
+        .def(
+            "instance_definitions",
+            [](const pulseq::Sequence& self) {
+                const auto& v = self.instance_definitions();
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
+            },
+            "Per block, the id of the definition it plays.")
+        .def(
+            "instance_adc_definitions",
+            [](const pulseq::Sequence& self) {
+                const auto& v = self.instance_adc_definitions();
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
+            },
+            "Per block, the ADC definition it digitises with; 0 if it does not.")
+        .def(
+            "instance_parameters",
+            [](const pulseq::Sequence& self) {
+                const std::vector<double> v = self.instance_parameters();
+                const py::ssize_t rows =
+                    static_cast<py::ssize_t>(v.size() / pulseq::INSTANCE_WIDTH);
+                return py::array_t<double>(
+                    {rows, static_cast<py::ssize_t>(pulseq::INSTANCE_WIDTH)}, v.data());
+            },
+            "Per block, its per-playout parameters.  See INSTANCE_WIDTH.")
         .def("duration", &pulseq::Sequence::duration, "Total duration in seconds.")
         .def("remove_duplicates", &pulseq::Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),

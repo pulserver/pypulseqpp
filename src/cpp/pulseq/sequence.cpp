@@ -154,6 +154,8 @@ namespace pulseq
         const int id = static_cast<int>(extension_ids_.size()) + 1;
         extension_ids_.emplace(name, id);
         extension_names_.emplace(id, name);
+        if (name == "TRIGGERS")
+            trigger_type_id_ = id;
         return id;
     }
 
@@ -168,11 +170,22 @@ namespace pulseq
         // Reading a file is the case that has to force the mapping: the file
         // says what its own numbering is, and it need not match the order the
         // sections happen to appear in.
+        const int was = trigger_type_id_;
         auto existing = extension_ids_.find(name);
         if (existing != extension_ids_.end())
             extension_names_.erase(existing->second);
         extension_ids_[name] = id;
         extension_names_[id] = name;
+        trigger_type_id_ = find_extension_type_id("TRIGGERS");
+
+        // Which chains carry a trigger is read off a type id, so forcing the
+        // mapping can change the answer for chains that already exist -- and
+        // with it which blocks are pure delays.
+        if (trigger_type_id_ != was && !extensions_.empty())
+        {
+            recompute_chain_triggers();
+            refork_blocks();
+        }
     }
 
     /* ================================================================== */
@@ -186,6 +199,7 @@ namespace pulseq
         shapes_.mark(static_cast<int>(row[1]), SHAPE_ROLE_RF_MAGNITUDE);
         shapes_.mark(static_cast<int>(row[2]), SHAPE_ROLE_RF_PHASE);
         shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_RF_TIME);
+        rf_def_.push_back(rf_defs_.intern(rf_key(row, use)));
         return rf_.append(row);
     }
 
@@ -194,6 +208,7 @@ namespace pulseq
         deduplicated_ = false;
         const int slot = trap_.append(row);
         grad_slot_.push_back(static_cast<int32_t>(slot));
+        grad_def_.push_back(grad_defs_.intern(trap_key(row)));
         return static_cast<int>(grad_slot_.size());
     }
 
@@ -204,6 +219,7 @@ namespace pulseq
         shapes_.mark(static_cast<int>(row[4]), SHAPE_ROLE_GRADIENT_TIME);
         const int slot = arb_.append(row);
         grad_slot_.push_back(-static_cast<int32_t>(slot));
+        grad_def_.push_back(grad_defs_.intern(arb_key(row)));
         return static_cast<int>(grad_slot_.size());
     }
 
@@ -211,6 +227,7 @@ namespace pulseq
     {
         deduplicated_ = false;
         shapes_.mark(static_cast<int>(row[7]), SHAPE_ROLE_ADC_PHASE);
+        adc_def_.push_back(adc_defs_.intern(adc_key(row)));
         return adc_.append(row);
     }
 
@@ -293,6 +310,7 @@ namespace pulseq
 
         const int id = extensions_.append(key.data());
         chain_index_.emplace(key, id);
+        note_chain(type_id, next);
         return id;
     }
 
@@ -300,7 +318,9 @@ namespace pulseq
     {
         deduplicated_ = false;
         const std::array<int32_t, EXTENSION_WIDTH> row{type_id, ref, next};
-        return extensions_.append(row.data());
+        const int id = extensions_.append(row.data());
+        note_chain(type_id, next);
+        return id;
     }
 
     /* ================================================================== */
@@ -334,7 +354,159 @@ namespace pulseq
             blocks_->end(),
             {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext});
         durations_->push_back(block.duration);
+        int32_t def = 0;
+        int32_t adc_def = 0;
+        fork_instance(block, def, adc_def);
+        instance_def_.push_back(def);
+        instance_adc_def_.push_back(adc_def);
         return static_cast<int>(durations_->size());
+    }
+
+    void Sequence::fork_instance(const Block& block, int32_t& def, int32_t& adc_def) const
+    {
+        adc_def = definition_of(block.adc, adc_def_);
+        Definitions& blocks = const_cast<Definitions&>(block_defs_);
+        def = is_pure_delay(block)
+                  ? blocks.intern(delay_key())
+                  : blocks.intern(block_key(
+                        definition_of(block.rf, rf_def_),
+                        definition_of(block.gx, grad_def_),
+                        definition_of(block.gy, grad_def_),
+                        definition_of(block.gz, grad_def_),
+                        block.duration));
+    }
+
+    void Sequence::instance_row(const Block& block, double* p) const
+    {
+        for (int i = 0; i < INSTANCE_WIDTH; ++i)
+            p[i] = 0.0;
+
+        // A trapezoid has no waveform to name, so its shape column stays 0.
+        const auto gradient = [this](int32_t id, double* out)
+        {
+            if (id <= 0)
+                return;
+            const int32_t slot = grad_slot_[static_cast<size_t>(id) - 1];
+            if (slot > 0)
+            {
+                out[0] = trap_.row(slot)[0];
+            }
+            else
+            {
+                const double* g = arb_.row(-slot);
+                out[0] = g[0];
+                out[1] = g[3];
+            }
+        };
+        gradient(block.gx, p + 0);
+        gradient(block.gy, p + 2);
+        gradient(block.gz, p + 4);
+
+        if (block.rf > 0)
+        {
+            const double* r = rf_.row(block.rf);
+            p[6] = r[0];
+            p[7] = r[8];
+            p[8] = r[9];
+            p[9] = r[6];
+            p[10] = r[7];
+        }
+        if (block.adc > 0)
+        {
+            const double* a = adc_.row(block.adc);
+            p[11] = a[5];
+            p[12] = a[6];
+            p[13] = a[3];
+            p[14] = a[4];
+            p[15] = a[7];
+        }
+    }
+
+    std::vector<double> Sequence::instance_parameters() const
+    {
+        const int count = num_blocks();
+        std::vector<double> out(static_cast<size_t>(count) * INSTANCE_WIDTH, 0.0);
+        for (int i = 0; i < count; ++i)
+        {
+            const int32_t* e = blocks_->data() + static_cast<size_t>(i) * BLOCK_WIDTH;
+            Block block;
+            block.rf = e[0];
+            block.gx = e[1];
+            block.gy = e[2];
+            block.gz = e[3];
+            block.adc = e[4];
+            block.ext = e[5];
+            block.duration = (*durations_)[static_cast<size_t>(i)];
+            instance_row(block, out.data() + static_cast<size_t>(i) * INSTANCE_WIDTH);
+        }
+        return out;
+    }
+
+    void Sequence::rebuild_definitions()
+    {
+        rf_defs_.clear();
+        grad_defs_.clear();
+        adc_defs_.clear();
+
+        rf_def_.clear();
+        rf_def_.reserve(static_cast<size_t>(rf_.size()));
+        for (int id = 1; id <= rf_.size(); ++id)
+            rf_def_.push_back(
+                rf_defs_.intern(rf_key(rf_.row(id), rf_use_[static_cast<size_t>(id) - 1])));
+
+        grad_def_.clear();
+        grad_def_.reserve(grad_slot_.size());
+        for (const int32_t slot : grad_slot_)
+            grad_def_.push_back(grad_defs_.intern(
+                slot > 0 ? trap_key(trap_.row(slot)) : arb_key(arb_.row(-slot))));
+
+        adc_def_.clear();
+        adc_def_.reserve(static_cast<size_t>(adc_.size()));
+        for (int id = 1; id <= adc_.size(); ++id)
+            adc_def_.push_back(adc_defs_.intern(adc_key(adc_.row(id))));
+
+        recompute_chain_triggers();
+        refork_blocks();
+    }
+
+    void Sequence::recompute_chain_triggers()
+    {
+        const int trigger = trigger_type_id_;
+        chain_carries_trigger_.assign(static_cast<size_t>(extensions_.size()), 0);
+        for (int node = 1; node <= extensions_.size(); ++node)
+        {
+            const int32_t* row = extensions_.row(node);
+            const int32_t next = row[2];
+            const bool carries =
+                (trigger != 0 && row[0] == trigger) ||
+                (next >= 1 && next < node &&
+                 chain_carries_trigger_[static_cast<size_t>(next) - 1] != 0);
+            chain_carries_trigger_[static_cast<size_t>(node) - 1] = carries ? 1 : 0;
+        }
+    }
+
+    void Sequence::refork_blocks()
+    {
+        block_defs_.clear();
+        const int count = num_blocks();
+        instance_def_.assign(static_cast<size_t>(count), 0);
+        instance_adc_def_.assign(static_cast<size_t>(count), 0);
+        for (int i = 0; i < count; ++i)
+        {
+            const int32_t* e = blocks_->data() + static_cast<size_t>(i) * BLOCK_WIDTH;
+            Block block;
+            block.rf = e[0];
+            block.gx = e[1];
+            block.gy = e[2];
+            block.gz = e[3];
+            block.adc = e[4];
+            block.ext = e[5];
+            block.duration = (*durations_)[static_cast<size_t>(i)];
+            fork_instance(
+                block,
+                instance_def_[static_cast<size_t>(i)],
+                instance_adc_def_[static_cast<size_t>(i)]);
+        }
     }
 
     void Sequence::set_block(int index, const Block& block)
@@ -350,6 +522,8 @@ namespace pulseq
         row[4] = block.adc;
         row[5] = block.ext;
         (*durations_)[index - 1] = block.duration;
+        const size_t at = static_cast<size_t>(index) - 1;
+        fork_instance(block, instance_def_[at], instance_adc_def_[at]);
     }
 
     Block Sequence::get_block(int index) const
@@ -373,6 +547,7 @@ namespace pulseq
         detach_blocks();
         blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
         durations_->assign(durations, durations + count);
+        rebuild_definitions();
     }
 
     void Sequence::set_grad_slots(const int32_t* slots, int count)
