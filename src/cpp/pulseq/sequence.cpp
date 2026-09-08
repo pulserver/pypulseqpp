@@ -31,16 +31,21 @@ namespace pulseq
 
     const std::vector<std::string>& Sequence::builtin_labels()
     {
-        // Pulseq's own list, in the order that numbers it.  Deliberately the
-        // 22 names PyPulseq exposes and not the 23 the C reader's table
-        // carries: the extra one there (OFF) is this project's, and a sequence
-        // using it is using a name Pulseq does not define -- which is
-        // precisely what raises the file to revision 1.5.2.  TRID is in this
-        // list and so costs nothing, which is one reason Pulserver's
-        // safety-group label is TRID and not a name of its own.
+        // Seed for the numbering, not a definition of what a label may be.
+        //
+        // A label is named, not numbered: the text format writes the name,
+        // `label_id` mints one for a name it has not seen, and a sequence is
+        // free to use a name nothing here lists.  This table only fixes where
+        // the numbering starts, and the order matters in exactly one place --
+        // the binary format writes the number rather than the name, so two
+        // implementations reading each other's binary files agree about a
+        // label only as far as they agree about this list.  For a name
+        // outside it they cannot agree at all, which is what `LABELNAMES` is
+        // for.  The order is the reference toolbox's.
         static const std::vector<std::string> names{
-            "SLC", "SEG", "REP", "AVG", "SET",   "ECO", "PHS",   "LIN",   "PAR",   "ACQ",  "NAV",
-            "REV", "SMS", "REF", "IMA", "NOISE", "PMC", "NOROT", "NOPOS", "NOSCL", "ONCE", "TRID"};
+            "SLC", "SEG", "REP",   "AVG", "SET", "ECO",   "PHS", "LIN",
+            "PAR", "ACQ", "TRID",  "NAV", "REV", "SMS",   "REF", "IMA",
+            "OFF", "NOISE", "PMC", "NOROT", "NOPOS", "NOSCL", "ONCE"};
         return names;
     }
 

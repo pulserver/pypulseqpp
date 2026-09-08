@@ -971,7 +971,7 @@ namespace pulseq
         int find_label_id(const std::string& name) const;
         /** The name id @p id was registered under, or empty. */
         const std::string& label_name(int id) const;
-        /** Whether @p id is outside Pulseq's built-in set (so revision 1.5.2). */
+        /** Whether @p id names something outside Pulseq's own table. */
         bool is_custom_label(int id) const;
 
         /* -- event registration ----------------------------------------- */

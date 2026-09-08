@@ -28,9 +28,11 @@ scanner-side execution stream, protocol contracts and consoles live in
 If a change here needs to know which vendor will play the sequence, it belongs
 elsewhere.
 
-The runtime dependency is NumPy alone. Upstream `pypulseq` is a test
-dependency, used for byte-parity fixtures, and is never imported by the
-package.
+The runtime dependency is NumPy alone. `pypulseq-matlab-like` is a test
+dependency -- the transcription of MATLAB Pulseq that defines the file format
+-- used for byte-parity fixtures, and is never imported by the package. It is
+not on PyPI; `tests/seq/` carries its reference corpus so the reader is tested
+without it, and the tests that build sequences skip when it is absent.
 
 ## Layout
 
@@ -111,6 +113,125 @@ It is a mask rather than a tag because deduplication merges shapes holding the
 same numbers, and the merge ORs the roles: after it, one entry really is
 played both ways.
 
+## Reading, and the two forms of a file
+
+A sequence is written as Pulseq text or as Pulseq binary, and read back from
+either -- told apart by what is in the bytes rather than by the name they were
+stored under. The reader is the writer's inverse and is tested as one: a file
+written, read and written again is the file it started as, byte for byte.
+
+**The file is parsed whole before anything is registered.** `[BLOCKS]` comes
+before the libraries it names and `[SHAPES]` comes last, so a reader that
+registered as it went would be adding blocks whose events do not exist yet --
+and a block is split into a definition and an instance as it is added, which
+needs those events split already. Both forms fill a `Parsed` and hand it to
+one builder, so the rules that turn a file into a sequence are written once.
+Reading therefore forks exactly as building does, and a sequence off disk is
+indistinguishable from one that was built.
+
+**An older file is converted, not merely parsed.** Every revision back to
+1.2.0 is read, and each moved something. 1.5 added an RF pulse's `center`, an
+arbitrary gradient's `first` and `last` sample, and the ppm offsets; before 1.4
+a gradient carries no time shape, a block's duration is an index into a
+`[DELAYS]` section rather than a count of rasters, a zero trapezoid is written
+with no ramps, and 1.2 has no extension column at all.
+
+None of that is a default that can be filled in, so it is derived. The centre
+comes from the pulse's own envelope, taking the middle of its peak. The
+gradient edges come from walking the block table in playing order: `last` is
+the waveform's end, extrapolated the way the factory would have, and `first`
+is where the axis was left by the block before, which is zero unless the
+previous gradient ran to that block's end. A pre-1.4 duration is the longest
+thing the block plays. And every shape is decoded and re-encoded, because
+before 1.4 an encoded shape whose length happened to equal its sample count
+could not be told from one that was never encoded.
+
+The corpus holds one sequence at 1.2.0, 1.3.0, 1.3.1, 1.4.0, 1.4.1, 1.4.2 and
+1.5.0, so what the 1.5.0 file says is what the others are held to, and the
+reference reader is the arbiter where they legitimately differ.
+
+Two things a 1.4 file cannot give back. It has no `use` column, so what a
+pulse is *for* stays undefined rather than being guessed from its flip angle;
+and one derived `last` differs from the value the design knew, because an
+extrapolation is not the original. The reference toolbox derives the same
+number from the same file, which is what makes that the format's limit rather
+than a difference between readers. Before 1.4 two more things move: an
+extended trapezoid is held in fewer shapes, and 1.2.0's blocks last longer
+than 1.5.0's -- the reference reader agrees on both.
+
+**A file can be written for a scanner from before 1.5.** `write_text_v141`
+produces Pulseq 1.4.1: the ppm offsets are folded back into absolute hertz at
+a gyromagnetic ratio and a field, which is the only place those two are needed
+and why they are arguments; an RF pulse's centre and use go, and so do an
+arbitrary gradient's first and last sample, because 1.4 has no column for any
+of them. Its output is byte-identical to the reference toolbox's for every
+sequence 1.4.1 can express.
+
+Two things it will not do quietly. A soft delay is left out with a warning, as
+the reference does. A rotation or an RF shim makes it refuse: the reference
+drops both silently, and a file missing a rotation is a different scan rather
+than a coarser description of the same one.
+
+**What each form carries.** The binary form is the more faithful container for
+everything except shapes: times cross as integer picoseconds and amplitudes as
+float64, where the text form writes nine significant digits. Shape samples are
+the exception -- float32 in binary, nine digits in text -- so a waveform comes
+back within a float32 of itself and everything else comes back exactly. Only
+the text form has a `[SIGNATURE]`, and only it is verified, on request.
+
+A binary file always declares at least revision 1: the format arrived with
+Pulseq 1.5.1, so a file claiming 1.5.0 claims a revision that had no way to
+write it.
+
+## Where the format comes from
+
+`pypulseq-matlab-like` is the authority, being a transcription of MATLAB
+Pulseq. Where another implementation disagrees -- upstream `pypulseq`
+included -- that one is followed, and what this package writes is compared
+against it byte for byte. Upstream differs from it in ways that are not
+cosmetic: an `OFF` label missing from the table and `TRID` in the wrong place,
+so labels resolve to the wrong names; `freqPPm` for `freqPPM`; a soft delay's
+offset as `%.0f` rather than `%g`.
+
+Every file declares revision 1.5.1, whatever the sequence uses and whatever
+it came in declaring: a writer says which revision of the format it produced,
+not which subset a sequence happened to use. `TotalDuration` is not written,
+because the authority records it when reporting on a sequence rather than
+when writing one.
+
+Two places this decided something about the binary layout:
+
+- **A definition's name carries its length in front of it**, as an int32, and
+  the value count is an int32 too -- not a NUL-terminated name and a
+  single-byte count. The byte would have capped a definition at 255 values,
+  which `SlicePositions` on a 256-slice acquisition exceeds.
+- **A label's name travels in `[DEFINITIONS]`, not in a section.** See below.
+
+`tests/test_interoperability.py` holds both directions against that toolbox
+and skips when it is not installed, since it is not on PyPI.
+
+## A label the builtin table does not carry
+
+A label is named, not numbered. The text form writes the name and reads it
+back, and `label_id` mints one for a name it has not seen, so a sequence may
+use a label Pulseq does not define with nothing to configure first -- where
+the reference toolbox makes the caller extend a vocabulary by hand.
+
+The binary form writes the **number**, and a number means something only
+against a table. `builtin_labels()` is that table, in the reference toolbox's
+order, and it is a seed for the numbering rather than a statement about what a
+label may be: with any other order our `NOISE` reads there as `IMA`. For a
+name past the end of it no fixed list can help, which is the point of allowing
+one.
+
+So the names past the table are listed in `[DEFINITIONS]`, as `CustomLabels`,
+in the order they were minted, and a number above the table's length resolves
+by position. **Only the custom names go there** -- the builtins are shared, so
+listing them would be overhead saying what every reader already knows. Both
+forms carry definitions already and a reader must tolerate a key it does not
+know, so a file using an invented label stays readable by anything that reads
+the format at all; a section of its own would not have.
+
 ## Definitions and instances
 
 A scan is a handful of things played many times with different numbers in
@@ -183,11 +304,11 @@ Two invariants hold everything else up, and each has a test:
   rather than a writing bug. A new event kind is not finished until it appears
   in a sequence in `tests/reference.py`.
 
-  One divergence is deliberate and has a test of its own. Upstream's
-  deduplication softens a logarithm with a `1e-12` floor, so a sample below
-  that keeps four significant digits where nine were asked for. This package
-  does not floor, and writes the sample the pulse plays.
-  `BLUNTED_BY_UPSTREAM` names the reference sequences that reach it.
+  One sequence is held differently and says why. `gre_with_noise_scan` drops
+  a degenerate block, and the reference toolbox keys its blocks in a
+  dictionary so the gap stays in the numbering where this package closes it.
+  A block id is a label nothing refers to, so what is held there is that
+  every row after that column is the same, in the same order.
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.
@@ -199,6 +320,14 @@ Two invariants hold everything else up, and each has a test:
   deduplication has run. `inversion_recovery_train` and `triggered_delays`
   are in the reference zoo so the same properties are held on sequences built
   by upstream rather than only on sequences written to have them.
+- **A file read back is the file that was written.** Every reference sequence
+  goes out as text and as binary and comes back through the reader, and what
+  it writes the second time is compared with what it wrote the first. The
+  reference toolbox's own files are read the same way, so the reader is held
+  against the format as another implementation produces it. The 1.5.1 event
+  kinds -- rotations, RF shims, and labels outside Pulseq's table -- have no
+  upstream to compare against, so `tests/extended.py` builds them on the core
+  and a round trip holds them.
 
 ## Comments and docstrings
 

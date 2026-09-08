@@ -15,6 +15,9 @@ find_package(Threads REQUIRED)
 pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/dedup.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/md5.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/read.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/read_binary.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_binary.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/sequence.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_text.cpp
