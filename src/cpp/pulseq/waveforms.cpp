@@ -105,29 +105,33 @@ namespace pulseq
          * The waveform is played by interpolating between its corners, so
          * reading it between two of them is that same interpolation. Outside
          * its own span the axis is off.
+         *
+         * The times are the ones being asked about, not the ones a gradient
+         * stores: recovering a corner's own time by taking an offset back off
+         * an absolute one does not return the corner, and the endpoint then
+         * lands just inside the waveform and gets interpolated instead of
+         * read.
          */
         double sampled(
             const std::vector<double>& times,
             const std::vector<double>& values,
-            double offset,
             double when)
         {
             const size_t count = times.size();
-            if (count == 0 || when < times.front() + offset || when > times.back() + offset)
+            if (count == 0 || when < times.front() || when > times.back())
                 return 0.0;
 
             const size_t after = static_cast<size_t>(std::distance(
-                times.begin(),
-                std::lower_bound(times.begin(), times.end(), when - offset)));
+                times.begin(), std::lower_bound(times.begin(), times.end(), when)));
             if (after == 0)
                 return values.front();
+            if (after >= count)
+                return values.back();
 
-            const double before_t = times[after - 1] + offset;
-            const double after_t = times[after] + offset;
-            const double span = after_t - before_t;
+            const double span = times[after] - times[after - 1];
             if (span <= 0.0)
                 return values[after];
-            const double along = (when - before_t) / span;
+            const double along = (when - times[after - 1]) / span;
             return values[after - 1] + along * (values[after] - values[after - 1]);
         }
 
@@ -443,6 +447,7 @@ namespace pulseq
         /* Reused across blocks, so a rotated scan allocates once. */
         std::vector<double> union_times;
         std::vector<double> combined;
+        std::vector<double> absolute[3];
 
         double elapsed = 0.0;
         for (int index = first; index <= last; ++index)
@@ -508,16 +513,22 @@ namespace pulseq
                 double matrix[3][3];
                 rotation_matrix(seq.rotation_library().row(rotation_row), matrix);
 
+                /* Each input's corners moved to where the block plays them,
+                 * once, so every later comparison is between times that were
+                 * arrived at the same way. */
                 union_times.clear();
                 double loudest = 0.0;
                 for (int axis = 0; axis < 3; ++axis)
                 {
+                    absolute[axis].clear();
                     if (played[axis] == nullptr)
                         continue;
                     const double start = elapsed + played[axis]->delay;
+                    absolute[axis].reserve(played[axis]->times.size());
                     for (size_t i = 0; i < played[axis]->times.size(); ++i)
                     {
-                        union_times.push_back(played[axis]->times[i] + start);
+                        absolute[axis].push_back(played[axis]->times[i] + start);
+                        union_times.push_back(absolute[axis].back());
                         loudest = std::max(loudest, std::fabs(played[axis]->values[i]));
                     }
                 }
@@ -543,12 +554,9 @@ namespace pulseq
                         if (played[from] == nullptr || std::fabs(weight) < floor)
                             continue;
                         anything = true;
-                        const double start = elapsed + played[from]->delay;
                         for (size_t i = 0; i < union_times.size(); ++i)
                             combined[i] += weight *
-                                sampled(played[from]->times,
-                                        played[from]->values,
-                                        start,
+                                sampled(absolute[from], played[from]->values,
                                         union_times[i]);
                     }
                     if (!anything)
