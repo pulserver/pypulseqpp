@@ -20,6 +20,7 @@
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/timing.hpp"
+#include "pulseq/waveforms.hpp"
 #include "pulseq/types.hpp"
 #include "pulseqpp_events.h"
 #include "pulseqpp_decode.h"
@@ -866,6 +867,114 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("event"),
         "Register one event's row and shapes, and report what it was stored "
         "as: its kind, its library id, and the ids of its shapes.");
+
+    module.def(
+        "waveforms_and_times",
+        [](const Sequence& sequence,
+           bool append_rf,
+           int first_block,
+           int last_block,
+           double b0,
+           double gamma) {
+            pulseq::WaveformOptions options;
+            options.append_rf = append_rf;
+            options.first_block = first_block;
+            options.last_block = last_block;
+            options.b0 = b0;
+            options.gamma = gamma;
+
+            pulseq::Waveforms made;
+            {
+                py::gil_scoped_release unlocked;
+                made = pulseq::waveforms_and_times(sequence, options);
+            }
+
+            /* Each channel as the 2-by-n array the toolboxes report: a row of
+             * times over a row of amplitudes. */
+            const auto paired = [](const std::vector<double>& t,
+                                   const std::vector<double>& v) {
+                const py::ssize_t held = static_cast<py::ssize_t>(t.size());
+                py::array_t<double> out({static_cast<py::ssize_t>(2), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = t[static_cast<size_t>(i)];
+                    view(1, i) = v[static_cast<size_t>(i)];
+                }
+                return out;
+            };
+
+            const auto moments = [](const std::vector<pulseq::PulseMoment>& held) {
+                const py::ssize_t count = static_cast<py::ssize_t>(held.size());
+                py::array_t<double> out({static_cast<py::ssize_t>(3), count});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < count; ++i)
+                {
+                    view(0, i) = held[static_cast<size_t>(i)].time;
+                    view(1, i) = held[static_cast<size_t>(i)].frequency;
+                    view(2, i) = held[static_cast<size_t>(i)].phase;
+                }
+                return out;
+            };
+
+            py::list waves;
+            for (int axis = 0; axis < 3; ++axis)
+                waves.append(paired(made.times[static_cast<size_t>(axis)],
+                                    made.amplitudes[static_cast<size_t>(axis)]));
+            if (append_rf)
+            {
+                const py::ssize_t held = static_cast<py::ssize_t>(made.rf_times.size());
+                py::array_t<std::complex<double>> rf(
+                    {static_cast<py::ssize_t>(2), held});
+                auto view = rf.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = made.rf_times[static_cast<size_t>(i)];
+                    view(1, i) = made.rf_signal[static_cast<size_t>(i)];
+                }
+                waves.append(rf);
+            }
+
+            const py::ssize_t samples =
+                static_cast<py::ssize_t>(made.adc_times.size());
+            py::array_t<double> fp({static_cast<py::ssize_t>(2), samples});
+            {
+                auto view = fp.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < samples; ++i)
+                {
+                    view(0, i) = made.adc_frequency[static_cast<size_t>(i)];
+                    view(1, i) = made.adc_phase[static_cast<size_t>(i)];
+                }
+            }
+
+            const py::ssize_t windows =
+                static_cast<py::ssize_t>(made.window_frequency.size());
+            py::array_t<double> window_fp({windows, static_cast<py::ssize_t>(2)});
+            {
+                auto view = window_fp.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < windows; ++i)
+                {
+                    view(i, 0) = made.window_frequency[static_cast<size_t>(i)];
+                    view(i, 1) = made.window_phase[static_cast<size_t>(i)];
+                }
+            }
+
+            py::dict out;
+            out["wave_data"] = waves;
+            out["window_fp"] = window_fp;
+            out["tfp_excitation"] = moments(made.excitation);
+            out["tfp_refocusing"] = moments(made.refocusing);
+            out["t_adc"] = py::array_t<double>(samples, made.adc_times.data());
+            out["fp_adc"] = fp;
+            out["pm_adc"] = py::array_t<double>(samples, made.adc_modulation.data());
+            out["rotated_blocks"] = made.rotated_blocks;
+            out["warnings"] = made.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("append_rf") = false, py::arg("first_block") = 1,
+        py::arg("last_block") = 0, py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
+        "Expand the sequence into the gradient waveforms it plays, the RF "
+        "moments, and the ADC sampling.");
 
     module.def(
         "write_binary",

@@ -21,6 +21,11 @@ import pypulseq as _upstream
 from . import _ext as _cxx
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
+from ._waveforms import adc_times as _adc_times
+from ._waveforms import get_gradients as _get_gradients
+from ._waveforms import rf_times as _rf_times
+from ._waveforms import waveforms as _waveforms
+from ._waveforms import waveforms_and_times as _waveforms_and_times
 
 __all__ = ["Sequence"]
 
@@ -438,6 +443,41 @@ class Sequence:
     def flip_grad_axis(self, axis: str) -> None:
         """Invert every gradient played on ``axis``."""
         self.mod_grad_axis(axis, modifier=-1)
+
+    # -- what the sequence plays ---------------------------------------
+
+    def waveforms_and_times(
+        self, append_RF: bool = False, time_range=None, blockRange=None
+    ):
+        """Return the gradient waveforms, the RF moments and the ADC sampling.
+
+        See :func:`pypulseqpp._waveforms.waveforms_and_times`.
+        """
+        return _waveforms_and_times(self, append_RF, time_range, blockRange)
+
+    def waveforms(self, append_RF: bool = False, time_range=None, blockRange=None):
+        """Return the gradient waveforms alone, one 2-by-n array per axis."""
+        return _waveforms(self, append_RF, time_range, blockRange)
+
+    def adc_times(self, time_range=None):
+        """Return when every ADC sample is taken, and each window's offsets."""
+        return _adc_times(self, time_range)
+
+    def rf_times(self, time_range=None):
+        """Return when the pulses act, and at what frequency and phase."""
+        return _rf_times(self, time_range)
+
+    def get_gradients(
+        self,
+        trajectory_delay=0,
+        gradient_offset=0,
+        time_range=None,
+        blockRange=None,
+    ):
+        """Return each gradient axis as a piecewise polynomial."""
+        return _get_gradients(
+            self, trajectory_delay, gradient_offset, time_range, blockRange
+        )
 
     # -- the repeating unit --------------------------------------------
 

@@ -56,16 +56,28 @@ gradient and slew. Only the counts come from what is here; TE, TR, the k-space
 lines and the gradient maxima all come out of `waveforms_and_times` and
 `calculate_kspace`, which the report calls before it computes anything.
 
-So the report is not a method to write on its own. It is the first consumer of
-those two, and so are `plot`, `paper_plot`, `get_gradients` and the FOV
-transform. Whichever lands first, they are what to build:
+`waveforms_and_times` is in, and with it `waveforms`, `adc_times`,
+`rf_times` and `get_gradients`. What is left of the report is
+`calculate_kspace`, which integrates the waveforms into a trajectory; the
+counts and the gradient maxima it also wants are already reachable.
 
-- `waveforms_and_times`, which expands every block onto a common time base --
-  a pass over the block table, and the foundation the rest sit on.
-- `calculate_kspace`, which integrates those into a trajectory.
-
-The repeating unit is already found (`detect_tr`), so an analysis that only
+The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.
+
+## A rotated block
+
+`waveforms_and_times` refuses a block carrying a rotation rather than
+expanding it wrongly. A rotation remaps a block's gradients onto other axes,
+so one gradient becomes up to three and two on one axis have to be added --
+which the toolbox does with `add_gradients`, resampling onto a common raster.
+
+Doing it on the waveforms instead is the same arithmetic and less machinery:
+the corners are already there, and a linear combination of piecewise-linear
+waveforms over the union of their breakpoints is exact. What it will not be
+is point-for-point what `add_gradients` produces, so the parity test for that
+one sequence has to compare the waveform as a function -- read at common
+times -- rather than the array. That is the decision to make before writing
+it.
 
 ## What a block reads back as
 
