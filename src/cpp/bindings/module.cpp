@@ -22,6 +22,7 @@
 #include "pulseq/timing.hpp"
 #include "pulseq/types.hpp"
 #include "pulseqpp_events.h"
+#include "pulseqpp_decode.h"
 #include "pulseqpp_eventtypes.h"
 
 #include "pulseq/binary.hpp"
@@ -219,6 +220,47 @@ namespace
             return nullptr;
         }
     }
+
+    /**
+     * `set_block_events(index, *events)`, the same crossing written over an
+     * existing block.
+     *
+     * A sequence read out block by block and put back -- rotated, rescaled,
+     * a label changed -- makes this call once per block, so it is bound the
+     * same way `add_block_events` is.
+     */
+    PyObject* set_block_events_fast(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+    {
+        try
+        {
+            if (nargs < 1)
+                throw std::invalid_argument("set_block_events() needs a block index");
+            Sequence& sequence = py::cast<Sequence&>(py::handle(self));
+            const long index = PyLong_AsLong(args[0]);
+            if (index == -1 && PyErr_Occurred())
+                return nullptr;
+            sequence.set_block(
+                static_cast<int>(index),
+                pulseqpp_events::build_block(sequence, args + 1, nargs - 1));
+            Py_RETURN_NONE;
+        }
+        catch (py::error_already_set& raised)
+        {
+            raised.restore();
+            return nullptr;
+        }
+        catch (const std::exception& raised)
+        {
+            PyErr_SetString(PyExc_ValueError, raised.what());
+            return nullptr;
+        }
+    }
+
+    PyMethodDef set_block_events_def = {
+        "set_block_events",
+        reinterpret_cast<PyCFunction>(reinterpret_cast<void*>(set_block_events_fast)),
+        METH_FASTCALL,
+        PyDoc_STR("set_block_events(index, *events) -> None")};
 
     PyMethodDef add_block_events_def = {
         "add_block_events",
@@ -454,6 +496,34 @@ PYBIND11_MODULE(_ext, module)
              py::arg("id"), "Pin an extension name to a chosen id.")
         .def("extension_type_name", &Sequence::extension_type_name, py::arg("id"),
              "The name an extension id stands for.")
+        .def(
+            "extension_chain",
+            [](const Sequence& self, int32_t head) {
+                /* Type and reference per link, as a 2-by-n array: the shape
+                 * the toolboxes report a block's extensions in. */
+                const pulseq::IntTable& links = self.extensions_library();
+                std::vector<int32_t> types;
+                std::vector<int32_t> refs;
+                int32_t node = head;
+                while (node > 0 && node <= links.size())
+                {
+                    const int32_t* link = links.row(node);
+                    types.push_back(link[0]);
+                    refs.push_back(link[1]);
+                    node = link[2];
+                }
+                const py::ssize_t held = static_cast<py::ssize_t>(types.size());
+                py::array_t<int32_t> out({static_cast<py::ssize_t>(2), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = types[static_cast<size_t>(i)];
+                    view(1, i) = refs[static_cast<size_t>(i)];
+                }
+                return out;
+            },
+            py::arg("head"),
+            "The extension chain from `head`, as type and reference ids.")
         .def("label_id", &Sequence::label_id, py::arg("name"),
              "The id for a label name, minting one if it is not built in.")
         .def("label_name", &Sequence::label_name, py::arg("id"))
@@ -537,6 +607,14 @@ PYBIND11_MODULE(_ext, module)
             py::arg("index"), py::arg("rf"), py::arg("gx"), py::arg("gy"), py::arg("gz"),
             py::arg("adc"), py::arg("ext"), py::arg("duration"))
         .def("get_block", &Sequence::get_block, py::arg("index"))
+        .def(
+            "decode_block",
+            [](const Sequence& self, int index) {
+                return pulseqpp_decode::decode_block(self, index);
+            },
+            py::arg("index"),
+            "Block `index` (1-based) as the events it plays, rather than as "
+            "the ids they are stored under.")
         .def("num_blocks", &Sequence::num_blocks)
 
         /* -- definitions and instances --------------------------------- */
@@ -579,6 +657,10 @@ PYBIND11_MODULE(_ext, module)
             },
             "How many blocks carry an event in each column: rf, gx, gy, gz, "
             "adc, extension.")
+        .def(
+            "scale_gradient_axis", &Sequence::scale_gradient_axis, py::arg("axis"),
+            py::arg("modifier"),
+            "Scale every gradient played on an axis (0, 1 or 2) by a factor.")
         .def("remove_duplicates", &Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
@@ -592,6 +674,8 @@ PYBIND11_MODULE(_ext, module)
             py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_fast_def));
         sequence_class.attr("add_block_events") =
             py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_events_def));
+        sequence_class.attr("set_block_events") =
+            py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &set_block_events_def));
     }
 
     module.def(

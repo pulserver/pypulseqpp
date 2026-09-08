@@ -10,10 +10,13 @@ reading and writing are compiled passes.
 from __future__ import annotations
 
 import re
+from collections.abc import MutableMapping
 from pathlib import Path
+from types import SimpleNamespace
 from warnings import warn
 
 import numpy as np
+import pypulseq as _upstream
 
 from . import _ext as _cxx
 from ._check_timing import check_timing as _check_timing
@@ -29,6 +32,42 @@ _SIGNATURE = re.compile(r"^Hash (\w+)$", re.MULTILINE)
 #: duration rather than an event, so a count reported per column pads it back
 #: on and a caller's column indices are upstream's.
 _UPSTREAM_BLOCK_WIDTH = 7
+
+
+class _BlockDurations(MutableMapping):
+    """Every block's duration in seconds, keyed by 1-based block index.
+
+    The shape the toolboxes hand back, over the block table the core holds:
+    reading one reads the table, writing one writes it. It is a view rather
+    than a copy, so it reflects the sequence as it stands.
+    """
+
+    __slots__ = ("_native",)
+
+    def __init__(self, native) -> None:
+        self._native = native
+
+    def __getitem__(self, index: int) -> float:
+        if not 1 <= index <= self._native.num_blocks():
+            raise KeyError(index)
+        return float(self._native.block_durations()[index - 1])
+
+    def __setitem__(self, index: int, seconds: float) -> None:
+        if not 1 <= index <= self._native.num_blocks():
+            raise KeyError(index)
+        self._native.set_block_duration(index, float(seconds))
+
+    def __delitem__(self, index: int) -> None:
+        raise TypeError("a block's duration cannot be removed, only changed")
+
+    def __iter__(self):
+        return iter(range(1, self._native.num_blocks() + 1))
+
+    def __len__(self) -> int:
+        return self._native.num_blocks()
+
+    def __repr__(self) -> str:
+        return repr(dict(self))
 
 
 class Sequence:
@@ -116,14 +155,81 @@ class Sequence:
         """Write ``events`` over the block at ``index``, 1-based."""
         self._native.set_block_events(index, *events)
 
-    def get_block(self, index: int):
-        """Return the block at ``index``, 1-based, and what it plays."""
-        return self._native.get_block(index)
+    def get_block(self, index: int) -> SimpleNamespace:
+        """Return the block at ``index``, 1-based, as the events it plays.
+
+        Parameters
+        ----------
+        index : int
+            Which block, counting from 1.
+
+        Returns
+        -------
+        SimpleNamespace
+            ``block_duration`` and one field per event: ``rf``, ``gx``,
+            ``gy``, ``gz``, ``adc``, ``soft_delay`` and ``rotation``, each
+            None when the block has none, and ``trig`` and ``label`` as
+            lists when it has any.
+
+        Notes
+        -----
+        The events are the compiled kind, so they read in Python the way a
+        factory's do -- ``rf.signal``, ``gx.waveform``, ``gx.area`` -- and go
+        back into `add_block` or `set_block` on the fast path. They carry the
+        shapes they were stored under, so reading a block out and putting it
+        back registers no shape twice.
+
+        The whole block can be passed on as it stands: `add_block` and
+        `set_block` take one, which is how a block moves from one sequence to
+        another with its duration intact.
+        """
+        return SimpleNamespace(**self._native.decode_block(index))
+
+    def get_raw_block_content_IDs(self, index: int) -> SimpleNamespace:
+        """Return the block at ``index`` as the ids its events are stored under.
+
+        Parameters
+        ----------
+        index : int
+            Which block, counting from 1.
+
+        Returns
+        -------
+        SimpleNamespace
+            ``block_duration`` and the library id of each event, 0 where the
+            block has none. ``ext`` is the extension chain, as a 2-by-n array
+            of type and reference ids.
+
+        Notes
+        -----
+        Nothing is decompressed: this is the row of the block table, which is
+        what a caller comparing blocks or counting distinct events wants.
+        """
+        row = self._native.get_block(index)
+        return SimpleNamespace(
+            block_duration=row.duration,
+            rf=row.rf,
+            gx=row.gx,
+            gy=row.gy,
+            gz=row.gz,
+            adc=row.adc,
+            ext=self._native.extension_chain(row.ext),
+        )
 
     @property
-    def block_durations(self):
-        """Every block's duration in seconds, as a view over the table."""
-        return self._native.block_durations()
+    def block_durations(self) -> _BlockDurations:
+        """Every block's duration in seconds, keyed by 1-based block index.
+
+        Writing one sets it: ``seq.block_durations[3] = 5e-3`` moves that
+        block's duration in the table underneath.
+
+        Notes
+        -----
+        The whole column, for a caller reading rather than editing, is
+        ``seq._native.block_durations()`` -- an array pointing straight into
+        the block table, which is what makes a million-row table free to sum.
+        """
+        return _BlockDurations(self._native)
 
     def duration(self) -> tuple[float, int, np.ndarray]:
         """Return how long the sequence plays for, and what it is made of.
@@ -293,6 +399,152 @@ class Sequence:
         self.add_block(
             make_label("TRID", "SET", float(self.get_or_create_trid_id(label_name)))
         )
+
+    # -- gradients -----------------------------------------------------
+
+    def mod_grad_axis(self, axis: str, modifier: float) -> None:
+        """Scale every gradient played on ``axis`` by ``modifier``.
+
+        Parameters
+        ----------
+        axis : {'x', 'y', 'z'}
+            Which axis to act on.
+        modifier : float
+            What to multiply by. -1 inverts the axis, 0 silences it.
+
+        Raises
+        ------
+        ValueError
+            If ``axis`` is not one of 'x', 'y' or 'z'.
+        RuntimeError
+            If a gradient is played both on ``axis`` and on another, where
+            there is no one answer.
+
+        Notes
+        -----
+        Only the amplitude moves. The ramps, the delay and the shape stay as
+        they are, so the areas scale with the amplitude and the timing does
+        not change.
+
+        Silencing the phase encoding is ``mod_grad_axis('y', 0.0)``;
+        inverting the readout is ``mod_grad_axis('x', -1.0)``.
+        """
+        if axis not in ("x", "y", "z"):
+            raise ValueError(
+                f"Invalid axis. Must be one of 'x', 'y','z'. Passed: {axis}"
+            )
+        self._native.scale_gradient_axis("xyz".index(axis), float(modifier))
+
+    def flip_grad_axis(self, axis: str) -> None:
+        """Invert every gradient played on ``axis``."""
+        self.mod_grad_axis(axis, modifier=-1)
+
+    # -- soft delays ---------------------------------------------------
+
+    #: Upstream's own, run against this sequence.
+    #:
+    #: It reads `block_events`, `get_block` and `system`, and writes a block's
+    #: duration back through `block_durations` -- all of which mean here what
+    #: they mean there, so the method is taken rather than rewritten. What it
+    #: does is arithmetic over a handful of soft delays, not a pass over the
+    #: block table, so there is nothing to gain by compiling it.
+    apply_soft_delay = _upstream.Sequence.apply_soft_delay
+
+    def get_default_soft_delay_values(self):
+        """Return what each soft delay stands for if nobody sets it.
+
+        A soft delay says how a block's duration follows from a value the
+        console supplies: `duration = value / factor + offset`. Read the other
+        way, the duration a block was built with says what value that is --
+        and every block sharing a numeric id has to agree about it.
+
+        Returns
+        -------
+        defaults : dict
+            The default value for each soft delay, by its hint.
+        error_report : list of str
+            One line per disagreement found; empty when they all agree.
+        limits : list
+            Per numeric id, the default, the hint, the block it came from,
+            and the range of values that keep the block duration positive.
+        """
+        error_report: list[str] = []
+        state: list[dict | None] = []
+
+        for index in self.block_events:
+            delay = getattr(self.get_block(index), "soft_delay", None)
+            if delay is None:
+                continue
+
+            if delay.factor == 0:
+                error_report.append(
+                    f"   Block:{index} soft delay {delay.hint}/{delay.numID} "
+                    f"has factor parameter of 0 which is invalid\n"
+                )
+
+            number = int(delay.numID)
+            if number < 0:
+                error_report.append(
+                    f"   Block:{index} contains a soft delay {delay.hint} "
+                    f"with an invalid numeric ID{number}\n"
+                )
+                continue
+
+            default = (self.block_durations[index] - delay.offset) * delay.factor
+            while len(state) < number + 1:
+                state.append(None)
+
+            if state[number] is None:
+                state[number] = {
+                    "def": default,
+                    "hint": delay.hint,
+                    "blk": index,
+                    "min": 0.0,
+                    "max": np.inf,
+                }
+            else:
+                seen = state[number]
+                if abs(default - seen["def"]) > 1e-7:
+                    error_report.append(
+                        f"   Block:{index} soft delay {delay.hint}/{number}: "
+                        f"default duration derived from this block "
+                        f"({default * 1e6}us) is inconsistent with the previous "
+                        f"default ({seen['def'] * 1e6}us) that was derived from "
+                        f"block {seen['blk']}\n"
+                    )
+                if delay.hint != seen["hint"]:
+                    error_report.append(
+                        f"   Block:{index} soft delay {delay.hint}/{number}: soft "
+                        f"delays with the same numeric ID are expected to share "
+                        f"the same text hint but previous hint recorded in block "
+                        f"{seen['blk']} is {seen['hint']}\n"
+                    )
+
+            # The block cannot last less than nothing, so the offset and the
+            # sign of the factor set which end the value is bounded at.
+            limit = (-delay.offset) * delay.factor
+            if delay.factor > 0:
+                state[number]["min"] = max(state[number]["min"], limit)
+            else:
+                state[number]["max"] = min(state[number]["max"], limit)
+
+        defaults: dict[str, float] = {}
+        for number, seen in enumerate(state):
+            if seen is None:
+                warn(
+                    f"SoftDelay numeric ID {number} is unused, we expect "
+                    f"contiguous numbering of soft delays",
+                    stacklevel=2,
+                )
+                continue
+            if seen["hint"] in defaults:
+                raise ValueError(
+                    f"SoftDelay with numeric ID {number} uses the same hint "
+                    f"'{seen['hint']}' as some previous SoftDelay"
+                )
+            defaults[seen["hint"]] = seen["def"]
+
+        return defaults, error_report, state
 
     # -- registering an event on its own -------------------------------
 

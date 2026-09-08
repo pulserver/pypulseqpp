@@ -45,17 +45,6 @@ three further questions, none of which is a raster question:
 The one-line methods, the aliases and the no-ops are in. What is left, by
 what it would take:
 
-**Real work, and nothing else needs it first.**
-
-- `mod_grad_axis(axis, modifier)` and `flip_grad_axis(axis)`, which scale
-  every gradient played on one axis. The scaling is a column of the trapezoid
-  and arbitrary libraries; what makes it work rather than arithmetic is that
-  a row played on two axes cannot be scaled for one of them, so those have to
-  be found and refused.
-- `apply_soft_delay(**kwargs)` and `get_default_soft_delay_values()`, which
-  turn a named soft delay into the block duration it stands for.
-- `get_raw_block_content_IDs(block_index)`, one row of the block table.
-
 **Open.**
 
 - `detect_rf_use` when reading a file older than 1.5.0. The flag is accepted
@@ -63,6 +52,21 @@ what it would take:
   flip angle, the way the toolbox does.
 - `install`, `sound`, `test_report` and `test_report_dict`, which nobody has
   ruled on yet.
+
+## What a block reads back as
+
+`get_block` answers with the compiled event types rather than with
+namespaces, so one object serves twice: in Python it reads the way an event
+from a factory reads, and handed to `add_block` or `set_block` it takes the
+fast path. It carries the shapes it was stored under, so a sequence read out
+block by block and put back registers no waveform twice and writes the same
+file. A whole block can be passed on as it stands, which is how a block moves
+between sequences with its duration intact -- the only place a block that
+plays nothing keeps how long it waits.
+
+That is what every method reading a sequence needs, so the ones still to
+write -- the plotting and analysis below among them -- have what they read
+from.
 
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
 `calc_rf_power` -- and plotting and analysis -- `plot`, `paper_plot`,

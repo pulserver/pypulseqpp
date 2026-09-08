@@ -275,6 +275,55 @@ namespace pulseq
         return static_cast<int>(soft_delays_.size());
     }
 
+    int32_t Sequence::soft_delay_number(const std::string& hint, int32_t requested)
+    {
+        const std::map<std::string, int32_t>::const_iterator known =
+            soft_delay_hints_.find(hint);
+
+        if (known != soft_delay_hints_.end())
+        {
+            if (requested >= 0 && requested != known->second)
+                throw std::invalid_argument(
+                    "Soft delay hint '" + hint + "' is already assigned to numID " +
+                    std::to_string(known->second) + ". Cannot use numID " +
+                    std::to_string(requested) +
+                    ". Consider using a different hint or omitting numID.");
+            return known->second;
+        }
+
+        int32_t number = requested;
+        if (number < 0)
+        {
+            // The next one nothing is called by, counting from zero.
+            number = 0;
+            for (std::map<std::string, int32_t>::const_iterator taken =
+                     soft_delay_hints_.begin();
+                 taken != soft_delay_hints_.end();
+                 ++taken)
+            {
+                if (taken->second >= number)
+                    number = taken->second + 1;
+            }
+        }
+        else
+        {
+            for (std::map<std::string, int32_t>::const_iterator taken =
+                     soft_delay_hints_.begin();
+                 taken != soft_delay_hints_.end();
+                 ++taken)
+            {
+                if (taken->second == number)
+                    throw std::invalid_argument(
+                        "numID " + std::to_string(number) +
+                        " is already used by soft delay '" + taken->first +
+                        "'. Use a different numID or omit it for auto-assignment.");
+            }
+        }
+
+        soft_delay_hints_[hint] = number;
+        return number;
+    }
+
     int Sequence::register_shape(int num_uncompressed, const double* samples, int count)
     {
         deduplicated_ = false;
@@ -637,6 +686,70 @@ namespace pulseq
     double Sequence::duration() const
     {
         return pairwise_sum(durations_->data(), durations_->size());
+    }
+
+    void Sequence::scale_gradient_axis(int axis, double modifier)
+    {
+        if (axis < 0 || axis > 2)
+            throw std::invalid_argument("axis must be 0, 1 or 2");
+
+        /* A library row rather than a gradient id is what gets scaled, and
+         * deduplication can leave two ids sharing one -- so the question is
+         * whether a *row* is played on this axis and on another. */
+        const size_t rows = static_cast<size_t>(trap_.size() + arb_.size()) + 1;
+        std::vector<uint8_t> on_axis(rows, 0);
+        std::vector<uint8_t> elsewhere(rows, 0);
+
+        const auto slot_of = [&](int32_t id) -> size_t {
+            const size_t row = static_cast<size_t>(grad_row(id));
+            return grad_kind(id) == GradKind::Trap
+                ? row
+                : row + static_cast<size_t>(trap_.size());
+        };
+
+        const int32_t* block = blocks_->data();
+        const size_t count = blocks_->size() / BLOCK_WIDTH;
+        for (size_t b = 0; b < count; ++b, block += BLOCK_WIDTH)
+        {
+            for (int played = 0; played < 3; ++played)
+            {
+                const int32_t id = block[1 + played];
+                if (id <= 0 || id > num_gradients())
+                    continue;
+                (played == axis ? on_axis : elsewhere)[slot_of(id)] = 1;
+            }
+        }
+
+        for (size_t slot = 1; slot < rows; ++slot)
+        {
+            if (on_axis[slot] && elsewhere[slot])
+                throw std::runtime_error(
+                    "mod_grad_axis does not yet support the same gradient event "
+                    "used on multiple axes.");
+        }
+
+        for (int id = 1; id <= num_gradients(); ++id)
+        {
+            // Two ids can share a row, so a row is scaled the first time it
+            // is reached and marked spent.
+            if (on_axis[slot_of(id)] != 1)
+                continue;
+            on_axis[slot_of(id)] = 2;
+            const int row = grad_row(id);
+            if (grad_kind(id) == GradKind::Trap)
+            {
+                trap_.row(row)[0] *= modifier;
+            }
+            else
+            {
+                double* values = arb_.row(row);
+                values[0] *= modifier;
+                values[1] *= modifier;
+                values[2] *= modifier;
+            }
+        }
+
+        deduplicated_ = false;
     }
 
     std::array<int64_t, BLOCK_WIDTH> Sequence::event_counts() const

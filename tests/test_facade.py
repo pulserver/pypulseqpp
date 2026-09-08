@@ -262,7 +262,7 @@ def test_the_duration_says_what_the_sequence_is_made_of():
 
     seconds, blocks, counts = sequence.duration()
 
-    assert seconds == pytest.approx(sum(sequence.block_durations))
+    assert seconds == pytest.approx(sum(sequence.block_durations.values()))
     assert blocks == len(sequence)
     # delay, rf, gx, gy, gz, adc, extension -- upstream's columns, so a
     # caller indexing one of them reaches the same event kind here.
@@ -657,3 +657,86 @@ def test_registering_a_pulse_early_leaves_the_same_file_behind(tmp_path):
         written.append(path.read_text())
 
     assert written[0] == written[1]
+
+
+# -- a block read back out -------------------------------------------------
+
+
+def test_a_block_reads_back_as_the_events_it_plays():
+    sequence = pp.Sequence(pp.Opts())
+    pulse, select, _ = pp.make_sinc_pulse(
+        flip_angle=math.pi / 8,
+        duration=1e-3,
+        slice_thickness=3e-3,
+        use="excitation",
+        return_gz=True,
+    )
+    sequence.add_block(pulse, select)
+
+    block = sequence.get_block(1)
+
+    assert block.rf.type == "rf"
+    assert block.rf.use == "excitation"
+    assert block.gz.type == "trap"
+    assert block.gx is None and block.gy is None and block.adc is None
+    assert block.block_duration == pytest.approx(sequence.block_durations[1])
+
+
+def test_a_block_reads_back_as_compiled_events():
+    """One object that reads like a namespace and adds like a compiled event."""
+    sequence = pp.Sequence(pp.Opts())
+    sequence.add_block(pp.make_trapezoid("x", area=1000, duration=1e-3))
+
+    read = sequence.get_block(1).gx
+
+    assert isinstance(read, _ext.Event)
+    assert read.area == pytest.approx(1000)
+
+
+def test_a_block_put_back_registers_no_waveform_twice():
+    sequence = pp.Sequence(pp.Opts())
+    sequence.add_block(pp.make_arbitrary_grad("y", waveform=np.linspace(0, 1000, 20)))
+    shapes = sequence._native.num_shapes()
+
+    sequence.set_block(1, sequence.get_block(1))
+
+    assert sequence._native.num_shapes() == shapes
+
+
+def test_a_block_moves_to_another_sequence_whole():
+    system = upstream.Opts()
+    source = pp.Sequence(system)
+    source.add_block(pp.make_trapezoid("x", area=1000, duration=1e-3, system=system))
+    source.add_block(pp.make_delay(5e-3))
+
+    target = pp.Sequence(system)
+    for index in range(1, len(source) + 1):
+        target.add_block(source.get_block(index))
+
+    assert len(target) == len(source)
+    assert list(target.block_durations.values()) == pytest.approx(
+        list(source.block_durations.values())
+    )
+
+
+def test_the_raw_block_says_which_rows_it_points_at():
+    sequence = pp.Sequence(pp.Opts())
+    sequence.add_block(
+        pp.make_trapezoid("x", area=1000, duration=1e-3),
+        pp.make_adc(num_samples=64, duration=1e-3),
+    )
+
+    raw = sequence.get_raw_block_content_IDs(1)
+
+    assert raw.rf == 0
+    assert raw.gx == 1
+    assert raw.gy == 0 and raw.gz == 0
+    assert raw.adc == 1
+    assert raw.ext.shape == (2, 0)
+
+
+def test_a_trigger_reads_back_by_the_name_it_was_made_with():
+    for name in ("osc0", "osc1", "ext1"):
+        assert pp.make_digital_output_pulse(name, duration=1e-3).channel == name
+    for name in ("physio1", "physio2"):
+        assert pp.make_trigger(name, duration=1e-3).channel == name

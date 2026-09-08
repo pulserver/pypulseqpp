@@ -203,6 +203,7 @@ namespace pulseqpp_events
     struct Names
     {
         PyObject* type = key("type");
+        PyObject* block_duration = key("block_duration");
         PyObject* amplitude = key("amplitude");
         PyObject* rise_time = key("rise_time");
         PyObject* flat_time = key("flat_time");
@@ -735,6 +736,11 @@ namespace pulseqpp_events
                 {
                     auto& e = *static_cast<pulseq::SoftDelayEvent*>(base);
                     pulseq::SoftDelay row;
+                    // The sequence hands out the number, from the hint: every
+                    // block naming the same delay gets the same one. It goes
+                    // back onto the event too, so a script reading `numID`
+                    // sees what the file will carry.
+                    e.num = seq.soft_delay_number(e.hint, e.num);
                     row.num = e.num;
                     row.offset = e.offset;
                     row.factor = e.factor;
@@ -757,6 +763,71 @@ namespace pulseqpp_events
             const py::object holder = fields(event);
             PyObject* dict = holder.ptr();
             PyObject* kind_value = field(dict, n.type);
+
+            /* A whole block rather than an event: what `get_block` hands
+             * back, and what a script passes on to move a block from one
+             * sequence to another. Its events are registered as if they had
+             * been given one by one, and its stored duration sets a floor --
+             * which is the only place a block that plays nothing keeps how
+             * long it waits. */
+            PyObject* block_duration = field(dict, n.block_duration);
+            if (!kind_value && block_duration)
+            {
+                duration = std::max(duration, as_double(block_duration));
+                py::list contents;
+                PyObject* name = nullptr;
+                PyObject* value = nullptr;
+                Py_ssize_t position = 0;
+                while (PyDict_Next(dict, &position, &name, &value))
+                {
+                    if (value == block_duration || value == Py_None)
+                        continue;
+                    if (PyList_Check(value))
+                    {
+                        const Py_ssize_t held = PyList_GET_SIZE(value);
+                        for (Py_ssize_t i = 0; i < held; ++i)
+                            contents.append(py::handle(PyList_GET_ITEM(value, i)));
+                    }
+                    else
+                    {
+                        contents.append(py::handle(value));
+                    }
+                }
+                const Py_ssize_t held = PyList_GET_SIZE(contents.ptr());
+                if (held > 0)
+                {
+                    int32_t inner[8][2];
+                    int inner_chained = 0;
+                    const pulseq::Block within = collect_block(
+                        seq,
+                        &PyList_GET_ITEM(contents.ptr(), 0),
+                        held,
+                        inner,
+                        inner_chained);
+                    if (within.rf)
+                        block.rf = within.rf;
+                    if (within.gx)
+                        block.gx = within.gx;
+                    if (within.gy)
+                        block.gy = within.gy;
+                    if (within.gz)
+                        block.gz = within.gz;
+                    if (within.adc)
+                        block.adc = within.adc;
+                    for (int i = 0; i < inner_chained; ++i)
+                    {
+                        if (chained == 8)
+                            throw std::invalid_argument(
+                                "a block carries at most eight extensions");
+                        chain[chained][0] = inner[i][0];
+                        chain[chained][1] = inner[i][1];
+                        ++chained;
+                    }
+                    duration = std::max(duration, within.duration);
+                }
+                continue;
+            }
+
             if (!kind_value || !PyUnicode_Check(kind_value))
                 throw std::invalid_argument("add_block() event has no `type`");
             const char* kind = PyUnicode_AsUTF8(kind_value);
@@ -984,12 +1055,16 @@ namespace pulseqpp_events
             else if (std::strcmp(kind, "soft_delay") == 0)
             {
                 pulseq::SoftDelay row;
-                row.num = static_cast<int32_t>(std::lround(as_double(field(dict, n.numID))));
+                PyObject* number = field(dict, n.numID);
+                const int32_t requested = (!number || number == Py_None)
+                    ? -1
+                    : static_cast<int32_t>(std::lround(as_double(number)));
                 row.offset = as_double(field(dict, n.offset));
                 row.factor = as_double(field(dict, n.factor));
                 PyObject* hint_value = field(dict, n.hint);
                 if (hint_value && PyUnicode_Check(hint_value))
                     row.hint = PyUnicode_AsUTF8(hint_value);
+                row.num = seq.soft_delay_number(row.hint, requested);
                 if (chained == 8)
                     throw std::invalid_argument("a block carries at most eight extensions");
                 chain[chained][0] = static_cast<int32_t>(seq.extension_type_id("DELAYS"));

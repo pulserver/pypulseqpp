@@ -992,6 +992,25 @@ namespace pulseq
         int register_label_inc(int32_t value, int32_t label_id);
         int register_rf_shim(const double* values, int count);
         int register_soft_delay(const SoftDelay& row);
+
+        /**
+         * The number @p hint is addressed by, assigning one if it is new.
+         *
+         * A soft delay is named in a design script and numbered in the file,
+         * and the number is the sequence's to hand out: every block naming
+         * the same hint has to get the same one, and no two hints may share.
+         *
+         * Asked where an event is registered, not where a row is stored: a
+         * file being read carries the numbers it was written with, and
+         * nothing may renumber those.
+         *
+         * @param hint       What the delay is called.
+         * @param requested  The number asked for, or a negative one to be
+         *                   given the next free.
+         * @throws std::invalid_argument if @p hint already has a different
+         *         number, or @p requested already belongs to another hint.
+         */
+        int32_t soft_delay_number(const std::string& hint, int32_t requested);
         int register_shape(int num_uncompressed, const double* samples, int count);
 
         /**
@@ -1097,6 +1116,22 @@ namespace pulseq
 
         /** Total playing time, the sum of the block durations. */
         double duration() const;
+
+        /**
+         * Scale every gradient played on @p axis by @p modifier.
+         *
+         * Only the amplitude moves: the ramps, the delay and the shape stay
+         * as they are, so the definition a gradient belongs to is the one it
+         * belonged to before and nothing has to be re-derived. An arbitrary
+         * gradient's stored first and last samples scale with it, since those
+         * are amplitudes too.
+         *
+         * @param axis      0, 1 or 2 for x, y or z.
+         * @param modifier  What to multiply by; -1 inverts, 0 silences.
+         * @throws std::runtime_error if a gradient row is played on this axis
+         *         and on another, where there is no one answer.
+         */
+        void scale_gradient_axis(int axis, double modifier);
 
         /**
          * How many blocks carry an event in each column of the block table.
@@ -1379,6 +1414,8 @@ namespace pulseq
         RaggedTable rf_shim_;
         ShapeLibrary shapes_;
         std::vector<SoftDelay> soft_delays_;
+        /** What each soft delay hint is numbered as. */
+        std::map<std::string, int32_t> soft_delay_hints_;
 
         /** grad id (1-based) -> +trap row / -arb row.  See the file comment. */
         std::vector<int32_t> grad_slot_;
