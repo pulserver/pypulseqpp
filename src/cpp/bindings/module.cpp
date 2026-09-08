@@ -20,6 +20,9 @@
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/types.hpp"
+#include "pulseqpp_events.h"
+#include "pulseqpp_eventtypes.h"
+
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
 #include "pulseq/write.hpp"
@@ -28,6 +31,15 @@ namespace py = pybind11;
 
 namespace
 {
+    /**
+     * The sequence the module exposes.
+     *
+     * `pulseq::Sequence` plus the memory an event needs: which shape ids this
+     * sequence issued for a waveform it has already seen, so a pulse played a
+     * thousand times registers its shape once.
+     */
+    using Sequence = pulseqpp_events::BoundSequence;
+
 
     using Row = py::array_t<double, py::array::c_style | py::array::forcecast>;
 
@@ -82,7 +94,7 @@ namespace
             if (PyErr_Occurred())
                 return nullptr;
 
-            pulseq::Sequence& sequence = py::cast<pulseq::Sequence&>(py::handle(self));
+            Sequence& sequence = py::cast<Sequence&>(py::handle(self));
             return PyLong_FromLong(sequence.add_block(block));
         }
         catch (py::error_already_set& raised)
@@ -96,6 +108,39 @@ namespace
             return nullptr;
         }
     }
+
+    /**
+     * `add_block_events(*events)`, called without building a tuple.
+     *
+     * The compiled events go straight to `build_block`, which registers what
+     * the sequence has not seen and hands back the block's rows -- so a block
+     * costs one crossing rather than one per event.
+     */
+    PyObject* add_block_events_fast(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+    {
+        try
+        {
+            Sequence& sequence = py::cast<Sequence&>(py::handle(self));
+            return PyLong_FromLong(
+                sequence.add_block(pulseqpp_events::build_block(sequence, args, nargs)));
+        }
+        catch (py::error_already_set& raised)
+        {
+            raised.restore();
+            return nullptr;
+        }
+        catch (const std::exception& raised)
+        {
+            PyErr_SetString(PyExc_ValueError, raised.what());
+            return nullptr;
+        }
+    }
+
+    PyMethodDef add_block_events_def = {
+        "add_block_events",
+        reinterpret_cast<PyCFunction>(reinterpret_cast<void*>(add_block_events_fast)),
+        METH_FASTCALL,
+        PyDoc_STR("add_block_events(*events) -> int")};
 
     PyMethodDef add_block_fast_def = {
         "add_block",
@@ -118,6 +163,10 @@ namespace
 PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
+
+    // The events a block is made of, as compiled objects rather than
+    // dictionaries. See pulseqpp_eventtypes.h.
+    pulseqpp_types::bind(module);
 
     py::enum_<pulseq::ShapeRole>(module, "ShapeRole", py::arithmetic(),
                                  "What a shape is played as. Masks, so they combine.")
@@ -171,34 +220,34 @@ PYBIND11_MODULE(_ext, module)
         .def_readwrite("hint", &pulseq::SoftDelay::hint);
 
     auto sequence_class =
-        py::class_<pulseq::Sequence>(module, "Sequence", "Event libraries and a block table.")
+        py::class_<Sequence>(module, "Sequence", "Event libraries and a block table.")
             .def(py::init<>())
 
         /* -- header ---------------------------------------------------- */
-        .def("set_version", &pulseq::Sequence::set_version, py::arg("major"), py::arg("minor"),
+        .def("set_version", &Sequence::set_version, py::arg("major"), py::arg("minor"),
              py::arg("revision"))
-        .def("set_rasters", &pulseq::Sequence::set_rasters, py::arg("rf"), py::arg("grad"),
+        .def("set_rasters", &Sequence::set_rasters, py::arg("rf"), py::arg("grad"),
              py::arg("adc"), py::arg("block"))
-        .def("publish_rasters", &pulseq::Sequence::publish_rasters,
+        .def("publish_rasters", &Sequence::publish_rasters,
              "Record the raster times in `[DEFINITIONS]`.")
 
         /* -- definitions ----------------------------------------------- */
         .def(
             "set_definition",
-            [](pulseq::Sequence& self, const std::string& key, const py::object& value) {
+            [](Sequence& self, const std::string& key, const py::object& value) {
                 self.set_definition(key, definition_from(value));
             },
             py::arg("key"), py::arg("value"))
         .def(
             "set_integer_definition",
-            [](pulseq::Sequence& self, const std::string& key, std::vector<double> values) {
+            [](Sequence& self, const std::string& key, std::vector<double> values) {
                 self.set_definition(key, pulseq::Definition::integers(std::move(values)));
             },
             py::arg("key"), py::arg("values"),
             "Record whole numbers, which the writer formats without a decimal point.")
         .def(
             "definitions",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 py::dict out;
                 for (const auto& entry : self.definitions())
                 {
@@ -215,58 +264,58 @@ PYBIND11_MODULE(_ext, module)
         /* -- event libraries ------------------------------------------- */
         .def(
             "register_rf",
-            [](pulseq::Sequence& self, const Row& values, const std::string& use) {
+            [](Sequence& self, const Row& values, const std::string& use) {
                 return self.register_rf(row_of(values, pulseq::RF_WIDTH, "an RF event"),
                                         use.empty() ? 'u' : use[0]);
             },
             py::arg("values"), py::arg("use") = "u")
         .def(
             "register_trap",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_trap(row_of(values, pulseq::TRAP_WIDTH, "a trapezoid"));
             },
             py::arg("values"))
         .def(
             "register_arbitrary",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_arbitrary(
                     row_of(values, pulseq::ARB_WIDTH, "an arbitrary gradient"));
             },
             py::arg("values"))
         .def(
             "register_adc",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_adc(row_of(values, pulseq::ADC_WIDTH, "an ADC event"));
             },
             py::arg("values"))
         .def(
             "register_trigger",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_trigger(row_of(values, pulseq::TRIGGER_WIDTH, "a trigger"));
             },
             py::arg("values"))
         .def(
             "register_rotation",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_rotation(row_of(values, pulseq::ROTATION_WIDTH, "a rotation"));
             },
             py::arg("values"))
-        .def("register_label_set", &pulseq::Sequence::register_label_set, py::arg("value"),
+        .def("register_label_set", &Sequence::register_label_set, py::arg("value"),
              py::arg("label_id"))
-        .def("register_label_inc", &pulseq::Sequence::register_label_inc, py::arg("value"),
+        .def("register_label_inc", &Sequence::register_label_inc, py::arg("value"),
              py::arg("label_id"))
         .def(
             "register_rf_shim",
-            [](pulseq::Sequence& self, const Row& values) {
+            [](Sequence& self, const Row& values) {
                 return self.register_rf_shim(values.data(), static_cast<int>(values.size()));
             },
             py::arg("values"))
-        .def("register_soft_delay", &pulseq::Sequence::register_soft_delay, py::arg("delay"))
+        .def("register_soft_delay", &Sequence::register_soft_delay, py::arg("delay"))
 
         /* -- shapes ---------------------------------------------------- */
         .def(
             "register_shape",
-            [](pulseq::Sequence& self, int num_uncompressed, const Row& samples) {
+            [](Sequence& self, int num_uncompressed, const Row& samples) {
                 return self.register_shape(num_uncompressed, samples.data(),
                                            static_cast<int>(samples.size()));
             },
@@ -274,25 +323,25 @@ PYBIND11_MODULE(_ext, module)
             "Register an already-compressed shape.")
         .def(
             "register_raw_shape",
-            [](pulseq::Sequence& self, const Row& samples) {
+            [](Sequence& self, const Row& samples) {
                 return self.register_raw_shape(samples.data(), static_cast<int>(samples.size()));
             },
             py::arg("samples"), "Register uncompressed samples; compress_shapes() encodes them.")
         .def(
             "register_raw_shape_divided",
-            [](pulseq::Sequence& self, const Row& samples, double divisor) {
+            [](Sequence& self, const Row& samples, double divisor) {
                 return self.register_raw_shape_divided(samples.data(),
                                                        static_cast<int>(samples.size()), divisor);
             },
             py::arg("samples"), py::arg("divisor"))
-        .def("compress_shapes", &pulseq::Sequence::compress_shapes,
+        .def("compress_shapes", &Sequence::compress_shapes,
              py::call_guard<py::gil_scoped_release>(),
              "Run-length encode every shape registered raw.")
 
         /* -- what shapes are played as ----------------------------------- */
         .def(
             "shape_roles",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 const pulseq::ShapeLibrary& shapes = self.shape_library();
                 py::array_t<uint32_t> out(shapes.size());
                 uint32_t* values = out.mutable_data();
@@ -303,7 +352,7 @@ PYBIND11_MODULE(_ext, module)
             "Per shape, a mask of what it is played as. See ShapeRole.")
         .def(
             "shapes_with_role",
-            [](const pulseq::Sequence& self, uint32_t role) {
+            [](const Sequence& self, uint32_t role) {
                 const pulseq::ShapeLibrary& shapes = self.shape_library();
                 std::vector<int32_t> found;
                 for (int id = 1; id <= shapes.size(); ++id)
@@ -315,14 +364,14 @@ PYBIND11_MODULE(_ext, module)
             "The ids of every shape played as any of `role`, in id order.")
 
         /* -- extensions and labels ------------------------------------- */
-        .def("extension_type_id", &pulseq::Sequence::extension_type_id, py::arg("name"),
+        .def("extension_type_id", &Sequence::extension_type_id, py::arg("name"),
              "The id for an extension name, minting one if it is new.")
-        .def("set_extension_type_id", &pulseq::Sequence::set_extension_type_id, py::arg("name"),
+        .def("set_extension_type_id", &Sequence::set_extension_type_id, py::arg("name"),
              py::arg("id"), "Pin an extension name to a chosen id.")
-        .def("label_id", &pulseq::Sequence::label_id, py::arg("name"),
+        .def("label_id", &Sequence::label_id, py::arg("name"),
              "The id for a label name, minting one if it is not built in.")
-        .def("label_name", &pulseq::Sequence::label_name, py::arg("id"))
-        .def("chain_extension", &pulseq::Sequence::chain_extension, py::arg("type_id"),
+        .def("label_name", &Sequence::label_name, py::arg("id"))
+        .def("chain_extension", &Sequence::chain_extension, py::arg("type_id"),
              py::arg("ref"), py::arg("next"))
 
         /* -- blocks ---------------------------------------------------- */
@@ -336,7 +385,7 @@ PYBIND11_MODULE(_ext, module)
         // sequence itself is collected.
         .def(
             "block_events",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 auto buffer = self.block_events_buffer();
                 const int32_t* first = buffer->data();
                 return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH}, first,
@@ -345,7 +394,7 @@ PYBIND11_MODULE(_ext, module)
             "The block table as an (N, 6) snapshot: rf, gx, gy, gz, adc, ext.")
         .def(
             "block_durations",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 auto buffer = self.block_durations_buffer();
                 const double* first = buffer->data();
                 return py::array_t<double>({self.num_blocks()}, first,
@@ -356,7 +405,7 @@ PYBIND11_MODULE(_ext, module)
         // so it gets a scalar setter rather than a rebuild of the block.
         .def(
             "set_block_duration",
-            [](pulseq::Sequence& self, int index, double seconds) {
+            [](Sequence& self, int index, double seconds) {
                 if (index < 1 || index > self.num_blocks())
                     throw py::index_error("block index out of range");
                 self.block_durations()[index - 1] = seconds;
@@ -364,22 +413,22 @@ PYBIND11_MODULE(_ext, module)
             py::arg("index"), py::arg("seconds"))
 
         /* -- counts ------------------------------------------------------ */
-        .def("num_rf", [](const pulseq::Sequence& self) { return self.rf_library().size(); })
-        .def("num_gradients", &pulseq::Sequence::num_gradients)
-        .def("num_adc", [](const pulseq::Sequence& self) { return self.adc_library().size(); })
+        .def("num_rf", [](const Sequence& self) { return self.rf_library().size(); })
+        .def("num_gradients", &Sequence::num_gradients)
+        .def("num_adc", [](const Sequence& self) { return self.adc_library().size(); })
         .def("num_triggers",
-             [](const pulseq::Sequence& self) { return self.trigger_library().size(); })
+             [](const Sequence& self) { return self.trigger_library().size(); })
         .def("num_rotations",
-             [](const pulseq::Sequence& self) { return self.rotation_library().size(); })
+             [](const Sequence& self) { return self.rotation_library().size(); })
         .def("num_extensions",
-             [](const pulseq::Sequence& self) { return self.extensions_library().size(); })
+             [](const Sequence& self) { return self.extensions_library().size(); })
         .def("num_label_set",
-             [](const pulseq::Sequence& self) { return self.label_set_library().size(); })
+             [](const Sequence& self) { return self.label_set_library().size(); })
         .def("num_label_inc",
-             [](const pulseq::Sequence& self) { return self.label_inc_library().size(); })
+             [](const Sequence& self) { return self.label_inc_library().size(); })
         .def("num_shapes",
-             [](const pulseq::Sequence& self) { return self.shape_library().size(); })
-        .def("num_soft_delays", [](const pulseq::Sequence& self) {
+             [](const Sequence& self) { return self.shape_library().size(); })
+        .def("num_soft_delays", [](const Sequence& self) {
             return static_cast<int>(self.soft_delay_library().size());
         })
 
@@ -387,7 +436,7 @@ PYBIND11_MODULE(_ext, module)
         // is METH_FASTCALL. See add_block_fast above.
         .def(
             "set_block",
-            [](pulseq::Sequence& self, int index, int32_t rf, int32_t gx, int32_t gy, int32_t gz,
+            [](Sequence& self, int index, int32_t rf, int32_t gx, int32_t gy, int32_t gz,
                int32_t adc, int32_t ext, double duration) {
                 pulseq::Block block;
                 block.rf = rf;
@@ -401,32 +450,32 @@ PYBIND11_MODULE(_ext, module)
             },
             py::arg("index"), py::arg("rf"), py::arg("gx"), py::arg("gy"), py::arg("gz"),
             py::arg("adc"), py::arg("ext"), py::arg("duration"))
-        .def("get_block", &pulseq::Sequence::get_block, py::arg("index"))
-        .def("num_blocks", &pulseq::Sequence::num_blocks)
+        .def("get_block", &Sequence::get_block, py::arg("index"))
+        .def("num_blocks", &Sequence::num_blocks)
 
         /* -- definitions and instances --------------------------------- */
-        .def("num_block_definitions", &pulseq::Sequence::num_block_definitions,
+        .def("num_block_definitions", &Sequence::num_block_definitions,
              "How many distinct block structures the scan plays.")
-        .def("num_rf_definitions", &pulseq::Sequence::num_rf_definitions)
-        .def("num_grad_definitions", &pulseq::Sequence::num_grad_definitions)
-        .def("num_adc_definitions", &pulseq::Sequence::num_adc_definitions)
+        .def("num_rf_definitions", &Sequence::num_rf_definitions)
+        .def("num_grad_definitions", &Sequence::num_grad_definitions)
+        .def("num_adc_definitions", &Sequence::num_adc_definitions)
         .def(
             "instance_definitions",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 const auto& v = self.instance_definitions();
                 return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
             },
             "Per block, the id of the definition it plays.")
         .def(
             "instance_adc_definitions",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 const auto& v = self.instance_adc_definitions();
                 return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
             },
             "Per block, the ADC definition it digitises with; 0 if it does not.")
         .def(
             "instance_parameters",
-            [](const pulseq::Sequence& self) {
+            [](const Sequence& self) {
                 const std::vector<double> v = self.instance_parameters();
                 const py::ssize_t rows =
                     static_cast<py::ssize_t>(v.size() / pulseq::INSTANCE_WIDTH);
@@ -434,11 +483,11 @@ PYBIND11_MODULE(_ext, module)
                     {rows, static_cast<py::ssize_t>(pulseq::INSTANCE_WIDTH)}, v.data());
             },
             "Per block, its per-playout parameters.  See INSTANCE_WIDTH.")
-        .def("duration", &pulseq::Sequence::duration, "Total duration in seconds.")
-        .def("remove_duplicates", &pulseq::Sequence::remove_duplicates,
+        .def("duration", &Sequence::duration, "Total duration in seconds.")
+        .def("remove_duplicates", &Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
-        .def("__len__", &pulseq::Sequence::num_blocks);
+        .def("__len__", &Sequence::num_blocks);
 
     // METH_FASTCALL has no pybind11 spelling, so the descriptor is built by
     // hand and bound onto the type the class just created.
@@ -446,11 +495,13 @@ PYBIND11_MODULE(_ext, module)
         PyTypeObject* type = reinterpret_cast<PyTypeObject*>(sequence_class.ptr());
         sequence_class.attr("add_block") =
             py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_fast_def));
+        sequence_class.attr("add_block_events") =
+            py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_events_def));
     }
 
     module.def(
         "write_text",
-        [](pulseq::Sequence& sequence, bool create_signature) {
+        [](Sequence& sequence, bool create_signature) {
             std::string written;
             {
                 py::gil_scoped_release unlocked;
@@ -463,7 +514,7 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "write_text_v141",
-        [](pulseq::Sequence& sequence, bool create_signature, double gamma, double field) {
+        [](Sequence& sequence, bool create_signature, double gamma, double field) {
             if (!sequence.soft_delay_library().empty())
             {
                 // The reference toolbox warns rather than refusing, and so
@@ -488,7 +539,7 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "write_binary",
-        [](pulseq::Sequence& sequence) {
+        [](Sequence& sequence) {
             std::string written;
             {
                 py::gil_scoped_release unlocked;
@@ -503,17 +554,22 @@ PYBIND11_MODULE(_ext, module)
         [](const py::bytes& contents) { return pulseq::is_binary(std::string(contents)); },
         py::arg("contents"), "Whether the bytes open with the binary magic.");
 
-    module.def("required_revision", &pulseq::required_revision, py::arg("sequence"),
+    module.def(
+        "required_revision",
+        [](const Sequence& sequence) { return pulseq::required_revision(sequence); },
+        py::arg("sequence"),
                "The Pulseq revision the sequence's contents actually need.");
 
     module.def(
         "read",
         [](const py::bytes& contents, bool verify) {
-            pulseq::Sequence sequence;
+            // The base is what read() builds; the bound sequence is what
+            // Python holds, so the one is moved into the other.
+            Sequence sequence;
             {
                 const std::string text = contents;
                 py::gil_scoped_release unlocked;
-                sequence = pulseq::read(text, verify);
+                static_cast<pulseq::Sequence&>(sequence) = pulseq::read(text, verify);
             }
             return sequence;
         },
@@ -523,10 +579,10 @@ PYBIND11_MODULE(_ext, module)
     module.def(
         "read_file",
         [](const std::string& path, bool verify) {
-            pulseq::Sequence sequence;
+            Sequence sequence;
             {
                 py::gil_scoped_release unlocked;
-                sequence = pulseq::read_file(path, verify);
+                static_cast<pulseq::Sequence&>(sequence) = pulseq::read_file(path, verify);
             }
             return sequence;
         },

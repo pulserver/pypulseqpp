@@ -22,6 +22,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_text.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/module.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings/pulseqpp_eventtypes.cpp
 )
 
 target_include_directories(_ext PRIVATE ${CMAKE_SOURCE_DIR}/src/cpp)
