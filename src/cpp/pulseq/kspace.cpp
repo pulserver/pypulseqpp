@@ -191,15 +191,32 @@ namespace pulseq
          * changes direction at, the raster through each ramp because it
          * curves there, the moments the pulses act -- and just before them,
          * a pulse making it discontinuous -- every sample, and the ends. */
-        std::vector<double> wanted;
-        wanted.push_back(0.0);
-        wanted.push_back(total);
+        /* Every moment is already in order within the stream it comes from
+         * -- a gradient's corners, the raster through its ramps, the pulses,
+         * the samples -- so the moments are gathered as sorted streams and
+         * merged. Pouring them into one array and sorting it is the same
+         * answer for several times the work, and this is the longest array
+         * the calculation handles. */
+        std::vector<std::vector<double>> streams;
+
+        streams.push_back({0.0, snapped(total)});
         for (int axis = 0; axis < 3; ++axis)
         {
             const std::vector<double>& t = out.gradient_times[static_cast<size_t>(axis)];
             const std::vector<double>& v = out.gradient_values[static_cast<size_t>(axis)];
+            if (t.empty())
+                continue;
+
+            std::vector<double> corners(t.size());
             for (size_t i = 0; i < t.size(); ++i)
-                wanted.push_back(t[i]);
+                corners[i] = snapped(t[i]);
+            streams.push_back(std::move(corners));
+
+            /* The ramps are walked in order and their raster ranges overlap
+             * by at most a tick, so keeping the last one emitted is enough to
+             * come out sorted. */
+            std::vector<double> ticks;
+            long emitted = std::numeric_limits<long>::min();
             for (size_t i = 0; i + 1 < t.size(); ++i)
             {
                 const double slope = (v[i + 1] - v[i]) / (t[i + 1] - t[i]);
@@ -207,29 +224,61 @@ namespace pulseq
                     continue;
                 const long first = static_cast<long>(std::floor(t[i] / grad_raster));
                 const long last = static_cast<long>(std::ceil(t[i + 1] / grad_raster));
-                for (long tick = first; tick <= last; ++tick)
-                    wanted.push_back(static_cast<double>(tick) * grad_raster);
+                for (long tick = std::max(first, emitted + 1); tick <= last; ++tick)
+                    ticks.push_back(snapped(static_cast<double>(tick) * grad_raster));
+                emitted = std::max(emitted, last);
             }
+            if (!ticks.empty())
+                streams.push_back(std::move(ticks));
         }
-        for (size_t i = 0; i < out.excitation_times.size(); ++i)
-        {
-            wanted.push_back(out.excitation_times[i] - 2.0 * rf_raster);
-            wanted.push_back(out.excitation_times[i] - rf_raster);
-            wanted.push_back(out.excitation_times[i]);
-        }
-        for (size_t i = 0; i < out.refocusing_times.size(); ++i)
-        {
-            wanted.push_back(out.refocusing_times[i] - rf_raster);
-            wanted.push_back(out.refocusing_times[i]);
-        }
-        for (size_t i = 0; i < out.adc_times.size(); ++i)
-            wanted.push_back(out.adc_times[i]);
 
-        for (size_t i = 0; i < wanted.size(); ++i)
-            wanted[i] = snapped(wanted[i]);
-        std::sort(wanted.begin(), wanted.end());
-        wanted.erase(std::unique(wanted.begin(), wanted.end()), wanted.end());
-        out.times = wanted;
+        for (int back = 0; back < 3; ++back)
+        {
+            std::vector<double> before(out.excitation_times.size());
+            for (size_t i = 0; i < out.excitation_times.size(); ++i)
+                before[i] = snapped(
+                    out.excitation_times[i] - static_cast<double>(back) * rf_raster);
+            if (!before.empty())
+                streams.push_back(std::move(before));
+        }
+        for (int back = 0; back < 2; ++back)
+        {
+            std::vector<double> before(out.refocusing_times.size());
+            for (size_t i = 0; i < out.refocusing_times.size(); ++i)
+                before[i] = snapped(
+                    out.refocusing_times[i] - static_cast<double>(back) * rf_raster);
+            if (!before.empty())
+                streams.push_back(std::move(before));
+        }
+        {
+            std::vector<double> samples(out.adc_times.size());
+            for (size_t i = 0; i < out.adc_times.size(); ++i)
+                samples[i] = snapped(out.adc_times[i]);
+            if (!samples.empty())
+                streams.push_back(std::move(samples));
+        }
+
+        /* Merged in pairs, so the whole set is passed over log(streams)
+         * times rather than sorted. */
+        std::vector<double> merged;
+        while (streams.size() > 1)
+        {
+            std::vector<std::vector<double>> next;
+            for (size_t i = 0; i + 1 < streams.size(); i += 2)
+            {
+                merged.resize(streams[i].size() + streams[i + 1].size());
+                std::merge(
+                    streams[i].begin(), streams[i].end(),
+                    streams[i + 1].begin(), streams[i + 1].end(),
+                    merged.begin());
+                next.push_back(merged);
+            }
+            if (streams.size() % 2 == 1)
+                next.push_back(std::move(streams.back()));
+            streams.swap(next);
+        }
+        out.times = streams.empty() ? std::vector<double>() : std::move(streams.front());
+        out.times.erase(std::unique(out.times.begin(), out.times.end()), out.times.end());
 
         const size_t moments = out.times.size();
         for (int axis = 0; axis < 3; ++axis)
@@ -377,13 +426,21 @@ namespace pulseq
                 out.position[static_cast<size_t>(axis)][ends_at] += shift[axis];
         }
 
+        /* The samples are in order and every one of them is a moment the
+         * trajectory knows, so where they sit is one walk down both -- not a
+         * search of the whole trajectory per sample, which is the longest
+         * thing this calculation would otherwise do. */
         for (int axis = 0; axis < 3; ++axis)
+            out.sampled[static_cast<size_t>(axis)].resize(out.adc_times.size());
+        size_t at = 0;
+        for (size_t i = 0; i < out.adc_times.size(); ++i)
         {
-            std::vector<double>& taken = out.sampled[static_cast<size_t>(axis)];
-            taken.resize(out.adc_times.size());
-            for (size_t i = 0; i < out.adc_times.size(); ++i)
-                taken[i] = out.position[static_cast<size_t>(axis)]
-                                       [index_of(out.adc_times[i])];
+            const double when = snapped(out.adc_times[i]);
+            while (at + 1 < moments && out.times[at] < when)
+                ++at;
+            for (int axis = 0; axis < 3; ++axis)
+                out.sampled[static_cast<size_t>(axis)][i] =
+                    out.position[static_cast<size_t>(axis)][at];
         }
 
         return out;

@@ -62,18 +62,21 @@ reads is now reachable, so `test_report` and `test_report_dict` are
 assembling what is already there rather than computing anything new. The FOV
 transform reads the same trajectory.
 
-### Where the repeating unit would pay
+### What the repeating unit cannot do here
 
-`calculate_kspace` is a compiled pass and 11x the toolbox; profiling puts
-essentially all of what is left inside it, so there is no Python overhead
-to remove and no more to gain from moving code.
+Reusing one shot's trajectory across every repetition looks like the obvious
+saving, and it does not work: shots do not share a time base. Whether a
+gradient ramp is followed through at the raster depends on whether it is
+ramping at all, which depends on its amplitude -- so a shot whose phase
+encode is near zero has fewer moments in it than its neighbours. A
+sixty-four line gradient echo has five different moment counts among its
+shots, from 229 to 233. One base repeated would be a different trajectory
+from the one the toolbox reports.
 
-Going further means not integrating every shot. k within a shot is the k the
-shot started at plus the shot's own integral, and the fork already says two
-shots play the same definitions -- so the integral over one repeating unit,
-scaled by each shot's amplitudes, is the whole trajectory. That is the
-saving the repeating unit is worth spending on: it shrinks the work rather
-than the input, which a range already does.
+What the repeat could still save is the merge, which is a third of what is
+left. It would have to be a merge of one prologue, one base repeated, and
+the shots that differ from it -- which is more machinery than the merge it
+replaces, for a third of a calculation that is already 36x the toolbox.
 
 The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.
