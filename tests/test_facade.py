@@ -740,3 +740,49 @@ def test_a_trigger_reads_back_by_the_name_it_was_made_with():
         assert pp.make_digital_output_pulse(name, duration=1e-3).channel == name
     for name in ("physio1", "physio2"):
         assert pp.make_trigger(name, duration=1e-3).channel == name
+
+
+# -- reading a file that does not say what its pulses are for --------------
+
+
+def test_an_unlabelled_pulse_is_labelled_from_what_it_does(tmp_path):
+    """Before 1.5.0 the format had nowhere to record it."""
+    system = upstream.Opts()
+    written = pp.Sequence(system)
+    written.add_block(
+        pp.make_block_pulse(math.pi / 6, duration=1e-3, system=system, use="excitation")
+    )
+    written.add_block(
+        pp.make_block_pulse(math.pi, duration=1e-3, system=system, use="refocusing")
+    )
+    path = tmp_path / "unlabelled.seq"
+    written.write_v141(str(path))
+
+    loaded = pp.Sequence(system)
+    loaded.read(str(path), detect_rf_use=True)
+
+    assert loaded.get_block(1).rf.use == "excitation"
+    assert loaded.get_block(2).rf.use == "refocusing"
+
+
+def test_a_pulse_the_file_labels_is_left_alone(tmp_path):
+    system = upstream.Opts()
+    written = pp.Sequence(system)
+    written.add_block(
+        pp.make_block_pulse(math.pi, duration=1e-3, system=system, use="inversion")
+    )
+    path = tmp_path / "labelled.seq"
+    written.write(str(path))
+
+    loaded = pp.Sequence(system)
+    with pytest.warns(UserWarning, match="nothing to do"):
+        loaded.read(str(path), detect_rf_use=True)
+
+    # A hundred and eighty degrees would be read as refocusing if it were
+    # guessed at; the file says otherwise and the file wins.
+    assert loaded.get_block(1).rf.use == "inversion"
+
+
+def test_installing_is_upstreams_own():
+    """The only thing an installer asks of a sequence is that it writes."""
+    assert pp.Sequence.install is upstream.Sequence.install

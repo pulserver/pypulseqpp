@@ -563,6 +563,51 @@ namespace pulseq
         RaggedTable data_;
     };
 
+    /**
+     * What applying soft delay values found.
+     *
+     * The pass is over the block table rather than over decoded blocks, so
+     * what it reports is the little that a caller has to be told about: which
+     * delays the sequence carries, where a duration had to be moved onto the
+     * raster, and the first thing that was wrong. The wording is left to the
+     * caller, which is where the toolbox's own messages live.
+     */
+    struct SoftDelayReport
+    {
+        /** What a duration was rounded by to reach the block raster. */
+        struct Rounding
+        {
+            int block = 0;
+            std::string hint;
+            int32_t num = 0;
+            double error = 0.0;
+        };
+
+        /** What stopped the pass, if anything did. */
+        enum class Problem
+        {
+            None,
+            /** One hint under two numbers. */
+            HintRenumbered,
+            /** One number under two hints. */
+            NumberRenamed,
+            /** The value asked for makes the block last less than nothing. */
+            Negative
+        };
+
+        /** Every hint the sequence carries, in the order first seen. */
+        std::vector<std::string> hints;
+        std::vector<Rounding> rounded;
+
+        Problem problem = Problem::None;
+        int block = 0;
+        std::string hint;
+        int32_t num = 0;
+        double duration = 0.0;
+        double offset = 0.0;
+        double factor = 0.0;
+    };
+
     /** One soft-delay row: a numeric id, an offset, a factor, and a hint name. */
     struct SoftDelay
     {
@@ -1011,6 +1056,43 @@ namespace pulseq
          *         number, or @p requested already belongs to another hint.
          */
         int32_t soft_delay_number(const std::string& hint, int32_t requested);
+
+        /**
+         * Set each named soft delay to the value given, in block durations.
+         *
+         * A soft delay says how long its block lasts in terms of a value the
+         * console supplies: `duration = value / factor + offset`, rounded onto
+         * the block raster. This walks the block table, finds the soft delay
+         * each block heads without decoding anything else, and writes the
+         * durations back.
+         *
+         * Blocks are written as they are reached, so a sequence stopped by a
+         * problem has the blocks before it already moved -- which is what the
+         * toolbox does, and what a caller correcting the problem expects.
+         *
+         * @param values  What each delay, by its hint, is to be set to.
+         * @return What was found; see SoftDelayReport.
+         */
+        SoftDelayReport apply_soft_delays(const std::map<std::string, double>& values);
+
+        /**
+         * Work out what each unlabelled pulse is for, from what it does.
+         *
+         * Before revision 1.5.0 the format had nowhere to record whether a
+         * pulse excites, refocuses or saturates, so a file older than that
+         * arrives with its pulses unlabelled and the answer has to be read
+         * off the pulse itself: anything up to ninety degrees excites, a long
+         * pulse sitting where fat resonates saturates, and the rest
+         * refocuses.
+         *
+         * Only pulses the file did not label are touched, so nothing a
+         * sequence already states about itself is overwritten.
+         *
+         * @param b0     Field strength in tesla, for the fat offset.
+         * @param gamma  Gyromagnetic ratio in Hz/T.
+         * @return How many pulses were labelled.
+         */
+        int detect_rf_uses(double b0, double gamma);
         int register_shape(int num_uncompressed, const double* samples, int count);
 
         /**

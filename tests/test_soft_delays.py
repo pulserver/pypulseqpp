@@ -183,3 +183,34 @@ def test_a_gap_in_the_numbering_is_warned_about(system):
         defaults, _, _ = sequence.get_default_soft_delay_values()
 
     assert set(defaults) == {"TE", "TR"}
+
+
+def test_applying_a_delay_is_a_pass_over_the_block_table(system):
+    """The soft delays are found without decoding anything else."""
+    sequence = pp.Sequence(system)
+    pulse = pp.make_block_pulse(
+        np.pi / 2, duration=1e-3, system=system, use="excitation"
+    )
+    readout = pp.make_trapezoid("x", area=1000, duration=1e-3, system=system)
+    for _ in range(500):
+        sequence.add_block(pulse)
+        sequence.add_block(readout)
+        sequence.add_block(pp.make_soft_delay("TE", numID=0, default_duration=5e-3))
+
+    sequence.apply_soft_delay(TE=9e-3)
+
+    assert [sequence.block_durations[i] for i in (3, 300, 1500)] == pytest.approx(
+        [9e-3, 9e-3, 9e-3]
+    )
+
+
+def test_a_delay_left_unnamed_by_a_block_that_has_none_is_untouched(system):
+    """Only blocks heading a soft delay move."""
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_delay(3e-3))
+    sequence.add_block(pp.make_soft_delay("TE", numID=0, default_duration=5e-3))
+
+    sequence.apply_soft_delay(TE=9e-3)
+
+    assert sequence.block_durations[1] == pytest.approx(3e-3)
+    assert sequence.block_durations[2] == pytest.approx(9e-3)

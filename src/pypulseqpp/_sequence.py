@@ -19,8 +19,8 @@ import numpy as np
 import pypulseq as _upstream
 
 from . import _ext as _cxx
+from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
-from ._check_timing import print_error_report
 
 __all__ = ["Sequence"]
 
@@ -441,14 +441,80 @@ class Sequence:
 
     # -- soft delays ---------------------------------------------------
 
-    #: Upstream's own, run against this sequence.
-    #:
-    #: It reads `block_events`, `get_block` and `system`, and writes a block's
-    #: duration back through `block_durations` -- all of which mean here what
-    #: they mean there, so the method is taken rather than rewritten. What it
-    #: does is arithmetic over a handful of soft delays, not a pass over the
-    #: block table, so there is nothing to gain by compiling it.
-    apply_soft_delay = _upstream.Sequence.apply_soft_delay
+    def apply_soft_delay(self, **kwargs) -> None:
+        """Set each named soft delay to the value given.
+
+        A soft delay says how long its block lasts in terms of a value the
+        console supplies: ``duration = value / factor + offset``, rounded onto
+        the block duration raster. Naming one here writes that duration into
+        every block that plays it.
+
+        Parameters
+        ----------
+        **kwargs
+            What each delay, by its hint, is to be set to, in seconds. A
+            delay the sequence carries and nobody names is left alone.
+
+        Raises
+        ------
+        ValueError
+            If a name given is not in the sequence, if a hint and a numeric
+            id do not agree about which delay they name, or if the value
+            asked for would make a block last less than nothing.
+
+        Warns
+        -----
+        UserWarning
+            When a duration had to move more than half a microsecond to
+            reach the raster. Once per delay, not once per block.
+
+        Notes
+        -----
+        Finding the soft delays is a compiled pass over the block table:
+        nothing else in a block is decoded to answer whether it heads one.
+        """
+        report = self._native.apply_soft_delays(kwargs)
+        raster = self.system.block_duration_raster
+
+        for note in report["rounded"]:
+            warn(
+                f"Soft delay '{note['hint']}' in block {note['block']}: "
+                f"Duration rounded by {note['error'] * 1e6:.1f} \u03bcs to align "
+                f"with raster time ({raster * 1e6:.1f} \u03bcs). "
+                f"This warning is shown only once per soft delay ID.",
+                stacklevel=2,
+            )
+
+        problem = report["problem"]
+        if problem is not None:
+            hint, block = problem["hint"], problem["block"]
+            number = problem["numID"]
+            if problem["kind"] == "hint_renumbered":
+                raise ValueError(
+                    f"Soft delay in block {block} with numeric ID {number} and "
+                    f"string hint '{hint}' is inconsistent with the previous "
+                    f"occurrences of the same string hint"
+                )
+            if problem["kind"] == "number_renamed":
+                raise ValueError(
+                    f"Soft delay in block {block} with numeric ID {number} and "
+                    f"string hint '{hint}' is inconsistent with the previous "
+                    f"occurrences of the same numeric ID"
+                )
+            raise ValueError(
+                f"Soft delay '{hint}' in block {block}: Calculated duration is "
+                f"negative ({problem['duration'] * 1e6:.1f} \u03bcs). Check the "
+                f"offset ({problem['offset'] * 1e6:.1f} \u03bcs) and factor "
+                f"({problem['factor']}) parameters."
+            )
+
+        for name in kwargs:
+            if name not in report["hints"]:
+                available = report["hints"]
+                raise ValueError(
+                    f"Soft delay '{name}' not found in sequence. "
+                    f"Available soft delays: {available if available else 'none'}"
+                )
 
     def get_default_soft_delay_values(self):
         """Return what each soft delay stands for if nobody sets it.
@@ -735,22 +801,40 @@ class Sequence:
         file_path : str or Path
             The file to read.
         detect_rf_use : bool, default False
-            Guess what each pulse is for in a file that does not say. Files
-            from 1.5.0 on record it, and nothing older is guessed at here.
+            Work out what each unlabelled pulse is for, from what it does.
+            Before revision 1.5.0 the format had nowhere to record it, so a
+            file older than that arrives with its pulses unlabelled. Pulses
+            the file does label are left alone.
         remove_duplicates : bool, default True
             Collapse identical library rows after reading.
         verify : bool, default False
             Check the file against the signature it carries.
         """
-        if detect_rf_use:
-            warn(
-                "read(): detect_rf_use is not supported; a pulse in a file "
-                "that does not record what it is for is read as undefined",
-                stacklevel=2,
-            )
         self._native = _cxx.read(Path(file_path).read_bytes(), verify)
+        if detect_rf_use:
+            system = self.system
+            labelled = self._native.detect_rf_uses(
+                _limit(system, "B0", 1.5), _limit(system, "gamma", 42576000.0)
+            )
+            if labelled == 0:
+                warn(
+                    "read(): detect_rf_use had nothing to do; every pulse in "
+                    "this file already records what it is for",
+                    stacklevel=2,
+                )
         if remove_duplicates:
             self._native.remove_duplicates()
+
+    # -- the scanner ---------------------------------------------------
+
+    #: Upstream's own, run against this sequence.
+    #:
+    #: It finds the scanner and hands the sequence to whatever that scanner's
+    #: installer wants, and the only thing an installer asks of a sequence is
+    #: `write(filename)` -- which means here what it means there. So the
+    #: method is taken rather than rewritten, and a scanner PyPulseq learns to
+    #: talk to is one this talks to as well.
+    install = _upstream.Sequence.install
 
     # -- collapsing ----------------------------------------------------
 

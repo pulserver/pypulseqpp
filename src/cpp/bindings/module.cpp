@@ -568,6 +568,59 @@ PYBIND11_MODULE(_ext, module)
             },
             py::arg("index"), py::arg("seconds"))
 
+        .def(
+            "detect_rf_uses", &Sequence::detect_rf_uses, py::arg("b0"), py::arg("gamma"),
+            "Label every pulse the file did not, from what the pulse does. "
+            "Returns how many were labelled.")
+        .def(
+            "apply_soft_delays",
+            [](Sequence& self, const std::map<std::string, double>& values) {
+                pulseq::SoftDelayReport report;
+                {
+                    py::gil_scoped_release unlocked;
+                    report = self.apply_soft_delays(values);
+                }
+
+                py::list rounded;
+                for (size_t i = 0; i < report.rounded.size(); ++i)
+                {
+                    const pulseq::SoftDelayReport::Rounding& note = report.rounded[i];
+                    py::dict entry;
+                    entry["block"] = note.block;
+                    entry["hint"] = note.hint;
+                    entry["numID"] = note.num;
+                    entry["error"] = note.error;
+                    rounded.append(entry);
+                }
+
+                py::dict out;
+                out["hints"] = report.hints;
+                out["rounded"] = rounded;
+                out["problem"] = py::none();
+                if (report.problem != pulseq::SoftDelayReport::Problem::None)
+                {
+                    py::dict problem;
+                    problem["kind"] =
+                        report.problem == pulseq::SoftDelayReport::Problem::HintRenumbered
+                        ? "hint_renumbered"
+                        : (report.problem ==
+                                   pulseq::SoftDelayReport::Problem::NumberRenamed
+                               ? "number_renamed"
+                               : "negative");
+                    problem["block"] = report.block;
+                    problem["hint"] = report.hint;
+                    problem["numID"] = report.num;
+                    problem["duration"] = report.duration;
+                    problem["offset"] = report.offset;
+                    problem["factor"] = report.factor;
+                    out["problem"] = problem;
+                }
+                return out;
+            },
+            py::arg("values"),
+            "Set each named soft delay, by hint, to the value given. Returns "
+            "the hints found, what had to be rounded, and the first problem.")
+
         /* -- counts ------------------------------------------------------ */
         .def("num_rf", [](const Sequence& self) { return self.rf_library().size(); })
         .def("num_gradients", &Sequence::num_gradients)

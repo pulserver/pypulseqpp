@@ -45,13 +45,8 @@ three further questions, none of which is a raster question:
 The one-line methods, the aliases and the no-ops are in. What is left, by
 what it would take:
 
-**Open.**
-
-- `detect_rf_use` when reading a file older than 1.5.0. The flag is accepted
-  and warned about; honouring it means guessing what a pulse is for from its
-  flip angle, the way the toolbox does.
-- `install`, `sound`, `test_report` and `test_report_dict`, which nobody has
-  ruled on yet.
+**Open.** `sound`, `test_report` and `test_report_dict`, which nobody has
+ruled on yet.
 
 ## What a block reads back as
 
