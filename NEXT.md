@@ -57,9 +57,23 @@ lines and the gradient maxima all come out of `waveforms_and_times` and
 `calculate_kspace`, which the report calls before it computes anything.
 
 `waveforms_and_times` is in, and with it `waveforms`, `adc_times`,
-`rf_times` and `get_gradients`. What is left of the report is
-`calculate_kspace`, which integrates the waveforms into a trajectory; the
-counts and the gradient maxima it also wants are already reachable.
+`rf_times`, `get_gradients` and `calculate_kspace`. Everything the report
+reads is now reachable, so `test_report` and `test_report_dict` are
+assembling what is already there rather than computing anything new. The FOV
+transform reads the same trajectory.
+
+### Where the repeating unit would pay
+
+`calculate_kspace` is 2.7x the toolbox, where the waveform expansion under it
+is 96x. The difference is that the k-space step is vectorised NumPy in both,
+so what it gains is only the faster expansion feeding it.
+
+Going further means not integrating every shot. k within a shot is the k the
+shot started at plus the shot's own integral, and the fork already says two
+shots play the same definitions -- so the integral over one repeating unit,
+scaled by each shot's amplitudes, is the whole trajectory. That is the
+saving the repeating unit is worth spending on: it shrinks the work rather
+than the input, which a range already does.
 
 The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.

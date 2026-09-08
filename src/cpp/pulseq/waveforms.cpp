@@ -80,6 +80,20 @@ namespace pulseq
             double delay = 0.0;
             bool known = false;
             bool empty_with_amplitude = false;
+
+            /**
+             * A trapezoid's ramps, kept so its corners can be added up from
+             * where the block starts rather than offset from zero.
+             *
+             * `(start + rise) + flat` and `(rise + flat) + start` are not the
+             * same double, and a corner one bit out lands on the other side
+             * of `floor(t / raster)` -- which changes which raster points a
+             * trajectory is followed through. Four additions is nothing; the
+             * shape of a long waveform is what the cache is really for.
+             */
+            bool trapezoid = false;
+            double ramps[3] = {0.0, 0.0, 0.0};
+            double amplitude = 0.0;
         };
 
         /** One channel of the answer, stitched together as pieces arrive. */
@@ -363,14 +377,19 @@ namespace pulseq
                 const double fall = trap[3];
                 made.delay = trap[4];
 
+                made.trapezoid = true;
+                made.amplitude = amplitude;
                 if (std::fabs(flat) > kEps)
                 {
-                    made.times = {0.0, rise, rise + flat, rise + flat + fall};
+                    made.ramps[0] = rise;
+                    made.ramps[1] = flat;
+                    made.ramps[2] = fall;
                     made.values = {0.0, amplitude, amplitude, 0.0};
                 }
                 else if (std::fabs(rise) > kEps && std::fabs(fall) > kEps)
                 {
-                    made.times = {0.0, rise, rise + fall};
+                    made.ramps[0] = rise;
+                    made.ramps[1] = fall;
                     made.values = {0.0, amplitude, 0.0};
                 }
                 else if (std::fabs(amplitude) > kEps)
@@ -471,6 +490,7 @@ namespace pulseq
             }
 
             const Corners* played[3] = {nullptr, nullptr, nullptr};
+            Corners here[3];
             for (int axis = 0; axis < 3; ++axis)
             {
                 const int32_t id = row[1 + axis];
@@ -484,22 +504,42 @@ namespace pulseq
                         std::to_string(index));
                     continue;
                 }
-                if (!shape.times.empty())
+                if (shape.trapezoid)
+                {
+                    if (shape.values.empty())
+                        continue;
+                    Corners& built = here[axis];
+                    built.trapezoid = true;
+                    built.values = shape.values;
+                    built.times.resize(shape.values.size());
+                    double when = elapsed + shape.delay;
+                    built.times[0] = when;
+                    for (size_t i = 1; i < shape.values.size(); ++i)
+                    {
+                        when += shape.ramps[i - 1];
+                        built.times[i] = when;
+                    }
+                    played[axis] = &built;
+                }
+                else if (!shape.times.empty())
+                {
                     played[axis] = &shape;
+                }
             }
 
             if (rotation_row < 1 || rotation_row > seq.rotation_library().size())
             {
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    if (played[axis] != nullptr)
-                        extend(
-                            channels[axis],
-                            played[axis]->times,
-                            played[axis]->values,
-                            elapsed + played[axis]->delay,
-                            grad_raster,
-                            out.warnings);
+                    if (played[axis] == nullptr)
+                        continue;
+                    extend(
+                        channels[axis],
+                        played[axis]->times,
+                        played[axis]->values,
+                        played[axis]->trapezoid ? 0.0 : elapsed + played[axis]->delay,
+                        grad_raster,
+                        out.warnings);
                 }
             }
             else
@@ -523,7 +563,8 @@ namespace pulseq
                     absolute[axis].clear();
                     if (played[axis] == nullptr)
                         continue;
-                    const double start = elapsed + played[axis]->delay;
+                    const double start =
+                        played[axis]->trapezoid ? 0.0 : elapsed + played[axis]->delay;
                     absolute[axis].reserve(played[axis]->times.size());
                     for (size_t i = 0; i < played[axis]->times.size(); ++i)
                     {

@@ -21,6 +21,8 @@ import pypulseq as _upstream
 from . import _ext as _cxx
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
+from ._kspace import calculate_kspace as _calculate_kspace
+from ._kspace import detail as _kspace_detail
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -466,6 +468,52 @@ class Sequence:
     def rf_times(self, time_range=None):
         """Return when the pulses act, and at what frequency and phase."""
         return _rf_times(self, time_range)
+
+    def calculate_kspace(
+        self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None
+    ):
+        """Return where the sequence goes in k-space, and where it samples.
+
+        A gradient moves the spins' phase, and the phase they have
+        accumulated is where the sequence has got to in k-space -- so the
+        trajectory is the integral of the gradient waveforms. An excitation
+        starts the phase over and a refocusing turns it around, which is what
+        makes a spin echo come back.
+
+        Parameters
+        ----------
+        trajectory_delay : float or sequence of float, default 0
+            How late each axis plays what it was asked to, in seconds.
+        gradient_offset : float or sequence of float, default 0
+            A background gradient per axis, in Hz/m.
+        block_range : sequence of int, optional
+            Two 1-based block indices; only those blocks are followed.
+
+        Returns
+        -------
+        k_traj_adc : np.ndarray
+            3-by-n: where each ADC sample sits in k-space, in 1/m.
+        k_traj : np.ndarray
+            The whole trajectory, at every time it changes direction.
+        t_excitation : np.ndarray
+        t_refocusing : np.ndarray
+        t_adc : np.ndarray
+            When the pulses act and the samples are taken.
+        """
+        return _calculate_kspace(self, trajectory_delay, gradient_offset, block_range)
+
+    #: Upstream carries this name for the same calculation, and so does this.
+    calculate_kspacePP = calculate_kspace
+
+    def _kspace(self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+        """Return everything following the trajectory produces, by name.
+
+        The five values `calculate_kspace` hands back are what upstream
+        reports; this is all ten the reference toolbox does -- the
+        trajectory's own time base, the slice positions and the gradients as
+        splines besides -- for the analysis here that wants them.
+        """
+        return _kspace_detail(self, trajectory_delay, gradient_offset, block_range)
 
     def get_gradients(
         self,
