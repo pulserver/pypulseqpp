@@ -17,6 +17,16 @@ namespace pulseq
 
     class Sequence;
 
+    /**
+     * Record in `[DEFINITIONS]` the label names the builtin table does not
+     * carry, so a label number above that table resolves by position.
+     *
+     * Both writers call it: the text form writes a label's name and the
+     * binary form its number, but the number is what the binary form has and
+     * this is what gives it a meaning.
+     */
+    void declare_custom_labels(Sequence& seq);
+
     /** The revision of the format this package writes: Pulseq 1.5.1. */
     constexpr int WRITTEN_REVISION = 1;
 

@@ -167,14 +167,32 @@ Two places this decided something about the binary layout:
   the value count is an int32 too -- not a NUL-terminated name and a
   single-byte count. The byte would have capped a definition at 255 values,
   which `SlicePositions` on a 256-slice acquisition exceeds.
-- **`LABELNAMES` is written only when a label is one Pulseq does not define.**
-  The section says what each label id is called, which is what lets a name
-  outside Pulseq's table survive; but a reader predating it refuses any file
-  carrying it, and for a label Pulseq defines the number alone is enough
-  because every toolbox numbers those the same way.
+- **A label's name travels in `[DEFINITIONS]`, not in a section.** See below.
 
 `tests/test_interoperability.py` holds both directions against that toolbox
 and skips when it is not installed, since it is not on PyPI.
+
+## A label the builtin table does not carry
+
+A label is named, not numbered. The text form writes the name and reads it
+back, and `label_id` mints one for a name it has not seen, so a sequence may
+use a label Pulseq does not define with nothing to configure first -- where
+the reference toolbox makes the caller extend a vocabulary by hand.
+
+The binary form writes the **number**, and a number means something only
+against a table. `builtin_labels()` is that table, in the reference toolbox's
+order, and it is a seed for the numbering rather than a statement about what a
+label may be: with any other order our `NOISE` reads there as `IMA`. For a
+name past the end of it no fixed list can help, which is the point of allowing
+one.
+
+So the names past the table are listed in `[DEFINITIONS]`, as `CustomLabels`,
+in the order they were minted, and a number above the table's length resolves
+by position. **Only the custom names go there** -- the builtins are shared, so
+listing them would be overhead saying what every reader already knows. Both
+forms carry definitions already and a reader must tolerate a key it does not
+know, so a file using an invented label stays readable by anything that reads
+the format at all; a section of its own would not have.
 
 ## Definitions and instances
 

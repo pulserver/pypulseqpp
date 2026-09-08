@@ -315,41 +315,6 @@ namespace pulseq
             }
         }
 
-        /**
-         * The names behind the label ids the label rows use.
-         *
-         * A label id means nothing outside the sequence that handed it out.
-         * For a label Pulseq defines that costs nothing -- every toolbox
-         * numbers those the same way -- so the section is written only when
-         * the sequence uses a name Pulseq does not define, which is the case
-         * where the number alone would not survive the trip. Writing it
-         * always would put a section in every labelled file that a reader
-         * predating it refuses.
-         */
-        void write_label_names(std::string& out, const Sequence& seq)
-        {
-            std::map<int32_t, std::string> used;
-            bool any_custom = false;
-            for (const IntTable* library : {&seq.label_set_library(), &seq.label_inc_library()})
-                for (int id = 1; id <= library->size(); ++id)
-                {
-                    const int32_t label = library->row(id)[1];
-                    const std::string& name = seq.label_name(label);
-                    used[label] = name.empty() ? "UNKNOWN" : name;
-                    any_custom = any_custom || seq.is_custom_label(label);
-                }
-            if (used.empty() || !any_custom)
-                return;
-
-            put_section(out, SEC_LABELNAMES);
-            put_i64(out, static_cast<int64_t>(used.size()));
-            for (const auto& entry : used)
-            {
-                put_i32(out, entry.first);
-                put_string(out, entry.second);
-            }
-        }
-
         void write_labels(std::string& out, Sequence& seq)
         {
             const std::pair<const char*, const IntTable*> sections[2] = {
@@ -446,6 +411,7 @@ namespace pulseq
     {
         seq.compress_shapes();
         seq.publish_rasters();
+        declare_custom_labels(seq);
 
         std::string out;
         // A block is 32 bytes and dominates a large file; the rest is the
@@ -466,7 +432,6 @@ namespace pulseq
         write_shapes(out, reading);
         write_extension_chain(out, reading);
         write_triggers(out, seq);
-        write_label_names(out, reading);
         write_labels(out, seq);
         write_soft_delays(out, seq);
         write_rf_shims(out, seq);

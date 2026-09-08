@@ -501,6 +501,19 @@ namespace pulseq
         for (const auto& entry : parsed.definitions)
             seq.set_definition(entry.first, entry.second);
 
+        // Before any label row, so a number past the builtin table resolves
+        // to the name the file gave it rather than minting a fresh one.
+        auto custom = parsed.definitions.find("CustomLabels");
+        if (custom != parsed.definitions.end())
+        {
+            std::istringstream names(
+                custom->second.kind() == Definition::Kind::Text ? custom->second.text()
+                                                                : std::string());
+            std::string name;
+            while (names >> name)
+                seq.label_id(name);
+        }
+
         // Before the chains, so a chain names the type the file said.
         for (const auto& entry : parsed.extension_types)
             seq.set_extension_type_id(entry.first, entry.second);

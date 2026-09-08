@@ -244,6 +244,54 @@ namespace pulseq
         }
 
         /**
+         * Name the labels the builtin table does not, in `[DEFINITIONS]`.
+         *
+         * A label is written by name in the text form and by number in the
+         * binary one, and a number means something only against a table. The
+         * builtin table is shared, so a builtin label needs nothing said
+         * about it; a name a sequence invented is minted past the end of that
+         * table and its number would mean nothing anywhere else.
+         *
+         * So the names past the table are listed, in the order they were
+         * minted, and a number above the table's length resolves by position
+         * in that list. It goes in `[DEFINITIONS]` because both forms carry
+         * definitions already and a reader is obliged to tolerate a key it
+         * does not know -- a new section would make every file using a custom
+         * label unreadable by anything that predates it.
+         */
+    } // namespace
+
+    void declare_custom_labels(Sequence& seq)
+    {
+            int highest = 0;
+            for (const IntTable* library : {&seq.label_set_library(), &seq.label_inc_library()})
+                for (int id = 1; id <= library->size(); ++id)
+                {
+                    const int32_t label = library->row(id)[1];
+                    if (seq.is_custom_label(label) && label > highest)
+                        highest = label;
+                }
+            if (highest == 0)
+                return;
+
+            // From the first id past the table up to the highest one used:
+            // a gap would shift every name after it out of position.
+            const int builtin = static_cast<int>(Sequence::builtin_labels().size());
+            std::string names;
+            for (int id = builtin + 1; id <= highest; ++id)
+            {
+                if (!names.empty())
+                    names.push_back(' ');
+                const std::string& name = seq.label_name(id);
+                names += name.empty() ? "UNKNOWN" : name;
+            }
+            seq.set_definition("CustomLabels", Definition(names));
+    }
+
+
+    namespace
+    {
+        /**
          * Name in `RequiredExtensions` anything a reader must understand.
          *
          * A rotation changes where the gradients point, so a reader that
@@ -313,6 +361,7 @@ namespace pulseq
         // line here that it does not write is a file that does not match.
         seq.publish_rasters();
         declare_required_extensions(seq);
+        declare_custom_labels(seq);
 
         /* Every read below goes through a const reference, so the writer does
          * not look like a mutation to the sequence.  Taking `Table&` from a

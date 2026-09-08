@@ -74,3 +74,21 @@ def test_they_read_every_reference_sequence_we_write(build_reference, tmp_path):
     theirs.read_binary(str(tmp_path / "ours.bin"))
 
     assert len(theirs.block_events) == ours.num_blocks()
+
+
+def test_they_read_a_file_using_a_label_they_do_not_know(tmp_path):
+    """The names go in `[DEFINITIONS]`, so no section they cannot parse.
+
+    A reader that knows nothing of custom labels still reads the sequence;
+    it just cannot say what the label is called, which is what it would have
+    done before the name was carried at all.
+    """
+    import extended
+
+    (tmp_path / "custom.bin").write_bytes(_ext.write_binary(extended.custom_labels()))
+
+    theirs = mr.Sequence()
+    theirs.read_binary(str(tmp_path / "custom.bin"))
+
+    assert len(theirs.block_events) == extended.custom_labels().num_blocks()
+    assert extended.CUSTOM_LABEL in str(theirs.definitions["CustomLabels"])

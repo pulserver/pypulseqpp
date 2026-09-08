@@ -15,6 +15,11 @@
  *
  * Nothing here writes a signature section. One toolbox does, and a file
  * carrying one is read and its signature skipped.
+ *
+ * A label crosses as a number, and a number means something only against the
+ * builtin table. Names past that table are carried in `[DEFINITIONS]` rather
+ * than in a section of their own, so a file using one stays readable by
+ * anything that reads this format at all.
  */
 
 #ifndef PULSEQ_CXX_BINARY_HPP
@@ -54,7 +59,6 @@ namespace pulseq
         SEC_SOFTDELAYS = 13,
         SEC_RFSHIMS = 14,
         SEC_ROTATIONS = 15,
-        SEC_LABELNAMES = 16,
         /** Written by MATLAB Pulseq; read and skipped, never written here. */
         SEC_SIGNATURE = 0x00FFFFFF,
     };

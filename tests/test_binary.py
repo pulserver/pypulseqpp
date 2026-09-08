@@ -12,6 +12,12 @@ a float32 of itself and everything else comes back exactly.
 
 import numpy as np
 import pytest
+
+pytest.importorskip(
+    "pypulseq_matlab_like",
+    reason="the toolbox that defines the format; see reference.py",
+)
+
 from convert import to_core
 
 from pypulseqpp import _ext

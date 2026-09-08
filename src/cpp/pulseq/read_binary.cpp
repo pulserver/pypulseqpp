@@ -17,7 +17,6 @@
 
 #include <cstdint>
 #include <cstring>
-#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -391,15 +390,6 @@ namespace pulseq
             }
         }
 
-        void read_label_names(Cursor& in, std::map<int32_t, std::string>& names)
-        {
-            const int64_t count = count_of(in, "label names");
-            for (int64_t i = 0; i < count; ++i)
-            {
-                const int32_t id = in.i32("a label id");
-                names[id] = in.cstring("a label name");
-            }
-        }
     } // namespace
 
     Parsed parse_binary(const std::string& contents)
@@ -422,7 +412,6 @@ namespace pulseq
                 std::to_string(out.minor) + "." + std::to_string(out.revision) +
                 " file, and 1.5.0 is the oldest that can be read");
 
-        std::map<int32_t, std::string> label_names;
         while (!in.done())
         {
             const uint64_t code = in.u64("a section code");
@@ -449,7 +438,6 @@ namespace pulseq
             case SEC_SOFTDELAYS: read_soft_delays(in, out); break;
             case SEC_RFSHIMS: read_rf_shims(in, out); break;
             case SEC_ROTATIONS: read_rotations(in, out); break;
-            case SEC_LABELNAMES: read_label_names(in, label_names); break;
             case SEC_SIGNATURE:
             {
                 // Written by one toolbox and not by this one. The bytes are
@@ -470,16 +458,6 @@ namespace pulseq
             }
         }
 
-        // The names are resolved last, because a file may carry them after
-        // the rows that use them. A label the file did not name keeps its
-        // number, which is Pulseq's own for every label Pulseq defines.
-        for (std::map<int, ParsedLabel>* labels : {&out.label_set, &out.label_inc})
-            for (auto& entry : *labels)
-            {
-                auto found = label_names.find(entry.second.label_id);
-                if (found != label_names.end())
-                    entry.second.name = found->second;
-            }
         return out;
     }
 
