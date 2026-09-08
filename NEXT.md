@@ -47,6 +47,24 @@ what it would take:
 
 **Open.** `sound`, deferred with `plot`.
 
+## Safety
+
+`pypulseqpp.safety` has `check_max_grad` and `check_max_slew`, the second
+covering continuity. Both read the libraries rather than an expanded
+waveform: a gradient is a normalised shape and one amplitude, so the steepest
+step belongs to the shape and an instance's is that times its own amplitude.
+
+One difference from a waveform-based answer is worth knowing. What is weighed
+is the samples the sequence stores, and an interpreter draws between them --
+where a waveform's samples sit at the centre of each raster interval, that
+drawing can pass a little outside the outermost of them. Three parts in ten
+thousand across the reference sequences. Making it exact means a second shape
+statistic, the peak of the restored corners, which is computable once per
+shape the same way the slew is; it is not there yet.
+
+Still to write: `calculate_pns` and `calc_rf_power`, and the mechanical
+resonance check. pulserver's C library has all three.
+
 ## The analysis family
 
 `test_report` and `test_report_dict` read as a summary of a sequence -- block

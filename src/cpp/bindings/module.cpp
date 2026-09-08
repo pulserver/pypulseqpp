@@ -29,6 +29,7 @@
 
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
+#include "pulseq/safety.hpp"
 #include "pulseq/write.hpp"
 
 namespace py = pybind11;
@@ -868,6 +869,70 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("event"),
         "Register one event's row and shapes, and report what it was stored "
         "as: its kind, its library id, and the ids of its shapes.");
+
+    const auto peak_as_dict = [](const pulseq::Peak& found) {
+        py::dict out;
+        out["value"] = found.value;
+        out["block"] = found.block;
+        out["axis"] = found.axis;
+        return out;
+    };
+
+    module.def(
+        "max_gradient",
+        [peak_as_dict](const Sequence& sequence) {
+            pulseq::GradientReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::max_gradient(sequence);
+            }
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            return out;
+        },
+        py::arg("sequence"),
+        "The strongest gradient the sequence plays, per axis and as a vector.");
+
+    module.def(
+        "max_slew",
+        [peak_as_dict](
+            const Sequence& sequence, double max_slew, double grad_raster_time) {
+            pulseq::GradientLimits limits;
+            limits.max_slew = max_slew;
+            limits.grad_raster_time = grad_raster_time;
+
+            pulseq::SlewReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::max_slew(sequence, limits);
+            }
+
+            py::list jumps;
+            for (size_t i = 0; i < found.discontinuities.size(); ++i)
+            {
+                const pulseq::Discontinuity& where = found.discontinuities[i];
+                py::dict entry;
+                entry["block"] = where.block;
+                entry["axis"] = where.axis;
+                entry["before"] = where.before;
+                entry["after"] = where.after;
+                entry["slew"] = where.slew;
+                entry["limit"] = where.limit;
+                jumps.append(entry);
+            }
+
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            out["discontinuities"] = jumps;
+            out["ends_at_zero"] = found.ends_at_zero;
+            return out;
+        },
+        py::arg("sequence"), py::arg("max_slew") = 0.0,
+        py::arg("grad_raster_time") = 10e-6,
+        "What the sequence asks in the way of slewing, and where a gradient "
+        "jumps rather than ramps.");
 
     module.def(
         "calculate_kspace",

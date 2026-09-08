@@ -523,6 +523,21 @@ namespace pulseq
          */
         void edge_stats(int id, double* first, double* last, double* peak) const;
 
+        /**
+         * The steepest step between two neighbouring samples, per sample.
+         *
+         * The shape is normalised, so this is what an event playing it slews
+         * at when its amplitude is one -- multiply by the amplitude and
+         * divide by the interval between samples and you have the gradient's
+         * own slew rate. Which is the point: a readout played a hundred
+         * thousand times at a hundred thousand amplitudes has one shape, and
+         * this is worked out once for it.
+         *
+         * In samples, not seconds: what the interval is depends on the event
+         * that plays the shape, not on the shape.
+         */
+        double normalised_slew(int id) const;
+
         void clear()
         {
             num_uncompressed_.clear();
@@ -530,6 +545,7 @@ namespace pulseq
             first_.clear();
             last_.clear();
             peak_.clear();
+            slew_.clear();
             roles_.clear();
             data_.clear();
         }
@@ -545,6 +561,7 @@ namespace pulseq
             first_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
             last_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
             peak_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
+            slew_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
             is_compressed_.assign(static_cast<size_t>(count), 1);
             roles_.assign(static_cast<size_t>(count), SHAPE_ROLE_NONE);
             data_.assign(starts, count, samples);
@@ -558,6 +575,8 @@ namespace pulseq
         mutable std::vector<double> first_;
         mutable std::vector<double> last_;
         mutable std::vector<double> peak_;
+        /** The steepest step between neighbouring samples; NaN until asked. */
+        mutable std::vector<double> slew_;
         /** Per shape, a mask of ShapeRole; filled where a reference is made. */
         std::vector<uint32_t> roles_;
         RaggedTable data_;

@@ -17,6 +17,7 @@
 #include "pulseq/binary.hpp"
 #include "pulseq/kspace.hpp"
 #include "pulseq/read.hpp"
+#include "pulseq/safety.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/timing.hpp"
 #include "pulseq/waveforms.hpp"
@@ -117,6 +118,19 @@ namespace
             touch(some.times);
             for (int axis = 0; axis < 3; ++axis)
                 touch(some.position[static_cast<size_t>(axis)]);
+        }
+
+        {
+            pulseq::GradientLimits allowed;
+            allowed.max_grad = 1e6;
+            allowed.max_slew = 1e8;
+            allowed.grad_raster_time = seq.grad_raster_time();
+            const pulseq::GradientReport strength = pulseq::max_gradient(seq);
+            const pulseq::SlewReport slewing = pulseq::max_slew(seq, allowed);
+            sink += strength.per_axis.value + strength.vector.value;
+            sink += slewing.per_axis.value + slewing.vector.value;
+            sink += static_cast<double>(slewing.discontinuities.size());
+            sink += slewing.ends_at_zero ? 1.0 : 0.0;
         }
 
         const pulseq::Repetition repeat = seq.repetition();

@@ -21,6 +21,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/sequence.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/kspace.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/safety.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/timing.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/waveforms.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_text.cpp
