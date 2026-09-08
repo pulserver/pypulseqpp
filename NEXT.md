@@ -47,6 +47,24 @@ what it would take:
 
 **Open.** `sound`, deferred with `plot`.
 
+## Safety
+
+`pypulseqpp.safety` has `check_max_grad` and `check_max_slew`, the second
+covering continuity. Both read the libraries rather than an expanded
+waveform: a gradient is a normalised shape and one amplitude, so the steepest
+step belongs to the shape and an instance's is that times its own amplitude.
+
+One difference from a waveform-based answer is worth knowing. What is weighed
+is the samples the sequence stores, and an interpreter draws between them --
+where a waveform's samples sit at the centre of each raster interval, that
+drawing can pass a little outside the outermost of them. Three parts in ten
+thousand across the reference sequences. Making it exact means a second shape
+statistic, the peak of the restored corners, which is computable once per
+shape the same way the slew is; it is not there yet.
+
+Still to write: `calculate_pns` and `calc_rf_power`, and the mechanical
+resonance check. pulserver's C library has all three.
+
 ## The analysis family
 
 `test_report` and `test_report_dict` read as a summary of a sequence -- block
@@ -56,16 +74,46 @@ gradient and slew. Only the counts come from what is here; TE, TR, the k-space
 lines and the gradient maxima all come out of `waveforms_and_times` and
 `calculate_kspace`, which the report calls before it computes anything.
 
-So the report is not a method to write on its own. It is the first consumer of
-those two, and so are `plot`, `paper_plot`, `get_gradients` and the FOV
-transform. Whichever lands first, they are what to build:
+`waveforms_and_times` is in, and with it `waveforms`, `adc_times`,
+`rf_times`, `get_gradients` and `calculate_kspace`. Everything the report
+reads is now reachable, so `test_report` and `test_report_dict` are
+assembling what is already there rather than computing anything new. The FOV
+transform reads the same trajectory.
 
-- `waveforms_and_times`, which expands every block onto a common time base --
-  a pass over the block table, and the foundation the rest sit on.
-- `calculate_kspace`, which integrates those into a trajectory.
+### What a shot shares, and what it does not
 
-The repeating unit is already found (`detect_tr`), so an analysis that only
+A sequence built the way one should be -- the gradient made once, outside
+the loop, and scaled per shot -- gives every shot the same corner times, a
+zero phase encode included, because a scaled event keeps its ramps. Measured
+on a sixty-four line gradient echo: one corner-time pattern on every axis.
+
+What does differ per shot is which ramps are *followed through at the
+raster*, since a ramp is only sampled when it is ramping and that depends on
+its amplitude. The same sixty-four lines give five different moment counts,
+229 to 233. So a trajectory cannot be one base repeated -- but those extra
+moments are only where the trajectory is *reported*, never where a sample
+sits, which is why `samples_only` can skip all of them and still be exact.
+
+What is left for the repeat to save is the merge, a third of the full pass.
+It would have to merge a prologue, a base, and the shots that differ from
+it: more machinery than the merge it replaces, on a pass already 26x the
+toolbox and 85x with `samples_only`.
+
+The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.
+
+## Where a name differs from the toolbox
+
+`waveforms_and_times` and its family take `block_range`, where
+`pypulseq-matlab-like` spells it `blockRange`. Upstream PyPulseq has no such
+parameter at all -- only `time_range` -- so there is no drop-in contract to
+keep, and every other name here is snake_case.
+
+`waveforms_and_times` returns six values, as the toolbox does; upstream
+returns five, having no `pm_adc`. A script unpacking upstream's five breaks
+on six. The sixth carries the ADC phase modulation, which is a 1.5 feature
+upstream's return predates and which `calculate_kspace` needs, so it is kept
+-- but it is a difference from upstream worth knowing about.
 
 ## What a block reads back as
 

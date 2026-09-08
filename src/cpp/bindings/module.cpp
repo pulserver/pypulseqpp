@@ -19,7 +19,9 @@
 
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
+#include "pulseq/kspace.hpp"
 #include "pulseq/timing.hpp"
+#include "pulseq/waveforms.hpp"
 #include "pulseq/types.hpp"
 #include "pulseqpp_events.h"
 #include "pulseqpp_decode.h"
@@ -27,6 +29,7 @@
 
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
+#include "pulseq/safety.hpp"
 #include "pulseq/write.hpp"
 
 namespace py = pybind11;
@@ -866,6 +869,247 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("event"),
         "Register one event's row and shapes, and report what it was stored "
         "as: its kind, its library id, and the ids of its shapes.");
+
+    const auto peak_as_dict = [](const pulseq::Peak& found) {
+        py::dict out;
+        out["value"] = found.value;
+        out["block"] = found.block;
+        out["axis"] = found.axis;
+        return out;
+    };
+
+    module.def(
+        "max_gradient",
+        [peak_as_dict](const Sequence& sequence) {
+            pulseq::GradientReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::max_gradient(sequence);
+            }
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            return out;
+        },
+        py::arg("sequence"),
+        "The strongest gradient the sequence plays, per axis and as a vector.");
+
+    module.def(
+        "max_slew",
+        [peak_as_dict](
+            const Sequence& sequence, double max_slew, double grad_raster_time) {
+            pulseq::GradientLimits limits;
+            limits.max_slew = max_slew;
+            limits.grad_raster_time = grad_raster_time;
+
+            pulseq::SlewReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::max_slew(sequence, limits);
+            }
+
+            py::list jumps;
+            for (size_t i = 0; i < found.discontinuities.size(); ++i)
+            {
+                const pulseq::Discontinuity& where = found.discontinuities[i];
+                py::dict entry;
+                entry["block"] = where.block;
+                entry["axis"] = where.axis;
+                entry["before"] = where.before;
+                entry["after"] = where.after;
+                entry["slew"] = where.slew;
+                entry["limit"] = where.limit;
+                jumps.append(entry);
+            }
+
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            out["discontinuities"] = jumps;
+            out["ends_at_zero"] = found.ends_at_zero;
+            return out;
+        },
+        py::arg("sequence"), py::arg("max_slew") = 0.0,
+        py::arg("grad_raster_time") = 10e-6,
+        "What the sequence asks in the way of slewing, and where a gradient "
+        "jumps rather than ramps.");
+
+    module.def(
+        "calculate_kspace",
+        [](const Sequence& sequence,
+           std::array<double, 3> delay,
+           std::array<double, 3> offset,
+           int first_block,
+           int last_block,
+           double b0,
+           double gamma,
+           bool samples_only) {
+            pulseq::KspaceOptions options;
+            options.samples_only = samples_only;
+            options.delay = delay;
+            options.offset = offset;
+            options.first_block = first_block;
+            options.last_block = last_block;
+            options.b0 = b0;
+            options.gamma = gamma;
+
+            pulseq::Kspace found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::calculate_kspace(sequence, options);
+            }
+
+            const auto stacked = [](const std::array<std::vector<double>, 3>& rows) {
+                const py::ssize_t held =
+                    static_cast<py::ssize_t>(rows[0].size());
+                py::array_t<double> out({static_cast<py::ssize_t>(3), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t axis = 0; axis < 3; ++axis)
+                    for (py::ssize_t i = 0; i < held; ++i)
+                        view(axis, i) = rows[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+                return out;
+            };
+            const auto row = [](const std::vector<double>& values) {
+                return py::array_t<double>(
+                    static_cast<py::ssize_t>(values.size()), values.data());
+            };
+
+            py::list gradients;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                py::dict channel;
+                channel["t"] = row(found.gradient_times[static_cast<size_t>(axis)]);
+                channel["v"] = row(found.gradient_values[static_cast<size_t>(axis)]);
+                gradients.append(channel);
+            }
+
+            py::dict out;
+            out["k_traj"] = stacked(found.position);
+            out["t_ktraj"] = row(found.times);
+            out["k_traj_adc"] = stacked(found.sampled);
+            out["t_adc"] = row(found.adc_times);
+            out["pm_adc"] = row(found.adc_modulation);
+            out["t_excitation"] = row(found.excitation_times);
+            out["t_refocusing"] = row(found.refocusing_times);
+            out["slicepos"] = stacked(found.slice_position);
+            out["gradients"] = gradients;
+            out["warnings"] = found.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("delay") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("offset") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("first_block") = 1, py::arg("last_block") = 0, py::arg("b0") = 1.5,
+        py::arg("gamma") = 42576000.0, py::arg("samples_only") = false,
+        "Follow the sequence into k-space: the trajectory, where it is "
+        "sampled, and the gradients it was integrated from.");
+
+    module.def(
+        "waveforms_and_times",
+        [](const Sequence& sequence,
+           bool append_rf,
+           int first_block,
+           int last_block,
+           double b0,
+           double gamma) {
+            pulseq::WaveformOptions options;
+            options.append_rf = append_rf;
+            options.first_block = first_block;
+            options.last_block = last_block;
+            options.b0 = b0;
+            options.gamma = gamma;
+
+            pulseq::Waveforms made;
+            {
+                py::gil_scoped_release unlocked;
+                made = pulseq::waveforms_and_times(sequence, options);
+            }
+
+            /* Each channel as the 2-by-n array the toolboxes report: a row of
+             * times over a row of amplitudes. */
+            const auto paired = [](const std::vector<double>& t,
+                                   const std::vector<double>& v) {
+                const py::ssize_t held = static_cast<py::ssize_t>(t.size());
+                py::array_t<double> out({static_cast<py::ssize_t>(2), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = t[static_cast<size_t>(i)];
+                    view(1, i) = v[static_cast<size_t>(i)];
+                }
+                return out;
+            };
+
+            const auto moments = [](const std::vector<pulseq::PulseMoment>& held) {
+                const py::ssize_t count = static_cast<py::ssize_t>(held.size());
+                py::array_t<double> out({static_cast<py::ssize_t>(3), count});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < count; ++i)
+                {
+                    view(0, i) = held[static_cast<size_t>(i)].time;
+                    view(1, i) = held[static_cast<size_t>(i)].frequency;
+                    view(2, i) = held[static_cast<size_t>(i)].phase;
+                }
+                return out;
+            };
+
+            py::list waves;
+            for (int axis = 0; axis < 3; ++axis)
+                waves.append(paired(made.times[static_cast<size_t>(axis)],
+                                    made.amplitudes[static_cast<size_t>(axis)]));
+            if (append_rf)
+            {
+                const py::ssize_t held = static_cast<py::ssize_t>(made.rf_times.size());
+                py::array_t<std::complex<double>> rf(
+                    {static_cast<py::ssize_t>(2), held});
+                auto view = rf.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = made.rf_times[static_cast<size_t>(i)];
+                    view(1, i) = made.rf_signal[static_cast<size_t>(i)];
+                }
+                waves.append(rf);
+            }
+
+            const py::ssize_t samples =
+                static_cast<py::ssize_t>(made.adc_times.size());
+            py::array_t<double> fp({static_cast<py::ssize_t>(2), samples});
+            {
+                auto view = fp.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < samples; ++i)
+                {
+                    view(0, i) = made.adc_frequency[static_cast<size_t>(i)];
+                    view(1, i) = made.adc_phase[static_cast<size_t>(i)];
+                }
+            }
+
+            const py::ssize_t windows =
+                static_cast<py::ssize_t>(made.window_frequency.size());
+            py::array_t<double> window_fp({windows, static_cast<py::ssize_t>(2)});
+            {
+                auto view = window_fp.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < windows; ++i)
+                {
+                    view(i, 0) = made.window_frequency[static_cast<size_t>(i)];
+                    view(i, 1) = made.window_phase[static_cast<size_t>(i)];
+                }
+            }
+
+            py::dict out;
+            out["wave_data"] = waves;
+            out["window_fp"] = window_fp;
+            out["duration"] = made.duration;
+            out["tfp_excitation"] = moments(made.excitation);
+            out["tfp_refocusing"] = moments(made.refocusing);
+            out["t_adc"] = py::array_t<double>(samples, made.adc_times.data());
+            out["fp_adc"] = fp;
+            out["pm_adc"] = py::array_t<double>(samples, made.adc_modulation.data());
+            out["warnings"] = made.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("append_rf") = false, py::arg("first_block") = 1,
+        py::arg("last_block") = 0, py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
+        "Expand the sequence into the gradient waveforms it plays, the RF "
+        "moments, and the ADC sampling.");
 
     module.def(
         "write_binary",

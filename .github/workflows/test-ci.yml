@@ -46,3 +46,26 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: pulserver/pypulseqpp
+
+  sanitize:
+    name: sanitizers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # A read past the end of an array is not a wrong answer, it is whatever
+      # was there -- so the tests above catch it only when the memory it lands
+      # on differs enough to change a number. One such bug reported the same
+      # waveform on five of those six jobs and a different one on the sixth,
+      # and gave two different answers within a single process. This is the
+      # job that would have named it on the first run.
+      - name: Build the core with the sanitizers on
+        run: |
+          g++ -std=c++17 -g -O1 \
+            -fsanitize=address,undefined -fno-sanitize-recover=all \
+            -fno-omit-frame-pointer \
+            -I src/cpp -o sanitize \
+            tests/cpp/sanitize.cpp src/cpp/pulseq/*.cpp
+
+      - name: Read, write and expand every sequence in the corpus
+        run: ./sanitize tests/seq/*.seq
