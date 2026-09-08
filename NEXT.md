@@ -54,19 +54,10 @@ what it would take:
   be found and refused.
 - `apply_soft_delay(**kwargs)` and `get_default_soft_delay_values()`, which
   turn a named soft delay into the block duration it stands for.
-- `register_rf_event` and its six siblings, which take a decoded event and
-  hand back the library ids it was stored under. The core registers from
-  rows, and `add_block_events` already builds those rows inside C++, so this
-  is exposing that path one event at a time rather than writing it again.
 - `get_raw_block_content_IDs(block_index)`, one row of the block table.
 
-**A decision before an implementation.**
+**Open.**
 
-- `block_events`. The toolboxes hand back a dict from block index to a row of
-  seven ids, and a design script writes `for i in seq.block_events`. Here the
-  block table is a view, and building a dict of a million rows to hand it out
-  would undo what the view is for. Until that is settled the name is absent,
-  which is loud, rather than present and shaped differently, which is not.
 - `detect_rf_use` when reading a file older than 1.5.0. The flag is accepted
   and warned about; honouring it means guessing what a pulse is for from its
   flip angle, the way the toolbox does.

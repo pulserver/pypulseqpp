@@ -138,14 +138,41 @@ class Sequence:
             How many blocks carry an event in each column of the block
             table, in upstream's column order: delay, RF, the three
             gradient axes, ADC, extension.
+
+        Notes
+        -----
+        Both the sum and the counts are one compiled pass over the block
+        table, so asking this of a million-block scan reads the table twice
+        and allocates nothing the size of it.
         """
         native = self._native
-        events = native.block_events()
         counts = np.zeros(_UPSTREAM_BLOCK_WIDTH)
         # Column 0 is upstream's delay library, which Pulseq 1.5 does not
         # have: a block with nothing in it lasts for its stored duration.
-        counts[1:] = (events > 0).sum(axis=0)
+        counts[1:] = native.event_counts()
         return native.duration(), native.num_blocks(), counts
+
+    @property
+    def block_events(self) -> dict:
+        """Return every block's event ids, keyed by 1-based block index.
+
+        Each value is a row in upstream's column order: delay, RF, the
+        three gradient axes, ADC, extension. Column 0 is upstream's delay
+        library, which Pulseq 1.5 does not have.
+
+        Notes
+        -----
+        This builds a dictionary the length of the sequence, which is what
+        the toolboxes hand back and what a script inspecting a sequence
+        expects. It is for looking at a sequence, not for walking one: the
+        block table itself is `block_durations` and the core's own view,
+        which cost nothing to read a column out of.
+        """
+        rows = np.zeros(
+            (self._native.num_blocks(), _UPSTREAM_BLOCK_WIDTH), dtype=np.int32
+        )
+        rows[:, 1:] = self._native.block_events()
+        return dict(enumerate(rows, start=1))
 
     def find_block_by_time(self, t: float):
         """Return the 1-based index of the block playing at ``t`` seconds.
@@ -266,6 +293,87 @@ class Sequence:
         self.add_block(
             make_label("TRID", "SET", float(self.get_or_create_trid_id(label_name)))
         )
+
+    # -- registering an event on its own -------------------------------
+
+    def _register(
+        self, event, kinds: tuple[str, ...], called: str, wanted: str
+    ) -> dict:
+        """Register ``event``, insisting it is one of ``kinds``."""
+        stored = _cxx.register_event(self._native, event)
+        if stored["kind"] not in kinds:
+            raise ValueError(f"{called}() takes {wanted}, not a {stored['kind']} event")
+        return stored
+
+    def register_rf_event(self, event) -> tuple[int, list[int]]:
+        """Store a pulse and return its ids.
+
+        Returns
+        -------
+        rf_id : int
+            The row it was stored as.
+        shape_ids : list of int
+            Its magnitude, phase and time shapes; the time shape is 0 when
+            the pulse sits on the RF raster.
+        """
+        stored = self._register(event, ("rf",), "register_rf_event", "an RF pulse")
+        return stored["id"], stored["shapes"]
+
+    def register_grad_event(self, event):
+        """Store a gradient and return its ids.
+
+        Returns
+        -------
+        int or tuple
+            A trapezoid's row id on its own; an arbitrary waveform's row id
+            with its waveform and time shape ids, the way the toolboxes
+            report them.
+        """
+        stored = self._register(event, ("grad",), "register_grad_event", "a gradient")
+        return (stored["id"], stored["shapes"]) if stored["shapes"] else stored["id"]
+
+    def register_adc_event(self, event) -> tuple[int, int]:
+        """Store an ADC and return its ids.
+
+        Returns
+        -------
+        adc_id : int
+            The row it was stored as.
+        shape_id : int
+            Its phase-modulation shape, 0 when it has none.
+        """
+        stored = self._register(event, ("adc",), "register_adc_event", "an ADC")
+        return stored["id"], stored["shapes"][0]
+
+    def register_label_event(self, event) -> int:
+        """Store a label and return its row id."""
+        return self._register(
+            event, ("LABELSET", "LABELINC"), "register_label_event", "a label"
+        )["id"]
+
+    def register_control_event(self, event) -> int:
+        """Store a trigger or digital output and return its row id."""
+        return self._register(
+            event, ("TRIGGERS",), "register_control_event", "a trigger"
+        )["id"]
+
+    def register_rotation_event(self, event) -> int:
+        """Store a rotation and return its row id."""
+        return self._register(
+            event, ("ROTATIONS",), "register_rotation_event", "a rotation"
+        )["id"]
+
+    def register_rf_shim_event(self, event) -> int:
+        """Store an RF shim vector and return its row id."""
+        return self._register(
+            event, ("RF_SHIMS",), "register_rf_shim_event", "an RF shim"
+        )["id"]
+
+    def register_soft_delay_event(self, event) -> int:
+        """Store a soft delay and return its row id."""
+        return self._register(
+            event, ("DELAYS",), "register_soft_delay_event", "a soft delay"
+        )["id"]
 
     # -- files ---------------------------------------------------------
 

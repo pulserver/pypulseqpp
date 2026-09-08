@@ -7,6 +7,7 @@ own vocabulary still works -- against events it was never written for.
 
 import math
 
+import numpy as np
 import pypulseq as upstream
 import pytest
 
@@ -286,6 +287,22 @@ def test_the_duration_matches_upstreams_on_the_same_sequence():
     assert list(our_counts) == list(their_counts)
 
 
+def test_the_block_table_reads_back_in_upstreams_shape():
+    """A dict from block index to a row of seven ids, as a script expects."""
+    system = upstream.Opts()
+    theirs = upstream.Sequence(system=system)
+    ours = pp.Sequence(system)
+    for build, module in ((theirs, upstream), (ours, pp)):
+        build.add_block(
+            module.make_trapezoid("x", area=1000, duration=1e-3, system=system)
+        )
+        build.add_block(module.make_delay(2e-3))
+
+    assert list(ours.block_events) == list(theirs.block_events)
+    for index, row in theirs.block_events.items():
+        assert list(ours.block_events[index]) == list(row)
+
+
 def test_a_time_lands_in_the_block_playing_then():
     sequence = pp.Sequence(pp.Opts())
     for _ in range(4):
@@ -521,3 +538,122 @@ def test_printing_a_sequence_says_what_is_in_it():
 
     assert printed.startswith("Sequence:")
     assert "blocks: 12" in printed
+
+
+# -- registering an event on its own ---------------------------------------
+
+
+def test_registering_a_pulse_hands_back_its_row_and_its_shapes():
+    sequence = pp.Sequence(pp.Opts())
+    pulse = pp.make_sinc_pulse(
+        flip_angle=math.pi / 8, duration=1e-3, use="excitation", return_gz=False
+    )
+
+    rf_id, shape_ids = sequence.register_rf_event(pulse)
+
+    assert rf_id == 1
+    magnitude, phase, time = shape_ids
+    assert magnitude and phase
+    # A pulse on the RF raster carries no time shape of its own.
+    assert time == 0
+
+
+def test_registering_a_pulse_twice_registers_its_shapes_once():
+    """What pre-registration is for: the waveform is the expensive part."""
+    sequence = pp.Sequence(pp.Opts())
+    pulse = pp.make_sinc_pulse(
+        flip_angle=math.pi / 8, duration=1e-3, use="excitation", return_gz=False
+    )
+
+    first, first_shapes = sequence.register_rf_event(pulse)
+    second, second_shapes = sequence.register_rf_event(pulse)
+
+    assert first_shapes == second_shapes
+    assert sequence._native.num_shapes() == 2
+    # The row is per use, and deduplication is what collapses those.
+    assert second == first + 1
+
+
+def test_a_trapezoid_has_a_row_and_no_shapes():
+    sequence = pp.Sequence(pp.Opts())
+
+    stored = sequence.register_grad_event(
+        pp.make_trapezoid("x", area=1000, duration=1e-3)
+    )
+
+    assert stored == 1
+
+
+def test_an_arbitrary_gradient_has_a_row_and_a_waveform():
+    sequence = pp.Sequence(pp.Opts())
+
+    grad_id, shape_ids = sequence.register_grad_event(
+        pp.make_arbitrary_grad("y", waveform=np.linspace(0, 1000, 20))
+    )
+
+    assert grad_id == 1
+    waveform, time = shape_ids
+    assert waveform
+    assert time == 0
+
+
+def test_an_adc_without_phase_modulation_has_no_shape():
+    sequence = pp.Sequence(pp.Opts())
+
+    adc_id, shape_id = sequence.register_adc_event(
+        pp.make_adc(num_samples=64, duration=1e-3)
+    )
+
+    assert adc_id == 1
+    assert shape_id == 0
+
+
+@pytest.mark.parametrize(
+    ("make", "register"),
+    [
+        (lambda: pp.make_label("LIN", "SET", 3), "register_label_event"),
+        (lambda: pp.make_label("LIN", "INC", 1), "register_label_event"),
+        (lambda: pp.make_trigger("physio1", duration=1e-3), "register_control_event"),
+        (
+            lambda: pp.make_soft_delay(numID=1, hint="TE", offset=0.0, factor=1.0),
+            "register_soft_delay_event",
+        ),
+        (
+            lambda: pp.make_rf_shim(np.array([1 + 0j, 0.5 + 0.5j])),
+            "register_rf_shim_event",
+        ),
+    ],
+)
+def test_an_extension_event_is_stored_as_a_row_of_its_own(make, register):
+    sequence = pp.Sequence(pp.Opts())
+
+    assert getattr(sequence, register)(make()) == 1
+
+
+def test_registering_an_event_of_the_wrong_kind_says_which_it_got():
+    sequence = pp.Sequence(pp.Opts())
+
+    with pytest.raises(ValueError, match="takes an RF pulse, not a grad event"):
+        sequence.register_rf_event(pp.make_trapezoid("x", area=1000, duration=1e-3))
+
+
+def test_registering_a_pulse_early_leaves_the_same_file_behind(tmp_path):
+    """Pre-registration moves cost, and changes nothing about the sequence."""
+    pulse = pp.make_sinc_pulse(
+        flip_angle=math.pi / 8, duration=1e-3, use="excitation", return_gz=False
+    )
+    read = pp.make_trapezoid("x", area=1000, duration=1e-3)
+
+    written = []
+    for pre_register in (False, True):
+        sequence = pp.Sequence(pp.Opts())
+        if pre_register:
+            sequence.register_rf_event(pulse)
+        for _ in range(3):
+            sequence.add_block(pulse)
+            sequence.add_block(read)
+        path = tmp_path / f"{pre_register}.seq"
+        sequence.write(str(path))
+        written.append(path.read_text())
+
+    assert written[0] == written[1]

@@ -570,6 +570,15 @@ PYBIND11_MODULE(_ext, module)
             },
             "Per block, its per-playout parameters.  See INSTANCE_WIDTH.")
         .def("duration", &Sequence::duration, "Total duration in seconds.")
+        .def(
+            "event_counts",
+            [](const Sequence& self) {
+                const std::array<int64_t, pulseq::BLOCK_WIDTH> counts = self.event_counts();
+                return py::array_t<int64_t>(
+                    static_cast<py::ssize_t>(pulseq::BLOCK_WIDTH), counts.data());
+            },
+            "How many blocks carry an event in each column: rf, gx, gy, gz, "
+            "adc, extension.")
         .def("remove_duplicates", &Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
@@ -656,6 +665,54 @@ PYBIND11_MODULE(_ext, module)
         py::arg("rf_dead_time") = 0.0, py::arg("rf_ringdown_time") = 0.0,
         py::arg("adc_dead_time") = 0.0, py::arg("adc_samples_divisor") = 1.0,
         "Every timing problem in the sequence, one dict per finding.");
+
+    module.def(
+        "register_event",
+        [](Sequence& sequence, py::handle event) {
+            /* One event is a block of one, minus the linking: the extension
+             * chain is left uncommitted, so registering a trigger costs the
+             * trigger row and not an extension row nobody points at. */
+            PyObject* item = event.ptr();
+            py::dict out;
+            /* The shapes first, so the row that follows points at ids this
+             * sequence has already been given rather than at copies. */
+            out["shapes"] = pulseqpp_events::warm_event(sequence, event);
+
+            int32_t chain[8][2];
+            int chained = 0;
+            const pulseq::Block block =
+                pulseqpp_events::collect_block(sequence, &item, 1, chain, chained);
+
+            if (block.rf > 0)
+            {
+                out["kind"] = "rf";
+                out["id"] = block.rf;
+            }
+            else if (block.gx > 0 || block.gy > 0 || block.gz > 0)
+            {
+                out["kind"] = "grad";
+                out["id"] = block.gx > 0 ? block.gx : (block.gy > 0 ? block.gy : block.gz);
+            }
+            else if (block.adc > 0)
+            {
+                out["kind"] = "adc";
+                out["id"] = block.adc;
+            }
+            else if (chained > 0)
+            {
+                out["kind"] = sequence.extension_type_name(chain[0][0]);
+                out["id"] = chain[0][1];
+            }
+            else
+            {
+                out["kind"] = "delay";
+                out["id"] = 0;
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("event"),
+        "Register one event's row and shapes, and report what it was stored "
+        "as: its kind, its library id, and the ids of its shapes.");
 
     module.def(
         "write_binary",

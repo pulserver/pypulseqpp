@@ -639,4 +639,17 @@ namespace pulseq
         return pairwise_sum(durations_->data(), durations_->size());
     }
 
+    std::array<int64_t, BLOCK_WIDTH> Sequence::event_counts() const
+    {
+        std::array<int64_t, BLOCK_WIDTH> counts{};
+        const int32_t* row = blocks_->data();
+        const size_t rows = blocks_->size() / BLOCK_WIDTH;
+        for (size_t block = 0; block < rows; ++block, row += BLOCK_WIDTH)
+        {
+            for (int column = 0; column < BLOCK_WIDTH; ++column)
+                counts[static_cast<size_t>(column)] += row[column] > 0 ? 1 : 0;
+        }
+        return counts;
+    }
+
 } // namespace pulseq

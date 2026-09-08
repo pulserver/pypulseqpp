@@ -1098,6 +1098,15 @@ namespace pulseq
         /** Total playing time, the sum of the block durations. */
         double duration() const;
 
+        /**
+         * How many blocks carry an event in each column of the block table.
+         *
+         * One pass over the integer columns, which is what makes it worth
+         * asking of a million-block scan at all: the same count taken in
+         * Python builds a boolean array the size of the table first.
+         */
+        std::array<int64_t, BLOCK_WIDTH> event_counts() const;
+
         /* -- deduplication ------------------------------------------------ */
 
         /**
