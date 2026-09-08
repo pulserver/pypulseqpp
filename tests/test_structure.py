@@ -12,9 +12,15 @@ the compiled core directly, because the split is a property of the container
 rather than of the API over it.
 """
 
-import convert
 import numpy as np
 import pytest
+
+pytest.importorskip(
+    "pypulseq_matlab_like",
+    reason="the toolbox that defines the format; see reference.py",
+)
+
+import convert
 
 from pypulseqpp import _ext
 

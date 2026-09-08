@@ -1,6 +1,15 @@
-"""Reference sequences, built with the toolbox pypulseqpp replaces.
+"""Reference sequences, built with the toolbox that defines the format.
 
-Each builder returns an upstream :class:`pypulseq.Sequence`. They are what the
+`pypulseq-matlab-like` is the transcription of MATLAB Pulseq this package is
+compared against. It is not on PyPI, so it is installed from git and the
+tests that need it skip without it::
+
+    pip install git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like
+
+`tests/seq/` carries its reference corpus, so the reader is tested whether or
+not the toolbox itself is here.
+
+Each builder returns a :class:`pypulseq_matlab_like.Sequence`. They are what the
 parity tests compare against: upstream writes the file, pypulseqpp writes the
 file, and the two must agree byte for byte.
 
@@ -15,8 +24,8 @@ from __future__ import annotations
 import math
 
 import numpy as np
-import pypulseq as pp
-from pypulseq import Sequence
+import pypulseq_matlab_like as pp
+from pypulseq_matlab_like import Sequence
 
 
 def gauss_pulses() -> Sequence:
@@ -389,6 +398,33 @@ def triggered_delays() -> Sequence:
     return seq
 
 
+def rotated_radial() -> Sequence:
+    """Spokes turned by a quaternion each, which is the ROTATIONS extension."""
+    seq = Sequence()
+    for spoke in range(8):
+        angle = spoke * math.pi / 8
+        seq.add_block(pp.make_block_pulse(math.pi / 6, duration=1e-3, use="excitation"))
+        seq.add_block(
+            pp.make_trapezoid("x", area=1000, duration=5e-3),
+            pp.make_adc(num_samples=50, duration=5e-3),
+            pp.make_rotation(angle),
+        )
+    return seq
+
+
+def shimmed_excitation() -> Sequence:
+    """A pulse shimmed per transmit channel, which is the RF_SHIMS extension."""
+    seq = Sequence()
+    for shot in range(3):
+        shim = [complex(1.0 - 0.1 * shot, 0.0), complex(0.5, 0.25 * shot)]
+        seq.add_block(
+            pp.make_block_pulse(math.pi / 4, duration=1e-3, use="excitation"),
+            pp.make_rf_shim(shim),
+        )
+        seq.add_block(pp.make_delay(1e-3))
+    return seq
+
+
 ZOO = {
     "gauss_pulses": gauss_pulses,
     "sinc_pulses": sinc_pulses,
@@ -408,4 +444,6 @@ ZOO = {
     "extension_only": extension_only,
     "inversion_recovery_train": inversion_recovery_train,
     "triggered_delays": triggered_delays,
+    "rotated_radial": rotated_radial,
+    "shimmed_excitation": shimmed_excitation,
 }

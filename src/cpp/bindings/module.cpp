@@ -20,6 +20,8 @@
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/types.hpp"
+#include "pulseq/binary.hpp"
+#include "pulseq/read.hpp"
 #include "pulseq/write.hpp"
 
 namespace py = pybind11;
@@ -459,8 +461,76 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("create_signature") = true,
         "Serialize as a Pulseq `.seq` text file.");
 
+    module.def(
+        "write_text_v141",
+        [](pulseq::Sequence& sequence, bool create_signature, double gamma, double field) {
+            if (!sequence.soft_delay_library().empty())
+            {
+                // The reference toolbox warns rather than refusing, and so
+                // does this: the file is valid apart from the delays, which
+                // 1.4.1 has no way to carry.
+                PyErr_WarnEx(
+                    PyExc_UserWarning,
+                    "write_text_v141(): this sequence uses soft delays, which the 1.4.1 "
+                    "format cannot carry; they are left out of the file",
+                    1);
+            }
+            std::string written;
+            {
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_text_v141(sequence, create_signature, gamma, field);
+            }
+            return py::bytes(written);
+        },
+        py::arg("sequence"), py::arg("create_signature") = true,
+        py::arg("gamma") = 42576000.0, py::arg("field") = 1.5,
+        "Serialize as a Pulseq 1.4.1 `.seq` text file.");
+
+    module.def(
+        "write_binary",
+        [](pulseq::Sequence& sequence) {
+            std::string written;
+            {
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_binary(sequence);
+            }
+            return py::bytes(written);
+        },
+        py::arg("sequence"), "Serialize as a Pulseq binary sequence file.");
+
+    module.def(
+        "is_binary",
+        [](const py::bytes& contents) { return pulseq::is_binary(std::string(contents)); },
+        py::arg("contents"), "Whether the bytes open with the binary magic.");
+
     module.def("required_revision", &pulseq::required_revision, py::arg("sequence"),
                "The Pulseq revision the sequence's contents actually need.");
+
+    module.def(
+        "read",
+        [](const py::bytes& contents, bool verify) {
+            pulseq::Sequence sequence;
+            {
+                const std::string text = contents;
+                py::gil_scoped_release unlocked;
+                sequence = pulseq::read(text, verify);
+            }
+            return sequence;
+        },
+        py::arg("contents"), py::arg("verify") = false,
+        "Parse a Pulseq `.seq` file back into a Sequence.");
+
+    module.def(
+        "read_file",
+        [](const std::string& path, bool verify) {
+            pulseq::Sequence sequence;
+            {
+                py::gil_scoped_release unlocked;
+                sequence = pulseq::read_file(path, verify);
+            }
+            return sequence;
+        },
+        py::arg("path"), py::arg("verify") = false, "As read(), for a file on disk.");
 
     module.def(
         "compress_shape",
