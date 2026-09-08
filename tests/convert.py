@@ -101,8 +101,12 @@ def to_core(seq) -> _ext.Sequence:
             core.register_label_inc(int(row[0]), int(row[1])), identifier, "LABELINC"
         )
 
+    # The toolbox stores a soft delay's hint as a number into its own table
+    # of hint names, where the file carries the name; this is where the two
+    # meet.
     for identifier in sorted(seq.soft_delay_library.data):
-        number, offset, factor, hint = seq.soft_delay_library.data[identifier]
+        number, offset, factor, hint_id = seq.soft_delay_library.data[identifier]
+        hint = seq.soft_delay_hints2[int(hint_id) - 1] if int(hint_id) > 0 else ""
         delay = _ext.SoftDelay(
             num=int(number), offset=float(offset), factor=float(factor), hint=str(hint)
         )

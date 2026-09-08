@@ -43,26 +43,22 @@ def test_the_binary_form_is_recognised_by_what_is_in_it(build_reference):
 def test_a_binary_file_carries_the_same_sequence_as_the_text_one(
     reference_name, build_reference
 ):
-    """Everything but the shapes, which are single precision -- see below.
-
-    The version is left out too: a binary file always declares at least
-    1.5.1, which is the revision the format arrived in.
-    """
+    """Everything but the shapes, which are single precision -- see below."""
     from_text = _ext.write_text(to_core(build_reference()), True)
     from_binary = _ext.write_text(
         _ext.read(_ext.write_binary(to_core(build_reference()))), True
     )
 
     assert sections(from_binary) == sections(from_text)
-    for section in sections(from_text) - {"[SHAPES]", "[SIGNATURE]", "[VERSION]"}:
+    for section in sections(from_text) - {"[SHAPES]", "[SIGNATURE]"}:
         assert rows(from_binary, section) == rows(from_text, section), section
 
 
-def test_a_binary_file_is_never_older_than_the_format_that_writes_it():
-    """A 1.5.0 file could not have been written in this form."""
+def test_every_file_declares_the_revision_this_package_writes():
+    """A writer says which revision it produced, not which subset was used."""
     sequence = _ext.Sequence()
     sequence.add_block(0, 0, 0, 0, 0, 0, 1e-3)
-    assert _ext.required_revision(sequence) == 0
+    assert _ext.required_revision(sequence) == 1
 
     loaded = _ext.read(_ext.write_binary(sequence))
 
@@ -182,7 +178,7 @@ def test_an_extended_sequence_survives_the_binary_form(extended_name, build_exte
     text = _ext.write_text(build_extended(), True)
     from_binary = _ext.write_text(_ext.read(_ext.write_binary(build_extended())), True)
 
-    for section in sections(text) - {"[SHAPES]", "[SIGNATURE]", "[VERSION]"}:
+    for section in sections(text) - {"[SHAPES]", "[SIGNATURE]"}:
         assert rows(from_binary, section) == rows(text, section), section
 
 
@@ -207,10 +203,10 @@ def test_a_rotation_or_a_shim_makes_the_file_revision_one():
 
 
 def test_a_label_pulseq_does_not_define_does_not_raise_the_revision():
-    """1.5.1 is the newest revision there is; a custom label needs no more."""
+    """1.5.1 is the newest revision there is, and every file declares it."""
     import extended
 
-    assert _ext.required_revision(extended.custom_labels()) == 0
+    assert _ext.required_revision(extended.custom_labels()) == 1
 
 
 def test_a_custom_label_comes_back_by_name(build_extended):

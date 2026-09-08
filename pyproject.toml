@@ -36,9 +36,12 @@ dev = [
   "ruff==0.16.6",
   "pre-commit>=4",
   "build",
-  # The reference implementation, for byte-parity fixtures. Never imported by
-  # the package itself.
-  "pypulseq>=1.5.0",
+  # The toolbox that defines the file format: a transcription of MATLAB
+  # Pulseq. Used for byte-parity fixtures and never imported by the package.
+  # Not on PyPI, so it comes from git; the tests that need it skip without it,
+  # and `tests/seq/` carries its reference corpus so the reader is tested
+  # either way.
+  "pypulseq_matlab_like @ git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like",
 ]
 
 [project.urls]

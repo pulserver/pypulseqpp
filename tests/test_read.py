@@ -14,6 +14,12 @@ implementation produces it, not only against our own writer.
 
 import numpy as np
 import pytest
+
+pytest.importorskip(
+    "pypulseq_matlab_like",
+    reason="the toolbox that defines the format; see reference.py",
+)
+
 import reference
 from convert import to_core
 
@@ -36,22 +42,17 @@ def test_a_file_read_back_writes_the_same_bytes(reference_name, build_reference)
 def test_a_file_the_reference_wrote_reads_into_the_same_sequence(
     reference_name, build_reference, tmp_path
 ):
-    """Read what another toolbox wrote, and write back what it would have.
-
-    The revision and `TotalDuration` are excused for the reasons
-    `test_parity.py` sets out: each is a writer describing itself.
-    """
+    """Read what another toolbox wrote, and write back the bytes it wrote."""
     import test_parity
+
+    if reference_name in test_parity.NUMBERED_AROUND_A_DROPPED_BLOCK:
+        pytest.skip("the reference leaves a gap in the block numbering")
 
     path = tmp_path / f"{reference_name}.seq"
     build_reference().write(str(path))
     theirs = path.read_bytes()
 
-    ours = _ext.write_text(_ext.read(theirs), True)
-
-    assert test_parity.what_the_sequence_says(
-        ours.decode()
-    ) == test_parity.what_the_sequence_says(theirs.decode())
+    assert _ext.write_text(_ext.read(theirs), True) == theirs
 
 
 def test_reading_from_disk_matches_reading_from_memory(build_reference, tmp_path):

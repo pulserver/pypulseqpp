@@ -1,4 +1,13 @@
-"""Reference sequences, built with the toolbox pypulseqpp replaces.
+"""Reference sequences, built with the toolbox that defines the format.
+
+`pypulseq-matlab-like` is the transcription of MATLAB Pulseq this package is
+compared against. It is not on PyPI, so it is installed from git and the
+tests that need it skip without it::
+
+    pip install git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like
+
+`tests/seq/` carries its reference corpus, so the reader is tested whether or
+not the toolbox itself is here.
 
 Each builder returns a :class:`pypulseq_matlab_like.Sequence`. They are what the
 parity tests compare against: upstream writes the file, pypulseqpp writes the

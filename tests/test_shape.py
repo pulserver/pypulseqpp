@@ -9,6 +9,11 @@ sample.
 
 import numpy as np
 import pytest
+
+pytest.importorskip(
+    "pypulseq_matlab_like",
+    reason="the toolbox that defines the format; see reference.py",
+)
 from pypulseq_matlab_like.compress_shape import compress_shape as reference_compress
 
 from pypulseqpp import _ext

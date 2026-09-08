@@ -26,9 +26,11 @@ scanner-side execution stream, protocol contracts and consoles live in
 If a change here needs to know which vendor will play the sequence, it belongs
 elsewhere.
 
-The runtime dependency is NumPy alone. Upstream `pypulseq` is a test
-dependency, used for byte-parity fixtures, and is never imported by the
-package.
+The runtime dependency is NumPy alone. `pypulseq-matlab-like` is a test
+dependency -- the transcription of MATLAB Pulseq that defines the file format
+-- used for byte-parity fixtures, and is never imported by the package. It is
+not on PyPI; `tests/seq/` carries its reference corpus so the reader is tested
+without it, and the tests that build sequences skip when it is absent.
 
 ## Layout
 
@@ -143,11 +145,23 @@ A binary file always declares at least revision 1: the format arrived with
 Pulseq 1.5.1, so a file claiming 1.5.0 claims a revision that had no way to
 write it.
 
-## Where the binary layout comes from
+## Where the format comes from
 
-`pypulseq-matlab-like` is the authority for it, being a transcription of
-MATLAB Pulseq's `writeBinary.m`. Where another implementation disagrees, that
-one is followed. Two places this decided something:
+`pypulseq-matlab-like` is the authority, being a transcription of MATLAB
+Pulseq. Where another implementation disagrees -- upstream `pypulseq`
+included -- that one is followed, and what this package writes is compared
+against it byte for byte. Upstream differs from it in ways that are not
+cosmetic: an `OFF` label missing from the table and `TRID` in the wrong place,
+so labels resolve to the wrong names; `freqPPm` for `freqPPM`; a soft delay's
+offset as `%.0f` rather than `%g`.
+
+Every file declares revision 1.5.1, whatever the sequence uses and whatever
+it came in declaring: a writer says which revision of the format it produced,
+not which subset a sequence happened to use. `TotalDuration` is not written,
+because the authority records it when reporting on a sequence rather than
+when writing one.
+
+Two places this decided something about the binary layout:
 
 - **A definition's name carries its length in front of it**, as an int32, and
   the value count is an int32 too -- not a NUL-terminated name and a
@@ -234,11 +248,11 @@ Two invariants hold everything else up, and each has a test:
   rather than a writing bug. A new event kind is not finished until it appears
   in a sequence in `tests/reference.py`.
 
-  One divergence is deliberate and has a test of its own. Upstream's
-  deduplication softens a logarithm with a `1e-12` floor, so a sample below
-  that keeps four significant digits where nine were asked for. This package
-  does not floor, and writes the sample the pulse plays.
-  `BLUNTED_BY_UPSTREAM` names the reference sequences that reach it.
+  One sequence is held differently and says why. `gre_with_noise_scan` drops
+  a degenerate block, and the reference toolbox keys its blocks in a
+  dictionary so the gap stays in the numbering where this package closes it.
+  A block id is a label nothing refers to, so what is held there is that
+  every row after that column is the same, in the same order.
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.

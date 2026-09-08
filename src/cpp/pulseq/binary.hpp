@@ -9,9 +9,9 @@
  * and times cross as integer picoseconds rather than as nine significant
  * digits.
  *
- * A binary file always declares at least revision 1: the format arrived with
- * Pulseq 1.5.1, so a file claiming 1.5.0 claims a revision that had no way to
- * write it.
+ * A binary file declares revision 1 like any other written here, which is
+ * also the oldest revision that could have produced one: the format arrived
+ * with Pulseq 1.5.1.
  *
  * Nothing here writes a signature section. One toolbox does, and a file
  * carrying one is read and its signature skipped.

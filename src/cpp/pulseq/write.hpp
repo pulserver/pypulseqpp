@@ -17,12 +17,17 @@ namespace pulseq
 
     class Sequence;
 
+    /** The revision of the format this package writes: Pulseq 1.5.1. */
+    constexpr int WRITTEN_REVISION = 1;
+
     /**
-     * The Pulseq revision @p seq actually needs.
+     * The revision a file written here declares, which is WRITTEN_REVISION.
      *
-     * Rotations and RF shims are 1.5.1, the newest revision there is.  A
-     * sequence using neither stays at whatever revision it declares, so the
-     * ordinary case writes a file any interpreter reads.
+     * It does not depend on the sequence.  A writer says which revision of
+     * the format it produced, not which subset of it a particular sequence
+     * used, so a file that came in as 1.5.0 goes out as 1.5.1 -- which is
+     * what the reference toolbox does and why its own round-trip test
+     * compares against a canonical rewrite rather than against the source.
      */
     int required_revision(const Sequence& seq);
 

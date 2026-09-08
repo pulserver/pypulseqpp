@@ -105,9 +105,34 @@ def test_numeric_definitions_round_trip_as_a_list(sequence):
 
 
 def test_label_ids_are_the_numbers_the_file_format_carries(sequence):
-    assert sequence.label_id("SLC") == 1
-    assert sequence.label_id("LIN") == 8
-    assert sequence.label_id("NOISE") == 16
+    """A file carries a label's name; the number is only its position here.
+
+    So the table is checked against the toolbox that defines it, name for
+    name, rather than against three numbers written down: a list in a
+    different order does not fail loudly, it renames every label past the
+    first difference.
+    """
+    labels = pytest.importorskip(
+        "pypulseq_matlab_like.supported_labels_rf_use",
+        reason="the toolbox that defines the label table; see reference.py",
+    )
+
+    reference = list(labels.get_supported_labels())
+    ours = [sequence.label_name(i) for i in range(1, len(reference) + 1)]
+
+    assert ours == reference
+
+
+def test_a_name_the_format_does_not_define_is_minted_past_the_table(sequence):
+    labels = pytest.importorskip(
+        "pypulseq_matlab_like.supported_labels_rf_use",
+        reason="the toolbox that defines the label table; see reference.py",
+    )
+
+    minted = sequence.label_id("SPARKLE")
+
+    assert minted == len(labels.get_supported_labels()) + 1
+    assert sequence.label_name(minted) == "SPARKLE"
 
 
 def test_a_label_id_maps_back_to_its_name(sequence):

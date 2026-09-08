@@ -26,7 +26,6 @@
 #include "pulseq/sequence.hpp"
 #include "pulseq/write.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <map>
@@ -446,7 +445,6 @@ namespace pulseq
     std::string write_binary(Sequence& seq)
     {
         seq.compress_shapes();
-        seq.set_definition("TotalDuration", Definition(seq.duration()));
         seq.publish_rasters();
 
         std::string out;
@@ -457,10 +455,7 @@ namespace pulseq
         out.append(reinterpret_cast<const char*>(BINARY_MAGIC), sizeof(BINARY_MAGIC));
         put_i64(out, seq.version_major());
         put_i64(out, seq.version_minor());
-        // At least 1.5.1, whatever the sequence needs: the binary form is
-        // itself a 1.5.1 addition, so a binary file declaring 1.5.0 claims a
-        // revision that could not have written it.
-        put_i64(out, std::max(1, required_revision(seq)));
+        put_i64(out, required_revision(seq));
 
         const Sequence& reading = seq;
         write_definitions(out, reading);

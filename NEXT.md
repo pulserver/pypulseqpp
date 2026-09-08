@@ -1,79 +1,58 @@
-# Migrating the reference toolbox: what is done and what is left
+# Reading a file older than 1.5.0, and what is left after it
 
-`pypulseq-matlab-like` is the authority for the file format. The tests were
-written against upstream `pypulseq`, which is a different toolbox, and moving
-them found real defects. This file is the state of that move.
+`pypulseq-matlab-like` is the authority for the format, and the tests are now
+written against it. What that move found and fixed is in the git history; what
+remains is here.
 
-## Done
+## 1. Reading a file older than 1.5.0
 
-- The reference corpus is vendored at `tests/seq/` and `tests/test_corpus.py`
-  is the reader's test of record: 39 files, revisions 1.2.0 to 1.5.1, written
-  by MATLAB and by two Python toolboxes. Every 1.5.x file reads and writes
-  back identically and survives the binary form.
-- Three writer divergences the corpus caught: the RF header said `freqPPm`
-  where the authority says `freqPPM`, the `use` comment was one line of
-  double-quoted text rather than two of single-quoted, and rotation rows were
-  padded to twelve columns rather than written with `%g`.
-- `required_revision` no longer returns 2. There is no revision 1.5.2; 1.5.1
-  is the newest there is.
-- `RequiredExtensions ROTATIONS` is declared when the sequence rotates.
-- The test fixtures build against `pypulseq_matlab_like`, and `reference.py`
-  now covers rotations and RF shims through its own `make_rotation` and
-  `make_rf_shim` rather than through hand-built events.
+The corpus has one sequence written at 1.2.0, 1.3.0, 1.3.1, 1.4.0, 1.4.1 and
+1.4.2 beside its 1.5.0 form, which is the fixture: what the 1.5.0 file says is
+what the others have to be read as. `tests/test_corpus.py` currently asserts
+that an older file is refused by name, and those assertions become the
+conversion's tests once it exists.
 
-## Left, in the order that matters
+`read_seq.py` in the reference toolbox is the specification. Three things are
+missing from an older file and none of them can be defaulted:
 
-1. **The builtin label table is wrong, and it changes what a file means.**
-   Ours is upstream's 22 labels; the authority has 23. `OFF` is missing
-   entirely and `TRID` sits at the end instead of at index 11, so every label
-   from index 11 on resolves to the wrong name: a file that says `NOISE`
-   reads back here as `NOROT`. Fix `builtin_labels()` in `sequence.cpp` to
-   the authority's order:
+- an RF pulse's `center`, which comes from `calc_rf_center` over the
+  decompressed magnitude;
+- an arbitrary gradient's `first` and `last`, which come from walking the
+  block table: `first` is the previous gradient's `last` on that axis, reset
+  to zero where there is a delay or a gap, and `last` is the waveform's last
+  sample for an extended trapezoid or a linear extrapolation otherwise;
+- the ppm frequency and phase terms, which are zero.
 
-       SLC SEG REP AVG SET ECO PHS LIN PAR ACQ TRID NAV REV SMS REF IMA OFF
-       NOISE PMC NOROT NOPOS NOSCL ONCE
+1.3 and older also carry no gradient `time_shape_id`, and their `[BLOCKS]`
+duration column is a delay id rather than a raster count, so the duration has
+to be recovered from the events.
 
-   This is in code that predates the IO branch, so it affects the merged
-   package and `structural-fork` too.
+## 2. The 1.4.1 writer
 
-2. **The soft delay row.** The authority writes `1 0 1e+06 1 TE`; we write
-   `1 0 1000000 1 1.0`. The offset wants `%g` rather than `%.0f`, and the
-   hint is arriving as the factor, which is a column mapping error in
-   `tests/convert.py` for that library's layout.
+`write_v141` in the reference toolbox, which folds the ppm offsets back into
+absolute hertz with `1e-6 * gamma * B0`, drops `center`, `first` and `last`,
+and refuses soft delays.
 
-3. **A block goes missing.** `gre_with_noise_scan` writes 132 blocks there
-   and 131 here, with the numbering diverging from block 5. Something in the
-   conversion drops one.
+## 3. The rest of the reference suite
 
-4. **The `[SIGNATURE]` comment block.** The authority wraps it over five
-   lines at about eighty columns; ours is three long lines.
+`tests/` there is 6809 lines over 80 files, most of it covering event
+factories this package does not have yet. The ones that bear on what is here,
+to port as idiomatic pytest rather than `unittest.TestCase`:
 
-5. **The LABELINC comment.** "for increasing labels" and `# id inc
-   labelstring`, against our "for setting labels" for both sections.
+`test_binary_signature`, `test_md5`, `test_compress_shape`,
+`test_decompress_shape`, `test_block2events`, `test_block`, `test_opts`,
+`test_get_supported_labels`, `test_add_custom_label`, `test_make_rf_shim`,
+`test_rotation_extension`, `test_quaternion`, `test_aux_version`.
 
-6. **Reading a file older than 1.5.0.** The corpus has one sequence at
-   1.2.0, 1.3.0, 1.3.1, 1.4.0, 1.4.1 and 1.4.2 beside its 1.5.0 form, which
-   is exactly the fixture for the conversion. `read_seq.py` in the reference
-   toolbox is the specification: the RF `center` comes from
-   `calc_rf_center`, and a gradient's `first` and `last` from walking the
-   block table.
+`test_read_write_binary_roundtrip` and `test_sequence_backwards_compatibility`
+are already covered by `tests/test_corpus.py`, which runs over the same files.
 
-7. **The 1.4.1 writer**, from that toolbox's `write_v141`.
+## 4. Custom labels, lazily
 
-8. **The rest of its test suite.** `tests/` there is 6809 lines over 80
-   files. Most of it covers event factories this package does not have yet;
-   the IO-related ones are `test_read_write_binary_roundtrip`,
-   `test_binary_signature`, `test_md5`, `test_compress_shape`,
-   `test_decompress_shape`, `test_sequence_backwards_compatibility`,
-   `test_make_rf_shim`, `test_rotation_extension` and `test_add_custom_label`.
-
-## Two places we deliberately differ, both visible in `test_parity.py`
-
-The authority stamps its own version on every file it writes and records
-`TotalDuration` in `test_report` rather than in `write`. This package writes
-the oldest revision that can read the file back, and records the duration on
-write. Keeping the declared revision is what lets a 1.5.0 file read here and
-write back unchanged, which the corpus holds over 33 files; the reference
-suite makes the same allowance by letting a file match either its source or
-its own canonical rewrite. Both are one-line changes if you would rather
-match exactly.
+The text form already round-trips a name the format does not define: a label
+is written by name and read back by name, and `label_id` mints one on first
+use rather than making the caller extend a vocabulary first. What the binary
+form cannot do is carry the name, since it writes the number. `LABELNAMES`
+solves it and is written only when a label is custom, because a reader
+predating that section refuses any file carrying it. Whether that is the right
+trade, or whether the number should simply be trusted, is open.

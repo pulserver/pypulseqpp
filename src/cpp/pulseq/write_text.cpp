@@ -281,13 +281,14 @@ namespace pulseq
 
     int required_revision(const Sequence& seq)
     {
-        // Rotations and RF shims are 1.5.1, which is the newest revision
-        // there is; a sequence using neither stays at whatever it declares,
-        // so the common case produces a file any interpreter reads.
-        int revision = seq.version_revision();
-        if (!seq.rotation_library().empty() || !seq.rf_shim_library().empty())
-            revision = std::max(revision, 1);
-        return revision;
+        // The revision this package implements, whatever the sequence came
+        // in declaring.  A writer says which revision of the format it wrote,
+        // not which subset of it the sequence happened to use: a reader has
+        // to understand 1.5.1 to be sure of reading what came out of here,
+        // and a file that claims less than the writer implements is claiming
+        // something nobody checked.
+        (void)seq;
+        return WRITTEN_REVISION;
     }
 
     /* ================================================================== */
@@ -305,7 +306,11 @@ namespace pulseq
         const int n_blocks = seq.num_blocks();
         const std::vector<long> ticks = duration_ticks(seq);
 
-        seq.set_definition("TotalDuration", Definition(seq.duration()));
+        // The rasters go in because a reader cannot recover a block duration
+        // without them: durations are stored as raster ticks. `TotalDuration`
+        // deliberately does not, because the reference toolbox records it
+        // when it reports on a sequence rather than when it writes one, and a
+        // line here that it does not write is a file that does not match.
         seq.publish_rasters();
         declare_required_extensions(seq);
 
@@ -571,8 +576,11 @@ namespace pulseq
             {
                 if (section.second->empty())
                     continue;
-                out.append("# Extension specification for setting labels:\n");
-                out.append("# id set labelstring\n");
+                const bool increment = section.first[5] == 'I';
+                out.append(
+                    increment ? "# Extension specification for increasing labels:\n"
+                              : "# Extension specification for setting labels:\n");
+                out.append(increment ? "# id inc labelstring\n" : "# id set labelstring\n");
                 appendf(
                     out,
                     "extension %s %d\n",
@@ -647,10 +655,10 @@ namespace pulseq
             {
                 appendf(
                     out,
-                    "%.0f %.0f %.0f %.0f %s\n",
+                    "%.0f %.0f %g %g %s\n",
                     static_cast<double>(id),
                     static_cast<double>(row.num),
-                    std::rint(row.offset * 1e6),
+                    row.offset * 1e6,
                     row.factor,
                     row.hint.c_str());
                 ++id;
@@ -685,13 +693,19 @@ namespace pulseq
         {
             const std::string hex = md5_hex(out.data(), out.size());
 
+            // Wrapped, and misspelled, exactly as the reference writer wraps
+            // and misspells it: this block is inside no digest but it is
+            // compared against files that toolbox wrote.
             out.append("\n[SIGNATURE]\n");
             out.append("# This is the hash of the Pulseq file, calculated right before the "
-                       "[SIGNATURE] section was added\n");
-            out.append("# It can be reproduced/verified with md5sum if the file trimmed to the "
-                       "position right above [SIGNATURE]\n");
-            out.append("# The new line character preceding [SIGNATURE] BELONGS to the signature "
-                       "(and needs to be stripped away for recalculating/verification)\n");
+                       "[SIGNATURE]\n");
+            out.append("# section was added. It can be reproduced/verified with md5sum if the "
+                       "file\n");
+            out.append("# trimmed to the position right above [SIGNATURE]. The new line "
+                       "character\n");
+            out.append("# preceding [SIGNATURE] BELONGS to the signature (and needs to be "
+                       "sripped away\n");
+            out.append("# for recalculating/verification)\n");
             out.append("Type md5\n");
             appendf(out, "Hash %s\n", hex.c_str());
         }
