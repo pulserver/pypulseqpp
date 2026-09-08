@@ -86,6 +86,7 @@ namespace
                 following.delay = {{1e-5, 0.0, -1e-5}};
                 following.offset = {{50.0, 0.0, -50.0}};
             }
+            following.samples_only = shifted != 0;
             const pulseq::Kspace went = pulseq::calculate_kspace(seq, following);
             touch(went.times);
             touch(went.adc_times);

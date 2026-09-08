@@ -62,21 +62,24 @@ reads is now reachable, so `test_report` and `test_report_dict` are
 assembling what is already there rather than computing anything new. The FOV
 transform reads the same trajectory.
 
-### What the repeating unit cannot do here
+### What a shot shares, and what it does not
 
-Reusing one shot's trajectory across every repetition looks like the obvious
-saving, and it does not work: shots do not share a time base. Whether a
-gradient ramp is followed through at the raster depends on whether it is
-ramping at all, which depends on its amplitude -- so a shot whose phase
-encode is near zero has fewer moments in it than its neighbours. A
-sixty-four line gradient echo has five different moment counts among its
-shots, from 229 to 233. One base repeated would be a different trajectory
-from the one the toolbox reports.
+A sequence built the way one should be -- the gradient made once, outside
+the loop, and scaled per shot -- gives every shot the same corner times, a
+zero phase encode included, because a scaled event keeps its ramps. Measured
+on a sixty-four line gradient echo: one corner-time pattern on every axis.
 
-What the repeat could still save is the merge, which is a third of what is
-left. It would have to be a merge of one prologue, one base repeated, and
-the shots that differ from it -- which is more machinery than the merge it
-replaces, for a third of a calculation that is already 36x the toolbox.
+What does differ per shot is which ramps are *followed through at the
+raster*, since a ramp is only sampled when it is ramping and that depends on
+its amplitude. The same sixty-four lines give five different moment counts,
+229 to 233. So a trajectory cannot be one base repeated -- but those extra
+moments are only where the trajectory is *reported*, never where a sample
+sits, which is why `samples_only` can skip all of them and still be exact.
+
+What is left for the repeat to save is the merge, a third of the full pass.
+It would have to merge a prologue, a base, and the shots that differ from
+it: more machinery than the merge it replaces, on a pass already 26x the
+toolbox and 85x with `samples_only`.
 
 The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.

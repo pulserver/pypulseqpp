@@ -877,8 +877,10 @@ PYBIND11_MODULE(_ext, module)
            int first_block,
            int last_block,
            double b0,
-           double gamma) {
+           double gamma,
+           bool samples_only) {
             pulseq::KspaceOptions options;
+            options.samples_only = samples_only;
             options.delay = delay;
             options.offset = offset;
             options.first_block = first_block;
@@ -932,7 +934,7 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("delay") = std::array<double, 3>{{0.0, 0.0, 0.0}},
         py::arg("offset") = std::array<double, 3>{{0.0, 0.0, 0.0}},
         py::arg("first_block") = 1, py::arg("last_block") = 0, py::arg("b0") = 1.5,
-        py::arg("gamma") = 42576000.0,
+        py::arg("gamma") = 42576000.0, py::arg("samples_only") = false,
         "Follow the sequence into k-space: the trajectory, where it is "
         "sampled, and the gradients it was integrated from.");
 

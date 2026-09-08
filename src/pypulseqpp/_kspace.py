@@ -80,7 +80,13 @@ def calculate_kspace(
     )
 
 
-def detail(seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None) -> dict:
+def detail(
+    seq,
+    trajectory_delay=0.0,
+    gradient_offset=0.0,
+    block_range=None,
+    samples_only: bool = False,
+) -> dict:
     """Return everything following the trajectory produces.
 
     Returns
@@ -90,6 +96,21 @@ def detail(seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None) -> 
         ``t_refocusing``, ``slicepos``, ``t_slicepos``, ``gw_pp`` and
         ``pm_adc`` -- what the reference toolbox reports, by name rather than
         by position.
+
+    Other Parameters
+    ----------------
+    samples_only : bool, default False
+        Answer only where the samples were taken. ``k_traj`` and ``t_ktraj``
+        come back empty; everything else is what it would have been.
+
+        The trajectory is reported at every moment it changes direction and
+        through every gradient ramp at the raster, so that drawing it draws
+        the gradient -- and building all of that is most of the work. A
+        caller who wants where the samples were, for a reconstruction or to
+        say what the scan is, needs none of it. The sample positions are the
+        same either way: the trajectory between two corners is a parabola and
+        integrating it is exact, so a moment reported in between changes
+        nothing about a sample either side of it.
 
     Notes
     -----
@@ -116,6 +137,7 @@ def detail(seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None) -> 
         last_block=last,
         b0=_of(system, "B0", 1.5),
         gamma=_of(system, "gamma", 42576000.0),
+        samples_only=samples_only,
     )
     for complaint in found["warnings"]:
         warn(complaint, stacklevel=2)

@@ -238,3 +238,72 @@ def test_a_refocusing_turns_the_trajectory_around():
     # the trajectory crosses the origin partway through the window.
     along = k_traj_adc[0]
     assert along[0] < 0 < along[-1]
+
+
+# -- where the samples are, without the trajectory between them ------------
+
+
+def test_the_samples_are_the_same_without_the_trajectory(both):
+    """A moment reported between two corners changes nothing about a sample.
+
+    The trajectory is reported at every corner and through every ramp at the
+    raster so that drawing it draws the gradient. None of that is part of
+    where a sample sits: between two corners the gradient is a straight line
+    and its integral a parabola, so the answer either side is exact.
+    """
+    _, ours = both
+
+    whole = ours._kspace()
+    quick = ours._kspace(samples_only=True)
+
+    assert_same(whole["k_traj_adc"], quick["k_traj_adc"], "k_traj_adc")
+    assert_same(whole["t_adc"], quick["t_adc"], "t_adc")
+    assert_same(whole["pm_adc"], quick["pm_adc"], "pm_adc")
+
+
+def test_asking_only_for_the_samples_leaves_the_trajectory_unbuilt(both):
+    _, ours = both
+
+    quick = ours._kspace(samples_only=True)
+
+    assert quick["t_ktraj"].size == 0
+    assert quick["k_traj"].shape[1] == 0
+
+
+def test_the_samples_alone_still_start_over_at_each_excitation():
+    """The pulses are what a sample's position is measured from."""
+    sequence = gradient_echo(lines=3)
+
+    whole = sequence._kspace()
+    quick = sequence._kspace(samples_only=True)
+
+    assert_same(whole["k_traj_adc"], quick["k_traj_adc"], "k_traj_adc")
+
+
+def test_the_samples_alone_still_turn_around_at_a_refocusing():
+    system = pp.Opts()
+    sequence = pp.Sequence(system)
+    for _ in range(2):
+        sequence.add_block(
+            pp.make_block_pulse(
+                math.pi / 2, duration=1e-3, system=system, use="excitation"
+            )
+        )
+        sequence.add_block(
+            pp.make_trapezoid("x", area=500, duration=1e-3, system=system)
+        )
+        sequence.add_block(
+            pp.make_block_pulse(math.pi, duration=1e-3, system=system, use="refocusing")
+        )
+        sequence.add_block(
+            pp.make_trapezoid("x", area=1000, duration=2e-3, system=system),
+            pp.make_adc(num_samples=16, duration=2e-3, system=system),
+        )
+
+    whole = sequence._kspace()
+    quick = sequence._kspace(samples_only=True)
+
+    assert_same(whole["k_traj_adc"], quick["k_traj_adc"], "k_traj_adc")
+    # And it really is an echo: the readout crosses the origin.
+    along = quick["k_traj_adc"][0]
+    assert along.min() < 0 < along.max()

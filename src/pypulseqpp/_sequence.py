@@ -505,15 +505,27 @@ class Sequence:
     #: Upstream carries this name for the same calculation, and so does this.
     calculate_kspacePP = calculate_kspace
 
-    def _kspace(self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+    def _kspace(
+        self,
+        trajectory_delay=0.0,
+        gradient_offset=0.0,
+        block_range=None,
+        samples_only: bool = False,
+    ):
         """Return everything following the trajectory produces, by name.
 
         The five values `calculate_kspace` hands back are what upstream
         reports; this is all ten the reference toolbox does -- the
         trajectory's own time base, the slice positions and the gradients as
         splines besides -- for the analysis here that wants them.
+
+        With ``samples_only`` it answers where the samples were taken and
+        leaves the trajectory between them unbuilt, which is most of the
+        work and no part of the answer.
         """
-        return _kspace_detail(self, trajectory_delay, gradient_offset, block_range)
+        return _kspace_detail(
+            self, trajectory_delay, gradient_offset, block_range, samples_only
+        )
 
     def get_gradients(
         self,

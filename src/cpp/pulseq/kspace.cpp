@@ -149,6 +149,129 @@ namespace pulseq
             return values[after - 1] + along * (values[after] - values[after - 1]);
         }
 
+        /**
+         * The phase accumulated up to each of @p when, in order.
+         *
+         * Both the corners and the moments asked about are sorted, so this
+         * walks them together. The integral of a straight line is a parabola,
+         * so what it reports between two corners is exact rather than
+         * sampled.
+         */
+        void integrate_at(
+            const std::vector<double>& t,
+            const std::vector<double>& v,
+            const std::vector<double>& when,
+            std::vector<double>& into)
+        {
+            into.assign(when.size(), 0.0);
+            if (t.size() < 2)
+                return;
+
+            double accumulated = 0.0;
+            size_t piece = 0;
+            double held = 0.0;
+            bool started = false;
+
+            for (size_t i = 0; i < when.size(); ++i)
+            {
+                if (when[i] < t.front())
+                    continue;
+                if (when[i] > t.back())
+                {
+                    // Past the last gradient the phase stays where it was.
+                    into[i] = started ? held : 0.0;
+                    continue;
+                }
+                while (piece + 2 < t.size() && when[i] > t[piece + 1])
+                {
+                    accumulated +=
+                        0.5 * (v[piece] + v[piece + 1]) * (t[piece + 1] - t[piece]);
+                    ++piece;
+                }
+                const double within = when[i] - t[piece];
+                const double width = t[piece + 1] - t[piece];
+                const double slope = width > 0.0 ? (v[piece + 1] - v[piece]) / width : 0.0;
+                into[i] = accumulated + v[piece] * within + 0.5 * slope * within * within;
+                held = into[i];
+                started = true;
+            }
+        }
+
+        /**
+         * Where the samples were taken, without the trajectory in between.
+         *
+         * The pulses still have to be accounted for -- an excitation puts the
+         * phase back at the origin and a refocusing turns it around -- so the
+         * phase is read at each of them too, and the shift each period
+         * carries follows from those alone.
+         */
+        void samples_alone(Kspace& out)
+        {
+            /* The moments the shifts are worked out at: the start, then every
+             * pulse in the order it acts. */
+            std::vector<double> pulses;
+            pulses.push_back(0.0);
+            std::vector<char> is_excitation;
+            is_excitation.push_back(0);
+            {
+                size_t e = 0;
+                size_t r = 0;
+                while (e < out.excitation_times.size() || r < out.refocusing_times.size())
+                {
+                    const bool take_excitation = r >= out.refocusing_times.size() ||
+                        (e < out.excitation_times.size() &&
+                         out.excitation_times[e] <= out.refocusing_times[r]);
+                    pulses.push_back(
+                        take_excitation ? out.excitation_times[e++]
+                                        : out.refocusing_times[r++]);
+                    is_excitation.push_back(take_excitation ? 1 : 0);
+                }
+            }
+
+            std::array<std::vector<double>, 3> at_pulse;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                integrate_at(
+                    out.gradient_times[static_cast<size_t>(axis)],
+                    out.gradient_values[static_cast<size_t>(axis)],
+                    pulses,
+                    at_pulse[static_cast<size_t>(axis)]);
+                integrate_at(
+                    out.gradient_times[static_cast<size_t>(axis)],
+                    out.gradient_values[static_cast<size_t>(axis)],
+                    out.adc_times,
+                    out.sampled[static_cast<size_t>(axis)]);
+            }
+
+            /* What each period carries: the origin at an excitation, and the
+             * accumulated phase reflected at a refocusing. */
+            std::vector<std::array<double, 3>> shift(pulses.size());
+            for (int axis = 0; axis < 3; ++axis)
+                shift[0][static_cast<size_t>(axis)] =
+                    -at_pulse[static_cast<size_t>(axis)][0];
+            for (size_t p = 1; p < pulses.size(); ++p)
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const double k = at_pulse[static_cast<size_t>(axis)][p];
+                    shift[p][static_cast<size_t>(axis)] = is_excitation[p]
+                        ? -k
+                        : -2.0 * k - shift[p - 1][static_cast<size_t>(axis)];
+                }
+            }
+
+            /* Each sample belongs to the period the pulse before it began. */
+            size_t period = 0;
+            for (size_t i = 0; i < out.adc_times.size(); ++i)
+            {
+                while (period + 1 < pulses.size() && pulses[period + 1] <= out.adc_times[i])
+                    ++period;
+                for (int axis = 0; axis < 3; ++axis)
+                    out.sampled[static_cast<size_t>(axis)][i] +=
+                        shift[period][static_cast<size_t>(axis)];
+            }
+        }
+
     } // namespace
 
     Kspace calculate_kspace(const Sequence& seq, const KspaceOptions& options)
@@ -191,6 +314,12 @@ namespace pulseq
          * changes direction at, the raster through each ramp because it
          * curves there, the moments the pulses act -- and just before them,
          * a pulse making it discontinuous -- every sample, and the ends. */
+        if (options.samples_only)
+        {
+            samples_alone(out);
+            return out;
+        }
+
         /* Every moment is already in order within the stream it comes from
          * -- a gradient's corners, the raster through its ramps, the pulses,
          * the samples -- so the moments are gathered as sorted streams and

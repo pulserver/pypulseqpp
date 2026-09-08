@@ -41,6 +41,21 @@ namespace pulseq
 
         double b0 = 1.5;
         double gamma = 42576000.0;
+
+        /**
+         * Answer only where the samples are, not the whole trajectory.
+         *
+         * The trajectory is reported at every moment it changes direction,
+         * and through every gradient ramp at the raster, so that a plot of it
+         * is a plot of the gradient. A caller who wants where the samples
+         * were taken -- a reconstruction, a description of the scan -- does
+         * not need any of those, and building them is nearly all the work.
+         *
+         * The answer is the same either way: the trajectory between two
+         * corners is a parabola and integrating it is exact, so a moment
+         * reported in between changes nothing about a sample either side.
+         */
+        bool samples_only = false;
     };
 
     /** The trajectory, and everything read off it. */
