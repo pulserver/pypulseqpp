@@ -13,6 +13,7 @@
 #include <complex>
 #include <cstdint>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace pulseq
 {
@@ -51,6 +52,28 @@ namespace pulseq
             return times;
         }
 
+        /** One pulse as it is played: an envelope, at an amplitude. */
+        struct Played
+        {
+            int32_t definition;
+            double amplitude;
+
+            bool operator==(const Played& other) const
+            {
+                return definition == other.definition && amplitude == other.amplitude;
+            }
+        };
+
+        struct PlayedHash
+        {
+            size_t operator()(const Played& played) const
+            {
+                const size_t seed = std::hash<double>()(played.amplitude);
+                return seed * 1099511628211ull +
+                       static_cast<size_t>(static_cast<uint32_t>(played.definition));
+            }
+        };
+
         /** One column of the binned trajectory, addressed by its sample. */
         struct Column
         {
@@ -82,6 +105,37 @@ namespace pulseq
             }
         };
 
+        /**
+         * How far one RF row's envelope tips the magnetisation, in turns per
+         * unit amplitude.
+         *
+         * The integral of the complex envelope over the pulse: an amplitude
+         * in hertz over a time in seconds is a number of turns. The amplitude
+         * is left out, being real and so a scale on the answer.
+         */
+        double integrate_envelope(const Sequence& sequence, int id)
+        {
+            const double* row = sequence.rf_library().row(id);
+            const ShapeLibrary& shapes = sequence.shape_library();
+            const std::vector<double> magnitude =
+                decompressed(shapes, static_cast<int>(row[1]));
+            const std::vector<double> phase = decompressed(shapes, static_cast<int>(row[2]));
+            const std::vector<double> times = sample_times(
+                decompressed(shapes, static_cast<int>(row[3])), magnitude.size(),
+                sequence.rf_raster_time());
+
+            std::complex<double> turns(0.0, 0.0);
+            const size_t samples = std::min(magnitude.size(), times.size());
+            for (size_t i = 0; i + 1 < samples; ++i)
+            {
+                const double angle = kTwoPi * (i < phase.size() ? phase[i] : 0.0);
+                const double weight = magnitude[i] * (times[i + 1] - times[i]);
+                turns += std::complex<double>(
+                    weight * std::cos(angle), weight * std::sin(angle));
+            }
+            return std::abs(turns);
+        }
+
         double median_of(std::vector<double> values)
         {
             if (values.empty())
@@ -97,32 +151,39 @@ namespace pulseq
     std::vector<double> flip_angles(const Sequence& sequence)
     {
         const Table& library = sequence.rf_library();
-        const ShapeLibrary& shapes = sequence.shape_library();
-        const double rf_raster = sequence.rf_raster_time();
+        const std::vector<int32_t>& definition_of = sequence.rf_definitions();
+        const int definitions = sequence.num_rf_definitions();
 
+        // How far one turn of the envelope tips, before any amplitude: the
+        // envelope belongs to the definition, so a pulse swept over a
+        // thousand amplitudes is integrated once and multiplied a thousand
+        // times, and playing those thousand a hundred times each costs
+        // nothing further.
+        std::vector<double> envelope(static_cast<size_t>(definitions) + 1, -1.0);
+
+        std::unordered_set<Played, PlayedHash> played;
         std::vector<double> angles;
-        angles.reserve(static_cast<size_t>(library.size()));
 
         for (int id = 1; id <= library.size(); ++id)
         {
-            const double* row = library.row(id);
-            const std::vector<double> magnitude = decompressed(shapes, static_cast<int>(row[1]));
-            const std::vector<double> phase = decompressed(shapes, static_cast<int>(row[2]));
-            const std::vector<double> times = sample_times(
-                decompressed(shapes, static_cast<int>(row[3])), magnitude.size(), rf_raster);
+            const int32_t definition =
+                id <= static_cast<int>(definition_of.size())
+                ? definition_of[static_cast<size_t>(id) - 1]
+                : 0;
+            const bool known = definition >= 1 && definition <= definitions;
 
-            std::complex<double> turns(0.0, 0.0);
-            const size_t samples = std::min(magnitude.size(), times.size());
-            for (size_t i = 0; i + 1 < samples; ++i)
-            {
-                const double angle = kTwoPi * (i < phase.size() ? phase[i] : 0.0);
-                const double weight = row[0] * magnitude[i] * (times[i + 1] - times[i]);
-                turns += std::complex<double>(
-                    weight * std::cos(angle), weight * std::sin(angle));
-            }
-            angles.push_back(std::abs(turns) * 360.0);
+            double& turns = known ? envelope[static_cast<size_t>(definition)] : envelope[0];
+            if (!known || turns < 0.0)
+                turns = integrate_envelope(sequence, id);
+
+            const double amplitude = std::fabs(library.row(id)[0]);
+            if (known && !played.insert(Played{definition, amplitude}).second)
+                continue;
+            angles.push_back(amplitude * turns * 360.0);
         }
 
+        std::sort(angles.begin(), angles.end());
+        angles.erase(std::unique(angles.begin(), angles.end()), angles.end());
         return angles;
     }
 

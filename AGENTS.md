@@ -113,6 +113,15 @@ table actually grows -- keep it that way.
 **A call that does real work releases the GIL.** Deduplication, shape
 compression and writing all run without it.
 
+**What has been worked out about a sequence is kept, and the core says when
+to drop it.** The timing check asks what the gradients slew at and how long
+the whole sequence lasts; both are passes over the block table, so `Sequence`
+keeps them. Every mutation of the core bumps a revision, in step with the
+deduplication claim being dropped, and the kept answers are read through a
+guard that compares one integer -- so a block added, a duration written, an
+axis scaled, a soft delay applied or duplicates collapsed all invalidate them,
+and none of it costs the design loop an attribute write per block.
+
 `benchmarks/throughput.py` reports what a block costs. Run it before and after
 touching the bindings, and quote what came back rather than asserting an
 improvement.
@@ -137,6 +146,32 @@ because reading registers its events too, and nothing in the format changes.
 It is a mask rather than a tag because deduplication merges shapes holding the
 same numbers, and the merge ORs the roles: after it, one entry really is
 played both ways.
+
+## What a report says a sequence is
+
+`test_report` reads a sequence back as a description of an experiment: the
+echo and repetition times, the flip angles, what the encoding covers, and how
+hard the gradients are driven. Most of it is counting, integrating the sampled
+trajectory or reading the corner waveforms. Two answers are worked out, and
+both are compiled because both are per-playout questions with per-definition
+answers.
+
+**A flip angle belongs to the envelope, not to the playout.** How far a pulse
+tips is the integral of its envelope times the amplitude it is played at, and
+the envelope is what the RF definition holds. So the integral is taken once
+per definition and multiplied by each distinct amplitude played through it: an
+inversion train sweeping one pulse over a thousand flip angles is one integral
+and a thousand multiplies, and playing each of those a hundred times costs
+nothing further. Before deduplication a pulse registered twice brings shapes
+of its own and so splits into two definitions, which is the same
+conservatively-finer answer the definition stream gives.
+
+**What the encoding covers is a pass over every sample.** The sampled
+trajectory is binned onto a lattice of its own extent over four million, which
+says how many distinct positions each axis visits, how often one is revisited
+-- slices, averages, contrasts -- and whether the positions fill the grid they
+span. A coordinate one cell from one already seen is the same one, since a
+position reached along two different ramps can land either side of a boundary.
 
 ## Reading, and the two forms of a file
 

@@ -22,23 +22,27 @@ are already covered by `tests/test_corpus.py`, which runs over the same files.
 
 ## The rest of the timing check
 
-`check_timing` covers what the authority's `check_timing` module covers. Its
-`Sequence.check_timing`, the transcription of MATLAB's `checkTiming`, asks
-three further questions, none of which is a raster question:
+`check_timing` covers what the authority's `check_timing` module covers, and
+two of the three further questions its `Sequence.check_timing` asks. Gradient
+continuity is in: a waveform picked up after a delay, one left on before its
+block ends, one starting where the block before did not leave the axis, and a
+sequence that never ramps its axes down are each reported. The step between
+two blocks is judged against the system's slew limit rather than against a
+flat tolerance -- the raster runs on between blocks, so a step of one raster
+is a slew like any other, and the reference toolbox refuses two of these four
+when the block is added rather than when the sequence is checked.
 
-- **Gradient continuity.** A waveform starting at a non-zero value must
-  continue one that ended there on the same axis in the previous non-empty
-  block, and must not also carry a delay; one ending at a non-zero value must
-  last to the end of its block; and the last block must ramp to zero. The
-  library already carries the `first` and `last` of every arbitrary gradient,
-  so this is a scan over the block table rather than a decode.
+`TotalDuration` is in with it. The first check records what the blocks add up
+to and every later one holds the record to them, and a file that declares a
+duration arrives already held to it, so one that does not add up is reported
+rather than quietly corrected. The write is a side effect of the check, as it
+is in MATLAB; `write(check_timing=True)` therefore produces a file carrying
+`TotalDuration` where `write()` does not.
+
+One question is left:
+
 - **Frequency offsets.** An RF or ADC offset, in Hz or as a ppm shift through
   gamma, must stay inside `system.max_freq_offset`.
-- **TotalDuration.** A `TotalDuration` already in `[DEFINITIONS]` must equal
-  what the blocks add up to. MATLAB rewrites it as a side effect of checking;
-  a check that writes to the sequence it is judging is a surprise, so if this
-  is wanted it should be split into a check and a `set_definition` the caller
-  makes.
 
 ## The rest of `Sequence`
 

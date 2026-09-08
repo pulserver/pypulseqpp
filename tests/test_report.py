@@ -147,6 +147,40 @@ def test_a_pulse_played_at_one_flip_angle_is_reported_once():
     assert data["flip_angles_deg"] == pytest.approx([22.5])
 
 
+def test_a_pulse_played_many_times_is_integrated_once():
+    seq = pp.Sequence(pp.Opts())
+    pulse = pp.make_block_pulse(math.pi / 2, duration=1e-3, use="excitation")
+    for _ in range(100):
+        seq.add_block(pulse)
+        seq.add_block(pp.make_delay(5e-3))
+
+    assert seq._native.num_rf() == 100
+    assert seq._native.num_rf_definitions() == 1
+    assert seq.test_report_dict()["flip_angles_deg"] == pytest.approx([90])
+
+
+def test_a_pulse_swept_over_many_flip_angles_is_one_envelope():
+    """One pulse at many amplitudes: one integral, and a multiply per shot."""
+    seq = pp.Sequence(pp.Opts())
+    asked = np.linspace(10, 180, 32)
+    for angle in asked:
+        seq.add_block(
+            pp.make_block_pulse(math.radians(angle), duration=1e-3, use="excitation")
+        )
+        seq.add_block(pp.make_delay(5e-3))
+
+    assert seq.test_report_dict()["flip_angles_deg"] == pytest.approx(asked)
+
+    # A pulse registered again brings shapes of its own, so the sweep is as
+    # many definitions as shots until duplicates are collapsed. The angles are
+    # the same either way, to the six digits the file records an amplitude at.
+    seq.remove_duplicates(in_place=True)
+
+    assert seq._native.num_rf() == len(asked)
+    assert seq._native.num_rf_definitions() == 1
+    assert seq.test_report_dict()["flip_angles_deg"] == pytest.approx(asked, rel=1e-5)
+
+
 def test_the_flip_angle_is_what_the_pulse_was_asked_for():
     seq = pp.Sequence(pp.Opts())
     for flip in (math.pi / 6, math.pi / 2, math.pi):

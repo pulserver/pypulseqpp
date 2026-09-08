@@ -118,6 +118,17 @@ namespace
                 d["duration"] = f.duration;
                 d["dead_time"] = f.dead_time;
             }
+            else if (f.error_type == "GRADIENT_START_DELAY")
+            {
+                d["value"] = f.value;
+                d["amplitude"] = f.amplitude;
+            }
+            else if (f.error_type == "GRADIENT_END_NONZERO")
+            {
+                d["value"] = f.value;
+                d["duration"] = f.duration;
+                d["amplitude"] = f.amplitude;
+            }
             else if (f.error_type == "SOFT_DELAY_HINT_INCONSISTENCY")
             {
                 d["value"] = f.hint;
@@ -691,6 +702,8 @@ PYBIND11_MODULE(_ext, module)
             "Block `index` (1-based) as the events it plays, rather than as "
             "the ids they are stored under.")
         .def("num_blocks", &Sequence::num_blocks)
+        .def("revision", &Sequence::revision,
+             "How many times the sequence has been changed; it only rises.")
 
         /* -- definitions and instances --------------------------------- */
         .def("num_block_definitions", &Sequence::num_block_definitions,
@@ -949,7 +962,7 @@ PYBIND11_MODULE(_ext, module)
                 static_cast<py::ssize_t>(angles.size()), angles.data());
         },
         py::arg("sequence"),
-        "Every pulse's flip angle in degrees, one per RF library row.");
+        "Every distinct flip angle the sequence uses, in degrees, ascending.");
 
     module.def(
         "kspace_coverage",

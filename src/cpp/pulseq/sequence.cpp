@@ -200,7 +200,7 @@ namespace pulseq
 
     int Sequence::register_rf(const double* row, char use)
     {
-        deduplicated_ = false;
+        changed();
         rf_use_.push_back(use);
         shapes_.mark(static_cast<int>(row[1]), SHAPE_ROLE_RF_MAGNITUDE);
         shapes_.mark(static_cast<int>(row[2]), SHAPE_ROLE_RF_PHASE);
@@ -211,7 +211,7 @@ namespace pulseq
 
     int Sequence::register_trap(const double* row)
     {
-        deduplicated_ = false;
+        changed();
         const int slot = trap_.append(row);
         grad_slot_.push_back(static_cast<int32_t>(slot));
         grad_def_.push_back(grad_defs_.intern(trap_key(row)));
@@ -220,7 +220,7 @@ namespace pulseq
 
     int Sequence::register_arbitrary(const double* row)
     {
-        deduplicated_ = false;
+        changed();
         shapes_.mark(static_cast<int>(row[3]), SHAPE_ROLE_GRADIENT);
         shapes_.mark(static_cast<int>(row[4]), SHAPE_ROLE_GRADIENT_TIME);
         const int slot = arb_.append(row);
@@ -231,7 +231,7 @@ namespace pulseq
 
     int Sequence::register_adc(const double* row)
     {
-        deduplicated_ = false;
+        changed();
         shapes_.mark(static_cast<int>(row[7]), SHAPE_ROLE_ADC_PHASE);
         adc_def_.push_back(adc_defs_.intern(adc_key(row)));
         return adc_.append(row);
@@ -239,39 +239,39 @@ namespace pulseq
 
     int Sequence::register_trigger(const double* row)
     {
-        deduplicated_ = false;
+        changed();
         return trigger_.append(row);
     }
 
     int Sequence::register_rotation(const double* row)
     {
-        deduplicated_ = false;
+        changed();
         return rotation_.append(row);
     }
 
     int Sequence::register_label_set(int32_t value, int32_t label_id)
     {
-        deduplicated_ = false;
+        changed();
         const int32_t row[LABEL_WIDTH] = {value, label_id};
         return label_set_.append(row);
     }
 
     int Sequence::register_label_inc(int32_t value, int32_t label_id)
     {
-        deduplicated_ = false;
+        changed();
         const int32_t row[LABEL_WIDTH] = {value, label_id};
         return label_inc_.append(row);
     }
 
     int Sequence::register_rf_shim(const double* values, int count)
     {
-        deduplicated_ = false;
+        changed();
         return rf_shim_.append(values, count);
     }
 
     int Sequence::register_soft_delay(const SoftDelay& row)
     {
-        deduplicated_ = false;
+        changed();
         soft_delays_.push_back(row);
         return static_cast<int>(soft_delays_.size());
     }
@@ -327,19 +327,19 @@ namespace pulseq
 
     int Sequence::register_shape(int num_uncompressed, const double* samples, int count)
     {
-        deduplicated_ = false;
+        changed();
         return shapes_.append(num_uncompressed, samples, count);
     }
 
     int Sequence::register_raw_shape(const double* samples, int count)
     {
-        deduplicated_ = false;
+        changed();
         return shapes_.append_raw(samples, count);
     }
 
     int Sequence::register_raw_shape_divided(const double* samples, int count, double divisor)
     {
-        deduplicated_ = false;
+        changed();
         return shapes_.append_raw_divided(samples, count, divisor);
     }
 
@@ -352,12 +352,12 @@ namespace pulseq
          * sequence read from a file keep its deduplicated claim through a
          * writer that calls this on the way past. */
         if (shapes_.compress())
-            deduplicated_ = false;
+            changed();
     }
 
     int Sequence::chain_extension(int32_t type_id, int32_t ref, int32_t next)
     {
-        deduplicated_ = false;
+        changed();
         const std::array<int32_t, EXTENSION_WIDTH> key{type_id, ref, next};
         auto it = chain_index_.find(key);
         if (it != chain_index_.end())
@@ -371,7 +371,7 @@ namespace pulseq
 
     int Sequence::append_extension(int32_t type_id, int32_t ref, int32_t next)
     {
-        deduplicated_ = false;
+        changed();
         const std::array<int32_t, EXTENSION_WIDTH> row{type_id, ref, next};
         const int id = extensions_.append(row.data());
         note_chain(type_id, next);
@@ -403,7 +403,7 @@ namespace pulseq
 
     int Sequence::add_block(const Block& block)
     {
-        deduplicated_ = false;
+        changed();
         repetition_known_ = false;
         detach_blocks_before_growth();
         blocks_->insert(
@@ -571,7 +571,7 @@ namespace pulseq
 
     void Sequence::set_block(int index, const Block& block)
     {
-        deduplicated_ = false;
+        changed();
         repetition_known_ = false;
         require_block(index, num_blocks());
         detach_blocks();
@@ -604,7 +604,7 @@ namespace pulseq
 
     void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
     {
-        deduplicated_ = false;
+        changed();
         repetition_known_ = false;
         detach_blocks();
         blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
@@ -614,7 +614,7 @@ namespace pulseq
 
     void Sequence::set_grad_slots(const int32_t* slots, int count)
     {
-        deduplicated_ = false;
+        changed();
         grad_slot_.assign(slots, slots + count);
     }
 
@@ -624,13 +624,13 @@ namespace pulseq
         const int32_t* starts,
         const double* samples)
     {
-        deduplicated_ = false;
+        changed();
         shapes_.assign(num_uncompressed, count, starts, samples);
     }
 
     void Sequence::set_rf_shims(const int32_t* starts, int count, const double* values)
     {
-        deduplicated_ = false;
+        changed();
         rf_shim_.assign(starts, count, values);
     }
 
@@ -757,7 +757,7 @@ namespace pulseq
             }
         }
 
-        deduplicated_ = false;
+        changed();
     }
 
     Repetition Sequence::locate_repetition(int size) const
@@ -912,7 +912,7 @@ namespace pulseq
              *
              * Two rows the libraries could not tell apart may now differ too,
              * so a collapse already done no longer covers them. */
-            deduplicated_ = false;
+            changed();
             rebuild_definitions();
         }
         return labelled;

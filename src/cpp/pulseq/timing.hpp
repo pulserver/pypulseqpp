@@ -70,6 +70,8 @@ namespace pulseq
         double dead_time = 0.0;
         double ringdown_time = 0.0;
         double divisor = 0.0;
+        /** A gradient amplitude, in Hz/m, where the finding is about one. */
+        double amplitude = 0.0;
     };
 
     /**

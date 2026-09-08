@@ -6,12 +6,14 @@
  * nor the waveforms answer directly: how hard each pulse tips the
  * magnetisation, and what the encoding covers.
  *
- * ### The flip angle is a property of the pulse, not of the block
+ * ### The flip angle is a property of the envelope, not of the playout
  *
- * How far a pulse tips is the integral of its envelope, so it belongs to the
- * RF library row rather than to any block that plays it: a pulse played ten
- * thousand times is integrated once. What comes back is one angle per row,
- * in degrees.
+ * How far a pulse tips is the integral of its envelope times the amplitude it
+ * is played at. The envelope belongs to the RF *definition* and the amplitude
+ * to the playout, so an inversion train sweeping one pulse over a thousand
+ * flip angles is one integral and a thousand multiplies -- and playing each of
+ * those a hundred times costs nothing further, since a block names a library
+ * row rather than carrying one.
  *
  * ### What the encoding covers is a property of the samples
  *
@@ -33,13 +35,11 @@ namespace pulseq
 {
 
     /**
-     * Every pulse's flip angle in degrees, one per RF library row, in id
-     * order.
+     * Every distinct flip angle the sequence uses, in degrees, ascending.
      *
-     * The integral of the complex envelope over the pulse: an amplitude in
-     * hertz over a time in seconds is a number of turns, and a turn is 360
-     * degrees. A pulse carrying no time shape is sampled at the centre of
-     * each RF raster interval, which is where the format puts it.
+     * An amplitude in hertz over a time in seconds is a number of turns, and
+     * a turn is 360 degrees. A pulse carrying no time shape is sampled at the
+     * centre of each RF raster interval, which is where the format puts it.
      */
     std::vector<double> flip_angles(const Sequence& sequence);
 

@@ -8,11 +8,11 @@ encoding reaches, how often k-space is revisited and whether it is sampled on
 a grid.
 
 Two of the answers are worked out rather than looked up, and both are compiled
-passes. A flip angle is the integral of a pulse's envelope, so it belongs to
-the RF library row rather than to a block: a pulse played ten thousand times is
-integrated once. What the encoding covers is found by binning the sampled
-trajectory onto a lattice fine enough to separate neighbouring positions,
-which is a pass over every sample the scan takes.
+passes. A flip angle is the integral of a pulse's envelope times the amplitude
+it is played at, so an inversion train sweeping one pulse over a thousand flip
+angles is one integral and a thousand multiplies. What the encoding covers is
+found by binning the sampled trajectory onto a lattice fine enough to separate
+neighbouring positions, which is a pass over every sample the scan takes.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def report_data(seq) -> dict[str, Any]:
         ``is_cartesian``.
     """
     native = seq._native
-    flip_angles_deg = np.unique(_cxx.flip_angles(native))
+    flip_angles_deg = _cxx.flip_angles(native)
     duration, num_blocks, event_count = seq.duration()
 
     gw_data = seq.waveforms()
