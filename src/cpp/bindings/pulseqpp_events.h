@@ -299,8 +299,8 @@ namespace pulseqpp_events
                 amplitude > 0.0 ? std::abs(values[i]) / amplitude : 0.0;
             double angle = std::arg(values[i]);
             if (angle < 0.0)
-                angle += 2.0 * M_PI;
-            phase[static_cast<size_t>(i)] = angle / (2.0 * M_PI);
+                angle += pulseqpp_types::TWO_PI;
+            phase[static_cast<size_t>(i)] = angle / pulseqpp_types::TWO_PI;
         }
 
         // Magnitude and phase are both functions of the signal, so they are

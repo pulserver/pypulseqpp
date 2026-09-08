@@ -66,6 +66,15 @@ namespace pulseqpp_types
     namespace py = pybind11;
     using namespace pulseq;
 
+    /**
+     * A full turn in radians.
+     *
+     * `M_PI` is not standard C++: MSVC defines it only behind
+     * `_USE_MATH_DEFINES`, set before the first `<cmath>` anywhere in the
+     * translation unit, which a header cannot promise.
+     */
+    inline constexpr double TWO_PI = 6.283185307179586476925286766559;
+
     /* ================================================================== */
     /*  Normalisation                                                     */
     /* ================================================================== */
@@ -88,8 +97,8 @@ namespace pulseqpp_types
             out.magnitude[static_cast<size_t>(i)] = peak > 0.0 ? std::abs(values[i]) / peak : 0.0;
             double angle = std::arg(values[i]);
             if (angle < 0.0)
-                angle += 2.0 * M_PI;
-            out.phase[static_cast<size_t>(i)] = angle / (2.0 * M_PI);
+                angle += TWO_PI;
+            out.phase[static_cast<size_t>(i)] = angle / TWO_PI;
         }
         out.registered = Registration{};
     }
@@ -159,7 +168,7 @@ namespace pulseqpp_types
         std::complex<double>* data = out.mutable_data();
         for (size_t i = 0; i < n; ++i)
         {
-            const double turns = 2.0 * M_PI * rf.phase[i];
+            const double turns = TWO_PI * rf.phase[i];
             data[i] = std::polar(rf.amplitude * rf.magnitude[i], turns);
         }
         return out;
