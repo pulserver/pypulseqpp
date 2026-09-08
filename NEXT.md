@@ -47,12 +47,32 @@ to port as idiomatic pytest rather than `unittest.TestCase`:
 `test_read_write_binary_roundtrip` and `test_sequence_backwards_compatibility`
 are already covered by `tests/test_corpus.py`, which runs over the same files.
 
-## 4. Custom labels, lazily
+## 4. Carrying a label's name in the file
 
-The text form already round-trips a name the format does not define: a label
-is written by name and read back by name, and `label_id` mints one on first
-use rather than making the caller extend a vocabulary first. What the binary
-form cannot do is carry the name, since it writes the number. `LABELNAMES`
-solves it and is written only when a label is custom, because a reader
-predating that section refuses any file carrying it. Whether that is the right
-trade, or whether the number should simply be trusted, is open.
+A label is named, not numbered. `label_id` mints one for a name it has not
+seen, the text format writes the name and reads it back, and a sequence using
+a name Pulseq does not define round-trips through the text form today with
+nothing to configure first. That half is done, and it is the half the
+reference toolbox makes the caller do by hand with `add_supported_label`.
+
+The binary form is the gap: it writes the *number*, and a number means
+something only against a table. The builtin table here is the reference
+toolbox's, so builtin labels cross correctly -- with any other ordering our
+`NOISE` reads there as `IMA` -- but no fixed table can cover a name a user
+invents, which is the whole point of allowing one.
+
+`LABELNAMES` (binary section 16) carries the mapping and is written only when
+a label is custom, but it is not in the reference toolbox's format: its reader
+refuses a section it does not know, so any file carrying it is unreadable
+there.
+
+**A non-breaking alternative, if we want one.** Put the mapping in
+`[DEFINITIONS]`, which both forms already carry and which every reader is
+obliged to tolerate -- an unknown key is data, not an error. Something like
+
+    CustomLabels SPARKLE GLITTER
+
+naming the labels minted past the builtin table, in order, so a number above
+the table's length resolves by position. It needs no new section, no format
+revision, and a reader that ignores it is exactly as well off as it is today.
+That would let `LABELNAMES` go.

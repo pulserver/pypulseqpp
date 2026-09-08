@@ -31,11 +31,17 @@ namespace pulseq
 
     const std::vector<std::string>& Sequence::builtin_labels()
     {
-        // Pulseq's own list, in the order that numbers it.  The order is the
-        // whole content of this table: a file carries a label's *name*, and
-        // its position here is the number every other library row refers to
-        // it by, so a list in a different order does not fail -- it renames
-        // every label past the first difference.
+        // Seed for the numbering, not a definition of what a label may be.
+        //
+        // A label is named, not numbered: the text format writes the name,
+        // `label_id` mints one for a name it has not seen, and a sequence is
+        // free to use a name nothing here lists.  This table only fixes where
+        // the numbering starts, and the order matters in exactly one place --
+        // the binary format writes the number rather than the name, so two
+        // implementations reading each other's binary files agree about a
+        // label only as far as they agree about this list.  For a name
+        // outside it they cannot agree at all, which is what `LABELNAMES` is
+        // for.  The order is the reference toolbox's.
         static const std::vector<std::string> names{
             "SLC", "SEG", "REP",   "AVG", "SET", "ECO",   "PHS", "LIN",
             "PAR", "ACQ", "TRID",  "NAV", "REV", "SMS",   "REF", "IMA",

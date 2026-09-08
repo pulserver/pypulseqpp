@@ -15,6 +15,7 @@ renumbering would show up as a confusing diff much later.
 from __future__ import annotations
 
 import numpy as np
+from pypulseq_matlab_like.supported_labels_rf_use import get_supported_labels
 
 from pypulseqpp import _ext
 
@@ -91,14 +92,26 @@ def to_core(seq) -> _ext.Sequence:
     for identifier, row in _rows(seq.rf_shim_library):
         _check(core.register_rf_shim(row), identifier, "RF shim")
 
+    # A label crosses by name. The number in either library is that side's
+    # own position in its own table, so handing one straight over would say
+    # NOROT where the sequence says NOISE.
+    labels = get_supported_labels()
+
+    def named(index):
+        return labels[int(index) - 1]
+
     for identifier, row in _rows(seq.label_set_library):
         _check(
-            core.register_label_set(int(row[0]), int(row[1])), identifier, "LABELSET"
+            core.register_label_set(int(row[0]), core.label_id(named(row[1]))),
+            identifier,
+            "LABELSET",
         )
 
     for identifier, row in _rows(seq.label_inc_library):
         _check(
-            core.register_label_inc(int(row[0]), int(row[1])), identifier, "LABELINC"
+            core.register_label_inc(int(row[0]), core.label_id(named(row[1]))),
+            identifier,
+            "LABELINC",
         )
 
     # The toolbox stores a soft delay's hint as a number into its own table
