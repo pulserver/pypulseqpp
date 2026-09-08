@@ -1,16 +1,11 @@
 # What is left
 
 `pypulseq-matlab-like` is the authority for the format, and the tests are now
-written against it. Reading is complete: every revision from 1.2.0 up is read,
-in text and in binary. What remains is here.
+written against it. Reading and writing are complete: every revision from
+1.2.0 up is read, in text and in binary, and a file can be written as 1.5.1 or
+as 1.4.1. What remains is here.
 
-## 1. The 1.4.1 writer
-
-`write_v141` in the reference toolbox, which folds the ppm offsets back into
-absolute hertz with `1e-6 * gamma * B0`, drops `center`, `first` and `last`,
-and refuses soft delays.
-
-## 2. The rest of the reference suite
+## The rest of the reference suite
 
 `tests/` there is 6809 lines over 80 files, most of it covering event
 factories this package does not have yet. The ones that bear on what is here,

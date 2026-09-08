@@ -762,4 +762,293 @@ namespace pulseq
         return out;
     }
 
+
+    /* ================================================================== */
+    /*  Pulseq 1.4.1                                                      */
+    /* ================================================================== */
+
+    std::string write_text_v141(Sequence& seq, bool create_signature, double gamma, double field)
+    {
+        if (!seq.rotation_library().empty() || !seq.rf_shim_library().empty())
+            throw std::runtime_error(
+                "write_text_v141(): this sequence rotates or shims, and 1.4.1 has no way to "
+                "say so. Dropping either would move every gradient it applies to, so the "
+                "file is refused rather than written as a sequence that is not this one");
+
+        seq.compress_shapes();
+        seq.publish_rasters();
+
+        const Sequence& reading = seq;
+        const int n_blocks = seq.num_blocks();
+        const std::vector<long> ticks = duration_ticks(seq);
+
+        // The one thing 1.4 cannot express that can be folded rather than
+        // dropped: an offset in parts per million is an offset in hertz once
+        // the field and the gyromagnetic ratio are known.
+        const double ppm_to_hz = 1e-6 * gamma * field;
+
+        std::string out;
+        out.reserve(static_cast<size_t>(n_blocks) * 36 + 4096);
+        out.append("# Pulseq sequence file\n# Created by PyPulseq\n\n");
+
+        out.append("[VERSION]\n");
+        out.append("major 1\n");
+        out.append("minor 4\n");
+        out.append("revision 1\n");
+        out.push_back('\n');
+
+        if (!reading.definitions().empty())
+        {
+            out.append("[DEFINITIONS]\n");
+            for (const auto& entry : reading.definitions())
+            {
+                out.append(entry.first);
+                out.push_back(' ');
+                write_definition_value(out, entry.second);
+                out.push_back('\n');
+            }
+            out.push_back('\n');
+        }
+
+        out.append("# Format of blocks:\n");
+        out.append("# NUM DUR RF  GX  GY  GZ  ADC  EXT\n");
+        out.append("[BLOCKS]\n");
+        if (n_blocks > 0)
+        {
+            const int number_width = decimal_width(n_blocks);
+            const int widths[8] = {number_width, 3, 3, 3, 3, 3, 2, 2};
+            const int32_t* events = reading.block_events();
+            const long* tick = ticks.data();
+            size_t row_bound = 1;
+            for (int column = 0; column < 8; ++column)
+                row_bound += 1 + std::max(widths[column], 12);
+            render_rows(
+                out,
+                static_cast<size_t>(n_blocks),
+                row_bound,
+                [&](char* cursor, size_t i)
+                {
+                    const int32_t* row = events + i * BLOCK_WIDTH;
+                    cursor = put_int_field(cursor, static_cast<long>(i) + 1, widths[0]);
+                    *cursor++ = ' ';
+                    cursor = put_int_field(cursor, tick[i], widths[1]);
+                    for (int column = 0; column < BLOCK_WIDTH; ++column)
+                    {
+                        *cursor++ = ' ';
+                        cursor = put_int_field(cursor, row[column], widths[column + 2]);
+                    }
+                    *cursor++ = '\n';
+                    return cursor;
+                });
+        }
+        out.push_back('\n');
+
+        if (!reading.rf_library().empty())
+        {
+            out.append("# Format of RF events:\n");
+            out.append("# id amplitude mag_id phase_id time_shape_id delay freq phase\n");
+            out.append("# ..        Hz   ....     ....          ....    us   Hz   rad\n");
+            out.append("[RF]\n");
+            const double raster = reading.rf_raster_time();
+            for (int id = 1; id <= reading.rf_library().size(); ++id)
+            {
+                const double* d = reading.rf_library().row(id);
+                appendf(
+                    out,
+                    "%.0f %12g %.0f %.0f %.0f %g %g %g\n",
+                    static_cast<double>(id),
+                    d[0],
+                    d[1],
+                    d[2],
+                    d[3],
+                    std::rint(d[5] / raster) * raster * 1e6,
+                    d[8] + d[6] * ppm_to_hz,
+                    d[9] + d[7] * ppm_to_hz);
+            }
+            out.push_back('\n');
+        }
+
+        std::vector<int> arbitrary, trapezoids;
+        for (int id = 1; id <= reading.num_gradients(); ++id)
+            (reading.grad_kind(id) == GradKind::Arbitrary ? arbitrary : trapezoids).push_back(id);
+
+        if (!arbitrary.empty())
+        {
+            out.append("# Format of arbitrary gradients:\n");
+            out.append("#   time_shape_id of 0 means default timing (stepping with grad_raster "
+                       "starting at 1/2 of grad_raster)\n");
+            out.append("# id amplitude amp_shape_id time_shape_id delay\n");
+            out.append("# ..      Hz/m       ..         ..          us\n");
+            out.append("[GRADIENTS]\n");
+            for (const int id : arbitrary)
+            {
+                const double* d = reading.arb_library().row(reading.grad_row(id));
+                appendf(
+                    out,
+                    "%.0f %12g %.0f %.0f %.0f\n",
+                    static_cast<double>(id),
+                    d[0],
+                    d[3],
+                    d[4],
+                    std::rint(d[5] * 1e6));
+            }
+            out.push_back('\n');
+        }
+
+        if (!trapezoids.empty())
+        {
+            out.append("# Format of trapezoid gradients:\n");
+            out.append("# id amplitude rise flat fall delay\n");
+            out.append("# ..      Hz/m   us   us   us    us\n");
+            out.append("[TRAP]\n");
+            for (const int id : trapezoids)
+            {
+                const double* d = reading.trap_library().row(reading.grad_row(id));
+                appendf(
+                    out,
+                    "%2.0f %12g %3.0f %4.0f %3.0f %3.0f\n",
+                    static_cast<double>(id),
+                    d[0],
+                    1e6 * d[1],
+                    1e6 * d[2],
+                    1e6 * d[3],
+                    1e6 * d[4]);
+            }
+            out.push_back('\n');
+        }
+
+        if (!reading.adc_library().empty())
+        {
+            out.append("# Format of ADC events:\n");
+            out.append("# id num dwell delay freq phase\n");
+            out.append("# ..  ..    ns    us   Hz   rad\n");
+            out.append("[ADC]\n");
+            for (int id = 1; id <= reading.adc_library().size(); ++id)
+            {
+                const double* d = reading.adc_library().row(id);
+                appendf(
+                    out,
+                    "%.0f %.0f %.0f %.0f %g %g\n",
+                    static_cast<double>(id),
+                    d[0],
+                    1e9 * d[1],
+                    1e6 * d[2],
+                    d[5] + d[3] * ppm_to_hz,
+                    d[6] + d[4] * ppm_to_hz);
+            }
+            out.push_back('\n');
+        }
+
+        if (!reading.extensions_library().empty())
+        {
+            out.append("# Format of extension lists:\n");
+            out.append("# id type ref next_id\n");
+            out.append("# next_id of 0 terminates the list\n");
+            out.append("# Extension list is followed by extension specifications\n");
+            out.append("[EXTENSIONS]\n");
+            const IntTable& chains = reading.extensions_library();
+            for (int id = 1; id <= chains.size(); ++id)
+            {
+                const int32_t* row = chains.row(id);
+                appendf(
+                    out,
+                    "%.0f %.0f %.0f %.0f\n",
+                    static_cast<double>(id),
+                    static_cast<double>(row[0]),
+                    static_cast<double>(row[1]),
+                    static_cast<double>(row[2]));
+            }
+            out.push_back('\n');
+        }
+
+        if (!reading.trigger_library().empty())
+        {
+            out.append("# Extension specification for digital output and input triggers:\n");
+            out.append("# id type channel delay (us) duration (us)\n");
+            appendf(out, "extension TRIGGERS %d\n", seq.extension_type_id("TRIGGERS"));
+            for (int id = 1; id <= reading.trigger_library().size(); ++id)
+            {
+                const double* d = reading.trigger_library().row(id);
+                appendf(
+                    out,
+                    "%.0f %.0f %.0f %.0f %.0f\n",
+                    static_cast<double>(id),
+                    d[0],
+                    d[1],
+                    std::rint(1e6 * d[2]),
+                    std::rint(1e6 * d[3]));
+            }
+            out.push_back('\n');
+        }
+
+        {
+            // 1.4.1 heads both label sections the same way, where 1.5 gives
+            // the increasing one its own wording.
+            const std::pair<const char*, const IntTable*> sections[2] = {
+                {"LABELSET", &reading.label_set_library()},
+                {"LABELINC", &reading.label_inc_library()},
+            };
+            for (const auto& section : sections)
+            {
+                if (section.second->empty())
+                    continue;
+                out.append("# Extension specification for setting labels:\n");
+                out.append("# id set labelstring\n");
+                appendf(
+                    out, "extension %s %d\n", section.first,
+                    seq.extension_type_id(section.first));
+                for (int id = 1; id <= section.second->size(); ++id)
+                {
+                    const int32_t* row = section.second->row(id);
+                    const std::string& name = reading.label_name(row[1]);
+                    appendf(
+                        out,
+                        "%.0f %.0f %s\n",
+                        static_cast<double>(id),
+                        static_cast<double>(row[0]),
+                        name.empty() ? "UNKNOWN" : name.c_str());
+                }
+                out.push_back('\n');
+            }
+        }
+
+        if (!reading.shape_library().empty())
+        {
+            out.append("# Sequence Shapes\n");
+            out.append("[SHAPES]\n\n");
+            for (int id = 1; id <= reading.shape_library().size(); ++id)
+            {
+                appendf(out, "shape_id %.0f\n", static_cast<double>(id));
+                appendf(
+                    out,
+                    "num_samples %.0f\n",
+                    static_cast<double>(reading.shape_library().num_uncompressed(id)));
+                const int count = reading.shape_library().num_compressed(id);
+                const double* samples = reading.shape_library().samples(id);
+                for (int i = 0; i < count; ++i)
+                    appendf(out, "%.9g\n", samples[i]);
+                out.push_back('\n');
+            }
+        }
+
+        if (create_signature)
+        {
+            const std::string hex = md5_hex(out.data(), out.size());
+            out.append("\n[SIGNATURE]\n");
+            out.append("# This is the hash of the Pulseq file, calculated right before the "
+                       "[SIGNATURE]\n");
+            out.append("# section was added. It can be reproduced/verified with md5sum if the "
+                       "file\n");
+            out.append("# trimmed to the position right above [SIGNATURE]. The new line "
+                       "character\n");
+            out.append("# preceding [SIGNATURE] BELONGS to the signature (and needs to be "
+                       "sripped away\n");
+            out.append("# for recalculating/verification)\n");
+            out.append("Type md5\n");
+            appendf(out, "Hash %s\n", hex.c_str());
+        }
+
+        return out;
+    }
+
 } // namespace pulseq

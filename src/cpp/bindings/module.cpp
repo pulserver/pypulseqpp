@@ -462,6 +462,31 @@ PYBIND11_MODULE(_ext, module)
         "Serialize as a Pulseq `.seq` text file.");
 
     module.def(
+        "write_text_v141",
+        [](pulseq::Sequence& sequence, bool create_signature, double gamma, double field) {
+            if (!sequence.soft_delay_library().empty())
+            {
+                // The reference toolbox warns rather than refusing, and so
+                // does this: the file is valid apart from the delays, which
+                // 1.4.1 has no way to carry.
+                PyErr_WarnEx(
+                    PyExc_UserWarning,
+                    "write_text_v141(): this sequence uses soft delays, which the 1.4.1 "
+                    "format cannot carry; they are left out of the file",
+                    1);
+            }
+            std::string written;
+            {
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_text_v141(sequence, create_signature, gamma, field);
+            }
+            return py::bytes(written);
+        },
+        py::arg("sequence"), py::arg("create_signature") = true,
+        py::arg("gamma") = 42576000.0, py::arg("field") = 1.5,
+        "Serialize as a Pulseq 1.4.1 `.seq` text file.");
+
+    module.def(
         "write_binary",
         [](pulseq::Sequence& sequence) {
             std::string written;

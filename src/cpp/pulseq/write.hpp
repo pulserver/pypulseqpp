@@ -42,6 +42,27 @@ namespace pulseq
     int required_revision(const Sequence& seq);
 
     /**
+     * Serialize as a Pulseq 1.4.1 `.seq` text file.
+     *
+     * For a scanner whose interpreter predates 1.5. What 1.5 added is folded
+     * back or dropped: the ppm frequency and phase offsets become absolute
+     * hertz at @p gamma and @p field, which is the only place those two are
+     * needed and why they are arguments rather than read from the sequence;
+     * an RF pulse's centre and use go, and so do an arbitrary gradient's
+     * first and last sample, because 1.4 has no column for any of them.
+     *
+     * A soft delay is dropped, which the reference toolbox also does and
+     * warns about -- the file is then only partly what the sequence said.
+     *
+     * @throws std::runtime_error if the sequence rotates or shims, neither of
+     *         which 1.4 can express at all. Dropping a rotation would move
+     *         every gradient it turns, so the file is refused rather than
+     *         written wrong.
+     */
+    std::string write_text_v141(
+        Sequence& seq, bool create_signature, double gamma = 42576000.0, double field = 1.5);
+
+    /**
      * Serialize as a Pulseq `.seq` text file.
      *
      * @param create_signature  Append the `[SIGNATURE]` section: an MD5 of

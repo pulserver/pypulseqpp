@@ -157,6 +157,19 @@ than a difference between readers. Before 1.4 two more things move: an
 extended trapezoid is held in fewer shapes, and 1.2.0's blocks last longer
 than 1.5.0's -- the reference reader agrees on both.
 
+**A file can be written for a scanner from before 1.5.** `write_text_v141`
+produces Pulseq 1.4.1: the ppm offsets are folded back into absolute hertz at
+a gyromagnetic ratio and a field, which is the only place those two are needed
+and why they are arguments; an RF pulse's centre and use go, and so do an
+arbitrary gradient's first and last sample, because 1.4 has no column for any
+of them. Its output is byte-identical to the reference toolbox's for every
+sequence 1.4.1 can express.
+
+Two things it will not do quietly. A soft delay is left out with a warning, as
+the reference does. A rotation or an RF shim makes it refuse: the reference
+drops both silently, and a file missing a rotation is a different scan rather
+than a coarser description of the same one.
+
 **What each form carries.** The binary form is the more faithful container for
 everything except shapes: times cross as integer picoseconds and amplitudes as
 float64, where the text form writes nine significant digits. Shape samples are
