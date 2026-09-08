@@ -15,6 +15,7 @@
  */
 
 #include "pulseq/binary.hpp"
+#include "pulseq/kspace.hpp"
 #include "pulseq/read.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/timing.hpp"
@@ -37,8 +38,13 @@ namespace
 
     void touch(const std::vector<double>& values)
     {
+        // A trajectory carries a NaN at the sample before each excitation,
+        // which is deliberate; adding it in would tell us nothing.
         for (size_t i = 0; i < values.size(); ++i)
-            sink += values[i];
+        {
+            if (values[i] == values[i])
+                sink += values[i];
+        }
     }
 
     /** Everything a caller can ask of a sequence, asked. */
@@ -72,6 +78,26 @@ namespace
             sink += made.duration;
         }
 
+        for (int shifted = 0; shifted < 2; ++shifted)
+        {
+            pulseq::KspaceOptions following;
+            if (shifted != 0)
+            {
+                following.delay = {{1e-5, 0.0, -1e-5}};
+                following.offset = {{50.0, 0.0, -50.0}};
+            }
+            const pulseq::Kspace went = pulseq::calculate_kspace(seq, following);
+            touch(went.times);
+            touch(went.adc_times);
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                touch(went.position[static_cast<size_t>(axis)]);
+                touch(went.sampled[static_cast<size_t>(axis)]);
+                touch(went.slice_position[static_cast<size_t>(axis)]);
+                touch(went.gradient_times[static_cast<size_t>(axis)]);
+            }
+        }
+
         /* Part of a sequence as well as all of it: the range is where an
          * index is most likely to be one past where it should stop. */
         if (seq.num_blocks() > 3)
@@ -82,6 +108,14 @@ namespace
             const pulseq::Waveforms part = pulseq::waveforms_and_times(seq, window);
             for (int axis = 0; axis < 3; ++axis)
                 touch(part.times[static_cast<size_t>(axis)]);
+
+            pulseq::KspaceOptions partly;
+            partly.first_block = 2;
+            partly.last_block = seq.num_blocks() - 1;
+            const pulseq::Kspace some = pulseq::calculate_kspace(seq, partly);
+            touch(some.times);
+            for (int axis = 0; axis < 3; ++axis)
+                touch(some.position[static_cast<size_t>(axis)]);
         }
 
         const pulseq::Repetition repeat = seq.repetition();

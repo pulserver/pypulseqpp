@@ -64,9 +64,9 @@ transform reads the same trajectory.
 
 ### Where the repeating unit would pay
 
-`calculate_kspace` is 2.7x the toolbox, where the waveform expansion under it
-is 96x. The difference is that the k-space step is vectorised NumPy in both,
-so what it gains is only the faster expansion feeding it.
+`calculate_kspace` is a compiled pass and 11x the toolbox; profiling puts
+essentially all of what is left inside it, so there is no Python overhead
+to remove and no more to gain from moving code.
 
 Going further means not integrating every shot. k within a shot is the k the
 shot started at plus the shot's own integral, and the fork already says two

@@ -19,6 +19,7 @@
 
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
+#include "pulseq/kspace.hpp"
 #include "pulseq/timing.hpp"
 #include "pulseq/waveforms.hpp"
 #include "pulseq/types.hpp"
@@ -867,6 +868,73 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("event"),
         "Register one event's row and shapes, and report what it was stored "
         "as: its kind, its library id, and the ids of its shapes.");
+
+    module.def(
+        "calculate_kspace",
+        [](const Sequence& sequence,
+           std::array<double, 3> delay,
+           std::array<double, 3> offset,
+           int first_block,
+           int last_block,
+           double b0,
+           double gamma) {
+            pulseq::KspaceOptions options;
+            options.delay = delay;
+            options.offset = offset;
+            options.first_block = first_block;
+            options.last_block = last_block;
+            options.b0 = b0;
+            options.gamma = gamma;
+
+            pulseq::Kspace found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::calculate_kspace(sequence, options);
+            }
+
+            const auto stacked = [](const std::array<std::vector<double>, 3>& rows) {
+                const py::ssize_t held =
+                    static_cast<py::ssize_t>(rows[0].size());
+                py::array_t<double> out({static_cast<py::ssize_t>(3), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t axis = 0; axis < 3; ++axis)
+                    for (py::ssize_t i = 0; i < held; ++i)
+                        view(axis, i) = rows[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+                return out;
+            };
+            const auto row = [](const std::vector<double>& values) {
+                return py::array_t<double>(
+                    static_cast<py::ssize_t>(values.size()), values.data());
+            };
+
+            py::list gradients;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                py::dict channel;
+                channel["t"] = row(found.gradient_times[static_cast<size_t>(axis)]);
+                channel["v"] = row(found.gradient_values[static_cast<size_t>(axis)]);
+                gradients.append(channel);
+            }
+
+            py::dict out;
+            out["k_traj"] = stacked(found.position);
+            out["t_ktraj"] = row(found.times);
+            out["k_traj_adc"] = stacked(found.sampled);
+            out["t_adc"] = row(found.adc_times);
+            out["pm_adc"] = row(found.adc_modulation);
+            out["t_excitation"] = row(found.excitation_times);
+            out["t_refocusing"] = row(found.refocusing_times);
+            out["slicepos"] = stacked(found.slice_position);
+            out["gradients"] = gradients;
+            out["warnings"] = found.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("delay") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("offset") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("first_block") = 1, py::arg("last_block") = 0, py::arg("b0") = 1.5,
+        py::arg("gamma") = 42576000.0,
+        "Follow the sequence into k-space: the trajectory, where it is "
+        "sampled, and the gradients it was integrated from.");
 
     module.def(
         "waveforms_and_times",
