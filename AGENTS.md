@@ -127,12 +127,27 @@ one builder, so the rules that turn a file into a sequence are written once.
 Reading therefore forks exactly as building does, and a sequence off disk is
 indistinguishable from one that was built.
 
-**1.5.0 is the oldest revision that can be read.** Pulseq grew columns as it
-went: 1.4 has no RF `center`, no `first` or `last` on an arbitrary gradient
-and no ppm offsets. Those are not defaults that can be filled in -- the
-reference toolbox recovers them by decompressing every waveform and walking
-the block table -- so an older file is refused by version rather than read
-with its columns one place out.
+**A 1.4 file is converted, not merely parsed.** It carries no RF `center`, no
+`first` or `last` on an arbitrary gradient and no ppm offsets, and none of
+those is a default that can be filled in. The centre comes from the pulse's
+own envelope -- the middle of its peak, so a flat-topped pulse centres on the
+middle of the plateau -- and the edges from walking the block table in playing
+order: an arbitrary gradient's `last` is its waveform's end, extrapolated the
+way the factory would have, and its `first` is where the axis was left by the
+block before, which is zero unless the previous gradient ran to that block's
+end. The corpus holds one sequence at 1.4.0, 1.4.1, 1.4.2 and 1.5.0, so what
+the 1.5.0 file says is what the others are held to.
+
+Two things a 1.4 file cannot give back. It has no `use` column, so what a
+pulse is *for* stays undefined rather than being guessed from its flip angle;
+and one derived `last` differs from the value the design knew, because an
+extrapolation is not the original. The reference toolbox derives the same
+number from the same file, which is what makes that the format's limit rather
+than a difference between readers.
+
+**Below 1.4 is refused by version.** A gradient there carries no time shape at
+all and a block's duration is an index into a `[DELAYS]` section the format no
+longer has.
 
 **What each form carries.** The binary form is the more faithful container for
 everything except shapes: times cross as integer picoseconds and amplitudes as

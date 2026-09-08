@@ -23,15 +23,31 @@ from pypulseqpp import _ext
 
 CORPUS = Path(__file__).parent / "seq"
 
-#: Files declaring a revision older than 1.5.0. Reading them is a separate
-#: job -- the columns moved, and what is missing has to be derived -- so they
-#: are collected here rather than skipped one by one.
-OLDER_THAN_1_5 = sorted(path.name for path in CORPUS.glob("simple_mprage1[234]*.seq"))
+#: Files a revision behind, which are read by converting them: the columns
+#: moved and three fields are missing, so these are not merely parsed.
+OLDER_THAN_1_5 = sorted(path.name for path in CORPUS.glob("simple_mprage14*.seq"))
+
+#: Older still, and refused: below 1.4 a gradient carries no time shape and a
+#: block's duration is an index into a section the format no longer has.
+OLDER_THAN_1_4 = sorted(path.name for path in CORPUS.glob("simple_mprage1[23]*.seq"))
 
 #: Every file the reader is expected to take as it stands.
 CURRENT = sorted(
-    path.name for path in CORPUS.glob("*.seq") if path.name not in OLDER_THAN_1_5
+    path.name
+    for path in CORPUS.glob("*.seq")
+    if path.name not in OLDER_THAN_1_5 and path.name not in OLDER_THAN_1_4
 )
+
+
+def rows(text: bytes, section: str):
+    """The data lines of one section of a written file."""
+    out, inside = [], False
+    for line in text.decode().splitlines():
+        if line.startswith("["):
+            inside = line == section
+        elif inside and line and not line.startswith("#"):
+            out.append(line)
+    return out
 
 
 def normalise(text: bytes) -> str:
@@ -140,11 +156,84 @@ def test_a_signature_the_file_carries_verifies(corpus_file):
     _ext.read(contents, True)
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_5)
-def test_a_file_older_than_1_5_is_named_rather_than_misread(name):
-    """Until the columns are converted, saying so beats reading them wrong."""
-    with pytest.raises(RuntimeError, match="1.5.0 is the oldest"):
+@pytest.mark.parametrize("name", OLDER_THAN_1_4)
+def test_a_file_older_than_1_4_is_named_rather_than_misread(name):
+    """Saying so beats reading columns that are not where they look."""
+    with pytest.raises(RuntimeError, match="1.4.0 is the oldest"):
         _ext.read((CORPUS / name).read_bytes())
+
+
+# --------------------------------------------------------------------------
+# Reading a 1.4 file.
+#
+# The corpus holds one sequence written at 1.4.0, 1.4.1, 1.4.2 and 1.5.0, so
+# what the 1.5.0 file says is what the others have to be read as. Three
+# fields are missing from the older ones and each is recovered rather than
+# defaulted: an RF pulse's centre from its own envelope, and an arbitrary
+# gradient's first and last sample from walking the block table.
+# --------------------------------------------------------------------------
+
+AS_1_5 = CORPUS / "simple_mprage150.seq"
+
+
+def rendered(path):
+    return normalise(_ext.write_text(_ext.read(path.read_bytes()), True))
+
+
+@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+def test_a_1_4_file_holds_the_libraries_the_1_5_file_holds(name):
+    older = _ext.read((CORPUS / name).read_bytes())
+    current = _ext.read(AS_1_5.read_bytes())
+
+    for count in ("num_blocks", "num_rf", "num_gradients", "num_adc", "num_shapes"):
+        assert getattr(older, count)() == getattr(current, count)(), count
+
+
+@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+def test_a_1_4_file_reads_as_the_1_5_file_but_for_what_it_cannot_carry(name):
+    """Two things it cannot carry, and nothing else differs.
+
+    A 1.4 file has no `use` column, so what each pulse is *for* is unknown
+    and stays undefined rather than being guessed from its flip angle. And
+    one gradient's `last` is derived by the extrapolation the factory would
+    have made, which is close to but not the value the design knew: the
+    reference toolbox derives the same number from the same file, so this is
+    the format's limit rather than a difference between readers.
+    """
+    differing = [
+        (before, after)
+        for before, after in zip(
+            rendered(AS_1_5).splitlines(),
+            rendered(CORPUS / name).splitlines(),
+            strict=False,
+        )
+        if before != after
+    ]
+
+    unknown_use = [
+        pair
+        for pair in differing
+        if pair[0][:-1] == pair[1][:-1] and pair[1][-1] == "u"
+    ]
+    derived_edge = [pair for pair in differing if pair not in unknown_use]
+
+    assert len(unknown_use) == _ext.read(AS_1_5.read_bytes()).num_rf()
+    assert len(derived_edge) == 1
+
+
+@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+def test_a_1_4_file_says_1_5_once_it_has_been_read(name):
+    """It has been converted, so it is a 1.5 sequence and says so."""
+    converted = _ext.write_text(_ext.read((CORPUS / name).read_bytes()), True)
+
+    assert rows(converted, "[VERSION]") == ["major 1", "minor 5", "revision 1"]
+
+
+@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+def test_a_converted_file_writes_the_same_bytes_twice(name):
+    once = _ext.write_text(_ext.read((CORPUS / name).read_bytes()), True)
+
+    assert _ext.write_text(_ext.read(once), True) == once
 
 
 def test_the_corpus_spans_the_revisions_it_is_here_for():

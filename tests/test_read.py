@@ -159,11 +159,11 @@ def test_verification_is_off_unless_it_is_asked_for():
     _ext.read(tampered)
 
 
-def test_a_file_older_than_1_5_says_so_rather_than_reading_wrong():
-    """The columns moved, and what is missing cannot be defaulted."""
-    contents = written("spin_echo").replace(b"minor 5", b"minor 4", 1)
+def test_a_file_older_than_1_4_says_so_rather_than_reading_wrong():
+    """Below 1.4 a gradient has no time shape and a duration is an index."""
+    contents = written("spin_echo").replace(b"minor 5", b"minor 3", 1)
 
-    with pytest.raises(RuntimeError, match="1.5.0 is the oldest"):
+    with pytest.raises(RuntimeError, match="1.4.0 is the oldest"):
         _ext.read(contents)
 
 

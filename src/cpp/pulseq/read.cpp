@@ -32,6 +32,7 @@
 #include "pulseq/read.hpp"
 
 #include "pulseq/md5.hpp"
+#include "pulseq/shape.hpp"
 #include "pulseq/binary.hpp"
 #include "pulseq/parsed.hpp"
 #include "pulseq/sequence.hpp"
@@ -40,6 +41,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -346,14 +348,14 @@ namespace pulseq
                 {
                     section.assign(line.begin, line.end);
                     ++at;
-                    if (section == "[BLOCKS]" && out.combined() < 1005000)
+                    if (section == "[BLOCKS]" && out.combined() < 1004000)
                         fail(
                             line.line,
                             "this is a Pulseq " + std::to_string(out.major) + "." +
                                 std::to_string(out.minor) + "." + std::to_string(out.revision) +
-                                " file, and 1.5.0 is the oldest that can be read: an older one "
-                                "carries no RF center, no gradient first and last sample and no "
-                                "ppm offsets, and recovering them is the reference toolbox's job");
+                                " file, and 1.4.0 is the oldest that can be read: older than "
+                                "that a gradient carries no time shape and a block's duration is "
+                                "an index into a section this format no longer has");
                     if (section == "[SHAPES]")
                         parse_shapes(lines, at, out);
                     else if (section == "[EXTENSIONS]")
@@ -402,12 +404,24 @@ namespace pulseq
                     event[1] = row.number("a magnitude shape");
                     event[2] = row.number("a phase shape");
                     event[3] = row.number("a time shape");
-                    event[4] = row.number("a center") * 1e-6;
-                    event[5] = row.number("a delay") * 1e-6;
-                    event[6] = row.optional(0.0);
-                    event[7] = row.optional(0.0);
-                    event[8] = row.optional(0.0);
-                    event[9] = row.optional(0.0);
+                    if (out.combined() >= 1005000)
+                    {
+                        event[4] = row.number("a center") * 1e-6;
+                        event[5] = row.number("a delay") * 1e-6;
+                        event[6] = row.number("a frequency in ppm");
+                        event[7] = row.number("a phase in ppm");
+                        event[8] = row.number("a frequency offset");
+                        event[9] = row.number("a phase offset");
+                    }
+                    else
+                    {
+                        // 1.4 has no center and no ppm terms, and its delay
+                        // sits where the center now does. The center is
+                        // derived once every shape is known; see upgrade().
+                        event[5] = row.number("a delay") * 1e-6;
+                        event[8] = row.number("a frequency offset");
+                        event[9] = row.number("a phase offset");
+                    }
                     out.rf.emplace(id, event);
                     // The initial of what the pulse is for, and only 1.5 files
                     // carry it; an older one leaves it undefined.
@@ -418,8 +432,18 @@ namespace pulseq
                     const int id = row.integer("a gradient id");
                     std::array<double, ARB_WIDTH> event{};
                     event[0] = row.number("an amplitude");
-                    event[1] = row.number("the first sample");
-                    event[2] = row.number("the last sample");
+                    if (out.combined() >= 1005000)
+                    {
+                        event[1] = row.number("the first sample");
+                        event[2] = row.number("the last sample");
+                    }
+                    else
+                    {
+                        // 1.4 carries neither, and neither can be defaulted:
+                        // they are recovered from the block table in
+                        // upgrade(). Not-a-number marks them as unset.
+                        event[1] = event[2] = std::numeric_limits<double>::quiet_NaN();
+                    }
                     event[3] = row.number("an amplitude shape");
                     event[4] = row.number("a time shape");
                     event[5] = row.number("a delay") * 1e-6;
@@ -443,11 +467,21 @@ namespace pulseq
                     event[0] = row.number("a sample count");
                     event[1] = row.number("a dwell time") * 1e-9;
                     event[2] = row.number("a delay") * 1e-6;
-                    event[3] = row.optional(0.0);
-                    event[4] = row.optional(0.0);
-                    event[5] = row.optional(0.0);
-                    event[6] = row.optional(0.0);
-                    event[7] = row.optional(0.0);
+                    if (out.combined() >= 1005000)
+                    {
+                        event[3] = row.number("a frequency in ppm");
+                        event[4] = row.number("a phase in ppm");
+                        event[5] = row.number("a frequency offset");
+                        event[6] = row.number("a phase offset");
+                        event[7] = row.number("a phase shape");
+                    }
+                    else
+                    {
+                        // 1.4 has the two offsets and nothing else; the ppm
+                        // terms and the phase shape are zero.
+                        event[5] = row.number("a frequency offset");
+                        event[6] = row.number("a phase offset");
+                    }
                     out.adc.emplace(id, event);
                 }
                 else if (section == "[SIGNATURE]")
@@ -464,10 +498,6 @@ namespace pulseq
             return out;
         }
 
-        /* ============================================================== */
-        /*  Building                                                      */
-        /* ============================================================== */
-
         /** A raster from `[DEFINITIONS]`, or @p fallback where it says nothing. */
         double raster(const Parsed& parsed, const char* key, double fallback)
         {
@@ -476,6 +506,206 @@ namespace pulseq
                 return fallback;
             return found->second.numbers().front();
         }
+
+        /* ============================================================== */
+        /*  Reading a file older than 1.5.0                               */
+        /* ============================================================== */
+        //
+        // Three things a 1.4 file does not carry, none of which has a
+        // sensible default: an RF pulse's center, and an arbitrary
+        // gradient's first and last sample. All three are recovered the way
+        // the reference toolbox recovers them -- the center from the pulse's
+        // own envelope, the edges from walking the block table -- so a 1.4
+        // file and the 1.5 file written from the same sequence read alike.
+
+        /** The samples of shape @p id, decompressed; empty if there is none. */
+        std::vector<double> samples_of(const Parsed& parsed, int id)
+        {
+            auto found = parsed.shapes.find(id);
+            if (id <= 0 || found == parsed.shapes.end())
+                return {};
+            return decompress_shape(
+                found->second.second.data(),
+                static_cast<int>(found->second.second.size()),
+                found->second.first);
+        }
+
+        /** The sample times of a shape on @p raster, or the default raster. */
+        std::vector<double> times_of(
+            const Parsed& parsed, int time_shape, size_t count, double raster, double offset)
+        {
+            std::vector<double> times = samples_of(parsed, time_shape);
+            if (!times.empty())
+            {
+                for (double& t : times)
+                    t *= raster;
+                return times;
+            }
+            times.resize(count);
+            for (size_t i = 0; i < count; ++i)
+                times[i] = (static_cast<double>(i) + offset) * raster;
+            return times;
+        }
+
+        /**
+         * The center of an RF pulse: the middle of its peak.
+         *
+         * Where the envelope holds its maximum over several samples the
+         * center is the middle of that run, which is what makes it the centre
+         * of a flat-topped pulse rather than the first sample of the plateau.
+         */
+        void restore_rf_centers(Parsed& parsed, double rf_raster)
+        {
+            for (auto& entry : parsed.rf)
+            {
+                std::array<double, RF_WIDTH>& row = entry.second;
+                const std::vector<double> magnitude =
+                    samples_of(parsed, static_cast<int>(row[1]));
+                if (magnitude.empty())
+                    continue;
+
+                double peak = 0.0;
+                for (const double sample : magnitude)
+                    peak = std::max(peak, std::fabs(sample));
+                const double threshold = peak * 0.99999;
+
+                size_t first = 0, last = 0;
+                bool seen = false;
+                for (size_t i = 0; i < magnitude.size(); ++i)
+                    if (std::fabs(magnitude[i]) >= threshold)
+                    {
+                        if (!seen)
+                            first = i;
+                        last = i;
+                        seen = true;
+                    }
+                if (!seen)
+                    continue;
+
+                const std::vector<double> times = times_of(
+                    parsed, static_cast<int>(row[3]), magnitude.size(), rf_raster, 0.5);
+                row[4] = (times[first] + times[last]) / 2.0;
+            }
+        }
+
+        /**
+         * An arbitrary gradient's first and last sample, from the block table.
+         *
+         * The last is the waveform's own end -- read off it for an extended
+         * trapezoid, extrapolated for a gradient on the plain raster, exactly
+         * as the factory would have. The first is where the axis was left by
+         * the block before, which is zero unless the previous gradient ran to
+         * that block's end, so this has to be a walk in playing order.
+         */
+        void restore_gradient_edges(Parsed& parsed, double grad_raster, double block_raster)
+        {
+            double previous_last[3] = {0.0, 0.0, 0.0};
+            for (const auto& entry : parsed.blocks)
+            {
+                const ParsedBlock& block = entry.second;
+                const double block_duration =
+                    static_cast<double>(block.ticks) * block_raster;
+                int32_t handled[3] = {0, 0, 0};
+
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const int32_t id = block.events[static_cast<size_t>(axis) + 1];
+                    auto gradient = parsed.arbitrary.find(id);
+                    if (id == 0)
+                    {
+                        previous_last[axis] = 0.0;
+                        continue;
+                    }
+                    if (gradient == parsed.arbitrary.end())
+                        continue; // a trapezoid, which carries no edges
+
+                    std::array<double, ARB_WIDTH>& row = gradient->second;
+                    const double delay = row[5];
+                    if (delay > 0.0)
+                        previous_last[axis] = 0.0;
+                    if (!std::isnan(row[1]))
+                        continue; // already known
+
+                    const std::vector<double> waveform =
+                        samples_of(parsed, static_cast<int>(row[3]));
+                    if (waveform.size() < 2)
+                        continue;
+
+                    // `first` and `last` are in the file's units, where a
+                    // stored shape is normalised, so the amplitude goes back
+                    // on before either is derived from the samples.
+                    const double amplitude = row[0];
+                    const int time_shape = static_cast<int>(row[4]);
+                    const double first = previous_last[axis];
+                    double last;
+                    double duration;
+                    if (time_shape != 0)
+                    {
+                        last = amplitude * waveform.back();
+                        const std::vector<double> times = times_of(
+                            parsed, time_shape, waveform.size(), grad_raster, 1.0);
+                        duration = delay + times.back();
+                    }
+                    else
+                    {
+                        // The same linear extrapolation the factory makes.
+                        last = amplitude *
+                               (3.0 * waveform.back() - waveform[waveform.size() - 2]) * 0.5;
+                        duration =
+                            delay + static_cast<double>(waveform.size()) * grad_raster;
+                    }
+
+                    previous_last[axis] =
+                        duration + std::numeric_limits<double>::epsilon() < block_duration
+                            ? 0.0
+                            : last;
+
+                    // One gradient can be played on two axes in one block;
+                    // its row is written once.
+                    bool already = false;
+                    for (int earlier = 0; earlier < axis; ++earlier)
+                        already = already || handled[earlier] == id;
+                    handled[axis] = id;
+                    if (already)
+                        continue;
+
+                    row[1] = first;
+                    row[2] = last;
+                }
+            }
+
+            // A gradient no block plays keeps nothing to derive from.
+            for (auto& entry : parsed.arbitrary)
+            {
+                if (std::isnan(entry.second[1]))
+                    entry.second[1] = 0.0;
+                if (std::isnan(entry.second[2]))
+                    entry.second[2] = 0.0;
+            }
+        }
+
+        /** Bring what a pre-1.5 file said up to what a 1.5 file says. */
+        void upgrade(Parsed& parsed)
+        {
+            if (parsed.combined() >= 1005000)
+                return;
+            restore_rf_centers(parsed, raster(parsed, "RadiofrequencyRasterTime", 1e-6));
+            restore_gradient_edges(
+                parsed,
+                raster(parsed, "GradientRasterTime", 10e-6),
+                raster(parsed, "BlockDurationRaster", 10e-6));
+
+            // The sequence is now what a 1.5 file holds, so it says so. What
+            // it cannot say is what each pulse is *for*: 1.4 carries no `use`
+            // column, and every pulse stays undefined rather than being
+            // guessed at from its flip angle.
+            parsed.minor = 5;
+            parsed.revision = 0;
+        }
+
+        /* ============================================================== */
+        /*  Building                                                      */
+        /* ============================================================== */
 
         /** Check that registering in file order reproduced the file's ids. */
         void expect(int registered, int declared, const char* what)
@@ -628,7 +858,7 @@ namespace pulseq
         if (is_binary(contents))
             return build_sequence(parse_binary(contents));
 
-        const Parsed parsed = parse(contents);
+        Parsed parsed = parse(contents);
         if (verify && parsed.has_signature)
         {
             // The newline before the header belongs to the digest, and the
@@ -641,6 +871,7 @@ namespace pulseq
                     "read(): the file's signature does not match its contents (recorded " +
                     parsed.signature + ", computed " + expected + ")");
         }
+        upgrade(parsed);
         return build_sequence(parsed);
     }
 
