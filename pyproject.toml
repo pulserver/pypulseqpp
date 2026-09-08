@@ -24,7 +24,10 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = ["numpy>=1.24"]
+# PyPulseq is the API this package replaces, and the facade re-exports its
+# namespace: the factories build the events, this builds the sequence under
+# them. Three factories it does not have yet are written here instead.
+dependencies = ["numpy>=1.24", "pypulseq>=1.5"]
 
 [project.optional-dependencies]
 dev = [

@@ -26,11 +26,38 @@ scanner-side execution stream, protocol contracts and consoles live in
 If a change here needs to know which vendor will play the sequence, it belongs
 elsewhere.
 
-The runtime dependency is NumPy alone. `pypulseq-matlab-like` is a test
-dependency -- the transcription of MATLAB Pulseq that defines the file format
--- used for byte-parity fixtures, and is never imported by the package. It is
-not on PyPI; `tests/seq/` carries its reference corpus so the reader is tested
-without it, and the tests that build sequences skip when it is absent.
+The runtime dependencies are NumPy and PyPulseq. PyPulseq is the API this
+package replaces and the facade re-exports its namespace, so its factories
+build the events and this builds the sequence under them.
+
+`pypulseq-matlab-like` is a test dependency and nothing more -- the
+transcription of MATLAB Pulseq that defines the file format, used for
+byte-parity fixtures, never imported by the package. It is not on PyPI;
+`tests/seq/` carries its reference corpus so the reader is tested without it,
+and the tests that build sequences skip when it is absent.
+
+## The Python facade
+
+`import pypulseqpp as pp` is the only import a script needs. Everything
+upstream exposes is re-exported, and every callable goes through
+`_events.interoperating` -- not only the factories, because `calc_duration`,
+`align`, `split_gradient` and `rotate` all take events and upstream implements
+them with `isinstance` checks and `deepcopy`, neither of which a compiled
+event satisfies. The decorator hands them a namespace on the way in and
+converts what comes back, so upstream's helpers work against events they were
+never written for.
+
+A `make_*` factory hands back an event whose scalar fields are `PyMemberDef`
+offsets rather than dictionary entries, and `add_block` unpacks a whole block
+and registers it in one compiled call. On a gradient echo loop that is 780 ns
+a block against upstream's 59.6 us.
+
+Four things are ours rather than upstream's, and three of them are meant to
+go. `Sequence` stays: upstream's is a different implementation, and this is
+the one with the compiled core under it. `make_rotation` and `make_rf_shim`
+arrived with Pulseq 1.5.1 and upstream 1.5.0 does not have them. `make_label`
+is here because upstream's refuses a name outside the list Pulseq defines,
+and a label here is named rather than numbered -- see the section on that.
 
 ## Layout
 
@@ -38,7 +65,7 @@ without it, and the tests that build sequences skip when it is absent.
 |---|---|
 | `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
 | `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`. |
-| `src/pypulseqpp/` | The Python package: the PyPulseq-compatible API over the core. |
+| `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 
 ## Build and test
