@@ -45,8 +45,27 @@ three further questions, none of which is a raster question:
 The one-line methods, the aliases and the no-ops are in. What is left, by
 what it would take:
 
-**Open.** `sound`, `test_report` and `test_report_dict`, which nobody has
-ruled on yet.
+**Open.** `sound`, deferred with `plot`.
+
+## The analysis family
+
+`test_report` and `test_report_dict` read as a summary of a sequence -- block
+and event counts, duration, TE and TR, flip angles, unique k-space positions,
+dimensions, spatial resolution, repetitions, Cartesian or not, and the maximum
+gradient and slew. Only the counts come from what is here; TE, TR, the k-space
+lines and the gradient maxima all come out of `waveforms_and_times` and
+`calculate_kspace`, which the report calls before it computes anything.
+
+So the report is not a method to write on its own. It is the first consumer of
+those two, and so are `plot`, `paper_plot`, `get_gradients` and the FOV
+transform. Whichever lands first, they are what to build:
+
+- `waveforms_and_times`, which expands every block onto a common time base --
+  a pass over the block table, and the foundation the rest sit on.
+- `calculate_kspace`, which integrates those into a trajectory.
+
+The repeating unit is already found (`detect_tr`), so an analysis that only
+needs one shot does not have to look at the whole scan to find it.
 
 ## What a block reads back as
 

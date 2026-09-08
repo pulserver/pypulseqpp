@@ -439,6 +439,50 @@ class Sequence:
         """Invert every gradient played on ``axis``."""
         self.mod_grad_axis(axis, modifier=-1)
 
+    # -- the repeating unit --------------------------------------------
+
+    def detect_tr(self) -> tuple[int, int]:
+        """Return the repeating unit of the scan, in blocks.
+
+        A scan is a handful of things played over and over with different
+        numbers in them, and the stream of block definition ids is where that
+        shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase
+        encode is doing. This is the period of that stream and where it
+        starts, so the blocks before the start are the prologue -- dummy
+        shots, preparation, a noise scan -- and everything from there on is
+        the scan repeating.
+
+        Returns
+        -------
+        size : int
+            How many blocks one repetition lasts, or 0 if the sequence does
+            not repeat.
+        start : int
+            The 1-based index of the first block of the first full
+            repetition.
+
+        Notes
+        -----
+        The answer is recorded as the ``TRsize`` definition and read from
+        there next time, so a sequence written and read back does not have to
+        work it out again. ``TRsize`` is this package's own name, not one the
+        Pulseq format defines; nothing writes it unless this is called.
+
+        Adding or rewriting a block makes the answer stale, and so does
+        collapsing duplicates, since that renumbers the definitions. Either
+        way the next call works it out again.
+        """
+        recorded = self.get_definition("TRsize")
+        if recorded != "":
+            size = int(recorded[0] if isinstance(recorded, list) else recorded)
+            found, start = self._native.locate_repetition(size)
+            if found:
+                return found, start + 1
+
+        size, start = self._native.repetition()
+        self.set_definition("TRsize", size)
+        return size, start + 1
+
     # -- soft delays ---------------------------------------------------
 
     def apply_soft_delay(self, **kwargs) -> None:

@@ -404,6 +404,7 @@ namespace pulseq
     int Sequence::add_block(const Block& block)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         detach_blocks_before_growth();
         blocks_->insert(
             blocks_->end(),
@@ -542,6 +543,10 @@ namespace pulseq
 
     void Sequence::refork_blocks()
     {
+        // Definition ids change here, and the repeating unit is read off
+        // them -- so whatever was found before this is about the old ones.
+        repetition_known_ = false;
+
         block_defs_.clear();
         const int count = num_blocks();
         instance_def_.assign(static_cast<size_t>(count), 0);
@@ -567,6 +572,7 @@ namespace pulseq
     void Sequence::set_block(int index, const Block& block)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         require_block(index, num_blocks());
         detach_blocks();
         int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
@@ -599,6 +605,7 @@ namespace pulseq
     void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         detach_blocks();
         blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
         durations_->assign(durations, durations + count);
@@ -751,6 +758,71 @@ namespace pulseq
         }
 
         deduplicated_ = false;
+    }
+
+    Repetition Sequence::locate_repetition(int size) const
+    {
+        Repetition found;
+        const int blocks = static_cast<int>(instance_def_.size());
+        if (size < 1 || size * 2 > blocks)
+            return found;
+
+        int start = blocks - size;
+        while (start > 0 &&
+               instance_def_[static_cast<size_t>(start) - 1] ==
+                   instance_def_[static_cast<size_t>(start) - 1 + size])
+            --start;
+
+        if (blocks - start >= 2 * size)
+        {
+            found.size = size;
+            found.start = start;
+        }
+        return found;
+    }
+
+    Repetition Sequence::repetition()
+    {
+        if (repetition_known_)
+            return repetition_;
+
+        repetition_known_ = true;
+        repetition_ = Repetition();
+
+        const int blocks = static_cast<int>(instance_def_.size());
+        if (blocks < 2)
+            return repetition_;
+
+        /* The last block's definition is played once per repetition, so the
+         * gaps between the places it appears are the only periods worth
+         * trying -- smallest first, which is the fundamental one. Fifty is
+         * far more than a real scan needs and stops a sequence whose last
+         * block is also its commonest from being walked to death. */
+        constexpr int kCandidates = 50;
+        const int32_t last = instance_def_[static_cast<size_t>(blocks) - 1];
+
+        int tried = 0;
+        for (int before = blocks - 2; before >= 0 && tried < kCandidates; --before)
+        {
+            if (instance_def_[static_cast<size_t>(before)] != last)
+                continue;
+            ++tried;
+
+            const int period = blocks - 1 - before;
+            if (period * 2 > blocks)
+                break; // no room for the two repeats it would take to say so
+
+            /* How far back the period holds. Everything before that is the
+             * prologue: dummy shots, preparation, a noise scan. */
+            const Repetition holds = locate_repetition(period);
+            if (holds.size != 0)
+            {
+                repetition_ = holds;
+                return repetition_;
+            }
+        }
+
+        return repetition_;
     }
 
     int Sequence::detect_rf_uses(double b0, double gamma)

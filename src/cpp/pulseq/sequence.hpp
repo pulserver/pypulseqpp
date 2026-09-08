@@ -608,6 +608,25 @@ namespace pulseq
         double factor = 0.0;
     };
 
+    /**
+     * The repeating unit of a scan, in blocks.
+     *
+     * A scan is a handful of things played over and over with different
+     * numbers in them, and the stream of block definition ids is where that
+     * shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase encode
+     * is doing. This is the period of that stream and where it starts, so the
+     * blocks before `start` are the prologue -- dummy shots, preparation --
+     * and everything from there on is the scan repeating.
+     *
+     * A `size` of zero means no repetition was found, which is the honest
+     * answer for a sequence that plays each position once.
+     */
+    struct Repetition
+    {
+        int size = 0;
+        int start = 0;
+    };
+
     /** One soft-delay row: a numeric id, an offset, a factor, and a hint name. */
     struct SoftDelay
     {
@@ -1093,6 +1112,30 @@ namespace pulseq
          * @return How many pulses were labelled.
          */
         int detect_rf_uses(double b0, double gamma);
+
+        /**
+         * The repeating unit of the scan, found once and remembered.
+         *
+         * Cheap because the structural fork has already done the hard part:
+         * two blocks playing the same things for the same length share a
+         * definition id whatever their amplitudes, so finding the repeat is
+         * finding the period of an array of integers rather than comparing
+         * blocks event by event.
+         *
+         * Adding or rewriting a block makes the answer stale, and the next
+         * call works it out again.
+         */
+        Repetition repetition();
+
+        /**
+         * Where a repeating unit of @p size starts, if it repeats at all.
+         *
+         * For a caller who already knows the period -- a file that records
+         * it, a protocol that fixes it -- and wants to know how much of the
+         * sequence is prologue. Returns a size of zero if the stream does not
+         * in fact repeat with that period.
+         */
+        Repetition locate_repetition(int size) const;
         int register_shape(int num_uncompressed, const double* samples, int count);
 
         /**
@@ -1539,6 +1582,9 @@ namespace pulseq
         std::vector<int32_t> grad_def_;         /**< by gradient id - 1 */
         std::vector<int32_t> adc_def_;          /**< by ADC id - 1 */
         std::vector<int32_t> instance_def_;     /**< by block - 1 */
+        /** The repeating unit, once someone has asked for it. */
+        Repetition repetition_;
+        bool repetition_known_ = false;
         std::vector<int32_t> instance_adc_def_; /**< by block - 1 */
 
         /**

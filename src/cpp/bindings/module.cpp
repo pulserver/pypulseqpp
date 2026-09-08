@@ -569,6 +569,22 @@ PYBIND11_MODULE(_ext, module)
             py::arg("index"), py::arg("seconds"))
 
         .def(
+            "repetition",
+            [](Sequence& self) {
+                const pulseq::Repetition found = self.repetition();
+                return py::make_tuple(found.size, found.start);
+            },
+            "The repeating unit of the scan as (size, start), in blocks; a "
+            "size of 0 when the sequence does not repeat.")
+        .def(
+            "locate_repetition",
+            [](const Sequence& self, int size) {
+                const pulseq::Repetition found = self.locate_repetition(size);
+                return py::make_tuple(found.size, found.start);
+            },
+            py::arg("size"),
+            "Where a repeating unit of the given size starts, as (size, start).")
+        .def(
             "detect_rf_uses", &Sequence::detect_rf_uses, py::arg("b0"), py::arg("gamma"),
             "Label every pulse the file did not, from what the pulse does. "
             "Returns how many were labelled.")
