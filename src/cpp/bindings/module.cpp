@@ -20,6 +20,8 @@
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/types.hpp"
+#include "pulseq/binary.hpp"
+#include "pulseq/read.hpp"
 #include "pulseq/write.hpp"
 
 namespace py = pybind11;
@@ -459,8 +461,51 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("create_signature") = true,
         "Serialize as a Pulseq `.seq` text file.");
 
+    module.def(
+        "write_binary",
+        [](pulseq::Sequence& sequence) {
+            std::string written;
+            {
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_binary(sequence);
+            }
+            return py::bytes(written);
+        },
+        py::arg("sequence"), "Serialize as a Pulseq binary sequence file.");
+
+    module.def(
+        "is_binary",
+        [](const py::bytes& contents) { return pulseq::is_binary(std::string(contents)); },
+        py::arg("contents"), "Whether the bytes open with the binary magic.");
+
     module.def("required_revision", &pulseq::required_revision, py::arg("sequence"),
                "The Pulseq revision the sequence's contents actually need.");
+
+    module.def(
+        "read",
+        [](const py::bytes& contents, bool verify) {
+            pulseq::Sequence sequence;
+            {
+                const std::string text = contents;
+                py::gil_scoped_release unlocked;
+                sequence = pulseq::read(text, verify);
+            }
+            return sequence;
+        },
+        py::arg("contents"), py::arg("verify") = false,
+        "Parse a Pulseq `.seq` file back into a Sequence.");
+
+    module.def(
+        "read_file",
+        [](const std::string& path, bool verify) {
+            pulseq::Sequence sequence;
+            {
+                py::gil_scoped_release unlocked;
+                sequence = pulseq::read_file(path, verify);
+            }
+            return sequence;
+        },
+        py::arg("path"), py::arg("verify") = false, "As read(), for a file on disk.");
 
     module.def(
         "compress_shape",

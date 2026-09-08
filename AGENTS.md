@@ -109,6 +109,59 @@ It is a mask rather than a tag because deduplication merges shapes holding the
 same numbers, and the merge ORs the roles: after it, one entry really is
 played both ways.
 
+## Reading, and the two forms of a file
+
+A sequence is written as Pulseq text or as Pulseq binary, and read back from
+either -- told apart by what is in the bytes rather than by the name they were
+stored under. The reader is the writer's inverse and is tested as one: a file
+written, read and written again is the file it started as, byte for byte.
+
+**The file is parsed whole before anything is registered.** `[BLOCKS]` comes
+before the libraries it names and `[SHAPES]` comes last, so a reader that
+registered as it went would be adding blocks whose events do not exist yet --
+and a block is split into a definition and an instance as it is added, which
+needs those events split already. Both forms fill a `Parsed` and hand it to
+one builder, so the rules that turn a file into a sequence are written once.
+Reading therefore forks exactly as building does, and a sequence off disk is
+indistinguishable from one that was built.
+
+**1.5.0 is the oldest revision that can be read.** Pulseq grew columns as it
+went: 1.4 has no RF `center`, no `first` or `last` on an arbitrary gradient
+and no ppm offsets. Those are not defaults that can be filled in -- the
+reference toolbox recovers them by decompressing every waveform and walking
+the block table -- so an older file is refused by version rather than read
+with its columns one place out.
+
+**What each form carries.** The binary form is the more faithful container for
+everything except shapes: times cross as integer picoseconds and amplitudes as
+float64, where the text form writes nine significant digits. Shape samples are
+the exception -- float32 in binary, nine digits in text -- so a waveform comes
+back within a float32 of itself and everything else comes back exactly. Only
+the text form has a `[SIGNATURE]`, and only it is verified, on request.
+
+A binary file always declares at least revision 1: the format arrived with
+Pulseq 1.5.1, so a file claiming 1.5.0 claims a revision that had no way to
+write it.
+
+## Where the binary layout comes from
+
+`pypulseq-matlab-like` is the authority for it, being a transcription of
+MATLAB Pulseq's `writeBinary.m`. Where another implementation disagrees, that
+one is followed. Two places this decided something:
+
+- **A definition's name carries its length in front of it**, as an int32, and
+  the value count is an int32 too -- not a NUL-terminated name and a
+  single-byte count. The byte would have capped a definition at 255 values,
+  which `SlicePositions` on a 256-slice acquisition exceeds.
+- **`LABELNAMES` is written only when a label is one Pulseq does not define.**
+  The section says what each label id is called, which is what lets a name
+  outside Pulseq's table survive; but a reader predating it refuses any file
+  carrying it, and for a label Pulseq defines the number alone is enough
+  because every toolbox numbers those the same way.
+
+`tests/test_interoperability.py` holds both directions against that toolbox
+and skips when it is not installed, since it is not on PyPI.
+
 ## Definitions and instances
 
 A scan is a handful of things played many times with different numbers in
@@ -197,6 +250,14 @@ Two invariants hold everything else up, and each has a test:
   deduplication has run. `inversion_recovery_train` and `triggered_delays`
   are in the reference zoo so the same properties are held on sequences built
   by upstream rather than only on sequences written to have them.
+- **A file read back is the file that was written.** Every reference sequence
+  goes out as text and as binary and comes back through the reader, and what
+  it writes the second time is compared with what it wrote the first. The
+  reference toolbox's own files are read the same way, so the reader is held
+  against the format as another implementation produces it. The 1.5.1 event
+  kinds -- rotations, RF shims, and labels outside Pulseq's table -- have no
+  upstream to compare against, so `tests/extended.py` builds them on the core
+  and a round trip holds them.
 
 ## Comments and docstrings
 

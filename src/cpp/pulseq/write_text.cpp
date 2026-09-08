@@ -575,7 +575,7 @@ namespace pulseq
         if (!reading.rf_shim_library().empty())
         {
             out.append("# Extension specification for RF shimming:\n");
-            out.append("# id num_chan factor magn_c1 phase_c1 magn_c2 phase_c2 ...\n");
+            out.append("# id num_chan magn_c1 phase_c1 magn_c2 phase_c2 ...\n");
             appendf(out, "extension RF_SHIMS %d\n", seq.extension_type_id("RF_SHIMS"));
             for (int id = 1; id <= reading.rf_shim_library().size(); ++id)
             {
