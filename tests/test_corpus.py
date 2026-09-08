@@ -271,7 +271,7 @@ def test_a_file_older_than_the_format_is_named_rather_than_misread():
     """1.2.0 is where the format is defined from."""
     contents = AS_1_5.read_bytes().replace(b"minor 5", b"minor 1", 1)
 
-    with pytest.raises(RuntimeError, match="1.2.0 is the oldest"):
+    with pytest.raises(RuntimeError, match=r"1\.2\.0 is the oldest"):
         _ext.read(contents)
 
 
