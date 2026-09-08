@@ -23,6 +23,8 @@ from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
 from ._kspace import detail as _kspace_detail
+from ._report import report_data as _report_data
+from ._report import report_text as _report_text
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -538,6 +540,19 @@ class Sequence:
         return _get_gradients(
             self, trajectory_delay, gradient_offset, time_range, block_range
         )
+
+    # -- what the sequence is ------------------------------------------
+
+    def test_report(self) -> str:
+        """Return what the sequence is, as the report a person reads."""
+        return _report_text(_report_data(self))
+
+    def test_report_dict(self) -> dict:
+        """Return what the sequence is, as named statistics.
+
+        See :func:`pypulseqpp._report.report_data`.
+        """
+        return _report_data(self)
 
     # -- the repeating unit --------------------------------------------
 

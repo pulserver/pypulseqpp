@@ -17,7 +17,7 @@ from types import SimpleNamespace
 
 from . import _ext as _cxx
 
-__all__ = ["check_timing", "print_error_report"]
+__all__ = ["check_timing", "describe", "print_error_report"]
 
 
 #: One message per kind of problem, in f-string syntax over the finding's own
@@ -93,6 +93,24 @@ def _format_message(template: str, **fields) -> str:
     return eval(f'f"""{template}"""', fields)  # noqa: S307
 
 
+def _message(finding: SimpleNamespace) -> str:
+    """Return what one finding says, in the unit its field is read in."""
+    unit, multiplier = ("ns", 1e9) if finding.field == "dwell" else ("us", 1e6)
+    return _format_message(
+        error_messages[finding.error_type],
+        **finding.__dict__,
+        unit=unit,
+        multiplier=multiplier,
+    )
+
+
+def describe(finding: SimpleNamespace) -> str:
+    """Return one finding as a line naming the block and event it is about."""
+    return (
+        f"   Block:{finding.block} {finding.event}.{finding.field}: {_message(finding)}"
+    )
+
+
 def print_error_report(
     seq,  # noqa: ARG001 -- the toolbox's signature; nothing here needs it
     error_report: list[SimpleNamespace],
@@ -125,17 +143,10 @@ def print_error_report(
             print(f"Block {e.block}:")
             current_block = e.block
 
-        unit, multiplier = ("ns", 1e9) if e.field == "dwell" else ("us", 1e6)
-        message = _format_message(
-            error_messages[e.error_type],
-            **e.__dict__,
-            unit=unit,
-            multiplier=multiplier,
-        )
         print(
             f"- {e.event}.{e.field}: "
             + ("\x1b[38;5;9m" if colored else "")
-            + message
+            + _message(e)
             + ("\x1b[0m" if colored else "")
         )
 

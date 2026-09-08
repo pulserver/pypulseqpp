@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "pulseq/analysis.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/kspace.hpp"
@@ -656,6 +657,8 @@ PYBIND11_MODULE(_ext, module)
              [](const Sequence& self) { return self.label_inc_library().size(); })
         .def("num_shapes",
              [](const Sequence& self) { return self.shape_library().size(); })
+        .def("num_rf_shims",
+             [](const Sequence& self) { return self.rf_shim_library().size(); })
         .def("num_soft_delays", [](const Sequence& self) {
             return static_cast<int>(self.soft_delay_library().size());
         })
@@ -933,6 +936,52 @@ PYBIND11_MODULE(_ext, module)
         py::arg("grad_raster_time") = 10e-6,
         "What the sequence asks in the way of slewing, and where a gradient "
         "jumps rather than ramps.");
+
+    module.def(
+        "flip_angles",
+        [](const Sequence& sequence) {
+            std::vector<double> angles;
+            {
+                py::gil_scoped_release unlocked;
+                angles = pulseq::flip_angles(sequence);
+            }
+            return py::array_t<double>(
+                static_cast<py::ssize_t>(angles.size()), angles.data());
+        },
+        py::arg("sequence"),
+        "Every pulse's flip angle in degrees, one per RF library row.");
+
+    module.def(
+        "kspace_coverage",
+        [](const py::array_t<double, py::array::c_style | py::array::forcecast>& samples,
+           double threshold) {
+            if (samples.ndim() != 2)
+                throw std::invalid_argument(
+                    "the sampled trajectory must be one row per axis");
+
+            const int axes = static_cast<int>(samples.shape(0));
+            const int count = static_cast<int>(samples.shape(1));
+
+            pulseq::KspaceCoverage found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::kspace_coverage(samples.data(), axes, count, threshold);
+            }
+
+            py::dict out;
+            out["unique_positions"] = py::array_t<double>(
+                static_cast<py::ssize_t>(found.unique_positions.size()),
+                found.unique_positions.data());
+            out["repeats_min"] = found.repeats_min;
+            out["repeats_max"] = found.repeats_max;
+            out["repeats_median"] = found.repeats_median;
+            out["is_cartesian"] = found.is_cartesian;
+            return out;
+        },
+        py::arg("samples"), py::arg("threshold"),
+        "What the sampled trajectory covers: the distinct positions along "
+        "each axis, how often a position is revisited, and whether the "
+        "positions fill a grid.");
 
     module.def(
         "calculate_kspace",

@@ -67,18 +67,22 @@ resonance check. pulserver's C library has all three.
 
 ## The analysis family
 
-`test_report` and `test_report_dict` read as a summary of a sequence -- block
-and event counts, duration, TE and TR, flip angles, unique k-space positions,
-dimensions, spatial resolution, repetitions, Cartesian or not, and the maximum
-gradient and slew. Only the counts come from what is here; TE, TR, the k-space
-lines and the gradient maxima all come out of `waveforms_and_times` and
-`calculate_kspace`, which the report calls before it computes anything.
+`test_report` and `test_report_dict` are in, and with them `waveforms`,
+`waveforms_and_times`, `adc_times`, `rf_times`, `get_gradients` and
+`calculate_kspace`. The report answers the toolbox's report, entry for entry
+and line for line, wherever the toolbox answers at all: it looks for the echo
+in the sampled trajectory, so a sequence that acquires nothing stops it, where
+here that sequence reports an undefined TE and the repetition time between its
+last two excitations.
 
-`waveforms_and_times` is in, and with it `waveforms`, `adc_times`,
-`rf_times`, `get_gradients` and `calculate_kspace`. Everything the report
-reads is now reachable, so `test_report` and `test_report_dict` are
-assembling what is already there rather than computing anything new. The FOV
-transform reads the same trajectory.
+Two of its answers are worked out rather than read off, and both are compiled.
+A flip angle is the integral of a pulse's envelope, so it belongs to the RF
+library row and a pulse played ten thousand times is integrated once. What the
+encoding covers -- the distinct positions along each axis, how often one is
+revisited, whether they fill a grid -- is a pass over every sample the scan
+takes, binned onto a lattice of the trajectory's extent over four million.
+
+The FOV transform reads the same trajectory, and is still to write.
 
 ### What a shot shares, and what it does not
 
@@ -131,6 +135,5 @@ write -- the plotting and analysis below among them -- have what they read
 from.
 
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
-`calc_rf_power` -- and plotting and analysis -- `plot`, `paper_plot`,
-`calculate_kspace`, `auto_label`, `evaluate_labels`, `get_gradients`,
-`waveforms`, `waveforms_and_times`, `adc_times`, `rf_times`.
+`calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and the
+label readers, `auto_label` and `evaluate_labels`.

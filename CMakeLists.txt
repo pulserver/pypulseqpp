@@ -13,6 +13,7 @@ find_package(Threads REQUIRED)
 # sources explicitly: a glob makes a new file compile without anyone deciding
 # it should.
 pybind11_add_module(_ext
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/analysis.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/dedup.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/md5.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/read.cpp
