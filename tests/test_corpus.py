@@ -23,19 +23,29 @@ from pypulseqpp import _ext
 
 CORPUS = Path(__file__).parent / "seq"
 
-#: Files a revision behind, which are read by converting them: the columns
-#: moved and three fields are missing, so these are not merely parsed.
-OLDER_THAN_1_5 = sorted(path.name for path in CORPUS.glob("simple_mprage14*.seq"))
+#: One sequence written at every revision the format has had. What the 1.5.0
+#: file says is what the others have to be read as, so these are the fixtures
+#: for reading an older file rather than files to be round-tripped.
+AS_1_5 = CORPUS / "simple_mprage150.seq"
+OLDER = sorted(
+    path.name for path in CORPUS.glob("simple_mprage1[234]*.seq") if path != AS_1_5
+)
 
-#: Older still, and refused: below 1.4 a gradient carries no time shape and a
-#: block's duration is an index into a section the format no longer has.
-OLDER_THAN_1_4 = sorted(path.name for path in CORPUS.glob("simple_mprage1[23]*.seq"))
+#: Of those, the ones whose shapes are stored the way 1.5 stores them. Before
+#: 1.4 an extended trapezoid carried no time shape of its own, so the same
+#: sequence is held in fewer entries -- six rather than eight here.
+SHAPES_AS_1_5 = [name for name in OLDER if name >= "simple_mprage14"]
+
+#: And the ones whose blocks last as long. 1.2.0 is a different sequence in
+#: that one respect, not a conversion that went wrong: the reference reader
+#: gets the same duration from it.
+DURATION_AS_1_5 = [name for name in OLDER if name >= "simple_mprage13"]
 
 #: Every file the reader is expected to take as it stands.
 CURRENT = sorted(
     path.name
     for path in CORPUS.glob("*.seq")
-    if path.name not in OLDER_THAN_1_5 and path.name not in OLDER_THAN_1_4
+    if not path.name.startswith("simple_mprage1") or path == AS_1_5
 )
 
 
@@ -156,40 +166,47 @@ def test_a_signature_the_file_carries_verifies(corpus_file):
     _ext.read(contents, True)
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_4)
-def test_a_file_older_than_1_4_is_named_rather_than_misread(name):
-    """Saying so beats reading columns that are not where they look."""
-    with pytest.raises(RuntimeError, match="1.4.0 is the oldest"):
-        _ext.read((CORPUS / name).read_bytes())
-
-
 # --------------------------------------------------------------------------
-# Reading a 1.4 file.
+# Reading a file older than 1.5.0.
 #
-# The corpus holds one sequence written at 1.4.0, 1.4.1, 1.4.2 and 1.5.0, so
-# what the 1.5.0 file says is what the others have to be read as. Three
-# fields are missing from the older ones and each is recovered rather than
-# defaulted: an RF pulse's centre from its own envelope, and an arbitrary
-# gradient's first and last sample from walking the block table.
+# Every revision moved columns, and three fields arrived only in 1.5: an RF
+# pulse's centre, and an arbitrary gradient's first and last sample. Before
+# 1.4 a block's duration is not stored either -- the table holds an index into
+# `[DELAYS]` and the duration is whatever the block plays. None of that can be
+# defaulted, so all of it is derived, and the 1.5.0 file is the answer.
 # --------------------------------------------------------------------------
-
-AS_1_5 = CORPUS / "simple_mprage150.seq"
 
 
 def rendered(path):
     return normalise(_ext.write_text(_ext.read(path.read_bytes()), True))
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_5)
-def test_a_1_4_file_holds_the_libraries_the_1_5_file_holds(name):
+@pytest.mark.parametrize("name", OLDER)
+def test_an_older_file_holds_the_events_the_1_5_file_holds(name):
     older = _ext.read((CORPUS / name).read_bytes())
     current = _ext.read(AS_1_5.read_bytes())
 
-    for count in ("num_blocks", "num_rf", "num_gradients", "num_adc", "num_shapes"):
+    for count in ("num_blocks", "num_rf", "num_gradients", "num_adc"):
         assert getattr(older, count)() == getattr(current, count)(), count
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+@pytest.mark.parametrize("name", SHAPES_AS_1_5)
+def test_a_1_4_file_holds_the_shapes_the_1_5_file_holds(name):
+    assert (
+        _ext.read((CORPUS / name).read_bytes()).num_shapes()
+        == _ext.read(AS_1_5.read_bytes()).num_shapes()
+    )
+
+
+@pytest.mark.parametrize("name", DURATION_AS_1_5)
+def test_an_older_file_lasts_as_long_as_the_1_5_file(name):
+    """Before 1.4 the duration is derived from what each block plays."""
+    assert _ext.read((CORPUS / name).read_bytes()).duration() == pytest.approx(
+        _ext.read(AS_1_5.read_bytes()).duration()
+    )
+
+
+@pytest.mark.parametrize("name", SHAPES_AS_1_5)
 def test_a_1_4_file_reads_as_the_1_5_file_but_for_what_it_cannot_carry(name):
     """Two things it cannot carry, and nothing else differs.
 
@@ -221,19 +238,41 @@ def test_a_1_4_file_reads_as_the_1_5_file_but_for_what_it_cannot_carry(name):
     assert len(derived_edge) == 1
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_5)
-def test_a_1_4_file_says_1_5_once_it_has_been_read(name):
+@pytest.mark.parametrize("name", OLDER)
+def test_an_older_file_says_1_5_once_it_has_been_read(name):
     """It has been converted, so it is a 1.5 sequence and says so."""
     converted = _ext.write_text(_ext.read((CORPUS / name).read_bytes()), True)
 
     assert rows(converted, "[VERSION]") == ["major 1", "minor 5", "revision 1"]
 
 
-@pytest.mark.parametrize("name", OLDER_THAN_1_5)
+@pytest.mark.parametrize("name", OLDER)
 def test_a_converted_file_writes_the_same_bytes_twice(name):
     once = _ext.write_text(_ext.read((CORPUS / name).read_bytes()), True)
 
     assert _ext.write_text(_ext.read(once), True) == once
+
+
+@pytest.mark.parametrize("name", OLDER)
+def test_a_converted_file_carries_the_rasters_it_was_read_with(name):
+    """A file that declared none of them says what it was taken to mean."""
+    converted = _ext.read((CORPUS / name).read_bytes()).definitions()
+
+    for raster in (
+        "GradientRasterTime",
+        "RadiofrequencyRasterTime",
+        "AdcRasterTime",
+        "BlockDurationRaster",
+    ):
+        assert raster in converted
+
+
+def test_a_file_older_than_the_format_is_named_rather_than_misread():
+    """1.2.0 is where the format is defined from."""
+    contents = AS_1_5.read_bytes().replace(b"minor 5", b"minor 1", 1)
+
+    with pytest.raises(RuntimeError, match="1.2.0 is the oldest"):
+        _ext.read(contents)
 
 
 def test_the_corpus_spans_the_revisions_it_is_here_for():

@@ -159,11 +159,11 @@ def test_verification_is_off_unless_it_is_asked_for():
     _ext.read(tampered)
 
 
-def test_a_file_older_than_1_4_says_so_rather_than_reading_wrong():
-    """Below 1.4 a gradient has no time shape and a duration is an index."""
-    contents = written("spin_echo").replace(b"minor 5", b"minor 3", 1)
+def test_a_file_older_than_the_format_says_so_rather_than_reading_wrong():
+    """1.2.0 is where the format is defined from; below it there is nothing."""
+    contents = written("spin_echo").replace(b"minor 5", b"minor 1", 1)
 
-    with pytest.raises(RuntimeError, match="1.4.0 is the oldest"):
+    with pytest.raises(RuntimeError, match="1.2.0 is the oldest"):
         _ext.read(contents)
 
 

@@ -348,14 +348,12 @@ namespace pulseq
                 {
                     section.assign(line.begin, line.end);
                     ++at;
-                    if (section == "[BLOCKS]" && out.combined() < 1004000)
+                    if (section == "[BLOCKS]" && out.combined() < 1002000)
                         fail(
                             line.line,
                             "this is a Pulseq " + std::to_string(out.major) + "." +
                                 std::to_string(out.minor) + "." + std::to_string(out.revision) +
-                                " file, and 1.4.0 is the oldest that can be read: older than "
-                                "that a gradient carries no time shape and a block's duration is "
-                                "an index into a section this format no longer has");
+                                " file, and 1.2.0 is the oldest the format is defined from");
                     if (section == "[SHAPES]")
                         parse_shapes(lines, at, out);
                     else if (section == "[EXTENSIONS]")
@@ -391,8 +389,17 @@ namespace pulseq
                 {
                     const int id = row.integer("a block number");
                     ParsedBlock block;
-                    block.ticks = static_cast<long>(row.integer("a block duration"));
-                    for (int column = 0; column < BLOCK_WIDTH; ++column)
+                    const int32_t duration = row.integer("a block duration");
+                    // Before 1.4 that column is an index into `[DELAYS]`
+                    // rather than a count of rasters, and the duration is
+                    // whatever the block's own events take; see upgrade().
+                    if (out.combined() < 1004000)
+                        out.block_delay.emplace(id, duration);
+                    else
+                        block.ticks = static_cast<long>(duration);
+                    // 1.2 has no extension column; everything else does.
+                    const int columns = out.combined() <= 1002001 ? BLOCK_WIDTH - 1 : BLOCK_WIDTH;
+                    for (int column = 0; column < columns; ++column)
                         block.events[static_cast<size_t>(column)] = row.integer("an event id");
                     out.blocks.emplace(id, block);
                 }
@@ -403,7 +410,11 @@ namespace pulseq
                     event[0] = row.number("an amplitude");
                     event[1] = row.number("a magnitude shape");
                     event[2] = row.number("a phase shape");
-                    event[3] = row.number("a time shape");
+                    // Three layouts. 1.5 has the centre and the ppm terms;
+                    // 1.4 has neither; 1.3 has no time shape either, so the
+                    // delay is where the time shape would be.
+                    if (out.combined() >= 1004000)
+                        event[3] = row.number("a time shape");
                     if (out.combined() >= 1005000)
                     {
                         event[4] = row.number("a center") * 1e-6;
@@ -415,9 +426,8 @@ namespace pulseq
                     }
                     else
                     {
-                        // 1.4 has no center and no ppm terms, and its delay
-                        // sits where the center now does. The center is
-                        // derived once every shape is known; see upgrade().
+                        // The centre is derived once every shape is known;
+                        // see upgrade().
                         event[5] = row.number("a delay") * 1e-6;
                         event[8] = row.number("a frequency offset");
                         event[9] = row.number("a phase offset");
@@ -445,7 +455,8 @@ namespace pulseq
                         event[1] = event[2] = std::numeric_limits<double>::quiet_NaN();
                     }
                     event[3] = row.number("an amplitude shape");
-                    event[4] = row.number("a time shape");
+                    if (out.combined() >= 1004000)
+                        event[4] = row.number("a time shape");
                     event[5] = row.number("a delay") * 1e-6;
                     out.arbitrary.emplace(id, event);
                 }
@@ -483,6 +494,11 @@ namespace pulseq
                         event[6] = row.number("a phase offset");
                     }
                     out.adc.emplace(id, event);
+                }
+                else if (section == "[DELAYS]")
+                {
+                    const int id = row.integer("a delay id");
+                    out.delays.emplace(id, row.number("a delay") * 1e-6);
                 }
                 else if (section == "[SIGNATURE]")
                 {
@@ -684,16 +700,191 @@ namespace pulseq
             }
         }
 
+        /**
+         * Re-encode every shape, decoding it even where the counts agree.
+         *
+         * Before 1.4 a shape whose encoded length happened to equal its
+         * sample count was indistinguishable from one that was never encoded,
+         * so the two cannot be told apart by length alone. Decoding with that
+         * rule suspended and encoding again settles it: afterwards equal
+         * counts really do mean the samples are the samples.
+         */
+        void normalise_shapes(Parsed& parsed)
+        {
+            for (auto& entry : parsed.shapes)
+            {
+                const int uncompressed = entry.second.first;
+                std::vector<double>& stored = entry.second.second;
+                const std::vector<double> samples = decompress_shape(
+                    stored.data(), static_cast<int>(stored.size()), uncompressed, true);
+                if (samples.empty())
+                    continue;
+                stored = compress_shape(samples.data(), static_cast<int>(samples.size()));
+            }
+        }
+
+        /**
+         * The rise and fall a pre-1.4 file leaves off a zero trapezoid.
+         *
+         * A gradient of no amplitude was written with no ramp, which later
+         * revisions do not allow: one raster of the flat time becomes the
+         * ramp, on each side that is missing one.
+         */
+        void restore_trapezoid_ramps(Parsed& parsed, double grad_raster)
+        {
+            for (auto& entry : parsed.trapezoid)
+            {
+                std::array<double, TRAP_WIDTH>& row = entry.second;
+                if (row[0] != 0.0)
+                    continue;
+                if (row[1] == 0.0 && row[2] > 0.0)
+                {
+                    row[1] = grad_raster;
+                    row[2] -= grad_raster;
+                }
+                if (row[3] == 0.0 && row[2] > 0.0)
+                {
+                    row[2] -= grad_raster;
+                    row[3] = grad_raster;
+                }
+            }
+        }
+
+        /** How long a shape lasts, on its own time shape or on the raster. */
+        double shape_duration(const Parsed& parsed, int time_shape, size_t count, double raster)
+        {
+            if (time_shape > 0)
+            {
+                const std::vector<double> times = samples_of(parsed, time_shape);
+                if (!times.empty())
+                    return std::ceil(
+                               (times.back() * raster - std::numeric_limits<double>::epsilon()) /
+                               raster) *
+                           raster;
+            }
+            return static_cast<double>(count) * raster;
+        }
+
+        /**
+         * How long a block lasts, from what it plays.
+         *
+         * Before 1.4 the block table records a delay rather than a duration,
+         * and the duration is the longest thing in the block -- which is what
+         * later revisions store outright.
+         */
+        void restore_block_durations(
+            Parsed& parsed, double rf_raster, double grad_raster, double block_raster)
+        {
+            const int triggers = [&parsed] {
+                auto found = parsed.extension_types.find("TRIGGERS");
+                return found == parsed.extension_types.end() ? 0 : found->second;
+            }();
+
+            for (auto& entry : parsed.blocks)
+            {
+                ParsedBlock& block = entry.second;
+                auto delay = parsed.block_delay.find(entry.first);
+                double duration = 0.0;
+                if (delay != parsed.block_delay.end() && delay->second > 0)
+                {
+                    auto value = parsed.delays.find(delay->second);
+                    if (value != parsed.delays.end())
+                        duration = value->second;
+                }
+
+                auto rf = parsed.rf.find(block.events[0]);
+                if (rf != parsed.rf.end())
+                {
+                    const std::vector<double> magnitude =
+                        samples_of(parsed, static_cast<int>(rf->second[1]));
+                    duration = std::max(
+                        duration,
+                        rf->second[5] + shape_duration(
+                                            parsed,
+                                            static_cast<int>(rf->second[3]),
+                                            magnitude.size(),
+                                            rf_raster));
+                }
+
+                for (int axis = 1; axis <= 3; ++axis)
+                {
+                    const int32_t id = block.events[static_cast<size_t>(axis)];
+                    auto trapezoid = parsed.trapezoid.find(id);
+                    if (trapezoid != parsed.trapezoid.end())
+                    {
+                        const std::array<double, TRAP_WIDTH>& row = trapezoid->second;
+                        duration = std::max(duration, row[4] + row[1] + row[2] + row[3]);
+                        continue;
+                    }
+                    auto gradient = parsed.arbitrary.find(id);
+                    if (gradient == parsed.arbitrary.end())
+                        continue;
+                    const std::vector<double> waveform =
+                        samples_of(parsed, static_cast<int>(gradient->second[3]));
+                    duration = std::max(
+                        duration,
+                        gradient->second[5] + shape_duration(
+                                                  parsed,
+                                                  static_cast<int>(gradient->second[4]),
+                                                  waveform.size(),
+                                                  grad_raster));
+                }
+
+                auto adc = parsed.adc.find(block.events[4]);
+                if (adc != parsed.adc.end())
+                    duration = std::max(
+                        duration, adc->second[2] + adc->second[0] * adc->second[1]);
+
+                // A trigger is played too, and it is reached through the chain.
+                for (int32_t node = block.events[5]; node > 0;)
+                {
+                    auto link = parsed.chains.find(node);
+                    if (link == parsed.chains.end())
+                        break;
+                    if (triggers != 0 && link->second[0] == triggers)
+                    {
+                        auto trigger = parsed.triggers.find(link->second[1]);
+                        if (trigger != parsed.triggers.end())
+                            duration = std::max(
+                                duration, trigger->second[2] + trigger->second[3]);
+                    }
+                    node = link->second[2];
+                }
+
+                block.ticks = static_cast<long>(std::lround(duration / block_raster));
+            }
+        }
+
         /** Bring what a pre-1.5 file said up to what a 1.5 file says. */
         void upgrade(Parsed& parsed)
         {
             if (parsed.combined() >= 1005000)
                 return;
-            restore_rf_centers(parsed, raster(parsed, "RadiofrequencyRasterTime", 1e-6));
-            restore_gradient_edges(
-                parsed,
-                raster(parsed, "GradientRasterTime", 10e-6),
-                raster(parsed, "BlockDurationRaster", 10e-6));
+
+            const double rf_raster = raster(parsed, "RadiofrequencyRasterTime", 1e-6);
+            const double grad_raster = raster(parsed, "GradientRasterTime", 10e-6);
+            const double block_raster = raster(parsed, "BlockDurationRaster", 10e-6);
+
+            if (parsed.combined() < 1004000)
+            {
+                normalise_shapes(parsed);
+                restore_trapezoid_ramps(parsed, grad_raster);
+                restore_block_durations(parsed, rf_raster, grad_raster, block_raster);
+                // A file this old declares none of the rasters, so what was
+                // assumed above is written down rather than left implicit.
+                const std::pair<const char*, double> assumed[4] = {
+                    {"GradientRasterTime", grad_raster},
+                    {"RadiofrequencyRasterTime", rf_raster},
+                    {"AdcRasterTime", raster(parsed, "AdcRasterTime", 100e-9)},
+                    {"BlockDurationRaster", block_raster},
+                };
+                for (const auto& entry : assumed)
+                    if (parsed.definitions.find(entry.first) == parsed.definitions.end())
+                        parsed.definitions.emplace(entry.first, Definition(entry.second));
+            }
+
+            restore_rf_centers(parsed, rf_raster);
+            restore_gradient_edges(parsed, grad_raster, block_raster);
 
             // The sequence is now what a 1.5 file holds, so it says so. What
             // it cannot say is what each pulse is *for*: 1.4 carries no `use`

@@ -70,6 +70,11 @@ namespace pulseq
         std::map<int, SoftDelay> soft_delays;
         std::map<int, std::pair<int, std::vector<double>>> shapes;
 
+        /** Pre-1.4 only: the `[DELAYS]` section a block's duration indexes. */
+        std::map<int, double> delays;
+        /** Pre-1.4 only: per block, the delay id its duration column held. */
+        std::map<int, int32_t> block_delay;
+
         /** Text only: the binary form carries no signature. */
         bool has_signature = false;
         std::string signature;

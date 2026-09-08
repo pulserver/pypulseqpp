@@ -127,27 +127,35 @@ one builder, so the rules that turn a file into a sequence are written once.
 Reading therefore forks exactly as building does, and a sequence off disk is
 indistinguishable from one that was built.
 
-**A 1.4 file is converted, not merely parsed.** It carries no RF `center`, no
-`first` or `last` on an arbitrary gradient and no ppm offsets, and none of
-those is a default that can be filled in. The centre comes from the pulse's
-own envelope -- the middle of its peak, so a flat-topped pulse centres on the
-middle of the plateau -- and the edges from walking the block table in playing
-order: an arbitrary gradient's `last` is its waveform's end, extrapolated the
-way the factory would have, and its `first` is where the axis was left by the
-block before, which is zero unless the previous gradient ran to that block's
-end. The corpus holds one sequence at 1.4.0, 1.4.1, 1.4.2 and 1.5.0, so what
-the 1.5.0 file says is what the others are held to.
+**An older file is converted, not merely parsed.** Every revision back to
+1.2.0 is read, and each moved something. 1.5 added an RF pulse's `center`, an
+arbitrary gradient's `first` and `last` sample, and the ppm offsets; before 1.4
+a gradient carries no time shape, a block's duration is an index into a
+`[DELAYS]` section rather than a count of rasters, a zero trapezoid is written
+with no ramps, and 1.2 has no extension column at all.
+
+None of that is a default that can be filled in, so it is derived. The centre
+comes from the pulse's own envelope, taking the middle of its peak. The
+gradient edges come from walking the block table in playing order: `last` is
+the waveform's end, extrapolated the way the factory would have, and `first`
+is where the axis was left by the block before, which is zero unless the
+previous gradient ran to that block's end. A pre-1.4 duration is the longest
+thing the block plays. And every shape is decoded and re-encoded, because
+before 1.4 an encoded shape whose length happened to equal its sample count
+could not be told from one that was never encoded.
+
+The corpus holds one sequence at 1.2.0, 1.3.0, 1.3.1, 1.4.0, 1.4.1, 1.4.2 and
+1.5.0, so what the 1.5.0 file says is what the others are held to, and the
+reference reader is the arbiter where they legitimately differ.
 
 Two things a 1.4 file cannot give back. It has no `use` column, so what a
 pulse is *for* stays undefined rather than being guessed from its flip angle;
 and one derived `last` differs from the value the design knew, because an
 extrapolation is not the original. The reference toolbox derives the same
 number from the same file, which is what makes that the format's limit rather
-than a difference between readers.
-
-**Below 1.4 is refused by version.** A gradient there carries no time shape at
-all and a block's duration is an index into a `[DELAYS]` section the format no
-longer has.
+than a difference between readers. Before 1.4 two more things move: an
+extended trapezoid is held in fewer shapes, and 1.2.0's blocks last longer
+than 1.5.0's -- the reference reader agrees on both.
 
 **What each form carries.** The binary form is the more faithful container for
 everything except shapes: times cross as integer picoseconds and amplitudes as

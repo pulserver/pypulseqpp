@@ -101,11 +101,12 @@ namespace pulseq
         return std::vector<double>(samples, samples + count);
     }
 
-    std::vector<double> decompress_shape(const double* samples, int count, int num_uncompressed)
+    std::vector<double> decompress_shape(
+        const double* samples, int count, int num_uncompressed, bool force)
     {
         // Equal counts mean compress_shape kept the original, so there is no
         // derivative to sum and nothing to expand.
-        if (count == num_uncompressed)
+        if (count == num_uncompressed && !force)
             return std::vector<double>(samples, samples + count);
 
         if (num_uncompressed <= 0 || count <= 0)

@@ -42,10 +42,16 @@ namespace pulseq
      * compress_shape's "keep the original if it is no longer" rule -- and the
      * samples are copied through unchanged.
      *
+     * @p force decodes even when the counts are equal.  Before Pulseq 1.4
+     * that coincidence could happen to a shape that really was encoded, so a
+     * file from that era is decoded this way and re-encoded, which is what
+     * makes "equal counts mean uncompressed" true of it afterwards.
+     *
      * Throws std::runtime_error on a malformed run length, which is the only
      * way the encoding can be inconsistent with itself.
      */
-    std::vector<double> decompress_shape(const double* samples, int count, int num_uncompressed);
+    std::vector<double> decompress_shape(
+        const double* samples, int count, int num_uncompressed, bool force = false);
 
 } // namespace pulseq
 
