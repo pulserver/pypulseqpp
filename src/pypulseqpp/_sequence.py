@@ -12,6 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from . import _ext as _cxx
+from ._check_timing import check_timing as _check_timing
+from ._check_timing import print_error_report
 
 __all__ = ["Sequence"]
 
@@ -83,6 +85,28 @@ class Sequence:
 
     def __len__(self) -> int:
         return self._native.num_blocks()
+
+    # -- timing --------------------------------------------------------
+
+    def check_timing(self, print_errors: bool = False):
+        """Return whether the sequence is playable, and every problem found.
+
+        Parameters
+        ----------
+        print_errors : bool, default False
+            Print the report as well as returning it.
+
+        Returns
+        -------
+        is_ok : bool
+            True when nothing was found.
+        error_report : list of SimpleNamespace
+            One entry per problem, in block order.
+        """
+        is_ok, error_report = _check_timing(self)
+        if not is_ok and print_errors:
+            print_error_report(self, error_report)
+        return is_ok, error_report
 
     # -- definitions ---------------------------------------------------
 

@@ -20,8 +20,8 @@ The package owns what is true about a sequence in isolation:
 
 - reading and writing `.seq`, text and binary, with event deduplication;
 - structural TR and base-block detection;
-- hardware checks: gradient amplitude, slew and continuity, PNS, mechanical
-  resonance;
+- hardware checks: block timing against a system's rasters and dead times,
+  gradient amplitude, slew and continuity, PNS, mechanical resonance;
 - k-space trajectory and gradient-moment calculation;
 - sequence-level operations such as FOV transformation and tiling.
 

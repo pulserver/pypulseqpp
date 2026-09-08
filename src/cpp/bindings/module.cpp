@@ -19,6 +19,7 @@
 
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
+#include "pulseq/timing.hpp"
 #include "pulseq/types.hpp"
 #include "pulseqpp_events.h"
 #include "pulseqpp_eventtypes.h"
@@ -51,6 +52,89 @@ namespace
                 std::string(what) + " takes exactly " + std::to_string(width) +
                 " values, got " + std::to_string(values.size()));
         return values.data();
+    }
+
+    /**
+     * Timing findings as dicts, each carrying only what its kind reports.
+     *
+     * A finding is a fixed struct in C++ so that judging a million-block
+     * sequence allocates nothing per block, but what a caller reads is the
+     * report the toolbox writes: the fields that mean something for this kind
+     * of problem, and no others, so a message template naming them formats
+     * without a missing key and without a stray zero.
+     */
+    py::list findings_as_dicts(const std::vector<pulseq::TimingFinding>& findings)
+    {
+        py::list out;
+        for (size_t i = 0; i < findings.size(); ++i)
+        {
+            const pulseq::TimingFinding& f = findings[i];
+            py::dict d;
+            d["block"] = f.block;
+            d["event"] = f.event;
+            d["field"] = f.field;
+            d["error_type"] = f.error_type;
+
+            if (f.error_type == "RASTER")
+            {
+                d["value"] = f.value;
+                d["value_rounded"] = f.value_rounded;
+                d["error"] = f.error;
+                d["raster"] = f.raster;
+            }
+            else if (f.error_type == "NEGATIVE_DELAY")
+            {
+                d["value"] = f.value;
+            }
+            else if (f.error_type == "BLOCK_DURATION_MISMATCH")
+            {
+                d["value"] = f.value;
+                d["duration"] = f.duration;
+            }
+            else if (f.error_type == "ADC_SAMPLES_DIVISOR")
+            {
+                d["value"] = static_cast<int64_t>(f.value);
+                d["divisor"] = f.divisor;
+            }
+            else if (f.error_type == "RF_DEAD_TIME" || f.error_type == "ADC_DEAD_TIME")
+            {
+                d["value"] = f.value;
+                d["dead_time"] = f.dead_time;
+            }
+            else if (f.error_type == "RF_RINGDOWN_TIME")
+            {
+                d["value"] = f.value;
+                d["duration"] = f.duration;
+                d["ringdown_time"] = f.ringdown_time;
+            }
+            else if (f.error_type == "POST_ADC_DEAD_TIME")
+            {
+                d["value"] = f.value;
+                d["duration"] = f.duration;
+                d["dead_time"] = f.dead_time;
+            }
+            else if (f.error_type == "SOFT_DELAY_HINT_INCONSISTENCY")
+            {
+                d["value"] = f.hint;
+                d["hint"] = f.hint;
+                d["prev_hint"] = f.prev_hint;
+                d["numID"] = static_cast<int64_t>(f.num_id);
+            }
+            else if (f.error_type == "SOFT_DELAY_INVALID_NUMID")
+            {
+                d["value"] = static_cast<int64_t>(f.value);
+                d["hint"] = f.hint;
+                d["numID"] = static_cast<int64_t>(f.num_id);
+            }
+            else
+            {
+                d["value"] = f.value;
+                d["hint"] = f.hint;
+                d["numID"] = static_cast<int64_t>(f.num_id);
+            }
+            out.append(d);
+        }
+        return out;
     }
 
     /** A capsule owning @p buffer, so an array over it keeps it alive. */
@@ -536,6 +620,40 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("create_signature") = true,
         py::arg("gamma") = 42576000.0, py::arg("field") = 1.5,
         "Serialize as a Pulseq 1.4.1 `.seq` text file.");
+
+    module.def(
+        "check_timing",
+        [](const Sequence& sequence,
+           double rf_raster_time,
+           double grad_raster_time,
+           double adc_raster_time,
+           double block_duration_raster,
+           double rf_dead_time,
+           double rf_ringdown_time,
+           double adc_dead_time,
+           double adc_samples_divisor) {
+            pulseq::TimingLimits limits;
+            limits.rf_raster_time = rf_raster_time;
+            limits.grad_raster_time = grad_raster_time;
+            limits.adc_raster_time = adc_raster_time;
+            limits.block_duration_raster = block_duration_raster;
+            limits.rf_dead_time = rf_dead_time;
+            limits.rf_ringdown_time = rf_ringdown_time;
+            limits.adc_dead_time = adc_dead_time;
+            limits.adc_samples_divisor = adc_samples_divisor;
+
+            std::vector<pulseq::TimingFinding> findings;
+            {
+                py::gil_scoped_release unlocked;
+                findings = pulseq::check_timing(sequence, limits);
+            }
+            return findings_as_dicts(findings);
+        },
+        py::arg("sequence"), py::arg("rf_raster_time"), py::arg("grad_raster_time"),
+        py::arg("adc_raster_time"), py::arg("block_duration_raster"),
+        py::arg("rf_dead_time") = 0.0, py::arg("rf_ringdown_time") = 0.0,
+        py::arg("adc_dead_time") = 0.0, py::arg("adc_samples_divisor") = 1.0,
+        "Every timing problem in the sequence, one dict per finding.");
 
     module.def(
         "write_binary",

@@ -201,3 +201,50 @@ def test_the_namespace_carries_what_upstream_carries():
     ]
 
     assert missing == []
+
+
+def test_a_sequence_built_through_the_facade_passes_its_timing_check():
+    system = upstream.Opts(
+        rf_dead_time=100e-6, rf_ringdown_time=30e-6, adc_dead_time=10e-6
+    )
+    seq = pp.Sequence(system=system)
+    seq.add_block(
+        pp.make_block_pulse(math.pi / 2, duration=1e-3, system=system, use="excitation")
+    )
+    seq.add_block(
+        pp.make_trapezoid("x", area=1000, duration=2e-3, system=system),
+        pp.make_adc(num_samples=100, duration=2e-3, delay=100e-6, system=system),
+    )
+
+    is_ok, error_report = seq.check_timing()
+
+    assert is_ok
+    assert error_report == []
+
+
+def test_a_pulse_that_starts_inside_the_dead_time_is_reported_by_name(capsys):
+    """The report names the block, the event and what is wrong with it."""
+    system = upstream.Opts(rf_dead_time=100e-6, rf_ringdown_time=30e-6)
+    seq = pp.Sequence(system=system)
+    pulse = pp.make_block_pulse(
+        math.pi / 2, duration=1e-3, system=system, use="excitation"
+    )
+    pulse.delay = 0.0
+    seq.add_block(pulse)
+
+    is_ok, error_report = seq.check_timing(print_errors=True)
+
+    assert not is_ok
+    assert [e.error_type for e in error_report] == ["RF_DEAD_TIME"]
+    assert error_report[0].block == 1
+    assert error_report[0].event == "rf"
+
+    printed = capsys.readouterr().out
+    assert "Block 1:" in printed
+    assert "rf.delay" in printed
+    assert "RF dead time" in printed
+
+
+def test_checking_timing_without_a_system_says_so():
+    with pytest.raises(ValueError, match="needs the system"):
+        pp.Sequence().check_timing()

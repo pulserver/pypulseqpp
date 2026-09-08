@@ -20,6 +20,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_binary.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/sequence.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/timing.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_text.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/module.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/pulseqpp_eventtypes.cpp

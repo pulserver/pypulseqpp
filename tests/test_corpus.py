@@ -288,3 +288,29 @@ def test_the_corpus_spans_the_revisions_it_is_here_for():
 
     assert {"1.2.0", "1.3.0", "1.3.1", "1.4.0", "1.4.1", "1.4.2"} <= declared
     assert {"1.5.0", "1.5.1"} <= declared
+
+
+def test_every_corpus_sequence_is_playable_on_the_rasters_it_declares(corpus_file):
+    """A file the toolbox wrote holds no time its own rasters cannot address.
+
+    Dead times and ringdown are a property of the scanner rather than of the
+    file, so they are left at zero here and the margins they guard are not
+    what is being judged: what is, is that every delay, dwell, ramp and block
+    duration in the corpus lands on a tick.
+    """
+    sequence = _ext.read((CORPUS / corpus_file).read_bytes())
+    declared = sequence.definitions()
+
+    def raster(name):
+        value = declared[name]
+        return float(value[0] if isinstance(value, list) else value)
+
+    problems = _ext.check_timing(
+        sequence,
+        rf_raster_time=raster("RadiofrequencyRasterTime"),
+        grad_raster_time=raster("GradientRasterTime"),
+        adc_raster_time=raster("AdcRasterTime"),
+        block_duration_raster=raster("BlockDurationRaster"),
+    )
+
+    assert problems == []
