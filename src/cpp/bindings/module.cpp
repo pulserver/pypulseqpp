@@ -962,12 +962,12 @@ PYBIND11_MODULE(_ext, module)
             py::dict out;
             out["wave_data"] = waves;
             out["window_fp"] = window_fp;
+            out["duration"] = made.duration;
             out["tfp_excitation"] = moments(made.excitation);
             out["tfp_refocusing"] = moments(made.refocusing);
             out["t_adc"] = py::array_t<double>(samples, made.adc_times.data());
             out["fp_adc"] = fp;
             out["pm_adc"] = py::array_t<double>(samples, made.adc_modulation.data());
-            out["rotated_blocks"] = made.rotated_blocks;
             out["warnings"] = made.warnings;
             return out;
         },

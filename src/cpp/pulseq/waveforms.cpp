@@ -671,6 +671,7 @@ namespace pulseq
 
             elapsed += durations[index - 1];
         }
+        out.duration = elapsed;
 
         for (int axis = 0; axis < 3; ++axis)
         {

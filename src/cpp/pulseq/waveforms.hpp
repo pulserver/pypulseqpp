@@ -91,8 +91,15 @@ namespace pulseq
         std::vector<double> adc_phase;
         std::vector<double> adc_modulation;
 
-        /** Blocks whose gradients a rotation remaps, which are not expanded. */
-        std::vector<int> rotated_blocks;
+        /**
+         * How long the blocks expanded last, in total.
+         *
+         * The same running sum the waveform times are measured against, so a
+         * caller asking whether an axis stops before the end is comparing two
+         * numbers that were added up the same way. Adding the durations again
+         * elsewhere gives a different last bit, and the answer flips.
+         */
+        double duration = 0.0;
 
         /** What the caller should be told: forced ramps and the like. */
         std::vector<std::string> warnings;

@@ -193,22 +193,6 @@ def rf_times(seq, time_range=None):
     )
 
 
-def _durations_within(seq, time_range=None, block_range=None) -> float:
-    """How long the blocks a range touches last, in total."""
-    durations = np.asarray(seq._native.block_durations())
-    if block_range is not None:
-        first = max(int(block_range[0]), 1)
-        last = (
-            len(durations) if not np.isfinite(block_range[1]) else int(block_range[1])
-        )
-        return float(durations[first - 1 : last].sum())
-    if time_range is not None:
-        first, last, _ = _blocks_within(seq, time_range)
-        last = len(durations) if last == 0 else last
-        return float(durations[first - 1 : last].sum())
-    return float(durations.sum())
-
-
 def get_gradients(
     seq,
     trajectory_delay=0,
@@ -248,9 +232,17 @@ def get_gradients(
             stacklevel=2,
         )
 
-    channels = waveforms(seq, time_range=time_range, block_range=block_range)
+    expanded, elapsed = _expand(seq, False, time_range, block_range)
+    channels = [np.array(channel, copy=True) for channel in expanded["wave_data"]]
+    if elapsed:
+        for channel in channels:
+            if channel.size:
+                channel[0] += elapsed
     axes = len(channels)
-    total = _durations_within(seq, time_range, block_range)
+    # The same running sum the waveform times were measured against: adding
+    # the durations again here gives a different last bit, and whether an axis
+    # stops before the end then depends on which machine is asking.
+    total = elapsed + expanded["duration"]
 
     delays = _per_axis(trajectory_delay, axes)
     offsets = _per_axis(gradient_offset, axes)
