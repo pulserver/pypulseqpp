@@ -375,6 +375,23 @@ namespace pulseqpp_types
         return reinterpret_cast<Event*>(reinterpret_cast<char*>(object) + EVENT_OFFSET);
     }
 
+    /**
+     * An empty event of each kind, for a caller that is about to fill it in.
+     *
+     * What comes back is the same type a factory hands back, so an event
+     * built this way goes into `add_block` on the fast path and reads back in
+     * Python with its fields in slots.
+     */
+    py::object new_rf();
+    py::object new_trap();
+    py::object new_grad();
+    py::object new_adc();
+    py::object new_label();
+    py::object new_trigger();
+    py::object new_rotation();
+    py::object new_soft_delay();
+    py::object new_delay();
+
     void bind(py::module_& m);
 
 } // namespace pulseqpp_types

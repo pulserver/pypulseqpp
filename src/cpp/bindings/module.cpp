@@ -22,6 +22,7 @@
 #include "pulseq/timing.hpp"
 #include "pulseq/types.hpp"
 #include "pulseqpp_events.h"
+#include "pulseqpp_decode.h"
 #include "pulseqpp_eventtypes.h"
 
 #include "pulseq/binary.hpp"
@@ -219,6 +220,47 @@ namespace
             return nullptr;
         }
     }
+
+    /**
+     * `set_block_events(index, *events)`, the same crossing written over an
+     * existing block.
+     *
+     * A sequence read out block by block and put back -- rotated, rescaled,
+     * a label changed -- makes this call once per block, so it is bound the
+     * same way `add_block_events` is.
+     */
+    PyObject* set_block_events_fast(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+    {
+        try
+        {
+            if (nargs < 1)
+                throw std::invalid_argument("set_block_events() needs a block index");
+            Sequence& sequence = py::cast<Sequence&>(py::handle(self));
+            const long index = PyLong_AsLong(args[0]);
+            if (index == -1 && PyErr_Occurred())
+                return nullptr;
+            sequence.set_block(
+                static_cast<int>(index),
+                pulseqpp_events::build_block(sequence, args + 1, nargs - 1));
+            Py_RETURN_NONE;
+        }
+        catch (py::error_already_set& raised)
+        {
+            raised.restore();
+            return nullptr;
+        }
+        catch (const std::exception& raised)
+        {
+            PyErr_SetString(PyExc_ValueError, raised.what());
+            return nullptr;
+        }
+    }
+
+    PyMethodDef set_block_events_def = {
+        "set_block_events",
+        reinterpret_cast<PyCFunction>(reinterpret_cast<void*>(set_block_events_fast)),
+        METH_FASTCALL,
+        PyDoc_STR("set_block_events(index, *events) -> None")};
 
     PyMethodDef add_block_events_def = {
         "add_block_events",
@@ -452,6 +494,36 @@ PYBIND11_MODULE(_ext, module)
              "The id for an extension name, minting one if it is new.")
         .def("set_extension_type_id", &Sequence::set_extension_type_id, py::arg("name"),
              py::arg("id"), "Pin an extension name to a chosen id.")
+        .def("extension_type_name", &Sequence::extension_type_name, py::arg("id"),
+             "The name an extension id stands for.")
+        .def(
+            "extension_chain",
+            [](const Sequence& self, int32_t head) {
+                /* Type and reference per link, as a 2-by-n array: the shape
+                 * the toolboxes report a block's extensions in. */
+                const pulseq::IntTable& links = self.extensions_library();
+                std::vector<int32_t> types;
+                std::vector<int32_t> refs;
+                int32_t node = head;
+                while (node > 0 && node <= links.size())
+                {
+                    const int32_t* link = links.row(node);
+                    types.push_back(link[0]);
+                    refs.push_back(link[1]);
+                    node = link[2];
+                }
+                const py::ssize_t held = static_cast<py::ssize_t>(types.size());
+                py::array_t<int32_t> out({static_cast<py::ssize_t>(2), held});
+                auto view = out.mutable_unchecked<2>();
+                for (py::ssize_t i = 0; i < held; ++i)
+                {
+                    view(0, i) = types[static_cast<size_t>(i)];
+                    view(1, i) = refs[static_cast<size_t>(i)];
+                }
+                return out;
+            },
+            py::arg("head"),
+            "The extension chain from `head`, as type and reference ids.")
         .def("label_id", &Sequence::label_id, py::arg("name"),
              "The id for a label name, minting one if it is not built in.")
         .def("label_name", &Sequence::label_name, py::arg("id"))
@@ -496,6 +568,75 @@ PYBIND11_MODULE(_ext, module)
             },
             py::arg("index"), py::arg("seconds"))
 
+        .def(
+            "repetition",
+            [](Sequence& self) {
+                const pulseq::Repetition found = self.repetition();
+                return py::make_tuple(found.size, found.start);
+            },
+            "The repeating unit of the scan as (size, start), in blocks; a "
+            "size of 0 when the sequence does not repeat.")
+        .def(
+            "locate_repetition",
+            [](const Sequence& self, int size) {
+                const pulseq::Repetition found = self.locate_repetition(size);
+                return py::make_tuple(found.size, found.start);
+            },
+            py::arg("size"),
+            "Where a repeating unit of the given size starts, as (size, start).")
+        .def(
+            "detect_rf_uses", &Sequence::detect_rf_uses, py::arg("b0"), py::arg("gamma"),
+            "Label every pulse the file did not, from what the pulse does. "
+            "Returns how many were labelled.")
+        .def(
+            "apply_soft_delays",
+            [](Sequence& self, const std::map<std::string, double>& values) {
+                pulseq::SoftDelayReport report;
+                {
+                    py::gil_scoped_release unlocked;
+                    report = self.apply_soft_delays(values);
+                }
+
+                py::list rounded;
+                for (size_t i = 0; i < report.rounded.size(); ++i)
+                {
+                    const pulseq::SoftDelayReport::Rounding& note = report.rounded[i];
+                    py::dict entry;
+                    entry["block"] = note.block;
+                    entry["hint"] = note.hint;
+                    entry["numID"] = note.num;
+                    entry["error"] = note.error;
+                    rounded.append(entry);
+                }
+
+                py::dict out;
+                out["hints"] = report.hints;
+                out["rounded"] = rounded;
+                out["problem"] = py::none();
+                if (report.problem != pulseq::SoftDelayReport::Problem::None)
+                {
+                    py::dict problem;
+                    problem["kind"] =
+                        report.problem == pulseq::SoftDelayReport::Problem::HintRenumbered
+                        ? "hint_renumbered"
+                        : (report.problem ==
+                                   pulseq::SoftDelayReport::Problem::NumberRenamed
+                               ? "number_renamed"
+                               : "negative");
+                    problem["block"] = report.block;
+                    problem["hint"] = report.hint;
+                    problem["numID"] = report.num;
+                    problem["duration"] = report.duration;
+                    problem["offset"] = report.offset;
+                    problem["factor"] = report.factor;
+                    out["problem"] = problem;
+                }
+                return out;
+            },
+            py::arg("values"),
+            "Set each named soft delay, by hint, to the value given. Returns "
+            "the hints found, what had to be rounded, and the first problem.")
+
         /* -- counts ------------------------------------------------------ */
         .def("num_rf", [](const Sequence& self) { return self.rf_library().size(); })
         .def("num_gradients", &Sequence::num_gradients)
@@ -535,6 +676,14 @@ PYBIND11_MODULE(_ext, module)
             py::arg("index"), py::arg("rf"), py::arg("gx"), py::arg("gy"), py::arg("gz"),
             py::arg("adc"), py::arg("ext"), py::arg("duration"))
         .def("get_block", &Sequence::get_block, py::arg("index"))
+        .def(
+            "decode_block",
+            [](const Sequence& self, int index) {
+                return pulseqpp_decode::decode_block(self, index);
+            },
+            py::arg("index"),
+            "Block `index` (1-based) as the events it plays, rather than as "
+            "the ids they are stored under.")
         .def("num_blocks", &Sequence::num_blocks)
 
         /* -- definitions and instances --------------------------------- */
@@ -568,6 +717,19 @@ PYBIND11_MODULE(_ext, module)
             },
             "Per block, its per-playout parameters.  See INSTANCE_WIDTH.")
         .def("duration", &Sequence::duration, "Total duration in seconds.")
+        .def(
+            "event_counts",
+            [](const Sequence& self) {
+                const std::array<int64_t, pulseq::BLOCK_WIDTH> counts = self.event_counts();
+                return py::array_t<int64_t>(
+                    static_cast<py::ssize_t>(pulseq::BLOCK_WIDTH), counts.data());
+            },
+            "How many blocks carry an event in each column: rf, gx, gy, gz, "
+            "adc, extension.")
+        .def(
+            "scale_gradient_axis", &Sequence::scale_gradient_axis, py::arg("axis"),
+            py::arg("modifier"),
+            "Scale every gradient played on an axis (0, 1 or 2) by a factor.")
         .def("remove_duplicates", &Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
@@ -581,6 +743,8 @@ PYBIND11_MODULE(_ext, module)
             py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_fast_def));
         sequence_class.attr("add_block_events") =
             py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &add_block_events_def));
+        sequence_class.attr("set_block_events") =
+            py::reinterpret_steal<py::object>(PyDescr_NewMethod(type, &set_block_events_def));
     }
 
     module.def(
@@ -654,6 +818,54 @@ PYBIND11_MODULE(_ext, module)
         py::arg("rf_dead_time") = 0.0, py::arg("rf_ringdown_time") = 0.0,
         py::arg("adc_dead_time") = 0.0, py::arg("adc_samples_divisor") = 1.0,
         "Every timing problem in the sequence, one dict per finding.");
+
+    module.def(
+        "register_event",
+        [](Sequence& sequence, py::handle event) {
+            /* One event is a block of one, minus the linking: the extension
+             * chain is left uncommitted, so registering a trigger costs the
+             * trigger row and not an extension row nobody points at. */
+            PyObject* item = event.ptr();
+            py::dict out;
+            /* The shapes first, so the row that follows points at ids this
+             * sequence has already been given rather than at copies. */
+            out["shapes"] = pulseqpp_events::warm_event(sequence, event);
+
+            int32_t chain[8][2];
+            int chained = 0;
+            const pulseq::Block block =
+                pulseqpp_events::collect_block(sequence, &item, 1, chain, chained);
+
+            if (block.rf > 0)
+            {
+                out["kind"] = "rf";
+                out["id"] = block.rf;
+            }
+            else if (block.gx > 0 || block.gy > 0 || block.gz > 0)
+            {
+                out["kind"] = "grad";
+                out["id"] = block.gx > 0 ? block.gx : (block.gy > 0 ? block.gy : block.gz);
+            }
+            else if (block.adc > 0)
+            {
+                out["kind"] = "adc";
+                out["id"] = block.adc;
+            }
+            else if (chained > 0)
+            {
+                out["kind"] = sequence.extension_type_name(chain[0][0]);
+                out["id"] = chain[0][1];
+            }
+            else
+            {
+                out["kind"] = "delay";
+                out["id"] = 0;
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("event"),
+        "Register one event's row and shapes, and report what it was stored "
+        "as: its kind, its library id, and the ids of its shapes.");
 
     module.def(
         "write_binary",

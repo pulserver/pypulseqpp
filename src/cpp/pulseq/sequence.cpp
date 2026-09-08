@@ -7,6 +7,7 @@
  * The writers, the reader and deduplication live beside this file.
  */
 
+#include "pulseq/shape.hpp"
 #include "pulseq/sequence.hpp"
 
 #include <numeric>
@@ -275,6 +276,55 @@ namespace pulseq
         return static_cast<int>(soft_delays_.size());
     }
 
+    int32_t Sequence::soft_delay_number(const std::string& hint, int32_t requested)
+    {
+        const std::map<std::string, int32_t>::const_iterator known =
+            soft_delay_hints_.find(hint);
+
+        if (known != soft_delay_hints_.end())
+        {
+            if (requested >= 0 && requested != known->second)
+                throw std::invalid_argument(
+                    "Soft delay hint '" + hint + "' is already assigned to numID " +
+                    std::to_string(known->second) + ". Cannot use numID " +
+                    std::to_string(requested) +
+                    ". Consider using a different hint or omitting numID.");
+            return known->second;
+        }
+
+        int32_t number = requested;
+        if (number < 0)
+        {
+            // The next one nothing is called by, counting from zero.
+            number = 0;
+            for (std::map<std::string, int32_t>::const_iterator taken =
+                     soft_delay_hints_.begin();
+                 taken != soft_delay_hints_.end();
+                 ++taken)
+            {
+                if (taken->second >= number)
+                    number = taken->second + 1;
+            }
+        }
+        else
+        {
+            for (std::map<std::string, int32_t>::const_iterator taken =
+                     soft_delay_hints_.begin();
+                 taken != soft_delay_hints_.end();
+                 ++taken)
+            {
+                if (taken->second == number)
+                    throw std::invalid_argument(
+                        "numID " + std::to_string(number) +
+                        " is already used by soft delay '" + taken->first +
+                        "'. Use a different numID or omit it for auto-assignment.");
+            }
+        }
+
+        soft_delay_hints_[hint] = number;
+        return number;
+    }
+
     int Sequence::register_shape(int num_uncompressed, const double* samples, int count)
     {
         deduplicated_ = false;
@@ -354,6 +404,7 @@ namespace pulseq
     int Sequence::add_block(const Block& block)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         detach_blocks_before_growth();
         blocks_->insert(
             blocks_->end(),
@@ -492,6 +543,10 @@ namespace pulseq
 
     void Sequence::refork_blocks()
     {
+        // Definition ids change here, and the repeating unit is read off
+        // them -- so whatever was found before this is about the old ones.
+        repetition_known_ = false;
+
         block_defs_.clear();
         const int count = num_blocks();
         instance_def_.assign(static_cast<size_t>(count), 0);
@@ -517,6 +572,7 @@ namespace pulseq
     void Sequence::set_block(int index, const Block& block)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         require_block(index, num_blocks());
         detach_blocks();
         int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
@@ -549,6 +605,7 @@ namespace pulseq
     void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
     {
         deduplicated_ = false;
+        repetition_known_ = false;
         detach_blocks();
         blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
         durations_->assign(durations, durations + count);
@@ -637,6 +694,349 @@ namespace pulseq
     double Sequence::duration() const
     {
         return pairwise_sum(durations_->data(), durations_->size());
+    }
+
+    void Sequence::scale_gradient_axis(int axis, double modifier)
+    {
+        if (axis < 0 || axis > 2)
+            throw std::invalid_argument("axis must be 0, 1 or 2");
+
+        /* A library row rather than a gradient id is what gets scaled, and
+         * deduplication can leave two ids sharing one -- so the question is
+         * whether a *row* is played on this axis and on another. */
+        const size_t rows = static_cast<size_t>(trap_.size() + arb_.size()) + 1;
+        std::vector<uint8_t> on_axis(rows, 0);
+        std::vector<uint8_t> elsewhere(rows, 0);
+
+        const auto slot_of = [&](int32_t id) -> size_t {
+            const size_t row = static_cast<size_t>(grad_row(id));
+            return grad_kind(id) == GradKind::Trap
+                ? row
+                : row + static_cast<size_t>(trap_.size());
+        };
+
+        const int32_t* block = blocks_->data();
+        const size_t count = blocks_->size() / BLOCK_WIDTH;
+        for (size_t b = 0; b < count; ++b, block += BLOCK_WIDTH)
+        {
+            for (int played = 0; played < 3; ++played)
+            {
+                const int32_t id = block[1 + played];
+                if (id <= 0 || id > num_gradients())
+                    continue;
+                (played == axis ? on_axis : elsewhere)[slot_of(id)] = 1;
+            }
+        }
+
+        for (size_t slot = 1; slot < rows; ++slot)
+        {
+            if (on_axis[slot] && elsewhere[slot])
+                throw std::runtime_error(
+                    "mod_grad_axis does not yet support the same gradient event "
+                    "used on multiple axes.");
+        }
+
+        for (int id = 1; id <= num_gradients(); ++id)
+        {
+            // Two ids can share a row, so a row is scaled the first time it
+            // is reached and marked spent.
+            if (on_axis[slot_of(id)] != 1)
+                continue;
+            on_axis[slot_of(id)] = 2;
+            const int row = grad_row(id);
+            if (grad_kind(id) == GradKind::Trap)
+            {
+                trap_.row(row)[0] *= modifier;
+            }
+            else
+            {
+                double* values = arb_.row(row);
+                values[0] *= modifier;
+                values[1] *= modifier;
+                values[2] *= modifier;
+            }
+        }
+
+        deduplicated_ = false;
+    }
+
+    Repetition Sequence::locate_repetition(int size) const
+    {
+        Repetition found;
+        const int blocks = static_cast<int>(instance_def_.size());
+        if (size < 1 || size * 2 > blocks)
+            return found;
+
+        int start = blocks - size;
+        while (start > 0 &&
+               instance_def_[static_cast<size_t>(start) - 1] ==
+                   instance_def_[static_cast<size_t>(start) - 1 + size])
+            --start;
+
+        if (blocks - start >= 2 * size)
+        {
+            found.size = size;
+            found.start = start;
+        }
+        return found;
+    }
+
+    Repetition Sequence::repetition()
+    {
+        if (repetition_known_)
+            return repetition_;
+
+        repetition_known_ = true;
+        repetition_ = Repetition();
+
+        const int blocks = static_cast<int>(instance_def_.size());
+        if (blocks < 2)
+            return repetition_;
+
+        /* The last block's definition is played once per repetition, so the
+         * gaps between the places it appears are the only periods worth
+         * trying -- smallest first, which is the fundamental one. Fifty is
+         * far more than a real scan needs and stops a sequence whose last
+         * block is also its commonest from being walked to death. */
+        constexpr int kCandidates = 50;
+        const int32_t last = instance_def_[static_cast<size_t>(blocks) - 1];
+
+        int tried = 0;
+        for (int before = blocks - 2; before >= 0 && tried < kCandidates; --before)
+        {
+            if (instance_def_[static_cast<size_t>(before)] != last)
+                continue;
+            ++tried;
+
+            const int period = blocks - 1 - before;
+            if (period * 2 > blocks)
+                break; // no room for the two repeats it would take to say so
+
+            /* How far back the period holds. Everything before that is the
+             * prologue: dummy shots, preparation, a noise scan. */
+            const Repetition holds = locate_repetition(period);
+            if (holds.size != 0)
+            {
+                repetition_ = holds;
+                return repetition_;
+            }
+        }
+
+        return repetition_;
+    }
+
+    int Sequence::detect_rf_uses(double b0, double gamma)
+    {
+        /** One shape, as the samples it stands for. */
+        const auto samples_of = [&](int id) -> std::vector<double> {
+            if (id < 1 || id > shapes_.size())
+                return {};
+            return decompress_shape(
+                shapes_.samples(id), shapes_.num_compressed(id), shapes_.num_uncompressed(id));
+        };
+
+        /* Where fat sits relative to water, in parts per million. A
+         * saturation pulse is put there on purpose and nothing else is. */
+        constexpr double kFatPpmLow = -3.5;
+        constexpr double kFatPpmHigh = -3.4;
+        /* Long enough to be selective in frequency rather than in space. */
+        constexpr double kSaturationDuration = 6e-3;
+        /* Ninety degrees, with room for a short pulse's rounding. */
+        constexpr double kExcitationDegrees = 90.01;
+
+        int labelled = 0;
+        for (int id = 1; id <= rf_.size(); ++id)
+        {
+            if (id <= static_cast<int>(rf_use_.size()) && rf_use_[static_cast<size_t>(id) - 1] != 'u')
+                continue;
+
+            const double* row = rf_.row(id);
+            const std::vector<double> magnitude = samples_of(static_cast<int>(row[1]));
+            const std::vector<double> phase = samples_of(static_cast<int>(row[2]));
+            const int time_shape = static_cast<int>(row[3]);
+
+            std::vector<double> t;
+            if (time_shape > 0)
+            {
+                t = samples_of(time_shape);
+                for (size_t i = 0; i < t.size(); ++i)
+                    t[i] *= rf_raster_;
+            }
+            else
+            {
+                t.resize(magnitude.size());
+                for (size_t i = 0; i < t.size(); ++i)
+                    t[i] = (static_cast<double>(i) + 0.5) * rf_raster_;
+            }
+
+            /* The flip angle is the envelope integrated over its own times,
+             * in turns; the magnitude of that, in degrees. */
+            double real = 0.0;
+            double imaginary = 0.0;
+            for (size_t i = 0; i + 1 < magnitude.size() && i + 1 < t.size(); ++i)
+            {
+                const double turns =
+                    6.283185307179586476925286766559 * (i < phase.size() ? phase[i] : 0.0);
+                const double weight = row[0] * magnitude[i] * (t[i + 1] - t[i]);
+                real += weight * std::cos(turns);
+                imaginary += weight * std::sin(turns);
+            }
+            const double degrees = std::sqrt(real * real + imaginary * imaginary) * 360.0;
+
+            const double shape_dur = time_shape > 0
+                ? (t.empty() ? 0.0 : t.back())
+                : static_cast<double>(magnitude.size()) * rf_raster_;
+            const double ppm =
+                (b0 != 0.0 && gamma != 0.0) ? 1e6 * row[8] / b0 / gamma : 0.0;
+
+            char use = 'r';
+            if (degrees < kExcitationDegrees)
+                use = 'e';
+            else if (shape_dur > kSaturationDuration && ppm >= kFatPpmLow && ppm <= kFatPpmHigh)
+                use = 's';
+
+            if (static_cast<int>(rf_use_.size()) < id)
+                rf_use_.resize(static_cast<size_t>(id), 'u');
+            rf_use_[static_cast<size_t>(id) - 1] = use;
+            ++labelled;
+        }
+
+        if (labelled != 0)
+        {
+            /* What a pulse is for is part of what makes it the definition it
+             * is, so labelling one can split a definition two pulses shared:
+             * an excitation and a refocusing off the same shape are one
+             * definition while both are unlabelled and two once they are
+             * not. The tables that say so are re-derived here rather than
+             * left saying what was true before.
+             *
+             * Two rows the libraries could not tell apart may now differ too,
+             * so a collapse already done no longer covers them. */
+            deduplicated_ = false;
+            rebuild_definitions();
+        }
+        return labelled;
+    }
+
+    SoftDelayReport Sequence::apply_soft_delays(const std::map<std::string, double>& values)
+    {
+        SoftDelayReport report;
+
+        const int delay_type = find_extension_type_id("DELAYS");
+        if (delay_type <= 0)
+            return report;
+
+        const double raster = block_duration_raster();
+        /* Durations are written in place below, so the table is taken away
+         * from any view still reading it before the walk starts. */
+        double* durations = block_durations();
+        std::map<std::string, int32_t> number_of;
+        std::map<int32_t, std::string> hint_of;
+        std::map<int32_t, bool> warned;
+
+        const int32_t* row = blocks_->data();
+        const size_t count = blocks_->size() / BLOCK_WIDTH;
+
+        for (size_t index = 0; index < count; ++index, row += BLOCK_WIDTH)
+        {
+            /* At most one soft delay per block, the last its chain names. */
+            int32_t found = 0;
+            int32_t node = row[5];
+            while (node > 0 && node <= extensions_.size())
+            {
+                const int32_t* link = extensions_.row(node);
+                if (link[0] == delay_type)
+                    found = link[1];
+                node = link[2];
+            }
+            if (found < 1 || found > static_cast<int32_t>(soft_delays_.size()))
+                continue;
+
+            const SoftDelay& delay = soft_delays_[static_cast<size_t>(found) - 1];
+            const int block = static_cast<int>(index) + 1;
+
+            /* A hint and a number name the same delay, so each has to name
+             * the other everywhere it appears. */
+            const std::map<std::string, int32_t>::const_iterator numbered =
+                number_of.find(delay.hint);
+            if (numbered == number_of.end())
+                number_of[delay.hint] = delay.num;
+            else if (numbered->second != delay.num)
+            {
+                report.problem = SoftDelayReport::Problem::HintRenumbered;
+                report.block = block;
+                report.hint = delay.hint;
+                report.num = delay.num;
+                return report;
+            }
+
+            const std::map<int32_t, std::string>::const_iterator named =
+                hint_of.find(delay.num);
+            if (named == hint_of.end())
+            {
+                hint_of[delay.num] = delay.hint;
+                report.hints.push_back(delay.hint);
+            }
+            else if (named->second != delay.hint)
+            {
+                report.problem = SoftDelayReport::Problem::NumberRenamed;
+                report.block = block;
+                report.hint = delay.hint;
+                report.num = delay.num;
+                return report;
+            }
+
+            const std::map<std::string, double>::const_iterator asked =
+                values.find(delay.hint);
+            if (asked == values.end())
+                continue;
+
+            const double wanted = asked->second / delay.factor + delay.offset;
+            const double rounded = std::nearbyint(wanted / raster) * raster;
+
+            /* Half a microsecond: below that the move is the raster doing
+             * its job, above it the caller did not get what they asked for. */
+            const double missed = std::fabs(rounded - wanted);
+            if (missed > 0.5e-6 && !warned[delay.num])
+            {
+                warned[delay.num] = true;
+                SoftDelayReport::Rounding note;
+                note.block = block;
+                note.hint = delay.hint;
+                note.num = delay.num;
+                note.error = missed;
+                report.rounded.push_back(note);
+            }
+
+            if (rounded < 0.0)
+            {
+                report.problem = SoftDelayReport::Problem::Negative;
+                report.block = block;
+                report.hint = delay.hint;
+                report.num = delay.num;
+                report.duration = rounded;
+                report.offset = delay.offset;
+                report.factor = delay.factor;
+                return report;
+            }
+
+            durations[index] = rounded;
+        }
+
+        return report;
+    }
+
+    std::array<int64_t, BLOCK_WIDTH> Sequence::event_counts() const
+    {
+        std::array<int64_t, BLOCK_WIDTH> counts{};
+        const int32_t* row = blocks_->data();
+        const size_t rows = blocks_->size() / BLOCK_WIDTH;
+        for (size_t block = 0; block < rows; ++block, row += BLOCK_WIDTH)
+        {
+            for (int column = 0; column < BLOCK_WIDTH; ++column)
+                counts[static_cast<size_t>(column)] += row[column] > 0 ? 1 : 0;
+        }
+        return counts;
     }
 
 } // namespace pulseq

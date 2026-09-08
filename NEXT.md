@@ -39,3 +39,50 @@ three further questions, none of which is a raster question:
   a check that writes to the sequence it is judging is a surprise, so if this
   is wanted it should be split into a check and a `set_definition` the caller
   makes.
+
+## The rest of `Sequence`
+
+The one-line methods, the aliases and the no-ops are in. What is left, by
+what it would take:
+
+**Open.** `sound`, deferred with `plot`.
+
+## The analysis family
+
+`test_report` and `test_report_dict` read as a summary of a sequence -- block
+and event counts, duration, TE and TR, flip angles, unique k-space positions,
+dimensions, spatial resolution, repetitions, Cartesian or not, and the maximum
+gradient and slew. Only the counts come from what is here; TE, TR, the k-space
+lines and the gradient maxima all come out of `waveforms_and_times` and
+`calculate_kspace`, which the report calls before it computes anything.
+
+So the report is not a method to write on its own. It is the first consumer of
+those two, and so are `plot`, `paper_plot`, `get_gradients` and the FOV
+transform. Whichever lands first, they are what to build:
+
+- `waveforms_and_times`, which expands every block onto a common time base --
+  a pass over the block table, and the foundation the rest sit on.
+- `calculate_kspace`, which integrates those into a trajectory.
+
+The repeating unit is already found (`detect_tr`), so an analysis that only
+needs one shot does not have to look at the whole scan to find it.
+
+## What a block reads back as
+
+`get_block` answers with the compiled event types rather than with
+namespaces, so one object serves twice: in Python it reads the way an event
+from a factory reads, and handed to `add_block` or `set_block` it takes the
+fast path. It carries the shapes it was stored under, so a sequence read out
+block by block and put back registers no waveform twice and writes the same
+file. A whole block can be passed on as it stands, which is how a block moves
+between sequences with its duration intact -- the only place a block that
+plays nothing keeps how long it waits.
+
+That is what every method reading a sequence needs, so the ones still to
+write -- the plotting and analysis below among them -- have what they read
+from.
+
+**Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
+`calc_rf_power` -- and plotting and analysis -- `plot`, `paper_plot`,
+`calculate_kspace`, `auto_label`, `evaluate_labels`, `get_gradients`,
+`waveforms`, `waveforms_and_times`, `adc_times`, `rf_times`.

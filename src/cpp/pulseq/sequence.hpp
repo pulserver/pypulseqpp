@@ -563,6 +563,70 @@ namespace pulseq
         RaggedTable data_;
     };
 
+    /**
+     * What applying soft delay values found.
+     *
+     * The pass is over the block table rather than over decoded blocks, so
+     * what it reports is the little that a caller has to be told about: which
+     * delays the sequence carries, where a duration had to be moved onto the
+     * raster, and the first thing that was wrong. The wording is left to the
+     * caller, which is where the toolbox's own messages live.
+     */
+    struct SoftDelayReport
+    {
+        /** What a duration was rounded by to reach the block raster. */
+        struct Rounding
+        {
+            int block = 0;
+            std::string hint;
+            int32_t num = 0;
+            double error = 0.0;
+        };
+
+        /** What stopped the pass, if anything did. */
+        enum class Problem
+        {
+            None,
+            /** One hint under two numbers. */
+            HintRenumbered,
+            /** One number under two hints. */
+            NumberRenamed,
+            /** The value asked for makes the block last less than nothing. */
+            Negative
+        };
+
+        /** Every hint the sequence carries, in the order first seen. */
+        std::vector<std::string> hints;
+        std::vector<Rounding> rounded;
+
+        Problem problem = Problem::None;
+        int block = 0;
+        std::string hint;
+        int32_t num = 0;
+        double duration = 0.0;
+        double offset = 0.0;
+        double factor = 0.0;
+    };
+
+    /**
+     * The repeating unit of a scan, in blocks.
+     *
+     * A scan is a handful of things played over and over with different
+     * numbers in them, and the stream of block definition ids is where that
+     * shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase encode
+     * is doing. This is the period of that stream and where it starts, so the
+     * blocks before `start` are the prologue -- dummy shots, preparation --
+     * and everything from there on is the scan repeating.
+     *
+     * A `size` of zero means no repetition was found, which is the honest
+     * answer for a sequence that plays each position once.
+     */
+    struct Repetition
+    {
+        int size = 0;
+        int start = 0;
+    };
+
     /** One soft-delay row: a numeric id, an offset, a factor, and a hint name. */
     struct SoftDelay
     {
@@ -992,6 +1056,86 @@ namespace pulseq
         int register_label_inc(int32_t value, int32_t label_id);
         int register_rf_shim(const double* values, int count);
         int register_soft_delay(const SoftDelay& row);
+
+        /**
+         * The number @p hint is addressed by, assigning one if it is new.
+         *
+         * A soft delay is named in a design script and numbered in the file,
+         * and the number is the sequence's to hand out: every block naming
+         * the same hint has to get the same one, and no two hints may share.
+         *
+         * Asked where an event is registered, not where a row is stored: a
+         * file being read carries the numbers it was written with, and
+         * nothing may renumber those.
+         *
+         * @param hint       What the delay is called.
+         * @param requested  The number asked for, or a negative one to be
+         *                   given the next free.
+         * @throws std::invalid_argument if @p hint already has a different
+         *         number, or @p requested already belongs to another hint.
+         */
+        int32_t soft_delay_number(const std::string& hint, int32_t requested);
+
+        /**
+         * Set each named soft delay to the value given, in block durations.
+         *
+         * A soft delay says how long its block lasts in terms of a value the
+         * console supplies: `duration = value / factor + offset`, rounded onto
+         * the block raster. This walks the block table, finds the soft delay
+         * each block heads without decoding anything else, and writes the
+         * durations back.
+         *
+         * Blocks are written as they are reached, so a sequence stopped by a
+         * problem has the blocks before it already moved -- which is what the
+         * toolbox does, and what a caller correcting the problem expects.
+         *
+         * @param values  What each delay, by its hint, is to be set to.
+         * @return What was found; see SoftDelayReport.
+         */
+        SoftDelayReport apply_soft_delays(const std::map<std::string, double>& values);
+
+        /**
+         * Work out what each unlabelled pulse is for, from what it does.
+         *
+         * Before revision 1.5.0 the format had nowhere to record whether a
+         * pulse excites, refocuses or saturates, so a file older than that
+         * arrives with its pulses unlabelled and the answer has to be read
+         * off the pulse itself: anything up to ninety degrees excites, a long
+         * pulse sitting where fat resonates saturates, and the rest
+         * refocuses.
+         *
+         * Only pulses the file did not label are touched, so nothing a
+         * sequence already states about itself is overwritten.
+         *
+         * @param b0     Field strength in tesla, for the fat offset.
+         * @param gamma  Gyromagnetic ratio in Hz/T.
+         * @return How many pulses were labelled.
+         */
+        int detect_rf_uses(double b0, double gamma);
+
+        /**
+         * The repeating unit of the scan, found once and remembered.
+         *
+         * Cheap because the structural fork has already done the hard part:
+         * two blocks playing the same things for the same length share a
+         * definition id whatever their amplitudes, so finding the repeat is
+         * finding the period of an array of integers rather than comparing
+         * blocks event by event.
+         *
+         * Adding or rewriting a block makes the answer stale, and the next
+         * call works it out again.
+         */
+        Repetition repetition();
+
+        /**
+         * Where a repeating unit of @p size starts, if it repeats at all.
+         *
+         * For a caller who already knows the period -- a file that records
+         * it, a protocol that fixes it -- and wants to know how much of the
+         * sequence is prologue. Returns a size of zero if the stream does not
+         * in fact repeat with that period.
+         */
+        Repetition locate_repetition(int size) const;
         int register_shape(int num_uncompressed, const double* samples, int count);
 
         /**
@@ -1097,6 +1241,31 @@ namespace pulseq
 
         /** Total playing time, the sum of the block durations. */
         double duration() const;
+
+        /**
+         * Scale every gradient played on @p axis by @p modifier.
+         *
+         * Only the amplitude moves: the ramps, the delay and the shape stay
+         * as they are, so the definition a gradient belongs to is the one it
+         * belonged to before and nothing has to be re-derived. An arbitrary
+         * gradient's stored first and last samples scale with it, since those
+         * are amplitudes too.
+         *
+         * @param axis      0, 1 or 2 for x, y or z.
+         * @param modifier  What to multiply by; -1 inverts, 0 silences.
+         * @throws std::runtime_error if a gradient row is played on this axis
+         *         and on another, where there is no one answer.
+         */
+        void scale_gradient_axis(int axis, double modifier);
+
+        /**
+         * How many blocks carry an event in each column of the block table.
+         *
+         * One pass over the integer columns, which is what makes it worth
+         * asking of a million-block scan at all: the same count taken in
+         * Python builds a boolean array the size of the table first.
+         */
+        std::array<int64_t, BLOCK_WIDTH> event_counts() const;
 
         /* -- deduplication ------------------------------------------------ */
 
@@ -1370,6 +1539,8 @@ namespace pulseq
         RaggedTable rf_shim_;
         ShapeLibrary shapes_;
         std::vector<SoftDelay> soft_delays_;
+        /** What each soft delay hint is numbered as. */
+        std::map<std::string, int32_t> soft_delay_hints_;
 
         /** grad id (1-based) -> +trap row / -arb row.  See the file comment. */
         std::vector<int32_t> grad_slot_;
@@ -1411,6 +1582,9 @@ namespace pulseq
         std::vector<int32_t> grad_def_;         /**< by gradient id - 1 */
         std::vector<int32_t> adc_def_;          /**< by ADC id - 1 */
         std::vector<int32_t> instance_def_;     /**< by block - 1 */
+        /** The repeating unit, once someone has asked for it. */
+        Repetition repetition_;
+        bool repetition_known_ = false;
         std::vector<int32_t> instance_adc_def_; /**< by block - 1 */
 
         /**

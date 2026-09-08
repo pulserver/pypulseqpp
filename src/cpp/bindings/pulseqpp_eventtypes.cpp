@@ -437,8 +437,68 @@ namespace pulseqpp_types
             PULSEQPP_COMPAT_MEMBERS(GradEvent),
             {nullptr, 0, 0, 0, nullptr}};
 
+        /**
+         * How long the waveform lasts.
+         *
+         * On the raster the samples sit at the centre of each interval, so
+         * the waveform runs half a raster past its last one; oversampled by
+         * two it runs half a step past; and a waveform with times of its own
+         * ends where they say.
+         */
+        PyObject* grad_get_shape_dur(PyObject* self, void*)
+        {
+            const GradEvent& g = unwrap<GradEvent>(self);
+            const double count = static_cast<double>(grad_count(g));
+            if (g.tt_grid == 1)
+                return PyFloat_FromDouble(count * g.tt_raster);
+            if (g.tt_grid == 2)
+                return PyFloat_FromDouble((count + 1.0) * 0.5 * g.tt_raster);
+            return PyFloat_FromDouble(g.last_time);
+        }
+
+        /**
+         * The gradient's zeroth moment.
+         *
+         * On the raster the samples are the intervals, so the area is their
+         * sum; a waveform oversampled by two carries every other sample twice
+         * over and only the odd ones count; and a waveform with times of its
+         * own is integrated between them.
+         */
+        PyObject* grad_get_area(PyObject* self, void*)
+        {
+            const GradEvent& g = unwrap<GradEvent>(self);
+            const int count = grad_count(g);
+            double area = 0.0;
+
+            if (g.tt_grid == 1)
+            {
+                for (int i = 0; i < count; ++i)
+                    area += grad_shape_at(g, i);
+                area *= g.amplitude * g.tt_raster;
+            }
+            else if (g.tt_grid == 2)
+            {
+                for (int i = 0; i < count; i += 2)
+                    area += grad_shape_at(g, i);
+                area *= g.amplitude * g.tt_raster;
+            }
+            else
+            {
+                const int held = static_cast<int>(g.tt.size());
+                for (int i = 0; i + 1 < count && i + 1 < held; ++i)
+                {
+                    area += 0.5 * (g.tt[static_cast<size_t>(i) + 1] - g.tt[static_cast<size_t>(i)]) *
+                        (grad_shape_at(g, i + 1) + grad_shape_at(g, i));
+                }
+                area *= g.amplitude;
+            }
+            return PyFloat_FromDouble(area);
+        }
+
         PyGetSetDef grad_getset[] = {
             {"type", grad_type, nullptr, nullptr, nullptr},
+            {"shape_dur", grad_get_shape_dur, nullptr, nullptr, nullptr},
+            {"area", grad_get_area, nullptr, nullptr, nullptr},
             {"channel", grad_get_channel, grad_set_channel, nullptr, nullptr},
             {"waveform", grad_get_waveform, grad_set_waveform, nullptr, nullptr},
             {"shape", grad_get_shape, nullptr, nullptr, nullptr},
@@ -459,9 +519,9 @@ namespace pulseqpp_types
 
         PyObject* adc_get_phase_modulation(PyObject* self, void*)
         {
+            // An empty array rather than None, which is what a decoded block
+            // carries and what arithmetic over it survives.
             const AdcEvent& event = unwrap<AdcEvent>(self);
-            if (event.phase_modulation.empty())
-                Py_RETURN_NONE;
             return guarded([&] { return samples_of(event.phase_modulation); });
         }
 
@@ -559,8 +619,39 @@ namespace pulseqpp_types
             PULSEQPP_COMPAT_MEMBERS(TriggerEvent),
             {nullptr, 0, 0, 0, nullptr}};
 
+        /** The line, by the name Pulseq gives it. */
+        PyObject* trigger_get_channel(PyObject* self, void*)
+        {
+            const TriggerEvent& e = unwrap<TriggerEvent>(self);
+            const char* name = "osc0";
+            if (e.control == 2.0)
+                name = e.channel == 2.0 ? "physio2" : "physio1";
+            else
+                name = e.channel == 2.0 ? "osc1" : (e.channel == 3.0 ? "ext1" : "osc0");
+            return PyUnicode_FromString(name);
+        }
+
+        int trigger_set_channel(PyObject* self, PyObject* value, void*)
+        {
+            return guarded_set(value, [&](const py::object& given) {
+                const std::string name = given.cast<std::string>();
+                TriggerEvent& e = unwrap<TriggerEvent>(self);
+                if (name == "physio1" || name == "physio2")
+                {
+                    e.control = 2.0;
+                    e.channel = name == "physio2" ? 2.0 : 1.0;
+                }
+                else
+                {
+                    e.control = 1.0;
+                    e.channel = name == "osc1" ? 2.0 : (name == "ext1" ? 3.0 : 1.0);
+                }
+            });
+        }
+
         PyGetSetDef trigger_getset[] = {
             {"type", trigger_type, nullptr, nullptr, nullptr},
+            {"channel", trigger_get_channel, trigger_set_channel, nullptr, nullptr},
             {nullptr, nullptr, nullptr, nullptr, nullptr}};
 
         /* ============================================================== */
@@ -817,6 +908,43 @@ namespace pulseqpp_types
             PyDoc_STR("_scale_grad(grad, scale) -> scaled copy")};
 
     } // namespace
+
+    py::object new_rf()
+    {
+        return fresh<RfEvent>(RfType);
+    }
+    py::object new_trap()
+    {
+        return fresh<TrapEvent>(TrapType);
+    }
+    py::object new_grad()
+    {
+        return fresh<GradEvent>(GradType);
+    }
+    py::object new_adc()
+    {
+        return fresh<AdcEvent>(AdcType);
+    }
+    py::object new_label()
+    {
+        return fresh<LabelEvent>(LabelType);
+    }
+    py::object new_trigger()
+    {
+        return fresh<TriggerEvent>(TriggerType);
+    }
+    py::object new_rotation()
+    {
+        return fresh<RotationEvent>(RotationType);
+    }
+    py::object new_soft_delay()
+    {
+        return fresh<SoftDelayEvent>(SoftDelayType);
+    }
+    py::object new_delay()
+    {
+        return fresh<DelayEvent>(DelayType);
+    }
 
     void bind(py::module_& m)
     {
@@ -1138,7 +1266,13 @@ namespace pulseqpp_types
             {
                 py::object made = fresh<SoftDelayEvent>(SoftDelayType);
                 SoftDelayEvent& e = unwrap<SoftDelayEvent>(made.ptr());
-                e.num = static_cast<int32_t>(source.attr("numID").cast<double>());
+                // A factory leaves `numID` unset when the caller did not
+                // choose one; the sequence hands out the number at
+                // registration, from the hint. -1 says "not yet".
+                py::object number = source.attr("numID");
+                e.num = number.is_none()
+                    ? -1
+                    : static_cast<int32_t>(number.cast<double>());
                 e.offset = source.attr("offset").cast<double>();
                 e.factor = source.attr("factor").cast<double>();
                 e.hint = source.attr("hint").cast<std::string>();
