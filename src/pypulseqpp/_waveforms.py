@@ -40,12 +40,12 @@ _EPS = 1e-9
 def _expand(seq, append_rf=False, time_range=None, block_range=None):
     """Run the compiled pass, and say what it had to complain about."""
     if block_range is not None and time_range is not None:
-        raise ValueError("Specify either blockRange or time_range, not both")
+        raise ValueError("Specify either block_range or time_range, not both")
 
     first, last, elapsed = 1, 0, 0.0
     if block_range is not None:
         if len(block_range) != 2:
-            raise ValueError("parameter 'blockRange' must contain exactly two numbers")
+            raise ValueError("parameter 'block_range' must contain exactly two numbers")
         first = max(int(block_range[0]), 1)
         last = 0 if not np.isfinite(block_range[1]) else int(block_range[1])
     elif time_range is not None:
@@ -60,15 +60,6 @@ def _expand(seq, append_rf=False, time_range=None, block_range=None):
         b0=_of(system, "B0", 1.5),
         gamma=_of(system, "gamma", 42576000.0),
     )
-
-    if expanded["rotated_blocks"]:
-        blocks = expanded["rotated_blocks"]
-        raise NotImplementedError(
-            f"waveforms_and_times() cannot yet expand a rotated block; "
-            f"{len(blocks)} of them, first at block {blocks[0]}. A rotation "
-            f"remaps a block's gradients onto other axes, which is a different "
-            f"waveform on each rather than this one moved."
-        )
 
     for complaint in expanded["warnings"]:
         warn(complaint, stacklevel=3)
@@ -101,7 +92,9 @@ def _shifted(times, elapsed):
     return times if elapsed == 0.0 else times + elapsed
 
 
-def waveforms_and_times(seq, append_RF: bool = False, time_range=None, blockRange=None):
+def waveforms_and_times(
+    seq, append_RF: bool = False, time_range=None, block_range=None
+):
     """Return the gradient waveforms, the RF moments and the ADC sampling.
 
     Parameters
@@ -112,7 +105,7 @@ def waveforms_and_times(seq, append_RF: bool = False, time_range=None, blockRang
         Also return the RF envelope, as a fourth channel.
     time_range : list of float, optional
         Two times in seconds; only the blocks they touch are expanded.
-    blockRange : sequence of int, optional
+    block_range : sequence of int, optional
         Two 1-based block indices. Not with ``time_range``.
 
     Returns
@@ -131,7 +124,7 @@ def waveforms_and_times(seq, append_RF: bool = False, time_range=None, blockRang
     pm_adc : np.ndarray
         The phase modulation of each sample.
     """
-    expanded, elapsed = _expand(seq, append_RF, time_range, blockRange)
+    expanded, elapsed = _expand(seq, append_RF, time_range, block_range)
     waves = [np.array(channel, copy=True) for channel in expanded["wave_data"]]
     if elapsed:
         for channel in waves:
@@ -156,9 +149,9 @@ def _shift_row(moments, elapsed):
     return moved
 
 
-def waveforms(seq, append_RF: bool = False, time_range=None, blockRange=None):
+def waveforms(seq, append_RF: bool = False, time_range=None, block_range=None):
     """Return the gradient waveforms alone. See :func:`waveforms_and_times`."""
-    return waveforms_and_times(seq, append_RF, time_range, blockRange)[0]
+    return waveforms_and_times(seq, append_RF, time_range, block_range)[0]
 
 
 def adc_times(seq, time_range=None):
@@ -221,7 +214,7 @@ def get_gradients(
     trajectory_delay=0,
     gradient_offset=0,
     time_range=None,
-    blockRange=None,
+    block_range=None,
 ):
     """Return each gradient axis as a piecewise polynomial.
 
@@ -237,7 +230,7 @@ def get_gradients(
         How late each axis plays what it was asked to, in seconds.
     gradient_offset : float or sequence of float, default 0
         A background gradient per axis, in Hz/m.
-    time_range, blockRange
+    time_range, block_range
         As for :func:`waveforms_and_times`.
 
     Returns
@@ -255,9 +248,9 @@ def get_gradients(
             stacklevel=2,
         )
 
-    channels = waveforms(seq, time_range=time_range, blockRange=blockRange)
+    channels = waveforms(seq, time_range=time_range, block_range=block_range)
     axes = len(channels)
-    total = _durations_within(seq, time_range, blockRange)
+    total = _durations_within(seq, time_range, block_range)
 
     delays = _per_axis(trajectory_delay, axes)
     offsets = _per_axis(gradient_offset, axes)

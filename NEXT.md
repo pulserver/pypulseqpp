@@ -64,20 +64,18 @@ counts and the gradient maxima it also wants are already reachable.
 The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.
 
-## A rotated block
+## Where a name differs from the toolbox
 
-`waveforms_and_times` refuses a block carrying a rotation rather than
-expanding it wrongly. A rotation remaps a block's gradients onto other axes,
-so one gradient becomes up to three and two on one axis have to be added --
-which the toolbox does with `add_gradients`, resampling onto a common raster.
+`waveforms_and_times` and its family take `block_range`, where
+`pypulseq-matlab-like` spells it `blockRange`. Upstream PyPulseq has no such
+parameter at all -- only `time_range` -- so there is no drop-in contract to
+keep, and every other name here is snake_case.
 
-Doing it on the waveforms instead is the same arithmetic and less machinery:
-the corners are already there, and a linear combination of piecewise-linear
-waveforms over the union of their breakpoints is exact. What it will not be
-is point-for-point what `add_gradients` produces, so the parity test for that
-one sequence has to compare the waveform as a function -- read at common
-times -- rather than the array. That is the decision to make before writing
-it.
+`waveforms_and_times` returns six values, as the toolbox does; upstream
+returns five, having no `pm_adc`. A script unpacking upstream's five breaks
+on six. The sixth carries the ADC phase modulation, which is a 1.5 feature
+upstream's return predates and which `calculate_kspace` needs, so it is kept
+-- but it is a difference from upstream worth knowing about.
 
 ## What a block reads back as
 

@@ -64,6 +64,24 @@ namespace pulseq
             std::vector<double> empty_;
         };
 
+        /**
+         * One gradient's corners, relative to the start of its own delay.
+         *
+         * A gradient plays the same shape every time it is played -- only
+         * where it starts moves -- so the corners are worked out once per
+         * gradient and offset per block. For a readout repeated a hundred
+         * thousand times that turns the whole of `restore_shape_corners` into
+         * one pass instead of a hundred thousand.
+         */
+        struct Corners
+        {
+            std::vector<double> times;
+            std::vector<double> values;
+            double delay = 0.0;
+            bool known = false;
+            bool empty_with_amplitude = false;
+        };
+
         /** One channel of the answer, stitched together as pieces arrive. */
         struct Channel
         {
@@ -81,10 +99,61 @@ namespace pulseq
          * sequence that leaves a gradient hanging is told so rather than
          * quietly ramped.
          */
+        /**
+         * A gradient's value at @p when, zero outside what it plays.
+         *
+         * The waveform is played by interpolating between its corners, so
+         * reading it between two of them is that same interpolation. Outside
+         * its own span the axis is off.
+         */
+        double sampled(
+            const std::vector<double>& times,
+            const std::vector<double>& values,
+            double offset,
+            double when)
+        {
+            const size_t count = times.size();
+            if (count == 0 || when < times.front() + offset || when > times.back() + offset)
+                return 0.0;
+
+            const size_t after = static_cast<size_t>(std::distance(
+                times.begin(),
+                std::lower_bound(times.begin(), times.end(), when - offset)));
+            if (after == 0)
+                return values.front();
+
+            const double before_t = times[after - 1] + offset;
+            const double after_t = times[after] + offset;
+            const double span = after_t - before_t;
+            if (span <= 0.0)
+                return values[after];
+            const double along = (when - before_t) / span;
+            return values[after - 1] + along * (values[after] - values[after - 1]);
+        }
+
+        /** A rotation matrix from a quaternion stored as w, x, y, z. */
+        void rotation_matrix(const double* q, double into[3][3])
+        {
+            const double w = q[0];
+            const double x = q[1];
+            const double y = q[2];
+            const double z = q[3];
+            into[0][0] = 1.0 - 2.0 * (y * y + z * z);
+            into[0][1] = 2.0 * (x * y - w * z);
+            into[0][2] = 2.0 * (x * z + w * y);
+            into[1][0] = 2.0 * (x * y + w * z);
+            into[1][1] = 1.0 - 2.0 * (x * x + z * z);
+            into[1][2] = 2.0 * (y * z - w * x);
+            into[2][0] = 2.0 * (x * z - w * y);
+            into[2][1] = 2.0 * (y * z + w * x);
+            into[2][2] = 1.0 - 2.0 * (x * x + y * y);
+        }
+
         void extend(
             Channel& channel,
             const std::vector<double>& times,
             const std::vector<double>& values,
+            double offset,
             double raster,
             std::vector<std::string>& warnings)
         {
@@ -94,18 +163,18 @@ namespace pulseq
             std::vector<double>& into_t = *channel.times;
             std::vector<double>& into_v = *channel.values;
 
-            if (into_t.empty())
-            {
-                into_t = times;
-                into_v = values;
-                return;
-            }
+            double first_time = times.front() + offset;
+            double first_value = values.front();
+            /* Where the piece starts being new. Everything a gap or an
+             * overlap changes is at one end or the other, so the piece is
+             * never copied to be adjusted -- what changes is which sample it
+             * is appended from, and one value at each edge. */
+            size_t from = 0;
 
-            std::vector<double> piece_t = times;
-            std::vector<double> piece_v = values;
-
-            if (into_t.back() + raster < piece_t.front())
+            if (!into_t.empty() && into_t.back() + raster < first_time)
             {
+                /* A gap: the gradient is off in between, so the one before
+                 * has to reach zero and the one after start there. */
                 if (into_v.back() != 0.0)
                 {
                     if (std::fabs(into_v.back()) > 1e-6)
@@ -127,51 +196,52 @@ namespace pulseq
                         into_v.back() = 0.0;
                     }
                 }
-                if (piece_v.front() != 0.0)
+                if (first_value != 0.0)
                 {
-                    if (std::fabs(piece_v.front()) > 1e-6)
+                    if (std::fabs(first_value) > 1e-6)
                     {
                         warnings.push_back(
                             "waveforms_and_times(): forcing ramp-up to a non-zero "
                             "gradient sample on axis " +
                             std::to_string(channel.axis) + " at t=" +
-                            microseconds(piece_t.front()) +
+                            microseconds(first_time) +
                             " us \ncheck your sequence, some calculations are probably "
                             "wrong. If using mr.makeArbitraryGrad() consider using "
                             "explicit values for 'first' and 'last' and setting them "
                             "correctly.");
-                        piece_t.insert(piece_t.begin(), piece_t.front() - raster / 2.0);
-                        piece_v.insert(piece_v.begin(), 0.0);
+                        into_t.push_back(first_time - raster / 2.0);
+                        into_v.push_back(0.0);
                     }
                     else
                     {
-                        piece_v.front() = 0.0;
+                        first_value = 0.0;
                     }
                 }
             }
 
-            if (into_t.back() < piece_t.front() - kEps)
+            if (!into_t.empty() && into_t.back() >= first_time - kEps)
             {
-                into_t.insert(into_t.end(), piece_t.begin(), piece_t.end());
-                into_v.insert(into_v.end(), piece_v.begin(), piece_v.end());
-                return;
+                /* The pieces meet or overlap: keep only what comes after what
+                 * is already there. */
+                if (first_time < into_t.back() - kEps)
+                    warnings.push_back(
+                        "Warning: looks like rounding errors for some elements exceed "
+                        "the acceptable tolerance!");
+                while (from < times.size() && times[from] + offset <= into_t.back() + kEps)
+                    ++from;
             }
 
-            /* The pieces meet or overlap: keep only what comes after what is
-             * already there. */
-            if (piece_t.front() < into_t.back() - kEps)
-                warnings.push_back(
-                    "Warning: looks like rounding errors for some elements exceed the "
-                    "acceptable tolerance!");
-
-            size_t from = 0;
-            while (from < piece_t.size() && piece_t[from] <= into_t.back() + kEps)
-                ++from;
-            if (from < piece_t.size())
+            const size_t held = into_t.size();
+            const size_t adding = times.size() - from;
+            into_t.resize(held + adding);
+            into_v.resize(held + adding);
+            for (size_t i = 0; i < adding; ++i)
             {
-                into_t.insert(into_t.end(), piece_t.begin() + static_cast<long>(from), piece_t.end());
-                into_v.insert(into_v.end(), piece_v.begin() + static_cast<long>(from), piece_v.end());
+                into_t[held + i] = times[from + i] + offset;
+                into_v[held + i] = values[from + i];
             }
+            if (from == 0 && adding != 0)
+                into_v[held] = first_value;
         }
 
     } // namespace
@@ -272,6 +342,87 @@ namespace pulseq
 
         Shapes shapes(seq.shape_library());
 
+        /** Every gradient's corners, worked out the first time it is played. */
+        std::vector<Corners> cached(static_cast<size_t>(seq.num_gradients()) + 1);
+        const auto corners_of = [&](int32_t id) -> const Corners& {
+            Corners& made = cached[static_cast<size_t>(id)];
+            if (made.known)
+                return made;
+            made.known = true;
+
+            if (seq.grad_kind(id) == GradKind::Trap)
+            {
+                const double* trap = seq.trap_library().row(seq.grad_row(id));
+                const double amplitude = trap[0];
+                const double rise = trap[1];
+                const double flat = trap[2];
+                const double fall = trap[3];
+                made.delay = trap[4];
+
+                if (std::fabs(flat) > kEps)
+                {
+                    made.times = {0.0, rise, rise + flat, rise + flat + fall};
+                    made.values = {0.0, amplitude, amplitude, 0.0};
+                }
+                else if (std::fabs(rise) > kEps && std::fabs(fall) > kEps)
+                {
+                    made.times = {0.0, rise, rise + fall};
+                    made.values = {0.0, amplitude, 0.0};
+                }
+                else if (std::fabs(amplitude) > kEps)
+                {
+                    made.empty_with_amplitude = true;
+                }
+                return made;
+            }
+
+            const double* arb = seq.arb_library().row(seq.grad_row(id));
+            const double amplitude = arb[0];
+            const int shape = static_cast<int>(arb[3]);
+            const int time_shape = static_cast<int>(arb[4]);
+            made.delay = arb[5];
+
+            const std::vector<double>& normalised = shapes[shape];
+            std::vector<double> waveform(normalised.size());
+            for (size_t i = 0; i < normalised.size(); ++i)
+                waveform[i] = amplitude * normalised[i];
+
+            if (time_shape == 0)
+            {
+                /* Stored at the centre of each raster interval: the corners
+                 * in between have to be put back. */
+                restore_shape_corners(
+                    waveform, arb[1], arb[2], grad_raster, made.times, made.values);
+                return made;
+            }
+
+            const std::vector<double>& ticks = shapes[time_shape];
+            std::vector<double> tt(ticks.size());
+            for (size_t i = 0; i < ticks.size(); ++i)
+                tt[i] = ticks[i] * grad_raster;
+
+            /* Times of its own, but starting half a raster in: the shape says
+             * nothing about the edges, so the recorded first and last close it. */
+            const bool starts_at_a_centre =
+                !tt.empty() && std::fabs(tt[0] / grad_raster - 0.5) < 1e-6;
+            if (starts_at_a_centre)
+            {
+                made.times.push_back(0.0);
+                made.values.push_back(arb[1]);
+            }
+            for (size_t i = 0; i < tt.size(); ++i)
+            {
+                made.times.push_back(tt[i]);
+                made.values.push_back(waveform[i]);
+            }
+            if (starts_at_a_centre)
+            {
+                made.times.push_back(tt.empty() ? 0.0 : tt.back());
+                made.values.push_back(arb[2]);
+            }
+            return made;
+        };
+
         Channel channels[3];
         for (int axis = 0; axis < 3; ++axis)
         {
@@ -289,6 +440,10 @@ namespace pulseq
         const double* durations = seq.block_durations();
         const int32_t* events = seq.block_events();
 
+        /* Reused across blocks, so a rotated scan allocates once. */
+        std::vector<double> union_times;
+        std::vector<double> combined;
+
         double elapsed = 0.0;
         for (int index = first; index <= last; ++index)
         {
@@ -296,7 +451,7 @@ namespace pulseq
 
             /* A rotation remaps the gradients onto other axes, which is a
              * different waveform on each, not this one moved. */
-            bool rotated = false;
+            int32_t rotation_row = 0;
             if (rotation_type > 0 && row[5] > 0)
             {
                 int32_t node = row[5];
@@ -305,109 +460,114 @@ namespace pulseq
                 {
                     const int32_t* link = links.row(node);
                     if (link[0] == rotation_type)
-                        rotated = true;
+                        rotation_row = link[1];
                     node = link[2];
                 }
             }
-            if (rotated)
-                out.rotated_blocks.push_back(index);
 
-            std::vector<double> piece_t;
-            std::vector<double> piece_v;
-
-            for (int axis = 0; axis < 3 && !rotated; ++axis)
+            const Corners* played[3] = {nullptr, nullptr, nullptr};
+            for (int axis = 0; axis < 3; ++axis)
             {
                 const int32_t id = row[1 + axis];
                 if (id <= 0)
                     continue;
-
-                piece_t.clear();
-                piece_v.clear();
-
-                if (seq.grad_kind(id) == GradKind::Trap)
+                const Corners& shape = corners_of(id);
+                if (shape.empty_with_amplitude)
                 {
-                    const double* trap = seq.trap_library().row(seq.grad_row(id));
-                    const double amplitude = trap[0];
-                    const double rise = trap[1];
-                    const double flat = trap[2];
-                    const double fall = trap[3];
-                    const double start = elapsed + trap[4];
+                    out.warnings.push_back(
+                        "\"empty\" gradient with non-zero magnitude detected in block " +
+                        std::to_string(index));
+                    continue;
+                }
+                if (!shape.times.empty())
+                    played[axis] = &shape;
+            }
 
-                    if (std::fabs(flat) > kEps)
-                    {
-                        piece_t = {start, start + rise, start + rise + flat,
-                                   start + rise + flat + fall};
-                        piece_v = {0.0, amplitude, amplitude, 0.0};
-                    }
-                    else if (std::fabs(rise) > kEps && std::fabs(fall) > kEps)
-                    {
-                        piece_t = {start, start + rise, start + rise + fall};
-                        piece_v = {0.0, amplitude, 0.0};
-                    }
-                    else
-                    {
-                        if (std::fabs(amplitude) > kEps)
-                            out.warnings.push_back(
-                                "\"empty\" gradient with non-zero magnitude detected in "
-                                "block " +
-                                std::to_string(index));
+            if (rotation_row < 1 || rotation_row > seq.rotation_library().size())
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    if (played[axis] != nullptr)
+                        extend(
+                            channels[axis],
+                            played[axis]->times,
+                            played[axis]->values,
+                            elapsed + played[axis]->delay,
+                            grad_raster,
+                            out.warnings);
+                }
+            }
+            else
+            {
+                /* A rotation sends each axis's gradient onto all three, so
+                 * what a rotated block plays on one axis is a sum of the
+                 * three it was given. The waveforms are piecewise linear, so
+                 * that sum is exact on the union of their corners: a linear
+                 * combination of straight lines is a straight line between
+                 * the same points. */
+                double matrix[3][3];
+                rotation_matrix(seq.rotation_library().row(rotation_row), matrix);
+
+                union_times.clear();
+                double loudest = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    if (played[axis] == nullptr)
                         continue;
+                    const double start = elapsed + played[axis]->delay;
+                    for (size_t i = 0; i < played[axis]->times.size(); ++i)
+                    {
+                        union_times.push_back(played[axis]->times[i] + start);
+                        loudest = std::max(loudest, std::fabs(played[axis]->values[i]));
                     }
                 }
-                else
+                std::sort(union_times.begin(), union_times.end());
+                union_times.erase(
+                    std::unique(
+                        union_times.begin(),
+                        union_times.end(),
+                        [](double a, double b) { return std::fabs(a - b) <= kEps; }),
+                    union_times.end());
+
+                /* A component too small to matter is not played at all, and
+                 * an output axis that comes out silent is left alone rather
+                 * than given a flat zero of its own. */
+                const double floor = 1e-6;
+                for (int into = 0; into < 3; ++into)
                 {
-                    const double* arb = seq.arb_library().row(seq.grad_row(id));
-                    const double amplitude = arb[0];
-                    const int shape = static_cast<int>(arb[3]);
-                    const int time_shape = static_cast<int>(arb[4]);
-                    const double start = elapsed + arb[5];
-
-                    const std::vector<double>& normalised = shapes[shape];
-                    std::vector<double> waveform(normalised.size());
-                    for (size_t i = 0; i < normalised.size(); ++i)
-                        waveform[i] = amplitude * normalised[i];
-
-                    if (time_shape == 0)
+                    combined.assign(union_times.size(), 0.0);
+                    bool anything = false;
+                    for (int from = 0; from < 3; ++from)
                     {
-                        /* Stored at the centre of each raster interval: the
-                         * corners in between have to be put back. */
-                        restore_shape_corners(
-                            waveform, arb[1], arb[2], grad_raster, piece_t, piece_v);
-                        for (size_t i = 0; i < piece_t.size(); ++i)
-                            piece_t[i] += start;
+                        const double weight = matrix[into][from];
+                        if (played[from] == nullptr || std::fabs(weight) < floor)
+                            continue;
+                        anything = true;
+                        const double start = elapsed + played[from]->delay;
+                        for (size_t i = 0; i < union_times.size(); ++i)
+                            combined[i] += weight *
+                                sampled(played[from]->times,
+                                        played[from]->values,
+                                        start,
+                                        union_times[i]);
                     }
-                    else
-                    {
-                        const std::vector<double>& ticks = shapes[time_shape];
-                        std::vector<double> tt(ticks.size());
-                        for (size_t i = 0; i < ticks.size(); ++i)
-                            tt[i] = ticks[i] * grad_raster;
+                    if (!anything)
+                        continue;
 
-                        /* Times of its own, but starting half a raster in:
-                         * the shape says nothing about the edges, so the
-                         * recorded first and last values close it. */
-                        const bool starts_at_a_centre =
-                            !tt.empty() &&
-                            std::fabs(tt[0] / grad_raster - 0.5) < 1e-6;
-                        if (starts_at_a_centre)
-                        {
-                            piece_t.push_back(start);
-                            piece_v.push_back(arb[1]);
-                        }
-                        for (size_t i = 0; i < tt.size(); ++i)
-                        {
-                            piece_t.push_back(start + tt[i]);
-                            piece_v.push_back(waveform[i]);
-                        }
-                        if (starts_at_a_centre)
-                        {
-                            piece_t.push_back(start + (tt.empty() ? 0.0 : tt.back()));
-                            piece_v.push_back(arb[2]);
-                        }
-                    }
+                    double peak = 0.0;
+                    for (size_t i = 0; i < combined.size(); ++i)
+                        peak = std::max(peak, std::fabs(combined[i]));
+                    if (peak < floor * loudest)
+                        continue;
+
+                    extend(
+                        channels[into],
+                        union_times,
+                        combined,
+                        0.0,
+                        grad_raster,
+                        out.warnings);
                 }
-
-                extend(channels[axis], piece_t, piece_v, grad_raster, out.warnings);
             }
 
             if (row[0] > 0)

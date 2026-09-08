@@ -447,17 +447,17 @@ class Sequence:
     # -- what the sequence plays ---------------------------------------
 
     def waveforms_and_times(
-        self, append_RF: bool = False, time_range=None, blockRange=None
+        self, append_RF: bool = False, time_range=None, block_range=None
     ):
         """Return the gradient waveforms, the RF moments and the ADC sampling.
 
         See :func:`pypulseqpp._waveforms.waveforms_and_times`.
         """
-        return _waveforms_and_times(self, append_RF, time_range, blockRange)
+        return _waveforms_and_times(self, append_RF, time_range, block_range)
 
-    def waveforms(self, append_RF: bool = False, time_range=None, blockRange=None):
+    def waveforms(self, append_RF: bool = False, time_range=None, block_range=None):
         """Return the gradient waveforms alone, one 2-by-n array per axis."""
-        return _waveforms(self, append_RF, time_range, blockRange)
+        return _waveforms(self, append_RF, time_range, block_range)
 
     def adc_times(self, time_range=None):
         """Return when every ADC sample is taken, and each window's offsets."""
@@ -472,11 +472,11 @@ class Sequence:
         trajectory_delay=0,
         gradient_offset=0,
         time_range=None,
-        blockRange=None,
+        block_range=None,
     ):
         """Return each gradient axis as a piecewise polynomial."""
         return _get_gradients(
-            self, trajectory_delay, gradient_offset, time_range, blockRange
+            self, trajectory_delay, gradient_offset, time_range, block_range
         )
 
     # -- the repeating unit --------------------------------------------

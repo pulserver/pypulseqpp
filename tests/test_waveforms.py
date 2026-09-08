@@ -24,16 +24,10 @@ import convert
 
 import pypulseqpp as pp
 
-#: Rotations remap a block's gradients onto other axes, which is a different
-#: waveform on each rather than this one moved; not expanded yet.
-ROTATED = {"rotated_radial"}
-
 
 @pytest.fixture
 def both(reference_name, build_reference):
     """The same sequence as the toolbox holds it and as the core holds it."""
-    if reference_name in ROTATED:
-        pytest.skip("a rotated block is not expanded yet")
     theirs = build_reference()
     ours = pp.Sequence(theirs.system)
     ours._native = convert.to_core(theirs)
@@ -122,15 +116,17 @@ def test_the_gradients_as_polynomials_are_the_toolboxs(both):
 # -- asking for part of a sequence -----------------------------------------
 
 
-@pytest.mark.parametrize(
-    "window",
-    [{"blockRange": [2, 5]}, {"blockRange": [1, np.inf]}, {"blockRange": [3, 3]}],
-)
+@pytest.mark.parametrize("window", [[2, 5], [1, np.inf], [3, 3]])
 def test_a_range_of_blocks_expands_as_the_toolbox_expands_it(both, window):
+    """The toolbox spells this one `blockRange`; here it is `block_range`."""
     theirs, ours = both
 
     for axis, (expected, got) in enumerate(
-        zip(theirs.waveforms(**window), ours.waveforms(**window), strict=True)
+        zip(
+            theirs.waveforms(blockRange=window),
+            ours.waveforms(block_range=window),
+            strict=True,
+        )
     ):
         assert_same(expected, got, f"axis {axis}")
 
@@ -148,7 +144,7 @@ def test_a_range_of_time_expands_as_the_toolbox_expands_it(both):
 
 def test_a_block_range_and_a_time_range_are_not_both_accepted():
     with pytest.raises(ValueError, match="not both"):
-        pp.Sequence(pp.Opts()).waveforms(blockRange=[1, 2], time_range=[0, 1])
+        pp.Sequence(pp.Opts()).waveforms(block_range=[1, 2], time_range=[0, 1])
 
 
 def test_a_time_range_runs_forwards():
@@ -192,15 +188,70 @@ def test_an_axis_that_plays_nothing_is_empty():
     assert sequence.waveforms()[2].shape == (2, 0)
 
 
-def test_a_rotated_block_is_refused_rather_than_expanded_wrongly():
+# -- a rotated block -------------------------------------------------------
+#
+# A rotation sends each axis's gradient onto all three, so what a rotated
+# block plays on one axis is a sum of the three it was given. The waveforms
+# are piecewise linear, so that sum is exact on the union of their corners --
+# a linear combination of straight lines is a straight line between the same
+# points -- and no resampling is needed to take it.
+
+
+def rotated(angle_deg, *events):
+    """One block playing `events`, rotated about z."""
     from scipy.spatial.transform import Rotation
 
     system = pp.Opts()
     sequence = pp.Sequence(system)
     sequence.add_block(
-        pp.make_trapezoid("x", area=1000, duration=1e-3, system=system),
-        pp.make_rotation(Rotation.from_euler("z", 30, degrees=True)),
+        *events, pp.make_rotation(Rotation.from_euler("z", angle_deg, degrees=True))
     )
+    return sequence
 
-    with pytest.raises(NotImplementedError, match="rotated block"):
-        sequence.waveforms()
+
+def test_rotating_by_nothing_leaves_the_waveform_alone():
+    read = pp.make_trapezoid("x", area=1000, duration=1e-3, system=pp.Opts())
+    plain = pp.Sequence(pp.Opts())
+    plain.add_block(read)
+
+    turned = rotated(0, read)
+
+    assert_same(plain.waveforms()[0], turned.waveforms()[0], "x")
+    assert turned.waveforms()[1].shape == (2, 0)
+
+
+def test_a_quarter_turn_about_z_moves_the_readout_onto_the_other_axis():
+    read = pp.make_trapezoid("x", area=1000, duration=1e-3, system=pp.Opts())
+    plain = pp.Sequence(pp.Opts())
+    plain.add_block(read)
+
+    turned = rotated(90, read)
+
+    # What x played is now on y, and x plays nothing worth keeping.
+    assert_same(plain.waveforms()[0][0], turned.waveforms()[1][0], "y times")
+    assert turned.waveforms()[1][1] == pytest.approx(plain.waveforms()[0][1])
+    assert turned.waveforms()[0].shape == (2, 0)
+
+
+def test_a_half_turn_about_z_inverts_both_axes_in_the_plane():
+    system = pp.Opts()
+    read = pp.make_trapezoid("x", area=1000, duration=1e-3, system=system)
+    encode = pp.make_trapezoid("y", area=500, duration=1e-3, system=system)
+    plain = pp.Sequence(system)
+    plain.add_block(read, encode)
+
+    turned = rotated(180, read, encode)
+
+    for axis in (0, 1):
+        assert turned.waveforms()[axis][1] == pytest.approx(-plain.waveforms()[axis][1])
+
+
+def test_a_rotation_keeps_the_axis_it_turns_about_alone():
+    system = pp.Opts()
+    select = pp.make_trapezoid("z", area=1000, duration=1e-3, system=system)
+    plain = pp.Sequence(system)
+    plain.add_block(select)
+
+    turned = rotated(37, select)
+
+    assert_same(plain.waveforms()[2], turned.waveforms()[2], "z")
