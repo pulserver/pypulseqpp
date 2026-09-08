@@ -17,8 +17,8 @@ call, and reading and writing, in text and in binary, are C++.
 
 The package owns everything that is true about a sequence in isolation:
 parsing and writing, event deduplication, structural TR and base-block
-detection, gradient amplitude, slew and continuity checks, PNS and mechanical
-resonance, k-space and gradient-moment calculation, and sequence-level
+detection, block timing against a system's rasters and dead times, gradient
+amplitude, slew and continuity checks, PNS and mechanical resonance, k-space and gradient-moment calculation, and sequence-level
 operations such as FOV transformation and tiling. It does not own anything
 that needs a scanner or a reconstruction in the picture. Segmentation, the
 scanner-side execution stream, protocol contracts and consoles live in

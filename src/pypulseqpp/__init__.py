@@ -21,7 +21,9 @@ against events they were never written for.
 ## What is ours rather than upstream's
 
 `Sequence` is ours outright: upstream's is a different implementation, and
-this is the one with the compiled core under it.
+this is the one with the compiled core under it. So are `check_timing` and
+`print_error_report`, which read the core's own tables; the name upstream
+carries under `check_timing` is its module rather than a callable.
 
 Three factories, because upstream 1.5.0 does not have them: `make_rotation`
 and `make_rf_shim`, which arrived with Pulseq 1.5.1, and `make_label`,
@@ -40,6 +42,8 @@ from importlib.metadata import version as _distribution_version
 import pypulseq as _pypulseq
 
 from . import _events
+from ._check_timing import check_timing as _check_timing
+from ._check_timing import print_error_report as _print_error_report
 from ._events import as_namespace, convert, interoperating
 from ._make_label import make_label as _make_label
 from ._make_rf_shim import make_rf_shim as _make_rf_shim
@@ -109,6 +113,11 @@ make_rotation = _make_rotation
 # Ours outright: upstream's Sequence is a different implementation, and
 # this is the one with the compiled core under it.
 Sequence = _Sequence
+
+# The timing check, which reads the compiled core's own tables. The name
+# upstream carries here is its module rather than a callable.
+check_timing = _check_timing
+print_error_report = _print_error_report
 
 #: The events every one of these returns are compiled, not namespaces.
 SLOTTED = frozenset(_events.__all__) | {"make_label", "make_rf_shim"}
