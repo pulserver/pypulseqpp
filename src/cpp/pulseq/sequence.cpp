@@ -900,6 +900,21 @@ namespace pulseq
             rf_use_[static_cast<size_t>(id) - 1] = use;
             ++labelled;
         }
+
+        if (labelled != 0)
+        {
+            /* What a pulse is for is part of what makes it the definition it
+             * is, so labelling one can split a definition two pulses shared:
+             * an excitation and a refocusing off the same shape are one
+             * definition while both are unlabelled and two once they are
+             * not. The tables that say so are re-derived here rather than
+             * left saying what was true before.
+             *
+             * Two rows the libraries could not tell apart may now differ too,
+             * so a collapse already done no longer covers them. */
+            deduplicated_ = false;
+            rebuild_definitions();
+        }
         return labelled;
     }
 

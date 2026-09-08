@@ -441,7 +441,7 @@ class Sequence:
 
     # -- the repeating unit --------------------------------------------
 
-    def detect_tr(self) -> tuple[int, int]:
+    def _detect_tr(self) -> tuple[int, int]:
         """Return the repeating unit of the scan, in blocks.
 
         A scan is a handful of things played over and over with different
@@ -463,14 +463,21 @@ class Sequence:
 
         Notes
         -----
+        Private because neither toolbox has it: this is what the analysis
+        here reaches for, not part of the API a design script is written
+        against.
+
         The answer is recorded as the ``TRsize`` definition and read from
         there next time, so a sequence written and read back does not have to
         work it out again. ``TRsize`` is this package's own name, not one the
         Pulseq format defines; nothing writes it unless this is called.
 
-        Adding or rewriting a block makes the answer stale, and so does
-        collapsing duplicates, since that renumbers the definitions. Either
-        way the next call works it out again.
+        The core remembers it too, and forgets on anything that could change
+        it: adding or rewriting a block, and collapsing duplicates, which
+        renumbers the very ids the repeat is read off. Either way the next
+        call works it out again. That is the same bargain
+        `remove_duplicates` makes -- do the pass once, skip it until
+        something invalidates it.
         """
         recorded = self.get_definition("TRsize")
         if recorded != "":
