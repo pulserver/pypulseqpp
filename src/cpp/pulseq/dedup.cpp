@@ -46,6 +46,11 @@
  *
  * New ids are handed out in order of first appearance, which is the order
  * plain Pulseq would have assigned had it registered each row as it came.
+ *
+ * The definitions are re-derived at the end rather than renumbered along the
+ * way: two events the file cannot tell apart are one row here, and so one
+ * definition, which is a statement that is only true once every library has
+ * settled.
  */
 
 #include "pulseq/sequence.hpp"
@@ -836,6 +841,10 @@ namespace pulseq
             row[4] = follow(adc_map, row[4], "ADC event", b);
             row[5] = follow(new_head, row[5], "extension chain", b);
         }
+
+        // Last, because every id a definition key is built from has just
+        // moved and the per-event tables have just shrunk.
+        rebuild_definitions();
 
         deduplicated_ = true;
     }

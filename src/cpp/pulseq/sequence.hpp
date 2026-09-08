@@ -47,6 +47,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <unordered_map>
 
 namespace pulseq
 {
@@ -654,6 +656,202 @@ namespace pulseq
     };
 
     /* ================================================================== */
+    /*  Definitions and instances                                         */
+    /* ================================================================== */
+
+    /**
+     * The key of a definition: what is the same every time it is played.
+     *
+     * A scan is a handful of things played many times with different numbers
+     * in them. Splitting each event into the part that is fixed -- the shape
+     * of an RF pulse, the ramp times of a trapezoid, how long an ADC window
+     * is -- and the part a playout sets -- an amplitude, an offset, which
+     * waveform this shot uses -- is what turns a million blocks into a few
+     * definitions and a table of numbers, and it is what makes the repeating
+     * unit visible: the definition ids of a gradient echo read 1 2 3 4 1 2 3
+     * 4, whatever its phase encode is doing.
+     *
+     * Which column falls on which side is a statement about the hardware, not
+     * about the file. A gradient's waveform is on the instance side because a
+     * shot really can arrive with its own arm; an RF pulse's shapes are not,
+     * because nothing swaps a pulse envelope between repetitions.
+     *
+     * Four words are enough for every kind, and each kind is interned in its
+     * own table, so the layouts below need not agree with one another.
+     */
+    struct DefKey
+    {
+        std::array<uint64_t, 4> w{};
+        bool operator==(const DefKey& other) const
+        {
+            return w == other.w;
+        }
+    };
+
+    struct DefKeyHash
+    {
+        size_t operator()(const DefKey& key) const noexcept
+        {
+            uint64_t h = 1469598103934665603ull;
+            for (uint64_t x : key.w)
+            {
+                h ^= x;
+                h *= 1099511628211ull;
+                h ^= h >> 29;
+            }
+            return static_cast<size_t>(h);
+        }
+    };
+
+    /** A time, in nanoseconds: finer than any raster, and exact on one. */
+    inline uint64_t nanos(double seconds)
+    {
+        return static_cast<uint64_t>(std::llround(seconds * 1e9));
+    }
+    /** A count, as itself. */
+    inline uint64_t whole(double value)
+    {
+        return static_cast<uint64_t>(std::llround(value));
+    }
+    inline uint64_t pack(uint64_t high, uint64_t low)
+    {
+        return (high << 32) | (low & 0xffffffffull);
+    }
+
+    /** magnitude, phase and time shapes; delay; center; use. */
+    inline DefKey rf_key(const double* row, char use)
+    {
+        DefKey key;
+        key.w[0] = pack(whole(row[1]), whole(row[2]));
+        key.w[1] = pack(whole(row[3]), static_cast<uint64_t>(use));
+        key.w[2] = nanos(row[5]);
+        key.w[3] = nanos(row[4]);
+        return key;
+    }
+    /** rise, flat and fall times; delay. */
+    inline DefKey trap_key(const double* row)
+    {
+        DefKey key;
+        key.w[0] = 1;
+        key.w[1] = pack(nanos(row[1]), nanos(row[2]));
+        key.w[2] = pack(nanos(row[3]), nanos(row[4]));
+        return key;
+    }
+    /** The time shape and the delay.  The waveform belongs to the instance. */
+    inline DefKey arb_key(const double* row)
+    {
+        DefKey key;
+        key.w[0] = 2;
+        key.w[1] = whole(row[4]);
+        key.w[2] = nanos(row[5]);
+        return key;
+    }
+    /** Sample count, dwell and delay.  The phase modulation is per instance. */
+    inline DefKey adc_key(const double* row)
+    {
+        DefKey key;
+        key.w[0] = whole(row[0]);
+        key.w[1] = nanos(row[1]);
+        key.w[2] = nanos(row[2]);
+        return key;
+    }
+    /**
+     * The definitions a block plays, and how long it lasts.
+     *
+     * A block that plays something lasts as long as its longest event, or as
+     * long as the duration it was given if that is longer and it is padded
+     * out; either way the duration follows from what is in the block, so it
+     * belongs to the definition.
+     *
+     * The ADC is left out, so a preparation shot playing the imaging shot's
+     * gradients with the digitiser off is the same definition as the shot it
+     * stands in for, and a position digitised two ways still repeats every
+     * shot rather than every pair. So are labels and rotations: those are
+     * things one playout does, not a different block.
+     */
+    inline DefKey block_key(int32_t rf, int32_t gx, int32_t gy, int32_t gz, double duration)
+    {
+        DefKey key;
+        key.w[0] = pack(static_cast<uint64_t>(rf), static_cast<uint64_t>(gx));
+        key.w[1] = pack(static_cast<uint64_t>(gy), static_cast<uint64_t>(gz));
+        key.w[2] = nanos(duration);
+        return key;
+    }
+
+    /**
+     * Every pure delay, which is one definition.
+     *
+     * A block with no RF, no gradient, no ADC and no trigger or digital
+     * output plays nothing, and an interpreter sets how long it waits there
+     * at run time. Its duration is therefore a per-playout parameter and not
+     * part of what it is: a TI fill and a TR pad that vary shot to shot are
+     * one position waited at, not a sequence that changes. Labels, flags and
+     * a rotation may be present; none of them makes the block play anything.
+     *
+     * `block_key` leaves the last word at zero, so setting it here is what
+     * keeps a delay from ever colliding with a block that plays something.
+     */
+    inline DefKey delay_key()
+    {
+        DefKey key;
+        key.w[3] = 1;
+        return key;
+    }
+
+    /**
+     * Interns keys, handing out dense 1-based ids in order of first appearance.
+     *
+     * A design loop cycles through a handful of definitions and asks about
+     * them millions of times, so a small direct-mapped cache stands in front
+     * of the map: the common answer is a comparison rather than a hash lookup.
+     */
+    class Definitions
+    {
+    public:
+        int32_t intern(const DefKey& key)
+        {
+            Slot& slot = cache_[DefKeyHash{}(key) & (CACHE - 1)];
+            if (slot.id != 0 && slot.key == key)
+                return slot.id;
+            const int32_t id =
+                index_.try_emplace(key, static_cast<int32_t>(index_.size() + 1)).first->second;
+            slot.key = key;
+            slot.id = id;
+            return id;
+        }
+        int size() const
+        {
+            return static_cast<int>(index_.size());
+        }
+        void clear()
+        {
+            index_.clear();
+            cache_.fill(Slot{});
+        }
+
+    private:
+        static constexpr size_t CACHE = 64;
+        struct Slot
+        {
+            DefKey key;
+            int32_t id = 0;
+        };
+        std::array<Slot, CACHE> cache_{};
+        std::unordered_map<DefKey, int32_t, DefKeyHash> index_;
+    };
+
+    /**
+     * One block's per-playout parameters, by column:
+     *
+     *   0,1   gx amplitude, gx waveform shape (0 for a trapezoid)
+     *   2,3   gy amplitude, gy waveform shape
+     *   4,5   gz amplitude, gz waveform shape
+     *   6-10  rf amplitude, freq, phase, freq_ppm, phase_ppm
+     *  11-15  adc freq, phase, freq_ppm, phase_ppm, phase modulation shape
+     */
+    constexpr int INSTANCE_WIDTH = 16;
+
+    /* ================================================================== */
     /*  The sequence                                                      */
     /* ================================================================== */
 
@@ -844,6 +1042,52 @@ namespace pulseq
 
         /** Append @p block.  @return its 1-based index. */
         int add_block(const Block& block);
+
+        /* -- definitions and instances --------------------------------- */
+        int num_block_definitions() const
+        {
+            return block_defs_.size();
+        }
+        int num_rf_definitions() const
+        {
+            return rf_defs_.size();
+        }
+        int num_grad_definitions() const
+        {
+            return grad_defs_.size();
+        }
+        int num_adc_definitions() const
+        {
+            return adc_defs_.size();
+        }
+        /** Per block, the id of the definition it plays. */
+        const std::vector<int32_t>& instance_definitions() const
+        {
+            return instance_def_;
+        }
+        /** Per block, the ADC definition it digitises with; 0 if it does not. */
+        const std::vector<int32_t>& instance_adc_definitions() const
+        {
+            return instance_adc_def_;
+        }
+        /**
+         * Per block, INSTANCE_WIDTH per-playout parameters.
+         *
+         * Read out of the event libraries on demand rather than stored a
+         * second time: an amplitude is already a column of the row the block
+         * names, and a scan is not carried twice.
+         */
+        std::vector<double> instance_parameters() const;
+        /**
+         * Re-derive every definition from the libraries as they now stand.
+         *
+         * Deduplication merges library rows and renumbers them, so the ids a
+         * key was built from move and the per-event definition arrays shrink.
+         * Re-interning from the surviving rows is both the remap and the
+         * shrink, and it cannot disagree with what registration would have
+         * produced because it is the same code.
+         */
+        void rebuild_definitions();
 
         /** Overwrite block @p index (1-based).  Throws if out of range. */
         void set_block(int index, const Block& block);
@@ -1160,6 +1404,82 @@ namespace pulseq
 
         /** See deduplicated(); false until remove_duplicates() says otherwise. */
         bool deduplicated_ = false;
+
+        /* -- definitions and instances --------------------------------- */
+        Definitions rf_defs_, grad_defs_, adc_defs_, block_defs_;
+        std::vector<int32_t> rf_def_;           /**< by RF id - 1 */
+        std::vector<int32_t> grad_def_;         /**< by gradient id - 1 */
+        std::vector<int32_t> adc_def_;          /**< by ADC id - 1 */
+        std::vector<int32_t> instance_def_;     /**< by block - 1 */
+        std::vector<int32_t> instance_adc_def_; /**< by block - 1 */
+
+        /**
+         * Per extension chain node, whether it or anything below it is a
+         * trigger or a digital output.  Both travel as `TRIGGERS`, so one
+         * flag answers for both, and a chain is built tail first, so a node's
+         * answer is its own type or the answer already recorded for `next`.
+         */
+        std::vector<uint8_t> chain_carries_trigger_;
+
+        /** Refill chain_carries_trigger_ from the chains as they stand. */
+        void recompute_chain_triggers();
+        /** Re-derive the block definitions, and only those. */
+        void refork_blocks();
+
+        /**
+         * The id of the `TRIGGERS` type, or 0 while nothing has claimed it.
+         *
+         * Held rather than looked up: a scan that labels every TR appends a
+         * chain node per block, and a lookup by name is a string comparison
+         * down a map on a path that runs a million times.
+         */
+        int trigger_type_id_ = 0;
+
+        /** Note a chain node's trigger flag as it is appended. */
+        void note_chain(int32_t type_id, int32_t next)
+        {
+            // A tail this node cannot see is read as carrying one, on the
+            // same grounds as is_pure_delay: too coarse is the answer that
+            // merges blocks, and too fine is the one that merely splits them.
+            const size_t tail = static_cast<size_t>(next) - 1;
+            const bool carries =
+                (trigger_type_id_ != 0 && type_id == trigger_type_id_) ||
+                (next >= 1 &&
+                 (tail >= chain_carries_trigger_.size() || chain_carries_trigger_[tail] != 0));
+            chain_carries_trigger_.push_back(carries ? 1 : 0);
+        }
+
+        /** The definition @p id was interned as, or 0 where there is no event. */
+        static int32_t definition_of(int32_t id, const std::vector<int32_t>& defs)
+        {
+            return id > 0 && static_cast<size_t>(id) <= defs.size()
+                       ? defs[static_cast<size_t>(id) - 1]
+                       : 0;
+        }
+        /**
+         * Whether @p block plays nothing at all.
+         *
+         * Reads the answer for its extension chain out of
+         * `chain_carries_trigger_` rather than walking it, so this stays a
+         * handful of comparisons on the per-block path.
+         */
+        bool is_pure_delay(const Block& block) const
+        {
+            if (block.rf || block.gx || block.gy || block.gz || block.adc)
+                return false;
+            if (block.ext <= 0)
+                return true;
+            // A chain that has not been registered is a corrupt sequence,
+            // which deduplication says so about. Until then it is read as
+            // playing something, because that keeps the duration in the key
+            // and so cannot merge two blocks that are not one.
+            const size_t node = static_cast<size_t>(block.ext) - 1;
+            return node < chain_carries_trigger_.size() && !chain_carries_trigger_[node];
+        }
+        /** One block's definition id and the ADC definition it plays with. */
+        void fork_instance(const Block& block, int32_t& def, int32_t& adc_def) const;
+        /** One block's per-playout parameters, INSTANCE_WIDTH of them. */
+        void instance_row(const Block& block, double* params) const;
     };
 
 } // namespace pulseq

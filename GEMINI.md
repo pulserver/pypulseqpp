@@ -111,6 +111,63 @@ It is a mask rather than a tag because deduplication merges shapes holding the
 same numbers, and the merge ORs the roles: after it, one entry really is
 played both ways.
 
+## Definitions and instances
+
+A scan is a handful of things played many times with different numbers in
+them. Every event registered is therefore split in two: a **definition**, what
+is the same every time it is played, and the per-playout parameters carried by
+each block that plays it. A block is a definition of its own -- the
+definitions its events play, and how long it lasts -- so the stream of block
+definition ids is where the repeating unit becomes visible: a gradient echo
+reads 1 2 3 4 1 2 3 4 whatever its phase encode is doing.
+
+| | Definition | Instance |
+|---|---|---|
+| RF | magnitude, phase and time shapes; delay; center; use | amplitude, frequency and phase offsets, and their ppm forms |
+| Trapezoid | rise, flat and fall times; delay | amplitude |
+| Arbitrary gradient | time shape; delay | amplitude, waveform shape |
+| ADC | sample count, dwell, delay | frequency and phase offsets, their ppm forms, phase modulation shape |
+| Block | the definitions its RF and three gradients play, and its duration | the rows above, and the ADC definition it digitises with |
+| Pure delay | nothing: every one of them is one definition | its duration, in `block_durations` |
+
+Which column falls on which side is a statement about the hardware rather than
+about the file. A gradient's *waveform* is on the instance side because a shot
+really can arrive with its own arm, which is what a sparkling readout is; an
+RF pulse's shapes are not, because nothing swaps a pulse envelope between
+repetitions. The ADC is left out of the block definition altogether, so a
+preparation shot playing the imaging shot's gradients with the digitiser off
+is the same definition as the shot it stands in for, and a position digitised
+two ways still repeats every shot rather than every pair. So is the extension
+chain: a rotation and a label are things one playout does.
+
+**A pure delay is one definition, and its duration is not part of it.** A
+block that plays something lasts as long as its longest event, or as long as
+the duration it was asked for if that is longer and it is padded out; either
+way the duration follows from the content, so it belongs to the definition. A
+block with no RF, no gradient, no ADC and no trigger or digital output plays
+nothing, and an interpreter sets how long it waits there at run time -- so a
+TI fill and the pad that follows it are one position waited at for two
+different times, not two sequences. Labels, flags and a rotation may be
+present; none of them makes the block play anything, and a rotation has no
+gradient to remap. A trigger or a digital output does, wherever it sits in the
+extension chain, so which chains carry one is recorded as they are built and
+read off per block rather than walked.
+
+**The fork happens where the reference is made.** Each `register_*` interns
+its definition, `add_block` interns the block's, and reading a file forks as
+it parses because reading registers its events. Nothing walks the sequence
+afterwards to work it out, and the instance parameters are read out of the
+event libraries on demand rather than stored a second time.
+
+**Deduplication re-derives it.** A definition key names shapes by id, and
+collapsing identical library rows moves those ids and shrinks the per-event
+tables, so `remove_duplicates` ends by rebuilding every definition from the
+rows that survived. Definition ids change across it, as shape and event ids
+already do. Two events the file cannot tell apart are one definition once it
+has run, which is the point at which that sentence is true at all: before it,
+two separately registered but equal shapes split one pulse into two
+definitions, and the stream is conservatively finer than the scan.
+
 ## Tests
 
 pytest with plain functions and fixtures — never `unittest.TestCase`. A test
@@ -134,6 +191,14 @@ Two invariants hold everything else up, and each has a test:
 - **Fast path equals plain path.** Wherever a compiled call stands in for a
   calculation PyPulseq does in Python, a test holds the two equal on the
   reference sequences. Speed is never taken on assertion.
+- **The fork says what the scan is.** `tests/test_structure.py` states each
+  half of the split as a property of a sequence built to have it: a gradient
+  echo repeats at four positions, a phase encode is one definition at many
+  amplitudes, a sparkling readout is one definition with a waveform per shot,
+  and a pulse registered twice over equal shapes is one definition once
+  deduplication has run. `inversion_recovery_train` and `triggered_delays`
+  are in the reference zoo so the same properties are held on sequences built
+  by upstream rather than only on sequences written to have them.
 
 ## Comments and docstrings
 

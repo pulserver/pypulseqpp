@@ -353,6 +353,42 @@ def extension_only() -> Sequence:
 
 
 #: Every reference sequence, by the name its test case reports.
+def inversion_recovery_train() -> Sequence:
+    """Inversion times and recovery pads, so its delays are all different.
+
+    The pads carry no event at all, which is the case an interpreter sets the
+    duration of at run time; here they are what makes the shots differ.
+    """
+    seq = Sequence()
+    for inversion_time in (20e-3, 50e-3, 100e-3, 200e-3):
+        seq.add_block(pp.make_block_pulse(math.pi, duration=1e-3, use="inversion"))
+        seq.add_block(pp.make_delay(inversion_time))
+        seq.add_block(pp.make_block_pulse(math.pi / 2, duration=1e-3))
+        seq.add_block(
+            pp.make_trapezoid("x", area=1000, duration=5e-3),
+            pp.make_adc(num_samples=50, duration=5e-3),
+        )
+        seq.add_block(pp.make_delay(500e-3 - inversion_time))
+    return seq
+
+
+def triggered_delays() -> Sequence:
+    """Waits that fire a trigger, and waits that do not.
+
+    A block carrying a trigger plays something, so its duration is its own
+    however little else is in it; the bare waits beside it are the contrast.
+    """
+    seq = Sequence()
+    for duration in (2e-3, 4e-3):
+        seq.add_block(pp.make_delay(duration))
+        seq.add_block(pp.make_trigger("physio1", duration=duration))
+        seq.add_block(pp.make_digital_output_pulse("osc0", duration=duration))
+        seq.add_block(
+            pp.make_delay(duration), pp.make_label(label="SET", type="SET", value=1)
+        )
+    return seq
+
+
 ZOO = {
     "gauss_pulses": gauss_pulses,
     "sinc_pulses": sinc_pulses,
@@ -370,4 +406,6 @@ ZOO = {
     "trapezoid_only": trapezoid_only,
     "adc_only": adc_only,
     "extension_only": extension_only,
+    "inversion_recovery_train": inversion_recovery_train,
+    "triggered_delays": triggered_delays,
 }
