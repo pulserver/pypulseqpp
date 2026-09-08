@@ -9,7 +9,7 @@ sample.
 
 import numpy as np
 import pytest
-from pypulseq.compress_shape import compress_shape as upstream_compress
+from pypulseq_matlab_like.compress_shape import compress_shape as reference_compress
 
 from pypulseqpp import _ext
 
@@ -33,7 +33,7 @@ def waveform(request):
 
 
 def test_the_encoding_matches_the_reference_encoder(waveform):
-    expected = np.asarray(upstream_compress(waveform).data, dtype=float)
+    expected = np.asarray(reference_compress(waveform).data, dtype=float)
     np.testing.assert_array_equal(_ext.compress_shape(waveform), expected)
 
 

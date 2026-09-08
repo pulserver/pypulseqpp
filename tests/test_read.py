@@ -33,16 +33,25 @@ def test_a_file_read_back_writes_the_same_bytes(reference_name, build_reference)
     assert second == first
 
 
-def test_a_file_upstream_wrote_reads_into_the_same_sequence(
+def test_a_file_the_reference_wrote_reads_into_the_same_sequence(
     reference_name, build_reference, tmp_path
 ):
+    """Read what another toolbox wrote, and write back what it would have.
+
+    The revision and `TotalDuration` are excused for the reasons
+    `test_parity.py` sets out: each is a writer describing itself.
+    """
+    import test_parity
+
     path = tmp_path / f"{reference_name}.seq"
     build_reference().write(str(path))
-    upstream = path.read_bytes()
+    theirs = path.read_bytes()
 
-    ours = _ext.write_text(_ext.read(upstream), True)
+    ours = _ext.write_text(_ext.read(theirs), True)
 
-    assert ours == upstream
+    assert test_parity.what_the_sequence_says(
+        ours.decode()
+    ) == test_parity.what_the_sequence_says(theirs.decode())
 
 
 def test_reading_from_disk_matches_reading_from_memory(build_reference, tmp_path):

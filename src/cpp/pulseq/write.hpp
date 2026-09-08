@@ -20,9 +20,9 @@ namespace pulseq
     /**
      * The Pulseq revision @p seq actually needs.
      *
-     * Rotations and RF shims are 1.5.1; a label outside Pulseq's built-in set
-     * is 1.5.2.  A sequence using none of them stays at whatever revision it
-     * declares, so the ordinary case writes a file any interpreter reads.
+     * Rotations and RF shims are 1.5.1, the newest revision there is.  A
+     * sequence using neither stays at whatever revision it declares, so the
+     * ordinary case writes a file any interpreter reads.
      */
     int required_revision(const Sequence& seq);
 

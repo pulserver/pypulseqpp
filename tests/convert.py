@@ -1,8 +1,8 @@
 """Loading an upstream sequence into the compiled core.
 
-The parity tests need one sequence held two ways: as the upstream toolbox
+The parity tests need one sequence held two ways: as the reference toolbox
 built it, and as pypulseqpp's core holds it. This module is the bridge, and it
-exists only for the tests -- the package itself never imports upstream.
+exists only for the tests -- the package itself never imports the toolbox.
 
 Nothing here interprets a row. Upstream's libraries and the core's are the
 same libraries, in the same order, with the same columns, because both are the
@@ -18,7 +18,7 @@ import numpy as np
 
 from pypulseqpp import _ext
 
-#: Columns of an ADC row that the file format carries. Upstream appends the
+#: Columns of an ADC row that the file format carries. The toolbox appends the
 #: system's dead time as a ninth, which comes from the system rather than the
 #: sequence and is never written back.
 _ADC_COLUMNS = 8
@@ -35,7 +35,7 @@ def _rows(library) -> list[tuple[int, np.ndarray]]:
 def _check(registered: int, expected: int, what: str) -> None:
     if registered != expected:
         raise AssertionError(
-            f"{what} registered as id {registered} but upstream numbered it {expected}"
+            f"{what} registered as id {registered} but the toolbox numbered it {expected}"
         )
 
 
@@ -45,7 +45,7 @@ def to_core(seq) -> _ext.Sequence:
     Parameters
     ----------
     seq
-        An upstream :class:`pypulseq.Sequence`.
+        A :class:`pypulseq_matlab_like.Sequence`.
 
     Returns
     -------
@@ -84,6 +84,13 @@ def to_core(seq) -> _ext.Sequence:
     for identifier, row in _rows(seq.trigger_library):
         _check(core.register_trigger(row), identifier, "trigger")
 
+    # The two the 1.5.1 revision added, which have no upstream counterpart.
+    for identifier, row in _rows(seq.rotation_library):
+        _check(core.register_rotation(row), identifier, "rotation")
+
+    for identifier, row in _rows(seq.rf_shim_library):
+        _check(core.register_rf_shim(row), identifier, "RF shim")
+
     for identifier, row in _rows(seq.label_set_library):
         _check(
             core.register_label_set(int(row[0]), int(row[1])), identifier, "LABELSET"
@@ -102,7 +109,7 @@ def to_core(seq) -> _ext.Sequence:
         _check(core.register_soft_delay(delay), identifier, "soft delay")
 
     # The extension type ids are pinned before the chain is built, so a name
-    # keeps the number upstream gave it and the written file agrees.
+    # keeps the number the toolbox gave it and the written file agrees.
     for identifier, name in zip(
         seq.extension_numeric_idx, seq.extension_string_idx, strict=True
     ):

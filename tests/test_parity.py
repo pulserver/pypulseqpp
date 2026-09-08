@@ -1,9 +1,15 @@
-"""The file pypulseqpp writes is the file PyPulseq writes.
+"""The file pypulseqpp writes is the file the reference toolbox writes.
 
 This is the invariant the package rests on. A design script that ran against
-the reference toolbox has to produce the same sequence here, and "the same"
-means the bytes, not a tolerance: an interpreter reads the file, and a file
-that differs is a different scan.
+`pypulseq-matlab-like` -- the transcription of MATLAB Pulseq this package
+treats as the authority for the format -- has to produce the same sequence
+here, and "the same" means the bytes, not a tolerance: an interpreter reads
+the file, and a file that differs is a different scan.
+
+Two lines are excused, and only two. Both are things a writer decides about
+itself rather than about the sequence, and the reference suite excuses them
+the same way, by allowing a file to match either its source or its own
+canonical rewrite.
 
 Both deduplication modes are checked. Collapsing identical library rows
 renumbers every reference to them, so a sequence that agrees before
@@ -12,6 +18,7 @@ bug, and the two cases separate those.
 """
 
 import hashlib
+import re
 
 import convert
 import pytest
@@ -21,16 +28,32 @@ from pypulseqpp import _ext
 
 SIGNATURE_MARKER = "\n[SIGNATURE]\n"
 
-#: Reference sequences carrying a sample small enough for upstream's
-#: deduplication to blunt it. Upstream floors a magnitude at 1e-12 before
+#: Reference sequences carrying a sample small enough for the reference toolbox's
+#: deduplication to blunt it. It floors a magnitude at 1e-12 before
 #: taking its logarithm, so a sample below that keeps four significant digits
 #: where nine were asked for. pypulseqpp does not floor, and the value it
 #: writes is the one the pulse plays, so these two disagree after
 #: deduplication on purpose. See test_deduplication_keeps_the_precision below.
 BLUNTED_BY_UPSTREAM = {"arbitrary_rf"}
 
+#: The revision a file declares. The reference toolbox stamps its own version
+#: on everything it writes; this package writes the oldest revision that can
+#: read the file back, so a sequence using no 1.5.1 event still says 1.5.0.
+#: Keeping what the file declared is what lets a 1.5.0 file read here and
+#: write back unchanged, which `test_corpus.py` holds over the whole corpus.
+#:
+#: `TotalDuration` is the second. The reference toolbox records it in
+#: `test_report`, this package in `write`, so a file written here carries a
+#: duration the sequence really has and one written there may not carry one.
+SELF_DESCRIPTION = re.compile(r"^(revision \d+|TotalDuration .*)\n", re.MULTILINE)
 
-def written_by_upstream(seq, path, *, deduplicate):
+
+def what_the_sequence_says(text):
+    """The file without the two lines a writer says about itself."""
+    return SELF_DESCRIPTION.sub("", text)
+
+
+def written_by_reference(seq, path, *, deduplicate):
     seq.write(str(path), remove_duplicates=deduplicate)
     return path.read_text()
 
@@ -43,20 +66,22 @@ def written_by_core(seq, *, deduplicate):
 
 
 @pytest.mark.parametrize("deduplicate", [False, True], ids=["as-built", "deduplicated"])
-def test_the_written_file_is_byte_identical_to_upstream(
+def test_the_written_file_is_byte_identical_to_the_reference(
     build_reference, reference_name, deduplicate, tmp_path
 ):
     if deduplicate and reference_name in BLUNTED_BY_UPSTREAM:
-        pytest.skip("upstream rounds a tiny sample away; see the precision test")
+        pytest.skip("the reference toolbox rounds a tiny sample away; see the precision test")
 
-    expected = written_by_upstream(
-        build_reference(), tmp_path / "upstream.seq", deduplicate=deduplicate
+    expected = written_by_reference(
+        build_reference(), tmp_path / "reference.seq", deduplicate=deduplicate
     )
-    assert written_by_core(build_reference(), deduplicate=deduplicate) == expected
+    ours = written_by_core(build_reference(), deduplicate=deduplicate)
+
+    assert what_the_sequence_says(ours) == what_the_sequence_says(expected)
 
 
 @pytest.mark.parametrize("name", sorted(BLUNTED_BY_UPSTREAM))
-def test_deduplication_keeps_the_precision_upstream_rounds_away(name, tmp_path):
+def test_deduplication_keeps_the_precision_the_reference_rounds_away(name, tmp_path):
     """Where the two disagree, ours is the sample the pulse actually plays.
 
     Upstream's rounding softens a logarithm with a 1e-12 floor, so every
@@ -66,7 +91,7 @@ def test_deduplication_keeps_the_precision_upstream_rounds_away(name, tmp_path):
     and that the value written here is the one deduplication was given.
     """
     build = reference.ZOO[name]
-    upstream = written_by_upstream(
+    upstream = written_by_reference(
         build(), tmp_path / "upstream.seq", deduplicate=True
     ).splitlines()
     ours = written_by_core(build(), deduplicate=True).splitlines()

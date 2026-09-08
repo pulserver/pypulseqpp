@@ -29,6 +29,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <utility>
@@ -241,6 +242,37 @@ namespace pulseq
                 break;
             }
         }
+
+        /**
+         * Name in `RequiredExtensions` anything a reader must understand.
+         *
+         * A rotation changes where the gradients point, so a reader that
+         * skips the extension it does not know plays a different sequence
+         * rather than an approximation of the right one. The definition says
+         * so, and is added to whatever it already lists.
+         */
+        void declare_required_extensions(Sequence& seq)
+        {
+            if (seq.rotation_library().empty())
+                return;
+
+            std::string required;
+            auto existing = seq.definitions().find("RequiredExtensions");
+            if (existing != seq.definitions().end() &&
+                existing->second.kind() == Definition::Kind::Text)
+                required = existing->second.text();
+
+            std::string word;
+            std::istringstream words(required);
+            while (words >> word)
+                if (word == "ROTATIONS")
+                    return;
+
+            if (!required.empty())
+                required.push_back(' ');
+            required += "ROTATIONS";
+            seq.set_definition("RequiredExtensions", Definition(required));
+        }
     } // namespace
 
     /* ================================================================== */
@@ -249,20 +281,10 @@ namespace pulseq
 
     int required_revision(const Sequence& seq)
     {
-        // Rotations and RF shims are 1.5.1; a label Pulseq does not define is
-        // 1.5.2.  A sequence using none of them stays plain 1.5.0, so the
-        // common case produces a file any interpreter reads.
+        // Rotations and RF shims are 1.5.1, which is the newest revision
+        // there is; a sequence using neither stays at whatever it declares,
+        // so the common case produces a file any interpreter reads.
         int revision = seq.version_revision();
-
-        for (const IntTable* library : {&seq.label_set_library(), &seq.label_inc_library()})
-        {
-            for (int id = 1; id <= library->size(); ++id)
-            {
-                if (seq.is_custom_label(library->row(id)[1]))
-                    return std::max(revision, 2);
-            }
-        }
-
         if (!seq.rotation_library().empty() || !seq.rf_shim_library().empty())
             revision = std::max(revision, 1);
         return revision;
@@ -285,6 +307,7 @@ namespace pulseq
 
         seq.set_definition("TotalDuration", Definition(seq.duration()));
         seq.publish_rasters();
+        declare_required_extensions(seq);
 
         /* Every read below goes through a const reference, so the writer does
          * not look like a mutation to the sequence.  Taking `Table&` from a
@@ -363,11 +386,11 @@ namespace pulseq
         if (!reading.rf_library().empty())
         {
             out.append("# Format of RF events:\n");
-            out.append("# id ampl. mag_id phase_id time_shape_id center delay freqPPm phasePPM "
+            out.append("# id ampl. mag_id phase_id time_shape_id center delay freqPPM phasePPM "
                        "freq phase use\n");
             out.append("# ..   Hz      ..       ..            ..     us    us     ppm  rad/MHz   "
                        "Hz   rad  ..\n");
-            out.append("# Field \"use\" is the initial of: excitation refocusing inversion "
+            out.append("# Field 'use' is the initial of: \n#   excitation refocusing inversion "
                        "saturation preparation other undefined\n");
             out.append("[RF]\n");
 
@@ -597,9 +620,13 @@ namespace pulseq
             for (int id = 1; id <= reading.rotation_library().size(); ++id)
             {
                 const double* d = reading.rotation_library().row(id);
+                // Two spaces after the id: the reference writer prints the
+                // id with a trailing space and then each component with a
+                // leading one, and this section is compared against files it
+                // wrote.
                 appendf(
                     out,
-                    "%.0f %12g %12g %12g %12g\n",
+                    "%.0f  %g %g %g %g\n",
                     static_cast<double>(id),
                     d[0],
                     d[1],

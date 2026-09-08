@@ -206,10 +206,11 @@ def test_a_rotation_or_a_shim_makes_the_file_revision_one():
     assert _ext.required_revision(extended.rf_shims()) == 1
 
 
-def test_a_label_pulseq_does_not_define_makes_the_file_revision_two():
+def test_a_label_pulseq_does_not_define_does_not_raise_the_revision():
+    """1.5.1 is the newest revision there is; a custom label needs no more."""
     import extended
 
-    assert _ext.required_revision(extended.custom_labels()) == 2
+    assert _ext.required_revision(extended.custom_labels()) == 0
 
 
 def test_a_custom_label_comes_back_by_name(build_extended):
