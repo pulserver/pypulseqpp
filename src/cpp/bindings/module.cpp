@@ -12,6 +12,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <array>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -702,8 +703,8 @@ PYBIND11_MODULE(_ext, module)
             "Block `index` (1-based) as the events it plays, rather than as "
             "the ids they are stored under.")
         .def("num_blocks", &Sequence::num_blocks)
-        .def("revision", &Sequence::revision,
-             "How many times the sequence has been changed; it only rises.")
+        .def("edits", &Sequence::edits,
+             "How many times the sequence has been edited; it only rises.")
 
         /* -- definitions and instances --------------------------------- */
         .def("num_block_definitions", &Sequence::num_block_definitions,
@@ -894,9 +895,16 @@ PYBIND11_MODULE(_ext, module)
         return out;
     };
 
+    const auto axes_as_list = [peak_as_dict](const std::array<pulseq::Peak, 3>& found) {
+        py::list out;
+        for (size_t axis = 0; axis < found.size(); ++axis)
+            out.append(peak_as_dict(found[axis]));
+        return out;
+    };
+
     module.def(
         "max_gradient",
-        [peak_as_dict](const Sequence& sequence) {
+        [peak_as_dict, axes_as_list](const Sequence& sequence) {
             pulseq::GradientReport found;
             {
                 py::gil_scoped_release unlocked;
@@ -905,14 +913,16 @@ PYBIND11_MODULE(_ext, module)
             py::dict out;
             out["per_axis"] = peak_as_dict(found.per_axis);
             out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
             return out;
         },
         py::arg("sequence"),
-        "The strongest gradient the sequence plays, per axis and as a vector.");
+        "The strongest gradient the sequence plays: the worst axis, each "
+        "axis on its own, and the vector magnitude.");
 
     module.def(
         "max_slew",
-        [peak_as_dict](
+        [peak_as_dict, axes_as_list](
             const Sequence& sequence, double max_slew, double grad_raster_time) {
             pulseq::GradientLimits limits;
             limits.max_slew = max_slew;
@@ -941,6 +951,7 @@ PYBIND11_MODULE(_ext, module)
             py::dict out;
             out["per_axis"] = peak_as_dict(found.per_axis);
             out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
             out["discontinuities"] = jumps;
             out["ends_at_zero"] = found.ends_at_zero;
             return out;

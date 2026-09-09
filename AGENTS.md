@@ -173,6 +173,16 @@ says how many distinct positions each axis visits, how often one is revisited
 span. A coordinate one cell from one already seen is the same one, since a
 position reached along two different ramps can land either side of a boundary.
 
+**The gradient peaks come from the waveforms, not from the safety pass.** The
+two answer different questions and `pypulseqpp.safety` says so: it weighs what
+the libraries store, so a rotation -- which moves where a gradient is played
+without moving the row it is stored in -- leaves it reporting an idle axis the
+scan drives at full amplitude, and its vector peak is the magnitude a rotation
+*could* ask of one amplifier rather than the one the sequence reaches. The
+report says what the scan does, so it reads the waveforms.
+`test_a_rotated_sequence_plays_axes_its_stored_rows_do_not_name` holds the
+difference.
+
 ## Reading, and the two forms of a file
 
 A sequence is written as Pulseq text or as Pulseq binary, and read back from

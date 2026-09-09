@@ -100,7 +100,7 @@ class Sequence:
         self._use_block_cache = use_block_cache
         self._use_event_cache = True
         self._trid_names: list[str] = []
-        self._analysed_at = self._native.revision()
+        self._analysed_at = self._native.edits()
         self._slew_found = 0
         self._duration_recorded = 0
         self.signature_type: str | None = None
@@ -151,9 +151,9 @@ class Sequence:
 
     def _forget_if_changed(self) -> None:
         """Drop what was worked out if the sequence has changed since."""
-        revision = self._native.revision()
-        if revision != self._analysed_at:
-            self._analysed_at = revision
+        edits = self._native.edits()
+        if edits != self._analysed_at:
+            self._analysed_at = edits
             self._slew_found = 0
             self._duration_recorded = 0
 
@@ -1037,7 +1037,7 @@ class Sequence:
 
         # A file that declares how long it lasts is held to it: the first
         # timing check compares rather than records.
-        self._analysed_at = self._native.revision()
+        self._analysed_at = self._native.edits()
         self._slew_found = 0
         self._duration_recorded = 1 if self.get_definition("TotalDuration") != "" else 0
 

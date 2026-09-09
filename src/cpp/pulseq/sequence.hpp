@@ -1331,17 +1331,20 @@ namespace pulseq
         }
 
         /**
-         * How many times the sequence has been changed.
+         * How many times the sequence has been edited.
          *
          * Rises on every mutation, in step with the claim above being
          * dropped, and never falls.  Anything worked out about a sequence and
          * kept -- what the gradients slew at, how long the whole thing lasts
          * -- can record the number it was worked out at and tell, in one
          * comparison, whether it is still about the sequence in hand.
+         *
+         * Nothing to do with @ref version_revision, which is the revision of
+         * the file format.
          */
-        uint64_t revision() const
+        uint64_t edits() const
         {
-            return revision_;
+            return edits_;
         }
 
         /**
@@ -1616,11 +1619,11 @@ namespace pulseq
         void changed()
         {
             deduplicated_ = false;
-            ++revision_;
+            ++edits_;
         }
 
         bool deduplicated_ = false;
-        uint64_t revision_ = 0;
+        uint64_t edits_ = 0;
 
         /* -- definitions and instances --------------------------------- */
         Definitions rf_defs_, grad_defs_, adc_defs_, block_defs_;

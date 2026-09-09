@@ -20,6 +20,14 @@ import pypulseqpp as pp
 from pypulseqpp import safety
 
 
+def played_per_axis(sequence):
+    """The strongest each axis reaches, taken from the expanded waveforms."""
+    return [
+        float(np.abs(channel[1]).max()) if channel.shape[1] else 0.0
+        for channel in sequence.waveforms()
+    ]
+
+
 def peaks_the_long_way(sequence):
     """The strongest gradient and slew, taken from the expanded waveforms."""
     strongest = 0.0
@@ -305,3 +313,68 @@ def test_the_vector_peak_is_what_a_rotation_could_put_on_one_axis(system):
     assert report.per_axis.value == pytest.approx(amplitude)
     assert report.vector.value == pytest.approx(math.sqrt(3) * amplitude)
     assert report.vector.axis is None
+
+
+# -- each amplifier on its own ---------------------------------------------
+
+
+def test_each_axis_reports_the_peak_it_is_asked_for(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=600, duration=1e-3, system=system))
+    sequence.add_block(pp.make_trapezoid("y", area=1000, duration=1e-3, system=system))
+    sequence.add_block(pp.make_trapezoid("z", area=300, duration=1e-3, system=system))
+
+    _, report = safety.check_max_grad(sequence)
+
+    assert [peak.value for peak in report.axes] == pytest.approx(
+        played_per_axis(sequence), rel=1e-9
+    )
+    assert [peak.axis for peak in report.axes] == ["x", "y", "z"]
+
+
+def test_the_worst_axis_is_the_worst_of_the_three(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=600, duration=1e-3, system=system))
+    sequence.add_block(pp.make_trapezoid("y", area=1000, duration=1e-3, system=system))
+
+    for report in (
+        safety.check_max_grad(sequence)[1],
+        safety.check_max_slew(sequence)[1],
+    ):
+        worst = max(report.axes, key=lambda peak: peak.value)
+        assert report.per_axis.value == worst.value
+        assert report.per_axis.axis == worst.axis
+
+
+def test_an_axis_carrying_nothing_reports_zero(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=1000, duration=1e-3, system=system))
+
+    _, report = safety.check_max_grad(sequence)
+
+    assert report.axes[0].value > 0
+    assert [peak.value for peak in report.axes[1:]] == [0.0, 0.0]
+
+
+def test_a_rotated_sequence_plays_axes_its_stored_rows_do_not_name(system):
+    """What is weighed is stored on x; what is played is spread over x and y.
+
+    Which is why a report on what the scan does reads the waveforms rather
+    than these peaks: a rotation is a thing one playout does, so it moves
+    where a gradient is played without moving the row it is stored in.
+    """
+    from scipy.spatial.transform import Rotation
+
+    sequence = pp.Sequence(system)
+    gradient = pp.make_trapezoid("x", area=600, duration=1e-3, system=system)
+    for quarter in range(4):
+        sequence.add_block(
+            gradient,
+            pp.make_rotation(Rotation.from_euler("z", 90 * quarter, degrees=True)),
+        )
+
+    _, report = safety.check_max_grad(sequence)
+    played = played_per_axis(sequence)
+
+    assert report.axes[1].value == 0
+    assert played[1] == pytest.approx(report.axes[0].value, rel=1e-9)
