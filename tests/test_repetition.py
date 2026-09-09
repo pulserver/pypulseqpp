@@ -15,6 +15,7 @@ stale.
 import math
 
 import pytest
+from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 
@@ -213,3 +214,77 @@ def test_labelling_a_pulse_splits_the_definition_it_shared(tmp_path):
     assert loaded._native.num_rf_definitions() == 2
     assert list(loaded._native.instance_definitions()) == [1, 2, 1, 2, 1, 2]
     assert loaded._detect_tr() == (2, 1)
+
+
+def test_a_phase_encode_table_is_one_definition_at_many_amplitudes():
+    """One gradient at its largest step, scaled per line.
+
+    Which is what makes a table read as one repetition, and it is not left to
+    the caller: every readout module builds its encodes with
+    `make_phase_encoding` for the step and `scale_grad` for the line, so the
+    amplitude is a column of the row and the timings never move. Ask
+    `make_trapezoid` for an area per line instead and it derives its own rise
+    and fall from each, which is a definition per line and a scan that reads
+    as though it never does the same thing twice.
+    """
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    step = pp.make_phase_encoding("y", 0.24 / 64, system=system)
+
+    sequence = pp.Sequence(system)
+    for line in (-1.0, -0.5, 0.25, 1.0):
+        sequence.add_block(pp.scale_grad(step, line))
+
+    assert sequence._native.num_grad_definitions() == 1
+    assert sequence._detect_tr() == (1, 1)
+
+
+def test_a_line_scaled_to_zero_is_the_same_definition_at_no_amplitude():
+    """How a calibration line is acquired without the encode.
+
+    Not a block with one fewer event, which would be a definition of its own
+    and would break the scan into pieces around it. The amplitude is the
+    instance's, so zero is a number in the row.
+    """
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    step = pp.make_phase_encoding("y", 0.24 / 64, system=system)
+
+    sequence = pp.Sequence(system)
+    for line in (1.0, 0.0, -1.0):
+        sequence.add_block(pp.scale_grad(step, line))
+
+    assert sequence._native.num_grad_definitions() == 1
+    assert sequence._detect_tr() == (1, 1)
+    assert float(sequence.get_block(2).gy.amplitude) == 0.0
+
+
+def test_a_run_of_waits_repeats_every_block_however_long_each_waits():
+    """A pure delay is one definition and its duration is not part of it.
+
+    A block that plays nothing is a position an interpreter waits at, and how
+    long it waits there is set at run time -- so a fill and the pad after it
+    are one position waited at twice, not two things.
+    """
+    sequence = pp.Sequence(pp.Opts())
+    for duration in (1e-3, 2e-3, 3e-3):
+        sequence.add_block(pp.make_delay(duration))
+
+    assert sequence._detect_tr() == (1, 1)
+
+
+def test_the_repeat_survives_a_shift(gradient_echo):
+    """A prescription writes phases onto rows; it does not restructure a scan."""
+    sequence = gradient_echo(lines=8)
+    moved = pp.TransformFOV(translation=(0.01, 0.0, 0.0)).apply_to_sequence(sequence)
+
+    assert moved._detect_tr() == sequence._detect_tr()
+
+
+def test_the_repeat_survives_a_rotation(gradient_echo):
+    """A rotation is four numbers on a block, not a new set of waveforms, so
+    it cannot split one readout into many."""
+    sequence = gradient_echo(lines=8)
+    turned = pp.TransformFOV(
+        rotation=Rotation.from_euler("z", 45, degrees=True)
+    ).apply_to_sequence(sequence)
+
+    assert turned._detect_tr() == sequence._detect_tr()

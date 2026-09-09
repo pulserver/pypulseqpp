@@ -238,29 +238,23 @@ def sequence(scales):
     return seq
 
 
-def structure(seq):
-    detected = seq._structure_for("plot")
-    return seq.tr_size, [
-        (segment["num_blocks"], segment["pure_delay"]) for segment in detected.segments
-    ]
-
-
-@pytest.mark.skip(reason="Sequence._structure_for is not here yet")
-def test_scaling_the_wave_to_zero_leaves_the_structure_alone():
+def test_scaling_the_wave_to_zero_leaves_the_repeating_unit_alone():
     """How a calibration line is acquired wave-free.
 
-    Scaling the event keeps the readout's block *definition*, so the sequence
-    is still one repeating unit and its TR and its segments are what they
-    would have been. Leaving the event out instead is a different block, and
-    the sequence fragments into several segments around it -- which is what
-    the scan loop and the interpreter would then have to carry.
+    Scaling the event keeps the readout's block *definition* -- a waveform is
+    carried by the playout, not by the definition -- so the scan is still one
+    repeating unit and repeats from its first block. Leaving the event out
+    instead is a different block, and the shots before it stop matching the
+    shots after: only the tail repeats, and everything ahead of it is
+    prologue a scan loop would have to carry separately.
     """
-    everywhere = structure(sequence([1.0] * 6))
-    scaled_off = structure(sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0]))
-    left_out = structure(sequence([1.0, 1.0, None, None, 1.0, 1.0]))
+    everywhere = sequence([1.0] * 6)._detect_tr()
+    scaled_off = sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])._detect_tr()
+    left_out = sequence([1.0, 1.0, None, None, 1.0, 1.0])._detect_tr()
 
+    assert everywhere == (4, 1)
     assert scaled_off == everywhere
-    assert left_out != everywhere
+    assert left_out[1] > everywhere[1]
 
 
 def test_a_wave_scaled_to_zero_encodes_nothing():

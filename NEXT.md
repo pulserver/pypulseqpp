@@ -404,6 +404,42 @@ evolution therefore reports final values.
 `calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and
 `auto_label`.
 
+## The repeating unit
+
+`Sequence._detect_tr` reads the period of the block definition stream off the
+fork, which has already done the hard part: two blocks playing the same
+things for the same length share a definition id whatever their amplitudes,
+so the repeat is the period of an array of integers. It answers the size and
+the 1-based block the first full repetition starts at; what comes before that
+is prologue -- dummy shots, a preparation, a noise scan.
+
+It is private on purpose: neither toolbox has it, so it is what the analysis
+here reaches for rather than part of the API a design script is written
+against. The answer is recorded as the `TRsize` definition and read back from
+there, so a sequence written and read does not work it out again, and the
+core remembers it behind the same revision guard as the timing pass.
+
+**Segmentation is not here.** Where a scan is cut for a scanner to execute
+needs to know which vendor will play it, so it lives in `pulserver`. What a
+sequence knows about itself is how long its repeating unit is and where it
+starts; the segments follow from the definition ids, which are stored.
+
+**A table is one gradient scaled, and the toolbox builds it that way.** A
+phase encode has to vary in amplitude alone for the scan to read as one
+repetition, and that is not left to the caller: every readout module designs
+its encodes with `make_phase_encoding` at the largest step and scales them
+per line with `scale_grad`, so the timings never move and the amplitude is a
+column of the row. A line scaled to zero is that same definition at no
+amplitude rather than a block with one fewer event, which is how a
+calibration line is acquired without breaking the scan into pieces around it.
+Asking `make_trapezoid` for an area per line instead derives a different rise
+and fall from each, which is a definition per line -- so a hand-written table
+built that way reads as though the scan never repeats.
+
+A run of pure delays repeats every block however long each waits, because a
+block that plays nothing is one definition and its duration belongs to the
+playout.
+
 ## What the design layer is waiting on
 
 The module toolbox is in, and `tests/test_design_*.py` say what is still owed
