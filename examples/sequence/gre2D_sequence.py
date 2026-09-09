@@ -217,10 +217,11 @@ def main(
         ``mark`` rides the first excitation, for a label whose value has just
         changed. Label state is sticky, so it stays set until it is set again.
         """
-        # Present only when a TE or TR longer than the minimum was asked for.
+        # Present only when a TE longer than the minimum was asked for; the
+        # repetition time is carried by the delay that closes each shot.
         wait_te = getattr(readout, "wait_te", None)
-        wait_tr = getattr(readout, "wait_tr", None)
-        for i_slice in slices:
+        pad = kernel.pads[len(slices)]
+        for i, i_slice in enumerate(slices):
             rf_phase = next(spoiling_phase)
             readout.rf.freq_offset = excitation.gz.amplitude * slice_positions[i_slice]
             readout.rf.phase_offset = (
@@ -248,11 +249,13 @@ def main(
             else:
                 seq.add_block(readout.gx)
             seq.add_block(readout.gx_spoil, pp.scale_grad(readout.gy_rew, ky))
-            if wait_tr is not None:
-                seq.add_block(wait_tr)
+            # One raster on every slice but the last of the pass, which
+            # carries the rest of the repetition time.
+            last = i == len(slices) - 1
+            seq.add_block(pp.make_delay(pad if last else system.block_duration_raster))
 
     for slices in kernel.passes:
-        readout = kernel.readouts[len(slices)]
+        readout = kernel.readout
         lin_label, slc_label, ima_label, seg_label = readout.adc_labels
 
         # Steady state first: the same repetition without its ADC, so the
@@ -307,7 +310,7 @@ def main(
     seq.set_definition(key="kSpaceCenterLine", value=n_y // 2)
     seq.set_definition(
         key="kSpaceCenterSample",
-        value=kernel.readouts[len(kernel.passes[0])].center_sample,
+        value=kernel.readout.center_sample,
     )
     seq.set_definition(key="SlicePositions", value=slice_positions.tolist())
     seq.set_definition(key="SliceThickness", value=kernel.excitation.slice_thickness)
@@ -388,8 +391,9 @@ n_dummy, spoiling_cycles
     Returns
     -------
     types.SimpleNamespace
-        ``excitation``, ``readouts`` (keyed by pass size), ``passes`` (slice
-        indices per pass, in excitation order), ``fov``, ``sampled_lines``,
+        ``excitation``, ``readout``, ``pads`` (the closing delay per pass
+        size), ``passes`` (slice indices per pass, in excitation order),
+        ``fov``, ``sampled_lines``,
         ``n_calibration`` (how many of them lead the traversal),
         ``echo_time``, ``repetition_time``, ``bandwidth_hz`` and ``duration``.
     """
@@ -437,10 +441,27 @@ n_dummy, spoiling_cycles
         if group
     ]
 
-    readouts = {
-        size: shortest if tr is None else readout(tr / size)
+    # One readout, at its shortest, whatever a pass holds. What differs
+    # between a pass of 18 slices and one of 17 is then a *duration* and not a
+    # definition: every shot closes with a pure delay, one raster on each
+    # slice and, on the last of a pass, whatever is left of the repetition
+    # time. A pure delay is one definition however long it waits, so the block
+    # stream reads as one shot repeating whatever the slices divide into --
+    # which is what lets the repeating unit be found at the first block rather
+    # than after the odd pass.
+    raster = system.block_duration_raster
+    shot_span = shortest.duration + raster
+    cycle = tr if tr is not None else max(len(g) for g in passes) * shot_span
+    pads = {
+        size: pp.round_to_raster(cycle - size * shot_span, raster) + raster
         for size in {len(group) for group in passes}
     }
+    if min(pads.values()) < raster:
+        raise ValueError(
+            f"the requested TR of {cycle * 1e3:.3f} ms is shorter than the "
+            f"{max(size * shot_span for size in pads) * 1e3:.3f} ms the slices of a "
+            "pass take"
+        )
 
     # The autocalibration block is acquired first, so a reconstruction can
     # estimate coil sensitivities from it while the rest of the scan is still
@@ -459,22 +480,23 @@ n_dummy, spoiling_cycles
     # One repetition per acquired line per slice, plus the dummies that bring
     # each pass to steady state; the readout has already padded itself to the
     # per-slice TR, so a pass is simply their sum.
-    pass_time = sum(len(group) * readouts[len(group)].duration for group in passes)
+    # Every pass lasts one repetition time by construction, so the scan is
+    # one per line per pass, dummies included.
     # With averages: n_dummy * pass_time + n_averages * len(sampled_lines) *
     # pass_time -- they repeat the body and not the dummies.
+    pass_time = sum(len(g) * shot_span + pads[len(g)] for g in passes)
     duration = (n_dummy + len(sampled_lines)) * pass_time
 
     return SimpleNamespace(
         excitation=excitation,
-        readouts=readouts,
+        readout=shortest,
+        pads=pads,
         passes=passes,
         fov=(fov_x, fov_y),
         sampled_lines=sampled_lines,
         n_calibration=n_calibration,
         echo_time=shortest.echo_time,
-        repetition_time=max(
-            len(group) * readouts[len(group)].duration for group in passes
-        ),
+        repetition_time=max(len(g) * shot_span + pads[len(g)] for g in passes),
         bandwidth_hz=shortest.bandwidth_hz,
         duration=duration,
     )

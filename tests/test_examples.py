@@ -9,6 +9,7 @@ import subprocess
 import sys
 from itertools import pairwise
 
+import numpy as np
 import pytest
 
 import pypulseqpp as pp
@@ -70,6 +71,54 @@ def test_the_slices_of_a_pass_are_not_neighbours():
         # Every slice of one pass is a whole pass-count away from the next, so
         # no two neighbours in the slab are excited in the same pass.
         assert all(b - a >= len(kernel.passes) for a, b in pairwise(ordered))
+
+
+@pytest.mark.parametrize(
+    ("n_x", "n_slices"),
+    [(64, 120), (256, 120), (256, 30), (256, 7)],
+    ids=["even passes", "odd pass", "even", "one pass"],
+)
+def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
+    n_x, n_slices
+):
+    """A pass that holds one slice more is a longer wait, not a different shot.
+
+    Slices are dealt round-robin, so their count need not divide evenly and
+    one pass can hold one more than the rest. What squares them up is the
+    pure delay that closes every shot -- and a pure delay is one definition
+    however long it waits, so the block stream reads as one shot repeating
+    rather than as two structurally different halves.
+    """
+    seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs=8)
+
+    _size, start = seq._detect_tr()
+
+    assert start == 1
+
+
+def test_every_slice_is_excited_at_the_repetition_time_asked_for():
+    """Including the odd pass, which holds a slice more and waits less."""
+    lines, tr = 8, 0.25
+    seq = gre(n_x=256, n_y=lines, n_slices=120, tr=tr)
+    kernel = examples.gre2D_sequence.GREKernel(
+        pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s"),
+        n_x=256,
+        n_y=lines,
+        n_slices=120,
+        tr=tr,
+        n_acs=0,
+        n_dummy=0,
+    )
+    excited = np.asarray(seq.rf_times()[0])
+
+    assert len({len(group) for group in kernel.passes}) == 2  # the case worth asking
+
+    at = 0
+    for group in kernel.passes:
+        # A slice's repetition time is the gap between its own excitations.
+        spacing = np.diff(excited[at : at + len(group) * lines][:: len(group)])
+        assert spacing == pytest.approx(tr, abs=1e-9)
+        at += len(group) * lines
 
 
 def test_a_shorter_echo_than_the_readout_admits_is_refused():
