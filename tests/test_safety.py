@@ -46,7 +46,19 @@ def peaks_the_long_way(sequence):
 
 @pytest.fixture
 def system():
-    return pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    """A scanner, with the gradient raster spelled out.
+
+    A step between two blocks is judged as that step over the raster it is
+    taken in, so a test about continuity that leaves the raster to whatever
+    `Opts` defaults to is partly a test about the defaults.
+    """
+    return pp.Opts(
+        max_grad=30,
+        grad_unit="mT/m",
+        max_slew=150,
+        slew_unit="T/m/s",
+        grad_raster_time=10e-6,
+    )
 
 
 # -- read off the libraries, checked against the waveforms ------------------

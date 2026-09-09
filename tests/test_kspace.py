@@ -45,13 +45,71 @@ def both(reference_name, build_reference):
     return theirs, ours
 
 
-def assert_same(expected, got, where):
+#: How close two moments have to be before they are the same moment.
+COINCIDENT = 1e-11
+
+#: How far the toolbox's trajectory may sit from this one, in 1/m.
+#:
+#: It holds an axis at zero in front of what it plays by putting a knot a
+#: picosecond ahead of the axis's own first corner. Its rule for merging
+#: coincident knots works to a nanosecond, so the corner behind the pad is
+#: lost to it and the ramp behind *that* is a picosecond longer than the
+#: sequence asked for -- an area of amplitude times half a picosecond, every
+#: time an axis starts anywhere but the beginning.
+#:
+#: Four parts in a hundred million of a phase encode, and it does not
+#: accumulate, which is why it went unnoticed. It is not nothing: a phase
+#: encode and its rewinder no longer cancel, and a sequence whose repetitions
+#: are identical no longer reads as though they are. Where the two differ, it
+#: is this package that returns k to zero -- `test_a_balanced_pair_returns_k_
+#: to_where_it_found_it` is the same question asked without the toolbox.
+LEAK = 1e-5
+
+
+def assert_same(expected, got, where, atol=1e-7):
     expected = np.asarray(expected, dtype=float)
     got = np.asarray(got, dtype=float)
     assert expected.shape == got.shape, f"{where}: shape"
     if expected.size:
-        assert np.allclose(expected, got, rtol=1e-7, atol=1e-7, equal_nan=True), (
+        assert np.allclose(expected, got, rtol=1e-7, atol=atol, equal_nan=True), (
             f"{where}: values"
+        )
+
+
+def assert_same_curve(their_t, their_k, our_t, our_k, where):
+    """The two follow the same trajectory, whatever each spent saying it.
+
+    The toolbox reports one moment this package does not, wherever an axis
+    starts late: the pad above begins a sloping stretch a picosecond early,
+    and the raster is walked through every sloping stretch, so the stretch
+    begins one raster tick early and a point is reported where nothing
+    happens. So the moments are compared as a set rather than as a list.
+    """
+    their_t = np.asarray(their_t, dtype=float)
+    our_t = np.asarray(our_t, dtype=float)
+    if their_t.size == 0:
+        assert our_t.size == 0, f"{where}: this reports moments the toolbox does not"
+        return
+
+    their_k = np.atleast_2d(np.asarray(their_k, dtype=float))
+    our_k = np.atleast_2d(np.asarray(our_k, dtype=float))
+
+    # Every moment of ours is one of theirs: a moment they do not report would
+    # be a real difference rather than scaffolding of their own.
+    after = np.searchsorted(their_t, our_t).clip(0, their_t.size - 1)
+    before = (after - 1).clip(0, their_t.size - 1)
+    theirs_at = np.where(
+        np.abs(their_t[after] - our_t) <= np.abs(their_t[before] - our_t), after, before
+    )
+    assert np.abs(their_t[theirs_at] - our_t).max() <= COINCIDENT, (
+        f"{where}: this reports a moment the toolbox does not"
+    )
+
+    # And where both report a moment, both say the same thing about it, to
+    # within what the toolbox's own padding costs it.
+    for axis in range(their_k.shape[0]):
+        assert_same(
+            their_k[axis][theirs_at], our_k[axis], f"{where}: axis {axis}", atol=LEAK
         )
 
 
@@ -62,7 +120,14 @@ def test_the_trajectory_is_the_toolboxs(both):
     found = ours._kspace()
 
     for name, position in REPORTED:
-        assert_same(reported[position], found[name], name)
+        if name == "k_traj":
+            assert_same_curve(
+                reported[3], reported[2], found["t_ktraj"], found["k_traj"], name
+            )
+        elif name == "k_traj_adc":
+            assert_same(reported[position], found[name], name, atol=LEAK)
+        elif name != "t_ktraj":
+            assert_same(reported[position], found[name], name)
 
 
 def test_the_gradients_it_integrated_are_the_toolboxs(both):
@@ -347,3 +412,58 @@ def test_the_trajectory_is_the_integral_of_the_waveform_that_is_drawn(label, wav
     trajectory = sequence.calculate_kspace()[1]
 
     assert trajectory[0, -1] == pytest.approx(enclosed[-1], rel=1e-12, abs=1e-12)
+
+
+# -- what an axis encloses does not depend on when it starts ---------------
+
+
+@pytest.mark.parametrize("delay", [0.0, 1e-5, 1e-3, 1e-2])
+def test_a_gradient_encloses_its_area_wherever_it_starts(delay):
+    """A trapezoid played late encloses what a trapezoid played early does.
+
+    An axis that starts anywhere but the beginning has to be held at zero in
+    front of what it plays, and holding it there must not lengthen the ramp it
+    is held in front of. A picosecond of ramp at full amplitude is a real area,
+    and it is the same area however long the wait before it was.
+    """
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    amplitude = 372960.372960373
+    lobe = pp.make_trapezoid(
+        "y",
+        amplitude=amplitude,
+        rise_time=2.2e-4,
+        flat_time=5.6e-4,
+        fall_time=2.2e-4,
+        system=system,
+    )
+    enclosed = amplitude * (2.2e-4 / 2 + 5.6e-4 + 2.2e-4 / 2)
+
+    sequence = pp.Sequence(system)
+    if delay:
+        sequence.add_block(pp.make_delay(delay))
+    sequence.add_block(lobe)
+
+    assert float(sequence.calculate_kspace()[1][1, -1]) == pytest.approx(
+        enclosed, abs=1e-9
+    )
+
+
+def test_a_balanced_pair_returns_k_to_where_it_found_it():
+    """Which is what lets a phase encode be undone by its own rewinder."""
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    amplitude = 372960.372960373
+    shape = {
+        "rise_time": 2.2e-4,
+        "flat_time": 5.6e-4,
+        "fall_time": 2.2e-4,
+        "system": system,
+    }
+
+    sequence = pp.Sequence(system)
+    for _ in range(8):
+        sequence.add_block(pp.make_delay(2e-4))
+        sequence.add_block(pp.make_trapezoid("y", amplitude=amplitude, **shape))
+        sequence.add_block(pp.make_delay(2e-4))
+        sequence.add_block(pp.make_trapezoid("y", amplitude=-amplitude, **shape))
+
+    assert float(sequence.calculate_kspace()[1][1, -1]) == pytest.approx(0.0, abs=1e-9)

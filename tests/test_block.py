@@ -20,7 +20,20 @@ import pypulseqpp as pp
 
 @pytest.fixture
 def system():
-    return pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=200, slew_unit="T/m/s")
+    """A scanner, with the raster spelled out.
+
+    Whether a step between two blocks is a discontinuity is that step over the
+    raster it is taken in, judged against the slew limit -- so a test about
+    discontinuities that leaves the raster to whatever the defaults happen to
+    be is a test about the defaults.
+    """
+    return pp.Opts(
+        max_grad=50,
+        grad_unit="mT/m",
+        max_slew=200,
+        slew_unit="T/m/s",
+        grad_raster_time=10e-6,
+    )
 
 
 @pytest.fixture

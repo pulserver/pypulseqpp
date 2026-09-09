@@ -75,9 +75,17 @@ namespace pulseq
             if (late)
             {
                 into_t.push_back(-kTiny);
-                into_t.push_back(times.front() - delay - kTiny);
                 into_v.push_back(0.0);
-                into_v.push_back(0.0);
+                /* A waveform that begins away from zero has to be stepped
+                 * onto, and the step takes a picosecond so that it is a step
+                 * and not a ramp. One that begins at zero is already there,
+                 * and a knot a picosecond in front of its own first corner
+                 * would only be something to confuse that corner with. */
+                if (std::fabs(values.front()) > 0.0)
+                {
+                    into_t.push_back(times.front() - delay - kTiny);
+                    into_v.push_back(0.0);
+                }
             }
             for (size_t i = 0; i < times.size(); ++i)
             {
@@ -86,9 +94,12 @@ namespace pulseq
             }
             if (early)
             {
-                into_t.push_back(times.back() - delay + kTiny);
+                if (std::fabs(values.back()) > 0.0)
+                {
+                    into_t.push_back(times.back() - delay + kTiny);
+                    into_v.push_back(0.0);
+                }
                 into_t.push_back(total + kTiny);
-                into_v.push_back(0.0);
                 into_v.push_back(0.0);
             }
 
@@ -99,7 +110,18 @@ namespace pulseq
             }
 
             /* Two corners at the same moment are one corner, and a waveform
-             * that goes backwards in time is not one. */
+             * that goes backwards in time is not one.
+             *
+             * At the same moment, and not merely near it: what is being built
+             * is the knots to integrate between, and moving a corner moves
+             * area. The pads above sit a picosecond from the waveform's own
+             * first and last corner, on purpose, so that the step onto it
+             * takes no time worth speaking of -- and dropping the corner
+             * because it is a picosecond from the pad stretches the ramp
+             * behind it by that picosecond, which at full amplitude is an
+             * area of amplitude times a picosecond. Small, and not nothing:
+             * it is a fifth of a nanometre of k on a phase encode, every
+             * time an axis starts anywhere but the beginning. */
             size_t kept = 1;
             bool backwards = false;
             for (size_t i = 1; i < into_t.size(); ++i)

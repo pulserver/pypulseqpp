@@ -274,7 +274,46 @@ def assert_same_report(expected, found):
             ), name
 
 
-def test_the_report_is_the_toolboxs(build_reference):
+#: Where the toolbox's report is decided by its own integration error.
+#:
+#: It holds an axis at zero in front of what it plays by putting a knot a
+#: picosecond ahead of the axis's first corner, and loses the corner to it --
+#: so a ramp is a picosecond too long and encloses amplitude times half a
+#: picosecond too much, every time an axis starts anywhere but the beginning.
+#: See `tests/test_kspace.py`.
+#:
+#: Small enough to be invisible until something is balanced on it, and a
+#: report is. `inversion_recovery_train` has four repetitions whose k-space
+#: centres agree to twelve figures; which of them is nearest the origin
+#: decides the echo, and the spacing after it is what the report calls TR.
+#: The leak biases the first, so the toolbox settles on the second and calls
+#: TR 0.557 -- the gap between the second repetition and the third. Without
+#: it the four agree and the first wins, which is the gap of 0.537.
+#:
+#: The train's spacings are 0.537, 0.557 and 0.607 seconds: it has no one TR,
+#: and what the report can say is the spacing after the echo it found. So the
+#: value held here is this package's, and the toolbox's is recorded beside it
+#: as the thing it is -- an answer chosen by an artefact.
+DECIDED_BY_THE_LEAK = {
+    "inversion_recovery_train": {"TR": 0.537},
+}
+
+#: The same, in a rendered report.
+#:
+#: `gre_with_noise_scan` resolves exactly 9.375 mm along its second axis, and
+#: that is the number this package computes -- to the bit. Printed to two
+#: places it is a tie, and Python rounds a tie to even: 9.38. The toolbox's
+#: extent carries the leak, so its resolution is 9.37499999..., a hair under
+#: the tie and not a tie at all: 9.37.
+RENDERED_DIFFERENTLY = {
+    "gre_with_noise_scan": (
+        "Spatial resolution: 9.37 mm",
+        "Spatial resolution: 9.38 mm",
+    ),
+}
+
+
+def test_the_report_is_the_toolboxs(build_reference, reference_name):
     theirs = build_reference()
     ours = as_core(theirs)
 
@@ -283,10 +322,11 @@ def test_the_report_is_the_toolboxs(build_reference):
     except ValueError:
         pytest.skip("the toolbox looks for an echo where nothing was acquired")
 
+    expected = {**expected, **DECIDED_BY_THE_LEAK.get(reference_name, {})}
     assert_same_report(expected, ours.test_report_dict())
 
 
-def test_the_report_reads_as_the_toolbox_writes_it(build_reference):
+def test_the_report_reads_as_the_toolbox_writes_it(build_reference, reference_name):
     theirs = build_reference()
     ours = as_core(theirs)
 
@@ -294,5 +334,10 @@ def test_the_report_reads_as_the_toolbox_writes_it(build_reference):
         expected = theirs.test_report()
     except (NameError, ValueError):
         pytest.skip("the toolbox cannot render a report for this sequence")
+
+    if reference_name in RENDERED_DIFFERENTLY:
+        theirs_reads, ours_reads = RENDERED_DIFFERENTLY[reference_name]
+        assert theirs_reads in expected
+        expected = expected.replace(theirs_reads, ours_reads)
 
     assert ours.test_report() == expected
