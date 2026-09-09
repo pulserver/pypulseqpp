@@ -368,6 +368,12 @@ PYBIND11_MODULE(_ext, module)
         /* -- header ---------------------------------------------------- */
         .def("set_version", &Sequence::set_version, py::arg("major"), py::arg("minor"),
              py::arg("revision"))
+        .def("version_major", &Sequence::version_major,
+             "The major version of the format this sequence is held as.")
+        .def("version_minor", &Sequence::version_minor, "Its minor version.")
+        .def("version_revision", &Sequence::version_revision,
+             "Its revision: what a file it was read from declared, or what "
+             "this package writes.")
         .def("set_rasters", &Sequence::set_rasters, py::arg("rf"), py::arg("grad"),
              py::arg("adc"), py::arg("block"))
         .def("publish_rasters", &Sequence::publish_rasters,
@@ -1186,15 +1192,32 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "write_binary",
-        [](Sequence& sequence) {
+        [](Sequence& sequence, bool create_signature) {
             std::string written;
             {
                 py::gil_scoped_release unlocked;
-                written = pulseq::write_binary(sequence);
+                written = pulseq::write_binary(sequence, create_signature);
             }
             return py::bytes(written);
         },
-        py::arg("sequence"), "Serialize as a Pulseq binary sequence file.");
+        py::arg("sequence"), py::arg("create_signature") = true,
+        "Serialize as a Pulseq binary sequence file.");
+
+    module.def(
+        "binary_signature",
+        [](const py::bytes& contents) {
+            std::string type;
+            std::string value;
+            const bool valid = pulseq::binary_signature(std::string(contents), type, value);
+            py::dict out;
+            out["type"] = type;
+            out["value"] = value;
+            out["valid"] = valid;
+            return out;
+        },
+        py::arg("contents"),
+        "The signature a binary file carries, and whether it is the digest of "
+        "what it covers.");
 
     module.def(
         "is_binary",

@@ -74,8 +74,26 @@ namespace pulseq
      *
      * Written little-endian whatever the host is, so one machine's file is
      * another's.
+     *
+     * @param create_signature  Append the signature section: the type, an MD5
+     *                          of everything above it, and how many bytes that
+     *                          is. The digest is stored raw where the text
+     *                          form writes it as hex, which is the only place
+     *                          the two forms differ about it.
      */
-    std::string write_binary(Sequence& seq);
+    std::string write_binary(Sequence& seq, bool create_signature = true);
+
+    /**
+     * The signature a binary file carries, or empty strings if it carries none.
+     *
+     * @param contents  The whole file.
+     * @param type      Filled with the digest's name, `md5`.
+     * @param value     Filled with the digest, as lowercase hex.
+     * @return Whether the digest is the digest of what it covers. False when
+     *         there is no signature to check, which @p type says apart.
+     */
+    bool binary_signature(
+        const std::string& contents, std::string& type, std::string& value);
 
 } // namespace pulseq
 

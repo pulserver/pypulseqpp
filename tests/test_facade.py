@@ -495,9 +495,26 @@ def test_read_binary_reads_the_binary_form(tmp_path):
     assert len(loaded) == len(sequence)
 
 
-def test_the_binary_form_is_never_signed(tmp_path):
-    """It has no signature section, so there is nothing to hand back."""
-    assert gradient_echo().write_binary(str(tmp_path / "gre.bin")) is None
+def test_the_binary_form_is_signed_like_the_text_one(tmp_path):
+    """An MD5 over everything above the section that carries it."""
+    sequence = gradient_echo()
+    path = tmp_path / "gre.bin"
+
+    signature = sequence.write_binary(str(path))
+
+    assert signature is not None
+    assert sequence.signature_value == signature
+    assert sequence.signature_type == "md5"
+    assert sequence.signature_file == "bin"
+
+
+def test_a_binary_file_can_be_written_unsigned(tmp_path):
+    sequence = gradient_echo()
+
+    assert (
+        sequence.write_binary(str(tmp_path / "gre.bin"), create_signature=False) is None
+    )
+    assert sequence.signature_value is None
 
 
 # -- no-ops ----------------------------------------------------------------

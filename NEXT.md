@@ -33,26 +33,34 @@ other ten are not worth porting as they stand, and why is worth writing down:
 
 ### What the port turned up
 
-Four differences from the authority, none of them found by anything else:
+Four differences from the authority, none of them found by anything else.
+Two are closed:
 
-- **A binary file is not signed here.** The toolbox writes an md5 over the
-  binary form and reports it as `signature_type='md5'`, `signature_file='bin'`;
-  `write_binary` here writes no signature section and reading a signed one
-  reports none. Files still pass both ways -- `tests/test_interoperability.py`
-  holds that -- so what is missing is the integrity check, not the format.
+- **A binary file is signed**, as the toolbox signs one: an MD5 over
+  everything above the section that carries it, checked before the bytes are
+  parsed rather than after. `write_binary(create_signature=False)` writes an
+  unsigned file, as `write` does. Ours verifies theirs and theirs verifies
+  ours.
+- **`version_major`, `version_minor` and `version_revision`** are on the
+  Sequence. They say what the sequence *is*: a file older than 1.5 is
+  converted as it is read, so it is held as 1.5 whatever it declared.
+
+Two are open:
+
 - **`make_rotation` takes one call form.** The toolbox takes six: an angle, an
   angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix,
   and a stack of them. Here it takes an object with `as_quat`, which is a
-  SciPy `Rotation`. Upstream PyPulseq has no `make_rotation`, so the toolbox is
-  the authority for this one.
-- **`make_rf_shim` keeps the shape it is given.** The toolbox reshapes the
-  weights to a column, so `shim.shim_vector[k, 0]` is how a script written
-  against it reads a weight; here a list gives `(n,)` and a scalar gives a
-  0-d array. One weight per channel is the simpler convention, but the
-  scalar case is a wart either way.
+  SciPy `Rotation`. Upstream PyPulseq has no `make_rotation`, so the toolbox
+  is the authority for this one.
 - **`add_block(None)` is refused.** The toolbox takes it and adds no block.
   Upstream PyPulseq raises, and upstream is the API this stands in for, so
-  this raises too -- with a message that says what was expected.
+  this raises too -- with a message that says what was expected. This one is
+  a decision rather than a gap.
+
+And one difference that is deliberate: **`make_rf_shim` keeps the shape it is
+given** where the toolbox reshapes the weights to a column. One weight per
+channel, indexed `shim_vector[k]`, is what a Python caller expects; the
+toolbox's `shim_vector[k, 0]` is MATLAB's column convention.
 
 ## The rest of the timing check
 

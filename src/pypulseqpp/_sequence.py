@@ -952,11 +952,7 @@ class Sequence:
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
 
-    def write_binary(
-        self,
-        name,
-        create_signature: bool = True,  # noqa: ARG002 -- the binary form is unsigned
-    ) -> None:
+    def write_binary(self, name, create_signature: bool = True) -> str | None:
         """Write the binary form, which a scanner parses faster.
 
         Parameters
@@ -964,16 +960,17 @@ class Sequence:
         name : str or Path
             Where to write it.
         create_signature : bool, default True
-            Accepted for the text writer's signature; the binary format has
-            no signature section, so a binary file is never signed.
+            Append the signature section: an MD5 of everything above it, so a
+            file says whether it is the file that was written.
 
         Returns
         -------
-        None
-            Always, since there is no signature to hand back.
+        str or None
+            The signature written, or None when none was asked for.
         """
-        Path(name).write_bytes(_cxx.write_binary(self._native))
-        return None
+        written = _cxx.write_binary(self._native, create_signature)
+        Path(name).write_bytes(written)
+        return self._note_binary_signature(written)
 
     def write_v141(
         self, name, create_signature: bool = True, gamma=42576000.0, field=1.5
@@ -982,6 +979,17 @@ class Sequence:
         written = _cxx.write_text_v141(self._native, create_signature, gamma, field)
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
+
+    def _note_binary_signature(self, written: bytes) -> str | None:
+        """Record and return the signature a binary file carries, if any."""
+        found = _cxx.binary_signature(written)
+        if not found["type"]:
+            self.signature_type = self.signature_file = self.signature_value = None
+            return None
+        self.signature_type = found["type"]
+        self.signature_file = "bin"
+        self.signature_value = found["value"]
+        return self.signature_value
 
     def _note_signature(self, written: bytes, kind: str) -> str | None:
         """Record and return the signature ``written`` carries, if any."""
@@ -1020,7 +1028,23 @@ class Sequence:
         verify : bool, default False
             Check the file against the signature it carries.
         """
-        self._native = _cxx.read(Path(file_path).read_bytes(), verify)
+        contents = Path(file_path).read_bytes()
+        binary = _cxx.is_binary(contents)
+        if binary:
+            # A binary file carries its signature at the end, over the bytes
+            # before it, so it is checked before they are parsed: what a
+            # signature is for is saying the bytes are wrong rather than
+            # letting the parser say something else about them. The text
+            # reader checks its own as it parses.
+            found = _cxx.binary_signature(contents)
+            if verify and found["type"] and not found["valid"]:
+                raise RuntimeError(
+                    f"read(): the file's {found['type']} signature is not the "
+                    "signature of its contents"
+                )
+        self._native = _cxx.read(contents, verify)
+        if binary:
+            self._note_binary_signature(contents)
         if detect_rf_use:
             system = self.system
             labelled = self._native.detect_rf_uses(
@@ -1040,6 +1064,30 @@ class Sequence:
         self._analysed_at = self._native.edits()
         self._slew_found = 0
         self._duration_recorded = 1 if self.get_definition("TotalDuration") != "" else 0
+
+    # -- the format this sequence is held as ---------------------------
+    #
+    # What the sequence *is*, not what the file it came from said. A file
+    # older than 1.5 is converted as it is read -- an RF pulse's centre and a
+    # gradient's first and last sample are derived, because 1.4 has no column
+    # for them -- so what is held afterwards is a 1.5 sequence and says so.
+    # Nor is it what a file written from it will declare: this package writes
+    # 1.5.1, so a sequence read as 1.5.0 is written as 1.5.1.
+
+    @property
+    def version_major(self) -> int:
+        """The major version of the Pulseq format this sequence is held as."""
+        return self._native.version_major()
+
+    @property
+    def version_minor(self) -> int:
+        """Its minor version."""
+        return self._native.version_minor()
+
+    @property
+    def version_revision(self) -> int:
+        """Its revision."""
+        return self._native.version_revision()
 
     # -- the scanner ---------------------------------------------------
 
