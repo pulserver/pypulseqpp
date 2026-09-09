@@ -1252,11 +1252,14 @@ namespace pulseqpp_types
             [](const py::object& source)
             {
                 py::object made = fresh<RotationEvent>(RotationType);
-                unwrap<RotationEvent>(made.ptr()).quaternion =
-                    unit_quaternion(source.attr("rot_quaternion")
-                                        .attr("as_quat")(
-                                            py::arg("canonical") = true,
-                                            py::arg("scalar_first") = true));
+                // A rotation object is asked what it is; four numbers are it.
+                py::object held = source.attr("rot_quaternion");
+                const bool asks = !py::isinstance<py::array>(held) &&
+                    !py::isinstance<py::tuple>(held) && !py::isinstance<py::list>(held);
+                unwrap<RotationEvent>(made.ptr()).quaternion = unit_quaternion(
+                    asks ? held.attr("as_quat")(
+                               py::arg("canonical") = true, py::arg("scalar_first") = true)
+                         : held);
                 return made;
             });
 

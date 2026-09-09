@@ -74,8 +74,18 @@ namespace pulseq
         std::vector<double> rf_times;
         std::vector<std::complex<double>> rf_signal;
 
-        std::vector<PulseMoment> excitation;
-        std::vector<PulseMoment> refocusing;
+        /**
+         * Every RF pulse, in play order, with what it is for and which block
+         * plays it.
+         *
+         * Pulseq has seven uses and an answer that carries two of them drops
+         * an inversion, a saturation and a preparation on the floor. They are
+         * all here, tagged, and a caller wanting the two buckets sorts them
+         * out by tag.
+         */
+        std::vector<PulseMoment> pulses;
+        std::vector<char> pulse_uses;
+        std::vector<int> pulse_blocks;
 
         /**
          * Per ADC window rather than per sample: the offsets it was asked
@@ -84,6 +94,9 @@ namespace pulseq
          */
         std::vector<double> window_frequency;
         std::vector<double> window_phase;
+        /** Which block each window is in, and how many samples it takes. */
+        std::vector<int> window_blocks;
+        std::vector<int> window_samples;
 
         /** Every ADC sample: when it is taken, and the phase it is taken at. */
         std::vector<double> adc_times;

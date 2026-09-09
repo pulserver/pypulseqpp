@@ -307,3 +307,43 @@ def test_the_samples_alone_still_turn_around_at_a_refocusing():
     # And it really is an echo: the readout crosses the origin.
     along = quick["k_traj_adc"][0]
     assert along.min() < 0 < along.max()
+
+
+# -- the edges of an arbitrary gradient ------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("label", "waveform"),
+    [
+        ("starts high", 8e4 * np.cos(np.linspace(0, np.pi / 2, 60))),
+        ("ends high", 8e4 * np.sin(np.linspace(0, np.pi / 2, 60))),
+        ("both ends high", 8e4 * (0.5 + 0.5 * np.cos(np.linspace(0, 4 * np.pi, 60)))),
+        ("constant, edges at zero", np.full(40, 1e4)),
+    ],
+)
+def test_the_trajectory_is_the_integral_of_the_waveform_that_is_drawn(label, waveform):
+    """A shape's `first` and `last` are part of what it draws, and of what it
+    encodes.
+
+    An arbitrary gradient kept at raster centres says nothing about the
+    interval boundaries; the recorded first and last values close it, and the
+    waveform an interpreter draws runs between all of them. So the trajectory
+    has to be the integral of *that*, not of the samples -- which is a
+    difference for anything that does not start and end at zero, a corkscrew
+    or a spiral arm among them.
+    """
+    system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=200, slew_unit="T/m/s")
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        pp.make_arbitrary_grad(
+            "x", waveform=waveform, first=waveform[0], last=waveform[-1], system=system
+        )
+    )
+
+    drawn = sequence.waveforms()[0]
+    enclosed = np.concatenate(
+        [[0.0], np.cumsum(np.diff(drawn[0]) * 0.5 * (drawn[1][1:] + drawn[1][:-1]))]
+    )
+    trajectory = sequence.calculate_kspace()[1]
+
+    assert trajectory[0, -1] == pytest.approx(enclosed[-1], rel=1e-12, abs=1e-12)

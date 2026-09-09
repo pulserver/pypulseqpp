@@ -65,21 +65,59 @@ def test_when_each_pulse_acts_is_the_toolboxs(both):
     theirs, ours = both
 
     _, their_excitation, their_refocusing, _, _, _ = theirs.waveforms_and_times()
-    _, our_excitation, our_refocusing, _, _, _ = ours.waveforms_and_times()
+    found = ours.waveforms_and_times(compat=False).rf
 
-    assert_same(their_excitation, our_excitation, "tfp_excitation")
-    assert_same(their_refocusing, our_refocusing, "tfp_refocusing")
+    assert_same(their_excitation, found.of("excitation", "undefined").tfp, "excitation")
+    assert_same(their_refocusing, found.of("refocusing").tfp, "refocusing")
 
 
 def test_when_each_sample_is_taken_is_the_toolboxs(both):
+    """The toolbox's `fp_adc` is per sample, where upstream's is per window."""
     theirs, ours = both
 
     *_, their_t, their_fp, their_pm = theirs.waveforms_and_times()
-    *_, our_t, our_fp, our_pm = ours.waveforms_and_times()
+    found = ours.waveforms_and_times(compat=False).adc
 
-    assert_same(their_t, our_t, "t_adc")
-    assert_same(their_fp, our_fp, "fp_adc")
-    assert_same(their_pm, our_pm, "pm_adc")
+    assert_same(their_t, found.t, "t_adc")
+    assert_same(
+        their_fp, np.vstack((found.sample_frequency, found.sample_phase)), "fp_adc"
+    )
+    assert_same(their_pm, found.phase_modulation, "pm_adc")
+
+
+def test_the_five_values_a_drop_in_caller_unpacks_are_upstreams(both):
+    """`compat` is the default, and it is upstream's tuple, not the toolbox's."""
+    _, ours = both
+
+    got = ours.waveforms_and_times()
+
+    assert len(got) == 5
+    channels, excitation, refocusing, _t_adc, fp_adc = got
+    assert len(channels) == 3
+    assert excitation.shape[0] == refocusing.shape[0] == 3
+    # Per ADC window, which is what upstream packs it as.
+    assert fp_adc.ndim == 2 and fp_adc.shape[1] == 2
+    assert fp_adc.shape[0] == len(ours.waveforms_and_times(compat=False).adc.block)
+
+
+def test_every_use_a_pulse_can_have_is_reported():
+    """Upstream's two buckets drop five of Pulseq's seven uses."""
+    system = pp.Opts()
+    sequence = pp.Sequence(system)
+    uses = ("excitation", "refocusing", "inversion", "saturation", "preparation")
+    for use in uses:
+        sequence.add_block(
+            pp.make_block_pulse(0.5, duration=1e-3, system=system, use=use)
+        )
+
+    found = sequence.waveforms_and_times(compat=False).rf
+
+    assert found.use == uses
+    assert list(found.block) == [1, 2, 3, 4, 5]
+    assert len(found.of("inversion")) == 1
+    # ...where the tuple a drop-in caller unpacks carries two of the five.
+    _, excitation, refocusing, _, _ = sequence.waveforms_and_times()
+    assert excitation.shape[1] + refocusing.shape[1] == 2
 
 
 def test_the_adc_times_are_the_toolboxs(both):
@@ -255,3 +293,35 @@ def test_a_rotation_keeps_the_axis_it_turns_about_alone():
     turned = rotated(37, select)
 
     assert_same(plain.waveforms()[2], turned.waveforms()[2], "z")
+
+
+def test_rf_times_reports_every_use_when_asked():
+    system = pp.Opts()
+    sequence = pp.Sequence(system)
+    for use in ("excitation", "inversion", "refocusing"):
+        sequence.add_block(
+            pp.make_block_pulse(0.5, duration=1e-3, system=system, use=use)
+        )
+
+    t_excitation, fp_excitation, t_refocusing, fp_refocusing = sequence.rf_times()
+    pulses = sequence.rf_times(compat=False)
+
+    # Upstream's four values carry two of the three pulses...
+    assert t_excitation.size == 1
+    assert t_refocusing.size == 1
+    assert fp_excitation.shape == (2, 1)
+    assert fp_refocusing.shape == (2, 1)
+    # ...and the inversion is only in the other answer.
+    assert len(pulses) == 3
+    assert pulses.use == ("excitation", "inversion", "refocusing")
+    np.testing.assert_allclose(pulses.of("excitation").t, t_excitation)
+
+
+def test_asking_for_a_use_that_is_not_one_is_refused():
+    sequence = pp.Sequence(pp.Opts())
+    sequence.add_block(
+        pp.make_block_pulse(0.5, duration=1e-3, system=pp.Opts(), use="excitation")
+    )
+
+    with pytest.raises(ValueError, match="unknown RF use"):
+        sequence.rf_times(compat=False).of("recalibration")

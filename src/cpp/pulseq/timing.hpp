@@ -42,6 +42,20 @@ namespace pulseq
 
         /** ADC sample counts must be a multiple of this; 0 or 1 asks nothing. */
         double adc_samples_divisor = 1.0;
+
+        /**
+         * How far off resonance a pulse or a window may be asked to sit, in
+         * hertz. Zero asks nothing, which is what a scanner that does not say
+         * gets.
+         *
+         * An offset is recorded twice over: in hertz, and as a shift in parts
+         * per million of the Larmor frequency. Either alone can be within the
+         * limit while the two together are not, so all three are weighed --
+         * which is what the reference toolbox does.
+         */
+        double max_freq_offset = 0.0;
+        /** What a ppm shift is a shift *of*: the Larmor frequency, in hertz. */
+        double larmor = 42576000.0 * 1.5;
     };
 
     /**
@@ -72,6 +86,9 @@ namespace pulseq
         double divisor = 0.0;
         /** A gradient amplitude, in Hz/m, where the finding is about one. */
         double amplitude = 0.0;
+        /** A frequency offset and the limit it is over, in hertz. */
+        double offset = 0.0;
+        double limit = 0.0;
     };
 
     /**

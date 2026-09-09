@@ -13,16 +13,25 @@
  * is a picosecond, but it is a difference in the bytes, so `nearbyint` under
  * the default rounding mode is what is used here.
  *
+ * ### The signature
+ *
+ * A file is signed the way the text form is signed and for the same reason:
+ * an MD5 of everything written before the section that carries it, so a file
+ * says whether it is the file that was written. The digest is stored raw
+ * here where the text form writes it as hex, and the section ends with how
+ * many bytes it covers, which is what lets a reader check it without knowing
+ * how long the section itself is.
+ *
  * ### What the format cannot carry
  *
- * There is no signature section, so a binary file is not signed. Shape
- * samples are single precision, where the text form writes nine significant
- * digits -- so for a shape the text file is the more faithful container, and
- * for everything else the binary one is.
+ * Shape samples are single precision, where the text form writes nine
+ * significant digits -- so for a shape the text file is the more faithful
+ * container, and for everything else the binary one is.
  */
 
 #include "pulseq/binary.hpp"
 
+#include "pulseq/md5.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/write.hpp"
 
@@ -407,7 +416,7 @@ namespace pulseq
                std::memcmp(contents.data(), BINARY_MAGIC, sizeof(BINARY_MAGIC)) == 0;
     }
 
-    std::string write_binary(Sequence& seq)
+    std::string write_binary(Sequence& seq, bool create_signature)
     {
         seq.compress_shapes();
         seq.publish_rasters();
@@ -436,7 +445,88 @@ namespace pulseq
         write_soft_delays(out, seq);
         write_rf_shims(out, seq);
         write_rotations(out, seq);
+
+        if (create_signature)
+        {
+            const size_t signed_length = out.size();
+            const std::string hex = md5_hex(out.data(), signed_length);
+            put_section(out, SEC_SIGNATURE);
+            const std::string type = "md5";
+            put_i32(out, static_cast<int32_t>(type.size()));
+            out.append(type);
+            put_i32(out, static_cast<int32_t>(hex.size() / 2));
+            for (size_t i = 0; i + 1 < hex.size(); i += 2)
+            {
+                out.push_back(
+                    static_cast<char>(std::stoul(hex.substr(i, 2), nullptr, 16)));
+            }
+            put_i64(out, static_cast<int64_t>(signed_length));
+        }
         return out;
+    }
+
+    bool binary_signature(
+        const std::string& contents, std::string& type, std::string& value)
+    {
+        type.clear();
+        value.clear();
+
+        /* The section ends with how much of the file it covers, so it is read
+         * from the end backwards: the last eight bytes say where the payload
+         * stops, and the digest and its name are what lie between there and
+         * them. */
+        if (contents.size() < sizeof(int64_t))
+            return false;
+        int64_t signed_length = 0;
+        std::memcpy(
+            &signed_length, contents.data() + contents.size() - sizeof(int64_t),
+            sizeof(int64_t));
+        if (signed_length <= 0 ||
+            static_cast<size_t>(signed_length) + sizeof(int64_t) > contents.size())
+            return false;
+
+        size_t at = static_cast<size_t>(signed_length);
+        const auto room = [&](size_t bytes) { return at + bytes <= contents.size(); };
+
+        if (!room(sizeof(uint64_t)))
+            return false;
+        uint64_t section = 0;
+        std::memcpy(&section, contents.data() + at, sizeof(section));
+        at += sizeof(section);
+        if (section != (SECTION_PREFIX | static_cast<uint64_t>(SEC_SIGNATURE)))
+            return false;
+
+        if (!room(sizeof(int32_t)))
+            return false;
+        int32_t type_length = 0;
+        std::memcpy(&type_length, contents.data() + at, sizeof(type_length));
+        at += sizeof(type_length);
+        if (type_length < 0 || !room(static_cast<size_t>(type_length)))
+            return false;
+        type.assign(contents, at, static_cast<size_t>(type_length));
+        at += static_cast<size_t>(type_length);
+
+        if (!room(sizeof(int32_t)))
+            return false;
+        int32_t digest_length = 0;
+        std::memcpy(&digest_length, contents.data() + at, sizeof(digest_length));
+        at += sizeof(digest_length);
+        if (digest_length < 0 || !room(static_cast<size_t>(digest_length)))
+        {
+            type.clear();
+            return false;
+        }
+
+        static const char kHex[] = "0123456789abcdef";
+        for (int32_t i = 0; i < digest_length; ++i)
+        {
+            const unsigned char byte =
+                static_cast<unsigned char>(contents[at + static_cast<size_t>(i)]);
+            value.push_back(kHex[byte >> 4]);
+            value.push_back(kHex[byte & 0x0F]);
+        }
+
+        return value == md5_hex(contents.data(), static_cast<size_t>(signed_length));
     }
 
 } // namespace pulseq

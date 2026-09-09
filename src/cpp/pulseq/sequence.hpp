@@ -49,6 +49,7 @@
 #include <vector>
 #include <cmath>
 #include <unordered_map>
+#include "pulseq/write.hpp"
 
 #include "pulseq/shape.hpp"
 
@@ -1563,9 +1564,11 @@ namespace pulseq
         }
 
     private:
+        /* What a sequence built here is, until a file it is read from says
+         * otherwise: the revision this package writes. */
         int version_major_ = 1;
         int version_minor_ = 5;
-        int version_revision_ = 0;
+        int version_revision_ = WRITTEN_REVISION;
 
         double rf_raster_ = 1e-6;
         double grad_raster_ = 10e-6;

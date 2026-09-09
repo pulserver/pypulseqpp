@@ -119,6 +119,12 @@ namespace
                 d["duration"] = f.duration;
                 d["dead_time"] = f.dead_time;
             }
+            else if (f.error_type == "FREQ_OFFSET")
+            {
+                d["value"] = f.value;
+                d["offset"] = f.offset;
+                d["limit"] = f.limit;
+            }
             else if (f.error_type == "GRADIENT_START_DELAY")
             {
                 d["value"] = f.value;
@@ -392,6 +398,12 @@ PYBIND11_MODULE(_ext, module)
         /* -- header ---------------------------------------------------- */
         .def("set_version", &Sequence::set_version, py::arg("major"), py::arg("minor"),
              py::arg("revision"))
+        .def("version_major", &Sequence::version_major,
+             "The major version of the format this sequence is held as.")
+        .def("version_minor", &Sequence::version_minor, "Its minor version.")
+        .def("version_revision", &Sequence::version_revision,
+             "Its revision: what a file it was read from declared, or what "
+             "this package writes.")
         .def("set_rasters", &Sequence::set_rasters, py::arg("rf"), py::arg("grad"),
              py::arg("adc"), py::arg("block"))
         .def("publish_rasters", &Sequence::publish_rasters,
@@ -864,7 +876,9 @@ PYBIND11_MODULE(_ext, module)
            double rf_dead_time,
            double rf_ringdown_time,
            double adc_dead_time,
-           double adc_samples_divisor) {
+           double adc_samples_divisor,
+           double max_freq_offset,
+           double larmor) {
             pulseq::TimingLimits limits;
             limits.rf_raster_time = rf_raster_time;
             limits.grad_raster_time = grad_raster_time;
@@ -874,6 +888,8 @@ PYBIND11_MODULE(_ext, module)
             limits.rf_ringdown_time = rf_ringdown_time;
             limits.adc_dead_time = adc_dead_time;
             limits.adc_samples_divisor = adc_samples_divisor;
+            limits.max_freq_offset = max_freq_offset;
+            limits.larmor = larmor;
 
             std::vector<pulseq::TimingFinding> findings;
             {
@@ -886,6 +902,7 @@ PYBIND11_MODULE(_ext, module)
         py::arg("adc_raster_time"), py::arg("block_duration_raster"),
         py::arg("rf_dead_time") = 0.0, py::arg("rf_ringdown_time") = 0.0,
         py::arg("adc_dead_time") = 0.0, py::arg("adc_samples_divisor") = 1.0,
+        py::arg("max_freq_offset") = 0.0, py::arg("larmor") = 42576000.0 * 1.5,
         "Every timing problem in the sequence, one dict per finding.");
 
     module.def(
@@ -1241,8 +1258,22 @@ PYBIND11_MODULE(_ext, module)
             out["wave_data"] = waves;
             out["window_fp"] = window_fp;
             out["duration"] = made.duration;
-            out["tfp_excitation"] = moments(made.excitation);
-            out["tfp_refocusing"] = moments(made.refocusing);
+            /* Every pulse, tagged: Pulseq has seven uses and sorting them
+             * into two buckets here would drop five of them. Which pulse is
+             * an excitation is a question for the caller, and the two the
+             * upstream tuple carries are gathered there. */
+            const py::ssize_t pulses = static_cast<py::ssize_t>(made.pulses.size());
+            out["tfp_pulses"] = moments(made.pulses);
+            py::list uses;
+            for (py::ssize_t i = 0; i < pulses; ++i)
+                uses.append(std::string(1, made.pulse_uses[static_cast<size_t>(i)]));
+            out["pulse_uses"] = uses;
+            out["pulse_blocks"] =
+                py::array_t<int>(pulses, made.pulse_blocks.data());
+            out["window_blocks"] =
+                py::array_t<int>(windows, made.window_blocks.data());
+            out["window_samples"] =
+                py::array_t<int>(windows, made.window_samples.data());
             out["t_adc"] = py::array_t<double>(samples, made.adc_times.data());
             out["fp_adc"] = fp;
             out["pm_adc"] = py::array_t<double>(samples, made.adc_modulation.data());
@@ -1256,15 +1287,32 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "write_binary",
-        [](Sequence& sequence) {
+        [](Sequence& sequence, bool create_signature) {
             std::string written;
             {
                 py::gil_scoped_release unlocked;
-                written = pulseq::write_binary(sequence);
+                written = pulseq::write_binary(sequence, create_signature);
             }
             return py::bytes(written);
         },
-        py::arg("sequence"), "Serialize as a Pulseq binary sequence file.");
+        py::arg("sequence"), py::arg("create_signature") = true,
+        "Serialize as a Pulseq binary sequence file.");
+
+    module.def(
+        "binary_signature",
+        [](const py::bytes& contents) {
+            std::string type;
+            std::string value;
+            const bool valid = pulseq::binary_signature(std::string(contents), type, value);
+            py::dict out;
+            out["type"] = type;
+            out["value"] = value;
+            out["valid"] = valid;
+            return out;
+        },
+        py::arg("contents"),
+        "The signature a binary file carries, and whether it is the digest of "
+        "what it covers.");
 
     module.def(
         "is_binary",

@@ -45,6 +45,7 @@ error_messages = {
     "GRADIENT_END_NONZERO": "Gradient is left at {amplitude:.0f} Hz/m after {value*multiplier:.2f} {unit}, before the end of the block at {duration*multiplier:.2f} {unit}",
     "GRADIENT_DISCONTINUITY": "Gradient starts at {value:.0f} Hz/m where the previous block left the axis at {before:.0f} Hz/m, a step of {slew:.0f} Hz/m/s against a limit of {limit:.0f} Hz/m/s",
     "GRADIENT_NOT_RAMPED_DOWN": "The sequence ends with a gradient still on: the axes are not ramped down",
+    "FREQ_OFFSET": "Frequency offset of {offset:.0f} Hz is outside what the scanner will play ({limit:.0f} Hz)",
     "TOTAL_DURATION_MISMATCH": "TotalDuration is recorded as {value:.9g} s, but the blocks add up to {duration:.9g} s",
 }
 
@@ -106,6 +107,8 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
         rf_ringdown_time=_limit(system, "rf_ringdown_time", 0.0),
         adc_dead_time=_limit(system, "adc_dead_time", 0.0),
         adc_samples_divisor=_limit(system, "adc_samples_divisor", 1.0),
+        max_freq_offset=_limit(system, "max_freq_offset", 0.0),
+        larmor=_limit(system, "gamma", 42576000.0) * _limit(system, "B0", 1.5),
     )
     error_report = [SimpleNamespace(**finding) for finding in findings]
     error_report.extend(_continuity(seq))

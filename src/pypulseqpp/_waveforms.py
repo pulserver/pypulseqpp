@@ -24,6 +24,7 @@ from warnings import warn
 import numpy as np
 
 from . import _ext as _cxx
+from ._results import AdcTimes, RfTimes, Waveforms, WaveformsAndTimes, use_of
 
 __all__ = [
     "adc_times",
@@ -92,8 +93,57 @@ def _shifted(times, elapsed):
     return times if elapsed == 0.0 else times + elapsed
 
 
+def _named(expanded, elapsed, append_rf):
+    """Return the expansion as `WaveformsAndTimes`, timed where it plays."""
+    channels = [np.array(channel, copy=True) for channel in expanded["wave_data"]]
+    if elapsed:
+        for channel in channels:
+            if channel.size:
+                channel[0] += elapsed
+    while len(channels) < 3:
+        channels.append(np.zeros((2, 0)))
+
+    pulses = _shift_row(expanded["tfp_pulses"], elapsed)
+    rf = RfTimes(
+        t=np.array(pulses[0], copy=True),
+        freq_offset=np.array(pulses[1], copy=True),
+        phase_offset=np.array(pulses[2], copy=True),
+        use=tuple(use_of(code) for code in expanded["pulse_uses"]),
+        block=np.array(expanded["pulse_blocks"], copy=True),
+    )
+
+    windows = expanded["window_fp"]
+    fp_adc = expanded["fp_adc"]
+    adc = AdcTimes(
+        t=_shifted(expanded["t_adc"], elapsed),
+        freq_offset=np.array(windows[:, 0], copy=True),
+        phase_offset=np.array(windows[:, 1], copy=True),
+        phase_modulation=np.array(expanded["pm_adc"], copy=True),
+        sample_phase=np.array(fp_adc[1], copy=True),
+        sample_frequency=np.array(fp_adc[0], copy=True),
+        block=np.array(expanded["window_blocks"], copy=True),
+        num_samples=np.array(expanded["window_samples"], copy=True),
+    )
+
+    return WaveformsAndTimes(
+        waveforms=Waveforms(
+            gx=channels[0],
+            gy=channels[1],
+            gz=channels[2],
+            rf=channels[3] if append_rf and len(channels) > 3 else None,
+        ),
+        rf=rf,
+        adc=adc,
+    )
+
+
 def waveforms_and_times(
-    seq, append_RF: bool = False, time_range=None, block_range=None
+    seq,
+    append_RF: bool = False,
+    time_range=None,
+    block_range=None,
+    *,
+    compat: bool = True,
 ):
     """Return the gradient waveforms, the RF moments and the ADC sampling.
 
@@ -107,36 +157,41 @@ def waveforms_and_times(
         Two times in seconds; only the blocks they touch are expanded.
     block_range : sequence of int, optional
         Two 1-based block indices. Not with ``time_range``.
+    compat : bool, default True
+        Upstream's five values. False returns a
+        :class:`pypulseqpp._results.WaveformsAndTimes`, which carries what
+        those five cannot.
 
     Returns
     -------
-    wave_data : list of np.ndarray
-        Per gradient axis, a 2-by-n array: the times over the amplitudes.
-        With ``append_RF``, a fourth holding the complex RF envelope.
-    tfp_excitation : np.ndarray
-        3-by-n: when each excitation acts, and at what frequency and phase.
-    tfp_refocusing : np.ndarray
-        The same for the refocusings.
-    t_adc : np.ndarray
-        When every ADC sample is taken.
-    fp_adc : np.ndarray
-        2-by-n: the frequency and phase of each sample.
-    pm_adc : np.ndarray
-        The phase modulation of each sample.
+    tuple or WaveformsAndTimes
+        With ``compat``: ``(wave_data, tfp_excitation, tfp_refocusing, t_adc,
+        fp_adc)``, which is what upstream returns and what a script written
+        against it unpacks.
+
+    Notes
+    -----
+    Three things the five-tuple cannot say, and ``compat=False`` is where
+    they come out:
+
+    - *Every* RF use. Pulseq has seven and the tuple carries two: an
+      inversion, a saturation or a preparation pulse is not in it at all.
+    - The per-sample ADC phase and phase modulation -- the phase a sample is
+      actually acquired with, which is what a simulation wants. The reference
+      toolbox returns the modulation as a sixth value; upstream returns
+      neither.
+    - Which block each pulse and each ADC window is in.
     """
     expanded, elapsed = _expand(seq, append_RF, time_range, block_range)
-    waves = [np.array(channel, copy=True) for channel in expanded["wave_data"]]
-    if elapsed:
-        for channel in waves:
-            if channel.size:
-                channel[0] += elapsed
+    found = _named(expanded, elapsed, append_RF)
+    if not compat:
+        return found
     return (
-        waves,
-        _shift_row(expanded["tfp_excitation"], elapsed),
-        _shift_row(expanded["tfp_refocusing"], elapsed),
-        _shifted(expanded["t_adc"], elapsed),
-        expanded["fp_adc"],
-        expanded["pm_adc"],
+        found.waveforms.channels,
+        found.rf.of("excitation", "undefined").tfp,
+        found.rf.of("refocusing").tfp,
+        found.adc.t,
+        found.adc.fp,
     )
 
 
@@ -169,22 +224,34 @@ def adc_times(seq, time_range=None):
     return _shifted(expanded["t_adc"], elapsed), expanded["window_fp"]
 
 
-def rf_times(seq, time_range=None):
+def rf_times(seq, time_range=None, *, compat: bool = True):
     """Return when the pulses act, and at what frequency and phase.
+
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to expand.
+    time_range : list of float, optional
+        Two times in seconds; only the blocks they touch are expanded.
+    compat : bool, default True
+        Upstream's four values, which describe two of Pulseq's seven RF uses
+        and drop the rest. False returns a
+        :class:`pypulseqpp._results.RfTimes` covering all of them.
 
     Returns
     -------
-    t_excitation : np.ndarray
-        When each excitation acts -- its centre, not its start.
-    fp_excitation : np.ndarray
-        2-by-n: the frequency, and the phase accumulated by then.
-    t_refocusing : np.ndarray
-    fp_refocusing : np.ndarray
-        The same for the refocusings.
+    tuple or RfTimes
+        With ``compat``: ``(t_excitation, fp_excitation, t_refocusing,
+        fp_refocusing)``. A pulse whose row records no use is counted as an
+        excitation, which is what upstream does with one.
     """
     expanded, elapsed = _expand(seq, time_range=time_range)
-    excitation = _shift_row(expanded["tfp_excitation"], elapsed)
-    refocusing = _shift_row(expanded["tfp_refocusing"], elapsed)
+    pulses = _named(expanded, elapsed, False).rf
+    if not compat:
+        return pulses
+
+    excitation = pulses.of("excitation", "undefined").tfp
+    refocusing = pulses.of("refocusing").tfp
     return (
         np.array(excitation[0], copy=True),
         np.array(excitation[1:3], copy=True),

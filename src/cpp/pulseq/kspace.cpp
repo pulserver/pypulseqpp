@@ -293,10 +293,22 @@ namespace pulseq
 
         out.adc_times = played.adc_times;
         out.adc_modulation = played.adc_modulation;
-        for (size_t i = 0; i < played.excitation.size(); ++i)
-            out.excitation_times.push_back(played.excitation[i].time);
-        for (size_t i = 0; i < played.refocusing.size(); ++i)
-            out.refocusing_times.push_back(played.refocusing[i].time);
+        /* A pulse with no use recorded is taken for an excitation, which is
+         * what every toolbox does with one. */
+        std::vector<PulseMoment> excitations;
+        for (size_t i = 0; i < played.pulses.size(); ++i)
+        {
+            const char use = played.pulse_uses[i];
+            if (use == 'e' || use == 'u')
+            {
+                excitations.push_back(played.pulses[i]);
+                out.excitation_times.push_back(played.pulses[i].time);
+            }
+            else if (use == 'r')
+            {
+                out.refocusing_times.push_back(played.pulses[i].time);
+            }
+        }
 
         for (int axis = 0; axis < 3; ++axis)
         {
@@ -467,13 +479,13 @@ namespace pulseq
             const std::vector<double>& t = out.gradient_times[static_cast<size_t>(axis)];
             const std::vector<double>& v = out.gradient_values[static_cast<size_t>(axis)];
             std::vector<double>& where = out.slice_position[static_cast<size_t>(axis)];
-            where.assign(played.excitation.size(), 0.0);
+            where.assign(excitations.size(), 0.0);
             if (t.empty())
                 continue;
-            for (size_t i = 0; i < played.excitation.size(); ++i)
+            for (size_t i = 0; i < excitations.size(); ++i)
             {
-                const double gradient = gradient_at(t, v, played.excitation[i].time);
-                const double position = played.excitation[i].frequency / gradient;
+                const double gradient = gradient_at(t, v, excitations[i].time);
+                const double position = excitations[i].frequency / gradient;
                 where[i] = std::isfinite(position) ? position : 0.0;
             }
         }

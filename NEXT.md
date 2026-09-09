@@ -33,26 +33,46 @@ other ten are not worth porting as they stand, and why is worth writing down:
 
 ### What the port turned up
 
-Four differences from the authority, none of them found by anything else:
+Four differences from the authority, none of them found by anything else.
+Two are closed:
 
-- **A binary file is not signed here.** The toolbox writes an md5 over the
-  binary form and reports it as `signature_type='md5'`, `signature_file='bin'`;
-  `write_binary` here writes no signature section and reading a signed one
-  reports none. Files still pass both ways -- `tests/test_interoperability.py`
-  holds that -- so what is missing is the integrity check, not the format.
-- **`make_rotation` takes one call form.** The toolbox takes six: an angle, an
-  angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix,
-  and a stack of them. Here it takes an object with `as_quat`, which is a
-  SciPy `Rotation`. Upstream PyPulseq has no `make_rotation`, so the toolbox is
-  the authority for this one.
-- **`make_rf_shim` keeps the shape it is given.** The toolbox reshapes the
-  weights to a column, so `shim.shim_vector[k, 0]` is how a script written
-  against it reads a weight; here a list gives `(n,)` and a scalar gives a
-  0-d array. One weight per channel is the simpler convention, but the
-  scalar case is a wart either way.
+- **A binary file is signed**, as the toolbox signs one: an MD5 over
+  everything above the section that carries it, checked before the bytes are
+  parsed rather than after. `write_binary(create_signature=False)` writes an
+  unsigned file, as `write` does. Ours verifies theirs and theirs verifies
+  ours.
+- **`version_major`, `version_minor` and `version_revision`** are on the
+  Sequence. They say what the sequence *is*: a file older than 1.5 is
+  converted as it is read, so it is held as 1.5 whatever it declared.
+
+- **`make_rotation` takes all six of the toolbox's call forms** -- an angle,
+  an angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix
+  and a stack of them -- as well as a SciPy `Rotation`. The angle forms are
+  worked out here rather than asked of SciPy, which is what a scan turning a
+  base spoke per shot actually spends: a turn about z is a cosine and a sine.
+  Measured against the block it is attached to, on a golden-angle loop:
+
+  | rotation per shot | cost | against the block |
+  | --- | --- | --- |
+  | none | 271 ns | 1.0x |
+  | `make_rotation(angle)` | 2.1 us | 7.8x |
+  | `make_rotation(Rotation.from_euler(...))` | 35.3 us | 130x |
+
+  In C++ it would be slower, not faster: a binding round trip costs about
+  700 ns against the 800 ns the whole Python constructor costs, and what the
+  scipy path spends is inside scipy either way.
+
+One is open, and it is a decision rather than a gap:
+
 - **`add_block(None)` is refused.** The toolbox takes it and adds no block.
   Upstream PyPulseq raises, and upstream is the API this stands in for, so
-  this raises too -- with a message that says what was expected.
+  this raises too -- with a message that says what was expected. This one is
+  a decision rather than a gap.
+
+And one difference that is deliberate: **`make_rf_shim` keeps the shape it is
+given** where the toolbox reshapes the weights to a column. One weight per
+channel, indexed `shim_vector[k]`, is what a Python caller expects; the
+toolbox's `shim_vector[k, 0]` is MATLAB's column convention.
 
 ## The rest of the timing check
 
@@ -73,10 +93,11 @@ rather than quietly corrected. The write is a side effect of the check, as it
 is in MATLAB; `write(check_timing=True)` therefore produces a file carrying
 `TotalDuration` where `write()` does not.
 
-One question is left:
-
-- **Frequency offsets.** An RF or ADC offset, in Hz or as a ppm shift through
-  gamma, must stay inside `system.max_freq_offset`.
+The last is in too. An RF or ADC offset is recorded twice over -- in hertz,
+and as a shift in parts per million of the Larmor frequency -- and either can
+be inside `system.max_freq_offset` while the two together are not, so all
+three are weighed. A scanner that names no limit is asking nothing, which is
+what upstream's `Opts` does: it carries no such field.
 
 ## The rest of `Sequence`
 
@@ -206,11 +227,21 @@ needs one shot does not have to look at the whole scan to find it.
 parameter at all -- only `time_range` -- so there is no drop-in contract to
 keep, and every other name here is snake_case.
 
-`waveforms_and_times` returns six values, as the toolbox does; upstream
-returns five, having no `pm_adc`. A script unpacking upstream's five breaks
-on six. The sixth carries the ADC phase modulation, which is a 1.5 feature
-upstream's return predates and which `calculate_kspace` needs, so it is kept
--- but it is a difference from upstream worth knowing about.
+`waveforms_and_times` and `rf_times` take `compat`, which is `True`: what they
+return is what upstream returns, five values and four, because that is what a
+script written against upstream unpacks. `compat=False` returns
+`WaveformsAndTimes` and `RfTimes` instead, which are `pulserver`'s shapes and
+carry three things the tuples cannot:
+
+- *Every* RF use. Pulseq has seven; the tuple carries two, and an inversion, a
+  saturation or a preparation pulse is not in it at all. `rf.of("inversion")`
+  asks for one, `rf.of("excitation", "undefined")` reproduces upstream's
+  bucket.
+- The per-sample ADC phase and phase modulation -- the phase a sample is
+  actually acquired with, which is what a simulation wants. The reference
+  toolbox returns the modulation as a sixth value; upstream returns neither.
+- Which block each pulse and each ADC window is in, and how many samples a
+  window takes.
 
 ## What a block reads back as
 
