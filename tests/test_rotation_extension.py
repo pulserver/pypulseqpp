@@ -91,9 +91,20 @@ def test_turning_by_extension_plays_what_turning_the_events_plays(system):
 def test_the_file_is_the_one_the_toolbox_writes(system, tmp_path):
     """`tests/seq/seq_make_radial.seq` is the toolbox's own output for this."""
     written = tmp_path / "seq_make_radial.seq"
-    sequence = pp.Sequence()
-    pulse = pp.make_block_pulse(math.pi / 2, duration=1e-3, use="excitation")
-    spoke = pp.make_trapezoid("x", area=1000)
+    # The settings the file was written under, spelled out: it is a stored
+    # artefact of the toolbox's, and what is being held is that this package
+    # writes the same bytes -- not that the two happen to default alike.
+    settings = pp.Opts(
+        rf_raster_time=1e-6,
+        grad_raster_time=10e-6,
+        adc_raster_time=100e-9,
+        block_duration_raster=10e-6,
+    )
+    sequence = pp.Sequence(settings)
+    pulse = pp.make_block_pulse(
+        math.pi / 2, duration=1e-3, system=settings, use="excitation"
+    )
+    spoke = pp.make_trapezoid("x", area=1000, system=settings)
     for angle in (*ANGLES, 0):
         sequence.add_block(pulse)
         sequence.add_block(
