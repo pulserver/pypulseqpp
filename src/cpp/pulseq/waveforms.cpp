@@ -32,39 +32,6 @@ namespace pulseq
         }
 
         /**
-         * Every shape decompressed at most once.
-         *
-         * A readout played a hundred thousand times names one shape, and
-         * decompressing it per block is the whole cost of the pass.
-         */
-        class Shapes
-        {
-        public:
-            explicit Shapes(const ShapeLibrary& library)
-                : library_(library), cached_(static_cast<size_t>(library.size()) + 1)
-            {
-            }
-
-            const std::vector<double>& operator[](int id)
-            {
-                if (id < 1 || id > library_.size())
-                    return empty_;
-                std::vector<double>& held = cached_[static_cast<size_t>(id)];
-                if (held.empty())
-                    held = decompress_shape(
-                        library_.samples(id),
-                        library_.num_compressed(id),
-                        library_.num_uncompressed(id));
-                return held;
-            }
-
-        private:
-            const ShapeLibrary& library_;
-            std::vector<std::vector<double>> cached_;
-            std::vector<double> empty_;
-        };
-
-        /**
          * One gradient's corners, relative to the start of its own delay.
          *
          * A gradient plays the same shape every time it is played -- only
@@ -147,24 +114,6 @@ namespace pulseq
                 return values[after];
             const double along = (when - times[after - 1]) / span;
             return values[after - 1] + along * (values[after] - values[after - 1]);
-        }
-
-        /** A rotation matrix from a quaternion stored as w, x, y, z. */
-        void rotation_matrix(const double* q, double into[3][3])
-        {
-            const double w = q[0];
-            const double x = q[1];
-            const double y = q[2];
-            const double z = q[3];
-            into[0][0] = 1.0 - 2.0 * (y * y + z * z);
-            into[0][1] = 2.0 * (x * y - w * z);
-            into[0][2] = 2.0 * (x * z + w * y);
-            into[1][0] = 2.0 * (x * y + w * z);
-            into[1][1] = 1.0 - 2.0 * (x * x + z * z);
-            into[1][2] = 2.0 * (y * z - w * x);
-            into[2][0] = 2.0 * (x * z - w * y);
-            into[2][1] = 2.0 * (y * z + w * x);
-            into[2][2] = 1.0 - 2.0 * (x * x + y * y);
         }
 
         void extend(
@@ -358,7 +307,7 @@ namespace pulseq
         const double rf_raster = seq.rf_raster_time();
         const double larmor = options.gamma * options.b0;
 
-        Shapes shapes(seq.shape_library());
+        ShapeCache shapes(seq.shape_library());
 
         /** Every gradient's corners, worked out the first time it is played. */
         std::vector<Corners> cached(static_cast<size_t>(seq.num_gradients()) + 1);

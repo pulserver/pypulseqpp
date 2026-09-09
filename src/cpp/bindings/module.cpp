@@ -959,6 +959,30 @@ PYBIND11_MODULE(_ext, module)
                 found = pulseq::max_slew(sequence, limits);
             }
 
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
+            return out;
+        },
+        py::arg("sequence"), py::arg("max_slew") = 0.0,
+        py::arg("grad_raster_time") = 10e-6,
+        "What the sequence asks in the way of slewing, within its blocks: "
+        "the worst axis, each axis on its own, and the vector magnitude.");
+
+    module.def(
+        "grad_continuity",
+        [](const Sequence& sequence, double max_slew, double grad_raster_time) {
+            pulseq::GradientLimits limits;
+            limits.max_slew = max_slew;
+            limits.grad_raster_time = grad_raster_time;
+
+            pulseq::ContinuityReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::continuity(sequence, limits);
+            }
+
             py::list jumps;
             for (size_t i = 0; i < found.discontinuities.size(); ++i)
             {
@@ -974,17 +998,14 @@ PYBIND11_MODULE(_ext, module)
             }
 
             py::dict out;
-            out["per_axis"] = peak_as_dict(found.per_axis);
-            out["vector"] = peak_as_dict(found.vector);
-            out["axes"] = axes_as_list(found.axes);
             out["discontinuities"] = jumps;
             out["ends_at_zero"] = found.ends_at_zero;
             return out;
         },
         py::arg("sequence"), py::arg("max_slew") = 0.0,
         py::arg("grad_raster_time") = 10e-6,
-        "What the sequence asks in the way of slewing, and where a gradient "
-        "jumps rather than ramps.");
+        "Where a gradient does not carry on from the block before it, and "
+        "whether the sequence leaves its gradients at zero.");
 
     module.def(
         "flip_angles",

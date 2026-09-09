@@ -53,18 +53,34 @@ what it would take:
 
 ## Safety
 
-`pypulseqpp.safety` has `check_max_grad` and `check_max_slew`, the second
-covering continuity. Both read the libraries rather than an expanded
+`pypulseqpp.safety` has `check_max_grad`, `check_max_slew` and
+`check_grad_continuity`. All three read the libraries rather than an expanded
 waveform: a gradient is a normalised shape and one amplitude, so the steepest
 step belongs to the shape and an instance's is that times its own amplitude.
 
-One difference from a waveform-based answer is worth knowing. What is weighed
-is the samples the sequence stores, and an interpreter draws between them --
-where a waveform's samples sit at the centre of each raster interval, that
-drawing can pass a little outside the outermost of them. Three parts in ten
-thousand across the reference sequences. Making it exact means a second shape
-statistic, the peak of the restored corners, which is computable once per
-shape the same way the slew is; it is not there yet.
+The slew limit within a block and the joins between blocks are separate
+questions and are asked separately: `check_timing` asks the second, which is
+two numbers per gradient, and leaves the first to whoever wants it.
+`check_max_slew`'s vector peak is exact rather than an upper bound -- each
+axis slews at one rate at a time, so the three are constant between the
+moments any of them changes and the peak is the largest over those stretches.
+Across the reference corpus it agrees with the peak taken from the expanded
+waveforms to within a part in a million.
+
+One difference from a waveform-based answer is worth knowing, and it is in
+the per-axis peaks. What is weighed is the samples the sequence stores, and
+an interpreter draws between them -- where a waveform's samples sit at the
+centre of each raster interval, that drawing can pass a little outside the
+outermost of them. Three parts in ten thousand across the reference
+sequences. Making it exact means a second shape statistic, the peak of the
+restored corners, which is computable once per shape the same way the slew
+is; it is not there yet.
+
+`check_max_grad` is the one check a rotation does not reach: its per-axis
+peaks are what the stored rows ask for, not what a turned block plays. The
+vector peak is what a rotation could put on one amplifier, which is the
+question the limit is usually asked about, so this has not been worth the
+pass over amplitudes that making it exact would cost.
 
 Still to write: `calculate_pns` and `calc_rf_power`, and the mechanical
 resonance check. pulserver's C library has all three.

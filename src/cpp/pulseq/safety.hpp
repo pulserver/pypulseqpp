@@ -82,14 +82,25 @@ namespace pulseq
         std::array<Peak, 3> axes;
     };
 
-    /** What the gradients ask in the way of slewing. */
+    /**
+     * What the gradients ask in the way of slewing, within the blocks.
+     *
+     * What happens *between* two blocks is a different question with a
+     * different answer -- a gradient starting where the last one did not end
+     * asks for its whole step in no time at all -- and `continuity` is what
+     * asks it.
+     */
     struct SlewReport
     {
         Peak per_axis;
         Peak vector;
         /** The steepest each axis is asked to change at, x, y, z. */
         std::array<Peak, 3> axes;
-        /** Every place a gradient jumps rather than ramps. */
+    };
+
+    /** Where the gradients do not carry on from one block to the next. */
+    struct ContinuityReport
+    {
         std::vector<Discontinuity> discontinuities;
         /** Whether the sequence leaves its gradients at zero. */
         bool ends_at_zero = true;
@@ -103,12 +114,44 @@ namespace pulseq
     GradientReport max_gradient(const Sequence& seq);
 
     /**
-     * What the sequence asks in the way of slewing, and where it jumps.
+     * What the sequence asks in the way of slewing, within its blocks.
+     *
+     * The vector magnitude is exact rather than bounded. Each axis slews at
+     * one rate at a time -- a trapezoid at one rate up its ramp and another
+     * down it, a waveform at one rate per sample -- so the three together are
+     * constant between the moments any of them changes, and the largest they
+     * reach is the largest on one of those stretches. Taking each axis's own
+     * peak and combining those would answer a different question: what the
+     * amplifiers would be asked for if the three peaks happened at once,
+     * which they need not.
+     *
+     * The magnitude does not depend on how the block is rotated. Turning a
+     * vector does not change how long it is, so what the amplifiers are asked
+     * for between them is the same whichever way the block faces; only which
+     * one is asked for what changes, and that is what `axes` reports.
      *
      * @param seq     The sequence to weigh.
-     * @param limits  The rasters and the slew limit a jump is judged against.
+     * @param limits  The raster and the slew limit.
      */
     SlewReport max_slew(const Sequence& seq, const GradientLimits& limits);
+
+    /**
+     * Where a gradient does not carry on from the block before it.
+     *
+     * An axis is at zero wherever nothing is playing on it, so a waveform
+     * that starts away from where the last block left the axis asks the
+     * amplifier for that whole step within one raster interval -- and a
+     * sequence that ends with an axis still on has never ramped it down.
+     *
+     * The endpoints are compared in the frame the amplifiers work in, so a
+     * block that turns its gradients has its own endpoints turned first: two
+     * blocks playing the same waveform at different rotations do not continue
+     * one another, and saying they do would miss the jump.
+     *
+     * @param seq     The sequence to check.
+     * @param limits  The raster and the slew limit a jump is judged against.
+     */
+    ContinuityReport continuity(const Sequence& seq, const GradientLimits& limits);
 
 } // namespace pulseq
 

@@ -50,6 +50,8 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "pulseq/shape.hpp"
+
 namespace pulseq
 {
 
@@ -95,6 +97,45 @@ namespace pulseq
      * out costs a pointer chase per block. One column answers it.
      */
     constexpr int BLOCK_WIDTH = 7;
+
+    /**
+     * The rotation a quaternion stands for, as a matrix.
+     *
+     * A rotation is stored as a unit quaternion, scalar first, because that
+     * is what the format writes and what composes cleanly. What anything
+     * using it wants is the matrix: a rotated block plays a sum of its three
+     * gradients on each axis, and that sum is a row of this.
+     *
+     * @param q     Four doubles, w then x, y, z.
+     * @param into  Filled with the matrix.
+     */
+    inline void rotation_matrix(const double* q, double into[3][3])
+    {
+        const double w = q[0];
+        const double x = q[1];
+        const double y = q[2];
+        const double z = q[3];
+        into[0][0] = 1.0 - 2.0 * (y * y + z * z);
+        into[0][1] = 2.0 * (x * y - w * z);
+        into[0][2] = 2.0 * (x * z + w * y);
+        into[1][0] = 2.0 * (x * y + w * z);
+        into[1][1] = 1.0 - 2.0 * (x * x + z * z);
+        into[1][2] = 2.0 * (y * z - w * x);
+        into[2][0] = 2.0 * (x * z - w * y);
+        into[2][1] = 2.0 * (y * z + w * x);
+        into[2][2] = 1.0 - 2.0 * (x * x + y * y);
+    }
+
+    /** Turn @p vector by @p matrix, in place. */
+    inline void rotate(const double matrix[3][3], double vector[3])
+    {
+        const double x = vector[0];
+        const double y = vector[1];
+        const double z = vector[2];
+        for (int axis = 0; axis < 3; ++axis)
+            vector[axis] =
+                matrix[axis][0] * x + matrix[axis][1] * y + matrix[axis][2] * z;
+    }
 
     /* ================================================================== */
     /*  Tables                                                            */
@@ -599,6 +640,47 @@ namespace pulseq
         /** Per shape, a mask of ShapeRole; filled where a reference is made. */
         std::vector<uint32_t> roles_;
         RaggedTable data_;
+    };
+
+    /**
+     * Every shape decompressed at most once.
+     *
+     * A shape is stored run-length encoded, and anything that wants the
+     * samples themselves -- expanding a waveform, weighing a slew rate --
+     * wants them once per shape however many events name it. A readout
+     * played a hundred thousand times names one shape, and decoding it per
+     * block is the whole cost of the pass.
+     *
+     * Held beside the library rather than in it: what the library keeps is
+     * what a file holds, and the decoded samples are several times larger.
+     */
+    class ShapeCache
+    {
+    public:
+        explicit ShapeCache(const ShapeLibrary& library)
+            : library_(library), held_(static_cast<size_t>(library.size()) + 1)
+        {
+        }
+
+        /** The samples of shape @p id, decoded on first asking.  Id 0, and
+         *  any id the library does not have, is empty. */
+        const std::vector<double>& operator[](int id)
+        {
+            if (id < 1 || id > library_.size())
+                return empty_;
+            std::vector<double>& samples = held_[static_cast<size_t>(id)];
+            if (samples.empty())
+                samples = decompress_shape(
+                    library_.samples(id),
+                    library_.num_compressed(id),
+                    library_.num_uncompressed(id));
+            return samples;
+        }
+
+    private:
+        const ShapeLibrary& library_;
+        std::vector<std::vector<double>> held_;
+        std::vector<double> empty_;
     };
 
     /**
