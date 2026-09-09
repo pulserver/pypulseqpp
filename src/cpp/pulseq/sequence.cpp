@@ -57,12 +57,6 @@ namespace pulseq
             label_ids_.emplace(label_names_[i], static_cast<int>(i) + 1);
     }
 
-    int Sequence::find_label_id(const std::string& name) const
-    {
-        auto it = label_ids_.find(name);
-        return it == label_ids_.end() ? 0 : it->second;
-    }
-
     int Sequence::label_id(const std::string& name)
     {
         auto it = label_ids_.find(name);
@@ -663,38 +657,6 @@ namespace pulseq
         block.shim = row[BLOCK_SHIM_COLUMN];
         block.duration = (*durations_)[index - 1];
         return block;
-    }
-
-    void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
-    {
-        changed();
-        repetition_known_ = false;
-        detach_blocks();
-        blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
-        durations_->assign(durations, durations + count);
-        rebuild_definitions();
-    }
-
-    void Sequence::set_grad_slots(const int32_t* slots, int count)
-    {
-        changed();
-        grad_slot_.assign(slots, slots + count);
-    }
-
-    void Sequence::set_shapes(
-        const int32_t* num_uncompressed,
-        int count,
-        const int32_t* starts,
-        const double* samples)
-    {
-        changed();
-        shapes_.assign(num_uncompressed, count, starts, samples);
-    }
-
-    void Sequence::set_rf_shims(const int32_t* starts, int count, const double* values)
-    {
-        changed();
-        rf_shim_.assign(starts, count, values);
     }
 
     namespace

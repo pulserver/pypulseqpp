@@ -403,19 +403,6 @@ namespace pulseq
             len_.resize(static_cast<size_t>(kept));
         }
 
-        /**
-         * Replace every row at once.
-         *
-         * @p starts holds @p count + 1 offsets into @p values, so row i spans
-         * `[starts[i], starts[i+1])`.
-         */
-        void assign(const int32_t* starts, int count, const double* values)
-        {
-            clear();
-            reserve(count, 0);
-            for (int i = 0; i < count; ++i)
-                append(values + starts[i], starts[i + 1] - starts[i]);
-        }
 
     private:
         /** Rows live in chunks allocated once: a chunk fills until the next
@@ -533,12 +520,6 @@ namespace pulseq
         {
             return data_.row(id);
         }
-        /** False while a shape is still held as the waveform it was given as. */
-        bool is_compressed(int id) const
-        {
-            return is_compressed_[id - 1] != 0;
-        }
-
         /** What @p id is played as: a mask of ShapeRole. */
         uint32_t roles(int id) const
         {
@@ -580,48 +561,17 @@ namespace pulseq
          */
         std::vector<int32_t> keep_first_appearances(const std::vector<int32_t>& first);
 
-        /**
-         * The shape's first sample, last sample and peak magnitude, as
-         * decompressed. Recorded when a raw shape is appended; a shape that
-         * arrived encoded is decoded once, the first time it is asked.
-         */
-        void edge_stats(int id, double* first, double* last, double* peak) const;
-
         void clear()
         {
             num_uncompressed_.clear();
             is_compressed_.clear();
-            first_.clear();
-            last_.clear();
-            peak_.clear();
             roles_.clear();
             data_.clear();
-        }
-
-        /** Replace every shape at once, all compressed.  See RaggedTable::assign. */
-        void assign(
-            const int32_t* num_uncompressed,
-            int count,
-            const int32_t* starts,
-            const double* samples)
-        {
-            num_uncompressed_.assign(num_uncompressed, num_uncompressed + count);
-            first_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            last_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            peak_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            is_compressed_.assign(static_cast<size_t>(count), 1);
-            roles_.assign(static_cast<size_t>(count), SHAPE_ROLE_NONE);
-            data_.assign(starts, count, samples);
         }
 
     private:
         std::vector<int32_t> num_uncompressed_;
         std::vector<uint8_t> is_compressed_;
-        /** Per shape, as decompressed; NaN until known. Filled at append_raw,
-         *  decoded on demand for shapes appended encoded or assigned. */
-        mutable std::vector<double> first_;
-        mutable std::vector<double> last_;
-        mutable std::vector<double> peak_;
         /** Per shape, a mask of ShapeRole; filled where a reference is made. */
         std::vector<uint32_t> roles_;
         RaggedTable data_;
@@ -1141,8 +1091,6 @@ namespace pulseq
 
         /** Id for @p name, appending it to this sequence's table if new. */
         int label_id(const std::string& name);
-        /** Id for @p name without appending; 0 if unknown here. */
-        int find_label_id(const std::string& name) const;
         /** The name id @p id was registered under, or empty. */
         const std::string& label_name(int id) const;
         /** Whether @p id names something outside Pulseq's own table. */
@@ -1446,7 +1394,6 @@ namespace pulseq
          * caller replay millions of `add_block` calls to arrive back at the
          * same arrays.  @p events is row-major, BLOCK_WIDTH per block.
          */
-        void set_blocks(const int32_t* events, const double* durations, int count);
 
         /** Raw block table, row-major, BLOCK_WIDTH per block. */
         const int32_t* block_events() const
@@ -1491,30 +1438,6 @@ namespace pulseq
         {
             return static_cast<int>(grad_slot_.size());
         }
-        /** The signed slot: +row for a trapezoid, -row for an arbitrary. */
-        const int32_t* grad_slots() const
-        {
-            return grad_slot_.data();
-        }
-
-        /* -- bulk loading ------------------------------------------------ */
-        /*
-         * A composed scan holds its libraries as dense arrays already, so these
-         * take them as they are.  They replace rather than append, and they do
-         * not check the ids they are given against the tables those ids point
-         * into -- the caller built both.
-         */
-
-        /** Replace the gradient id -> signed slot map.  See the file comment. */
-        void set_grad_slots(const int32_t* slots, int count);
-        /** Replace the shape library.  @p starts holds @p count + 1 offsets. */
-        void set_shapes(
-            const int32_t* num_uncompressed,
-            int count,
-            const int32_t* starts,
-            const double* samples);
-        /** Replace the RF shim library.  @p starts holds @p count + 1 offsets. */
-        void set_rf_shims(const int32_t* starts, int count, const double* values);
 
         /* -- libraries --------------------------------------------------- */
 
