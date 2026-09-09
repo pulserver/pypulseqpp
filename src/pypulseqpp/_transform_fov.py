@@ -228,6 +228,13 @@ class TransformFOV:
             before them still counts towards where the trajectory stands
             inside them, which is the only way a partial shift means
             anything.
+
+            A scan too large to hold at once is moved a range at a time: the
+            transform carries where both walks stand, so the next range picks
+            up where the last left off and the result is what one call over
+            the whole scan would have given. Which ranges is the caller's --
+            `Sequence._detect_tr` says how long a repetition lasts and where
+            the first one starts.
         in_place : bool, default False
             Transform ``seq`` itself rather than a copy.
 

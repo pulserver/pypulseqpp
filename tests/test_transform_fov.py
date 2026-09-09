@@ -896,6 +896,50 @@ def test_a_time_range_and_a_block_range_are_not_given_together(system):
         )
 
 
+def test_a_scan_can_be_moved_a_repetition_at_a_time(system):
+    """What a consumer too large to hold a scan at once does.
+
+    The transform carries where both walks stand, so a range picked up where
+    the last one left off gives what one call over the whole scan would have.
+    Which ranges is the consumer's business -- `_detect_tr` says how long a
+    repetition is and where the first one starts, and the pieces here are two
+    of them at a time.
+    """
+    shift = 0.01
+    rf = sinc(system)
+    gx = flat("x", 2000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=float(gx.rise_time), system=system)
+    step = pp.make_phase_encoding("y", 0.22 / 64, system=system)
+
+    def scan():
+        seq = pp.Sequence(system)
+        for shot in range(6):
+            seq.add_block(rf)
+            seq.add_block(pp.scale_grad(step, -1.0 + shot / 3))
+            seq.add_block(gx, adc)
+        return seq
+
+    at_once = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(scan())
+
+    in_pieces = scan()
+    size, start = in_pieces._detect_tr()
+    assert (size, start) == (3, 1)
+    moving = pp.TransformFOV(translation=(shift, 0.0, 0.0))
+    block = start
+    while block <= len(in_pieces):
+        stop = min(block + 2 * size - 1, len(in_pieces))
+        moving.apply_to_sequence(in_pieces, block_range=(block, stop), in_place=True)
+        block = stop + 1
+
+    for readout in range(3, 19, 3):
+        assert float(in_pieces.get_block(readout).adc.phase_offset) == pytest.approx(
+            float(at_once.get_block(readout).adc.phase_offset), abs=1e-9
+        )
+        assert float(in_pieces.get_block(readout).adc.freq_offset) == pytest.approx(
+            float(at_once.get_block(readout).adc.freq_offset), rel=1e-12
+        )
+
+
 # %% what a reconstructor is handed instead of a phase
 
 
