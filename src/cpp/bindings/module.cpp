@@ -962,6 +962,48 @@ PYBIND11_MODULE(_ext, module)
         "jumps rather than ramps.");
 
     module.def(
+        "evaluate_labels",
+        [](const Sequence& sequence, const std::string& evolution, int first_block,
+           int last_block, const py::dict& start) {
+            pulseq::LabelEvolutionAt at = pulseq::LabelEvolutionAt::End;
+            if (evolution == "blocks")
+                at = pulseq::LabelEvolutionAt::Blocks;
+            else if (evolution == "adc")
+                at = pulseq::LabelEvolutionAt::Adc;
+            else if (evolution == "label")
+                at = pulseq::LabelEvolutionAt::Label;
+            else if (evolution != "none")
+                throw std::invalid_argument(
+                    "evolution must be one of 'none', 'blocks', 'adc', 'label'");
+
+            std::vector<std::pair<std::string, int32_t>> given;
+            for (auto item : start)
+            {
+                given.emplace_back(
+                    py::cast<std::string>(item.first), py::cast<int32_t>(item.second));
+            }
+
+            pulseq::LabelEvolution found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::evaluate_labels(
+                    sequence, at, first_block, last_block, given);
+            }
+
+            py::dict out;
+            for (size_t i = 0; i < found.names.size(); ++i)
+            {
+                const std::vector<int32_t>& values = found.values[i];
+                out[py::str(found.names[i])] = py::array_t<int32_t>(
+                    static_cast<py::ssize_t>(values.size()), values.data());
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("evolution") = "none", py::arg("first_block") = 1,
+        py::arg("last_block") = 0, py::arg("start") = py::dict(),
+        "What every label the sequence uses is set to, as an array per label.");
+
+    module.def(
         "flip_angles",
         [](const Sequence& sequence) {
             std::vector<double> angles;

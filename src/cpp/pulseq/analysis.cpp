@@ -255,4 +255,116 @@ namespace pulseq
         return found;
     }
 
+
+    LabelEvolution evaluate_labels(
+        const Sequence& seq,
+        LabelEvolutionAt at,
+        int first_block,
+        int last_block,
+        const std::vector<std::pair<std::string, int32_t>>& start)
+    {
+        LabelEvolution out;
+
+        /* By label id rather than by name: what a block carries is a number,
+         * and turning it into a name once per label beats once per block. */
+        std::unordered_map<int, size_t> column;
+        std::vector<int32_t> now;
+        const auto column_for = [&](int label_id) {
+            auto found = column.find(label_id);
+            if (found != column.end())
+                return found->second;
+            const size_t made = out.names.size();
+            out.names.push_back(seq.label_name(label_id));
+            out.values.emplace_back();
+            now.push_back(0);
+            column.emplace(label_id, made);
+            return made;
+        };
+
+        for (const auto& given : start)
+        {
+            const int id = seq.find_label_id(given.first);
+            /* A name the table does not know cannot be carried by a block
+             * either, so it is reported as it was given and never changes. */
+            if (id == 0)
+            {
+                out.names.push_back(given.first);
+                out.values.emplace_back();
+                now.push_back(given.second);
+                continue;
+            }
+            now[column_for(id)] = given.second;
+        }
+
+        const int blocks = seq.num_blocks();
+        const int first = first_block > 1 ? first_block : 1;
+        const int last = (last_block > 0 && last_block < blocks) ? last_block : blocks;
+
+        const int32_t* events = seq.block_events();
+        const IntTable& links = seq.extensions_library();
+        const IntTable& sets = seq.label_set_library();
+        const IntTable& increments = seq.label_inc_library();
+        const int set_type = seq.find_extension_type_id("LABELSET");
+        const int inc_type = seq.find_extension_type_id("LABELINC");
+
+        int recorded = 0;
+        const auto record = [&]() {
+            ++recorded;
+            for (size_t i = 0; i < out.values.size(); ++i)
+                out.values[i].push_back(now[i]);
+        };
+
+        for (int index = first; index <= last; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+
+            bool labelled = false;
+            for (int32_t node = row[5]; node > 0 && node <= links.size();)
+            {
+                const int32_t* link = links.row(node);
+                const int32_t kind = link[0];
+                const int32_t ref = link[1];
+                node = link[2];
+                const bool setting = set_type != 0 && kind == set_type;
+                const bool adding = inc_type != 0 && kind == inc_type;
+                if (!setting && !adding)
+                    continue;
+                const IntTable& carrying = setting ? sets : increments;
+                if (ref < 1 || ref > carrying.size())
+                    continue;
+                const int32_t* what = carrying.row(ref);
+                const size_t which = column_for(static_cast<int>(what[1]));
+                /* A column made here starts blank, so the points already
+                 * recorded read as the zero a label is before it is set. */
+                out.values[which].resize(static_cast<size_t>(recorded), 0);
+                now[which] = setting ? what[0] : now[which] + what[0];
+                labelled = true;
+            }
+
+            const bool wanted = at == LabelEvolutionAt::Blocks ||
+                (at == LabelEvolutionAt::Adc && row[4] > 0) ||
+                (at == LabelEvolutionAt::Label && labelled);
+            if (wanted)
+                record();
+        }
+
+        /* One point is not an evolution, and the reference toolbox says so:
+         * asked for one it hands back what the labels finish at instead, and
+         * a sequence that never reaches the thing being recorded -- no ADC,
+         * say -- is asked the same question. */
+        if (at == LabelEvolutionAt::End || recorded < 2)
+        {
+            for (auto& column_values : out.values)
+                column_values.clear();
+            recorded = 0;
+            record();
+        }
+        else
+        {
+            for (auto& column_values : out.values)
+                column_values.resize(static_cast<size_t>(recorded), 0);
+        }
+        return out;
+    }
+
 } // namespace pulseq

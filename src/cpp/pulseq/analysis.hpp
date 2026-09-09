@@ -27,6 +27,8 @@
 #ifndef PULSEQ_ANALYSIS_HPP
 #define PULSEQ_ANALYSIS_HPP
 
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "pulseq/sequence.hpp"
@@ -42,6 +44,50 @@ namespace pulseq
      * centre of each RF raster interval, which is where the format puts it.
      */
     std::vector<double> flip_angles(const Sequence& sequence);
+
+    /**
+     * What a label is set to, block by block.
+     *
+     * A label is running state: set or incremented where a block says so, and
+     * in force until another block says otherwise. So reading one back is a
+     * walk over the blocks in order, applying what each carries -- which is
+     * a pass over the extension chains rather than over decoded blocks, and
+     * costs nothing for the blocks that carry none, which is most of them.
+     */
+    struct LabelEvolution
+    {
+        /** The labels the sequence touches, in the order they first appear. */
+        std::vector<std::string> names;
+        /** Per label, its value at each point recorded.  See `evaluate_labels`. */
+        std::vector<std::vector<int32_t>> values;
+    };
+
+    /** Where a label evolution is recorded. */
+    enum class LabelEvolutionAt
+    {
+        End,     /**< Once, at the end: what the labels finish at. */
+        Blocks,  /**< Every block. */
+        Adc,     /**< Every block that acquires. */
+        Label,   /**< Every block that sets or increments one. */
+    };
+
+    /**
+     * Follow every label the sequence uses.
+     *
+     * @param seq          The sequence to walk.
+     * @param at           Where to record a value.
+     * @param first_block  First block to walk, 1-based.
+     * @param last_block   Last block, or 0 for the end of the sequence.
+     * @param start        What each label is before the walk begins, by name.
+     *                     A label named here is reported whether or not the
+     *                     blocks touch it.
+     */
+    LabelEvolution evaluate_labels(
+        const Sequence& seq,
+        LabelEvolutionAt at,
+        int first_block,
+        int last_block,
+        const std::vector<std::pair<std::string, int32_t>>& start);
 
     /** What the sampled trajectory covers, and how often it goes back. */
     struct KspaceCoverage
