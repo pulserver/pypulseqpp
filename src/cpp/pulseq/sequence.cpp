@@ -162,6 +162,8 @@ namespace pulseq
         extension_names_.emplace(id, name);
         if (name == "TRIGGERS")
             trigger_type_id_ = id;
+        else if (name == "ROTATIONS")
+            rotation_type_id_ = id;
         return id;
     }
 
@@ -177,16 +179,23 @@ namespace pulseq
         // says what its own numbering is, and it need not match the order the
         // sections happen to appear in.
         const int was = trigger_type_id_;
+        const int turned = rotation_type_id_;
         auto existing = extension_ids_.find(name);
         if (existing != extension_ids_.end())
             extension_names_.erase(existing->second);
         extension_ids_[name] = id;
         extension_names_[id] = name;
         trigger_type_id_ = find_extension_type_id("TRIGGERS");
+        rotation_type_id_ = find_extension_type_id("ROTATIONS");
 
         // Which chains carry a trigger is read off a type id, so forcing the
         // mapping can change the answer for chains that already exist -- and
         // with it which blocks are pure delays.
+        if (rotation_type_id_ != turned && !extensions_.empty())
+        {
+            recompute_chain_rotations();
+            refill_block_rotations();
+        }
         if (trigger_type_id_ != was && !extensions_.empty())
         {
             recompute_chain_triggers();
@@ -365,7 +374,7 @@ namespace pulseq
 
         const int id = extensions_.append(key.data());
         chain_index_.emplace(key, id);
-        note_chain(type_id, next);
+        note_chain(type_id, ref, next);
         return id;
     }
 
@@ -374,7 +383,7 @@ namespace pulseq
         changed();
         const std::array<int32_t, EXTENSION_WIDTH> row{type_id, ref, next};
         const int id = extensions_.append(row.data());
-        note_chain(type_id, next);
+        note_chain(type_id, ref, next);
         return id;
     }
 
@@ -408,7 +417,8 @@ namespace pulseq
         detach_blocks_before_growth();
         blocks_->insert(
             blocks_->end(),
-            {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext});
+            {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext,
+             rotation_in_chain(block.ext)});
         durations_->push_back(block.duration);
         int32_t def = 0;
         int32_t adc_def = 0;
@@ -492,6 +502,7 @@ namespace pulseq
             block.gz = e[3];
             block.adc = e[4];
             block.ext = e[5];
+            block.rot = e[6];
             block.duration = (*durations_)[static_cast<size_t>(i)];
             instance_row(block, out.data() + static_cast<size_t>(i) * INSTANCE_WIDTH);
         }
@@ -521,6 +532,10 @@ namespace pulseq
         for (int id = 1; id <= adc_.size(); ++id)
             adc_def_.push_back(adc_defs_.intern(adc_key(adc_.row(id))));
 
+        /* The chains have moved or been rebuilt, so what each one names has
+         * to be read off again -- and with it the block table's own column. */
+        recompute_chain_rotations();
+        refill_block_rotations();
         recompute_chain_triggers();
         refork_blocks();
     }
@@ -539,6 +554,31 @@ namespace pulseq
                  chain_carries_trigger_[static_cast<size_t>(next) - 1] != 0);
             chain_carries_trigger_[static_cast<size_t>(node) - 1] = carries ? 1 : 0;
         }
+    }
+
+    void Sequence::recompute_chain_rotations()
+    {
+        chain_rotation_.assign(static_cast<size_t>(extensions_.size()), 0);
+        for (int node = 1; node <= extensions_.size(); ++node)
+        {
+            const int32_t* row = extensions_.row(node);
+            const int32_t next = row[2];
+            chain_rotation_[static_cast<size_t>(node) - 1] =
+                (rotation_type_id_ != 0 && row[0] == rotation_type_id_)
+                ? row[1]
+                : (next >= 1 && next < node
+                       ? chain_rotation_[static_cast<size_t>(next) - 1]
+                       : 0);
+        }
+    }
+
+    void Sequence::refill_block_rotations()
+    {
+        detach_blocks();
+        int32_t* row = blocks_->data();
+        const size_t rows = blocks_->size() / BLOCK_WIDTH;
+        for (size_t i = 0; i < rows; ++i, row += BLOCK_WIDTH)
+            row[6] = rotation_in_chain(row[5]);
     }
 
     void Sequence::refork_blocks()
@@ -561,6 +601,7 @@ namespace pulseq
             block.gz = e[3];
             block.adc = e[4];
             block.ext = e[5];
+            block.rot = e[6];
             block.duration = (*durations_)[static_cast<size_t>(i)];
             fork_instance(
                 block,
@@ -582,6 +623,7 @@ namespace pulseq
         row[3] = block.gz;
         row[4] = block.adc;
         row[5] = block.ext;
+        row[6] = rotation_in_chain(block.ext);
         (*durations_)[index - 1] = block.duration;
         const size_t at = static_cast<size_t>(index) - 1;
         fork_instance(block, instance_def_[at], instance_adc_def_[at]);
@@ -598,6 +640,7 @@ namespace pulseq
         block.gz = row[3];
         block.adc = row[4];
         block.ext = row[5];
+        block.rot = row[6];
         block.duration = (*durations_)[index - 1];
         return block;
     }
@@ -1026,14 +1069,14 @@ namespace pulseq
         return report;
     }
 
-    std::array<int64_t, BLOCK_WIDTH> Sequence::event_counts() const
+    std::array<int64_t, BLOCK_FILE_COLUMNS> Sequence::event_counts() const
     {
-        std::array<int64_t, BLOCK_WIDTH> counts{};
+        std::array<int64_t, BLOCK_FILE_COLUMNS> counts{};
         const int32_t* row = blocks_->data();
         const size_t rows = blocks_->size() / BLOCK_WIDTH;
         for (size_t block = 0; block < rows; ++block, row += BLOCK_WIDTH)
         {
-            for (int column = 0; column < BLOCK_WIDTH; ++column)
+            for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                 counts[static_cast<size_t>(column)] += row[column] > 0 ? 1 : 0;
         }
         return counts;

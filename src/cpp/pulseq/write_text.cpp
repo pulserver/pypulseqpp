@@ -424,7 +424,7 @@ namespace pulseq
                     cursor = put_int_field(cursor, static_cast<long>(i) + 1, widths[0]);
                     *cursor++ = ' ';
                     cursor = put_int_field(cursor, tick[i], widths[1]);
-                    for (int column = 0; column < BLOCK_WIDTH; ++column)
+                    for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     {
                         *cursor++ = ' ';
                         cursor = put_int_field(cursor, row[column], widths[column + 2]);
@@ -832,7 +832,7 @@ namespace pulseq
                     cursor = put_int_field(cursor, static_cast<long>(i) + 1, widths[0]);
                     *cursor++ = ' ';
                     cursor = put_int_field(cursor, tick[i], widths[1]);
-                    for (int column = 0; column < BLOCK_WIDTH; ++column)
+                    for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     {
                         *cursor++ = ' ';
                         cursor = put_int_field(cursor, row[column], widths[column + 2]);

@@ -167,7 +167,7 @@ namespace pulseq
                         "write_binary(): block " + std::to_string(i + 1) +
                         " duration is not a multiple of the block duration raster");
                 put_i64(out, static_cast<int64_t>(rounded));
-                for (int column = 0; column < BLOCK_WIDTH; ++column)
+                for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     put_i32(out, events[static_cast<size_t>(i) * BLOCK_WIDTH + column]);
             }
         }

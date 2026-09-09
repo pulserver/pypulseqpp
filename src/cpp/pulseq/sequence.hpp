@@ -74,8 +74,27 @@ namespace pulseq
     constexpr int EXTENSION_WIDTH = 3;
     /** value, label id */
     constexpr int LABEL_WIDTH = 2;
-    /** rf, gx, gy, gz, adc, ext -- the block table's event columns */
-    constexpr int BLOCK_WIDTH = 6;
+    /**
+     * rf, gx, gy, gz, adc, ext -- the block columns a file row carries.
+     *
+     * The first six of the block table's columns, in the order the format
+     * writes them, so a writer walks a row without knowing what else is
+     * stored beside it.
+     */
+    constexpr int BLOCK_FILE_COLUMNS = 6;
+
+    /**
+     * The block table's columns: the six a file carries, then the rotation.
+     *
+     * A rotation is an extension, and it stays one -- it is written and read
+     * as one, and the chain still names it, so nothing about the format
+     * changes. It is *also* a column here because of how often it is asked
+     * for: expanding a waveform, weighing a slew rate and following a
+     * trajectory all need to know whether a block turns its gradients before
+     * they can do anything with them, and walking an extension chain to find
+     * out costs a pointer chase per block. One column answers it.
+     */
+    constexpr int BLOCK_WIDTH = 7;
 
     /* ================================================================== */
     /*  Tables                                                            */
@@ -727,6 +746,9 @@ namespace pulseq
         int32_t gz = 0;
         int32_t adc = 0;
         int32_t ext = 0;
+        /** The rotation row this block turns its gradients by; 0 for none.
+         *  Also in the extension chain, which is what the file carries. */
+        int32_t rot = 0;
         double duration = 0.0;
     };
 
@@ -1289,7 +1311,7 @@ namespace pulseq
          * asking of a million-block scan at all: the same count taken in
          * Python builds a boolean array the size of the table first.
          */
-        std::array<int64_t, BLOCK_WIDTH> event_counts() const;
+        std::array<int64_t, BLOCK_FILE_COLUMNS> event_counts() const;
 
         /* -- deduplication ------------------------------------------------ */
 
@@ -1644,6 +1666,9 @@ namespace pulseq
          */
         std::vector<uint8_t> chain_carries_trigger_;
 
+        /** Refill the block table's rotation column from the chains. */
+        void refill_block_rotations();
+
         /** Refill chain_carries_trigger_ from the chains as they stand. */
         void recompute_chain_triggers();
         /** Re-derive the block definitions, and only those. */
@@ -1658,9 +1683,39 @@ namespace pulseq
          */
         int trigger_type_id_ = 0;
 
-        /** Note a chain node's trigger flag as it is appended. */
-        void note_chain(int32_t type_id, int32_t next)
+        /** The id of the `ROTATIONS` type, held for the same reason. */
+        int rotation_type_id_ = 0;
+
+        /**
+         * Per chain node, the rotation the chain from there names; 0 for none.
+         *
+         * Read off as a block is stored, so the block table's rotation column
+         * costs a lookup rather than a walk, and a block asked later which
+         * way it turns its gradients does not walk anything at all.
+         */
+        std::vector<int32_t> chain_rotation_;
+
+        /** Refill chain_rotation_ from the chains as they stand. */
+        void recompute_chain_rotations();
+
+        /** The rotation the chain headed by @p ext names; 0 for none. */
+        int32_t rotation_in_chain(int32_t ext) const
         {
+            const size_t node = static_cast<size_t>(ext) - 1;
+            return ext >= 1 && node < chain_rotation_.size() ? chain_rotation_[node] : 0;
+        }
+
+        /** Note a chain node's trigger flag and rotation as it is appended. */
+        void note_chain(int32_t type_id, int32_t ref, int32_t next)
+        {
+            const size_t behind = static_cast<size_t>(next) - 1;
+            chain_rotation_.push_back(
+                rotation_type_id_ != 0 && type_id == rotation_type_id_
+                    ? ref
+                    : (next >= 1 && behind < chain_rotation_.size()
+                           ? chain_rotation_[behind]
+                           : 0));
+
             // A tail this node cannot see is read as carrying one, on the
             // same grounds as is_pure_delay: too coarse is the answer that
             // merges blocks, and too fine is the one that merely splits them.
