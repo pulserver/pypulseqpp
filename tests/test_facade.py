@@ -43,10 +43,23 @@ def test_a_factory_that_returns_several_converts_each_of_them():
     [
         lambda pp, gx: pp.calc_duration(gx),
         lambda pp, gx: pp.split_gradient_at(gx, 5e-4),
+        lambda pp, gx: pp.split_gradient(gx),
+        lambda pp, gx: pp.add_gradients(
+            [gx, pp.make_trapezoid("x", area=-500, duration=1e-3, delay=2e-3)]
+        ),
         lambda pp, gx: pp.align(right=[gx]),
+        lambda pp, gx: pp.rotate(gx, angle=math.pi / 4, axis="z"),
         lambda pp, gx: pp.scale_grad(gx, 0.5),
     ],
-    ids=["calc_duration", "split_gradient_at", "align", "scale_grad"],
+    ids=[
+        "calc_duration",
+        "split_gradient_at",
+        "split_gradient",
+        "add_gradients",
+        "align",
+        "rotate",
+        "scale_grad",
+    ],
 )
 def test_upstreams_own_helpers_take_a_compiled_event(call):
     """They check isinstance and deepcopy, and an event satisfies neither.
@@ -73,6 +86,88 @@ def test_scaling_a_gradient_stays_in_the_compiled_form():
 
     assert isinstance(scaled, _ext.TrapEvent)
     assert scaled.amplitude == pytest.approx(gx.amplitude * 0.5)
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda pp, gx, gy: pp.calc_duration(gx, gy),
+        lambda pp, gx, gy: pp.add_gradients([gx, gy]).area,
+        lambda pp, gx, gy: pp.split_gradient(gx)[0].area,
+        lambda pp, gx, gy: pp.split_gradient_at(gx, 5e-4)[1].area,
+        lambda pp, gx, gy: pp.rotate(gx, angle=math.pi / 3, axis="z")[0].area,
+        lambda pp, gx, gy: pp.align(right=[gx], left=[gy])[0].delay,
+    ],
+    ids=[
+        "calc_duration",
+        "add_gradients",
+        "split_gradient",
+        "split_gradient_at",
+        "rotate",
+        "align",
+    ],
+)
+def test_a_helper_answers_what_upstream_answers(call):
+    """The whole namespace, not only the factories: same numbers either way."""
+    system = upstream.Opts(
+        max_grad=30, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s"
+    )
+
+    def pair(module):
+        return (
+            module.make_trapezoid("x", area=1000, duration=1e-3, system=system),
+            module.make_trapezoid(
+                "x", area=-500, duration=1e-3, delay=1e-3, system=system
+            ),
+        )
+
+    assert call(pp, *pair(pp)) == pytest.approx(call(upstream, *pair(upstream)))
+
+
+def test_block_to_events_is_a_function_where_upstream_has_a_module():
+    assert callable(pp.block_to_events)
+    assert isinstance(upstream.block_to_events, type(math))
+
+
+@pytest.mark.parametrize("name", ["add_ramps", "add_custom_label", "compress_shape"])
+def test_a_name_that_is_not_here_says_why(name):
+    with pytest.raises(AttributeError, match=name):
+        getattr(pp, name)
+
+
+def test_every_upstream_name_a_script_could_write_still_resolves():
+    """The drop-in contract: pp.x answers wherever pypulseq.x did."""
+    withheld = {"compress_shape", "decompress_shape"}
+
+    unresolved = {
+        name
+        for name in dir(upstream)
+        if not name.startswith("_") and not hasattr(pp, name)
+    }
+
+    assert unresolved == withheld
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["np", "math", "importlib", "utils", "opts", "eps", "round_half_up"],
+    ids=str,
+)
+def test_what_upstream_imported_is_reachable_but_not_vocabulary(name):
+    """Reachable and advertised are different promises.
+
+    Upstream's __init__ leaves its own imports in its namespace, and a
+    rounding fix and a raster tolerance beside them. None of them describes a
+    sequence, so none is in __all__ -- and all of them still answer.
+    """
+    assert hasattr(pp, name)
+    assert name not in pp.__all__
+
+
+def test_what_is_advertised_is_what_a_sequence_is_written_in():
+    for name in pp.__all__:
+        assert hasattr(pp, name), name
+    assert {"make_trapezoid", "make_adc", "Sequence", "Opts"} <= set(pp.__all__)
 
 
 def test_calc_duration_agrees_with_upstream():

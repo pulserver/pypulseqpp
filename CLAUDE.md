@@ -20,17 +20,29 @@ call, and reading and writing, in text and in binary, are C++.
 The package owns everything that is true about a sequence in isolation:
 parsing and writing, event deduplication, structural TR and base-block
 detection, block timing against a system's rasters and dead times, gradient
-amplitude, slew and continuity checks, PNS and mechanical resonance, k-space and gradient-moment calculation, and sequence-level
-operations such as FOV transformation and tiling. It does not own anything
-that needs a scanner or a reconstruction in the picture. Segmentation, the
-scanner-side execution stream, protocol contracts and consoles live in
-`pulserver`; pulse, trajectory and sampling *design* lives in its own package.
-If a change here needs to know which vendor will play the sequence, it belongs
-elsewhere.
+amplitude, slew and continuity checks, PNS and mechanical resonance, k-space
+and gradient-moment calculation, and sequence-level operations such as FOV
+transformation and tiling.
 
-The runtime dependencies are NumPy and PyPulseq. PyPulseq is the API this
-package replaces and the facade re-exports its namespace, so its factories
-build the events and this builds the sequence under them.
+It owns the design of what goes into one, too: RF pulses, trajectories,
+sampling patterns and the module toolbox. A pulse is a waveform and a
+trajectory is a gradient, and both are true of a sequence in isolation --
+nothing about designing one needs to know which scanner will play it. So
+`make_slr_pulse`, `traj_to_grad`, the spiral and rosette solvers, the
+undersampling masks and view orderings, and the `sequences` subpackage of
+composable modules are all here.
+
+What is not here is anything that needs a scanner or a reconstruction in the
+picture: segmentation, the scanner-side execution stream, protocol contracts
+and consoles live in `pulserver`. If a change here needs to know which vendor
+will play the sequence, it belongs there.
+
+The runtime dependencies are NumPy, SciPy and PyPulseq. PyPulseq is the API
+this package replaces and the facade re-exports its namespace, so its
+factories build the events and this builds the sequence under them; SciPy
+supplies the filter design and the rotation algebra the pulse and trajectory
+design rests on. The extension itself links nothing but the standard library,
+so a wheel stays self-contained.
 
 `pypulseq-matlab-like` is a test dependency and nothing more -- the
 transcription of MATLAB Pulseq that defines the file format, used for
@@ -41,7 +53,18 @@ and the tests that build sequences skip when it is absent.
 ## The Python facade
 
 `import pypulseqpp as pp` is the only import a script needs. Everything
-upstream exposes is re-exported, and every callable goes through
+upstream exposes still *resolves* -- `pp.x` answers wherever `pypulseq.x`
+did, and a test holds that -- but reachable and advertised are different
+promises. `__all__` carries the vocabulary a sequence is written in, and
+leaves out the imports upstream's own `__init__` happens to make (`np`,
+`math`, `importlib`, its submodules) and the few helpers that describe
+arithmetic rather than a sequence (`eps`, `round_half_up`). Two names are
+withheld outright, with a reason rather than a bare `AttributeError`:
+`add_ramps`, whose `calc_ramp` raises for any ramp of more than zero
+intermediate points, and `add_custom_label`, because a label here is named
+and needs no registering.
+
+Every callable goes through
 `_events.interoperating` -- not only the factories, because `calc_duration`,
 `align`, `split_gradient` and `rotate` all take events and upstream implements
 them with `isinstance` checks and `deepcopy`, neither of which a compiled
@@ -66,17 +89,23 @@ and a label here is named rather than numbered -- see the section on that.
 | Path | What lives there |
 |---|---|
 | `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
-| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`. |
-| `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have. |
+| `external/MRArbGrad/` | A submodule: the MRArbGrad solver, which re-parameterises a k-space path within the gradient and slew limits. Three of its files are compiled in; see `external/NOTICE.md`. |
+| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad` and `sampling` as submodules of it. |
+| `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
+| `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 
 ## Build and test
 
 ```bash
+git submodule update --init --recursive   # the solver in external/ is compiled in
 pip install -e .[dev]
 bash scripts/format_and_lint.sh   # rewrites in place; --check to verify only
 pytest -q
 ```
+
+A checkout without the submodule has no trajectory solver, and the build says
+so rather than failing on a missing header.
 
 Build and test steps are mandatory before reporting a change complete. Run them
 and report the exact output; do not assume success.

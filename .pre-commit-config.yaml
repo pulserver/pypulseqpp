@@ -1,6 +1,10 @@
 # The rules live in scripts/format_and_lint.sh, which the Style workflow also
 # runs (there with --check). One entry point means a commit cannot pass locally
 # and fail in CI on style.
+# external/ is a submodule. Its files are CRLF and are not ours to reformat,
+# and a hook that rewrote them would leave the submodule dirty on every commit.
+exclude: '^external/'
+
 repos:
   - repo: local
     hooks:

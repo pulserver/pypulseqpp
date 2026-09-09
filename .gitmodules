@@ -1,0 +1,3 @@
+[submodule "external/MRArbGrad"]
+	path = external/MRArbGrad
+	url = https://github.com/mcencini/MRArbGrad

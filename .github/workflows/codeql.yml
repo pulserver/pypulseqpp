@@ -22,6 +22,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
       - uses: github/codeql-action/init@v4
         with:
           languages: python

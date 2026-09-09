@@ -308,3 +308,18 @@ evolution therefore reports final values.
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
 `calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and
 `auto_label`.
+
+## What the design layer is waiting on
+
+The module toolbox is in, and `tests/test_design_*.py` say what is still owed
+it. Each blocked test names the one thing it waits for:
+
+- **`TransformFOV`**, which the fat-saturation module uses to place a band on
+  an oblique slab. Ten tests skip.
+- **A block's rotation extension read back from `get_block`**, so a module can
+  ask whether a block turns. One test skips.
+- **A host to drive a sequence from**, which the navigator's tests reach for
+  and which belongs to `pulserver` rather than here. Six tests skip.
+- **`tile`**, so a scan can write its averages out rather than leave them to
+  an interpreter's repeat count, and **`Sequence.plot`**. Both are named where
+  the sequence that would use them stands.
