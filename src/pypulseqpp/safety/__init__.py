@@ -75,15 +75,24 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     ``per_axis`` is the worst of ``axes``. The three are what says which
     amplifier is asked for what, which is the question once one of them is
-    over its limit, and they cost nothing: the vector magnitude is built from
-    them.
+    over its limit. A block that turns its gradients plays a share of all
+    three on every axis, and its own rotation is applied before its peaks are
+    read: what ``axes`` reports is what the amplifiers are asked for, not what
+    the stored rows say.
+
+    The vector peak is exact rather than an upper bound. A gradient is a
+    handful of points with straight lines between them, so what the three ask
+    for together is decided at the moments any of them turns a corner.
+    Combining the three axes' own peaks would answer a different question:
+    what the amplifiers would be asked for if the peaks happened at once,
+    which they need not.
 
     What is weighed is the samples the sequence stores. An interpreter draws
     between them, and where a waveform's samples sit at the centre of each
     raster interval that drawing can pass a little outside the outermost of
     them -- by three parts in ten thousand across the reference sequences.
-    Reading it off the stored amplitudes is what makes this a pass over a
-    column rather than over every waveform in the scan.
+    Reading it off the stored amplitudes is what makes this a pass over the
+    events a block names rather than over every waveform in the scan.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_grad")

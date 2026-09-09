@@ -356,28 +356,33 @@ def test_an_axis_carrying_nothing_reports_zero(system):
     assert [peak.value for peak in report.axes[1:]] == [0.0, 0.0]
 
 
-def test_a_rotated_sequence_plays_axes_its_stored_rows_do_not_name(system):
-    """What is weighed is stored on x; what is played is spread over x and y.
+def test_a_rotated_sequence_is_weighed_on_the_axes_it_plays(system):
+    """What is stored on x is played over x and y, and weighed there.
 
-    Which is why a report on what the scan does reads the waveforms rather
-    than these peaks: a rotation is a thing one playout does, so it moves
-    where a gradient is played without moving the row it is stored in.
+    A rotation is a thing one playout does: it moves where a gradient is
+    played without moving the row it is stored in. So the axis peaks are what
+    the amplifiers are asked for, which is not what the rows say.
     """
     from scipy.spatial.transform import Rotation
 
     sequence = pp.Sequence(system)
     gradient = pp.make_trapezoid("x", area=600, duration=1e-3, system=system)
-    for quarter in range(4):
+    for turn in (0, 37, 90, 214):
         sequence.add_block(
-            gradient,
-            pp.make_rotation(Rotation.from_euler("z", 90 * quarter, degrees=True)),
+            gradient, pp.make_rotation(Rotation.from_euler("z", turn, degrees=True))
         )
 
-    _, report = safety.check_max_grad(sequence)
-    played = played_per_axis(sequence)
+    _, grad = safety.check_max_grad(sequence)
+    _, slew = safety.check_max_slew(sequence)
 
-    assert report.axes[1].value == 0
-    assert played[1] == pytest.approx(report.axes[0].value, rel=1e-9)
+    assert [peak.value for peak in grad.axes] == pytest.approx(
+        played_per_axis(sequence), rel=1e-9
+    )
+    # The turn spreads one row over two amplifiers without asking either for
+    # more than the row holds, and asks the third for nothing at all.
+    assert grad.per_axis.value == pytest.approx(grad.vector.value)
+    assert grad.axes[2].value == pytest.approx(0.0, abs=1e-6)
+    assert slew.axes[2].value == pytest.approx(0.0, abs=1e-6)
 
 
 # -- what the three axes ask for together ----------------------------------
