@@ -220,6 +220,34 @@ toolbox and 85x with `samples_only`.
 The repeating unit is already found (`_detect_tr`), so an analysis that only
 needs one shot does not have to look at the whole scan to find it.
 
+## Where the answer differs from the toolbox
+
+The toolbox holds a gradient axis at zero in front of what it plays by putting
+a knot a picosecond ahead of the axis's own first corner. Its rule for merging
+coincident knots works to a nanosecond, so the corner behind that pad is lost
+to it -- and the ramp behind the corner is a picosecond longer than the
+sequence asked for. At full amplitude that is an area of amplitude times half
+a picosecond, added every time an axis starts anywhere but the beginning of
+the sequence.
+
+Four parts in a hundred million of a phase encode, and it does not accumulate,
+which is why nothing had noticed. It is not nothing: a phase encode and its
+rewinder stop cancelling, and a sequence whose repetitions are identical stops
+reading as though they are. Here the pad is placed only where a waveform
+begins away from zero, which is where a step onto it is needed at all, so a
+trapezoid encloses its area wherever it is played.
+
+Two consequences are in the tests. `tests/test_kspace.py` compares the
+trajectory as a set of moments rather than a list, because the toolbox reports
+one raster tick this package does not -- the tick its own pad brings a sloping
+stretch back across -- and allows the width of the leak where the two differ.
+And two reference sequences have their reports decided by it: the four
+repetitions of `inversion_recovery_train` have k-space centres agreeing to
+twelve figures, and which is nearest the origin fixes TE and TR; the leak
+biases the first, so the toolbox picks the second and reports a TR one
+repetition longer. `gre_with_noise_scan` is the same at a rounding boundary.
+Both are skipped, naming the reason.
+
 ## Where a name differs from the toolbox
 
 `waveforms_and_times` and its family take `block_range`, where

@@ -274,7 +274,37 @@ def assert_same_report(expected, found):
             ), name
 
 
-def test_the_report_is_the_toolboxs(build_reference):
+#: Sequences whose report the toolbox decides with its own integration error.
+#:
+#: It holds an axis at zero in front of what it plays by putting a knot a
+#: picosecond ahead of the axis's first corner, and loses the corner to it --
+#: so a ramp is a picosecond too long and encloses amplitude times half a
+#: picosecond too much, every time an axis starts anywhere but the beginning.
+#: See `tests/test_kspace.py`.
+#:
+#: Small enough to be invisible until something is balanced on it, and a
+#: report is: `inversion_recovery_train` has four repetitions whose k-space
+#: centres agree to twelve figures, and which of them is nearest the origin
+#: decides TE and TR. The leak biases the first, so the toolbox picks the
+#: second and reports a TR one repetition longer. Without it the four agree
+#: and the first wins. `gre_with_noise_scan` is the same thing at a rounding
+#: boundary: a resolution of 9.375 mm, printed to two places.
+DECIDED_BY_THE_LEAK = {
+    "inversion_recovery_train": "TE and TR, through which sample is nearest k=0",
+    "gre_with_noise_scan": "a resolution that rounds either way at 9.375 mm",
+}
+
+
+def skip_if_decided_by_the_leak(reference_name):
+    if reference_name in DECIDED_BY_THE_LEAK:
+        pytest.skip(
+            f"the toolbox's answer here is {DECIDED_BY_THE_LEAK[reference_name]}, "
+            "and its own padding decides it; see tests/test_kspace.py"
+        )
+
+
+def test_the_report_is_the_toolboxs(build_reference, reference_name):
+    skip_if_decided_by_the_leak(reference_name)
     theirs = build_reference()
     ours = as_core(theirs)
 
@@ -286,7 +316,8 @@ def test_the_report_is_the_toolboxs(build_reference):
     assert_same_report(expected, ours.test_report_dict())
 
 
-def test_the_report_reads_as_the_toolbox_writes_it(build_reference):
+def test_the_report_reads_as_the_toolbox_writes_it(build_reference, reference_name):
+    skip_if_decided_by_the_leak(reference_name)
     theirs = build_reference()
     ours = as_core(theirs)
 
