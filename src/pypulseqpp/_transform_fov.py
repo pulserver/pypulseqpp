@@ -59,8 +59,8 @@ def _quaternion_of(rotation):
     )
 
 
-def _runs_not_exempt(seq, label, first, last):
-    """Return the stretches of ``first..last`` that ``label`` does not exempt.
+def _exempt_mask(seq, label, first, last):
+    """Return one flag per block of ``first..last``, set where ``label`` exempts it.
 
     Pulseq's exemption flags are sticky: a block that sets one is itself
     exempt, and so is every block after it until another block clears it. A
@@ -69,19 +69,38 @@ def _runs_not_exempt(seq, label, first, last):
     a later prescription must leave alone.
 
     The walk is the compiled one: a block carrying no label costs a column
-    read, which is nearly all of them.
+    read, which is nearly all of them. None where the sequence never names the
+    label, which is the common case and saves the caller the array.
     """
     found = _cxx.evaluate_labels(
         seq._native, evolution="blocks", first_block=first, last_block=last
     )
+    flagged = found.get(label)
+    if flagged is None:
+        return None
     stop = len(seq) if last == 0 else last
-    exempt = found.get(label)
-    if exempt is None:
+    mask = np.zeros(stop - first + 1, dtype=np.uint8)
+    seen = np.atleast_1d(flagged)[: mask.size]
+    mask[: seen.size] = np.asarray(seen) != 0
+    if not mask.any():
+        return None
+    return mask
+
+
+def _runs_not_exempt(seq, label, first, last):
+    """Return the stretches of ``first..last`` that ``label`` does not exempt.
+
+    For the transforms a block can be given one at a time. A shift cannot:
+    see `TransformFOV.apply_to_sequence`.
+    """
+    stop = len(seq) if last == 0 else last
+    mask = _exempt_mask(seq, label, first, last)
+    if mask is None:
         return [(first, stop)]
 
     runs = []
     at = None
-    for offset, flag in enumerate(np.atleast_1d(exempt)):
+    for offset, flag in enumerate(mask):
         block = first + offset
         if flag:
             if at is not None:
@@ -124,7 +143,16 @@ class TransformFOV:
         Where the trajectory stands entering the next range this transforms,
         carried so a scan too large to hold at once can be moved a piece at a
         time. Nothing says a repeating unit begins with an excitation, so a
-        piece cannot work this out for itself.
+        piece cannot work this out for itself. This is the trajectory, so it
+        restarts at every excitation, and it is what a readout's echo is
+        found on.
+    swept_k : tuple of float
+        What the gradients have swept entering that range, unbroken. The
+        shift's phase is counted from this rather than from
+        `block_k_origin`: a readout is measured against the phase its own
+        excitation was given, so the two are referenced to the same zero.
+        Carried alongside `block_k_origin` for the same reason, and a piece
+        of a scan needs both.
     """
 
     def __init__(
@@ -174,6 +202,7 @@ class TransformFOV:
         self.use_rotation_extension = use_rotation_extension
         self.system = system
         self.block_k_origin = (0.0, 0.0, 0.0)
+        self.swept_k = (0.0, 0.0, 0.0)
 
         for name, value in (("translation", self.translation), ("scale", self.scale)):
             if value is not None and len(value) != 3:
@@ -230,17 +259,21 @@ class TransformFOV:
                     last=ends,
                 )
         if self.translation is not None:
-            # Where the trajectory stands is a fact about everything played
-            # before it, exempt or not, so the walk runs over the whole range
-            # and only what it writes is gated.
-            for begins, ends in _runs_not_exempt(target, "NOPOS", first, last):
-                self.block_k_origin = _cxx.apply_fov_shift(
-                    target._native,
-                    shift=self.translation,
-                    first=begins,
-                    last=ends,
-                    carry=self.block_k_origin,
-                )
+            # One walk, gated per block rather than one walk per stretch:
+            # where k stands is a fact about everything played before it,
+            # exempt or not, and a stretch skipped is a stretch of swept area
+            # missing from every phase after it.
+            moved = _cxx.apply_fov_shift(
+                target._native,
+                shift=self.translation,
+                first=first,
+                last=last,
+                carry=self.swept_k,
+                origin=self.block_k_origin,
+                exempt=_exempt_mask(target, "NOPOS", first, last),
+            )
+            self.swept_k = moved["swept"]
+            self.block_k_origin = moved["origin"]
         return target
 
     #: The reference toolbox's name for the same thing.

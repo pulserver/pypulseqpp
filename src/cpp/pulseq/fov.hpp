@@ -195,12 +195,36 @@ namespace pulseq
      * total reaches thousands of turns across a scan and only the fraction is
      * a phase, so summing first spends the precision on what is thrown away.
      *
+     * ### Where a readout is referenced to
+     *
+     * The echo -- where the readout passes closest to the centre of k-space,
+     * by the rule `test_report` measures an echo time by. Not the middle of
+     * the sampling window, which is the same instant only for a readout
+     * symmetric about the origin: a partial Fourier or asymmetric-echo
+     * readout is not. Anchoring at the echo means the frequency and the phase
+     * alone place the centre of k-space where the shift asks, and the profile
+     * carries only the curvature around it. A pulse is referenced to the
+     * centre its designer recorded, which is what the format carries the
+     * field for.
+     *
+     * Which is why both walks are here. The phase is counted from @p carry,
+     * unbroken; the echo is found on @p origin, which restarts at every
+     * excitation. They are different quantities and a shift needs both.
+     *
      * @param seq      The sequence to move.
      * @param shift_m  The offset, in logical metres.
      * @param scope    Which sides to write on.
      * @param first    First block to move, 1-based.
      * @param last     Last block, or 0 for the end.
-     * @param carry    Where k stands entering @p first, updated in place.
+     * @param carry    What the gradients have swept entering @p first,
+     *                 unbroken, updated in place.
+     * @param origin   Where the trajectory stands entering @p first, updated
+     *                 in place.
+     * @param exempt   One byte per block in range, non-zero where a block is
+     *                 to be walked but not written -- a module that placed
+     *                 itself. Null exempts nothing. Exempt blocks still count
+     *                 towards both walks, because what they sweep is where
+     *                 everything after them stands.
      */
     void apply_fov_shift(
         Sequence& seq,
@@ -208,7 +232,9 @@ namespace pulseq
         FovShiftScope scope,
         int first,
         int last,
-        double carry[3]);
+        double carry[3],
+        double origin[3],
+        const unsigned char* exempt = nullptr);
 
 } // namespace pulseq
 

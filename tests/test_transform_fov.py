@@ -445,9 +445,11 @@ def test_the_phase_a_readout_is_demodulated_with_is_the_shift_along_its_trajecto
 ):
     """``dr . k(t)`` at every sample, counted from the excitation.
 
-    This is where the answer parts from the reference toolbox, which wraps
-    ``k`` to one turn before multiplying by the shift -- a different number
-    wherever the trajectory has travelled more than a turn's worth of it.
+    Absolutely, not up to a constant: the reference toolbox counts from an
+    origin of its own and so answers this plus a global phase per readout,
+    which is a choice rather than a difference. What is asked here is the
+    stronger of the two, because the trajectory a reconstructor is handed is
+    counted from the excitation.
     """
     shift = 0.011
     gx_pre = trap("x", -2500, system, duration=2e-3)
@@ -491,8 +493,8 @@ def test_a_gradient_that_moves_under_the_readout_needs_a_phase_per_sample(system
 
 
 def test_a_pulse_under_a_gradient_that_moves_carries_a_phase_shape(system):
-    """The same for the transmit side, referenced to the pulse's own centre so
-    that what the pulse does is untouched."""
+    """The same for the transmit side, referenced to the centre the pulse
+    records so that what the pulse does is untouched."""
     shift = 0.009
     gz = trap("z", 3000, system, duration=2e-3)
     rf = pp.make_sinc_pulse(
@@ -508,6 +510,144 @@ def test_a_pulse_under_a_gradient_that_moves_carries_a_phase_shape(system):
     after = np.asarray(moved.get_block(1).rf.signal)
     np.testing.assert_allclose(np.abs(after), np.abs(before), rtol=1e-6)
     assert np.ptp(np.angle(after) - np.angle(before)) > 1e-3
+
+
+def test_a_readout_that_runs_off_the_flat_top_is_not_taken_for_a_steady_one(system):
+    """Whether a gradient moves is asked of the whole window.
+
+    A readout that begins on a flat top and ends on the ramp down is steady
+    across its first half and not across its second, so a question asked of
+    the first half alone answers that two numbers will do -- and the ramp's
+    phase is then never written anywhere.
+    """
+    shift = 0.011
+    gx = flat("x", 5000, 2e-3, system)
+    adc = pp.make_adc(
+        128,
+        duration=float(gx.flat_time) + float(gx.fall_time),
+        delay=float(gx.rise_time),
+        system=system,
+    )
+    seq = pp.Sequence(system)
+    seq.add_block(sinc(system))
+    seq.add_block(gx, adc)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    assert np.asarray(moved.get_block(2).adc.phase_modulation).size == 128
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+    np.testing.assert_allclose(
+        wrapped(receive_phase(moved.get_block(2)) - shift * k), 0.0, atol=5e-6
+    )
+
+
+def test_a_pulse_whose_gradient_ramps_under_its_end_is_not_taken_for_a_steady_one(
+    system,
+):
+    """The transmit side of the same question, asked of the whole pulse."""
+    shift = 0.009
+    gz = flat("z", 3000, 1e-3, system)
+    rf = pp.make_sinc_pulse(
+        math.pi / 6,
+        duration=float(gz.flat_time) + float(gz.fall_time),
+        slice_thickness=5e-3,
+        delay=float(gz.rise_time),
+        use="excitation",
+        system=system,
+    )
+    seq = one_block(system, rf, gz)
+    moved = pp.TransformFOV(translation=(0.0, 0.0, shift)).apply_to_sequence(seq)
+    added = np.angle(np.asarray(moved.get_block(1).rf.signal)) - np.angle(
+        np.asarray(seq.get_block(1).rf.signal)
+    )
+    assert np.ptp(added) / TURN > 1e-3
+
+
+def test_a_readout_is_referenced_to_its_echo_and_not_to_its_window(system):
+    """Where the frequency and the phase are anchored.
+
+    The two are the same instant only for a readout symmetric about the
+    centre of k-space. Here the prewinder undoes a fraction of the readout,
+    so the echo falls early -- on the ramp, where the gradient is still
+    moving -- and anchoring at the middle of the window would leave the
+    centre of k-space turns away from where the shift asks for it.
+
+    What is held is that the scalars *alone* place the echo: a reader that
+    drops the phase profile still gets the centre of k-space right, and the
+    profile carries only the curvature around it.
+    """
+    shift = 0.011
+    gx = flat("x", 5000, 1.4e-3, system)
+    samples = 192
+    adc = pp.make_adc(
+        samples,
+        duration=float(gx.rise_time) + float(gx.flat_time),
+        delay=0.0,
+        system=system,
+    )
+    seq = pp.Sequence(system)
+    seq.add_block(sinc(system))
+    seq.add_block(trap("x", -200, system, duration=1e-3))
+    seq.add_block(gx, adc)
+
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+    echo = int(np.argmin(np.abs(k)))
+    # The echo is early, and on the ramp rather than the flat top.
+    assert echo < samples // 4
+    assert echo * float(adc.dwell) < float(gx.rise_time)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    block = moved.get_block(3)
+    when = float(block.adc.dwell) * (np.arange(samples) + 0.5)
+    scalars = (
+        float(block.adc.phase_offset) + TURN * float(block.adc.freq_offset) * when
+    ) / TURN
+    assert abs(float(wrapped(scalars[echo] - shift * k[echo]))) < 1e-3
+    # Only because it is the echo: the same two numbers are turns out by the
+    # end of the readout, and that is what the profile is for.
+    assert np.abs(wrapped(scalars - shift * k)).max() > 0.1
+
+
+def test_an_exempt_stretch_still_counts_towards_what_follows_it(system):
+    """A module that placed itself keeps its phase; its area still happened.
+
+    The gradients an exempt block plays move k like any others, so a shift
+    walk that skipped the stretch would leave every phase after it short by
+    what the stretch swept.
+    """
+    shift = 0.011
+    gx = flat("x", 5000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=float(gx.rise_time), system=system)
+    spoiler = trap("x", 1234, system, duration=1e-3)
+
+    seq = pp.Sequence(system)
+    seq.add_block(sinc(system))
+    seq.add_block(spoiler, pp.make_label("NOPOS", "SET", 1))
+    seq.add_block(pp.make_delay(1e-4), pp.make_label("NOPOS", "SET", 0))
+    seq.add_block(gx, adc)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+    np.testing.assert_allclose(
+        wrapped(receive_phase(moved.get_block(4)) - shift * k), 0.0, atol=1e-9
+    )
+
+
+def test_an_exempt_block_keeps_the_phase_it_was_designed_with(system):
+    shift = 0.011
+    gx = flat("x", 5000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=float(gx.rise_time), system=system)
+
+    seq = pp.Sequence(system)
+    seq.add_block(sinc(system))
+    seq.add_block(gx, adc, pp.make_label("NOPOS", "SET", 1))
+    seq.add_block(pp.make_delay(1e-4), pp.make_label("NOPOS", "SET", 0))
+    seq.add_block(gx, adc)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    assert float(moved.get_block(2).adc.freq_offset) == pytest.approx(
+        float(seq.get_block(2).adc.freq_offset), abs=1e-9
+    )
+    assert abs(float(moved.get_block(4).adc.freq_offset)) > 0.0
 
 
 # %% the three together

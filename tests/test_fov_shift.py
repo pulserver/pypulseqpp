@@ -13,9 +13,11 @@ readout carries no profile at all; only where the gradient moves is there
 anything left over.
 
 Held against the identity rather than against the reference toolbox, and on
-purpose: the toolbox wraps a k value before the translation multiplies it and
-leaves a non-Cartesian readout up to half a turn out. Everything else here
-agrees with it to the last bit -- see `NEXT.md`.
+purpose: the toolbox references a readout to an origin of its own, so its
+answer is this one plus a constant per readout. A constant is a global phase
+on a readout and changes no image, but it makes a comparison against
+`dr . k` meaningless until it is taken out. See `NEXT.md` for what is left
+once it is.
 
 The shift is written in the logical frame, which is the frame the gradients
 were designed in. ``dr . k`` does not change when both are turned, so it
@@ -262,14 +264,18 @@ def test_a_shift_can_be_applied_in_chunks(system):
     whole, in_pieces = built(), built()
     _ext.apply_fov_shift(whole._native, shift=(0.01, 0.0, 0.0))
 
-    carry = (0.0, 0.0, 0.0)
+    # Both walks are carried: the phase is counted from what the gradients
+    # have swept, unbroken, and a readout's echo is found on the trajectory,
+    # which restarts at every excitation.
+    carried = {"swept": (0.0, 0.0, 0.0), "origin": (0.0, 0.0, 0.0)}
     for first in (1, 3, 5):
-        carry = _ext.apply_fov_shift(
+        carried = _ext.apply_fov_shift(
             in_pieces._native,
             shift=(0.01, 0.0, 0.0),
             first=first,
             last=first + 1,
-            carry=carry,
+            carry=carried["swept"],
+            origin=carried["origin"],
         )
 
     for index in range(1, 7):

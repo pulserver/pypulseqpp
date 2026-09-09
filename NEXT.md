@@ -258,39 +258,37 @@ carries the leak and comes out a hair under the tie, 9.37.
 
 ### An ADC's shift phase
 
-The other place, and this one is a whole different size. `transform_fov`
-splits a field-of-view shift into a frequency, a phase, and whatever will not
-fit in the two -- and it leaves a non-Cartesian readout up to **half a turn**
-from where the shift asks for it, which is the largest a phase error can be.
+`transform_fov` references a readout to an origin of its own rather than to
+the excitation, so its ADC phase is this package's plus a constant per
+readout. **That constant is not an error.** A constant across a readout is a
+global phase on it: it changes no image, and which origin a shift is counted
+from is a choice, not a fact. It has to be taken out before the two can be
+compared at all, and a comparison that does not take it out -- wrapping the
+difference to one turn, say -- reports it as though it were an error.
 
-Its RF branch is right:
+What is left once it is taken out is the part that varies across the readout,
+and that one no origin absorbs. Over a readout sampled across the ramp of a
+trapezoid, with the constant removed by referencing every sample to the first:
 
-    local_frac(tmp - g_centre * (t - centre) * translation - fi_centre)
+| | constant, absorbed | what varies across the readout |
+| --- | --- | --- |
+| here, Cartesian | 0 | 1.4e-15 turns |
+| here, ramp-sampled | 7e-9 turns | 4.5e-6 turns |
+| the toolbox, Cartesian | 0.1375 turns | 2.1e-14 turns |
+| the toolbox, ramp-sampled | 0.4336 turns | **0.497 turns** |
 
-Its ADC branch, four lines below, wraps the linear part before multiplying:
-
-    local_frac(wrap(-g_centre * (t - centre)) * translation + fi_centre + tmp)
-
-`g_centre * (t - centre)` is a k value of some hundreds per metre, so wrapping
-it throws away a whole number of *k* -- and a whole number of k is not a whole
-number of turns once the translation multiplies it. The sign on `fi_centre` is
-the other way round as well.
+A Cartesian readout agrees to the last bit either way, which is why nothing
+had noticed: the residual is identically zero when the gradient does not move
+across the window, and the two implementations differ only in the constant.
+The 4.5e-6 in the third row is not arithmetic -- it is a float32, which is
+what a shape sample is stored as.
 
 What is held here is not the toolbox's answer but what a shift means: the
 phase a sample is acquired with -- its offset, plus its frequency times its
-time, plus whatever the profile carries -- has to come out as `dr . k(t)`.
-Over a readout sampled across both ramps of a trapezoid:
-
-| | worst deviation from `dr . k(t)` |
-| --- | --- |
-| here | 1.3e-15 turns |
-| the toolbox | 0.497 turns |
-
-A Cartesian readout is untouched either way: the residual is identically zero
-when nothing moves across the window, which is why the two agree everywhere
-else -- RF scalars, RF profiles, ADC scalars, spin echoes, all to the last
-bit. `tests/test_fov_shift.py` therefore compares against the identity rather
-than against the toolbox, and says so.
+time, plus whatever the profile carries -- comes out as `dr . k(t)`, with `k`
+counted from the excitation the readout belongs to. `tests/test_fov_shift.py`
+therefore compares against that identity rather than against the toolbox, and
+says so.
 
 ### A rotation is an annotation
 

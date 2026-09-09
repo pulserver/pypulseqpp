@@ -1178,20 +1178,33 @@ PYBIND11_MODULE(_ext, module)
     module.def(
         "apply_fov_shift",
         [](Sequence& sequence, std::array<double, 3> shift, bool with_adc, int first,
-           int last, std::array<double, 3> carry) {
+           int last, std::array<double, 3> carry, std::array<double, 3> origin,
+           py::object exempt) {
+            std::vector<unsigned char> flags;
+            if (!exempt.is_none())
+            {
+                const auto given = exempt.cast<py::array_t<unsigned char>>();
+                flags.assign(given.data(), given.data() + given.size());
+            }
             {
                 py::gil_scoped_release unlocked;
                 pulseq::apply_fov_shift(
                     sequence, shift.data(),
                     with_adc ? pulseq::FovShiftScope::RfAndAdc
                              : pulseq::FovShiftScope::RfOnly,
-                    first, last, carry.data());
+                    first, last, carry.data(), origin.data(),
+                    flags.empty() ? nullptr : flags.data());
             }
-            return py::make_tuple(carry[0], carry[1], carry[2]);
+            py::dict out;
+            out["swept"] = py::make_tuple(carry[0], carry[1], carry[2]);
+            out["origin"] = py::make_tuple(origin[0], origin[1], origin[2]);
+            return out;
         },
         py::arg("sequence"), py::arg("shift"), py::arg("with_adc") = true,
         py::arg("first") = 1, py::arg("last") = 0,
         py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
+        py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
+        py::arg("exempt") = py::none(),
         "Move the field of view by a shift in logical metres.");
 
     module.def(

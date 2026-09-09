@@ -267,6 +267,76 @@ namespace pulseq
 
 
         /**
+         * When a readout passes closest to the centre of k-space, relative
+         * to the start of its block.
+         *
+         * The sample nearest the origin, refined by projecting the way back
+         * to the origin onto the step to its neighbour -- which is the rule
+         * `test_report` measures an echo time by, so a sequence's echo and
+         * the instant its shift is referenced to are the same instant.
+         *
+         * @p origin is where the trajectory stands entering the block, so
+         * this is asked of absolute k rather than of what the block alone
+         * sweeps: an asymmetric echo is asymmetric about the origin, not
+         * about the block.
+         */
+        double echo_at(
+            const Played played[3],
+            const double origin[3],
+            int samples,
+            double dwell,
+            double delay)
+        {
+            double nearest = -1.0;
+            int index = 0;
+            std::vector<double> found(static_cast<size_t>(samples) * 3, 0.0);
+            for (int i = 0; i < samples; ++i)
+            {
+                const double when = delay + dwell * (static_cast<double>(i) + 0.5);
+                double square = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const double k = origin[axis] +
+                        (played[axis].values == nullptr ? 0.0 : played[axis].swept(when));
+                    found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] = k;
+                    square += k * k;
+                }
+                if (nearest < 0.0 || square < nearest)
+                {
+                    nearest = square;
+                    index = i;
+                }
+            }
+
+            double when = delay + dwell * (static_cast<double>(index) + 0.5);
+            if (nearest <= kEps * kEps)
+                return when;
+
+            const double* here = &found[static_cast<size_t>(index) * 3];
+            for (int side = -1; side <= 1; side += 2)
+            {
+                const int neighbour = index + side;
+                if (neighbour < 0 || neighbour >= samples)
+                    continue;
+                const double* there = &found[static_cast<size_t>(neighbour) * 3];
+                double along = 0.0;
+                double span = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const double step = there[axis] - here[axis];
+                    along += -here[axis] * step;
+                    span += step * step;
+                }
+                if (span <= kEps || along <= 0.0)
+                    continue;
+                along /= span;
+                when = delay + dwell * (static_cast<double>(index) + 0.5 +
+                                        along * static_cast<double>(side));
+            }
+            return when;
+        }
+
+        /**
          * The chain @p ext names, rebuilt without any node of @p type_id.
          *
          * A block turns one way or no way, so the rotation it carried is
@@ -557,7 +627,9 @@ namespace pulseq
         FovShiftScope scope,
         int first,
         int last,
-        double carry[3])
+        double carry[3],
+        double origin[3],
+        const unsigned char* exempt)
     {
         const int blocks = seq.num_blocks();
         const int from = first > 1 ? first : 1;
@@ -588,9 +660,17 @@ namespace pulseq
         std::vector<double> moment;
         std::vector<double> added;
 
+        const std::vector<char>& uses = seq.rf_uses();
+
         for (int index = from; index <= to; ++index)
         {
             const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+
+            /* An exempt block is walked and not written: a module that placed
+             * itself keeps the phase it was designed with, and what it swept
+             * still counts towards where everything after it stands. */
+            const bool writes =
+                exempt == nullptr || exempt[static_cast<size_t>(index - from)] == 0;
 
             for (int axis = 0; axis < 3; ++axis)
             {
@@ -610,12 +690,17 @@ namespace pulseq
                 entering = turns(entering + turns(shift_m[axis] * carry[axis]));
 
             const int32_t rf_id = row[0];
-            if (rf_id > 0)
+            if (rf_id > 0 && writes)
             {
                 turning.clear();
                 double* rf = seq.rf_library().row(rf_id);
                 const double delay = rf[5];
+                /* The pulse acts at the centre its designer recorded, which
+                 * is what the format carries the field for. */
                 const double centre = delay + rf[4];
+                when_at(seq, rf, moment);
+                const double opens = moment.empty() ? delay : delay + moment.front();
+                const double closes = moment.empty() ? delay : delay + moment.back();
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
@@ -625,8 +710,10 @@ namespace pulseq
                     /* A pulse under a gradient that does not change is a
                      * frequency and a phase; one under a gradient that does
                      * needs its shape, and is referenced to its own centre so
-                     * that what the pulse does is untouched. */
-                    const bool steady = played[axis].constant_over(delay, centre);
+                     * that what the pulse does is untouched. Asked of the
+                     * whole pulse: a gradient flat under the first half and
+                     * ramping under the second is not a steady one. */
+                    const bool steady = played[axis].constant_over(opens, closes);
                     const double at = steady ? delay : centre;
                     const double slope = played[axis].at(at);
                     const double swept = played[axis].swept_turns(at, shift_m[axis]);
@@ -647,7 +734,6 @@ namespace pulseq
                      * goes into the phase the pulse is played with, sample by
                      * sample and referenced to the pulse's own centre so that
                      * what the pulse *does* is untouched. */
-                    when_at(seq, rf, moment);
                     added.assign(moment.size(), 0.0);
                     for (const Turning& axis : turning)
                     {
@@ -668,20 +754,33 @@ namespace pulseq
             }
 
             const int32_t adc_id = row[4];
-            if (adc_id > 0 && scope == FovShiftScope::RfAndAdc)
+            if (adc_id > 0 && writes && scope == FovShiftScope::RfAndAdc)
             {
                 turning.clear();
                 double* adc = seq.adc_library().row(adc_id);
+                const int samples = static_cast<int>(adc[0]);
+                const double dwell = adc[1];
                 const double delay = adc[2];
-                const double middle = delay + 0.5 * adc[1] * adc[0];
+                const double opens = delay + 0.5 * dwell;
+                const double closes =
+                    delay + (static_cast<double>(samples) - 0.5) * dwell;
+                /* Referenced to the echo, not to the middle of the window:
+                 * the two are the same instant only for a readout that is
+                 * symmetric about the centre of k-space, and a partial
+                 * Fourier or asymmetric-echo readout is not. Anchoring there
+                 * means the frequency and the phase alone place the centre of
+                 * k-space where the shift asks, and the profile carries only
+                 * the curvature around it. */
+                const double echo =
+                    echo_at(played, origin, samples, dwell, delay);
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
                 {
                     if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
                         continue;
-                    const bool steady = played[axis].constant_over(delay, middle);
-                    const double at = steady ? delay : middle;
+                    const bool steady = played[axis].constant_over(opens, closes);
+                    const double at = steady ? delay : echo;
                     const double slope = played[axis].at(at);
                     const double swept = played[axis].swept_turns(at, shift_m[axis]);
                     frequency += shift_m[axis] * slope;
@@ -706,8 +805,6 @@ namespace pulseq
                      * lets it re-apply one without the sequence being touched
                      * again. It is here because a file handed to another
                      * toolbox has nobody to do that for it. */
-                    const int samples = static_cast<int>(adc[0]);
-                    const double dwell = adc[1];
                     added.assign(static_cast<size_t>(samples), 0.0);
                     for (const Turning& axis : turning)
                     {
@@ -731,16 +828,51 @@ namespace pulseq
             }
 
             /* What this block swept, added to the unbroken running total.
-             * Not where the trajectory stands -- `block_k_origins` is that,
-             * and it restarts at every excitation. A phase means something
-             * only as a difference, and the difference a readout is measured
-             * by is against its own excitation, so resetting between the two
-             * would reference them to different zeros and put a phase on the
-             * signal that is not the shift. */
+             * Not where the trajectory stands -- `origin` is that, and it
+             * restarts at every excitation. A phase means something only as a
+             * difference, and the difference a readout is measured by is
+             * against its own excitation, so resetting between the two would
+             * reference them to different zeros and put a phase on the signal
+             * that is not the shift.
+             *
+             * Both are carried: the phase is counted from the one, and the
+             * echo a readout is referenced to is found on the other. */
+            double whole[3] = {0.0, 0.0, 0.0};
+            double before[3] = {0.0, 0.0, 0.0};
+            double at_pulse[3];
+
+            double acts_at = -1.0;
+            char use = 'u';
+            if (rf_id > 0)
+            {
+                const double* rf = seq.rf_library().row(rf_id);
+                acts_at = rf[5] + rf[4];
+                use = rf_id <= static_cast<int32_t>(uses.size())
+                    ? uses[static_cast<size_t>(rf_id) - 1]
+                    : 'u';
+            }
+
             for (int axis = 0; axis < 3; ++axis)
             {
                 if (played[axis].values != nullptr)
-                    carry[axis] += played[axis].swept(1e30);
+                {
+                    whole[axis] = played[axis].swept(1e30);
+                    if (acts_at >= 0.0)
+                        before[axis] = played[axis].swept(acts_at);
+                }
+                carry[axis] += whole[axis];
+                at_pulse[axis] = origin[axis] + before[axis];
+            }
+
+            if (acts_at >= 0.0 && advance_origin(use, at_pulse, origin))
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    origin[axis] += whole[axis] - before[axis];
+            }
+            else
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    origin[axis] += whole[axis];
             }
         }
     }
