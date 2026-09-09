@@ -101,7 +101,6 @@ class Sequence:
         self._use_event_cache = True
         self._trid_names: list[str] = []
         self._analysed_at = self._native.edits()
-        self._slew_found = 0
         self._duration_recorded = 0
         self.signature_type: str | None = None
         self.signature_file: str | None = None
@@ -140,33 +139,19 @@ class Sequence:
 
     # -- what has been worked out about the sequence -------------------
     #
-    # Two answers are kept because the timing check asks for both and neither
-    # is cheap: what the gradients slew at, which is a pass over the block
-    # table, and whether how long the sequence lasts has been recorded. Each
-    # reads 0 until it is worked out, and 0 again the moment the sequence
-    # changes -- a block added or rewritten, a duration set, an axis scaled, a
-    # soft delay applied, duplicates collapsed. The core counts its own
-    # changes, so that is one comparison here rather than a write per block on
-    # the design loop's hot path.
+    # Whether how long the sequence lasts has been recorded is kept here: it
+    # reads 0 until `TotalDuration` is a record of these blocks, and 0 again
+    # the moment they change -- a block added or rewritten, a duration set, an
+    # axis scaled, a soft delay applied, duplicates collapsed. The core counts
+    # its own changes, so that is one comparison here rather than a write per
+    # block on the design loop's hot path.
 
     def _forget_if_changed(self) -> None:
         """Drop what was worked out if the sequence has changed since."""
         edits = self._native.edits()
         if edits != self._analysed_at:
             self._analysed_at = edits
-            self._slew_found = 0
             self._duration_recorded = 0
-
-    @property
-    def _max_slew(self):
-        """What the gradients slew at and where they jump; 0 if not asked."""
-        self._forget_if_changed()
-        return self._slew_found
-
-    @_max_slew.setter
-    def _max_slew(self, report) -> None:
-        self._forget_if_changed()
-        self._slew_found = report
 
     @property
     def _duration(self) -> int:
@@ -1038,7 +1023,6 @@ class Sequence:
         # A file that declares how long it lasts is held to it: the first
         # timing check compares rather than records.
         self._analysed_at = self._native.edits()
-        self._slew_found = 0
         self._duration_recorded = 1 if self.get_definition("TotalDuration") != "" else 0
 
     # -- the scanner ---------------------------------------------------

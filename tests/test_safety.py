@@ -217,7 +217,7 @@ def test_a_gradient_that_continues_the_last_one_is_not_a_jump(system):
         )
     )
 
-    is_ok, report = safety.check_max_slew(sequence)
+    is_ok, report = safety.check_grad_continuity(sequence)
 
     assert report.discontinuities == []
     assert report.ends_at_zero
@@ -234,7 +234,7 @@ def test_a_gradient_that_starts_where_the_last_did_not_end_is_a_jump(system):
     sequence.add_block(rising)
     sequence.add_block(rising)
 
-    is_ok, report = safety.check_max_slew(sequence)
+    is_ok, report = safety.check_grad_continuity(sequence)
 
     assert not is_ok
     assert len(report.discontinuities) == 1
@@ -254,7 +254,7 @@ def test_a_sequence_that_leaves_a_gradient_on_has_not_ramped_down(system):
         )
     )
 
-    is_ok, report = safety.check_max_slew(sequence)
+    is_ok, report = safety.check_grad_continuity(sequence)
 
     assert not report.ends_at_zero
     assert not is_ok
@@ -267,7 +267,7 @@ def test_trapezoids_begin_and_end_at_zero_so_never_jump(system):
             pp.make_trapezoid("x", area=1000, duration=1e-3, system=system)
         )
 
-    _, report = safety.check_max_slew(sequence)
+    _, report = safety.check_grad_continuity(sequence)
 
     assert report.discontinuities == []
     assert report.ends_at_zero
@@ -288,7 +288,7 @@ def test_a_block_playing_nothing_drops_the_axis_to_zero(system):
     )
     sequence.add_block(pp.make_delay(1e-3))
 
-    _, report = safety.check_max_slew(sequence)
+    _, report = safety.check_grad_continuity(sequence)
 
     assert [(j.block, j.axis) for j in report.discontinuities] == [(2, 0)]
     # And by the end the axis really is off, so the ramp-down check passes.
@@ -356,25 +356,190 @@ def test_an_axis_carrying_nothing_reports_zero(system):
     assert [peak.value for peak in report.axes[1:]] == [0.0, 0.0]
 
 
-def test_a_rotated_sequence_plays_axes_its_stored_rows_do_not_name(system):
-    """What is weighed is stored on x; what is played is spread over x and y.
+def test_a_rotated_sequence_is_weighed_on_the_axes_it_plays(system):
+    """What is stored on x is played over x and y, and weighed there.
 
-    Which is why a report on what the scan does reads the waveforms rather
-    than these peaks: a rotation is a thing one playout does, so it moves
-    where a gradient is played without moving the row it is stored in.
+    A rotation is a thing one playout does: it moves where a gradient is
+    played without moving the row it is stored in. So the axis peaks are what
+    the amplifiers are asked for, which is not what the rows say.
     """
     from scipy.spatial.transform import Rotation
 
     sequence = pp.Sequence(system)
     gradient = pp.make_trapezoid("x", area=600, duration=1e-3, system=system)
-    for quarter in range(4):
+    for turn in (0, 37, 90, 214):
         sequence.add_block(
-            gradient,
-            pp.make_rotation(Rotation.from_euler("z", 90 * quarter, degrees=True)),
+            gradient, pp.make_rotation(Rotation.from_euler("z", turn, degrees=True))
         )
 
-    _, report = safety.check_max_grad(sequence)
-    played = played_per_axis(sequence)
+    _, grad = safety.check_max_grad(sequence)
+    _, slew = safety.check_max_slew(sequence)
 
-    assert report.axes[1].value == 0
-    assert played[1] == pytest.approx(report.axes[0].value, rel=1e-9)
+    assert [peak.value for peak in grad.axes] == pytest.approx(
+        played_per_axis(sequence), rel=1e-9
+    )
+    # The turn spreads one row over two amplifiers without asking either for
+    # more than the row holds, and asks the third for nothing at all.
+    assert grad.per_axis.value == pytest.approx(grad.vector.value)
+    assert grad.axes[2].value == pytest.approx(0.0, abs=1e-6)
+    assert slew.axes[2].value == pytest.approx(0.0, abs=1e-6)
+
+
+# -- the shape stored and the shape drawn ----------------------------------
+
+
+def test_a_waveform_is_weighed_where_it_is_drawn_not_where_it_is_sampled(system):
+    """A shape kept at raster centres reaches values none of its samples do.
+
+    The samples say what the gradient is in the middle of each raster
+    interval; the interpreter draws between the interval *boundaries*, which
+    are half a raster away and follow from the samples rather than being any
+    of them. A waveform that curves can pass outside every sample it holds,
+    and it is the drawn waveform the amplifier plays.
+    """
+    waveform = 1e5 * np.sin(np.linspace(0, math.pi, 40)) ** 3
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_arbitrary_grad("x", waveform=waveform, system=system))
+
+    drawn = sequence.waveforms()[0]
+    _, grad = safety.check_max_grad(sequence)
+    _, slew = safety.check_max_slew(sequence)
+
+    # The drawn waveform really does overshoot what is stored, or this test
+    # would hold whichever of the two were weighed.
+    assert np.abs(drawn[1]).max() > np.abs(waveform).max() * 1.001
+
+    assert grad.axes[0].value == pytest.approx(np.abs(drawn[1]).max(), rel=1e-12)
+    assert slew.axes[0].value == pytest.approx(
+        np.abs(np.diff(drawn[1]) / np.diff(drawn[0])).max(), rel=1e-12
+    )
+
+
+def test_an_extended_trapezoid_is_drawn_through_the_samples_it_names(system):
+    """Times of its own means the samples *are* the corners, and stay so."""
+    times = np.array([0.0, 2e-4, 6e-4, 8e-4])
+    amplitudes = np.array([0.0, 8e4, 8e4, 0.0])
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        pp.make_extended_trapezoid("x", amplitudes=amplitudes, times=times)
+    )
+
+    drawn = sequence.waveforms()[0]
+    _, grad = safety.check_max_grad(sequence)
+
+    assert grad.axes[0].value == pytest.approx(np.abs(drawn[1]).max(), rel=1e-12)
+    assert grad.axes[0].value == pytest.approx(amplitudes.max())
+
+
+# -- what the three axes ask for together ----------------------------------
+
+
+def test_the_vector_peak_is_taken_where_the_axes_slew_at_once(system):
+    """Peaks that do not happen together do not add up.
+
+    One block ramping x and then, after it has finished, y. Combining the two
+    peaks would say the amplifiers are asked for both at once; they never are.
+    """
+    ramp = 2e-4
+    amplitude = 0.4 * system.max_grad
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        pp.make_trapezoid(
+            "x",
+            amplitude=amplitude,
+            rise_time=ramp,
+            flat_time=0,
+            fall_time=ramp,
+            system=system,
+        ),
+        pp.make_trapezoid(
+            "y",
+            amplitude=amplitude,
+            rise_time=ramp,
+            flat_time=0,
+            fall_time=ramp,
+            delay=2 * ramp,
+            system=system,
+        ),
+    )
+
+    _, report = safety.check_max_slew(sequence)
+
+    alone = amplitude / ramp
+    assert report.per_axis.value == pytest.approx(alone)
+    assert report.vector.value == pytest.approx(alone)
+    assert report.vector.value < math.sqrt(2) * alone
+
+
+def test_the_vector_peak_adds_up_axes_that_do_slew_at_once(system):
+    ramp = 2e-4
+    amplitude = 0.4 * system.max_grad
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        *[
+            pp.make_trapezoid(
+                axis,
+                amplitude=amplitude,
+                rise_time=ramp,
+                flat_time=0,
+                fall_time=ramp,
+                system=system,
+            )
+            for axis in ("x", "y")
+        ]
+    )
+
+    _, report = safety.check_max_slew(sequence)
+
+    assert report.vector.value == pytest.approx(math.sqrt(2) * amplitude / ramp)
+
+
+def test_a_turned_block_asks_a_different_amplifier_to_slew(system):
+    """A quarter turn about z plays what is stored on x on y instead."""
+    from scipy.spatial.transform import Rotation
+
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        pp.make_trapezoid("x", area=600, duration=1e-3, system=system),
+        pp.make_rotation(Rotation.from_euler("z", 90, degrees=True)),
+    )
+
+    _, report = safety.check_max_slew(sequence)
+
+    assert report.axes[0].value == pytest.approx(0.0, abs=1e-6)
+    assert report.axes[1].value > 0
+    # How much is asked for between the amplifiers is what the turn leaves
+    # alone; which one is asked for it is not.
+    assert report.vector.value == pytest.approx(report.axes[1].value)
+
+
+def test_a_turn_between_two_blocks_breaks_a_waveform_in_two(system):
+    """The same ramp continued at a different rotation is a jump, not a ramp."""
+    from scipy.spatial.transform import Rotation
+
+    rising = np.linspace(0, 1e5, 20)
+    straight = pp.Sequence(system)
+    turned = pp.Sequence(system)
+    for sequence, extras in (
+        (straight, ()),
+        (turned, (pp.make_rotation(Rotation.from_euler("z", 90, degrees=True)),)),
+    ):
+        sequence.add_block(
+            pp.make_arbitrary_grad(
+                "x", waveform=rising, first=0.0, last=1e5, system=system
+            )
+        )
+        sequence.add_block(
+            pp.make_arbitrary_grad(
+                "x", waveform=rising[::-1], first=1e5, last=0.0, system=system
+            ),
+            *extras,
+        )
+
+    assert safety.check_grad_continuity(straight)[0]
+
+    is_ok, report = safety.check_grad_continuity(turned)
+    assert not is_ok
+    # x is left at full amplitude and dropped; y is asked for it from nothing.
+    assert sorted(jump.axis for jump in report.discontinuities) == [0, 1]
+    assert report.ends_at_zero

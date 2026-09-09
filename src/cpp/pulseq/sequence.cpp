@@ -57,12 +57,6 @@ namespace pulseq
             label_ids_.emplace(label_names_[i], static_cast<int>(i) + 1);
     }
 
-    int Sequence::find_label_id(const std::string& name) const
-    {
-        auto it = label_ids_.find(name);
-        return it == label_ids_.end() ? 0 : it->second;
-    }
-
     int Sequence::label_id(const std::string& name)
     {
         auto it = label_ids_.find(name);
@@ -162,6 +156,11 @@ namespace pulseq
         extension_names_.emplace(id, name);
         if (name == "TRIGGERS")
             trigger_type_id_ = id;
+        for (Promoted& column : promoted_)
+        {
+            if (name == column.name)
+                column.type_id = id;
+        }
         return id;
     }
 
@@ -177,16 +176,30 @@ namespace pulseq
         // says what its own numbering is, and it need not match the order the
         // sections happen to appear in.
         const int was = trigger_type_id_;
+        int32_t promoted_was[2];
+        for (size_t which = 0; which < promoted_.size(); ++which)
+            promoted_was[which] = promoted_[which].type_id;
         auto existing = extension_ids_.find(name);
         if (existing != extension_ids_.end())
             extension_names_.erase(existing->second);
         extension_ids_[name] = id;
         extension_names_[id] = name;
         trigger_type_id_ = find_extension_type_id("TRIGGERS");
+        bool promotion_moved = false;
+        for (size_t which = 0; which < promoted_.size(); ++which)
+        {
+            promoted_[which].type_id = find_extension_type_id(promoted_[which].name);
+            promotion_moved |= promoted_[which].type_id != promoted_was[which];
+        }
 
         // Which chains carry a trigger is read off a type id, so forcing the
         // mapping can change the answer for chains that already exist -- and
         // with it which blocks are pure delays.
+        if (promotion_moved && !extensions_.empty())
+        {
+            recompute_chain_promotions();
+            refill_block_promotions();
+        }
         if (trigger_type_id_ != was && !extensions_.empty())
         {
             recompute_chain_triggers();
@@ -365,7 +378,7 @@ namespace pulseq
 
         const int id = extensions_.append(key.data());
         chain_index_.emplace(key, id);
-        note_chain(type_id, next);
+        note_chain(type_id, ref, next);
         return id;
     }
 
@@ -374,7 +387,7 @@ namespace pulseq
         changed();
         const std::array<int32_t, EXTENSION_WIDTH> row{type_id, ref, next};
         const int id = extensions_.append(row.data());
-        note_chain(type_id, next);
+        note_chain(type_id, ref, next);
         return id;
     }
 
@@ -408,7 +421,8 @@ namespace pulseq
         detach_blocks_before_growth();
         blocks_->insert(
             blocks_->end(),
-            {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext});
+            {block.rf, block.gx, block.gy, block.gz, block.adc, block.ext,
+             promoted_in_chain(0, block.ext), promoted_in_chain(1, block.ext)});
         durations_->push_back(block.duration);
         int32_t def = 0;
         int32_t adc_def = 0;
@@ -492,6 +506,8 @@ namespace pulseq
             block.gz = e[3];
             block.adc = e[4];
             block.ext = e[5];
+            block.rot = e[BLOCK_ROTATION_COLUMN];
+            block.shim = e[BLOCK_SHIM_COLUMN];
             block.duration = (*durations_)[static_cast<size_t>(i)];
             instance_row(block, out.data() + static_cast<size_t>(i) * INSTANCE_WIDTH);
         }
@@ -521,6 +537,10 @@ namespace pulseq
         for (int id = 1; id <= adc_.size(); ++id)
             adc_def_.push_back(adc_defs_.intern(adc_key(adc_.row(id))));
 
+        /* The chains have moved or been rebuilt, so what each one names has
+         * to be read off again -- and with it the block table's own column. */
+        recompute_chain_promotions();
+        refill_block_promotions();
         recompute_chain_triggers();
         refork_blocks();
     }
@@ -538,6 +558,37 @@ namespace pulseq
                 (next >= 1 && next < node &&
                  chain_carries_trigger_[static_cast<size_t>(next) - 1] != 0);
             chain_carries_trigger_[static_cast<size_t>(node) - 1] = carries ? 1 : 0;
+        }
+    }
+
+    void Sequence::recompute_chain_promotions()
+    {
+        for (Promoted& column : promoted_)
+        {
+            column.named.assign(static_cast<size_t>(extensions_.size()), 0);
+            for (int node = 1; node <= extensions_.size(); ++node)
+            {
+                const int32_t* row = extensions_.row(node);
+                const int32_t next = row[2];
+                column.named[static_cast<size_t>(node) - 1] =
+                    (column.type_id != 0 && row[0] == column.type_id)
+                    ? row[1]
+                    : (next >= 1 && next < node
+                           ? column.named[static_cast<size_t>(next) - 1]
+                           : 0);
+            }
+        }
+    }
+
+    void Sequence::refill_block_promotions()
+    {
+        detach_blocks();
+        int32_t* row = blocks_->data();
+        const size_t rows = blocks_->size() / BLOCK_WIDTH;
+        for (size_t i = 0; i < rows; ++i, row += BLOCK_WIDTH)
+        {
+            for (size_t which = 0; which < promoted_.size(); ++which)
+                row[promoted_[which].column] = promoted_in_chain(which, row[5]);
         }
     }
 
@@ -561,6 +612,8 @@ namespace pulseq
             block.gz = e[3];
             block.adc = e[4];
             block.ext = e[5];
+            block.rot = e[BLOCK_ROTATION_COLUMN];
+            block.shim = e[BLOCK_SHIM_COLUMN];
             block.duration = (*durations_)[static_cast<size_t>(i)];
             fork_instance(
                 block,
@@ -582,6 +635,8 @@ namespace pulseq
         row[3] = block.gz;
         row[4] = block.adc;
         row[5] = block.ext;
+        row[BLOCK_ROTATION_COLUMN] = promoted_in_chain(0, block.ext);
+        row[BLOCK_SHIM_COLUMN] = promoted_in_chain(1, block.ext);
         (*durations_)[index - 1] = block.duration;
         const size_t at = static_cast<size_t>(index) - 1;
         fork_instance(block, instance_def_[at], instance_adc_def_[at]);
@@ -598,40 +653,10 @@ namespace pulseq
         block.gz = row[3];
         block.adc = row[4];
         block.ext = row[5];
+        block.rot = row[BLOCK_ROTATION_COLUMN];
+        block.shim = row[BLOCK_SHIM_COLUMN];
         block.duration = (*durations_)[index - 1];
         return block;
-    }
-
-    void Sequence::set_blocks(const int32_t* events, const double* durations, int count)
-    {
-        changed();
-        repetition_known_ = false;
-        detach_blocks();
-        blocks_->assign(events, events + static_cast<size_t>(count) * BLOCK_WIDTH);
-        durations_->assign(durations, durations + count);
-        rebuild_definitions();
-    }
-
-    void Sequence::set_grad_slots(const int32_t* slots, int count)
-    {
-        changed();
-        grad_slot_.assign(slots, slots + count);
-    }
-
-    void Sequence::set_shapes(
-        const int32_t* num_uncompressed,
-        int count,
-        const int32_t* starts,
-        const double* samples)
-    {
-        changed();
-        shapes_.assign(num_uncompressed, count, starts, samples);
-    }
-
-    void Sequence::set_rf_shims(const int32_t* starts, int count, const double* values)
-    {
-        changed();
-        rf_shim_.assign(starts, count, values);
     }
 
     namespace
@@ -1026,14 +1051,14 @@ namespace pulseq
         return report;
     }
 
-    std::array<int64_t, BLOCK_WIDTH> Sequence::event_counts() const
+    std::array<int64_t, BLOCK_FILE_COLUMNS> Sequence::event_counts() const
     {
-        std::array<int64_t, BLOCK_WIDTH> counts{};
+        std::array<int64_t, BLOCK_FILE_COLUMNS> counts{};
         const int32_t* row = blocks_->data();
         const size_t rows = blocks_->size() / BLOCK_WIDTH;
         for (size_t block = 0; block < rows; ++block, row += BLOCK_WIDTH)
         {
-            for (int column = 0; column < BLOCK_WIDTH; ++column)
+            for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                 counts[static_cast<size_t>(column)] += row[column] > 0 ? 1 : 0;
         }
         return counts;

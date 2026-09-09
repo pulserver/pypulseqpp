@@ -302,6 +302,30 @@ namespace
 
 } // namespace
 
+namespace
+{
+
+    /**
+     * One promoted column of the block table, as a view onto the table.
+     *
+     * An extension promoted to a column is still an extension in the file;
+     * the column is how often it is asked for. Handing it back strided rather
+     * than copied keeps that true of the answer as well.
+     */
+    py::array_t<int32_t> promoted_column(const Sequence& self, int column)
+    {
+        auto buffer = self.block_events_buffer();
+        const int32_t* first = buffer->data() + column;
+        const py::ssize_t item = static_cast<py::ssize_t>(sizeof(int32_t));
+        return py::array_t<int32_t>(
+            {static_cast<py::ssize_t>(self.num_blocks())},
+            {item * pulseq::BLOCK_WIDTH},
+            first,
+            keep_alive_capsule(std::move(buffer)));
+    }
+
+} // namespace
+
 PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
@@ -558,12 +582,37 @@ PYBIND11_MODULE(_ext, module)
         .def(
             "block_events",
             [](const Sequence& self) {
+                /* The six columns the file carries, over a table that holds
+                 * more: a stride rather than a copy, so this stays a view
+                 * into the table and the rotation column stays out of a
+                 * caller's way. */
                 auto buffer = self.block_events_buffer();
                 const int32_t* first = buffer->data();
-                return py::array_t<int32_t>({self.num_blocks(), pulseq::BLOCK_WIDTH}, first,
-                                            keep_alive_capsule(std::move(buffer)));
+                const py::ssize_t item = static_cast<py::ssize_t>(sizeof(int32_t));
+                return py::array_t<int32_t>(
+                    {static_cast<py::ssize_t>(self.num_blocks()),
+                     static_cast<py::ssize_t>(pulseq::BLOCK_FILE_COLUMNS)},
+                    {item * pulseq::BLOCK_WIDTH, item},
+                    first,
+                    keep_alive_capsule(std::move(buffer)));
             },
             "The block table as an (N, 6) snapshot: rf, gx, gy, gz, adc, ext.")
+        .def(
+            "block_rotations",
+            [](const Sequence& self) {
+                /* The rotation each block turns its gradients by, as a column
+                 * of the same table -- a rotation is an extension in the file
+                 * and stays one, and this is how often it is asked for. */
+                return promoted_column(self, pulseq::BLOCK_ROTATION_COLUMN);
+            },
+            "Per block, the rotation row it turns its gradients by; 0 for none.")
+        .def(
+            "block_shims",
+            [](const Sequence& self) {
+                return promoted_column(self, pulseq::BLOCK_SHIM_COLUMN);
+            },
+            "Per block, the RF shim row its pulse is played through; 0 for "
+            "none.")
         .def(
             "block_durations",
             [](const Sequence& self) {
@@ -740,9 +789,9 @@ PYBIND11_MODULE(_ext, module)
         .def(
             "event_counts",
             [](const Sequence& self) {
-                const std::array<int64_t, pulseq::BLOCK_WIDTH> counts = self.event_counts();
+                const std::array<int64_t, pulseq::BLOCK_FILE_COLUMNS> counts = self.event_counts();
                 return py::array_t<int64_t>(
-                    static_cast<py::ssize_t>(pulseq::BLOCK_WIDTH), counts.data());
+                    static_cast<py::ssize_t>(pulseq::BLOCK_FILE_COLUMNS), counts.data());
             },
             "How many blocks carry an event in each column: rf, gx, gy, gz, "
             "adc, extension.")
@@ -934,6 +983,30 @@ PYBIND11_MODULE(_ext, module)
                 found = pulseq::max_slew(sequence, limits);
             }
 
+            py::dict out;
+            out["per_axis"] = peak_as_dict(found.per_axis);
+            out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
+            return out;
+        },
+        py::arg("sequence"), py::arg("max_slew") = 0.0,
+        py::arg("grad_raster_time") = 10e-6,
+        "What the sequence asks in the way of slewing, within its blocks: "
+        "the worst axis, each axis on its own, and the vector magnitude.");
+
+    module.def(
+        "grad_continuity",
+        [](const Sequence& sequence, double max_slew, double grad_raster_time) {
+            pulseq::GradientLimits limits;
+            limits.max_slew = max_slew;
+            limits.grad_raster_time = grad_raster_time;
+
+            pulseq::ContinuityReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::continuity(sequence, limits);
+            }
+
             py::list jumps;
             for (size_t i = 0; i < found.discontinuities.size(); ++i)
             {
@@ -949,17 +1022,14 @@ PYBIND11_MODULE(_ext, module)
             }
 
             py::dict out;
-            out["per_axis"] = peak_as_dict(found.per_axis);
-            out["vector"] = peak_as_dict(found.vector);
-            out["axes"] = axes_as_list(found.axes);
             out["discontinuities"] = jumps;
             out["ends_at_zero"] = found.ends_at_zero;
             return out;
         },
         py::arg("sequence"), py::arg("max_slew") = 0.0,
         py::arg("grad_raster_time") = 10e-6,
-        "What the sequence asks in the way of slewing, and where a gradient "
-        "jumps rather than ramps.");
+        "Where a gradient does not carry on from the block before it, and "
+        "whether the sequence leaves its gradients at zero.");
 
     module.def(
         "flip_angles",

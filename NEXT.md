@@ -51,20 +51,75 @@ what it would take:
 
 **Open.** `sound`, deferred with `plot`.
 
+## Promoted extensions
+
+The block table carries two columns the file format knows nothing about: the
+rotation a block turns its gradients by, and the RF shim its pulse is played
+through. Both are still extensions -- written as ones, read as ones, named by
+the chain -- and the column is filled on the way in, so a round trip is byte
+for byte what it was.
+
+What earns a column is being wanted before anything else can happen: a
+gradient cannot be drawn without knowing which way it faces, a pulse cannot
+be materialised without its shim. `Sequence::Promoted` holds the list, so a
+third is an entry there and a wider `BLOCK_WIDTH`.
+
+Nothing yet reads the shim column: block decoding walks the chain once for
+every extension kind at once, which the column does not shorten. It is there
+for the RF materialisation path, which will want it the way the waveform
+expansion wants the rotation.
+
+The candidates that were weighed and left alone: `TRIGGERS`, which already
+has a per-chain-node cache and so is a lookup already; `DELAYS`, wanted only
+by `apply_soft_delay`, which is one pass over the whole sequence; and the
+control flags (`NOPOS`, `NOROT`, `NOSCL`, `PMC`, `ONCE`, `TRID`), which are
+not extension types at all but entries in the label table, carried by
+`LABELSET`/`LABELINC` like `LIN` and `SLC`. A label is running state -- set
+at one block, in force until changed -- so a column for one would be
+materialising an accumulated scan, which any earlier `set_block` invalidates.
+That is a pass to run when something wants it, not a column.
+
 ## Safety
 
-`pypulseqpp.safety` has `check_max_grad` and `check_max_slew`, the second
-covering continuity. Both read the libraries rather than an expanded
+`pypulseqpp.safety` has `check_max_grad`, `check_max_slew` and
+`check_grad_continuity`. All three read the libraries rather than an expanded
 waveform: a gradient is a normalised shape and one amplitude, so the steepest
 step belongs to the shape and an instance's is that times its own amplitude.
 
-One difference from a waveform-based answer is worth knowing. What is weighed
-is the samples the sequence stores, and an interpreter draws between them --
-where a waveform's samples sit at the centre of each raster interval, that
-drawing can pass a little outside the outermost of them. Three parts in ten
-thousand across the reference sequences. Making it exact means a second shape
-statistic, the peak of the restored corners, which is computable once per
-shape the same way the slew is; it is not there yet.
+The slew limit within a block and the joins between blocks are separate
+questions and are asked separately: `check_timing` asks the second, which is
+two numbers per gradient, and leaves the first to whoever wants it.
+
+The vector peaks are exact rather than upper bounds, and the per-axis peaks
+account for how a block is turned. Both come from the same walk: a gradient
+is a handful of points with straight lines between them, so what the three
+axes ask for together is decided at the moments any of them turns a corner.
+The cheap combination of the axes' own peaks is kept as a filter -- a block
+that cannot beat what has been found already is never walked -- which leaves
+the passes at tens of nanoseconds a block.
+
+What is weighed is the waveform an interpreter draws, corner to corner, and
+not the samples the file stores. The two differ where a shape is kept at the
+centre of each raster interval: the corners are half a raster from any sample,
+and the drawn waveform passes outside all of them. `restore_shape_corners`
+puts them back, once per gradient rather than once per block, and `corners.cpp`
+is the one place that says what a gradient draws -- the waveform expansion
+reads it too. Across the reference zoo and `tests/seq` the checks now agree
+with the peaks taken from the expanded waveforms to within a part in a
+million, where they were three parts in ten thousand out on an amplitude and
+a part in a thousand on a slew.
+
+What that costs is the corner restoration, which is a pass over a shape and
+belongs to the gradient: on the corpus, twenty nanoseconds a block. A sequence
+that registers a waveform per shot instead of scaling one pays for each of
+them, the same way the waveform expansion does -- `remove_duplicates` is what
+makes it once. A rotated sequence of long waveforms is the one case that
+walks: a turned block's per-axis peaks are a support function over the
+instants it plays, and the bound that skips a block is loose for a rotation
+that sweeps. Twenty milliseconds for a six-hundred-shot rotated spiral. The
+convex hull of those instants, taken once per gradient triple, would answer
+every rotation from a handful of points; it is not there, and nothing has
+wanted it yet.
 
 Still to write: `calculate_pns` and `calc_rf_power`, and the mechanical
 resonance check. pulserver's C library has all three.

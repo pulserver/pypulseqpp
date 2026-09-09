@@ -472,24 +472,6 @@ def test_gradients_that_carry_on_from_one_another_are_not_reported():
     assert theirs.check_timing()[0]
 
 
-def test_what_the_gradients_slew_at_is_worked_out_once_per_change():
-    opts = system()
-    ours = pypulseqpp.Sequence(opts)
-    ours.add_block(ramp(pypulseqpp, opts, 0, HELD))
-    ours.add_block(ramp(pypulseqpp, opts, HELD, 0))
-
-    assert ours._max_slew == 0
-    ours.check_timing()
-    worked_out = ours._max_slew
-    assert worked_out != 0
-
-    ours.check_timing()
-    assert ours._max_slew is worked_out
-
-    ours.add_block(pypulseqpp.make_delay(1e-3))
-    assert ours._max_slew == 0
-
-
 # -- how long the sequence lasts ---------------------------------------
 
 

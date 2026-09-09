@@ -398,7 +398,8 @@ namespace pulseq
                     else
                         block.ticks = static_cast<long>(duration);
                     // 1.2 has no extension column; everything else does.
-                    const int columns = out.combined() <= 1002001 ? BLOCK_WIDTH - 1 : BLOCK_WIDTH;
+                    const int columns =
+                        out.combined() <= 1002001 ? BLOCK_FILE_COLUMNS - 1 : BLOCK_FILE_COLUMNS;
                     for (int column = 0; column < columns; ++column)
                         block.events[static_cast<size_t>(column)] = row.integer("an event id");
                     out.blocks.emplace(id, block);

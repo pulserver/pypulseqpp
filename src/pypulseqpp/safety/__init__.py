@@ -10,12 +10,14 @@ the one it was designed against: a sequence written for one scanner is often
 the question "will this run on that one", and answering it should not mean
 building the sequence again.
 
-Nothing here expands a waveform. A gradient is stored as a normalised shape
-and one amplitude, so the steepest step in a waveform is a property of the
-shape -- worked out once however many times it is played -- and what an
-instance slews at is that step times its own amplitude. A readout repeated a
-hundred thousand times at a hundred thousand amplitudes costs one pass over
-its shape and a multiply per block.
+What is weighed is the waveform the interpreter draws, not the samples the
+file stores. The two are not the same: a shape kept at the centre of each
+raster interval turns its corners half a raster from any sample it holds, and
+passes outside all of them. But the corners belong to the gradient rather
+than to the block -- an event plays the same shape every time it is played,
+and only where it starts moves -- so they are worked out once for it and read
+per block. A readout repeated a hundred thousand times costs one pass over
+its corners.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from types import SimpleNamespace
 
 from .. import _ext as _cxx
 
-__all__ = ["check_max_grad", "check_max_slew"]
+__all__ = ["check_grad_continuity", "check_max_grad", "check_max_slew"]
 
 
 def _limits(seq, system):
@@ -75,15 +77,24 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     ``per_axis`` is the worst of ``axes``. The three are what says which
     amplifier is asked for what, which is the question once one of them is
-    over its limit, and they cost nothing: the vector magnitude is built from
-    them.
+    over its limit. A block that turns its gradients plays a share of all
+    three on every axis, and its own rotation is applied before its peaks are
+    read: what ``axes`` reports is what the amplifiers are asked for, not what
+    the stored rows say.
 
-    What is weighed is the samples the sequence stores. An interpreter draws
-    between them, and where a waveform's samples sit at the centre of each
-    raster interval that drawing can pass a little outside the outermost of
-    them -- by three parts in ten thousand across the reference sequences.
-    Reading it off the stored amplitudes is what makes this a pass over a
-    column rather than over every waveform in the scan.
+    The vector peak is exact rather than an upper bound. A gradient is a
+    handful of points with straight lines between them, so what the three ask
+    for together is decided at the moments any of them turns a corner.
+    Combining the three axes' own peaks would answer a different question:
+    what the amplifiers would be asked for if the peaks happened at once,
+    which they need not.
+
+    What is weighed is the waveform an interpreter draws, corner to corner,
+    which is not the samples the sequence stores: a shape kept at raster
+    centres passes outside every sample it holds. The corners belong to the
+    gradient, so this is still a pass over the events a block names rather
+    than over every waveform in the scan.
+
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_grad")
@@ -99,7 +110,7 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
 
 def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
-    """Return whether every gradient is within the slew limit, and continuous.
+    """Return whether every gradient is within the slew limit, within a block.
 
     Parameters
     ----------
@@ -111,24 +122,29 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
     Returns
     -------
     is_ok : bool
-        True when nothing slews too fast, nothing jumps, and the sequence
-        leaves its gradients at zero.
+        True when nothing slews too fast.
     report : SimpleNamespace
-        ``limit``; the ``per_axis`` and ``vector`` slew peaks in Hz/m/s;
-        ``axes``, the peak of each of x, y and z on its own; the
-        ``discontinuities`` found; and ``ends_at_zero``.
+        ``limit``; the ``per_axis`` and ``vector`` slew peaks in Hz/m/s; and
+        ``axes``, the peak of each of x, y and z on its own.
 
     Notes
     -----
-    Two things can ask too much of an amplifier and they are not the same. A
-    ramp that is too steep asks it within one event; a gradient that starts
-    where the last one did not end asks it between two, in no time at all.
-    The second is what `discontinuities` reports -- each naming the block, the
-    axis, and what the gradient goes ``before`` and ``after`` the jump.
+    What happens *between* two blocks is a different question with a different
+    answer -- a gradient starting where the last one did not end asks for its
+    whole step in no time at all -- and `check_grad_continuity` is what asks
+    it.
 
-    A sequence that ends with a gradient still on has not ramped down, which
-    is the same fault at the end of the scan and is reported as
-    ``ends_at_zero``.
+    The vector peak is exact rather than an upper bound. Each axis slews at
+    one rate at a time, so the three together are constant between the moments
+    any of them changes, and the peak is the largest they reach on one of
+    those stretches. Combining the three axes' own peaks would answer a
+    different question: what the amplifiers would be asked for if the peaks
+    happened at once, which they need not.
+
+    A block that turns its gradients plays a share of all three on every axis.
+    That does not change how much is asked for between them -- turning a
+    vector does not change how long it is -- so ``vector`` is the same either
+    way; it changes which amplifier is asked for what, which is ``axes``.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_slew")
@@ -140,15 +156,57 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
         per_axis=_peak(found["per_axis"]),
         vector=_peak(found["vector"]),
         axes=[_peak(peak) for peak in found["axes"]],
+    )
+    return (limit <= 0.0 or report.per_axis.value <= limit), report
+
+
+def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
+    """Return whether each gradient carries on from the block before it.
+
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to check.
+    system : pypulseq.Opts, optional
+        The scanner whose slew limit a jump is judged against; the sequence's
+        own by default.
+
+    Returns
+    -------
+    is_ok : bool
+        True when nothing jumps and the sequence leaves its gradients at zero.
+    report : SimpleNamespace
+        ``limit``; the ``discontinuities`` found, each naming the ``block``,
+        the ``axis``, and what the gradient goes ``before`` and ``after`` the
+        jump, with the ``slew`` that step asks for; and ``ends_at_zero``.
+
+    Notes
+    -----
+    An axis is at zero wherever nothing is playing on it, so a waveform that
+    starts away from where the last block left the axis asks the amplifier for
+    that whole step within one raster interval. A sequence that ends with a
+    gradient still on has not ramped down, which is the same fault at the end
+    of the scan and is reported as ``ends_at_zero``.
+
+    The endpoints are compared in the frame the amplifiers work in, so a block
+    that turns its gradients has its own endpoints turned first: two blocks
+    playing the same waveform at different rotations do not continue one
+    another, and saying they do would miss the jump.
+
+    This is what `pypulseqpp.Sequence.check_timing` asks; the slew limit
+    within a block is `check_max_slew`.
+    """
+    limits = _limits(seq, system)
+    limit = _of(limits, "max_slew")
+    raster = _of(limits, "grad_raster_time", 10e-6)
+    found = _cxx.grad_continuity(seq._native, max_slew=limit, grad_raster_time=raster)
+
+    report = SimpleNamespace(
+        limit=limit,
         discontinuities=[SimpleNamespace(**jump) for jump in found["discontinuities"]],
         ends_at_zero=found["ends_at_zero"],
     )
-    is_ok = (
-        (limit <= 0.0 or report.per_axis.value <= limit)
-        and not report.discontinuities
-        and report.ends_at_zero
-    )
-    return is_ok, report
+    return (not report.discontinuities and report.ends_at_zero), report
 
 
 def _peak(found: dict) -> SimpleNamespace:

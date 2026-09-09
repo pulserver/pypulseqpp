@@ -50,6 +50,8 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "pulseq/shape.hpp"
+
 namespace pulseq
 {
 
@@ -74,8 +76,70 @@ namespace pulseq
     constexpr int EXTENSION_WIDTH = 3;
     /** value, label id */
     constexpr int LABEL_WIDTH = 2;
-    /** rf, gx, gy, gz, adc, ext -- the block table's event columns */
-    constexpr int BLOCK_WIDTH = 6;
+    /**
+     * rf, gx, gy, gz, adc, ext -- the block columns a file row carries.
+     *
+     * The first six of the block table's columns, in the order the format
+     * writes them, so a writer walks a row without knowing what else is
+     * stored beside it.
+     */
+    constexpr int BLOCK_FILE_COLUMNS = 6;
+
+    /**
+     * The block table's columns: the six a file carries, then the promoted.
+     *
+     * A rotation and an RF shim are extensions, and they stay extensions --
+     * they are written and read as ones, and the chain still names them, so
+     * nothing about the format changes. They are *also* columns here because
+     * of how often they are asked for, and how early: expanding a waveform,
+     * weighing a slew rate and following a trajectory all need to know
+     * whether a block turns its gradients before they can do anything with
+     * them, and anything that materialises a pulse needs its shim the same
+     * way. Walking an extension chain to find out costs a pointer chase per
+     * block. One column answers it.
+     */
+    constexpr int BLOCK_ROTATION_COLUMN = 6;
+    constexpr int BLOCK_SHIM_COLUMN = 7;
+    constexpr int BLOCK_WIDTH = 8;
+
+    /**
+     * The rotation a quaternion stands for, as a matrix.
+     *
+     * A rotation is stored as a unit quaternion, scalar first, because that
+     * is what the format writes and what composes cleanly. What anything
+     * using it wants is the matrix: a rotated block plays a sum of its three
+     * gradients on each axis, and that sum is a row of this.
+     *
+     * @param q     Four doubles, w then x, y, z.
+     * @param into  Filled with the matrix.
+     */
+    inline void rotation_matrix(const double* q, double into[3][3])
+    {
+        const double w = q[0];
+        const double x = q[1];
+        const double y = q[2];
+        const double z = q[3];
+        into[0][0] = 1.0 - 2.0 * (y * y + z * z);
+        into[0][1] = 2.0 * (x * y - w * z);
+        into[0][2] = 2.0 * (x * z + w * y);
+        into[1][0] = 2.0 * (x * y + w * z);
+        into[1][1] = 1.0 - 2.0 * (x * x + z * z);
+        into[1][2] = 2.0 * (y * z - w * x);
+        into[2][0] = 2.0 * (x * z - w * y);
+        into[2][1] = 2.0 * (y * z + w * x);
+        into[2][2] = 1.0 - 2.0 * (x * x + y * y);
+    }
+
+    /** Turn @p vector by @p matrix, in place. */
+    inline void rotate(const double matrix[3][3], double vector[3])
+    {
+        const double x = vector[0];
+        const double y = vector[1];
+        const double z = vector[2];
+        for (int axis = 0; axis < 3; ++axis)
+            vector[axis] =
+                matrix[axis][0] * x + matrix[axis][1] * y + matrix[axis][2] * z;
+    }
 
     /* ================================================================== */
     /*  Tables                                                            */
@@ -339,19 +403,6 @@ namespace pulseq
             len_.resize(static_cast<size_t>(kept));
         }
 
-        /**
-         * Replace every row at once.
-         *
-         * @p starts holds @p count + 1 offsets into @p values, so row i spans
-         * `[starts[i], starts[i+1])`.
-         */
-        void assign(const int32_t* starts, int count, const double* values)
-        {
-            clear();
-            reserve(count, 0);
-            for (int i = 0; i < count; ++i)
-                append(values + starts[i], starts[i + 1] - starts[i]);
-        }
 
     private:
         /** Rows live in chunks allocated once: a chunk fills until the next
@@ -469,12 +520,6 @@ namespace pulseq
         {
             return data_.row(id);
         }
-        /** False while a shape is still held as the waveform it was given as. */
-        bool is_compressed(int id) const
-        {
-            return is_compressed_[id - 1] != 0;
-        }
-
         /** What @p id is played as: a mask of ShapeRole. */
         uint32_t roles(int id) const
         {
@@ -516,70 +561,61 @@ namespace pulseq
          */
         std::vector<int32_t> keep_first_appearances(const std::vector<int32_t>& first);
 
-        /**
-         * The shape's first sample, last sample and peak magnitude, as
-         * decompressed. Recorded when a raw shape is appended; a shape that
-         * arrived encoded is decoded once, the first time it is asked.
-         */
-        void edge_stats(int id, double* first, double* last, double* peak) const;
-
-        /**
-         * The steepest step between two neighbouring samples, per sample.
-         *
-         * The shape is normalised, so this is what an event playing it slews
-         * at when its amplitude is one -- multiply by the amplitude and
-         * divide by the interval between samples and you have the gradient's
-         * own slew rate. Which is the point: a readout played a hundred
-         * thousand times at a hundred thousand amplitudes has one shape, and
-         * this is worked out once for it.
-         *
-         * In samples, not seconds: what the interval is depends on the event
-         * that plays the shape, not on the shape.
-         */
-        double normalised_slew(int id) const;
-
         void clear()
         {
             num_uncompressed_.clear();
             is_compressed_.clear();
-            first_.clear();
-            last_.clear();
-            peak_.clear();
-            slew_.clear();
             roles_.clear();
             data_.clear();
-        }
-
-        /** Replace every shape at once, all compressed.  See RaggedTable::assign. */
-        void assign(
-            const int32_t* num_uncompressed,
-            int count,
-            const int32_t* starts,
-            const double* samples)
-        {
-            num_uncompressed_.assign(num_uncompressed, num_uncompressed + count);
-            first_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            last_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            peak_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            slew_.assign(static_cast<size_t>(count), std::numeric_limits<double>::quiet_NaN());
-            is_compressed_.assign(static_cast<size_t>(count), 1);
-            roles_.assign(static_cast<size_t>(count), SHAPE_ROLE_NONE);
-            data_.assign(starts, count, samples);
         }
 
     private:
         std::vector<int32_t> num_uncompressed_;
         std::vector<uint8_t> is_compressed_;
-        /** Per shape, as decompressed; NaN until known. Filled at append_raw,
-         *  decoded on demand for shapes appended encoded or assigned. */
-        mutable std::vector<double> first_;
-        mutable std::vector<double> last_;
-        mutable std::vector<double> peak_;
-        /** The steepest step between neighbouring samples; NaN until asked. */
-        mutable std::vector<double> slew_;
         /** Per shape, a mask of ShapeRole; filled where a reference is made. */
         std::vector<uint32_t> roles_;
         RaggedTable data_;
+    };
+
+    /**
+     * Every shape decompressed at most once.
+     *
+     * A shape is stored run-length encoded, and anything that wants the
+     * samples themselves -- expanding a waveform, weighing a slew rate --
+     * wants them once per shape however many events name it. A readout
+     * played a hundred thousand times names one shape, and decoding it per
+     * block is the whole cost of the pass.
+     *
+     * Held beside the library rather than in it: what the library keeps is
+     * what a file holds, and the decoded samples are several times larger.
+     */
+    class ShapeCache
+    {
+    public:
+        explicit ShapeCache(const ShapeLibrary& library)
+            : library_(library), held_(static_cast<size_t>(library.size()) + 1)
+        {
+        }
+
+        /** The samples of shape @p id, decoded on first asking.  Id 0, and
+         *  any id the library does not have, is empty. */
+        const std::vector<double>& operator[](int id)
+        {
+            if (id < 1 || id > library_.size())
+                return empty_;
+            std::vector<double>& samples = held_[static_cast<size_t>(id)];
+            if (samples.empty())
+                samples = decompress_shape(
+                    library_.samples(id),
+                    library_.num_compressed(id),
+                    library_.num_uncompressed(id));
+            return samples;
+        }
+
+    private:
+        const ShapeLibrary& library_;
+        std::vector<std::vector<double>> held_;
+        std::vector<double> empty_;
     };
 
     /**
@@ -727,6 +763,11 @@ namespace pulseq
         int32_t gz = 0;
         int32_t adc = 0;
         int32_t ext = 0;
+        /** The rotation row this block turns its gradients by, and the shim
+         *  row its pulse is played through; 0 for none. Both are also in the
+         *  extension chain, which is what the file carries. */
+        int32_t rot = 0;
+        int32_t shim = 0;
         double duration = 0.0;
     };
 
@@ -1050,8 +1091,6 @@ namespace pulseq
 
         /** Id for @p name, appending it to this sequence's table if new. */
         int label_id(const std::string& name);
-        /** Id for @p name without appending; 0 if unknown here. */
-        int find_label_id(const std::string& name) const;
         /** The name id @p id was registered under, or empty. */
         const std::string& label_name(int id) const;
         /** Whether @p id names something outside Pulseq's own table. */
@@ -1289,7 +1328,7 @@ namespace pulseq
          * asking of a million-block scan at all: the same count taken in
          * Python builds a boolean array the size of the table first.
          */
-        std::array<int64_t, BLOCK_WIDTH> event_counts() const;
+        std::array<int64_t, BLOCK_FILE_COLUMNS> event_counts() const;
 
         /* -- deduplication ------------------------------------------------ */
 
@@ -1355,7 +1394,6 @@ namespace pulseq
          * caller replay millions of `add_block` calls to arrive back at the
          * same arrays.  @p events is row-major, BLOCK_WIDTH per block.
          */
-        void set_blocks(const int32_t* events, const double* durations, int count);
 
         /** Raw block table, row-major, BLOCK_WIDTH per block. */
         const int32_t* block_events() const
@@ -1400,30 +1438,6 @@ namespace pulseq
         {
             return static_cast<int>(grad_slot_.size());
         }
-        /** The signed slot: +row for a trapezoid, -row for an arbitrary. */
-        const int32_t* grad_slots() const
-        {
-            return grad_slot_.data();
-        }
-
-        /* -- bulk loading ------------------------------------------------ */
-        /*
-         * A composed scan holds its libraries as dense arrays already, so these
-         * take them as they are.  They replace rather than append, and they do
-         * not check the ids they are given against the tables those ids point
-         * into -- the caller built both.
-         */
-
-        /** Replace the gradient id -> signed slot map.  See the file comment. */
-        void set_grad_slots(const int32_t* slots, int count);
-        /** Replace the shape library.  @p starts holds @p count + 1 offsets. */
-        void set_shapes(
-            const int32_t* num_uncompressed,
-            int count,
-            const int32_t* starts,
-            const double* samples);
-        /** Replace the RF shim library.  @p starts holds @p count + 1 offsets. */
-        void set_rf_shims(const int32_t* starts, int count, const double* values);
 
         /* -- libraries --------------------------------------------------- */
 
@@ -1644,6 +1658,9 @@ namespace pulseq
          */
         std::vector<uint8_t> chain_carries_trigger_;
 
+        /** Refill the block table's promoted columns from the chains. */
+        void refill_block_promotions();
+
         /** Refill chain_carries_trigger_ from the chains as they stand. */
         void recompute_chain_triggers();
         /** Re-derive the block definitions, and only those. */
@@ -1658,9 +1675,53 @@ namespace pulseq
          */
         int trigger_type_id_ = 0;
 
-        /** Note a chain node's trigger flag as it is appended. */
-        void note_chain(int32_t type_id, int32_t next)
+        /**
+         * An extension type that is also a column of the block table.
+         *
+         * What a chain names is read off as the chain is built, so storing a
+         * block costs a lookup rather than a walk and a block asked later
+         * which way it turns, or what shim it plays through, reads a column.
+         * Held per type rather than named one by one so that promoting a
+         * third is this list and the width.
+         */
+        struct Promoted
         {
+            const char* name;   /**< the type's name in the file */
+            int column;         /**< the block table column it fills */
+            int type_id = 0;    /**< its id here; 0 while nothing claims it */
+            /** Per chain node, the row the chain from there names; 0 none. */
+            std::vector<int32_t> named;
+        };
+
+        std::array<Promoted, 2> promoted_{
+            {{"ROTATIONS", BLOCK_ROTATION_COLUMN},
+             {"RF_SHIMS", BLOCK_SHIM_COLUMN}}};
+
+        /** Refill every promoted column's chain cache as the chains stand. */
+        void recompute_chain_promotions();
+
+        /** The row promoted type @p which is named at by chain head @p ext. */
+        int32_t promoted_in_chain(size_t which, int32_t ext) const
+        {
+            const std::vector<int32_t>& named = promoted_[which].named;
+            const size_t node = static_cast<size_t>(ext) - 1;
+            return ext >= 1 && node < named.size() ? named[node] : 0;
+        }
+
+        /** Note a chain node's trigger flag and promotions as it is appended. */
+        void note_chain(int32_t type_id, int32_t ref, int32_t next)
+        {
+            const size_t behind = static_cast<size_t>(next) - 1;
+            for (Promoted& column : promoted_)
+            {
+                column.named.push_back(
+                    column.type_id != 0 && type_id == column.type_id
+                        ? ref
+                        : (next >= 1 && behind < column.named.size()
+                               ? column.named[behind]
+                               : 0));
+            }
+
             // A tail this node cannot see is read as carrying one, on the
             // same grounds as is_pure_delay: too coarse is the answer that
             // merges blocks, and too fine is the one that merely splits them.

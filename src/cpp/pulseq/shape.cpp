@@ -163,16 +163,9 @@ namespace pulseq
 
     int ShapeLibrary::append_raw(const double* samples, int count)
     {
-        double peak = 0.0;
-        for (int i = 0; i < count; ++i)
-            peak = std::max(peak, std::fabs(samples[i]));
         num_uncompressed_.push_back(count);
         is_compressed_.push_back(0);
         roles_.push_back(SHAPE_ROLE_NONE);
-        first_.push_back(count > 0 ? samples[0] : 0.0);
-        last_.push_back(count > 0 ? samples[count - 1] : 0.0);
-        peak_.push_back(peak);
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
         return data_.append(samples, count);
     }
 
@@ -183,13 +176,7 @@ namespace pulseq
         num_uncompressed_.push_back(count);
         is_compressed_.push_back(0);
         roles_.push_back(SHAPE_ROLE_NONE);
-        const int id = data_.append_divided(samples, count, divisor);
-        const double* row = data_.row(id);
-        first_.push_back(count > 0 ? row[0] : 0.0);
-        last_.push_back(count > 0 ? row[count - 1] : 0.0);
-        peak_.push_back(count > 0 ? 1.0 : 0.0);
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
-        return id;
+        return data_.append_divided(samples, count, divisor);
     }
 
     void RaggedTable::ChunkDeleter::operator()(double* p) const
@@ -226,59 +213,7 @@ namespace pulseq
         num_uncompressed_.push_back(num_uncompressed);
         is_compressed_.push_back(1);
         roles_.push_back(SHAPE_ROLE_NONE);
-        first_.push_back(std::numeric_limits<double>::quiet_NaN());
-        last_.push_back(std::numeric_limits<double>::quiet_NaN());
-        peak_.push_back(std::numeric_limits<double>::quiet_NaN());
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
         return data_.append(samples, count);
-    }
-
-    void ShapeLibrary::edge_stats(int id, double* first, double* last, double* peak) const
-    {
-        const size_t i = static_cast<size_t>(id) - 1;
-        if (std::isnan(peak_[i]))
-        {
-            const int n = num_uncompressed_[i];
-            const int count = data_.length(id);
-            std::vector<double> whole;
-            const double* w = data_.row(id);
-            if (count != n)
-            {
-                whole = decompress_shape(w, count, n);
-                w = whole.data();
-            }
-            double p = 0.0;
-            for (int k = 0; k < n; ++k)
-                p = std::max(p, std::fabs(w[k]));
-            first_[i] = n > 0 ? w[0] : 0.0;
-            last_[i] = n > 0 ? w[n - 1] : 0.0;
-            peak_[i] = p;
-        }
-        *first = first_[i];
-        *last = last_[i];
-        *peak = peak_[i];
-    }
-
-    double ShapeLibrary::normalised_slew(int id) const
-    {
-        const size_t i = static_cast<size_t>(id) - 1;
-        if (std::isnan(slew_[i]))
-        {
-            const int n = num_uncompressed_[i];
-            const int count = data_.length(id);
-            std::vector<double> whole;
-            const double* w = data_.row(id);
-            if (count != n)
-            {
-                whole = decompress_shape(w, count, n);
-                w = whole.data();
-            }
-            double steepest = 0.0;
-            for (int k = 1; k < n; ++k)
-                steepest = std::max(steepest, std::fabs(w[k] - w[k - 1]));
-            slew_[i] = steepest;
-        }
-        return slew_[i];
     }
 
     std::vector<int32_t> ShapeLibrary::keep_first_appearances(const std::vector<int32_t>& first)
@@ -310,19 +245,11 @@ namespace pulseq
             num_uncompressed_[static_cast<size_t>(kept)] =
                 num_uncompressed_[static_cast<size_t>(id) - 1];
             is_compressed_[static_cast<size_t>(kept)] = is_compressed_[static_cast<size_t>(id) - 1];
-            first_[static_cast<size_t>(kept)] = first_[static_cast<size_t>(id) - 1];
-            last_[static_cast<size_t>(kept)] = last_[static_cast<size_t>(id) - 1];
-            peak_[static_cast<size_t>(kept)] = peak_[static_cast<size_t>(id) - 1];
-            slew_[static_cast<size_t>(kept)] = slew_[static_cast<size_t>(id) - 1];
             roles_[static_cast<size_t>(kept)] = roles_[static_cast<size_t>(id) - 1];
             ++kept;
         }
         num_uncompressed_.resize(static_cast<size_t>(kept));
         is_compressed_.resize(static_cast<size_t>(kept));
-        first_.resize(static_cast<size_t>(kept));
-        last_.resize(static_cast<size_t>(kept));
-        peak_.resize(static_cast<size_t>(kept));
-        slew_.resize(static_cast<size_t>(kept));
         roles_.resize(static_cast<size_t>(kept));
         for (int id = 1; id <= total; ++id)
             new_id[static_cast<size_t>(id)] =

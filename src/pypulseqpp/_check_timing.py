@@ -118,15 +118,6 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     return len(error_report) == 0, error_report
 
 
-def _slew_report(seq):
-    """Return what the gradients slew at, working it out only once."""
-    if seq._max_slew == 0:
-        from .safety import check_max_slew
-
-        seq._max_slew = check_max_slew(seq)[1]
-    return seq._max_slew
-
-
 def _continuity(seq) -> list[SimpleNamespace]:
     """Return every place a gradient does not carry on from the last one.
 
@@ -134,8 +125,14 @@ def _continuity(seq) -> list[SimpleNamespace]:
     starts away from where the block before left the axis asks the amplifier
     for that whole step within one raster interval -- and a sequence that ends
     with an axis still on has never ramped it down.
+
+    This is a pass over the block table reading two numbers per gradient, so
+    it is asked afresh every time rather than kept: what it costs is less than
+    what noticing that the sequence has changed since the last answer would.
     """
-    report = _slew_report(seq)
+    from .safety import check_grad_continuity
+
+    report = check_grad_continuity(seq)[1]
     found = [
         SimpleNamespace(
             block=jump.block,

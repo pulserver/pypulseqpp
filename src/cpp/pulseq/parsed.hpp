@@ -30,7 +30,7 @@ namespace pulseq
     struct ParsedBlock
     {
         long ticks = 0;
-        std::array<int32_t, BLOCK_WIDTH> events{};
+        std::array<int32_t, BLOCK_FILE_COLUMNS> events{};
     };
 
     /** A label row: the file may name its label or leave it as a number. */

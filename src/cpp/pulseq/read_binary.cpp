@@ -191,7 +191,7 @@ namespace pulseq
             {
                 ParsedBlock block;
                 block.ticks = static_cast<long>(in.i64("a block duration"));
-                for (int column = 0; column < BLOCK_WIDTH; ++column)
+                for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     block.events[static_cast<size_t>(column)] = in.i32("a block event");
                 out.blocks.emplace(static_cast<int>(i) + 1, block);
             }
