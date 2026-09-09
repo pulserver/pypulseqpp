@@ -60,9 +60,9 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     is_ok : bool
         True when no axis exceeds the limit.
     report : SimpleNamespace
-        ``limit``, and ``per_axis`` and ``vector`` peaks. Each peak carries
-        ``value`` in Hz/m, the 1-based ``block`` that plays it, and for the
-        per-axis peak which ``axis``.
+        ``limit``; the ``per_axis`` and ``vector`` peaks; and ``axes``, the
+        peak of each of x, y and z on its own. Each peak carries ``value`` in
+        Hz/m, the 1-based ``block`` that plays it, and which ``axis``.
 
     Notes
     -----
@@ -72,6 +72,11 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     on one axis, so ``vector`` is what it would ask for then -- reported
     rather than judged, since whether it will be rotated is not something the
     sequence says.
+
+    ``per_axis`` is the worst of ``axes``. The three are what says which
+    amplifier is asked for what, which is the question once one of them is
+    over its limit, and they cost nothing: the vector magnitude is built from
+    them.
 
     What is weighed is the samples the sequence stores. An interpreter draws
     between them, and where a waveform's samples sit at the centre of each
@@ -88,6 +93,7 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
         limit=limit,
         per_axis=_peak(found["per_axis"]),
         vector=_peak(found["vector"]),
+        axes=[_peak(peak) for peak in found["axes"]],
     )
     return (limit <= 0.0 or report.per_axis.value <= limit), report
 
@@ -108,8 +114,9 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
         True when nothing slews too fast, nothing jumps, and the sequence
         leaves its gradients at zero.
     report : SimpleNamespace
-        ``limit``, the ``per_axis`` and ``vector`` slew peaks in Hz/m/s, the
-        ``discontinuities`` found, and ``ends_at_zero``.
+        ``limit``; the ``per_axis`` and ``vector`` slew peaks in Hz/m/s;
+        ``axes``, the peak of each of x, y and z on its own; the
+        ``discontinuities`` found; and ``ends_at_zero``.
 
     Notes
     -----
@@ -132,6 +139,7 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
         limit=limit,
         per_axis=_peak(found["per_axis"]),
         vector=_peak(found["vector"]),
+        axes=[_peak(peak) for peak in found["axes"]],
         discontinuities=[SimpleNamespace(**jump) for jump in found["discontinuities"]],
         ends_at_zero=found["ends_at_zero"],
     )

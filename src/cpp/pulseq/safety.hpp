@@ -25,6 +25,7 @@
 #ifndef PULSEQ_SAFETY_HPP
 #define PULSEQ_SAFETY_HPP
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -74,6 +75,11 @@ namespace pulseq
          * is why both are worth knowing. */
         Peak per_axis;
         Peak vector;
+        /** The strongest each axis reaches, x, y, z.
+         *
+         * `per_axis` is the worst of these; these say which amplifier is
+         * asked for what, which is the question when one of them is over. */
+        std::array<Peak, 3> axes;
     };
 
     /** What the gradients ask in the way of slewing. */
@@ -81,6 +87,8 @@ namespace pulseq
     {
         Peak per_axis;
         Peak vector;
+        /** The steepest each axis is asked to change at, x, y, z. */
+        std::array<Peak, 3> axes;
         /** Every place a gradient jumps rather than ramps. */
         std::vector<Discontinuity> discontinuities;
         /** Whether the sequence leaves its gradients at zero. */

@@ -22,23 +22,27 @@ are already covered by `tests/test_corpus.py`, which runs over the same files.
 
 ## The rest of the timing check
 
-`check_timing` covers what the authority's `check_timing` module covers. Its
-`Sequence.check_timing`, the transcription of MATLAB's `checkTiming`, asks
-three further questions, none of which is a raster question:
+`check_timing` covers what the authority's `check_timing` module covers, and
+two of the three further questions its `Sequence.check_timing` asks. Gradient
+continuity is in: a waveform picked up after a delay, one left on before its
+block ends, one starting where the block before did not leave the axis, and a
+sequence that never ramps its axes down are each reported. The step between
+two blocks is judged against the system's slew limit rather than against a
+flat tolerance -- the raster runs on between blocks, so a step of one raster
+is a slew like any other, and the reference toolbox refuses two of these four
+when the block is added rather than when the sequence is checked.
 
-- **Gradient continuity.** A waveform starting at a non-zero value must
-  continue one that ended there on the same axis in the previous non-empty
-  block, and must not also carry a delay; one ending at a non-zero value must
-  last to the end of its block; and the last block must ramp to zero. The
-  library already carries the `first` and `last` of every arbitrary gradient,
-  so this is a scan over the block table rather than a decode.
+`TotalDuration` is in with it. The first check records what the blocks add up
+to and every later one holds the record to them, and a file that declares a
+duration arrives already held to it, so one that does not add up is reported
+rather than quietly corrected. The write is a side effect of the check, as it
+is in MATLAB; `write(check_timing=True)` therefore produces a file carrying
+`TotalDuration` where `write()` does not.
+
+One question is left:
+
 - **Frequency offsets.** An RF or ADC offset, in Hz or as a ppm shift through
   gamma, must stay inside `system.max_freq_offset`.
-- **TotalDuration.** A `TotalDuration` already in `[DEFINITIONS]` must equal
-  what the blocks add up to. MATLAB rewrites it as a side effect of checking;
-  a check that writes to the sequence it is judging is a surprise, so if this
-  is wanted it should be split into a check and a `set_definition` the caller
-  makes.
 
 ## The rest of `Sequence`
 
@@ -67,18 +71,22 @@ resonance check. pulserver's C library has all three.
 
 ## The analysis family
 
-`test_report` and `test_report_dict` read as a summary of a sequence -- block
-and event counts, duration, TE and TR, flip angles, unique k-space positions,
-dimensions, spatial resolution, repetitions, Cartesian or not, and the maximum
-gradient and slew. Only the counts come from what is here; TE, TR, the k-space
-lines and the gradient maxima all come out of `waveforms_and_times` and
-`calculate_kspace`, which the report calls before it computes anything.
+`test_report` and `test_report_dict` are in, and with them `waveforms`,
+`waveforms_and_times`, `adc_times`, `rf_times`, `get_gradients` and
+`calculate_kspace`. The report answers the toolbox's report, entry for entry
+and line for line, wherever the toolbox answers at all: it looks for the echo
+in the sampled trajectory, so a sequence that acquires nothing stops it, where
+here that sequence reports an undefined TE and the repetition time between its
+last two excitations.
 
-`waveforms_and_times` is in, and with it `waveforms`, `adc_times`,
-`rf_times`, `get_gradients` and `calculate_kspace`. Everything the report
-reads is now reachable, so `test_report` and `test_report_dict` are
-assembling what is already there rather than computing anything new. The FOV
-transform reads the same trajectory.
+Two of its answers are worked out rather than read off, and both are compiled.
+A flip angle is the integral of a pulse's envelope, so it belongs to the RF
+library row and a pulse played ten thousand times is integrated once. What the
+encoding covers -- the distinct positions along each axis, how often one is
+revisited, whether they fill a grid -- is a pass over every sample the scan
+takes, binned onto a lattice of the trajectory's extent over four million.
+
+The FOV transform reads the same trajectory, and is still to write.
 
 ### What a shot shares, and what it does not
 
@@ -131,6 +139,5 @@ write -- the plotting and analysis below among them -- have what they read
 from.
 
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
-`calc_rf_power` -- and plotting and analysis -- `plot`, `paper_plot`,
-`calculate_kspace`, `auto_label`, `evaluate_labels`, `get_gradients`,
-`waveforms`, `waveforms_and_times`, `adc_times`, `rf_times`.
+`calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and the
+label readers, `auto_label` and `evaluate_labels`.

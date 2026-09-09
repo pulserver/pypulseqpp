@@ -23,6 +23,8 @@ from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
 from ._kspace import detail as _kspace_detail
+from ._report import report_data as _report_data
+from ._report import report_text as _report_text
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -98,6 +100,9 @@ class Sequence:
         self._use_block_cache = use_block_cache
         self._use_event_cache = True
         self._trid_names: list[str] = []
+        self._analysed_at = self._native.edits()
+        self._slew_found = 0
+        self._duration_recorded = 0
         self.signature_type: str | None = None
         self.signature_file: str | None = None
         self.signature_value: str | None = None
@@ -132,6 +137,47 @@ class Sequence:
     def __exit__(self, _exc_type, _exc_value, _traceback) -> bool:
         self.clear_caches()
         return False
+
+    # -- what has been worked out about the sequence -------------------
+    #
+    # Two answers are kept because the timing check asks for both and neither
+    # is cheap: what the gradients slew at, which is a pass over the block
+    # table, and whether how long the sequence lasts has been recorded. Each
+    # reads 0 until it is worked out, and 0 again the moment the sequence
+    # changes -- a block added or rewritten, a duration set, an axis scaled, a
+    # soft delay applied, duplicates collapsed. The core counts its own
+    # changes, so that is one comparison here rather than a write per block on
+    # the design loop's hot path.
+
+    def _forget_if_changed(self) -> None:
+        """Drop what was worked out if the sequence has changed since."""
+        edits = self._native.edits()
+        if edits != self._analysed_at:
+            self._analysed_at = edits
+            self._slew_found = 0
+            self._duration_recorded = 0
+
+    @property
+    def _max_slew(self):
+        """What the gradients slew at and where they jump; 0 if not asked."""
+        self._forget_if_changed()
+        return self._slew_found
+
+    @_max_slew.setter
+    def _max_slew(self, report) -> None:
+        self._forget_if_changed()
+        self._slew_found = report
+
+    @property
+    def _duration(self) -> int:
+        """1 once `TotalDuration` is a record of these blocks; 0 otherwise."""
+        self._forget_if_changed()
+        return self._duration_recorded
+
+    @_duration.setter
+    def _duration(self, recorded: int) -> None:
+        self._forget_if_changed()
+        self._duration_recorded = recorded
 
     # -- blocks --------------------------------------------------------
 
@@ -538,6 +584,19 @@ class Sequence:
         return _get_gradients(
             self, trajectory_delay, gradient_offset, time_range, block_range
         )
+
+    # -- what the sequence is ------------------------------------------
+
+    def test_report(self) -> str:
+        """Return what the sequence is, as the report a person reads."""
+        return _report_text(_report_data(self))
+
+    def test_report_dict(self) -> dict:
+        """Return what the sequence is, as named statistics.
+
+        See :func:`pypulseqpp._report.report_data`.
+        """
+        return _report_data(self)
 
     # -- the repeating unit --------------------------------------------
 
@@ -975,6 +1034,12 @@ class Sequence:
                 )
         if remove_duplicates:
             self._native.remove_duplicates()
+
+        # A file that declares how long it lasts is held to it: the first
+        # timing check compares rather than records.
+        self._analysed_at = self._native.edits()
+        self._slew_found = 0
+        self._duration_recorded = 1 if self.get_definition("TotalDuration") != "" else 0
 
     # -- the scanner ---------------------------------------------------
 

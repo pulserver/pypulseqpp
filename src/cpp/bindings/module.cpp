@@ -12,11 +12,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <array>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "pulseq/analysis.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/kspace.hpp"
@@ -116,6 +118,17 @@ namespace
                 d["value"] = f.value;
                 d["duration"] = f.duration;
                 d["dead_time"] = f.dead_time;
+            }
+            else if (f.error_type == "GRADIENT_START_DELAY")
+            {
+                d["value"] = f.value;
+                d["amplitude"] = f.amplitude;
+            }
+            else if (f.error_type == "GRADIENT_END_NONZERO")
+            {
+                d["value"] = f.value;
+                d["duration"] = f.duration;
+                d["amplitude"] = f.amplitude;
             }
             else if (f.error_type == "SOFT_DELAY_HINT_INCONSISTENCY")
             {
@@ -656,6 +669,8 @@ PYBIND11_MODULE(_ext, module)
              [](const Sequence& self) { return self.label_inc_library().size(); })
         .def("num_shapes",
              [](const Sequence& self) { return self.shape_library().size(); })
+        .def("num_rf_shims",
+             [](const Sequence& self) { return self.rf_shim_library().size(); })
         .def("num_soft_delays", [](const Sequence& self) {
             return static_cast<int>(self.soft_delay_library().size());
         })
@@ -688,6 +703,8 @@ PYBIND11_MODULE(_ext, module)
             "Block `index` (1-based) as the events it plays, rather than as "
             "the ids they are stored under.")
         .def("num_blocks", &Sequence::num_blocks)
+        .def("edits", &Sequence::edits,
+             "How many times the sequence has been edited; it only rises.")
 
         /* -- definitions and instances --------------------------------- */
         .def("num_block_definitions", &Sequence::num_block_definitions,
@@ -878,9 +895,16 @@ PYBIND11_MODULE(_ext, module)
         return out;
     };
 
+    const auto axes_as_list = [peak_as_dict](const std::array<pulseq::Peak, 3>& found) {
+        py::list out;
+        for (size_t axis = 0; axis < found.size(); ++axis)
+            out.append(peak_as_dict(found[axis]));
+        return out;
+    };
+
     module.def(
         "max_gradient",
-        [peak_as_dict](const Sequence& sequence) {
+        [peak_as_dict, axes_as_list](const Sequence& sequence) {
             pulseq::GradientReport found;
             {
                 py::gil_scoped_release unlocked;
@@ -889,14 +913,16 @@ PYBIND11_MODULE(_ext, module)
             py::dict out;
             out["per_axis"] = peak_as_dict(found.per_axis);
             out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
             return out;
         },
         py::arg("sequence"),
-        "The strongest gradient the sequence plays, per axis and as a vector.");
+        "The strongest gradient the sequence plays: the worst axis, each "
+        "axis on its own, and the vector magnitude.");
 
     module.def(
         "max_slew",
-        [peak_as_dict](
+        [peak_as_dict, axes_as_list](
             const Sequence& sequence, double max_slew, double grad_raster_time) {
             pulseq::GradientLimits limits;
             limits.max_slew = max_slew;
@@ -925,6 +951,7 @@ PYBIND11_MODULE(_ext, module)
             py::dict out;
             out["per_axis"] = peak_as_dict(found.per_axis);
             out["vector"] = peak_as_dict(found.vector);
+            out["axes"] = axes_as_list(found.axes);
             out["discontinuities"] = jumps;
             out["ends_at_zero"] = found.ends_at_zero;
             return out;
@@ -933,6 +960,52 @@ PYBIND11_MODULE(_ext, module)
         py::arg("grad_raster_time") = 10e-6,
         "What the sequence asks in the way of slewing, and where a gradient "
         "jumps rather than ramps.");
+
+    module.def(
+        "flip_angles",
+        [](const Sequence& sequence) {
+            std::vector<double> angles;
+            {
+                py::gil_scoped_release unlocked;
+                angles = pulseq::flip_angles(sequence);
+            }
+            return py::array_t<double>(
+                static_cast<py::ssize_t>(angles.size()), angles.data());
+        },
+        py::arg("sequence"),
+        "Every distinct flip angle the sequence uses, in degrees, ascending.");
+
+    module.def(
+        "kspace_coverage",
+        [](const py::array_t<double, py::array::c_style | py::array::forcecast>& samples,
+           double threshold) {
+            if (samples.ndim() != 2)
+                throw std::invalid_argument(
+                    "the sampled trajectory must be one row per axis");
+
+            const int axes = static_cast<int>(samples.shape(0));
+            const int count = static_cast<int>(samples.shape(1));
+
+            pulseq::KspaceCoverage found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::kspace_coverage(samples.data(), axes, count, threshold);
+            }
+
+            py::dict out;
+            out["unique_positions"] = py::array_t<double>(
+                static_cast<py::ssize_t>(found.unique_positions.size()),
+                found.unique_positions.data());
+            out["repeats_min"] = found.repeats_min;
+            out["repeats_max"] = found.repeats_max;
+            out["repeats_median"] = found.repeats_median;
+            out["is_cartesian"] = found.is_cartesian;
+            return out;
+        },
+        py::arg("samples"), py::arg("threshold"),
+        "What the sampled trajectory covers: the distinct positions along "
+        "each axis, how often a position is revisited, and whether the "
+        "positions fill a grid.");
 
     module.def(
         "calculate_kspace",

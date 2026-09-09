@@ -110,6 +110,8 @@ namespace pulseq
         {
             std::vector<TimingFinding> findings;
             double extent = 0.0;
+            /** What a gradient is left at when it stops; zero for anything else. */
+            double last = 0.0;
         };
 
         std::vector<double> decompressed(const ShapeLibrary& shapes, int id)
@@ -238,6 +240,20 @@ namespace pulseq
                     const int amp_shape = static_cast<int>(row[3]);
                     const int time_shape = static_cast<int>(row[4]);
                     judge_delay(v.findings, row[5], grad_raster);
+                    v.last = row[2];
+
+                    /* A waveform that starts away from zero has to be picked
+                     * up from where the axis already is, and a delay puts the
+                     * axis at zero for as long as it lasts. */
+                    if (std::fabs(row[1]) > kEps && std::fabs(row[5]) > kEps)
+                    {
+                        TimingFinding f;
+                        f.field = "delay";
+                        f.error_type = "GRADIENT_START_DELAY";
+                        f.value = row[5];
+                        f.amplitude = row[1];
+                        v.findings.push_back(f);
+                    }
 
                     /* A time shape says where the waveform ends; without one
                      * the samples sit on the gradient raster, and a time id of
@@ -473,6 +489,22 @@ namespace pulseq
                 report.insert(report.end(), grad[id].findings.begin(), grad[id].findings.end());
                 for (size_t i = named; i < report.size(); ++i)
                     report[i].event = kAxis[axis];
+
+                /* An axis is at zero wherever nothing is playing on it, so a
+                 * waveform left away from zero before the block ends is a
+                 * step down to zero in no time at all. */
+                if (std::fabs(grad[id].last) > kEps &&
+                    std::fabs(grad[id].extent - computed) > kEps)
+                {
+                    TimingFinding f;
+                    f.event = kAxis[axis];
+                    f.field = "duration";
+                    f.error_type = "GRADIENT_END_NONZERO";
+                    f.value = grad[id].extent;
+                    f.duration = computed;
+                    f.amplitude = grad[id].last;
+                    report.push_back(f);
+                }
             }
 
             const size_t named_adc = report.size();

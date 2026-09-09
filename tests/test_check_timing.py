@@ -25,6 +25,7 @@ import pypulseq_matlab_like as pp
 from pypulseq_matlab_like.check_timing import check_timing as toolbox_check_timing
 from pypulseq_matlab_like.compress_shape import compress_shape
 
+import pypulseqpp
 from pypulseqpp import _ext
 
 
@@ -349,3 +350,200 @@ def test_a_soft_delay_numbered_zero_is_addressable(build_soft_delays):
         "SOFT_DELAY_INVALID_NUMID",
         "SOFT_DELAY_INVALID_NUMID",
     ]
+
+
+# -- gradients that do not carry on from one another -------------------
+#
+# What is asked of a sequence as a whole rather than of one event time: a
+# waveform has to be picked up where the axis already is and left where the
+# next one will find it, or the amplifier is asked for a step in no time at
+# all. The toolbox refuses two of these four when the block is added and
+# reports the other two, so where it can hold the sequence at all the two
+# verdicts are compared, and where it cannot, its refusal is what is held.
+
+#: How high the ramps here reach, in Hz/m.
+HELD = 1e6
+
+
+def ramp(factory, opts, start, stop, **kwargs):
+    """One axis ramping between two amplitudes, as ``factory`` builds it."""
+    return factory.make_arbitrary_grad(
+        channel="x",
+        waveform=np.linspace(start, stop, 40),
+        first=float(start),
+        last=float(stop),
+        system=opts,
+        **kwargs,
+    )
+
+
+def as_ours(theirs):
+    """The toolbox's sequence, judged by this package."""
+    ours = pypulseqpp.Sequence(theirs.system)
+    ours._native = convert.to_core(theirs)
+    return ours
+
+
+def kinds(error_report):
+    """The kinds of problem a report names."""
+    return {finding.error_type for finding in error_report}
+
+
+def only(error_report, kind):
+    """The one finding of ``kind`` in ``error_report``."""
+    return next(finding for finding in error_report if finding.error_type == kind)
+
+
+def test_a_gradient_starting_where_the_last_one_did_not_end_is_reported():
+    opts = system()
+    theirs = pp.Sequence(system=opts)
+    theirs.add_block(ramp(pp, opts, 0, HELD))
+    theirs.add_block(ramp(pp, opts, 0, HELD))
+
+    is_ok, found = as_ours(theirs).check_timing()
+
+    assert not is_ok
+    assert not theirs.check_timing()[0]
+    jump = only(found, "GRADIENT_DISCONTINUITY")
+    assert jump.block == 2
+    assert jump.event == "gx"
+    assert jump.before == pytest.approx(HELD)
+    assert jump.value == pytest.approx(0.0)
+
+
+def test_a_sequence_ending_with_a_gradient_still_on_is_reported():
+    opts = system()
+    theirs = pp.Sequence(system=opts)
+    theirs.add_block(ramp(pp, opts, 0, HELD))
+
+    is_ok, found = as_ours(theirs).check_timing()
+
+    assert not is_ok
+    assert not theirs.check_timing()[0]
+    assert only(found, "GRADIENT_NOT_RAMPED_DOWN").block == 1
+
+
+def test_a_gradient_picked_up_after_a_delay_is_reported():
+    opts = system()
+    ours = pypulseqpp.Sequence(opts)
+    ours.add_block(ramp(pypulseqpp, opts, 0, HELD))
+    ours.add_block(ramp(pypulseqpp, opts, HELD, 0, delay=20e-6))
+
+    is_ok, found = ours.check_timing()
+
+    assert not is_ok
+    late = only(found, "GRADIENT_START_DELAY")
+    assert late.block == 2
+    assert late.value == pytest.approx(20e-6)
+    assert late.amplitude == pytest.approx(HELD)
+
+    theirs = pp.Sequence(system=opts)
+    theirs.add_block(ramp(pp, opts, 0, HELD))
+    with pytest.raises(RuntimeError):
+        theirs.add_block(ramp(pp, opts, HELD, 0, delay=20e-6))
+
+
+def test_a_gradient_left_on_before_the_block_ends_is_reported():
+    opts = system()
+    ours = pypulseqpp.Sequence(opts)
+    ours.add_block(ramp(pypulseqpp, opts, 0, HELD), pypulseqpp.make_delay(1e-3))
+    ours.add_block(ramp(pypulseqpp, opts, HELD, 0))
+
+    is_ok, found = ours.check_timing()
+
+    assert not is_ok
+    short = only(found, "GRADIENT_END_NONZERO")
+    assert short.block == 1
+    assert short.amplitude == pytest.approx(HELD)
+    assert short.duration == pytest.approx(1e-3)
+
+    theirs = pp.Sequence(system=opts)
+    with pytest.raises(RuntimeError):
+        theirs.add_block(ramp(pp, opts, 0, HELD), pp.make_delay(1e-3))
+
+
+def test_gradients_that_carry_on_from_one_another_are_not_reported():
+    opts = system()
+    theirs = pp.Sequence(system=opts)
+    theirs.add_block(ramp(pp, opts, 0, HELD))
+    theirs.add_block(ramp(pp, opts, HELD, 0))
+
+    assert as_ours(theirs).check_timing() == (True, [])
+    assert theirs.check_timing()[0]
+
+
+def test_what_the_gradients_slew_at_is_worked_out_once_per_change():
+    opts = system()
+    ours = pypulseqpp.Sequence(opts)
+    ours.add_block(ramp(pypulseqpp, opts, 0, HELD))
+    ours.add_block(ramp(pypulseqpp, opts, HELD, 0))
+
+    assert ours._max_slew == 0
+    ours.check_timing()
+    worked_out = ours._max_slew
+    assert worked_out != 0
+
+    ours.check_timing()
+    assert ours._max_slew is worked_out
+
+    ours.add_block(pypulseqpp.make_delay(1e-3))
+    assert ours._max_slew == 0
+
+
+# -- how long the sequence lasts ---------------------------------------
+
+
+@pytest.fixture
+def playable():
+    """A sequence with nothing wrong with it, built on the core."""
+    opts = system()
+    seq = pypulseqpp.Sequence(opts)
+    seq.add_block(ramp(pypulseqpp, opts, 0, HELD))
+    seq.add_block(ramp(pypulseqpp, opts, HELD, 0))
+    return seq
+
+
+def test_the_first_check_records_how_long_the_sequence_lasts(playable):
+    assert playable.get_definition("TotalDuration") == ""
+    assert playable.check_timing()[0]
+
+    recorded = playable.get_definition("TotalDuration")
+
+    assert float(recorded[0]) == pytest.approx(playable.duration()[0])
+    assert playable.check_timing()[0]
+
+
+def test_a_recorded_duration_that_is_not_the_blocks_is_reported(playable):
+    playable.check_timing()
+    playable.set_definition("TotalDuration", 1.0)
+
+    is_ok, found = playable.check_timing()
+
+    assert not is_ok
+    assert kinds(found) == {"TOTAL_DURATION_MISMATCH"}
+    assert found[-1].value == pytest.approx(1.0)
+    assert found[-1].duration == pytest.approx(playable.duration()[0])
+
+
+def test_a_sequence_that_changed_has_its_duration_recorded_again(playable):
+    playable.check_timing()
+
+    playable.add_block(pypulseqpp.make_delay(1e-3))
+
+    assert playable.check_timing()[0]
+    assert float(playable.get_definition("TotalDuration")[0]) == pytest.approx(
+        playable.duration()[0]
+    )
+
+
+def test_a_file_that_declares_a_duration_it_does_not_have_is_reported(
+    playable, tmp_path
+):
+    playable.check_timing()
+    playable.set_definition("TotalDuration", 1.0)
+    playable.write(tmp_path / "wrong.seq", create_signature=False)
+
+    read_back = pypulseqpp.Sequence(playable.system)
+    read_back.read(tmp_path / "wrong.seq")
+
+    assert kinds(read_back.check_timing()[1]) == {"TOTAL_DURATION_MISMATCH"}

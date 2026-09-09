@@ -176,6 +176,7 @@ namespace pulseq
                 const double amplitude = std::fabs(amplitude_of(seq, row[1 + axis]));
                 squared += amplitude * amplitude;
                 note(out.per_axis, amplitude, index + 1, axis);
+                note(out.axes[static_cast<size_t>(axis)], amplitude, index + 1, axis);
             }
             note(out.vector, std::sqrt(squared), index + 1, -1);
         }
@@ -210,6 +211,7 @@ namespace pulseq
                 const double slew = slew_of(seq, id, normalised);
                 squared += slew * slew;
                 note(out.per_axis, slew, index + 1, axis);
+                note(out.axes[static_cast<size_t>(axis)], slew, index + 1, axis);
 
                 double begins = 0.0;
                 double ends = 0.0;

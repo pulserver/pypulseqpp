@@ -1,4 +1,4 @@
-"""Whether every event time in a sequence lands where a scanner can put it.
+"""Whether a sequence can be played as it is written.
 
 A sequencer starts an event on one of its clock ticks and nowhere else, and it
 needs a settling window either side of RF and of digitisation. A pulse asked
@@ -6,9 +6,15 @@ for 3.7 microseconds into a block is not played 3.7 microseconds in; it is
 played wherever the interpreter rounds it to. This says which times cannot be
 honoured, and by how far each one misses, before the file leaves the bench.
 
-The judging is a compiled pass over the block table. What comes back from it
-is one namespace per problem, carrying the fields its kind reports, which is
-what a message template naming them formats against.
+Two more questions are asked of the sequence as a whole. A gradient waveform
+has to be picked up where the axis already is and left where the next one will
+find it, or the amplifier is asked for a step in no time at all; and a
+`TotalDuration` already recorded has to be what the blocks add up to.
+
+The judging is a compiled pass over the block table, and the continuity is the
+same pass the safety check makes. What comes back is one namespace per
+problem, carrying the fields its kind reports, which is what a message
+template naming them formats against.
 """
 
 from __future__ import annotations
@@ -17,7 +23,7 @@ from types import SimpleNamespace
 
 from . import _ext as _cxx
 
-__all__ = ["check_timing", "print_error_report"]
+__all__ = ["check_timing", "describe", "print_error_report"]
 
 
 #: One message per kind of problem, in f-string syntax over the finding's own
@@ -35,6 +41,11 @@ error_messages = {
     "SOFT_DELAY_HINT_INCONSISTENCY": "Soft delay {hint}/{numID}: Soft delays with the same numeric ID are expected to share the same text hint but previous hint recorded is {prev_hint}.",
     "SOFT_DELAY_INVALID_NUMID": "Soft delay {hint}/{numID} has an invalid numeric ID {numID}. Numeric IDs must be non-negative integers.",
     "ADC_SAMPLES_DIVISOR": "ADC num_samples is not an integer multiple of adc_samples_divisor ({value} / {divisor}).",
+    "GRADIENT_START_DELAY": "Gradient starts at {amplitude:.0f} Hz/m but is delayed by {value*multiplier:.2f} {unit}, which leaves the axis at zero until then",
+    "GRADIENT_END_NONZERO": "Gradient is left at {amplitude:.0f} Hz/m after {value*multiplier:.2f} {unit}, before the end of the block at {duration*multiplier:.2f} {unit}",
+    "GRADIENT_DISCONTINUITY": "Gradient starts at {value:.0f} Hz/m where the previous block left the axis at {before:.0f} Hz/m, a step of {slew:.0f} Hz/m/s against a limit of {limit:.0f} Hz/m/s",
+    "GRADIENT_NOT_RAMPED_DOWN": "The sequence ends with a gradient still on: the axes are not ramped down",
+    "TOTAL_DURATION_MISMATCH": "TotalDuration is recorded as {value:.9g} s, but the blocks add up to {duration:.9g} s",
 }
 
 
@@ -57,9 +68,26 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     is_ok : bool
         True when nothing was found.
     error_report : list of SimpleNamespace
-        One entry per problem, in block order. Each carries ``block``,
+        One entry per problem, in block order, with anything about the
+        sequence as a whole last and carrying block 0. Each carries ``block``,
         ``event``, ``field`` and ``error_type``, plus the values that kind of
         problem reports.
+
+    Raises
+    ------
+    ValueError
+        If ``seq`` was built without a system to judge against.
+
+    Notes
+    -----
+    Asking twice costs the compiled pass twice but the continuity pass once:
+    what the gradients slew at is kept on the sequence and dropped the moment
+    the sequence changes.
+
+    The first check records `TotalDuration` in `[DEFINITIONS]`; later ones
+    hold it to what the blocks add up to. A sequence read from a file that
+    already declares it is held to it from the first check, so a file whose
+    stated duration is not its own is caught rather than quietly corrected.
     """
     system = seq.system
     if system is None:
@@ -80,7 +108,86 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
         adc_samples_divisor=_limit(system, "adc_samples_divisor", 1.0),
     )
     error_report = [SimpleNamespace(**finding) for finding in findings]
+    error_report.extend(_continuity(seq))
+    error_report.sort(key=lambda finding: finding.block)
+
+    disagreement = _total_duration(seq)
+    if disagreement is not None:
+        error_report.append(disagreement)
+
     return len(error_report) == 0, error_report
+
+
+def _slew_report(seq):
+    """Return what the gradients slew at, working it out only once."""
+    if seq._max_slew == 0:
+        from .safety import check_max_slew
+
+        seq._max_slew = check_max_slew(seq)[1]
+    return seq._max_slew
+
+
+def _continuity(seq) -> list[SimpleNamespace]:
+    """Return every place a gradient does not carry on from the last one.
+
+    An axis is at zero wherever nothing is playing on it, so a waveform that
+    starts away from where the block before left the axis asks the amplifier
+    for that whole step within one raster interval -- and a sequence that ends
+    with an axis still on has never ramped it down.
+    """
+    report = _slew_report(seq)
+    found = [
+        SimpleNamespace(
+            block=jump.block,
+            event=f"g{'xyz'[jump.axis]}",
+            field="first",
+            error_type="GRADIENT_DISCONTINUITY",
+            value=jump.after,
+            before=jump.before,
+            slew=jump.slew,
+            limit=jump.limit,
+        )
+        for jump in report.discontinuities
+    ]
+    if not report.ends_at_zero:
+        found.append(
+            SimpleNamespace(
+                block=len(seq),
+                event="grad",
+                field="last",
+                error_type="GRADIENT_NOT_RAMPED_DOWN",
+            )
+        )
+    return found
+
+
+def _total_duration(seq) -> SimpleNamespace | None:
+    """Record how long the sequence lasts, or say the record disagrees.
+
+    Returns
+    -------
+    SimpleNamespace or None
+        A finding when `TotalDuration` is held to and does not hold; None
+        when it was recorded here, which is what the first check does.
+    """
+    played = seq.duration()[0]
+    recorded = seq.get_definition("TotalDuration") if seq._duration else ""
+    if recorded == "":
+        seq.set_definition("TotalDuration", played)
+        seq._duration = 1
+        return None
+
+    stated = float(recorded[0] if isinstance(recorded, list) else recorded)
+    if abs(stated - played) <= 1e-9:
+        return None
+    return SimpleNamespace(
+        block=0,
+        event="sequence",
+        field="TotalDuration",
+        error_type="TOTAL_DURATION_MISMATCH",
+        value=stated,
+        duration=played,
+    )
 
 
 def _format_message(template: str, **fields) -> str:
@@ -91,6 +198,23 @@ def _format_message(template: str, **fields) -> str:
     is evaluating it, not substituting into it.
     """
     return eval(f'f"""{template}"""', fields)  # noqa: S307
+
+
+def _message(finding: SimpleNamespace) -> str:
+    """Return what one finding says, in the unit its field is read in."""
+    unit, multiplier = ("ns", 1e9) if finding.field == "dwell" else ("us", 1e6)
+    return _format_message(
+        error_messages[finding.error_type],
+        **finding.__dict__,
+        unit=unit,
+        multiplier=multiplier,
+    )
+
+
+def describe(finding: SimpleNamespace) -> str:
+    """Return one finding as a line naming where in the sequence it is."""
+    where = f"Block:{finding.block} " if finding.block else ""
+    return f"   {where}{finding.event}.{finding.field}: {_message(finding)}"
 
 
 def print_error_report(
@@ -122,20 +246,13 @@ def print_error_report(
     current_block = None
     for e in error_report[:max_errors]:
         if e.block != current_block:
-            print(f"Block {e.block}:")
+            print(f"Block {e.block}:" if e.block else "The sequence as a whole:")
             current_block = e.block
 
-        unit, multiplier = ("ns", 1e9) if e.field == "dwell" else ("us", 1e6)
-        message = _format_message(
-            error_messages[e.error_type],
-            **e.__dict__,
-            unit=unit,
-            multiplier=multiplier,
-        )
         print(
             f"- {e.event}.{e.field}: "
             + ("\x1b[38;5;9m" if colored else "")
-            + message
+            + _message(e)
             + ("\x1b[0m" if colored else "")
         )
 

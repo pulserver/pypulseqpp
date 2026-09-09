@@ -1215,6 +1215,11 @@ namespace pulseq
         {
             return rf_defs_.size();
         }
+        /** Per RF id, the id of the definition it plays. */
+        const std::vector<int32_t>& rf_definitions() const
+        {
+            return rf_def_;
+        }
         int num_grad_definitions() const
         {
             return grad_defs_.size();
@@ -1326,6 +1331,23 @@ namespace pulseq
         }
 
         /**
+         * How many times the sequence has been edited.
+         *
+         * Rises on every mutation, in step with the claim above being
+         * dropped, and never falls.  Anything worked out about a sequence and
+         * kept -- what the gradients slew at, how long the whole thing lasts
+         * -- can record the number it was worked out at and tell, in one
+         * comparison, whether it is still about the sequence in hand.
+         *
+         * Nothing to do with @ref version_revision, which is the revision of
+         * the file format.
+         */
+        uint64_t edits() const
+        {
+            return edits_;
+        }
+
+        /**
          * Hand over a whole block table at once.
          *
          * A composed scan arrives as columns already -- that is what it was
@@ -1342,7 +1364,7 @@ namespace pulseq
         }
         int32_t* block_events()
         {
-            deduplicated_ = false;
+            changed();
             detach_blocks();
             return blocks_->data();
         }
@@ -1352,7 +1374,7 @@ namespace pulseq
         }
         double* block_durations()
         {
-            deduplicated_ = false;
+            changed();
             detach_blocks();
             return durations_->data();
         }
@@ -1411,7 +1433,7 @@ namespace pulseq
         }
         Table& rf_library()
         {
-            deduplicated_ = false;
+            changed();
             return rf_;
         }
         const std::vector<char>& rf_uses() const
@@ -1420,7 +1442,7 @@ namespace pulseq
         }
         std::vector<char>& rf_uses()
         {
-            deduplicated_ = false;
+            changed();
             return rf_use_;
         }
 
@@ -1430,7 +1452,7 @@ namespace pulseq
         }
         Table& trap_library()
         {
-            deduplicated_ = false;
+            changed();
             return trap_;
         }
         const Table& arb_library() const
@@ -1439,7 +1461,7 @@ namespace pulseq
         }
         Table& arb_library()
         {
-            deduplicated_ = false;
+            changed();
             return arb_;
         }
         const Table& adc_library() const
@@ -1448,7 +1470,7 @@ namespace pulseq
         }
         Table& adc_library()
         {
-            deduplicated_ = false;
+            changed();
             return adc_;
         }
         const Table& trigger_library() const
@@ -1457,7 +1479,7 @@ namespace pulseq
         }
         Table& trigger_library()
         {
-            deduplicated_ = false;
+            changed();
             return trigger_;
         }
         const Table& rotation_library() const
@@ -1466,7 +1488,7 @@ namespace pulseq
         }
         Table& rotation_library()
         {
-            deduplicated_ = false;
+            changed();
             return rotation_;
         }
 
@@ -1476,7 +1498,7 @@ namespace pulseq
         }
         IntTable& extensions_library()
         {
-            deduplicated_ = false;
+            changed();
             return extensions_;
         }
         const IntTable& label_set_library() const
@@ -1485,7 +1507,7 @@ namespace pulseq
         }
         IntTable& label_set_library()
         {
-            deduplicated_ = false;
+            changed();
             return label_set_;
         }
         const IntTable& label_inc_library() const
@@ -1494,7 +1516,7 @@ namespace pulseq
         }
         IntTable& label_inc_library()
         {
-            deduplicated_ = false;
+            changed();
             return label_inc_;
         }
 
@@ -1504,7 +1526,7 @@ namespace pulseq
         }
         RaggedTable& rf_shim_library()
         {
-            deduplicated_ = false;
+            changed();
             return rf_shim_;
         }
         const ShapeLibrary& shape_library() const
@@ -1513,7 +1535,7 @@ namespace pulseq
         }
         ShapeLibrary& shape_library()
         {
-            deduplicated_ = false;
+            changed();
             return shapes_;
         }
         const std::vector<SoftDelay>& soft_delay_library() const
@@ -1522,7 +1544,7 @@ namespace pulseq
         }
         std::vector<SoftDelay>& soft_delay_library()
         {
-            deduplicated_ = false;
+            changed();
             return soft_delays_;
         }
 
@@ -1593,7 +1615,15 @@ namespace pulseq
         }
 
         /** See deduplicated(); false until remove_duplicates() says otherwise. */
+        /** Note a change: what was worked out about the sequence is stale. */
+        void changed()
+        {
+            deduplicated_ = false;
+            ++edits_;
+        }
+
         bool deduplicated_ = false;
+        uint64_t edits_ = 0;
 
         /* -- definitions and instances --------------------------------- */
         Definitions rf_defs_, grad_defs_, adc_defs_, block_defs_;
