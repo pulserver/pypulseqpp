@@ -477,6 +477,89 @@ class Sequence:
         """Invert every gradient played on ``axis``."""
         self.mod_grad_axis(axis, modifier=-1)
 
+    @property
+    def num_blocks(self) -> int:
+        """How many blocks the sequence has.
+
+        ``len(seq)`` answers the same question and is what a Python caller
+        reaches for; this is what a script reads when it is saying so.
+        """
+        return self._native.num_blocks()
+
+    def evaluate_labels(
+        self,
+        init: dict | None = None,
+        evolution: str = "none",
+        time_range=None,
+        block_range=None,
+    ) -> dict:
+        """Return what each label the sequence uses is set to.
+
+        Parameters
+        ----------
+        init : dict, optional
+            What a label is before the walk begins. A label named here is
+            reported whether or not the blocks touch it, which is what makes
+            evaluating a sequence a piece at a time work.
+        evolution : {'none', 'blocks', 'adc', 'label'}, default 'none'
+            Where to record a value: at the end, at every block, at every
+            block that acquires, or at every block that sets or increments
+            one.
+        time_range : list of float, optional
+            Two times in seconds; only the blocks they touch are walked.
+        block_range : sequence of int, optional
+            Two 1-based block indices. Not with ``time_range``.
+
+        Returns
+        -------
+        dict
+            One entry per label used, name to value. With ``evolution``, the
+            values are arrays -- one entry per point recorded; without it,
+            each is the single number the label finishes at.
+
+        Notes
+        -----
+        A label is running state: set or incremented where a block says so,
+        and in force until another block says otherwise. So this is a walk
+        over the blocks in order -- but over the extension chains rather than
+        over decoded blocks, and a block carrying no label costs a column
+        read, which is most of them.
+        """
+        first, last = self._range_for(time_range, block_range)
+        found = _cxx.evaluate_labels(
+            self._native,
+            evolution=evolution,
+            first_block=first,
+            last_block=last,
+            start={} if init is None else {str(k): int(v) for k, v in init.items()},
+        )
+        # One value is one value, not an array of one -- which is what the
+        # reference toolbox hands back, and what `labels['LIN'] == 4` needs.
+        if any(len(values) > 1 for values in found.values()):
+            return found
+        return {name: values[0] if len(values) else 0 for name, values in found.items()}
+
+    def _range_for(self, time_range, block_range) -> tuple[int, int]:
+        """Return the blocks a time range or a block range names, 1-based."""
+        if block_range is not None and time_range is not None:
+            raise ValueError("Specify either block_range or time_range, not both")
+        if block_range is not None:
+            if len(block_range) != 2:
+                raise ValueError(
+                    "parameter 'block_range' must contain exactly two numbers"
+                )
+            import math
+
+            first = max(int(block_range[0]), 1)
+            last = 0 if not math.isfinite(block_range[1]) else int(block_range[1])
+            return first, last
+        if time_range is not None:
+            from ._waveforms import _blocks_within
+
+            first, last, _ = _blocks_within(self, time_range)
+            return first, last
+        return 1, 0
+
     # -- what the sequence plays ---------------------------------------
 
     def waveforms_and_times(

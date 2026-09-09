@@ -258,6 +258,17 @@ That is what every method reading a sequence needs, so the ones still to
 write -- the plotting and analysis below among them -- have what they read
 from.
 
+`evaluate_labels` is in, and it answers the toolbox's answer for every way it
+can be asked -- at the end, at every block, at every block that acquires, at
+every block that sets or increments one -- across the whole reference zoo. It
+is a walk over the extension chains rather than over decoded blocks, so a
+block carrying no label costs a column read, which is most of them.
+
+One rule of the toolbox's is reproduced rather than improved on: asked for an
+evolution that records fewer than two points, it hands back what the labels
+finish at instead of an array. A sequence with no ADC asked for the `adc`
+evolution therefore reports final values.
+
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
-`calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and the
-label readers, `auto_label` and `evaluate_labels`.
+`calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and
+`auto_label`.
