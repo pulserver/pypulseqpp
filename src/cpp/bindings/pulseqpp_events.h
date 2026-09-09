@@ -1003,31 +1003,57 @@ namespace pulseqpp_events
                 PyObject* rotation = field(dict, n.rot_quaternion);
                 if (!rotation)
                     throw std::invalid_argument("rotation event has no `rot_quaternion`");
-                auto cached = seq.quaternions.find(rotation);
-                if (cached == seq.quaternions.end())
+
+                std::array<double, pulseq::ROTATION_WIDTH> row;
+                py::object held = py::reinterpret_borrow<py::object>(rotation);
+                /* Four numbers arrive as an array or a sequence of them; a
+                 * rotation object is anything else. Told apart by type rather
+                 * than by asking for `as_quat` and catching the failure --
+                 * a missed attribute is an exception raised and cleared, and
+                 * this runs once per shot. */
+                const bool asks = !py::isinstance<py::array>(held) &&
+                    !py::isinstance<py::tuple>(held) && !py::isinstance<py::list>(held);
+
+                /* A rotation object has to be *asked* what it is, and asking
+                 * costs a call into SciPy, so the answer is kept against the
+                 * object's identity: a scan that turns one object per shot
+                 * asks once per orientation rather than once per block. Four
+                 * numbers already are the answer -- there is nothing to save
+                 * by remembering them, and remembering would hold on to every
+                 * event a scan ever made. */
+                auto cached = asks ? seq.quaternions.find(rotation) : seq.quaternions.end();
+                if (asks && cached != seq.quaternions.end())
                 {
-                    py::object quaternion = py::reinterpret_borrow<py::object>(rotation).attr(
-                        "as_quat")(py::arg("canonical") = true, py::arg("scalar_first") = true);
+                    row = cached->second;
+                }
+                else
+                {
+                    py::object quaternion = asks
+                        ? held.attr("as_quat")(
+                              py::arg("canonical") = true, py::arg("scalar_first") = true)
+                        : held;
                     auto values =
                         py::cast<py::array_t<double, py::array::c_style | py::array::forcecast>>(
                             quaternion);
                     if (values.size() != pulseq::ROTATION_WIDTH)
                         throw std::invalid_argument("a rotation is four numbers");
-                    std::array<double, pulseq::ROTATION_WIDTH> row;
                     std::memcpy(row.data(), values.data(), sizeof(double) * pulseq::ROTATION_WIDTH);
                     double norm = 0.0;
                     for (double component : row)
                         norm += component * component;
                     if (std::fabs(1.0 - norm) > 1e-6)
                         throw std::invalid_argument("rotation quaternion is not a unit quaternion");
-                    cached = seq.quaternions.emplace(rotation, row).first;
-                    seq.pinned.push_back(py::reinterpret_borrow<py::object>(rotation));
+                    if (asks)
+                    {
+                        seq.quaternions.emplace(rotation, row);
+                        seq.pinned.push_back(py::reinterpret_borrow<py::object>(rotation));
+                    }
                 }
+
                 if (chained == 8)
                     throw std::invalid_argument("a block carries at most eight extensions");
                 chain[chained][0] = static_cast<int32_t>(seq.extension_type_id("ROTATIONS"));
-                chain[chained][1] =
-                    static_cast<int32_t>(seq.register_rotation(cached->second.data()));
+                chain[chained][1] = static_cast<int32_t>(seq.register_rotation(row.data()));
                 ++chained;
             }
             else if (std::strcmp(kind, "rf_shim") == 0)

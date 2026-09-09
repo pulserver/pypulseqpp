@@ -45,13 +45,25 @@ Two are closed:
   Sequence. They say what the sequence *is*: a file older than 1.5 is
   converted as it is read, so it is held as 1.5 whatever it declared.
 
-Two are open:
+- **`make_rotation` takes all six of the toolbox's call forms** -- an angle,
+  an angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix
+  and a stack of them -- as well as a SciPy `Rotation`. The angle forms are
+  worked out here rather than asked of SciPy, which is what a scan turning a
+  base spoke per shot actually spends: a turn about z is a cosine and a sine.
+  Measured against the block it is attached to, on a golden-angle loop:
 
-- **`make_rotation` takes one call form.** The toolbox takes six: an angle, an
-  angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix,
-  and a stack of them. Here it takes an object with `as_quat`, which is a
-  SciPy `Rotation`. Upstream PyPulseq has no `make_rotation`, so the toolbox
-  is the authority for this one.
+  | rotation per shot | cost | against the block |
+  | --- | --- | --- |
+  | none | 271 ns | 1.0x |
+  | `make_rotation(angle)` | 2.1 us | 7.8x |
+  | `make_rotation(Rotation.from_euler(...))` | 35.3 us | 130x |
+
+  In C++ it would be slower, not faster: a binding round trip costs about
+  700 ns against the 800 ns the whole Python constructor costs, and what the
+  scipy path spends is inside scipy either way.
+
+One is open, and it is a decision rather than a gap:
+
 - **`add_block(None)` is refused.** The toolbox takes it and adds no block.
   Upstream PyPulseq raises, and upstream is the API this stands in for, so
   this raises too -- with a message that says what was expected. This one is

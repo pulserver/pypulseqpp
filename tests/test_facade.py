@@ -105,7 +105,7 @@ def test_upstream_has_no_rotation_or_shim_and_this_does():
     assert not hasattr(upstream, "make_rotation")
     assert not hasattr(upstream, "make_rf_shim")
 
-    assert pp.make_rotation(object()).type == "rot3D"
+    assert pp.make_rotation(math.pi / 4).type == "rot3D"
     assert pp.make_rf_shim([complex(1, 0), complex(0.5, 0.25)]).type == "rf_shim"
 
 
