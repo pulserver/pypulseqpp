@@ -93,10 +93,11 @@ rather than quietly corrected. The write is a side effect of the check, as it
 is in MATLAB; `write(check_timing=True)` therefore produces a file carrying
 `TotalDuration` where `write()` does not.
 
-One question is left:
-
-- **Frequency offsets.** An RF or ADC offset, in Hz or as a ppm shift through
-  gamma, must stay inside `system.max_freq_offset`.
+The last is in too. An RF or ADC offset is recorded twice over -- in hertz,
+and as a shift in parts per million of the Larmor frequency -- and either can
+be inside `system.max_freq_offset` while the two together are not, so all
+three are weighed. A scanner that names no limit is asking nothing, which is
+what upstream's `Opts` does: it carries no such field.
 
 ## The rest of `Sequence`
 
@@ -171,11 +172,21 @@ needs one shot does not have to look at the whole scan to find it.
 parameter at all -- only `time_range` -- so there is no drop-in contract to
 keep, and every other name here is snake_case.
 
-`waveforms_and_times` returns six values, as the toolbox does; upstream
-returns five, having no `pm_adc`. A script unpacking upstream's five breaks
-on six. The sixth carries the ADC phase modulation, which is a 1.5 feature
-upstream's return predates and which `calculate_kspace` needs, so it is kept
--- but it is a difference from upstream worth knowing about.
+`waveforms_and_times` and `rf_times` take `compat`, which is `True`: what they
+return is what upstream returns, five values and four, because that is what a
+script written against upstream unpacks. `compat=False` returns
+`WaveformsAndTimes` and `RfTimes` instead, which are `pulserver`'s shapes and
+carry three things the tuples cannot:
+
+- *Every* RF use. Pulseq has seven; the tuple carries two, and an inversion, a
+  saturation or a preparation pulse is not in it at all. `rf.of("inversion")`
+  asks for one, `rf.of("excitation", "undefined")` reproduces upstream's
+  bucket.
+- The per-sample ADC phase and phase modulation -- the phase a sample is
+  actually acquired with, which is what a simulation wants. The reference
+  toolbox returns the modulation as a sixth value; upstream returns neither.
+- Which block each pulse and each ADC window is in, and how many samples a
+  window takes.
 
 ## What a block reads back as
 

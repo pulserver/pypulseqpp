@@ -387,6 +387,38 @@ namespace pulseq
             return found;
         }
 
+        /**
+         * Report a frequency offset the scanner will not play.
+         *
+         * An offset is recorded twice: in hertz, and as a shift in parts per
+         * million of the Larmor frequency. Either can be within the limit
+         * while the two together are not, so all three are weighed -- which
+         * is what the reference toolbox does.
+         */
+        void note_offset(
+            std::vector<TimingFinding>& report,
+            const TimingLimits& limits,
+            const char* event,
+            double hertz,
+            double ppm)
+        {
+            if (limits.max_freq_offset <= 0.0)
+                return;
+            const double shifted = ppm * 1e-6 * limits.larmor;
+            const double worst = std::max(
+                {std::fabs(hertz), std::fabs(shifted), std::fabs(hertz + shifted)});
+            if (worst <= limits.max_freq_offset)
+                return;
+            TimingFinding f;
+            f.event = event;
+            f.field = "freq_offset";
+            f.error_type = "FREQ_OFFSET";
+            f.value = hertz;
+            f.offset = worst;
+            f.limit = limits.max_freq_offset;
+            report.push_back(f);
+        }
+
     } // namespace
 
     std::vector<TimingFinding> check_timing(const Sequence& seq, const TimingLimits& limits)
@@ -553,6 +585,7 @@ namespace pulseq
                     f.ringdown_time = limits.rf_ringdown_time;
                     report.push_back(f);
                 }
+                note_offset(report, limits, "rf", rrow[8], rrow[6]);
             }
 
             if (adc_id)
@@ -579,6 +612,7 @@ namespace pulseq
                     f.dead_time = limits.adc_dead_time;
                     report.push_back(f);
                 }
+                note_offset(report, limits, "adc", arow[5], arow[3]);
             }
 
             if (chain.soft_delay >= 1 &&

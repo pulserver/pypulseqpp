@@ -547,3 +547,96 @@ def test_a_file_that_declares_a_duration_it_does_not_have_is_reported(
     read_back.read(tmp_path / "wrong.seq")
 
     assert kinds(read_back.check_timing()[1]) == {"TOTAL_DURATION_MISMATCH"}
+
+
+# -- how far off resonance a pulse may sit -----------------------------
+
+
+def _off_resonance(**offsets):
+    """A sequence with one pulse and one window, offset as asked."""
+    opts = system()
+    opts.max_freq_offset = 5000.0
+    seq = pypulseqpp.Sequence(opts)
+    seq.add_block(
+        pypulseqpp.make_block_pulse(
+            0.5,
+            duration=1e-3,
+            system=opts,
+            use="excitation",
+            freq_offset=offsets.get("rf_hz", 0.0),
+            freq_ppm=offsets.get("rf_ppm", 0.0),
+        )
+    )
+    seq.add_block(
+        pypulseqpp.make_adc(
+            64,
+            dwell=1e-5,
+            delay=10e-6,
+            system=opts,
+            freq_offset=offsets.get("adc_hz", 0.0),
+            freq_ppm=offsets.get("adc_ppm", 0.0),
+        ),
+        pypulseqpp.make_delay(1e-3),
+    )
+    return seq
+
+
+def test_a_pulse_within_the_frequency_limit_is_not_reported():
+    assert _off_resonance(rf_hz=4000.0).check_timing() == (True, [])
+
+
+def test_a_pulse_too_far_off_resonance_is_reported():
+    is_ok, found = _off_resonance(rf_hz=12000.0).check_timing()
+
+    assert not is_ok
+    assert [(f.error_type, f.event, f.block) for f in found] == [
+        ("FREQ_OFFSET", "rf", 1)
+    ]
+    assert found[0].limit == 5000.0
+    assert found[0].offset == pytest.approx(12000.0)
+
+
+def test_a_window_too_far_off_resonance_is_reported():
+    is_ok, found = _off_resonance(adc_hz=-9000.0).check_timing()
+
+    assert not is_ok
+    assert [(f.error_type, f.event, f.block) for f in found] == [
+        ("FREQ_OFFSET", "adc", 2)
+    ]
+
+
+def test_a_ppm_shift_counts_against_the_same_limit():
+    """A shift in parts per million is a shift of the Larmor frequency."""
+    opts = system()
+    larmor = opts.gamma * opts.B0
+    # A hundred ppm of 63.9 MHz is about 6.4 kHz.
+    is_ok, found = _off_resonance(rf_ppm=100.0).check_timing()
+
+    assert not is_ok
+    assert found[0].offset == pytest.approx(100.0e-6 * larmor)
+
+
+def test_two_offsets_within_the_limit_can_be_over_it_together():
+    """Either alone passes; what the pulse is actually asked for does not."""
+    assert _off_resonance(rf_hz=3000.0).check_timing()[0]
+    assert _off_resonance(rf_ppm=40.0).check_timing()[0]
+
+    is_ok, found = _off_resonance(rf_hz=3000.0, rf_ppm=40.0).check_timing()
+
+    assert not is_ok
+    assert found[0].offset > 5000.0
+
+
+def test_a_scanner_that_names_no_limit_asks_nothing():
+    """Upstream's Opts carries no such field, so a sequence built against one
+    is not judged on it."""
+    opts = system()
+    opts.max_freq_offset = 0.0
+    seq = pypulseqpp.Sequence(opts)
+    seq.add_block(
+        pypulseqpp.make_block_pulse(
+            0.5, duration=1e-3, system=opts, use="excitation", freq_offset=1e6
+        )
+    )
+
+    assert seq.check_timing() == (True, [])

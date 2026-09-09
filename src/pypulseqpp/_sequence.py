@@ -495,13 +495,24 @@ class Sequence:
     # -- what the sequence plays ---------------------------------------
 
     def waveforms_and_times(
-        self, append_RF: bool = False, time_range=None, block_range=None
+        self,
+        append_RF: bool = False,
+        time_range=None,
+        block_range=None,
+        *,
+        compat: bool = True,
     ):
         """Return the gradient waveforms, the RF moments and the ADC sampling.
 
+        ``compat`` gives upstream's five values, which is what a drop-in
+        caller unpacks; False gives everything the pass worked out, including
+        the five RF uses those five values cannot carry.
+
         See :func:`pypulseqpp._waveforms.waveforms_and_times`.
         """
-        return _waveforms_and_times(self, append_RF, time_range, block_range)
+        return _waveforms_and_times(
+            self, append_RF, time_range, block_range, compat=compat
+        )
 
     def waveforms(self, append_RF: bool = False, time_range=None, block_range=None):
         """Return the gradient waveforms alone, one 2-by-n array per axis."""
@@ -511,9 +522,13 @@ class Sequence:
         """Return when every ADC sample is taken, and each window's offsets."""
         return _adc_times(self, time_range)
 
-    def rf_times(self, time_range=None):
-        """Return when the pulses act, and at what frequency and phase."""
-        return _rf_times(self, time_range)
+    def rf_times(self, time_range=None, *, compat: bool = True):
+        """Return when the pulses act, and at what frequency and phase.
+
+        ``compat`` gives upstream's four values, which describe two of
+        Pulseq's seven RF uses; False gives all seven.
+        """
+        return _rf_times(self, time_range, compat=compat)
 
     def calculate_kspace(
         self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None

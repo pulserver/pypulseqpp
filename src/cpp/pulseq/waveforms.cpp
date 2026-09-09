@@ -635,10 +635,9 @@ namespace pulseq
                 const char use = row[0] <= static_cast<int32_t>(uses.size())
                     ? uses[static_cast<size_t>(row[0]) - 1]
                     : 'u';
-                if (use == 'e' || use == 'u')
-                    out.excitation.push_back(moment);
-                else if (use == 'r')
-                    out.refocusing.push_back(moment);
+                out.pulses.push_back(moment);
+                out.pulse_uses.push_back(use);
+                out.pulse_blocks.push_back(index);
 
                 if (options.append_rf)
                 {
@@ -704,6 +703,8 @@ namespace pulseq
 
                 out.window_frequency.push_back(adc[5]);
                 out.window_phase.push_back(adc[6]);
+                out.window_blocks.push_back(index);
+                out.window_samples.push_back(samples);
 
                 for (int i = 0; i < samples; ++i)
                 {

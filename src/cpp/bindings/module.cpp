@@ -119,6 +119,12 @@ namespace
                 d["duration"] = f.duration;
                 d["dead_time"] = f.dead_time;
             }
+            else if (f.error_type == "FREQ_OFFSET")
+            {
+                d["value"] = f.value;
+                d["offset"] = f.offset;
+                d["limit"] = f.limit;
+            }
             else if (f.error_type == "GRADIENT_START_DELAY")
             {
                 d["value"] = f.value;
@@ -821,7 +827,9 @@ PYBIND11_MODULE(_ext, module)
            double rf_dead_time,
            double rf_ringdown_time,
            double adc_dead_time,
-           double adc_samples_divisor) {
+           double adc_samples_divisor,
+           double max_freq_offset,
+           double larmor) {
             pulseq::TimingLimits limits;
             limits.rf_raster_time = rf_raster_time;
             limits.grad_raster_time = grad_raster_time;
@@ -831,6 +839,8 @@ PYBIND11_MODULE(_ext, module)
             limits.rf_ringdown_time = rf_ringdown_time;
             limits.adc_dead_time = adc_dead_time;
             limits.adc_samples_divisor = adc_samples_divisor;
+            limits.max_freq_offset = max_freq_offset;
+            limits.larmor = larmor;
 
             std::vector<pulseq::TimingFinding> findings;
             {
@@ -843,6 +853,7 @@ PYBIND11_MODULE(_ext, module)
         py::arg("adc_raster_time"), py::arg("block_duration_raster"),
         py::arg("rf_dead_time") = 0.0, py::arg("rf_ringdown_time") = 0.0,
         py::arg("adc_dead_time") = 0.0, py::arg("adc_samples_divisor") = 1.0,
+        py::arg("max_freq_offset") = 0.0, py::arg("larmor") = 42576000.0 * 1.5,
         "Every timing problem in the sequence, one dict per finding.");
 
     module.def(
@@ -1177,8 +1188,22 @@ PYBIND11_MODULE(_ext, module)
             out["wave_data"] = waves;
             out["window_fp"] = window_fp;
             out["duration"] = made.duration;
-            out["tfp_excitation"] = moments(made.excitation);
-            out["tfp_refocusing"] = moments(made.refocusing);
+            /* Every pulse, tagged: Pulseq has seven uses and sorting them
+             * into two buckets here would drop five of them. Which pulse is
+             * an excitation is a question for the caller, and the two the
+             * upstream tuple carries are gathered there. */
+            const py::ssize_t pulses = static_cast<py::ssize_t>(made.pulses.size());
+            out["tfp_pulses"] = moments(made.pulses);
+            py::list uses;
+            for (py::ssize_t i = 0; i < pulses; ++i)
+                uses.append(std::string(1, made.pulse_uses[static_cast<size_t>(i)]));
+            out["pulse_uses"] = uses;
+            out["pulse_blocks"] =
+                py::array_t<int>(pulses, made.pulse_blocks.data());
+            out["window_blocks"] =
+                py::array_t<int>(windows, made.window_blocks.data());
+            out["window_samples"] =
+                py::array_t<int>(windows, made.window_samples.data());
             out["t_adc"] = py::array_t<double>(samples, made.adc_times.data());
             out["fp_adc"] = fp;
             out["pm_adc"] = py::array_t<double>(samples, made.adc_modulation.data());
