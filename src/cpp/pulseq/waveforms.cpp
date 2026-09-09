@@ -408,7 +408,6 @@ namespace pulseq
         const int last =
             (options.last_block > 0 && options.last_block < blocks) ? options.last_block : blocks;
 
-        const int rotation_type = seq.find_extension_type_id("ROTATIONS");
         const double* durations = seq.block_durations();
         const int32_t* events = seq.block_events();
 
@@ -423,20 +422,10 @@ namespace pulseq
             const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
 
             /* A rotation remaps the gradients onto other axes, which is a
-             * different waveform on each, not this one moved. */
-            int32_t rotation_row = 0;
-            if (rotation_type > 0 && row[5] > 0)
-            {
-                int32_t node = row[5];
-                const IntTable& links = seq.extensions_library();
-                while (node > 0 && node <= links.size())
-                {
-                    const int32_t* link = links.row(node);
-                    if (link[0] == rotation_type)
-                        rotation_row = link[1];
-                    node = link[2];
-                }
-            }
+             * different waveform on each, not this one moved. Which rotation
+             * is a column of the block table, so this is a read rather than a
+             * walk down the block's extension chain. */
+            const int32_t rotation_row = row[BLOCK_WIDTH - 1];
 
             const Corners* played[3] = {nullptr, nullptr, nullptr};
             Corners here[3];
