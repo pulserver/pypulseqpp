@@ -214,13 +214,16 @@ class FatSaturation(RfModule):
             # slew limit, so the rotated sum would exceed it.
             designed_seq = pp.TransformFOV(
                 rotation=_as_matrix(orientation),
+                # A shift is written in metres; the argument is millimetres
+                # because a prescription is.
                 translation=None
                 if position_mm is None
-                else tuple(map(float, position_mm)),
+                else tuple(float(v) * 1e-3 for v in position_mm),
                 use_rotation_extension=use_rotation_extension,
                 system=system,
             ).apply_to_sequence(
-                designed_seq, time_range=[0.0, 0.5 * designed_seq.block_durations[0]]
+                designed_seq,
+                time_range=[0.0, 0.5 * designed_seq.block_durations[1]],
             )
 
         # Rebuilt rather than edited in place: the placement rewrote the pulse,

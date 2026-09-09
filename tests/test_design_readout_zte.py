@@ -106,9 +106,6 @@ def test_labels_ride_the_acquisition_block(system, hard):
 # ----------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason="Sequence.get_block does not report a block's rotation extension yet"
-)
 def test_the_shell_carries_no_rotation_of_its_own(system, hard):
     """A shot is a rotation; a view is a waveform."""
     zte = readout(system, hard)

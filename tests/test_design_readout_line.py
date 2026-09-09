@@ -382,3 +382,34 @@ def test_a_whole_3d_scan_is_a_plain_pypulseq_loop(system, slab, tmp_path):
     written.read(str(path))
     assert len(written.block_events) == len(seq.block_events)
     assert written.duration()[0] == pytest.approx(lines * partitions * 10e-3, rel=1e-6)
+
+
+def test_a_whole_table_is_one_repeating_unit(system, slab):
+    """What the module's scaling convention buys the scan.
+
+    The encodes are designed at their largest step and scaled per line, so
+    every line plays the same blocks with different numbers in their rows and
+    the scan reads as one repeating unit however many lines it has -- a
+    calibration line at zero encode included, because zero is an amplitude
+    and not a missing event.
+    """
+    module = readout3d(system, slab)
+    lines = (-1.0, -0.5, 0.0, 0.5, 1.0)
+
+    seq = pp.Sequence(system)
+    for ky in lines:
+        seq.add_block(module.rf, module.gz)
+        seq.add_block(
+            module.gx_pre,
+            pp.scale_grad(module.gy_pre, ky),
+            pp.scale_grad(module.gz_pre, ky),
+        )
+        seq.add_block(module.gx, module.adc)
+        seq.add_block(
+            module.gx_spoil,
+            pp.scale_grad(module.gy_rew, ky),
+            pp.scale_grad(module.gz_rew, ky),
+        )
+
+    assert seq._detect_tr() == (4, 1)
+    assert len(seq) == 4 * len(lines)

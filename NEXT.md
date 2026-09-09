@@ -256,6 +256,101 @@ along one axis, which is what this package computes to the bit: printed to two
 places that is a tie and rounds to even, 9.38, where the toolbox's extent
 carries the leak and comes out a hair under the tie, 9.37.
 
+### An ADC's shift phase
+
+`transform_fov` references a readout to an origin of its own rather than to
+the excitation, so its ADC phase is this package's plus a constant per
+readout. **That constant is not an error.** A constant across a readout is a
+global phase on it: it changes no image, and which origin a shift is counted
+from is a choice, not a fact. It has to be taken out before the two can be
+compared at all, and a comparison that does not take it out -- wrapping the
+difference to one turn, say -- reports it as though it were an error.
+
+What is left once it is taken out is the part that varies across the readout,
+and that one no origin absorbs. Over a readout sampled across the ramp of a
+trapezoid, with the constant removed by referencing every sample to the first:
+
+| | constant, absorbed | what varies across the readout |
+| --- | --- | --- |
+| here, Cartesian | 0 | 1.4e-15 turns |
+| here, ramp-sampled | 7e-9 turns | 4.5e-6 turns |
+| the toolbox, Cartesian | 0.1375 turns | 2.1e-14 turns |
+| the toolbox, ramp-sampled | 0.4336 turns | **0.497 turns** |
+
+A Cartesian readout agrees to the last bit either way, which is why nothing
+had noticed: the residual is identically zero when the gradient does not move
+across the window, and the two implementations differ only in the constant.
+The 4.5e-6 in the third row is not arithmetic -- it is a float32, which is
+what a shape sample is stored as.
+
+What is held here is not the toolbox's answer but what a shift means: the
+phase a sample is acquired with -- its offset, plus its frequency times its
+time, plus whatever the profile carries -- comes out as `dr . k(t)`, with `k`
+counted from the excitation the readout belongs to. `tests/test_fov_shift.py`
+therefore compares against that identity rather than against the toolbox, and
+says so.
+
+### What a readout is referenced to
+
+A shift's phase is `dr . k`, and `k` has to be counted from somewhere. Which
+somewhere is a choice: the excitation and the readouts that follow it are
+given the same origin, so it cancels out of their difference and only the
+difference is observable. What is not a choice is that they share it -- count
+a pulse from one place and its own readout from another and two repetitions
+of one thing come out at different phases.
+
+So the phase is counted from what the gradients have swept, unbroken. The
+trajectory restarts at every excitation and is right to; a phase does not,
+because a readout is measured against the phase its own excitation was given.
+Both walks are carried, and both are needed: the second is where a readout's
+echo is found.
+
+**The echo belongs to the readout, not to the playout.** A readout's
+frequency and phase are anchored at the echo, so that the two scalars alone
+place the centre of k-space and the profile carries only the curvature around
+it. But not every playout of a readout passes the centre: a phase encode far
+out crosses the readout axis wherever its own prewinder puts it, and that
+instant moves with the encode. Anchoring each playout at its own nearest
+sample would give one profile per shot, where a table should share one.
+
+The playout that comes nearest the centre of k-space is the sequence's echo,
+and it fixes the instant for every playout of that readout -- keyed by which
+block definition, digitised how, which is what makes two playouts the same
+readout. `test_every_playout_of_a_readout_shares_one_reference` builds five
+shots whose own nearest samples are five different instants and holds that
+they register one profile between them.
+
+### An arbitrary readout costs its corners once
+
+A sweep that restarts at the first corner for every sample is quadratic in a
+readout that samples every tick of a waveform that turns at every tick --
+which is what a spiral is. The corners and the samples both run forwards, so
+they are walked together and the readout costs their sum:
+
+| samples x corners, 8 shots | restarting per sample | walked once |
+| --- | --- | --- |
+| 500 x 500 | 0.027 s | 0.001 s |
+| 1000 x 1000 | 0.137 s | 0.001 s |
+| 2000 x 2000 | 0.562 s | 0.002 s |
+| 4000 x 4000 | 2.214 s | 0.004 s |
+
+### A rotation is an annotation
+
+`transform_fov` rotates the gradient waveforms themselves unless asked for the
+extension instead. `TransformFOV` only ever attaches the extension:
+`use_rotation_extension=False` is refused rather than implemented, because
+baking costs one set of waveforms per orientation where four numbers on a
+block let a thousand orientations share the trajectory they were designed
+from. Nothing downstream has to be told: `waveforms_and_times` combines the
+three stored axes through the block's own quaternion, and `calculate_kspace`
+integrates what it returns.
+
+`TransformFOV` is a class, so it is CamelCase where the toolbox spells it
+`transform_fov`, and `apply_to_seq` is the toolbox's name for
+`apply_to_sequence`. A prescription reads back as `quaternion`, `translation`
+and `scale`, each `None` where nothing was asked for, rather than as a matrix
+beside two empty arrays.
+
 ## Where a name differs from the toolbox
 
 `waveforms_and_times` and its family take `block_range`, where
@@ -309,15 +404,47 @@ evolution therefore reports final values.
 `calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and
 `auto_label`.
 
+## The repeating unit
+
+`Sequence._detect_tr` reads the period of the block definition stream off the
+fork, which has already done the hard part: two blocks playing the same
+things for the same length share a definition id whatever their amplitudes,
+so the repeat is the period of an array of integers. It answers the size and
+the 1-based block the first full repetition starts at; what comes before that
+is prologue -- dummy shots, a preparation, a noise scan.
+
+It is private on purpose: neither toolbox has it, so it is what the analysis
+here reaches for rather than part of the API a design script is written
+against. The answer is recorded as the `TRsize` definition and read back from
+there, so a sequence written and read does not work it out again, and the
+core remembers it behind the same revision guard as the timing pass.
+
+**Segmentation is not here.** Where a scan is cut for a scanner to execute
+needs to know which vendor will play it, so it lives in `pulserver`. What a
+sequence knows about itself is how long its repeating unit is and where it
+starts; the segments follow from the definition ids, which are stored.
+
+**A table is one gradient scaled, and the toolbox builds it that way.** A
+phase encode has to vary in amplitude alone for the scan to read as one
+repetition, and that is not left to the caller: every readout module designs
+its encodes with `make_phase_encoding` at the largest step and scales them
+per line with `scale_grad`, so the timings never move and the amplitude is a
+column of the row. A line scaled to zero is that same definition at no
+amplitude rather than a block with one fewer event, which is how a
+calibration line is acquired without breaking the scan into pieces around it.
+Asking `make_trapezoid` for an area per line instead derives a different rise
+and fall from each, which is a definition per line -- so a hand-written table
+built that way reads as though the scan never repeats.
+
+A run of pure delays repeats every block however long each waits, because a
+block that plays nothing is one definition and its duration belongs to the
+playout.
+
 ## What the design layer is waiting on
 
 The module toolbox is in, and `tests/test_design_*.py` say what is still owed
 it. Each blocked test names the one thing it waits for:
 
-- **`TransformFOV`**, which the fat-saturation module uses to place a band on
-  an oblique slab. Ten tests skip.
-- **A block's rotation extension read back from `get_block`**, so a module can
-  ask whether a block turns. One test skips.
 - **A host to drive a sequence from**, which the navigator's tests reach for
   and which belongs to `pulserver` rather than here. Six tests skip.
 - **`tile`**, so a scan can write its averages out rather than leave them to

@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "pulseq/analysis.hpp"
+#include "pulseq/fov.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/kspace.hpp"
@@ -1103,6 +1104,108 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("evolution") = "none", py::arg("first_block") = 1,
         py::arg("last_block") = 0, py::arg("start") = py::dict(),
         "What every label the sequence uses is set to, as an array per label.");
+
+    module.def(
+        "block_k_origins",
+        [](const Sequence& sequence, int first, int last,
+           std::array<double, 3> carry) {
+            std::vector<std::array<double, 3>> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::block_k_origins(sequence, first, last, carry.data());
+            }
+            py::array_t<double> out(
+                {static_cast<py::ssize_t>(found.size()), static_cast<py::ssize_t>(3)});
+            auto view = out.mutable_unchecked<2>();
+            for (py::ssize_t i = 0; i < static_cast<py::ssize_t>(found.size()); ++i)
+            {
+                for (py::ssize_t axis = 0; axis < 3; ++axis)
+                    view(i, axis) = found[static_cast<size_t>(i)][static_cast<size_t>(axis)];
+            }
+            py::dict answer;
+            answer["origins"] = out;
+            answer["carry"] = py::make_tuple(carry[0], carry[1], carry[2]);
+            return answer;
+        },
+        py::arg("sequence"), py::arg("first") = 1, py::arg("last") = 0,
+        py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
+        "Where the trajectory stands at the start of each block, and where it "
+        "is left at the end of the range.");
+
+    module.def(
+        "apply_fov_scale",
+        [](Sequence& sequence, std::array<double, 3> scale, int first, int last) {
+            py::gil_scoped_release unlocked;
+            pulseq::apply_fov_scale(sequence, scale.data(), first, last);
+        },
+        py::arg("sequence"), py::arg("scale"), py::arg("first") = 1,
+        py::arg("last") = 0,
+        "Resize the field of view: one multiply per gradient row met.");
+
+    module.def(
+        "apply_fov_rotation",
+        [](Sequence& sequence, std::array<double, 4> quaternion, int first, int last) {
+            py::gil_scoped_release unlocked;
+            pulseq::apply_fov_rotation(sequence, quaternion.data(), first, last);
+        },
+        py::arg("sequence"), py::arg("quaternion"), py::arg("first") = 1,
+        py::arg("last") = 0,
+        "Turn the field of view, as an extension on each block.");
+
+    module.def(
+        "absolute_trajectory",
+        [](const Sequence& sequence, int block, std::array<double, 3> origin) {
+            std::array<std::vector<double>, 3> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::absolute_trajectory(sequence, block, origin.data());
+            }
+            const py::ssize_t samples =
+                static_cast<py::ssize_t>(found[0].size());
+            py::array_t<double> out({static_cast<py::ssize_t>(3), samples});
+            auto view = out.mutable_unchecked<2>();
+            for (py::ssize_t axis = 0; axis < 3; ++axis)
+            {
+                for (py::ssize_t i = 0; i < samples; ++i)
+                    view(axis, i) = found[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("block"),
+        py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
+        "Where a readout samples k, per axis, in 1/m.");
+
+    module.def(
+        "apply_fov_shift",
+        [](Sequence& sequence, std::array<double, 3> shift, bool with_adc, int first,
+           int last, std::array<double, 3> carry, std::array<double, 3> origin,
+           py::object exempt) {
+            std::vector<unsigned char> flags;
+            if (!exempt.is_none())
+            {
+                const auto given = exempt.cast<py::array_t<unsigned char>>();
+                flags.assign(given.data(), given.data() + given.size());
+            }
+            {
+                py::gil_scoped_release unlocked;
+                pulseq::apply_fov_shift(
+                    sequence, shift.data(),
+                    with_adc ? pulseq::FovShiftScope::RfAndAdc
+                             : pulseq::FovShiftScope::RfOnly,
+                    first, last, carry.data(), origin.data(),
+                    flags.empty() ? nullptr : flags.data());
+            }
+            py::dict out;
+            out["swept"] = py::make_tuple(carry[0], carry[1], carry[2]);
+            out["origin"] = py::make_tuple(origin[0], origin[1], origin[2]);
+            return out;
+        },
+        py::arg("sequence"), py::arg("shift"), py::arg("with_adc") = true,
+        py::arg("first") = 1, py::arg("last") = 0,
+        py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
+        py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
+        py::arg("exempt") = py::none(),
+        "Move the field of view by a shift in logical metres.");
 
     module.def(
         "flip_angles",
