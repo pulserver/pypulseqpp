@@ -57,6 +57,12 @@ namespace pulseq
             label_ids_.emplace(label_names_[i], static_cast<int>(i) + 1);
     }
 
+    int Sequence::find_label_id(const std::string& name) const
+    {
+        auto it = label_ids_.find(name);
+        return it == label_ids_.end() ? 0 : it->second;
+    }
+
     int Sequence::label_id(const std::string& name)
     {
         auto it = label_ids_.find(name);
