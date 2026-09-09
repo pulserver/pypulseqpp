@@ -9,16 +9,50 @@ and dead times. What remains is here.
 ## The rest of the reference suite
 
 `tests/` there is 6809 lines over 80 files, most of it covering event
-factories this package does not have yet. The ones that bear on what is here,
-to port as idiomatic pytest rather than `unittest.TestCase`:
+factories this package does not have yet. Of the thirteen that bear on what is
+here, three are ported: `test_block` as `tests/test_block.py`,
+`test_rotation_extension` and `test_make_rf_shim` under their own names. The
+other ten are not worth porting as they stand, and why is worth writing down:
 
-`test_binary_signature`, `test_md5`, `test_compress_shape`,
-`test_decompress_shape`, `test_block2events`, `test_block`, `test_opts`,
-`test_get_supported_labels`, `test_add_custom_label`, `test_make_rf_shim`,
-`test_rotation_extension`, `test_quaternion`, `test_aux_version`.
+- `test_md5` and `test_quaternion` test `hashlib` and `scipy`, not the
+  toolbox. What they would test here -- the C++ md5 behind a signature, and
+  what a quaternion does to a block's gradients -- is held by
+  `tests/test_corpus.py` and `tests/test_rotation_extension.py`.
+- `test_opts`, `test_get_supported_labels` and `test_block2events` test
+  upstream PyPulseq, which this re-exports unchanged; `tests/test_facade.py`
+  holds the re-export itself.
+- `test_compress_shape` and `test_decompress_shape` are property tests of the
+  codec. `tests/test_shape.py` compares our encoder against the reference
+  encoder sample for sample, which is stronger.
+- `test_add_custom_label` needs `add_supported_label`, which upstream PyPulseq
+  does not have either.
+- `test_aux_version` reads `version_major`, `version_minor` and
+  `version_revision` off a Sequence. The core holds all three; the facade
+  exposes none.
+- `test_binary_signature` needs a signed `.bseq`. See below.
 
-`test_read_write_binary_roundtrip` and `test_sequence_backwards_compatibility`
-are already covered by `tests/test_corpus.py`, which runs over the same files.
+### What the port turned up
+
+Four differences from the authority, none of them found by anything else:
+
+- **A binary file is not signed here.** The toolbox writes an md5 over the
+  binary form and reports it as `signature_type='md5'`, `signature_file='bin'`;
+  `write_binary` here writes no signature section and reading a signed one
+  reports none. Files still pass both ways -- `tests/test_interoperability.py`
+  holds that -- so what is missing is the integrity check, not the format.
+- **`make_rotation` takes one call form.** The toolbox takes six: an angle, an
+  angle and a polar angle, an axis and an angle, a quaternion, a 3x3 matrix,
+  and a stack of them. Here it takes an object with `as_quat`, which is a
+  SciPy `Rotation`. Upstream PyPulseq has no `make_rotation`, so the toolbox is
+  the authority for this one.
+- **`make_rf_shim` keeps the shape it is given.** The toolbox reshapes the
+  weights to a column, so `shim.shim_vector[k, 0]` is how a script written
+  against it reads a weight; here a list gives `(n,)` and a scalar gives a
+  0-d array. One weight per channel is the simpler convention, but the
+  scalar case is a wart either way.
+- **`add_block(None)` is refused.** The toolbox takes it and adds no block.
+  Upstream PyPulseq raises, and upstream is the API this stands in for, so
+  this raises too -- with a message that says what was expected.
 
 ## The rest of the timing check
 
