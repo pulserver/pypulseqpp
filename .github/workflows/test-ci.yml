@@ -25,6 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: recursive # the solver in external/ is compiled in
           fetch-depth: 0 # setuptools_scm reads the tags
 
       - uses: actions/setup-python@v7
@@ -52,6 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
 
       # A read past the end of an array is not a wrong answer, it is whatever
       # was there -- so the tests above catch it only when the memory it lands

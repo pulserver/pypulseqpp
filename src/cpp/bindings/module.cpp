@@ -28,6 +28,8 @@
 #include "pulseqpp_events.h"
 #include "pulseqpp_decode.h"
 #include "pulseqpp_eventtypes.h"
+#include "arbgrad.h"
+#include "sampling.h"
 
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
@@ -335,6 +337,18 @@ namespace
 PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
+
+    // The trajectory solver, under a name of its own: it shares nothing with
+    // the sequence core but the wheel it ships in.
+    py::module_ arbgrad = module.def_submodule("arbgrad");
+    arbgrad.attr("__name__") = "pypulseqpp._ext.arbgrad";
+    py::module_::import("sys").attr("modules")["pypulseqpp._ext.arbgrad"] = arbgrad;
+    pypulseqpp_bind_arbgrad(arbgrad);
+
+    py::module_ sampling = module.def_submodule("sampling");
+    sampling.attr("__name__") = "pypulseqpp._ext.sampling";
+    py::module_::import("sys").attr("modules")["pypulseqpp._ext.sampling"] = sampling;
+    pypulseqpp_bind_sampling(sampling);
 
     // The events a block is made of, as compiled objects rather than
     // dictionaries. See pulseqpp_eventtypes.h.

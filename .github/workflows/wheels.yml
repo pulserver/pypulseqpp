@@ -30,6 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: recursive # the solver in external/ is compiled in
           fetch-depth: 0 # setuptools_scm reads the tags
 
       - uses: pypa/cibuildwheel@v4.2.0
@@ -54,6 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: recursive # the solver in external/ is compiled in
           fetch-depth: 0
       - uses: actions/setup-python@v7
         with:

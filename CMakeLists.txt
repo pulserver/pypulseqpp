@@ -5,6 +5,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# The trajectory solver is a submodule rather than a copy, so a checkout that
+# forgot --recursive has no sources here. Say so now: the alternative is a
+# hundred lines of missing-header errors.
+set(MRARBGRAD ${CMAKE_SOURCE_DIR}/external/MRArbGrad/mrarbgrad_src/ext)
+if(NOT EXISTS ${MRARBGRAD}/mag/Mag.cpp)
+    message(FATAL_ERROR
+        "external/MRArbGrad is empty. Run:\n"
+        "    git submodule update --init --recursive")
+endif()
+
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Python COMPONENTS Development.Module REQUIRED)
 find_package(Threads REQUIRED)
@@ -29,9 +39,20 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_text.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/module.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/pulseqpp_eventtypes.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings/arbgrad.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings/sampling.cpp
+    # The three translation units of the MRArbGrad solver; the rest of it is
+    # headers. See external/NOTICE.md.
+    ${MRARBGRAD}/mag/Mag.cpp
+    ${MRARBGRAD}/utility/global.cpp
+    ${MRARBGRAD}/utility/v3.cpp
 )
 
-target_include_directories(_ext PRIVATE ${CMAKE_SOURCE_DIR}/src/cpp)
+target_include_directories(_ext PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings
+    ${MRARBGRAD}
+)
 
 # Deduplication partitions independent work across standard C++ threads.
 target_link_libraries(_ext PRIVATE Threads::Threads)

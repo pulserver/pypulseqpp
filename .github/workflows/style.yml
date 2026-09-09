@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"

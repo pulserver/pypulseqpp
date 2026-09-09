@@ -27,7 +27,7 @@ classifiers = [
 # PyPulseq is the API this package replaces, and the facade re-exports its
 # namespace: the factories build the events, this builds the sequence under
 # them. Three factories it does not have yet are written here instead.
-dependencies = ["numpy>=1.24", "pypulseq>=1.5"]
+dependencies = ["numpy>=1.24", "pypulseq>=1.5", "scipy>=1.10"]
 
 [project.optional-dependencies]
 dev = [
@@ -94,7 +94,9 @@ line-length = 88
 # tree, so a command that reads as read-only is not. `format_and_lint.sh`
 # passes --fix explicitly when it means it.
 fix = false
-extend-exclude = ["docs/**", "examples/**"]
+# external/ is a submodule: it is somebody else's tree and formatting it
+# here would show up as local modifications in it.
+extend-exclude = ["docs/**", "examples/**", "external/**"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -114,6 +116,9 @@ ignore = [
 "tests/**" = ["D", "S101", "ARG"]
 "benchmarks/**" = ["D", "S101", "T201"]
 "__init__.py" = ["D104", "F401"]
+# A module's init_module is the constructor its class docstring documents,
+# argument for argument; a docstring of its own would restate that.
+"src/pypulseqpp/sequences/**" = ["D102"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
