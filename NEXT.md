@@ -290,6 +290,50 @@ counted from the excitation the readout belongs to. `tests/test_fov_shift.py`
 therefore compares against that identity rather than against the toolbox, and
 says so.
 
+### What a readout is referenced to
+
+A shift's phase is `dr . k`, and `k` has to be counted from somewhere. Which
+somewhere is a choice: the excitation and the readouts that follow it are
+given the same origin, so it cancels out of their difference and only the
+difference is observable. What is not a choice is that they share it -- count
+a pulse from one place and its own readout from another and two repetitions
+of one thing come out at different phases.
+
+So the phase is counted from what the gradients have swept, unbroken. The
+trajectory restarts at every excitation and is right to; a phase does not,
+because a readout is measured against the phase its own excitation was given.
+Both walks are carried, and both are needed: the second is where a readout's
+echo is found.
+
+**The echo belongs to the readout, not to the playout.** A readout's
+frequency and phase are anchored at the echo, so that the two scalars alone
+place the centre of k-space and the profile carries only the curvature around
+it. But not every playout of a readout passes the centre: a phase encode far
+out crosses the readout axis wherever its own prewinder puts it, and that
+instant moves with the encode. Anchoring each playout at its own nearest
+sample would give one profile per shot, where a table should share one.
+
+The playout that comes nearest the centre of k-space is the sequence's echo,
+and it fixes the instant for every playout of that readout -- keyed by which
+block definition, digitised how, which is what makes two playouts the same
+readout. `test_every_playout_of_a_readout_shares_one_reference` builds five
+shots whose own nearest samples are five different instants and holds that
+they register one profile between them.
+
+### An arbitrary readout costs its corners once
+
+A sweep that restarts at the first corner for every sample is quadratic in a
+readout that samples every tick of a waveform that turns at every tick --
+which is what a spiral is. The corners and the samples both run forwards, so
+they are walked together and the readout costs their sum:
+
+| samples x corners, 8 shots | restarting per sample | walked once |
+| --- | --- | --- |
+| 500 x 500 | 0.027 s | 0.001 s |
+| 1000 x 1000 | 0.137 s | 0.001 s |
+| 2000 x 2000 | 0.562 s | 0.002 s |
+| 4000 x 4000 | 2.214 s | 0.004 s |
+
 ### A rotation is an annotation
 
 `transform_fov` rotates the gradient waveforms themselves unless asked for the

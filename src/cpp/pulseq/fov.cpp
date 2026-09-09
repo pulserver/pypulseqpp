@@ -267,6 +267,137 @@ namespace pulseq
 
 
         /**
+         * A walk over one gradient's corners, taking what it has swept at
+         * each of a series of instants that only ever move forwards.
+         *
+         * The instants an event asks about are its sample times, and those
+         * increase, so the corners are walked once for the whole event
+         * rather than from the first corner for every sample: a spiral of
+         * ten thousand samples over ten thousand corners costs their sum
+         * rather than their product.
+         *
+         * Both totals are carried, because both are wanted at the same
+         * instants: the area, which is where k stands, and its fractional
+         * part in turns, which is the phase -- taken per segment because the
+         * whole reaches thousands of turns and only the fraction survives.
+         */
+        struct Sweep
+        {
+            const Played* played = nullptr;
+            size_t corner = 0;
+            double behind = 0.0;
+            double behind_turns = 0.0;
+            double shift = 0.0;
+
+            void restart(const Played& over, double by)
+            {
+                played = &over;
+                corner = 0;
+                behind = 0.0;
+                behind_turns = 0.0;
+                shift = by;
+            }
+
+            /**
+             * What is swept by @p when, which must not go backwards.
+             *
+             * @param in_turns  If given, the fractional part in turns.
+             */
+            double upto(double when, double* in_turns = nullptr)
+            {
+                const size_t n = played->count();
+                double partial = 0.0;
+                while (corner + 1 < n)
+                {
+                    const double from = played->times[corner];
+                    if (when <= from)
+                        break;
+                    const double to = played->times[corner + 1];
+                    const double span = to - from;
+                    if (span <= kEps)
+                    {
+                        ++corner;
+                        continue;
+                    }
+                    const double first = (*played->values)[corner];
+                    const double last = (*played->values)[corner + 1];
+                    if (when >= to)
+                    {
+                        const double whole = 0.5 * (first + last) * span;
+                        behind += whole;
+                        behind_turns = turns(behind_turns + turns(whole * shift));
+                        ++corner;
+                        continue;
+                    }
+                    const double along = (when - from) / span;
+                    const double reached = first + along * (last - first);
+                    partial = 0.5 * (first + reached) * (when - from);
+                    break;
+                }
+                if (in_turns != nullptr)
+                    *in_turns = turns(behind_turns + turns(partial * shift));
+                return behind + partial;
+            }
+        };
+
+        /**
+         * Move @p origin past the block @p row plays, and say what it swept.
+         *
+         * The trajectory restarts where an excitation acts and turns over
+         * where a refocusing does, both at the pulse's own centre, so what
+         * the block sweeps on either side of the pulse is counted on its own
+         * side -- a refocusing between two crushers has each crusher on the
+         * side it belongs to.
+         */
+        void advance_walk(
+            const Sequence& seq,
+            const int32_t* row,
+            const Played played[3],
+            double origin[3],
+            double* swept_out = nullptr)
+        {
+            double acts_at = -1.0;
+            char use = 'u';
+            const int32_t rf_id = row[0];
+            if (rf_id > 0)
+            {
+                const std::vector<char>& uses = seq.rf_uses();
+                const double* rf = seq.rf_library().row(rf_id);
+                acts_at = rf[5] + rf[4];
+                use = rf_id <= static_cast<int32_t>(uses.size())
+                    ? uses[static_cast<size_t>(rf_id) - 1]
+                    : 'u';
+            }
+
+            double whole[3] = {0.0, 0.0, 0.0};
+            double before[3] = {0.0, 0.0, 0.0};
+            double at_pulse[3];
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (played[axis].values != nullptr)
+                {
+                    whole[axis] = played[axis].swept(1e30);
+                    if (acts_at >= 0.0)
+                        before[axis] = played[axis].swept(acts_at);
+                }
+                at_pulse[axis] = origin[axis] + before[axis];
+                if (swept_out != nullptr)
+                    swept_out[axis] = whole[axis];
+            }
+
+            if (acts_at >= 0.0 && advance_origin(use, at_pulse, origin))
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    origin[axis] += whole[axis] - before[axis];
+            }
+            else
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    origin[axis] += whole[axis];
+            }
+        }
+
+        /**
          * When a readout passes closest to the centre of k-space, relative
          * to the start of its block.
          *
@@ -285,28 +416,44 @@ namespace pulseq
             const double origin[3],
             int samples,
             double dwell,
-            double delay)
+            double delay,
+            double* nearest_out = nullptr)
         {
+            std::vector<double> found(static_cast<size_t>(samples) * 3, 0.0);
+            Sweep along_axis;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (played[axis].values == nullptr)
+                {
+                    for (int i = 0; i < samples; ++i)
+                        found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] =
+                            origin[axis];
+                    continue;
+                }
+                along_axis.restart(played[axis], 0.0);
+                for (int i = 0; i < samples; ++i)
+                {
+                    const double when = delay + dwell * (static_cast<double>(i) + 0.5);
+                    found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] =
+                        origin[axis] + along_axis.upto(when);
+                }
+            }
+
             double nearest = -1.0;
             int index = 0;
-            std::vector<double> found(static_cast<size_t>(samples) * 3, 0.0);
             for (int i = 0; i < samples; ++i)
             {
-                const double when = delay + dwell * (static_cast<double>(i) + 0.5);
-                double square = 0.0;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    const double k = origin[axis] +
-                        (played[axis].values == nullptr ? 0.0 : played[axis].swept(when));
-                    found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] = k;
-                    square += k * k;
-                }
+                const double* k = &found[static_cast<size_t>(i) * 3];
+                const double square = k[0] * k[0] + k[1] * k[1] + k[2] * k[2];
                 if (nearest < 0.0 || square < nearest)
                 {
                     nearest = square;
                     index = i;
                 }
             }
+
+            if (nearest_out != nullptr)
+                *nearest_out = nearest;
 
             double when = delay + dwell * (static_cast<double>(index) + 0.5);
             if (nearest <= kEps * kEps)
@@ -492,10 +639,12 @@ namespace pulseq
              * not drive at all is the origin repeated. */
             drawn.at(0.0, played.times);
             played.values = &drawn.values;
+            Sweep along_axis;
+            along_axis.restart(played, 0.0);
             for (int i = 0; i < samples; ++i)
             {
                 const double when = delay + dwell * (static_cast<double>(i) + 0.5);
-                into[static_cast<size_t>(i)] = origin[axis] + played.swept(when);
+                into[static_cast<size_t>(i)] = origin[axis] + along_axis.upto(when);
             }
         }
         return out;
@@ -648,6 +797,64 @@ namespace pulseq
         const int32_t* events = seq.block_events();
         Played played[3];
 
+        /* Which instant each readout is referenced to.
+         *
+         * A readout is one definition played many times, and not every
+         * playout passes the centre of k-space: a phase encode far out never
+         * comes near it, and its own nearest sample is wherever the readout
+         * axis happens to cross, which moves with the encode. The playout
+         * that does pass the centre is the sequence's echo, and it fixes the
+         * instant for every playout of that readout -- so the profile is one
+         * shape the whole table shares rather than one registered per shot,
+         * and every shot is referenced to the same place in the trajectory.
+         *
+         * Keyed by the readout: which block definition, digitised how.
+         */
+        std::map<std::pair<int32_t, int32_t>, std::pair<double, double>> pivot;
+        if (scope == FovShiftScope::RfAndAdc)
+        {
+            const std::vector<int32_t>& block_defs = seq.instance_definitions();
+            const std::vector<int32_t>& adc_defs = seq.instance_adc_definitions();
+            double walking[3] = {origin[0], origin[1], origin[2]};
+            Played over[3];
+            for (int index = from; index <= to; ++index)
+            {
+                const int32_t* row =
+                    events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const Corners& drawn = corners[row[1 + axis]];
+                    over[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
+                    if (over[axis].values != nullptr)
+                        drawn.at(0.0, over[axis].times);
+                }
+
+                const int32_t adc_id = row[4];
+                const bool writes = exempt == nullptr ||
+                    exempt[static_cast<size_t>(index - from)] == 0;
+                if (adc_id > 0 && writes)
+                {
+                    const double* adc = seq.adc_library().row(adc_id);
+                    const int samples = static_cast<int>(adc[0]);
+                    if (samples > 0)
+                    {
+                        double nearest = 0.0;
+                        const double when = echo_at(
+                            over, walking, samples, adc[1], adc[2], &nearest);
+                        const size_t at = static_cast<size_t>(index) - 1;
+                        const std::pair<int32_t, int32_t> key = {
+                            at < block_defs.size() ? block_defs[at] : 0,
+                            at < adc_defs.size() ? adc_defs[at] : 0};
+                        auto found = pivot.find(key);
+                        if (found == pivot.end() || nearest < found->second.first)
+                            pivot[key] = {nearest, when};
+                    }
+                }
+
+                advance_walk(seq, row, over, walking);
+            }
+        }
+
         /** An axis whose gradient moves under an event, and what it was worth. */
         struct Turning
         {
@@ -659,8 +866,7 @@ namespace pulseq
         std::vector<Turning> turning;
         std::vector<double> moment;
         std::vector<double> added;
-
-        const std::vector<char>& uses = seq.rf_uses();
+        Sweep sweeping;
 
         for (int index = from; index <= to; ++index)
         {
@@ -737,13 +943,18 @@ namespace pulseq
                     added.assign(moment.size(), 0.0);
                     for (const Turning& axis : turning)
                     {
+                        /* The pulse's samples run forwards, so the corners
+                         * under them are walked once rather than once per
+                         * sample. */
+                        sweeping.restart(played[axis.axis], shift_m[axis.axis]);
                         for (size_t i = 0; i < moment.size(); ++i)
                         {
+                            double swept_here = 0.0;
+                            sweeping.upto(moment[i] + delay, &swept_here);
                             added[i] = turns(
                                 added[i] +
                                 turns(
-                                    played[axis.axis].swept_turns(
-                                        moment[i] + delay, shift_m[axis.axis]) -
+                                    swept_here -
                                     axis.slope * (moment[i] - rf[4]) * shift_m[axis.axis] -
                                     axis.swept));
                         }
@@ -770,9 +981,23 @@ namespace pulseq
                  * Fourier or asymmetric-echo readout is not. Anchoring there
                  * means the frequency and the phase alone place the centre of
                  * k-space where the shift asks, and the profile carries only
-                 * the curvature around it. */
-                const double echo =
-                    echo_at(played, origin, samples, dwell, delay);
+                 * the curvature around it.
+                 *
+                 * The instant is the readout's, worked out once in the pass
+                 * above from the playout that comes nearest the centre --
+                 * not this playout's own nearest sample, which for a phase
+                 * encode far out is wherever the readout axis crosses and
+                 * moves with the encode. */
+                const size_t at_block = static_cast<size_t>(index) - 1;
+                const std::vector<int32_t>& block_defs = seq.instance_definitions();
+                const std::vector<int32_t>& adc_defs = seq.instance_adc_definitions();
+                const std::pair<int32_t, int32_t> key = {
+                    at_block < block_defs.size() ? block_defs[at_block] : 0,
+                    at_block < adc_defs.size() ? adc_defs[at_block] : 0};
+                const auto known = pivot.find(key);
+                const double echo = known != pivot.end()
+                    ? known->second.second
+                    : echo_at(played, origin, samples, dwell, delay);
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
@@ -808,13 +1033,14 @@ namespace pulseq
                     added.assign(static_cast<size_t>(samples), 0.0);
                     for (const Turning& axis : turning)
                     {
+                        sweeping.restart(played[axis.axis], shift_m[axis.axis]);
                         for (int i = 0; i < samples; ++i)
                         {
                             const double when =
                                 delay + dwell * (static_cast<double>(i) + 0.5);
-                            const double left =
-                                played[axis.axis].swept_turns(when, shift_m[axis.axis]) -
-                                axis.swept -
+                            double swept_here = 0.0;
+                            sweeping.upto(when, &swept_here);
+                            const double left = swept_here - axis.swept -
                                 shift_m[axis.axis] * axis.slope * (when - axis.at);
                             added[static_cast<size_t>(i)] = turns(
                                 added[static_cast<size_t>(i)] + turns(left));
@@ -837,43 +1063,10 @@ namespace pulseq
              *
              * Both are carried: the phase is counted from the one, and the
              * echo a readout is referenced to is found on the other. */
-            double whole[3] = {0.0, 0.0, 0.0};
-            double before[3] = {0.0, 0.0, 0.0};
-            double at_pulse[3];
-
-            double acts_at = -1.0;
-            char use = 'u';
-            if (rf_id > 0)
-            {
-                const double* rf = seq.rf_library().row(rf_id);
-                acts_at = rf[5] + rf[4];
-                use = rf_id <= static_cast<int32_t>(uses.size())
-                    ? uses[static_cast<size_t>(rf_id) - 1]
-                    : 'u';
-            }
-
+            double swept[3];
+            advance_walk(seq, row, played, origin, swept);
             for (int axis = 0; axis < 3; ++axis)
-            {
-                if (played[axis].values != nullptr)
-                {
-                    whole[axis] = played[axis].swept(1e30);
-                    if (acts_at >= 0.0)
-                        before[axis] = played[axis].swept(acts_at);
-                }
-                carry[axis] += whole[axis];
-                at_pulse[axis] = origin[axis] + before[axis];
-            }
-
-            if (acts_at >= 0.0 && advance_origin(use, at_pulse, origin))
-            {
-                for (int axis = 0; axis < 3; ++axis)
-                    origin[axis] += whole[axis] - before[axis];
-            }
-            else
-            {
-                for (int axis = 0; axis < 3; ++axis)
-                    origin[axis] += whole[axis];
-            }
+                carry[axis] += swept[axis];
         }
     }
 

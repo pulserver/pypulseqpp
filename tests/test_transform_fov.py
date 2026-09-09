@@ -650,6 +650,148 @@ def test_an_exempt_block_keeps_the_phase_it_was_designed_with(system):
     assert abs(float(moved.get_block(4).adc.freq_offset)) > 0.0
 
 
+def acquired_against_its_excitation(moved, excitation, readout, shift, k):
+    """A readout's phase measured from the phase its own excitation was given.
+
+    The physical quantity. Which origin the two are counted from is a choice
+    -- shift both and nothing observable moves -- so only their difference
+    means anything, and it has to come out as ``dr . k`` with ``k`` counted
+    from that excitation.
+    """
+    block = moved.get_block(readout)
+    return wrapped(
+        receive_phase(block)
+        - float(moved.get_block(excitation).rf.phase_offset) / TURN
+        - float(shift) * k
+    )
+
+
+def test_every_playout_of_a_readout_shares_one_reference(system):
+    """The echo belongs to the readout, not to the playout.
+
+    Not every playout passes the centre of k-space. Here each shot has its
+    own prewinder, so each crosses the readout axis at its own instant and a
+    pivot chosen per playout would be five different instants -- and five
+    phase profiles registered for one readout. The playout that comes
+    nearest the centre fixes the instant for all of them, so the table
+    shares one shape, and every shot is still acquired at the phase the
+    shift asks for.
+    """
+    shift = 0.011
+    gx = flat("x", 5000, 1.4e-3, system)
+    samples = 192
+    adc = pp.make_adc(
+        samples,
+        duration=float(gx.rise_time) + float(gx.flat_time),
+        delay=0.0,
+        system=system,
+    )
+    prewinders = (-200, -600, -900, -1400, -1900)
+
+    seq = pp.Sequence(system)
+    for area in prewinders:
+        seq.add_block(sinc(system))
+        seq.add_block(trap("x", area, system, duration=1e-3))
+        seq.add_block(gx, adc)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+
+    # Each shot's own nearest sample is somewhere else.
+    nearest = [
+        int(np.argmin(np.abs(k[shot * samples : (shot + 1) * samples])))
+        for shot in range(len(prewinders))
+    ]
+    assert len(set(nearest)) == len(prewinders)
+
+    # One profile between them, and every shot right.
+    profiles = {
+        np.asarray(moved.get_block(3 + 3 * shot).adc.phase_modulation).tobytes()
+        for shot in range(len(prewinders))
+    }
+    assert len(profiles) == 1
+    for shot in range(len(prewinders)):
+        np.testing.assert_allclose(
+            acquired_against_its_excitation(
+                moved,
+                1 + 3 * shot,
+                3 + 3 * shot,
+                shift,
+                k[shot * samples : (shot + 1) * samples],
+            ),
+            0.0,
+            atol=5e-6,
+        )
+
+
+def test_a_readout_is_acquired_against_the_phase_its_excitation_was_given(system):
+    """Two repetitions of one thing are acquired at one phase.
+
+    A readout and its excitation are counted from the same place, so the
+    place itself is a global phase and cancels. Count them from different
+    places -- restart at the excitation for one and not the other -- and two
+    repetitions of the same thing come out different.
+    """
+    shift = 0.013
+    gx = flat("x", 5000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=float(gx.rise_time), system=system)
+    seq = pp.Sequence(system)
+    for _ in range(3):
+        seq.add_block(sinc(system))
+        seq.add_block(trap("x", -2500, system, duration=2e-3))
+        seq.add_block(gx, adc)
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+    for shot in range(3):
+        np.testing.assert_allclose(
+            acquired_against_its_excitation(
+                moved, 1 + 3 * shot, 3 + 3 * shot, shift, k[shot * 64 : (shot + 1) * 64]
+            ),
+            0.0,
+            atol=1e-9,
+        )
+
+
+def test_a_readout_of_many_corners_is_walked_once(system):
+    """An arbitrary path costs its samples plus its corners, not their product.
+
+    A spiral samples every raster tick of a waveform that turns at every one
+    of them, so a sweep restarted at the first corner for each sample is
+    quadratic in the readout. What is held here is the answer; the cost is
+    `benchmarks/`.
+    """
+    shift, samples = 0.011, 4000
+    raster = system.grad_raster_time
+    along = np.arange(samples) * raster
+    span = along[-1]
+    turning = 2.0 * math.pi * 8.0 * along / span
+    radius = along / span
+    windowed = np.sin(math.pi * along / span) ** 2
+    gx = np.gradient(radius * np.cos(turning), raster) * windowed
+    gy = np.gradient(radius * np.sin(turning), raster) * windowed
+    scale = min(
+        0.9 * system.max_grad / max(np.abs(gx).max(), np.abs(gy).max()),
+        0.9
+        * system.max_slew
+        / (max(np.abs(np.diff(gx)).max(), np.abs(np.diff(gy)).max()) / raster),
+    )
+
+    seq = pp.Sequence(system)
+    seq.add_block(sinc(system))
+    seq.add_block(
+        pp.make_arbitrary_grad("x", gx * scale, system=system, first=0.0, last=0.0),
+        pp.make_arbitrary_grad("y", gy * scale, system=system, first=0.0, last=0.0),
+        pp.make_adc(samples, dwell=raster, delay=0.0, system=system),
+    )
+
+    moved = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(seq)
+    k = np.asarray(seq.calculate_kspace()[0])[0]
+    np.testing.assert_allclose(
+        acquired_against_its_excitation(moved, 1, 2, shift, k), 0.0, atol=1e-4
+    )
+
+
 # %% the three together
 
 
