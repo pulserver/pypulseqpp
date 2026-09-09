@@ -237,16 +237,24 @@ reading as though they are. Here the pad is placed only where a waveform
 begins away from zero, which is where a step onto it is needed at all, so a
 trapezoid encloses its area wherever it is played.
 
-Two consequences are in the tests. `tests/test_kspace.py` compares the
-trajectory as a set of moments rather than a list, because the toolbox reports
-one raster tick this package does not -- the tick its own pad brings a sloping
-stretch back across -- and allows the width of the leak where the two differ.
-And two reference sequences have their reports decided by it: the four
-repetitions of `inversion_recovery_train` have k-space centres agreeing to
-twelve figures, and which is nearest the origin fixes TE and TR; the leak
-biases the first, so the toolbox picks the second and reports a TR one
-repetition longer. `gre_with_noise_scan` is the same at a rounding boundary.
-Both are skipped, naming the reason.
+Two consequences are in the tests, and neither is skipped: where the toolbox
+is wrong the expectation says what is right and why.
+
+`tests/test_kspace.py` compares the trajectory as a set of moments rather than
+a list, because the toolbox reports one raster tick this package does not --
+the tick its own pad brings a sloping stretch back across -- and allows the
+width of the leak where the two differ.
+
+Two reference reports are decided by it outright. The four repetitions of
+`inversion_recovery_train` have k-space centres agreeing to twelve figures,
+and which is nearest the origin fixes the echo; the spacing after it is what
+the report calls TR, and the train's spacings are 0.537, 0.557 and 0.607
+seconds -- it has no one TR. The leak biases the first repetition, so the
+toolbox settles on the second and answers 0.557; without it the four agree and
+the first wins, 0.537. And `gre_with_noise_scan` resolves exactly 9.375 mm
+along one axis, which is what this package computes to the bit: printed to two
+places that is a tie and rounds to even, 9.38, where the toolbox's extent
+carries the leak and comes out a hair under the tie, 9.37.
 
 ## Where a name differs from the toolbox
 
