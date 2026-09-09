@@ -17,7 +17,6 @@ from pypulseqpp.sequences.readout.navigator import PLANES
 needs_host = pytest.mark.skip(
     reason="drives a host sequence from the console package, which is not here"
 )
-needs_labels = pytest.mark.skip(reason="Sequence.evaluate_labels is not here yet")
 
 
 @pytest.fixture
@@ -49,7 +48,6 @@ def test_the_three_planes_are_mutually_orthogonal(navigator):
     assert sorted(normals) == [0, 1, 2], "two planes share a normal"
 
 
-@needs_labels
 def test_the_navigator_flag_is_cleared_before_the_scan_resumes(navigator, system):
     """A label is sequence state, not a property of the block that sets it. A
     navigator that left ``NAV`` set would have every imaging readout after it
