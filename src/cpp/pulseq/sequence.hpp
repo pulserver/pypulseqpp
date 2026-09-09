@@ -1092,6 +1092,14 @@ namespace pulseq
 
         /** Id for @p name, appending it to this sequence's table if new. */
         int label_id(const std::string& name);
+        /**
+         * Id for @p name without appending; 0 if this sequence has no such
+         * label.
+         *
+         * What `label_id` cannot answer: a name nothing in the sequence
+         * carries has no id, and asking for one should not invent it.
+         */
+        int find_label_id(const std::string& name) const;
         /** The name id @p id was registered under, or empty. */
         const std::string& label_name(int id) const;
         /** Whether @p id names something outside Pulseq's own table. */
