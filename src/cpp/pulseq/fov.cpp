@@ -239,7 +239,7 @@ namespace pulseq
          * row.
          */
         int phase_shape_with(
-            Sequence& seq, int existing, const std::vector<double>& added)
+            Sequence& seq, int existing, const std::vector<double>& added, double whole)
         {
             const ShapeLibrary& shapes = seq.shape_library();
             std::vector<double> samples(added.size(), 0.0);
@@ -252,8 +252,13 @@ namespace pulseq
                 for (size_t i = 0; i < samples.size() && i < held.size(); ++i)
                     samples[i] = held[i];
             }
+            /* Wrapped to one turn, in whatever a turn is here: an RF phase
+             * shape is stored in turns and an ADC's in radians. */
             for (size_t i = 0; i < samples.size(); ++i)
-                samples[i] = turns(samples[i] + added[i]);
+            {
+                const double sum = samples[i] + added[i];
+                samples[i] = sum - whole * std::floor(sum / whole);
+            }
             return seq.shape_library().append_raw(
                 samples.data(), static_cast<int>(samples.size()));
         }
@@ -385,6 +390,7 @@ namespace pulseq
             int axis;
             double slope;
             double swept;
+            double at;
         };
         std::vector<Turning> turning;
         std::vector<double> moment;
@@ -437,7 +443,7 @@ namespace pulseq
                         phase +
                         turns(swept - shift_m[axis] * slope * (at - delay)));
                     if (!steady)
-                        turning.push_back({axis, slope, swept});
+                        turning.push_back({axis, slope, swept, at});
                 }
                 rf[8] += frequency;
                 rf[9] += 2.0 * kPi * phase;
@@ -465,13 +471,14 @@ namespace pulseq
                         }
                     }
                     rf[2] = static_cast<double>(
-                        phase_shape_with(seq, static_cast<int>(rf[2]), added));
+                        phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0));
                 }
             }
 
             const int32_t adc_id = row[4];
             if (adc_id > 0 && scope == FovShiftScope::RfAndAdc)
             {
+                turning.clear();
                 double* adc = seq.adc_library().row(adc_id);
                 const double delay = adc[2];
                 const double middle = delay + 0.5 * adc[1] * adc[0];
@@ -481,17 +488,54 @@ namespace pulseq
                 {
                     if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
                         continue;
-                    const double at =
-                        played[axis].constant_over(delay, middle) ? delay : middle;
+                    const bool steady = played[axis].constant_over(delay, middle);
+                    const double at = steady ? delay : middle;
                     const double slope = played[axis].at(at);
+                    const double swept = played[axis].swept_turns(at, shift_m[axis]);
                     frequency += shift_m[axis] * slope;
                     phase = turns(
-                        phase + turns(
-                            played[axis].swept_turns(at, shift_m[axis]) -
-                            shift_m[axis] * slope * (at - delay)));
+                        phase +
+                        turns(swept - shift_m[axis] * slope * (at - delay)));
+                    if (!steady)
+                        turning.push_back({axis, slope, swept, at});
                 }
                 adc[5] += frequency;
                 adc[6] += 2.0 * kPi * phase;
+
+                if (!turning.empty())
+                {
+                    /* What a frequency and a phase cannot say. Under a
+                     * gradient that does not move this is identically zero,
+                     * which is why a Cartesian readout costs two numbers and
+                     * carries no shape at all.
+                     *
+                     * The reconstructor does not need this -- it has the
+                     * trajectory and applies the shift itself, which is what
+                     * lets it re-apply one without the sequence being touched
+                     * again. It is here because a file handed to another
+                     * toolbox has nobody to do that for it. */
+                    const int samples = static_cast<int>(adc[0]);
+                    const double dwell = adc[1];
+                    added.assign(static_cast<size_t>(samples), 0.0);
+                    for (const Turning& axis : turning)
+                    {
+                        for (int i = 0; i < samples; ++i)
+                        {
+                            const double when =
+                                delay + dwell * (static_cast<double>(i) + 0.5);
+                            const double left =
+                                played[axis.axis].swept_turns(when, shift_m[axis.axis]) -
+                                axis.swept -
+                                shift_m[axis.axis] * axis.slope * (when - axis.at);
+                            added[static_cast<size_t>(i)] = turns(
+                                added[static_cast<size_t>(i)] + turns(left));
+                        }
+                    }
+                    for (size_t i = 0; i < added.size(); ++i)
+                        added[i] *= 2.0 * kPi;
+                    adc[7] = static_cast<double>(phase_shape_with(
+                        seq, static_cast<int>(adc[7]), added, 2.0 * kPi));
+                }
             }
 
             /* What this block swept, added to the unbroken running total.
