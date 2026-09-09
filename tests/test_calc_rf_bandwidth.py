@@ -46,13 +46,29 @@ def test_a_sinc_is_as_wide_as_its_time_bandwidth_product_says(time_bw_product):
     assert bandwidth == pytest.approx(time_bw_product / duration, rel=0.15)
 
 
-def test_a_shaped_pulse_is_answered_by_upstream_unchanged():
-    """Nothing is stood in for where upstream resolves the pulse itself."""
+def test_a_shaped_pulse_is_answered_within_a_bin_of_upstream():
+    """The flanks move by less than the grid they are found on."""
     sinc = pp.make_sinc_pulse(math.pi / 2, duration=2e-3, time_bw_product=4)
     theirs = upstream.make_sinc_pulse(math.pi / 2, duration=2e-3, time_bw_product=4)
 
-    assert pp.calc_rf_bandwidth(sinc) == pytest.approx(
-        float(np.ravel(upstream.calc_rf_bandwidth(theirs))[0])
+    assert pp.calc_rf_bandwidth(sinc, dw=10) == pytest.approx(
+        float(np.ravel(upstream.calc_rf_bandwidth(theirs, dw=10))[0]), abs=2 * 10
+    )
+
+
+@pytest.mark.parametrize("dw", [0.5, 5, 25, 50])
+def test_the_answer_does_not_depend_on_the_resolution_it_was_measured_at(dw):
+    """A flank is a smooth function, so where it crosses is not a bin index.
+
+    Rounding to the nearest bin instead makes the answer's precision the bin
+    width, and the only way to buy precision is a finer grid -- which is the
+    whole cost, since the grid is what is transformed. At a 2 us raster,
+    0.5 Hz is a million points.
+    """
+    slr = pp.make_slr_pulse(math.pi / 15, duration=3e-3, time_bw_product=4)
+
+    assert pp.calc_rf_bandwidth(slr, dw=dw) == pytest.approx(
+        pp.calc_rf_bandwidth(slr, dw=0.5), rel=1e-3
     )
 
 
