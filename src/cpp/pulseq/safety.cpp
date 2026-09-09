@@ -249,7 +249,7 @@ namespace pulseq
                 edges_.erase(std::unique(edges_.begin(), edges_.end()), edges_.end());
 
                 turned_ = false;
-                const int32_t rotation = row[BLOCK_WIDTH - 1];
+                const int32_t rotation = row[BLOCK_ROTATION_COLUMN];
                 if (rotation >= 1 && rotation <= seq_.rotation_library().size())
                 {
                     turned_ = true;
@@ -453,7 +453,7 @@ namespace pulseq
             for (int index = 0; index < blocks; ++index)
             {
                 const int32_t* row = events + static_cast<size_t>(index) * BLOCK_WIDTH;
-                const int32_t rotation = row[BLOCK_WIDTH - 1];
+                const int32_t rotation = row[BLOCK_ROTATION_COLUMN];
                 const bool turned =
                     rotation >= 1 && rotation <= seq.rotation_library().size();
 
@@ -555,7 +555,7 @@ namespace pulseq
 
             /* A block that turns its gradients plays them on other axes, and
              * it is the axis an amplifier drives that has to carry on. */
-            const int32_t turned = row[BLOCK_WIDTH - 1];
+            const int32_t turned = row[BLOCK_ROTATION_COLUMN];
             if (turned >= 1 && turned <= seq.rotation_library().size())
             {
                 double matrix[3][3];

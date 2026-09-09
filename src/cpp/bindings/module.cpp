@@ -302,6 +302,30 @@ namespace
 
 } // namespace
 
+namespace
+{
+
+    /**
+     * One promoted column of the block table, as a view onto the table.
+     *
+     * An extension promoted to a column is still an extension in the file;
+     * the column is how often it is asked for. Handing it back strided rather
+     * than copied keeps that true of the answer as well.
+     */
+    py::array_t<int32_t> promoted_column(const Sequence& self, int column)
+    {
+        auto buffer = self.block_events_buffer();
+        const int32_t* first = buffer->data() + column;
+        const py::ssize_t item = static_cast<py::ssize_t>(sizeof(int32_t));
+        return py::array_t<int32_t>(
+            {static_cast<py::ssize_t>(self.num_blocks())},
+            {item * pulseq::BLOCK_WIDTH},
+            first,
+            keep_alive_capsule(std::move(buffer)));
+    }
+
+} // namespace
+
 PYBIND11_MODULE(_ext, module)
 {
     module.doc() = "Compiled sequence core for pypulseqpp";
@@ -579,16 +603,16 @@ PYBIND11_MODULE(_ext, module)
                 /* The rotation each block turns its gradients by, as a column
                  * of the same table -- a rotation is an extension in the file
                  * and stays one, and this is how often it is asked for. */
-                auto buffer = self.block_events_buffer();
-                const int32_t* first = buffer->data() + pulseq::BLOCK_WIDTH - 1;
-                const py::ssize_t item = static_cast<py::ssize_t>(sizeof(int32_t));
-                return py::array_t<int32_t>(
-                    {static_cast<py::ssize_t>(self.num_blocks())},
-                    {item * pulseq::BLOCK_WIDTH},
-                    first,
-                    keep_alive_capsule(std::move(buffer)));
+                return promoted_column(self, pulseq::BLOCK_ROTATION_COLUMN);
             },
             "Per block, the rotation row it turns its gradients by; 0 for none.")
+        .def(
+            "block_shims",
+            [](const Sequence& self) {
+                return promoted_column(self, pulseq::BLOCK_SHIM_COLUMN);
+            },
+            "Per block, the RF shim row its pulse is played through; 0 for "
+            "none.")
         .def(
             "block_durations",
             [](const Sequence& self) {

@@ -86,17 +86,21 @@ namespace pulseq
     constexpr int BLOCK_FILE_COLUMNS = 6;
 
     /**
-     * The block table's columns: the six a file carries, then the rotation.
+     * The block table's columns: the six a file carries, then the promoted.
      *
-     * A rotation is an extension, and it stays one -- it is written and read
-     * as one, and the chain still names it, so nothing about the format
-     * changes. It is *also* a column here because of how often it is asked
-     * for: expanding a waveform, weighing a slew rate and following a
-     * trajectory all need to know whether a block turns its gradients before
-     * they can do anything with them, and walking an extension chain to find
-     * out costs a pointer chase per block. One column answers it.
+     * A rotation and an RF shim are extensions, and they stay extensions --
+     * they are written and read as ones, and the chain still names them, so
+     * nothing about the format changes. They are *also* columns here because
+     * of how often they are asked for, and how early: expanding a waveform,
+     * weighing a slew rate and following a trajectory all need to know
+     * whether a block turns its gradients before they can do anything with
+     * them, and anything that materialises a pulse needs its shim the same
+     * way. Walking an extension chain to find out costs a pointer chase per
+     * block. One column answers it.
      */
-    constexpr int BLOCK_WIDTH = 7;
+    constexpr int BLOCK_ROTATION_COLUMN = 6;
+    constexpr int BLOCK_SHIM_COLUMN = 7;
+    constexpr int BLOCK_WIDTH = 8;
 
     /**
      * The rotation a quaternion stands for, as a matrix.
@@ -828,9 +832,11 @@ namespace pulseq
         int32_t gz = 0;
         int32_t adc = 0;
         int32_t ext = 0;
-        /** The rotation row this block turns its gradients by; 0 for none.
-         *  Also in the extension chain, which is what the file carries. */
+        /** The rotation row this block turns its gradients by, and the shim
+         *  row its pulse is played through; 0 for none. Both are also in the
+         *  extension chain, which is what the file carries. */
         int32_t rot = 0;
+        int32_t shim = 0;
         double duration = 0.0;
     };
 
@@ -1748,8 +1754,8 @@ namespace pulseq
          */
         std::vector<uint8_t> chain_carries_trigger_;
 
-        /** Refill the block table's rotation column from the chains. */
-        void refill_block_rotations();
+        /** Refill the block table's promoted columns from the chains. */
+        void refill_block_promotions();
 
         /** Refill chain_carries_trigger_ from the chains as they stand. */
         void recompute_chain_triggers();
@@ -1765,38 +1771,52 @@ namespace pulseq
          */
         int trigger_type_id_ = 0;
 
-        /** The id of the `ROTATIONS` type, held for the same reason. */
-        int rotation_type_id_ = 0;
-
         /**
-         * Per chain node, the rotation the chain from there names; 0 for none.
+         * An extension type that is also a column of the block table.
          *
-         * Read off as a block is stored, so the block table's rotation column
-         * costs a lookup rather than a walk, and a block asked later which
-         * way it turns its gradients does not walk anything at all.
+         * What a chain names is read off as the chain is built, so storing a
+         * block costs a lookup rather than a walk and a block asked later
+         * which way it turns, or what shim it plays through, reads a column.
+         * Held per type rather than named one by one so that promoting a
+         * third is this list and the width.
          */
-        std::vector<int32_t> chain_rotation_;
-
-        /** Refill chain_rotation_ from the chains as they stand. */
-        void recompute_chain_rotations();
-
-        /** The rotation the chain headed by @p ext names; 0 for none. */
-        int32_t rotation_in_chain(int32_t ext) const
+        struct Promoted
         {
+            const char* name;   /**< the type's name in the file */
+            int column;         /**< the block table column it fills */
+            int type_id = 0;    /**< its id here; 0 while nothing claims it */
+            /** Per chain node, the row the chain from there names; 0 none. */
+            std::vector<int32_t> named;
+        };
+
+        std::array<Promoted, 2> promoted_{
+            {{"ROTATIONS", BLOCK_ROTATION_COLUMN},
+             {"RF_SHIMS", BLOCK_SHIM_COLUMN}}};
+
+        /** Refill every promoted column's chain cache as the chains stand. */
+        void recompute_chain_promotions();
+
+        /** The row promoted type @p which is named at by chain head @p ext. */
+        int32_t promoted_in_chain(size_t which, int32_t ext) const
+        {
+            const std::vector<int32_t>& named = promoted_[which].named;
             const size_t node = static_cast<size_t>(ext) - 1;
-            return ext >= 1 && node < chain_rotation_.size() ? chain_rotation_[node] : 0;
+            return ext >= 1 && node < named.size() ? named[node] : 0;
         }
 
-        /** Note a chain node's trigger flag and rotation as it is appended. */
+        /** Note a chain node's trigger flag and promotions as it is appended. */
         void note_chain(int32_t type_id, int32_t ref, int32_t next)
         {
             const size_t behind = static_cast<size_t>(next) - 1;
-            chain_rotation_.push_back(
-                rotation_type_id_ != 0 && type_id == rotation_type_id_
-                    ? ref
-                    : (next >= 1 && behind < chain_rotation_.size()
-                           ? chain_rotation_[behind]
-                           : 0));
+            for (Promoted& column : promoted_)
+            {
+                column.named.push_back(
+                    column.type_id != 0 && type_id == column.type_id
+                        ? ref
+                        : (next >= 1 && behind < column.named.size()
+                               ? column.named[behind]
+                               : 0));
+            }
 
             // A tail this node cannot see is read as carrying one, on the
             // same grounds as is_pure_delay: too coarse is the answer that

@@ -51,6 +51,34 @@ what it would take:
 
 **Open.** `sound`, deferred with `plot`.
 
+## Promoted extensions
+
+The block table carries two columns the file format knows nothing about: the
+rotation a block turns its gradients by, and the RF shim its pulse is played
+through. Both are still extensions -- written as ones, read as ones, named by
+the chain -- and the column is filled on the way in, so a round trip is byte
+for byte what it was.
+
+What earns a column is being wanted before anything else can happen: a
+gradient cannot be drawn without knowing which way it faces, a pulse cannot
+be materialised without its shim. `Sequence::Promoted` holds the list, so a
+third is an entry there and a wider `BLOCK_WIDTH`.
+
+Nothing yet reads the shim column: block decoding walks the chain once for
+every extension kind at once, which the column does not shorten. It is there
+for the RF materialisation path, which will want it the way the waveform
+expansion wants the rotation.
+
+The candidates that were weighed and left alone: `TRIGGERS`, which already
+has a per-chain-node cache and so is a lookup already; `DELAYS`, wanted only
+by `apply_soft_delay`, which is one pass over the whole sequence; and the
+control flags (`NOPOS`, `NOROT`, `NOSCL`, `PMC`, `ONCE`, `TRID`), which are
+not extension types at all but entries in the label table, carried by
+`LABELSET`/`LABELINC` like `LIN` and `SLC`. A label is running state -- set
+at one block, in force until changed -- so a column for one would be
+materialising an accumulated scan, which any earlier `set_block` invalidates.
+That is a pass to run when something wants it, not a column.
+
 ## Safety
 
 `pypulseqpp.safety` has `check_max_grad`, `check_max_slew` and

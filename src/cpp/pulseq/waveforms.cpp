@@ -425,7 +425,7 @@ namespace pulseq
              * different waveform on each, not this one moved. Which rotation
              * is a column of the block table, so this is a read rather than a
              * walk down the block's extension chain. */
-            const int32_t rotation_row = row[BLOCK_WIDTH - 1];
+            const int32_t rotation_row = row[BLOCK_ROTATION_COLUMN];
 
             const Corners* played[3] = {nullptr, nullptr, nullptr};
             Corners here[3];
