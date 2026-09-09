@@ -1133,6 +1133,29 @@ PYBIND11_MODULE(_ext, module)
         "is left at the end of the range.");
 
     module.def(
+        "absolute_trajectory",
+        [](const Sequence& sequence, int block, std::array<double, 3> origin) {
+            std::array<std::vector<double>, 3> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::absolute_trajectory(sequence, block, origin.data());
+            }
+            const py::ssize_t samples =
+                static_cast<py::ssize_t>(found[0].size());
+            py::array_t<double> out({static_cast<py::ssize_t>(3), samples});
+            auto view = out.mutable_unchecked<2>();
+            for (py::ssize_t axis = 0; axis < 3; ++axis)
+            {
+                for (py::ssize_t i = 0; i < samples; ++i)
+                    view(axis, i) = found[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("block"),
+        py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
+        "Where a readout samples k, per axis, in 1/m.");
+
+    module.def(
         "apply_fov_shift",
         [](Sequence& sequence, std::array<double, 3> shift, bool with_adc, int first,
            int last, std::array<double, 3> carry) {

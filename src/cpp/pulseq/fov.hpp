@@ -86,6 +86,34 @@ namespace pulseq
     std::vector<std::array<double, 3>> block_k_origins(
         const Sequence& seq, int first, int last, double carry[3]);
 
+    /**
+     * Where a readout samples k, per axis, in 1/m.
+     *
+     * The block's origin plus what its gradients sweep by each sample. This
+     * is what a reconstructor is handed instead of a phase: given the
+     * trajectory it forms `dr . k` itself, which means a prescription can
+     * change -- a new offset, a pose update from motion correction -- without
+     * the sequence being touched again, and it is the same array the metadata
+     * a reconstruction is enriched with wants anyway.
+     *
+     * Absolute rather than per-readout, so an interleave that never passes
+     * through the centre still carries coordinates the rest of the
+     * acquisition agrees with.
+     *
+     * In the logical frame, and the block's own `ROTATIONS` extension is not
+     * applied: it is the caller's, because a consumer that turns the
+     * trajectory usually wants to turn the shift with it, and turning both
+     * changes nothing.
+     *
+     * @param seq     The sequence to read.
+     * @param block   Which block, 1-based.
+     * @param origin  Where k stands entering it, from `block_k_origins`.
+     * @return One vector per axis, each as long as the readout has samples.
+     *         Empty for a block that does not acquire.
+     */
+    std::array<std::vector<double>, 3> absolute_trajectory(
+        const Sequence& seq, int block, const double origin[3]);
+
     /** What a shift is allowed to write on. */
     enum class FovShiftScope
     {

@@ -359,6 +359,49 @@ namespace pulseq
     }
 
 
+    std::array<std::vector<double>, 3> absolute_trajectory(
+        const Sequence& seq, int block, const double origin[3])
+    {
+        std::array<std::vector<double>, 3> out;
+        if (block < 1 || block > seq.num_blocks())
+            return out;
+
+        const int32_t* row =
+            seq.block_events() + static_cast<size_t>(block - 1) * BLOCK_WIDTH;
+        const int32_t adc_id = row[4];
+        if (adc_id <= 0)
+            return out;
+
+        const double* adc = seq.adc_library().row(adc_id);
+        const int samples = static_cast<int>(adc[0]);
+        const double dwell = adc[1];
+        const double delay = adc[2];
+        if (samples <= 0)
+            return out;
+
+        CornerCache corners(seq);
+        Played played;
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            const Corners& drawn = corners[row[1 + axis]];
+            std::vector<double>& into = out[static_cast<size_t>(axis)];
+            into.assign(static_cast<size_t>(samples), origin[axis]);
+            if (drawn.values.empty())
+                continue;
+            /* An axis that is flat across the window still sweeps k, so it
+             * gets its samples like any other; only an axis the block does
+             * not drive at all is the origin repeated. */
+            drawn.at(0.0, played.times);
+            played.values = &drawn.values;
+            for (int i = 0; i < samples; ++i)
+            {
+                const double when = delay + dwell * (static_cast<double>(i) + 0.5);
+                into[static_cast<size_t>(i)] = origin[axis] + played.swept(when);
+            }
+        }
+        return out;
+    }
+
     void apply_fov_shift(
         Sequence& seq,
         const double shift_m[3],
