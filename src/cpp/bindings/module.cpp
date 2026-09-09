@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "pulseq/analysis.hpp"
+#include "pulseq/fov.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/kspace.hpp"
@@ -1103,6 +1104,33 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("evolution") = "none", py::arg("first_block") = 1,
         py::arg("last_block") = 0, py::arg("start") = py::dict(),
         "What every label the sequence uses is set to, as an array per label.");
+
+    module.def(
+        "block_k_origins",
+        [](const Sequence& sequence, int first, int last,
+           std::array<double, 3> carry) {
+            std::vector<std::array<double, 3>> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::block_k_origins(sequence, first, last, carry.data());
+            }
+            py::array_t<double> out(
+                {static_cast<py::ssize_t>(found.size()), static_cast<py::ssize_t>(3)});
+            auto view = out.mutable_unchecked<2>();
+            for (py::ssize_t i = 0; i < static_cast<py::ssize_t>(found.size()); ++i)
+            {
+                for (py::ssize_t axis = 0; axis < 3; ++axis)
+                    view(i, axis) = found[static_cast<size_t>(i)][static_cast<size_t>(axis)];
+            }
+            py::dict answer;
+            answer["origins"] = out;
+            answer["carry"] = py::make_tuple(carry[0], carry[1], carry[2]);
+            return answer;
+        },
+        py::arg("sequence"), py::arg("first") = 1, py::arg("last") = 0,
+        py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
+        "Where the trajectory stands at the start of each block, and where it "
+        "is left at the end of the range.");
 
     module.def(
         "flip_angles",
