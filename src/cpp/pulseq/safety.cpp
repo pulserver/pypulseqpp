@@ -5,10 +5,11 @@
 
 #include "pulseq/safety.hpp"
 
-#include "pulseq/shape.hpp"
+#include "pulseq/corners.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 namespace pulseq
@@ -19,122 +20,21 @@ namespace pulseq
 
         constexpr double kEps = 1e-12;
 
-        /** One gradient's amplitude, however it is stored. */
-        double amplitude_of(const Sequence& seq, int32_t id)
+        /** What one gradient reaches on its own, over its own corners. */
+        struct Reach
         {
-            if (id <= 0 || id > seq.num_gradients())
-                return 0.0;
-            const int row = seq.grad_row(id);
-            return seq.grad_kind(id) == GradKind::Trap ? seq.trap_library().row(row)[0]
-                                                       : seq.arb_library().row(row)[0];
-        }
-
-        /**
-         * How fast a normalised waveform slews at its steepest, per unit
-         * amplitude, in 1/s.
-         *
-         * Worked out once per row of the arbitrary-gradient library and kept,
-         * because it belongs to the waveform rather than to the event: a
-         * readout played a hundred thousand times at a hundred thousand
-         * amplitudes asks this once and multiplies.
-         *
-         * How steep a step is depends on how long it has to happen in, so
-         * this is a property of the shape *and* the times it is played at --
-         * the pair, not either one. On the raster the interval is the raster;
-         * with a time shape of its own the samples can sit anywhere, and the
-         * closest two are what set the steepest step.
-         */
-        class NormalisedSlew
-        {
-        public:
-            NormalisedSlew(const Sequence& seq, double grad_raster)
-                : seq_(seq),
-                  raster_(grad_raster),
-                  known_(static_cast<size_t>(seq.arb_library().size()) + 1, -1.0)
-            {
-            }
-
-            double operator()(int row)
-            {
-                double& held = known_[static_cast<size_t>(row)];
-                if (held >= 0.0)
-                    return held;
-
-                held = 0.0;
-                const double* arb = seq_.arb_library().row(row);
-                const int shape = static_cast<int>(arb[3]);
-                const ShapeLibrary& shapes = seq_.shape_library();
-                if (shape < 1 || shape > shapes.size())
-                    return held;
-
-                const int time_shape = static_cast<int>(arb[4]);
-                if (time_shape <= 0)
-                {
-                    /* Evenly spaced: one interval for the whole waveform, and
-                     * the steepest step is the shape's own. A time id of -1
-                     * marks a waveform oversampled by two. */
-                    const double interval =
-                        time_shape == -1 ? raster_ / 2.0 : raster_;
-                    if (interval > kEps)
-                        held = shapes.normalised_slew(shape) / interval;
-                    return held;
-                }
-
-                const std::vector<double> waveform = decompress_shape(
-                    shapes.samples(shape),
-                    shapes.num_compressed(shape),
-                    shapes.num_uncompressed(shape));
-                const std::vector<double> ticks = decompress_shape(
-                    shapes.samples(time_shape),
-                    shapes.num_compressed(time_shape),
-                    shapes.num_uncompressed(time_shape));
-
-                for (size_t i = 1; i < waveform.size() && i < ticks.size(); ++i)
-                {
-                    const double over = (ticks[i] - ticks[i - 1]) * raster_;
-                    if (over > kEps)
-                        held = std::max(
-                            held, std::fabs(waveform[i] - waveform[i - 1]) / over);
-                }
-                return held;
-            }
-
-        private:
-            const Sequence& seq_;
-            double raster_;
-            std::vector<double> known_;
+            double amplitude = 0.0;
+            double slew = 0.0;
+            bool known = false;
         };
 
         /**
-         * How fast one gradient slews at its steepest, in Hz/m/s.
+         * Where a gradient starts and ends, in Hz/m.
          *
-         * A trapezoid's ramps are the whole of it: its amplitude over the
-         * shorter of the two. A waveform's is what its shape asks for at unit
-         * amplitude, times the amplitude this event plays it at.
+         * The recorded first and last value, which is what the restoration
+         * draws from and lands on, so this is the drawn waveform's own ends
+         * without drawing it.
          */
-        double slew_of(
-            const Sequence& seq, int32_t id, NormalisedSlew& normalised)
-        {
-            if (id <= 0 || id > seq.num_gradients())
-                return 0.0;
-            const int row = seq.grad_row(id);
-
-            if (seq.grad_kind(id) == GradKind::Trap)
-            {
-                const double* trap = seq.trap_library().row(row);
-                const double amplitude = std::fabs(trap[0]);
-                double steepest = 0.0;
-                if (trap[1] > kEps)
-                    steepest = std::max(steepest, amplitude / trap[1]);
-                if (trap[3] > kEps)
-                    steepest = std::max(steepest, amplitude / trap[3]);
-                return steepest;
-            }
-
-            return std::fabs(seq.arb_library().row(row)[0]) * normalised(row);
-        }
-
-        /** Where a gradient starts and ends, in Hz/m. */
         void edges_of(const Sequence& seq, int32_t id, double* first, double* last)
         {
             *first = 0.0;
@@ -180,8 +80,44 @@ namespace pulseq
         {
         public:
             BlockProfile(const Sequence& seq, double grad_raster)
-                : seq_(seq), raster_(grad_raster), shapes_(seq.shape_library())
+                : seq_(seq),
+                  corners_(seq, grad_raster),
+                  reach_(static_cast<size_t>(seq.num_gradients()) + 1)
             {
+            }
+
+            /**
+             * What gradient @p id reaches on its own, worked out once.
+             *
+             * A gradient draws the same corners every time it is played, so
+             * the strongest it gets and the fastest it changes belong to the
+             * event rather than to the block: a readout played a hundred
+             * thousand times costs one pass over its corners.
+             */
+            const Reach& alone(int32_t id)
+            {
+                if (id <= 0 || id > seq_.num_gradients())
+                    return nothing_;
+                Reach& found = reach_[static_cast<size_t>(id)];
+                if (found.known)
+                    return found;
+                found.known = true;
+
+                const Played drawn = played_by(id, scratch_);
+                for (size_t i = 0; i < drawn.count; ++i)
+                {
+                    found.amplitude = std::max(found.amplitude, std::fabs(drawn.values[i]));
+                    if (i == 0)
+                        continue;
+                    const double span = drawn.times[i] - drawn.times[i - 1];
+                    if (span > kEps)
+                    {
+                        found.slew = std::max(
+                            found.slew,
+                            std::fabs(drawn.values[i] - drawn.values[i - 1]) / span);
+                    }
+                }
+                return found;
             }
 
             /**
@@ -201,9 +137,7 @@ namespace pulseq
                 {
                     double here[3];
                     for (int axis = 0; axis < 3; ++axis)
-                    {
                         here[axis] = drawn(axis, edges_[i], at[static_cast<size_t>(axis)]);
-                    }
                     take(here, vector, axes);
                 }
             }
@@ -218,35 +152,118 @@ namespace pulseq
                 {
                     double here[3];
                     for (int axis = 0; axis < 3; ++axis)
-                    {
-                        here[axis] =
-                            sloped(axis, edges_[i], at[static_cast<size_t>(axis)]);
-                    }
+                        here[axis] = sloped(axis, edges_[i], at[static_cast<size_t>(axis)]);
                     take(here, vector, axes);
                 }
             }
 
         private:
             /**
+             * One gradient as the block plays it: the corners it turns, and
+             * how far into the block they fall.
+             *
+             * A view rather than a copy. The corners belong to the gradient
+             * and are held once for it; what the block adds is where they
+             * start, and a readout of ten thousand corners is not worth
+             * copying to say so.
+             */
+            struct Played
+            {
+                const double* times = nullptr;
+                const double* values = nullptr;
+                size_t count = 0;
+                double offset = 0.0;
+
+                double when(size_t i) const
+                {
+                    return times[i] + offset;
+                }
+            };
+
+            /**
+             * Where gradient @p id draws, timed from the start of its block.
+             *
+             * These are the corners an interpreter draws between, not the
+             * samples the file stores: a shape kept at the centre of each
+             * raster interval turns its corners half a raster from any sample
+             * it holds, and reaches values none of them do.
+             *
+             * @param own  Filled where the corner times are not already a run
+             *             of doubles to point at: a trapezoid's, which are
+             *             added up from its ramps, and the single instant an
+             *             "empty" trapezoid with an amplitude asks for.
+             */
+            Played played_by(int32_t id, std::vector<double>& own)
+            {
+                Played out;
+                const Corners& shape = corners_[id];
+                if (shape.empty_with_amplitude)
+                {
+                    /* No ramps and no flat top, but an amplitude: what it asks
+                     * for is that amplitude at an instant. The waveform
+                     * expansion warns about these; here it is the one point
+                     * there is. */
+                    own.assign(1, shape.delay);
+                    instant_ = shape.amplitude;
+                    out.times = own.data();
+                    out.values = &instant_;
+                    out.count = 1;
+                    return out;
+                }
+                if (shape.values.empty())
+                    return out;
+
+                out.values = shape.values.data();
+                out.count = shape.values.size();
+                if (shape.trapezoid)
+                {
+                    shape.at(0.0, own);
+                    out.times = own.data();
+                    return out;
+                }
+                out.times = shape.times.data();
+                out.offset = shape.delay;
+                return out;
+            }
+
+            /**
              * Read the block's three gradients and put their corners on one
              * time base.  @return whether there is anything to weigh.
+             *
+             * Each axis's corners are already in order, so the time base is a
+             * merge rather than a sort: what this walks is what the three of
+             * them hold, once.
              */
             bool gather(const int32_t* row)
             {
-                edges_.clear();
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    knots_of(
-                        row[1 + axis],
-                        times_[static_cast<size_t>(axis)],
-                        values_[static_cast<size_t>(axis)]);
-                    edges_.insert(
-                        edges_.end(),
-                        times_[static_cast<size_t>(axis)].begin(),
-                        times_[static_cast<size_t>(axis)].end());
+                    played_[static_cast<size_t>(axis)] =
+                        played_by(row[1 + axis], own_[static_cast<size_t>(axis)]);
                 }
-                std::sort(edges_.begin(), edges_.end());
-                edges_.erase(std::unique(edges_.begin(), edges_.end()), edges_.end());
+
+                edges_.clear();
+                size_t at[3] = {0, 0, 0};
+                for (;;)
+                {
+                    double next = std::numeric_limits<double>::infinity();
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        const Played& played = played_[static_cast<size_t>(axis)];
+                        if (at[static_cast<size_t>(axis)] < played.count)
+                            next = std::min(next, played.when(at[static_cast<size_t>(axis)]));
+                    }
+                    if (!(next < std::numeric_limits<double>::infinity()))
+                        break;
+                    edges_.push_back(next);
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        const Played& played = played_[static_cast<size_t>(axis)];
+                        size_t& i = at[static_cast<size_t>(axis)];
+                        while (i < played.count && played.when(i) <= next)
+                            ++i;
+                    }
+                }
 
                 turned_ = false;
                 const int32_t rotation = row[BLOCK_ROTATION_COLUMN];
@@ -267,8 +284,7 @@ namespace pulseq
                  * amplifier's share after it. */
                 *vector = std::max(
                     *vector,
-                    std::sqrt(
-                        here[0] * here[0] + here[1] * here[1] + here[2] * here[2]));
+                    std::sqrt(here[0] * here[0] + here[1] * here[1] + here[2] * here[2]));
                 if (turned_)
                     rotate(matrix_, here);
                 for (int axis = 0; axis < 3; ++axis)
@@ -281,138 +297,50 @@ namespace pulseq
             /** What axis @p axis is at at @p when, walking forward. */
             double drawn(int axis, double when, size_t& at) const
             {
-                const std::vector<double>& times = times_[static_cast<size_t>(axis)];
-                const std::vector<double>& values = values_[static_cast<size_t>(axis)];
+                const Played& played = played_[static_cast<size_t>(axis)];
                 /* An axis is at zero wherever this block is not playing on it. */
-                if (times.empty() || when + kEps < times.front() ||
-                    when > times.back() + kEps)
+                if (played.count == 0 || when + kEps < played.when(0) ||
+                    when > played.when(played.count - 1) + kEps)
                     return 0.0;
-                while (at + 1 < times.size() && times[at + 1] <= when + kEps)
+                while (at + 1 < played.count && played.when(at + 1) <= when + kEps)
                     ++at;
-                if (at + 1 >= times.size())
-                    return values.back();
-                const double span = times[at + 1] - times[at];
+                if (at + 1 >= played.count)
+                    return played.values[played.count - 1];
+                const double span = played.when(at + 1) - played.when(at);
                 if (span <= kEps)
-                    return values[at + 1];
-                return values[at] +
-                    (values[at + 1] - values[at]) * (when - times[at]) / span;
+                    return played.values[at + 1];
+                return played.values[at] +
+                    (played.values[at + 1] - played.values[at]) *
+                    (when - played.when(at)) / span;
             }
 
             /** What axis @p axis changes at from @p when.  See `drawn`. */
             double sloped(int axis, double when, size_t& at) const
             {
-                const std::vector<double>& times = times_[static_cast<size_t>(axis)];
-                const std::vector<double>& values = values_[static_cast<size_t>(axis)];
-                if (times.size() < 2 || when + kEps < times.front() ||
-                    when + kEps >= times.back())
+                const Played& played = played_[static_cast<size_t>(axis)];
+                if (played.count < 2 || when + kEps < played.when(0) ||
+                    when + kEps >= played.when(played.count - 1))
                     return 0.0;
-                while (at + 1 < times.size() && times[at + 1] <= when + kEps)
+                while (at + 1 < played.count && played.when(at + 1) <= when + kEps)
                     ++at;
-                const double span = times[at + 1] - times[at];
+                const double span = played.when(at + 1) - played.when(at);
                 /* A step that takes no time asks for an infinite rate, which
                  * is a fault of the event rather than a rate, and is left out
                  * here as it is everywhere else. */
                 if (span <= kEps)
                     return 0.0;
-                return (values[at + 1] - values[at]) / span;
-            }
-
-            /**
-             * One gradient as the points it turns a corner at: @p times and
-             * @p values are the same length, and the gradient is drawn
-             * straight between them.
-             */
-            void knots_of(
-                int32_t id, std::vector<double>& times, std::vector<double>& values)
-            {
-                times.clear();
-                values.clear();
-                if (id <= 0 || id > seq_.num_gradients())
-                    return;
-                const int row = seq_.grad_row(id);
-
-                if (seq_.grad_kind(id) == GradKind::Trap)
-                {
-                    const double* trap = seq_.trap_library().row(row);
-                    const double amplitude = trap[0];
-                    double when = trap[4];
-
-                    /* A trapezoid with no ramps and no flat top is no shape at
-                     * all, and what it asks for is its amplitude at an instant.
-                     * The waveform expansion warns about these; here it is the
-                     * one point there is. */
-                    if (trap[1] + trap[2] + trap[3] <= kEps)
-                    {
-                        if (std::fabs(amplitude) > kEps)
-                        {
-                            times.push_back(when);
-                            values.push_back(amplitude);
-                        }
-                        return;
-                    }
-
-                    times.push_back(when);
-                    values.push_back(0.0);
-                    /* A stretch that takes no time is a step rather than a
-                     * corner: it moves where the gradient already is. */
-                    const auto reach = [&](double span, double value) {
-                        if (span <= kEps)
-                        {
-                            values.back() = value;
-                            return;
-                        }
-                        when += span;
-                        times.push_back(when);
-                        values.push_back(value);
-                    };
-                    reach(trap[1], amplitude);
-                    reach(trap[2], amplitude);
-                    reach(trap[3], 0.0);
-                    return;
-                }
-
-                const double* arb = seq_.arb_library().row(row);
-                const double amplitude = arb[0];
-                const std::vector<double>& shape = shapes_[static_cast<int>(arb[3])];
-                if (shape.empty())
-                    return;
-                const int time_shape = static_cast<int>(arb[4]);
-                const double delay = arb[5];
-
-                if (time_shape <= 0)
-                {
-                    /* Evenly spaced, at the centre of each interval; a time id
-                     * of -1 marks a waveform oversampled by two. */
-                    const double interval = time_shape == -1 ? raster_ / 2.0 : raster_;
-                    if (interval <= kEps)
-                        return;
-                    times.reserve(shape.size());
-                    values.reserve(shape.size());
-                    for (size_t i = 0; i < shape.size(); ++i)
-                    {
-                        times.push_back(delay + (static_cast<double>(i) + 0.5) * interval);
-                        values.push_back(amplitude * shape[i]);
-                    }
-                    return;
-                }
-
-                const std::vector<double>& ticks = shapes_[time_shape];
-                const size_t count = std::min(shape.size(), ticks.size());
-                times.reserve(count);
-                values.reserve(count);
-                for (size_t i = 0; i < count; ++i)
-                {
-                    times.push_back(delay + ticks[i] * raster_);
-                    values.push_back(amplitude * shape[i]);
-                }
+                return (played.values[at + 1] - played.values[at]) / span;
             }
 
             const Sequence& seq_;
-            double raster_;
-            ShapeCache shapes_;
+            CornerCache corners_;
+            std::vector<Reach> reach_;
+            const Reach nothing_{};
             /* Kept across blocks so a scan allocates once. */
-            std::vector<double> times_[3];
-            std::vector<double> values_[3];
+            Played played_[3];
+            std::vector<double> own_[3];
+            std::vector<double> scratch_;
+            double instant_ = 0.0;
             std::vector<double> edges_;
             bool turned_ = false;
             double matrix_[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
@@ -426,11 +354,14 @@ namespace pulseq
         /**
          * Weigh every block, exactly, without weighing every block.
          *
-         * Each axis's own peak is one number read off its library row, and
-         * combining the three bounds what they reach together. The bound is
-         * reached only if the peaks fall together, which they need not -- so a
-         * block that beats it is asked what it really reaches, and a block
-         * that cannot beat what has been found already is not asked at all.
+         * Each gradient's own peak is one number worked out once for it, and
+         * what the three of them reach together is bounded by those: the
+         * vector by their root sum of squares, and each amplifier -- once a
+         * turn has spread all three over all three -- by what the rotation
+         * can send it. Neither bound is reached unless the peaks fall
+         * together, which they need not, so a block that beats one is asked
+         * what it really reaches and a block that beats none is not asked at
+         * all.
          *
          * @param seq      The sequence to weigh.
          * @param out      The report to fill: a GradientReport or a
@@ -457,31 +388,47 @@ namespace pulseq
                 const bool turned =
                     rotation >= 1 && rotation <= seq.rotation_library().size();
 
-                double bound = 0.0;
+                double reaches[3];
+                double squared = 0.0;
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    const double reaches = alone(row[1 + axis]);
-                    bound += reaches * reaches;
-                    /* Played as written, an amplifier is asked for exactly
-                     * what its own gradient asks for. Played turned, it is
-                     * asked for a share of all three, and only the block knows
-                     * what share. */
-                    if (!turned)
-                    {
-                        note(out.per_axis, reaches, index + 1, axis);
-                        note(
-                            out.axes[static_cast<size_t>(axis)], reaches, index + 1, axis);
-                    }
+                    reaches[axis] = alone(row[1 + axis]);
+                    squared += reaches[axis] * reaches[axis];
                 }
-                bound = std::sqrt(bound);
+                const double vector_bound = std::sqrt(squared);
 
-                double least = out.vector.value;
-                if (turned)
+                /* Played as written, an amplifier is asked for exactly what
+                 * its own gradient asks for, and there is nothing to bound.
+                 * Played turned, it is asked for a share of all three, and
+                 * the most the turn can send it is what bounds it. */
+                double axis_bound[3];
+                if (!turned)
                 {
                     for (int axis = 0; axis < 3; ++axis)
-                        least = std::min(least, out.axes[static_cast<size_t>(axis)].value);
+                    {
+                        axis_bound[axis] = 0.0;
+                        note(out.per_axis, reaches[axis], index + 1, axis);
+                        note(
+                            out.axes[static_cast<size_t>(axis)], reaches[axis], index + 1,
+                            axis);
+                    }
                 }
-                if (bound <= least)
+                else
+                {
+                    double matrix[3][3];
+                    rotation_matrix(seq.rotation_library().row(rotation), matrix);
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        axis_bound[axis] = std::fabs(matrix[axis][0]) * reaches[0] +
+                            std::fabs(matrix[axis][1]) * reaches[1] +
+                            std::fabs(matrix[axis][2]) * reaches[2];
+                    }
+                }
+
+                bool worth_asking = vector_bound > out.vector.value;
+                for (int axis = 0; axis < 3 && !worth_asking; ++axis)
+                    worth_asking = axis_bound[axis] > out.axes[static_cast<size_t>(axis)].value;
+                if (!worth_asking)
                     continue;
 
                 double vector = 0.0;
@@ -510,7 +457,7 @@ namespace pulseq
         BlockProfile profile(seq, seq.grad_raster_time());
         weigh_every_block(
             seq, out, profile, &BlockProfile::amplitude,
-            [&seq](int32_t id) { return std::fabs(amplitude_of(seq, id)); });
+            [&profile](int32_t id) { return profile.alone(id).amplitude; });
         return out;
     }
 
@@ -518,13 +465,12 @@ namespace pulseq
     {
         const double raster = limits.grad_raster_time > 0.0 ? limits.grad_raster_time
                                                             : seq.grad_raster_time();
-        NormalisedSlew normalised(seq, raster);
         BlockProfile profile(seq, raster);
 
         SlewReport out;
         weigh_every_block(
             seq, out, profile, &BlockProfile::slew,
-            [&](int32_t id) { return slew_of(seq, id, normalised); });
+            [&profile](int32_t id) { return profile.alone(id).slew; });
         return out;
     }
 

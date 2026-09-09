@@ -98,16 +98,28 @@ The cheap combination of the axes' own peaks is kept as a filter -- a block
 that cannot beat what has been found already is never walked -- which leaves
 the passes at tens of nanoseconds a block.
 
-One difference from a waveform-based answer is left, and it is the shapes
-rather than the arithmetic. What is weighed is the samples the sequence
-stores; an interpreter draws between them, and where a waveform's samples sit
-at the centre of each raster interval that drawing passes a little outside
-them and turns its corners half a raster from where the samples are. Across
-the reference zoo that is three parts in ten thousand on an amplitude and
-about a part in a thousand on a slew, all of it on `arbitrary_gradients`;
-across `tests/seq` it does not show at all. Closing it means a second shape
-statistic, the peak of the restored corners, computable once per shape the
-same way the slew is; it is not there yet.
+What is weighed is the waveform an interpreter draws, corner to corner, and
+not the samples the file stores. The two differ where a shape is kept at the
+centre of each raster interval: the corners are half a raster from any sample,
+and the drawn waveform passes outside all of them. `restore_shape_corners`
+puts them back, once per gradient rather than once per block, and `corners.cpp`
+is the one place that says what a gradient draws -- the waveform expansion
+reads it too. Across the reference zoo and `tests/seq` the checks now agree
+with the peaks taken from the expanded waveforms to within a part in a
+million, where they were three parts in ten thousand out on an amplitude and
+a part in a thousand on a slew.
+
+What that costs is the corner restoration, which is a pass over a shape and
+belongs to the gradient: on the corpus, twenty nanoseconds a block. A sequence
+that registers a waveform per shot instead of scaling one pays for each of
+them, the same way the waveform expansion does -- `remove_duplicates` is what
+makes it once. A rotated sequence of long waveforms is the one case that
+walks: a turned block's per-axis peaks are a support function over the
+instants it plays, and the bound that skips a block is loose for a rotation
+that sweeps. Twenty milliseconds for a six-hundred-shot rotated spiral. The
+convex hull of those instants, taken once per gradient triple, would answer
+every rotation from a handful of points; it is not there, and nothing has
+wanted it yet.
 
 Still to write: `calculate_pns` and `calc_rf_power`, and the mechanical
 resonance check. pulserver's C library has all three.

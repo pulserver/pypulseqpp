@@ -5,6 +5,8 @@
 
 #include "pulseq/waveforms.hpp"
 
+#include "pulseq/corners.hpp"
+
 #include "pulseq/shape.hpp"
 
 #include <algorithm>
@@ -30,38 +32,6 @@ namespace pulseq
             std::snprintf(printed, sizeof printed, "%.0f", 1e6 * seconds);
             return printed;
         }
-
-        /**
-         * One gradient's corners, relative to the start of its own delay.
-         *
-         * A gradient plays the same shape every time it is played -- only
-         * where it starts moves -- so the corners are worked out once per
-         * gradient and offset per block. For a readout repeated a hundred
-         * thousand times that turns the whole of `restore_shape_corners` into
-         * one pass instead of a hundred thousand.
-         */
-        struct Corners
-        {
-            std::vector<double> times;
-            std::vector<double> values;
-            double delay = 0.0;
-            bool known = false;
-            bool empty_with_amplitude = false;
-
-            /**
-             * A trapezoid's ramps, kept so its corners can be added up from
-             * where the block starts rather than offset from zero.
-             *
-             * `(start + rise) + flat` and `(rise + flat) + start` are not the
-             * same double, and a corner one bit out lands on the other side
-             * of `floor(t / raster)` -- which changes which raster points a
-             * trajectory is followed through. Four additions is nothing; the
-             * shape of a long waveform is what the cache is really for.
-             */
-            bool trapezoid = false;
-            double ramps[3] = {0.0, 0.0, 0.0};
-            double amplitude = 0.0;
-        };
 
         /** One channel of the answer, stitched together as pieces arrive. */
         struct Channel
@@ -213,92 +183,6 @@ namespace pulseq
 
     } // namespace
 
-    bool restore_shape_corners(
-        const std::vector<double>& waveform,
-        double first,
-        double last,
-        double raster,
-        std::vector<double>& times,
-        std::vector<double>& values)
-    {
-        const size_t count = waveform.size();
-        times.clear();
-        values.clear();
-        if (count == 0)
-            return true;
-
-        double peak = 0.0;
-        for (size_t i = 0; i < count; ++i)
-            peak = std::max(peak, std::fabs(waveform[i]));
-        const double threshold = 2e-5 * peak;
-
-        /* Each interval boundary from the one before it: b[i+1] = 2 s[i] - b[i],
-         * starting at the recorded first. Exact for a waveform that really was
-         * sampled at the centres, and drifting otherwise -- which is what the
-         * recorded last value is here to catch. */
-        std::vector<double> recurrence(count + 1);
-        recurrence[0] = first;
-        for (size_t i = 0; i < count; ++i)
-            recurrence[i + 1] = 2.0 * waveform[i] - recurrence[i];
-
-        std::vector<double> interpolated(count + 1);
-        interpolated[0] = first;
-        for (size_t i = 0; i + 1 < count; ++i)
-            interpolated[i + 1] = 0.5 * (waveform[i] + waveform[i + 1]);
-        interpolated[count] = last;
-
-        if (std::fabs(recurrence[count] - last) > threshold)
-        {
-            /* The recurrence did not land where the shape says it should, so
-             * the shape was not sampled the way this assumes. Give back the
-             * samples with the edges on and let the caller draw through them. */
-            times.push_back(0.0);
-            values.push_back(first);
-            for (size_t i = 0; i < count; ++i)
-            {
-                times.push_back((static_cast<double>(i) + 0.5) * raster);
-                values.push_back(waveform[i]);
-            }
-            times.push_back((static_cast<double>(count) - 0.5) * raster + raster / 2.0);
-            values.push_back(last);
-            return false;
-        }
-
-        std::vector<double> boundaries(count + 1);
-        const double tolerance = std::numeric_limits<double>::epsilon() + threshold;
-        for (size_t i = 0; i <= count; ++i)
-        {
-            boundaries[i] = std::fabs(recurrence[i] - interpolated[i]) <= tolerance
-                ? interpolated[i]
-                : recurrence[i];
-        }
-
-        /* Boundary, sample, boundary, sample, ... at half-raster spacing. */
-        std::vector<double> dense;
-        dense.reserve(2 * count + 1);
-        for (size_t i = 0; i < count; ++i)
-        {
-            dense.push_back(boundaries[i]);
-            dense.push_back(waveform[i]);
-        }
-        dense.push_back(boundaries[count]);
-
-        /* Keep the corners: a point its neighbours draw straight through adds
-         * nothing to a waveform played by interpolating. */
-        const size_t dense_count = dense.size();
-        for (size_t i = 0; i < dense_count; ++i)
-        {
-            const bool corner = i == 0 || i + 1 >= dense_count ||
-                std::fabs(dense[i + 1] - 2.0 * dense[i] + dense[i - 1]) > 1e-8;
-            if (corner)
-            {
-                times.push_back(static_cast<double>(i) * raster * 0.5);
-                values.push_back(dense[i]);
-            }
-        }
-        return true;
-    }
-
     Waveforms waveforms_and_times(const Sequence& seq, const WaveformOptions& options)
     {
         Waveforms out;
@@ -307,93 +191,9 @@ namespace pulseq
         const double rf_raster = seq.rf_raster_time();
         const double larmor = options.gamma * options.b0;
 
+
         ShapeCache shapes(seq.shape_library());
-
-        /** Every gradient's corners, worked out the first time it is played. */
-        std::vector<Corners> cached(static_cast<size_t>(seq.num_gradients()) + 1);
-        const auto corners_of = [&](int32_t id) -> const Corners& {
-            Corners& made = cached[static_cast<size_t>(id)];
-            if (made.known)
-                return made;
-            made.known = true;
-
-            if (seq.grad_kind(id) == GradKind::Trap)
-            {
-                const double* trap = seq.trap_library().row(seq.grad_row(id));
-                const double amplitude = trap[0];
-                const double rise = trap[1];
-                const double flat = trap[2];
-                const double fall = trap[3];
-                made.delay = trap[4];
-
-                made.trapezoid = true;
-                made.amplitude = amplitude;
-                if (std::fabs(flat) > kEps)
-                {
-                    made.ramps[0] = rise;
-                    made.ramps[1] = flat;
-                    made.ramps[2] = fall;
-                    made.values = {0.0, amplitude, amplitude, 0.0};
-                }
-                else if (std::fabs(rise) > kEps && std::fabs(fall) > kEps)
-                {
-                    made.ramps[0] = rise;
-                    made.ramps[1] = fall;
-                    made.values = {0.0, amplitude, 0.0};
-                }
-                else if (std::fabs(amplitude) > kEps)
-                {
-                    made.empty_with_amplitude = true;
-                }
-                return made;
-            }
-
-            const double* arb = seq.arb_library().row(seq.grad_row(id));
-            const double amplitude = arb[0];
-            const int shape = static_cast<int>(arb[3]);
-            const int time_shape = static_cast<int>(arb[4]);
-            made.delay = arb[5];
-
-            const std::vector<double>& normalised = shapes[shape];
-            std::vector<double> waveform(normalised.size());
-            for (size_t i = 0; i < normalised.size(); ++i)
-                waveform[i] = amplitude * normalised[i];
-
-            if (time_shape == 0)
-            {
-                /* Stored at the centre of each raster interval: the corners
-                 * in between have to be put back. */
-                restore_shape_corners(
-                    waveform, arb[1], arb[2], grad_raster, made.times, made.values);
-                return made;
-            }
-
-            const std::vector<double>& ticks = shapes[time_shape];
-            std::vector<double> tt(ticks.size());
-            for (size_t i = 0; i < ticks.size(); ++i)
-                tt[i] = ticks[i] * grad_raster;
-
-            /* Times of its own, but starting half a raster in: the shape says
-             * nothing about the edges, so the recorded first and last close it. */
-            const bool starts_at_a_centre =
-                !tt.empty() && std::fabs(tt[0] / grad_raster - 0.5) < 1e-6;
-            if (starts_at_a_centre)
-            {
-                made.times.push_back(0.0);
-                made.values.push_back(arb[1]);
-            }
-            for (size_t i = 0; i < tt.size(); ++i)
-            {
-                made.times.push_back(tt[i]);
-                made.values.push_back(waveform[i]);
-            }
-            if (starts_at_a_centre)
-            {
-                made.times.push_back(tt.empty() ? 0.0 : tt.back());
-                made.values.push_back(arb[2]);
-            }
-            return made;
-        };
+        CornerCache corners_of(seq);
 
         Channel channels[3];
         for (int axis = 0; axis < 3; ++axis)
@@ -434,7 +234,7 @@ namespace pulseq
                 const int32_t id = row[1 + axis];
                 if (id <= 0)
                     continue;
-                const Corners& shape = corners_of(id);
+                const Corners& shape = corners_of[id];
                 if (shape.empty_with_amplitude)
                 {
                     out.warnings.push_back(

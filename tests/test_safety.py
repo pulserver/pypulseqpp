@@ -385,6 +385,52 @@ def test_a_rotated_sequence_is_weighed_on_the_axes_it_plays(system):
     assert slew.axes[2].value == pytest.approx(0.0, abs=1e-6)
 
 
+# -- the shape stored and the shape drawn ----------------------------------
+
+
+def test_a_waveform_is_weighed_where_it_is_drawn_not_where_it_is_sampled(system):
+    """A shape kept at raster centres reaches values none of its samples do.
+
+    The samples say what the gradient is in the middle of each raster
+    interval; the interpreter draws between the interval *boundaries*, which
+    are half a raster away and follow from the samples rather than being any
+    of them. A waveform that curves can pass outside every sample it holds,
+    and it is the drawn waveform the amplifier plays.
+    """
+    waveform = 1e5 * np.sin(np.linspace(0, math.pi, 40)) ** 3
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_arbitrary_grad("x", waveform=waveform, system=system))
+
+    drawn = sequence.waveforms()[0]
+    _, grad = safety.check_max_grad(sequence)
+    _, slew = safety.check_max_slew(sequence)
+
+    # The drawn waveform really does overshoot what is stored, or this test
+    # would hold whichever of the two were weighed.
+    assert np.abs(drawn[1]).max() > np.abs(waveform).max() * 1.001
+
+    assert grad.axes[0].value == pytest.approx(np.abs(drawn[1]).max(), rel=1e-12)
+    assert slew.axes[0].value == pytest.approx(
+        np.abs(np.diff(drawn[1]) / np.diff(drawn[0])).max(), rel=1e-12
+    )
+
+
+def test_an_extended_trapezoid_is_drawn_through_the_samples_it_names(system):
+    """Times of its own means the samples *are* the corners, and stay so."""
+    times = np.array([0.0, 2e-4, 6e-4, 8e-4])
+    amplitudes = np.array([0.0, 8e4, 8e4, 0.0])
+    sequence = pp.Sequence(system)
+    sequence.add_block(
+        pp.make_extended_trapezoid("x", amplitudes=amplitudes, times=times)
+    )
+
+    drawn = sequence.waveforms()[0]
+    _, grad = safety.check_max_grad(sequence)
+
+    assert grad.axes[0].value == pytest.approx(np.abs(drawn[1]).max(), rel=1e-12)
+    assert grad.axes[0].value == pytest.approx(amplitudes.max())
+
+
 # -- what the three axes ask for together ----------------------------------
 
 

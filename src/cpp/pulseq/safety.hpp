@@ -10,16 +10,18 @@
  *
  * ### What the fork buys here
  *
- * A gradient is stored as a normalised shape and one amplitude, and the shape
- * is shared by every event that plays it. So the steepest step in a waveform
- * is a property of the *shape*, worked out once however many times it is
- * played, and what an instance slews at is that step times its own amplitude
- * over the interval between samples. A readout repeated a hundred thousand
- * times at a hundred thousand amplitudes costs one pass over its shape and a
- * multiply per block.
+ * What is weighed is the waveform an interpreter draws, corner to corner --
+ * not the samples the file stores, which are not the same thing: a shape kept
+ * at the centre of each raster interval turns its corners half a raster from
+ * any sample it holds, and passes outside all of them.
  *
- * The same is true of where a waveform starts and ends, which is what decides
- * whether one block's gradient continues the last one's or jumps.
+ * Drawing it is nevertheless cheap, because the corners belong to the
+ * gradient rather than to the block. An event plays the same shape every time
+ * it is played and only where it starts moves, so the corners are worked out
+ * once for it and read per block: a readout repeated a hundred thousand times
+ * costs one pass over `restore_shape_corners` and a walk per block. The same
+ * is true of the strongest it gets and the fastest it changes, which is what
+ * bounds the block without weighing it.
  */
 
 #ifndef PULSEQ_SAFETY_HPP

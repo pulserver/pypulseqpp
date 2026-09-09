@@ -10,12 +10,14 @@ the one it was designed against: a sequence written for one scanner is often
 the question "will this run on that one", and answering it should not mean
 building the sequence again.
 
-Nothing here expands a waveform. A gradient is stored as a normalised shape
-and one amplitude, so the steepest step in a waveform is a property of the
-shape -- worked out once however many times it is played -- and what an
-instance slews at is that step times its own amplitude. A readout repeated a
-hundred thousand times at a hundred thousand amplitudes costs one pass over
-its shape and a multiply per block.
+What is weighed is the waveform the interpreter draws, not the samples the
+file stores. The two are not the same: a shape kept at the centre of each
+raster interval turns its corners half a raster from any sample it holds, and
+passes outside all of them. But the corners belong to the gradient rather
+than to the block -- an event plays the same shape every time it is played,
+and only where it starts moves -- so they are worked out once for it and read
+per block. A readout repeated a hundred thousand times costs one pass over
+its corners.
 """
 
 from __future__ import annotations
@@ -87,12 +89,12 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     what the amplifiers would be asked for if the peaks happened at once,
     which they need not.
 
-    What is weighed is the samples the sequence stores. An interpreter draws
-    between them, and where a waveform's samples sit at the centre of each
-    raster interval that drawing can pass a little outside the outermost of
-    them -- by three parts in ten thousand across the reference sequences.
-    Reading it off the stored amplitudes is what makes this a pass over the
-    events a block names rather than over every waveform in the scan.
+    What is weighed is the waveform an interpreter draws, corner to corner,
+    which is not the samples the sequence stores: a shape kept at raster
+    centres passes outside every sample it holds. The corners belong to the
+    gradient, so this is still a pass over the events a block names rather
+    than over every waveform in the scan.
+
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_grad")

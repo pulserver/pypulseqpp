@@ -172,7 +172,6 @@ namespace pulseq
         first_.push_back(count > 0 ? samples[0] : 0.0);
         last_.push_back(count > 0 ? samples[count - 1] : 0.0);
         peak_.push_back(peak);
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
         return data_.append(samples, count);
     }
 
@@ -188,7 +187,6 @@ namespace pulseq
         first_.push_back(count > 0 ? row[0] : 0.0);
         last_.push_back(count > 0 ? row[count - 1] : 0.0);
         peak_.push_back(count > 0 ? 1.0 : 0.0);
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
         return id;
     }
 
@@ -229,7 +227,6 @@ namespace pulseq
         first_.push_back(std::numeric_limits<double>::quiet_NaN());
         last_.push_back(std::numeric_limits<double>::quiet_NaN());
         peak_.push_back(std::numeric_limits<double>::quiet_NaN());
-        slew_.push_back(std::numeric_limits<double>::quiet_NaN());
         return data_.append(samples, count);
     }
 
@@ -257,28 +254,6 @@ namespace pulseq
         *first = first_[i];
         *last = last_[i];
         *peak = peak_[i];
-    }
-
-    double ShapeLibrary::normalised_slew(int id) const
-    {
-        const size_t i = static_cast<size_t>(id) - 1;
-        if (std::isnan(slew_[i]))
-        {
-            const int n = num_uncompressed_[i];
-            const int count = data_.length(id);
-            std::vector<double> whole;
-            const double* w = data_.row(id);
-            if (count != n)
-            {
-                whole = decompress_shape(w, count, n);
-                w = whole.data();
-            }
-            double steepest = 0.0;
-            for (int k = 1; k < n; ++k)
-                steepest = std::max(steepest, std::fabs(w[k] - w[k - 1]));
-            slew_[i] = steepest;
-        }
-        return slew_[i];
     }
 
     std::vector<int32_t> ShapeLibrary::keep_first_appearances(const std::vector<int32_t>& first)
@@ -313,7 +288,6 @@ namespace pulseq
             first_[static_cast<size_t>(kept)] = first_[static_cast<size_t>(id) - 1];
             last_[static_cast<size_t>(kept)] = last_[static_cast<size_t>(id) - 1];
             peak_[static_cast<size_t>(kept)] = peak_[static_cast<size_t>(id) - 1];
-            slew_[static_cast<size_t>(kept)] = slew_[static_cast<size_t>(id) - 1];
             roles_[static_cast<size_t>(kept)] = roles_[static_cast<size_t>(id) - 1];
             ++kept;
         }
@@ -322,7 +296,6 @@ namespace pulseq
         first_.resize(static_cast<size_t>(kept));
         last_.resize(static_cast<size_t>(kept));
         peak_.resize(static_cast<size_t>(kept));
-        slew_.resize(static_cast<size_t>(kept));
         roles_.resize(static_cast<size_t>(kept));
         for (int id = 1; id <= total; ++id)
             new_id[static_cast<size_t>(id)] =

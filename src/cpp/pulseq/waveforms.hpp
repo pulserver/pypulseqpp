@@ -114,38 +114,6 @@ namespace pulseq
      */
     Waveforms waveforms_and_times(const Sequence& seq, const WaveformOptions& options);
 
-    /**
-     * Restore the corners of a gradient stored on the raster.
-     *
-     * A shape stored at the centre of each raster interval does not say what
-     * the gradient is at the interval boundaries, and those are where its
-     * slope changes. They follow from the samples and the recorded first and
-     * last value: each boundary is twice the sample before it less the
-     * boundary before that, which is exact when the shape really was sampled
-     * from a piecewise-linear waveform. Where that recurrence drifts -- it
-     * accumulates error, and the recorded last value is the check -- the
-     * average of the neighbouring samples is used instead.
-     *
-     * Points the waveform passes straight through are dropped, so what comes
-     * back is the corners and nothing else.
-     *
-     * @param waveform  The samples, at the centre of each raster interval.
-     * @param first     The value at the start of the first interval.
-     * @param last      The value at the end of the last.
-     * @param raster    The gradient raster time.
-     * @param times     Filled with the corner times, from zero.
-     * @param values    Filled with the corner values.
-     * @return False if the recurrence did not reach @p last, in which case
-     *         the samples are returned with the edges added and nothing else.
-     */
-    bool restore_shape_corners(
-        const std::vector<double>& waveform,
-        double first,
-        double last,
-        double raster,
-        std::vector<double>& times,
-        std::vector<double>& values);
-
 } // namespace pulseq
 
 #endif /* PULSEQ_WAVEFORMS_HPP */
