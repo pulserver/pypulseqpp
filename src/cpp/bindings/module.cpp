@@ -1133,6 +1133,26 @@ PYBIND11_MODULE(_ext, module)
         "is left at the end of the range.");
 
     module.def(
+        "apply_fov_scale",
+        [](Sequence& sequence, std::array<double, 3> scale, int first, int last) {
+            py::gil_scoped_release unlocked;
+            pulseq::apply_fov_scale(sequence, scale.data(), first, last);
+        },
+        py::arg("sequence"), py::arg("scale"), py::arg("first") = 1,
+        py::arg("last") = 0,
+        "Resize the field of view: one multiply per gradient row met.");
+
+    module.def(
+        "apply_fov_rotation",
+        [](Sequence& sequence, std::array<double, 4> quaternion, int first, int last) {
+            py::gil_scoped_release unlocked;
+            pulseq::apply_fov_rotation(sequence, quaternion.data(), first, last);
+        },
+        py::arg("sequence"), py::arg("quaternion"), py::arg("first") = 1,
+        py::arg("last") = 0,
+        "Turn the field of view, as an extension on each block.");
+
+    module.def(
         "absolute_trajectory",
         [](const Sequence& sequence, int block, std::array<double, 3> origin) {
             std::array<std::vector<double>, 3> found;

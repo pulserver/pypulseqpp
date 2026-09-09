@@ -292,6 +292,23 @@ else -- RF scalars, RF profiles, ADC scalars, spin echoes, all to the last
 bit. `tests/test_fov_shift.py` therefore compares against the identity rather
 than against the toolbox, and says so.
 
+### A rotation is an annotation
+
+`transform_fov` rotates the gradient waveforms themselves unless asked for the
+extension instead. `TransformFOV` only ever attaches the extension:
+`use_rotation_extension=False` is refused rather than implemented, because
+baking costs one set of waveforms per orientation where four numbers on a
+block let a thousand orientations share the trajectory they were designed
+from. Nothing downstream has to be told: `waveforms_and_times` combines the
+three stored axes through the block's own quaternion, and `calculate_kspace`
+integrates what it returns.
+
+`TransformFOV` is a class, so it is CamelCase where the toolbox spells it
+`transform_fov`, and `apply_to_seq` is the toolbox's name for
+`apply_to_sequence`. A prescription reads back as `quaternion`, `translation`
+and `scale`, each `None` where nothing was asked for, rather than as a matrix
+beside two empty arrays.
+
 ## Where a name differs from the toolbox
 
 `waveforms_and_times` and its family take `block_range`, where
@@ -350,10 +367,6 @@ evolution therefore reports final values.
 The module toolbox is in, and `tests/test_design_*.py` say what is still owed
 it. Each blocked test names the one thing it waits for:
 
-- **`TransformFOV`**, which the fat-saturation module uses to place a band on
-  an oblique slab. Ten tests skip.
-- **A block's rotation extension read back from `get_block`**, so a module can
-  ask whether a block turns. One test skips.
 - **A host to drive a sequence from**, which the navigator's tests reach for
   and which belongs to `pulserver` rather than here. Six tests skip.
 - **`tile`**, so a scan can write its averages out rather than leave them to

@@ -114,6 +114,38 @@ namespace pulseq
     std::array<std::vector<double>, 3> absolute_trajectory(
         const Sequence& seq, int block, const double origin[3]);
 
+    /**
+     * Resize the field of view by @p scale, per logical axis.
+     *
+     * A gradient is a normalised shape beside one amplitude, so this is a
+     * multiplication and the shapes are untouched -- which is the whole
+     * reason it is cheap. A scale of zero on an axis silences it, as the
+     * reference toolbox has it: the field of view along that axis is what the
+     * gradient divides, so no gradient is no encoding.
+     *
+     * Rows are rewritten rather than written over: a gradient belongs to
+     * every block that names it, and only the blocks in range are being
+     * resized. Deduplication collapses the copies afterwards.
+     */
+    void apply_fov_scale(
+        Sequence& seq, const double scale[3], int first, int last);
+
+    /**
+     * Turn the field of view by @p quaternion, scalar first.
+     *
+     * Attached to each block as a `ROTATIONS` extension rather than baked
+     * into new waveforms: baking would cost one waveform per orientation,
+     * where attaching costs four numbers and lets a thousand orientations
+     * share the one trajectory they were designed from.
+     *
+     * A block that already turns is composed with rather than overwritten --
+     * the new turn is applied after the one the block carries, so a module
+     * that placed itself at design time keeps its own orientation inside the
+     * prescription's.
+     */
+    void apply_fov_rotation(
+        Sequence& seq, const double quaternion[4], int first, int last);
+
     /** What a shift is allowed to write on. */
     enum class FovShiftScope
     {

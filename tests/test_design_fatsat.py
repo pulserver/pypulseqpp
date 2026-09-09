@@ -46,6 +46,11 @@ def system():
     )
 
 
+def flags(block):
+    """The label events a block carries, as (kind, name, value)."""
+    return [(event.type, event.label, int(event.value)) for event in block.label or ()]
+
+
 def rf_phase_ramp(reference, moved):
     """Hz of linear phase the placement wrote across a pulse."""
     times = np.asarray(moved.t, dtype=float)
@@ -137,14 +142,20 @@ def test_the_exemption_rides_the_pulse_block(system):
     """Not a block of its own: that would be a block of dead time."""
     fatsat = design.FatSaturation(system)
     assert [event.type for event in fatsat.blocks[0]] == ["rf", "labelset", "labelset"]
-    assert fatsat.seq.get_block(1).labels == [("SET", "NOPOS", 1), ("SET", "NOROT", 1)]
+    assert flags(fatsat.seq.get_block(1)) == [
+        ("labelset", "NOPOS", 1),
+        ("labelset", "NOROT", 1),
+    ]
 
 
 @no_transform
 def test_the_exemption_is_cleared_on_the_way_out(system):
     """Pulseq labels are sticky, so an uncleared flag would exempt the whole scan."""
     fatsat = design.FatSaturation(system)
-    assert fatsat.seq.get_block(2).labels == [("SET", "NOPOS", 0), ("SET", "NOROT", 0)]
+    assert flags(fatsat.seq.get_block(2)) == [
+        ("labelset", "NOPOS", 0),
+        ("labelset", "NOROT", 0),
+    ]
 
 
 # ----------------------------------------------------------------------
@@ -173,7 +184,7 @@ def test_a_tilted_band_carries_a_rotation_extension(system):
     )
     assert band.seq.get_block(1).rotation is not None
     assert np.allclose(
-        band.seq.get_block(1).rotation,
+        band.seq.get_block(1).rotation.quaternion,
         Rotation.from_euler("y", 30, degrees=True).as_quat(scalar_first=True),
     )
 
@@ -186,7 +197,8 @@ def test_an_orientation_may_be_given_as_a_matrix(system):
         system, thickness_m=0.08, orientation=turn.as_matrix()
     )
     assert np.allclose(
-        as_object.seq.get_block(1).rotation, as_matrix.seq.get_block(1).rotation
+        as_object.seq.get_block(1).rotation.quaternion,
+        as_matrix.seq.get_block(1).rotation.quaternion,
     )
 
 
@@ -246,7 +258,9 @@ def test_a_later_rotation_turns_the_imaging_pulse_and_not_the_band(system):
         rotation=Rotation.from_euler("x", 20, degrees=True).as_matrix()
     ).apply_to_sequence(scan)
 
-    assert np.allclose(turned.get_block(1).rotation, scan.get_block(1).rotation)
+    assert np.allclose(
+        turned.get_block(1).rotation.quaternion, scan.get_block(1).rotation.quaternion
+    )
     assert turned.get_block(3).rotation is not None
     assert scan.get_block(3).rotation is None
 

@@ -10,7 +10,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <stdexcept>
+#include <utility>
 #include <string>
 
 namespace pulseq
@@ -263,6 +265,33 @@ namespace pulseq
                 samples.data(), static_cast<int>(samples.size()));
         }
 
+
+        /**
+         * The chain @p ext names, rebuilt without any node of @p type_id.
+         *
+         * A block turns one way or no way, so the rotation it carried is
+         * replaced rather than added to. Everything else in the chain keeps
+         * its order.
+         */
+        int32_t rechained_without(Sequence& seq, int32_t ext, int type_id)
+        {
+            std::vector<std::pair<int32_t, int32_t>> kept;
+            for (int32_t node = ext; node > 0 && node <= seq.extensions_library().size();)
+            {
+                const int32_t* link = seq.extensions_library().row(node);
+                if (link[0] != type_id)
+                    kept.push_back({link[0], link[1]});
+                node = link[2];
+            }
+            int32_t rebuilt = 0;
+            for (size_t i = kept.size(); i-- > 0;)
+            {
+                rebuilt = static_cast<int32_t>(
+                    seq.chain_extension(kept[i].first, kept[i].second, rebuilt));
+            }
+            return rebuilt;
+        }
+
     } // namespace
 
     bool advance_origin(char use, const double at[3], double origin[3])
@@ -400,6 +429,126 @@ namespace pulseq
             }
         }
         return out;
+    }
+
+    void apply_fov_scale(
+        Sequence& seq, const double scale[3], int first, int last)
+    {
+        const int blocks = seq.num_blocks();
+        const int from = first > 1 ? first : 1;
+        const int to = (last > 0 && last < blocks) ? last : blocks;
+        if (from > to)
+            return;
+        if (scale[0] == 1.0 && scale[1] == 1.0 && scale[2] == 1.0)
+            return;
+
+        /* One rewritten row per row-and-axis actually met: a phase-encode
+         * table plays one readout ten thousand times, and it is one row
+         * before and one row after. */
+        std::map<std::pair<int32_t, int>, int32_t> rewritten;
+
+        for (int index = from; index <= to; ++index)
+        {
+            Block block = seq.get_block(index);
+            int32_t named[3] = {block.gx, block.gy, block.gz};
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                const int32_t id = named[axis];
+                if (id <= 0 || scale[axis] == 1.0)
+                    continue;
+                const auto key = std::make_pair(id, axis);
+                auto found = rewritten.find(key);
+                if (found == rewritten.end())
+                {
+                    const int at = seq.grad_row(id);
+                    if (seq.grad_kind(id) == GradKind::Trap)
+                    {
+                        double made[TRAP_WIDTH];
+                        const double* was = seq.trap_library().row(at);
+                        for (int c = 0; c < TRAP_WIDTH; ++c)
+                            made[c] = was[c];
+                        made[0] *= scale[axis];
+                        found = rewritten.emplace(key, seq.register_trap(made)).first;
+                    }
+                    else
+                    {
+                        double made[ARB_WIDTH];
+                        const double* was = seq.arb_library().row(at);
+                        for (int c = 0; c < ARB_WIDTH; ++c)
+                            made[c] = was[c];
+                        made[0] *= scale[axis];
+                        made[1] *= scale[axis];
+                        made[2] *= scale[axis];
+                        found =
+                            rewritten.emplace(key, seq.register_arbitrary(made)).first;
+                    }
+                }
+                named[axis] = found->second;
+            }
+            block.gx = named[0];
+            block.gy = named[1];
+            block.gz = named[2];
+            seq.set_block(index, block);
+        }
+    }
+
+    void apply_fov_rotation(
+        Sequence& seq, const double quaternion[4], int first, int last)
+    {
+        const int blocks = seq.num_blocks();
+        const int from = first > 1 ? first : 1;
+        const int to = (last > 0 && last < blocks) ? last : blocks;
+        if (from > to)
+            return;
+
+        const int type_id = seq.extension_type_id("ROTATIONS");
+        std::map<int32_t, int32_t> composed;
+
+        for (int index = from; index <= to; ++index)
+        {
+            Block block = seq.get_block(index);
+            const int32_t already = block.rot;
+
+            int32_t turn = 0;
+            auto found = composed.find(already);
+            if (found != composed.end())
+            {
+                turn = found->second;
+            }
+            else
+            {
+                double made[ROTATION_WIDTH];
+                if (already >= 1 && already <= seq.rotation_library().size())
+                {
+                    /* Applied after what the block already carries: a module
+                     * that placed itself keeps its orientation inside the
+                     * prescription's. */
+                    const double* was = seq.rotation_library().row(already);
+                    made[0] = quaternion[0] * was[0] - quaternion[1] * was[1] -
+                        quaternion[2] * was[2] - quaternion[3] * was[3];
+                    made[1] = quaternion[0] * was[1] + quaternion[1] * was[0] +
+                        quaternion[2] * was[3] - quaternion[3] * was[2];
+                    made[2] = quaternion[0] * was[2] - quaternion[1] * was[3] +
+                        quaternion[2] * was[0] + quaternion[3] * was[1];
+                    made[3] = quaternion[0] * was[3] + quaternion[1] * was[2] -
+                        quaternion[2] * was[1] + quaternion[3] * was[0];
+                }
+                else
+                {
+                    for (int i = 0; i < ROTATION_WIDTH; ++i)
+                        made[i] = quaternion[i];
+                }
+                turn = static_cast<int32_t>(seq.register_rotation(made));
+                composed.emplace(already, turn);
+            }
+
+            /* The chain is rebuilt without whatever rotation it carried, and
+             * the new one put on the front: a block turns one way or no way. */
+            block.ext = rechained_without(seq, block.ext, type_id);
+            block.ext = static_cast<int32_t>(
+                seq.chain_extension(type_id, turn, block.ext));
+            seq.set_block(index, block);
+        }
     }
 
     void apply_fov_shift(

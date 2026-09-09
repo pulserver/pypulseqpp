@@ -108,6 +108,7 @@ from ._timing import (
     round_to_raster,
 )
 from ._traj_to_grad import traj_to_grad as _traj_to_grad
+from ._transform_fov import TransformFOV as _TransformFOV
 
 try:
     __version__ = _distribution_version(__name__)
@@ -183,6 +184,7 @@ del _factory
 # Ours, until upstream has them.
 make_label = _make_label
 make_rf_shim = _make_rf_shim
+TransformFOV = _TransformFOV
 make_rotation = _make_rotation
 
 # Upstream leaves this one in a module of the same name, and hands a list

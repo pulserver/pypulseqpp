@@ -345,6 +345,8 @@ namespace pulseqpp_decode
         block["delay"] = py::none();
         block["label"] = py::none();
         block["soft_delay"] = py::none();
+        block["rotation"] = py::none();
+        block["rf_shim"] = py::none();
 
         if (row.rf > 0)
             block["rf"] = decode_rf(seq, row.rf, serial, rf_raster);
