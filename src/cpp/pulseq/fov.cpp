@@ -6,7 +6,9 @@
 #include "pulseq/fov.hpp"
 
 #include "pulseq/corners.hpp"
+#include "pulseq/shape.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
@@ -18,6 +20,7 @@ namespace pulseq
     {
 
         constexpr double kEps = 1e-12;
+        constexpr double kPi = 3.14159265358979323846;
 
         /**
          * What one gradient sweeps between the start of its block and @p when.
@@ -57,6 +60,202 @@ namespace pulseq
                 break;
             }
             return area;
+        }
+
+
+        /** The fractional part, which is all a phase in turns means. */
+        double turns(double value)
+        {
+            return value - std::floor(value);
+        }
+
+        /**
+         * One gradient as the block plays it: the corners, timed from the
+         * block's start, and what it is worth in phase.
+         *
+         * The times are materialised once per block per axis; the values are
+         * the cache's own, so a readout of ten thousand corners is not copied
+         * to be integrated.
+         */
+        struct Played
+        {
+            std::vector<double> times;
+            const std::vector<double>* values = nullptr;
+
+            size_t count() const
+            {
+                return values == nullptr ? 0 : values->size();
+            }
+
+            /** What the gradient is at @p when; zero outside what it plays. */
+            double at(double when) const
+            {
+                const size_t n = count();
+                if (n == 0 || when < times.front() || when > times.back())
+                    return 0.0;
+                const auto found =
+                    std::upper_bound(times.begin(), times.begin() + static_cast<long>(n), when);
+                const size_t after = static_cast<size_t>(found - times.begin());
+                if (after == 0)
+                    return (*values)[0];
+                if (after >= n)
+                    return (*values)[n - 1];
+                const double span = times[after] - times[after - 1];
+                if (span <= kEps)
+                    return (*values)[after];
+                const double along = (when - times[after - 1]) / span;
+                return (*values)[after - 1] +
+                    along * ((*values)[after] - (*values)[after - 1]);
+            }
+
+            /** Whether it holds one value across `[from, to]`. */
+            bool constant_over(double from, double to) const
+            {
+                const size_t n = count();
+                if (n == 0)
+                    return true;
+                const double first = at(from);
+                for (size_t i = 0; i < n; ++i)
+                {
+                    if (times[i] < from || times[i] > to)
+                        continue;
+                    if (std::fabs((*values)[i] - first) > 1e-10)
+                        return false;
+                }
+                return std::fabs(at(to) - first) <= 1e-10;
+            }
+
+            /**
+             * The phase, in turns, that @p shift has accumulated by @p when.
+             *
+             * Segment by segment, taking the fraction of each: across a scan
+             * the whole is thousands of turns and only the fraction is a
+             * phase, so summing first would spend the precision on the part
+             * that is thrown away.
+             */
+            /** The area under it up to @p when, in Hz/m times seconds. */
+            double swept(double when) const
+            {
+                const size_t n = count();
+                double total = 0.0;
+                for (size_t i = 0; i + 1 < n; ++i)
+                {
+                    const double from = times[i];
+                    if (when <= from)
+                        break;
+                    const double to = times[i + 1];
+                    const double span = to - from;
+                    if (span <= kEps)
+                        continue;
+                    const double first = (*values)[i];
+                    const double last = (*values)[i + 1];
+                    if (when >= to)
+                    {
+                        total += 0.5 * (first + last) * span;
+                        continue;
+                    }
+                    const double along = (when - from) / span;
+                    total += 0.5 * (first + first + along * (last - first)) * (when - from);
+                    break;
+                }
+                return total;
+            }
+
+            double swept_turns(double when, double shift) const
+            {
+                const size_t n = count();
+                double total = 0.0;
+                for (size_t i = 0; i + 1 < n; ++i)
+                {
+                    const double from = times[i];
+                    if (when <= from)
+                        break;
+                    const double to = times[i + 1];
+                    const double span = to - from;
+                    if (span <= kEps)
+                        continue;
+                    const double first = (*values)[i];
+                    const double last = (*values)[i + 1];
+                    if (when >= to)
+                    {
+                        total = turns(total + turns(0.5 * (first + last) * span * shift));
+                        continue;
+                    }
+                    const double along = (when - from) / span;
+                    const double reached = first + along * (last - first);
+                    total = turns(
+                        total + turns(0.5 * (first + reached) * (when - from) * shift));
+                    break;
+                }
+                return total;
+            }
+        };
+
+
+
+        /**
+         * When each sample of a pulse is played, measured from its delay.
+         *
+         * A pulse without times of its own is sampled at the centre of each
+         * RF raster interval, which is where the format puts it; one with a
+         * time shape says where its samples sit and those are in raster
+         * units.
+         */
+        void when_at(const Sequence& seq, const double* rf, std::vector<double>& into)
+        {
+            const ShapeLibrary& shapes = seq.shape_library();
+            const int magnitude = static_cast<int>(rf[1]);
+            const int time_shape = static_cast<int>(rf[3]);
+            into.clear();
+            if (magnitude < 1 || magnitude > shapes.size())
+                return;
+            const size_t count =
+                static_cast<size_t>(shapes.num_uncompressed(magnitude));
+            const double raster = seq.rf_raster_time();
+            if (time_shape >= 1 && time_shape <= shapes.size())
+            {
+                const std::vector<double> ticks = decompress_shape(
+                    shapes.samples(time_shape),
+                    shapes.num_compressed(time_shape),
+                    shapes.num_uncompressed(time_shape));
+                into.reserve(ticks.size());
+                for (size_t i = 0; i < ticks.size(); ++i)
+                    into.push_back(ticks[i] * raster);
+                return;
+            }
+            into.reserve(count);
+            for (size_t i = 0; i < count; ++i)
+                into.push_back((static_cast<double>(i) + 0.5) * raster);
+        }
+
+        /**
+         * A phase shape with @p added turns folded into it, as a new row.
+         *
+         * Registered rather than written over: a shape is shared by every
+         * event that names it, and only the ones this block plays are being
+         * moved. Deduplication collapses the copies afterwards, and the added
+         * turns depend on the pulse and the gradient under it and not on
+         * where the block sits, so every block playing that pair lands on one
+         * row.
+         */
+        int phase_shape_with(
+            Sequence& seq, int existing, const std::vector<double>& added)
+        {
+            const ShapeLibrary& shapes = seq.shape_library();
+            std::vector<double> samples(added.size(), 0.0);
+            if (existing >= 1 && existing <= shapes.size())
+            {
+                const std::vector<double> held = decompress_shape(
+                    shapes.samples(existing),
+                    shapes.num_compressed(existing),
+                    shapes.num_uncompressed(existing));
+                for (size_t i = 0; i < samples.size() && i < held.size(); ++i)
+                    samples[i] = held[i];
+            }
+            for (size_t i = 0; i < samples.size(); ++i)
+                samples[i] = turns(samples[i] + added[i]);
+            return seq.shape_library().append_raw(
+                samples.data(), static_cast<int>(samples.size()));
         }
 
     } // namespace
@@ -152,6 +351,162 @@ namespace pulseq
             }
         }
         return out;
+    }
+
+
+    void apply_fov_shift(
+        Sequence& seq,
+        const double shift_m[3],
+        FovShiftScope scope,
+        int first,
+        int last,
+        double carry[3])
+    {
+        const int blocks = seq.num_blocks();
+        const int from = first > 1 ? first : 1;
+        const int to = (last > 0 && last < blocks) ? last : blocks;
+        if (from > to)
+            return;
+
+        bool moves = false;
+        for (int axis = 0; axis < 3; ++axis)
+            moves = moves || std::fabs(shift_m[axis]) > 0.0;
+
+        if (!moves)
+            return;
+
+        CornerCache corners(seq);
+        const int32_t* events = seq.block_events();
+        Played played[3];
+
+        /** An axis whose gradient moves under an event, and what it was worth. */
+        struct Turning
+        {
+            int axis;
+            double slope;
+            double swept;
+        };
+        std::vector<Turning> turning;
+        std::vector<double> moment;
+        std::vector<double> added;
+
+        for (int index = from; index <= to; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                const Corners& drawn = corners[row[1 + axis]];
+                played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
+                if (played[axis].values != nullptr)
+                    drawn.at(0.0, played[axis].times);
+            }
+
+            /* What the block is entered with: the shift against everything
+             * swept before it. Every event in the block carries it, and that
+             * is the point -- what a readout is measured by is its phase
+             * against the phase its own excitation was given, so the two have
+             * to be counted from the same place. */
+            double entering = 0.0;
+            for (int axis = 0; axis < 3; ++axis)
+                entering = turns(entering + turns(shift_m[axis] * carry[axis]));
+
+            const int32_t rf_id = row[0];
+            if (rf_id > 0)
+            {
+                turning.clear();
+                double* rf = seq.rf_library().row(rf_id);
+                const double delay = rf[5];
+                const double centre = delay + rf[4];
+                double frequency = 0.0;
+                double phase = entering;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
+                        continue;
+                    /* A pulse under a gradient that does not change is a
+                     * frequency and a phase; one under a gradient that does
+                     * needs its shape, and is referenced to its own centre so
+                     * that what the pulse does is untouched. */
+                    const bool steady = played[axis].constant_over(delay, centre);
+                    const double at = steady ? delay : centre;
+                    const double slope = played[axis].at(at);
+                    const double swept = played[axis].swept_turns(at, shift_m[axis]);
+                    frequency += shift_m[axis] * slope;
+                    phase = turns(
+                        phase +
+                        turns(swept - shift_m[axis] * slope * (at - delay)));
+                    if (!steady)
+                        turning.push_back({axis, slope, swept});
+                }
+                rf[8] += frequency;
+                rf[9] += 2.0 * kPi * phase;
+
+                if (!turning.empty())
+                {
+                    /* The gradient moves under the pulse, so two numbers
+                     * cannot say what the shift does to it: what is left over
+                     * goes into the phase the pulse is played with, sample by
+                     * sample and referenced to the pulse's own centre so that
+                     * what the pulse *does* is untouched. */
+                    when_at(seq, rf, moment);
+                    added.assign(moment.size(), 0.0);
+                    for (const Turning& axis : turning)
+                    {
+                        for (size_t i = 0; i < moment.size(); ++i)
+                        {
+                            added[i] = turns(
+                                added[i] +
+                                turns(
+                                    played[axis.axis].swept_turns(
+                                        moment[i] + delay, shift_m[axis.axis]) -
+                                    axis.slope * (moment[i] - rf[4]) * shift_m[axis.axis] -
+                                    axis.swept));
+                        }
+                    }
+                    rf[2] = static_cast<double>(
+                        phase_shape_with(seq, static_cast<int>(rf[2]), added));
+                }
+            }
+
+            const int32_t adc_id = row[4];
+            if (adc_id > 0 && scope == FovShiftScope::RfAndAdc)
+            {
+                double* adc = seq.adc_library().row(adc_id);
+                const double delay = adc[2];
+                const double middle = delay + 0.5 * adc[1] * adc[0];
+                double frequency = 0.0;
+                double phase = entering;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
+                        continue;
+                    const double at =
+                        played[axis].constant_over(delay, middle) ? delay : middle;
+                    const double slope = played[axis].at(at);
+                    frequency += shift_m[axis] * slope;
+                    phase = turns(
+                        phase + turns(
+                            played[axis].swept_turns(at, shift_m[axis]) -
+                            shift_m[axis] * slope * (at - delay)));
+                }
+                adc[5] += frequency;
+                adc[6] += 2.0 * kPi * phase;
+            }
+
+            /* What this block swept, added to the unbroken running total.
+             * Not where the trajectory stands -- `block_k_origins` is that,
+             * and it restarts at every excitation. A phase means something
+             * only as a difference, and the difference a readout is measured
+             * by is against its own excitation, so resetting between the two
+             * would reference them to different zeros and put a phase on the
+             * signal that is not the shift. */
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (played[axis].values != nullptr)
+                    carry[axis] += played[axis].swept(1e30);
+            }
+        }
     }
 
 } // namespace pulseq

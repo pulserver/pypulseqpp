@@ -1133,6 +1133,25 @@ PYBIND11_MODULE(_ext, module)
         "is left at the end of the range.");
 
     module.def(
+        "apply_fov_shift",
+        [](Sequence& sequence, std::array<double, 3> shift, bool with_adc, int first,
+           int last, std::array<double, 3> carry) {
+            {
+                py::gil_scoped_release unlocked;
+                pulseq::apply_fov_shift(
+                    sequence, shift.data(),
+                    with_adc ? pulseq::FovShiftScope::RfAndAdc
+                             : pulseq::FovShiftScope::RfOnly,
+                    first, last, carry.data());
+            }
+            return py::make_tuple(carry[0], carry[1], carry[2]);
+        },
+        py::arg("sequence"), py::arg("shift"), py::arg("with_adc") = true,
+        py::arg("first") = 1, py::arg("last") = 0,
+        py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
+        "Move the field of view by a shift in logical metres.");
+
+    module.def(
         "flip_angles",
         [](const Sequence& sequence) {
             std::vector<double> angles;
