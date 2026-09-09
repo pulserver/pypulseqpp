@@ -44,6 +44,28 @@ supplies the filter design and the rotation algebra the pulse and trajectory
 design rests on. The extension itself links nothing but the standard library,
 so a wheel stays self-contained.
 
+## The zoo
+
+`examples/sequence/` holds one complete sequence per file, and
+`pyproject.toml` maps the directory into the package so each is
+`pypulseqpp.examples.<name>` however it was written. `pypulseqpp.examples`
+presents them flat and imports one on first use; a module *is* its `main`, so
+it is callable and carries `main`'s docstring and signature.
+
+Each is also a script, through `pypulseqpp.cli.run`, which reads `main`'s
+signature for the flags and `main`'s NumPy `Parameters` block for their help
+text -- so the prescription is written down once, in the function, and the
+command line follows it.
+
+**A module reachable through the package is not necessarily one it ships.**
+An editable install puts every prefix of a mapped path on the package's
+search path, so mapping `examples/sequence` puts the repo root on
+`pypulseqpp.__path__` and `setup.py` walks as `pypulseqpp.setup`. Anything
+walking that path asks where a name's file is *before* importing it, because
+importing what is merely reachable runs it -- `tests/test_docstrings.py` is
+the one that does, and `setup()` takes pytest's own arguments if it is
+reached.
+
 `pypulseq-matlab-like` is a test dependency and nothing more -- the
 transcription of MATLAB Pulseq that defines the file format, used for
 byte-parity fixtures, never imported by the package. It is not on PyPI;
@@ -93,6 +115,8 @@ and a label here is named rather than numbered -- see the section on that.
 | `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad` and `sampling` as submodules of it. |
 | `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
 | `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
+| `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
+| `examples/sequence/` | The zoo: one complete sequence per file, installed as `pypulseqpp.examples.<name>` and reachable flat from there. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 
 ## Build and test
