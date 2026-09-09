@@ -59,12 +59,37 @@ def _with_zero_edges(rf, dt: float):
     return edged
 
 
-def _width(answer) -> float:
-    """Read the bandwidth out of an answer that may also carry a spectrum."""
-    found = _np.asarray(
-        answer[0] if isinstance(answer, tuple) else answer, dtype=float
-    ).ravel()
-    return float(found[0]) if found.size else 0.0
+def _crossing(frequency, height, cutoff: float) -> float:
+    """Where the flank crosses ``cutoff``, between the two bins that bracket it.
+
+    Walked inward from the edge, so a side lobe over the threshold cannot
+    narrow the answer, and interpolated rather than rounded to a bin: a flank
+    is a smooth function, and taking the first bin above the cutoff makes the
+    answer's precision the bin width. That is what would otherwise force a
+    fine ``dw`` -- and the transform is the whole cost of asking.
+    """
+    above = _np.flatnonzero(height >= cutoff * height.max())
+    if not above.size:
+        return float(frequency[0])
+    first = int(above[0])
+    if first == 0:
+        return float(frequency[0])
+    near, far = (
+        height[first] - cutoff * height.max(),
+        height[first - 1] - cutoff * height.max(),
+    )
+    return float((near * frequency[first - 1] - far * frequency[first]) / (near - far))
+
+
+def _width(frequency, spectrum, cutoff: float) -> float:
+    """Distance between the two flanks of the main lobe."""
+    height = _np.abs(_np.asarray(spectrum, dtype=complex))
+    frequency = _np.asarray(frequency, dtype=float)
+    if not height.size or not (height.max() > 0.0):
+        return 0.0
+    left = _crossing(frequency, height, cutoff)
+    right = _crossing(frequency[::-1], height[::-1], cutoff)
+    return float(right - left)
 
 
 def calc_rf_bandwidth(
@@ -152,13 +177,16 @@ def calc_rf_bandwidth(
     offset = _full_freq_offset(rf)
     measured = _with_zero_edges(_at_baseband(rf) if offset else rf, step)
 
-    answer = _upstream(measured, cutoff, return_axis, return_spectrum, dw, dt)
-    width = _width(answer)
+    # The spectrum is asked for whatever the caller wants, because the flanks
+    # are read off it here rather than taken from upstream's bin walk.
+    _, spectrum, frequency = _upstream(measured, cutoff, True, True, dw, dt)
+    width = _width(frequency, spectrum, cutoff)
 
-    if not isinstance(answer, tuple):
+    if not (return_axis or return_spectrum):
         return width
-    parts = list(answer)
-    parts[0] = width
-    if return_axis and offset:
-        parts[-1] = parts[-1] + offset
+    parts = [width]
+    if return_spectrum:
+        parts.append(spectrum)
+    if return_axis:
+        parts.append(frequency + offset if offset else frequency)
     return tuple(parts)
