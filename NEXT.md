@@ -256,6 +256,42 @@ along one axis, which is what this package computes to the bit: printed to two
 places that is a tie and rounds to even, 9.38, where the toolbox's extent
 carries the leak and comes out a hair under the tie, 9.37.
 
+### An ADC's shift phase
+
+The other place, and this one is a whole different size. `transform_fov`
+splits a field-of-view shift into a frequency, a phase, and whatever will not
+fit in the two -- and it leaves a non-Cartesian readout up to **half a turn**
+from where the shift asks for it, which is the largest a phase error can be.
+
+Its RF branch is right:
+
+    local_frac(tmp - g_centre * (t - centre) * translation - fi_centre)
+
+Its ADC branch, four lines below, wraps the linear part before multiplying:
+
+    local_frac(wrap(-g_centre * (t - centre)) * translation + fi_centre + tmp)
+
+`g_centre * (t - centre)` is a k value of some hundreds per metre, so wrapping
+it throws away a whole number of *k* -- and a whole number of k is not a whole
+number of turns once the translation multiplies it. The sign on `fi_centre` is
+the other way round as well.
+
+What is held here is not the toolbox's answer but what a shift means: the
+phase a sample is acquired with -- its offset, plus its frequency times its
+time, plus whatever the profile carries -- has to come out as `dr . k(t)`.
+Over a readout sampled across both ramps of a trapezoid:
+
+| | worst deviation from `dr . k(t)` |
+| --- | --- |
+| here | 1.3e-15 turns |
+| the toolbox | 0.497 turns |
+
+A Cartesian readout is untouched either way: the residual is identically zero
+when nothing moves across the window, which is why the two agree everywhere
+else -- RF scalars, RF profiles, ADC scalars, spin echoes, all to the last
+bit. `tests/test_fov_shift.py` therefore compares against the identity rather
+than against the toolbox, and says so.
+
 ## Where a name differs from the toolbox
 
 `waveforms_and_times` and its family take `block_range`, where

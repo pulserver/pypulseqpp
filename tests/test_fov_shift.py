@@ -12,6 +12,11 @@ event the whole shift is two numbers on the event's own row, so a Cartesian
 readout carries no profile at all; only where the gradient moves is there
 anything left over.
 
+Held against the identity rather than against the reference toolbox, and on
+purpose: the toolbox wraps a k value before the translation multiplies it and
+leaves a non-Cartesian readout up to half a turn out. Everything else here
+agrees with it to the last bit -- see `NEXT.md`.
+
 The shift is written in the logical frame, which is the frame the gradients
 were designed in. ``dr . k`` does not change when both are turned, so it
 needs to know nothing about the rotation the scanner applies.
