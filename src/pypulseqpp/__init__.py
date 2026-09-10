@@ -42,6 +42,7 @@ from importlib.metadata import version as _distribution_version
 import pypulseq as _pypulseq
 
 from . import _events
+from ._adiabatic import make_adiabatic_pulse as _make_adiabatic_pulse
 from ._angles import (
     calc_golden_angles,
     calc_projection_shell,
@@ -59,6 +60,7 @@ from ._gradients import concatenate_gradients as _concatenate_gradients
 from ._gradients import make_crusher as _make_crusher
 from ._gradients import make_phase_blip as _make_phase_blip
 from ._gradients import make_phase_encoding as _make_phase_encoding
+from ._gradients import make_wave_gradients as _make_wave_gradients
 from ._make_hexagon_gradient_area import (
     make_hexagon_gradient_area as _make_hexagon_gradient_area,
 )
@@ -88,6 +90,7 @@ from ._opts import (
 from ._opts import Opts as _Opts
 from ._ordering import calc_traversal_order
 from ._rf_pulses import make_2d_selective_pulse as _make_2d_selective_pulse
+from ._rf_pulses import make_half_passages as _make_half_passages
 from ._rf_pulses import make_slr_pulse as _make_slr_pulse
 from ._rf_pulses import make_sms_pulse as _make_sms_pulse
 from ._rf_pulses import make_spsp_pulse as _make_spsp_pulse
@@ -108,6 +111,11 @@ from ._timing import (
     round_to_raster,
 )
 from ._traj_to_grad import traj_to_grad as _traj_to_grad
+from ._trajectories import (
+    calc_radial_trajectory,
+    calc_rosette_trajectory,
+    calc_spiral_trajectory,
+)
 from ._transform_fov import TransformFOV as _TransformFOV
 
 try:
@@ -195,6 +203,9 @@ block_to_events = interoperating(_block_to_events)
 # Ours, over upstream's: a hard pulse answers its own width rather than zero.
 calc_rf_bandwidth = interoperating(_calc_rf_bandwidth)
 
+# Ours, over upstream's: its two sweeps, with BIR-4 and GOIA-WURST beside them.
+make_adiabatic_pulse = _make_adiabatic_pulse
+
 # Ours, over upstream's: the rasters both vendors can play.
 Opts = _Opts
 
@@ -212,6 +223,7 @@ bloch = _bloch
 concatenate_gradients = interoperating(_concatenate_gradients)
 make_2d_selective_pulse = interoperating(_make_2d_selective_pulse)
 make_crusher = interoperating(_make_crusher)
+make_half_passages = interoperating(_make_half_passages)
 make_phase_blip = interoperating(_make_phase_blip)
 make_phase_encoding = interoperating(_make_phase_encoding)
 make_slr_pulse = interoperating(_make_slr_pulse)
@@ -220,6 +232,7 @@ make_slr_pulse = interoperating(_make_slr_pulse)
 make_sigpy_pulse = make_slr_pulse
 make_sms_pulse = interoperating(_make_sms_pulse)
 make_spsp_pulse = interoperating(_make_spsp_pulse)
+make_wave_gradients = interoperating(_make_wave_gradients)
 
 # Ours, over upstream's: a path is re-parameterised within the limits rather
 # than differentiated at whatever spacing it arrived with.

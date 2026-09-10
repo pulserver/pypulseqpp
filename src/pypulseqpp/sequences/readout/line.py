@@ -14,12 +14,11 @@ from .._module import SequenceModule
 from ._common import (
     AXES,
     as_tuple,
-    bridge,
     left_align_rephaser,
     present,
     solve_delay,
     solve_rephasing,
-    wave_gradients,
+    wave_channels,
 )
 
 #: Fraction of ``max_grad`` the readout lobe may reach, leaving the rest for
@@ -248,7 +247,13 @@ class _LineReadout(SequenceModule):
             # Bridged into the readout lobe: the prewinder climbs to the
             # plateau itself, so its area *is* the k the flat top starts at and
             # the lobe keeps a ramp only on the far side.
-            gx_pre = bridge(system, "x", pre_area - spoil_area, 0.0, amplitude)
+            gx_pre = pp.make_extended_trapezoid_area(
+                area=pre_area - spoil_area,
+                channel="x",
+                grad_start=0.0,
+                grad_end=amplitude,
+                system=system,
+            )[0]
             flat_top_start = 0.0
         else:
             # The lobe's own rise happens before the first sample and winds
@@ -262,7 +267,13 @@ class _LineReadout(SequenceModule):
             flat_top_start = rise_time
 
         if spoiling_position == "post" and bridged:
-            gx_spoil = bridge(system, "x", post_area + spoil_area, amplitude, 0.0)
+            gx_spoil = pp.make_extended_trapezoid_area(
+                area=post_area + spoil_area,
+                channel="x",
+                grad_start=amplitude,
+                grad_end=0.0,
+                system=system,
+            )[0]
         else:
             area = post_area - 0.5 * fall_time * amplitude
             if spoiling_position == "post" and spoil_area:
@@ -287,16 +298,17 @@ class _LineReadout(SequenceModule):
         gy_wave = gz_wave = None
         wave_peak = 0.0
         if wave is not None:
-            built = wave_gradients(
-                system,
-                flat_time=readout_duration,
+            sine, cosine = wave_channels(wave)
+            gy_wave, gz_wave, wave_peak = pp.make_wave_gradients(
+                readout_duration,
+                wave_cycles,
+                wave_amplitude,
+                sine_channel=sine,
+                cosine_channel=cosine,
                 delay=flat_top_start,
-                cycles=wave_cycles,
-                amplitude=wave_amplitude,
-                mode=wave,
+                return_amplitude=True,
+                system=system,
             )
-            gy_wave, gz_wave = built.get("y"), built.get("z")
-            wave_peak = built["amplitude"]
 
         # Phase encoding, at its largest step: resolution alone fixes it, since
         # field of view and matrix cancel.

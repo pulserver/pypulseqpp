@@ -13,9 +13,12 @@ __all__ = [
     "make_crusher",
     "make_phase_blip",
     "make_phase_encoding",
+    "make_wave_gradients",
 ]
 
 from typing import Any
+
+import numpy as np
 
 from . import _events
 from ._opts import default_system
@@ -292,6 +295,175 @@ def make_crusher(
         system=default_system(system),
     )
     return _events.convert(grad), times, amplitudes
+
+
+def make_wave_gradients(
+    flat_time: float,
+    cycles: int,
+    amplitude: float,
+    *,
+    sine_channel: str | None = "y",
+    cosine_channel: str | None = "z",
+    delay: float = 0.0,
+    return_amplitude: bool = False,
+    system=None,
+):
+    """Build the corkscrew a wave-encoded readout plays under its flat top.
+
+    A sinusoid on one encoded axis and a cosinusoid on the other, a quarter
+    period apart, turn the readout into a corkscrew: every voxel is smeared
+    along it, the further from the centre the further, so the aliasing
+    parallel imaging has to separate is spread out with it (wave-CAIPI).
+
+    Both events are **self-balanced** -- they enter and leave at zero and
+    their net area is exactly zero. So scaling one to zero switches the wave
+    off for one readout with no rewinder anywhere having to know whether it
+    was played. A cosinusoid does not start at zero on its own, so both axes
+    are brought in and out over a quarter period at each end, and whatever
+    area that leaves is taken back over the same envelope.
+
+    Parameters
+    ----------
+    flat_time : float
+        The readout's flat top, in s, where the samples are. The corkscrew
+        lives entirely inside it.
+    cycles : int
+        Periods of the sinusoid across the flat top.
+    amplitude : float
+        Requested peak, in T/m. **A ceiling, not a prescription**: a sinusoid
+        of angular frequency ``w`` slews at ``amplitude * w``, so a fast
+        corkscrew is bounded by the slew rate rather than by what was asked
+        for, and what gets built is the lower of the two.
+    sine_channel, cosine_channel : {"x", "y", "z"} or None, optional
+        The channels the sine and the cosine are played on. ``None`` leaves
+        that one out, which is a single-axis wave.
+    delay : float, optional
+        Where the flat top starts within the block, in s: the readout lobe's
+        rise time.
+    return_amplitude : bool, optional
+        Also return the peak that survived the slew limit.
+    system : Opts, optional
+        System limits.
+
+    Returns
+    -------
+    sine, cosine : SimpleNamespace or None
+        The arbitrary gradients, ``None`` for a channel left out.
+    amplitude : float
+        The peak that was built, in T/m. Only with ``return_amplitude``.
+
+    Raises
+    ------
+    ValueError
+        If neither channel is given or both name the same one, if ``cycles``
+        or ``amplitude`` is not positive, or if the flat top is too short to
+        hold the cycles asked of it.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pypulseqpp as pp
+    >>> gy, gz = pp.make_wave_gradients(3e-3, 4, 10e-3)
+    >>> [abs(round(float(np.sum(g.waveform)), 6)) for g in (gy, gz)]
+    [0.0, 0.0]
+    """
+    channels = [c for c in (sine_channel, cosine_channel) if c is not None]
+    if not channels:
+        raise ValueError("a wave needs a sine channel, a cosine channel or both")
+    if len(set(channels)) != len(channels):
+        raise ValueError("the sine and the cosine need channels of their own")
+    cycles = int(cycles)
+    if cycles < 1:
+        raise ValueError("wave cycles must be at least one")
+    if amplitude <= 0:
+        raise ValueError("wave amplitude must be positive")
+    system = default_system(system)
+
+    raster = system.grad_raster_time
+    n_flat = round(flat_time / raster)
+    # A quarter period is what each end is brought in over, so the corkscrew
+    # needs whole periods and enough raster to shape their edges.
+    n_edge = n_flat // (4 * cycles)
+    if n_edge < 1:
+        raise ValueError(
+            f"{cycles} wave cycles need at least {4 * cycles} gradient raster periods "
+            f"across the readout's flat top, which holds {n_flat}"
+        )
+
+    centres = (np.arange(n_flat) + 0.5) * raster
+    envelope = np.ones(n_flat)
+    edge = 0.5 * (1.0 - np.cos(np.pi * (np.arange(n_edge) + 0.5) / n_edge))
+    envelope[:n_edge], envelope[-n_edge:] = edge, edge[::-1]
+
+    rate = 2 * np.pi * cycles / (n_flat * raster)
+    shapes = {
+        channel: _balanced(wave(rate * centres), envelope)
+        for channel, wave in ((sine_channel, np.sin), (cosine_channel, np.cos))
+        if channel is not None
+    }
+
+    # The waveform is linear in its amplitude, so the slew it costs per unit of
+    # amplitude is a property of the shape and the amplitude that fits follows
+    # from it. Measuring beats bounding here: a sinusoid and the envelope that
+    # brings it in are steepest at different moments, and adding their worst
+    # cases would give away amplitude neither of them takes. The samples sit at
+    # raster centres, so the steps into and out of zero cross half a raster and
+    # cost twice what the interior ones do.
+    steepest = max(
+        float(
+            np.abs(
+                np.concatenate([[2.0 * shape[0]], np.diff(shape), [-2.0 * shape[-1]]])
+            ).max()
+        )
+        / raster
+        for shape in shapes.values()
+    )
+    peak = min(
+        float(amplitude) * system.gamma, system.max_slew / steepest, system.max_grad
+    )
+
+    events = tuple(
+        None
+        if channel is None
+        else _events.make_arbitrary_grad(
+            channel=channel,
+            waveform=peak * shapes[channel],
+            first=0.0,
+            last=0.0,
+            delay=delay,
+            system=system,
+        )
+        for channel in (sine_channel, cosine_channel)
+    )
+    if return_amplitude:
+        return (*events, peak / system.gamma)
+    return events
+
+
+def _area(waveform: np.ndarray) -> float:
+    """Area under an arbitrary gradient entered and left at zero, per raster.
+
+    Its samples sit at raster centres, and what an interpreter draws is the
+    straight lines between the *interval boundaries* -- which the samples do
+    not carry and `restore_shape_corners` puts back, each boundary twice the
+    sample before it less the boundary before that. Integrate that and the
+    recurrence collapses: every interval contributes the raster times its own
+    sample, and the ends are worth no less than the middle. So the area is the
+    plain sum.
+    """
+    return float(waveform.sum())
+
+
+def _balanced(shape: np.ndarray, envelope: np.ndarray) -> np.ndarray:
+    """``shape`` under ``envelope``, offset until its net area is exactly zero.
+
+    The offset rides the envelope too, so correcting the area cannot put the
+    waveform's ends anywhere but zero. Everything here is affine in the
+    offset, which makes finding it one division rather than a search.
+    """
+    at_zero = _area(shape * envelope)
+    per_unit = _area(envelope)
+    return (shape - at_zero / per_unit) * envelope
 
 
 def _trapezoid(channel: str, area: float, system, duration: float | None):

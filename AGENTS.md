@@ -46,7 +46,8 @@ so a wheel stays self-contained.
 
 `examples/sequence/` holds one complete sequence per file, and
 `pyproject.toml` maps the directory into the package so each is
-`pypulseqpp.examples.<name>` however it was written. `pypulseqpp.examples`
+`pypulseqpp.sequences.<name>` however it was written, beside the modules it
+is composed of. `pypulseqpp.sequences`
 presents them flat and imports one on first use; a module *is* its `main`, so
 it is callable and carries `main`'s docstring and signature.
 
@@ -110,11 +111,12 @@ and a label here is named rather than numbered -- see the section on that.
 |---|---|
 | `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
 | `external/MRArbGrad/` | A submodule: the MRArbGrad solver, which re-parameterises a k-space path within the gradient and slew limits. Three of its files are compiled in; see `external/NOTICE.md`. |
-| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad` and `sampling` as submodules of it. |
+| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad`, `sampling` and `slr` as submodules of it. |
+| `LICENSES/` | The licenses of code derived from other projects, shipped in the wheel beside `LICENSE`: SigPy's BSD 3-Clause, for the SLR design, root flipping, the multiband phase tables and the Poisson-disc sampler. A module derived from one says so in its docstring and names the file. |
 | `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
 | `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
 | `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
-| `examples/sequence/` | The zoo: one complete sequence per file, installed as `pypulseqpp.examples.<name>` and reachable flat from there. |
+| `examples/sequence/` | The zoo: one complete sequence per file, installed beside `pypulseqpp.sequences` and reachable as `pypulseqpp.sequences.<name>`. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 | `viewer/` | A package of its own, `pypulseqpp-seqeyes`, and GPL: SeqEyes, the viewer `Sequence.plot` draws in, built from the submodule in `viewer/seqeyes` to run on the Qt that PySide6 installs. `pypulseqpp[plot]` installs it; nothing under it is in pypulseqpp's sdist or wheel. |
 

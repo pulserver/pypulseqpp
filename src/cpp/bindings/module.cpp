@@ -31,6 +31,7 @@
 #include "pulseqpp_eventtypes.h"
 #include "arbgrad.h"
 #include "sampling.h"
+#include "slr.h"
 
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
@@ -350,6 +351,12 @@ PYBIND11_MODULE(_ext, module)
     sampling.attr("__name__") = "pypulseqpp._ext.sampling";
     py::module_::import("sys").attr("modules")["pypulseqpp._ext.sampling"] = sampling;
     pypulseqpp_bind_sampling(sampling);
+
+    // Shinnar-Le Roux pulse design, for the searches too slow to run in NumPy.
+    py::module_ slr = module.def_submodule("slr");
+    slr.attr("__name__") = "pypulseqpp._ext.slr";
+    py::module_::import("sys").attr("modules")["pypulseqpp._ext.slr"] = slr;
+    pypulseqpp_bind_slr(slr);
 
     // The events a block is made of, as compiled objects rather than
     // dictionaries. See pulseqpp_eventtypes.h.

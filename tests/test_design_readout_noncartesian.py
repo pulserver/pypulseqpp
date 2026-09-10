@@ -118,7 +118,7 @@ def test_rotating_an_interleave_turns_its_path_and_nothing_else(system, angle):
 
 
 def test_a_three_axis_interleave_has_no_plane_to_turn_in(system):
-    path = trajectories.spiral_trajectory(FOV, 64, 8)
+    path = pp.calc_spiral_trajectory(FOV, 64, 8)
     volume = np.column_stack([path, np.linspace(-10.0, 10.0, path.shape[0])])
     with pytest.raises(ValueError, match="planar interleave"):
         trajectories.Arbitrary(system, volume, matrix=64).rotated(0.5)

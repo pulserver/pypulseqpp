@@ -150,8 +150,8 @@ def main(
 
     Examples
     --------
-    >>> from pypulseqpp import examples
-    >>> seq = examples.gre2D_sequence(n_x=32, n_y=16, n_acs=0, n_dummy=0, tr=None)
+    >>> from pypulseqpp import sequences
+    >>> seq = sequences.gre2D_sequence(n_x=32, n_y=16, n_acs=0, n_dummy=0, tr=None)
 
     Sixteen lines, one repetition each, and the same blocks every time:
 
