@@ -5,6 +5,7 @@
 
 #include "pulseq/timing.hpp"
 
+#include "pulseq/channels.hpp"
 #include "pulseq/shape.hpp"
 
 #include <cmath>
@@ -158,11 +159,14 @@ namespace pulseq
 
                 judge(v.findings, shape_dur, "shape_dur", rf_raster);
 
-                if (rt.size() >= 4)
+                // A dynamic pTx pulse repeats one time base per channel, and
+                // each channel is judged as the pulse it is.
+                const size_t per_channel = rt.size() / rf_channels(rt);
+                if (per_channel >= 4)
                 {
                     const double step = rt[1] - rt[0];
                     bool uniform = true;
-                    for (size_t i = 2; i < rt.size(); ++i)
+                    for (size_t i = 2; i < per_channel; ++i)
                     {
                         if (std::fabs((rt[i] - rt[i - 1]) - step) >= kEps / limits.rf_raster_time)
                         {
@@ -177,7 +181,7 @@ namespace pulseq
                     else
                     {
                         double worst = 0.0;
-                        for (size_t i = 0; i < rt.size(); ++i)
+                        for (size_t i = 0; i < per_channel; ++i)
                             worst = std::max(worst, std::fabs(rt[i] - std::nearbyint(rt[i])));
                         if (worst > 1e-6)
                         {

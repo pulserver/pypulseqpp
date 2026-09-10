@@ -6,6 +6,7 @@
 
 #include "pulseq/analysis.hpp"
 
+#include "pulseq/channels.hpp"
 #include "pulseq/shape.hpp"
 
 #include <algorithm>
@@ -111,7 +112,10 @@ namespace pulseq
          *
          * The integral of the complex envelope over the pulse: an amplitude
          * in hertz over a time in seconds is a number of turns. The amplitude
-         * is left out, being real and so a scale on the answer.
+         * is left out, being real and so a scale on the answer. A dynamic pTx
+         * pulse is integrated channel by channel on its shared time base and
+         * the channels summed: the flip where every channel has unit,
+         * in-phase sensitivity.
          */
         double integrate_envelope(const Sequence& sequence, int id)
         {
@@ -126,8 +130,11 @@ namespace pulseq
 
             std::complex<double> turns(0.0, 0.0);
             const size_t samples = std::min(magnitude.size(), times.size());
+            const size_t per_channel = std::max<size_t>(1, samples / rf_channels(times));
             for (size_t i = 0; i + 1 < samples; ++i)
             {
+                if ((i + 1) % per_channel == 0)
+                    continue;
                 const double angle = kTwoPi * (i < phase.size() ? phase[i] : 0.0);
                 const double weight = magnitude[i] * (times[i + 1] - times[i]);
                 turns += std::complex<double>(
