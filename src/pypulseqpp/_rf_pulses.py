@@ -10,12 +10,14 @@ from __future__ import annotations
 __all__ = [
     "make_2d_selective_pulse",
     "make_half_passages",
+    "make_recursive_slr_pulses",
     "make_sigpy_pulse",
     "make_slr_pulse",
     "make_sms_pulse",
     "make_spsp_pulse",
 ]
 
+import math
 from collections.abc import Sequence
 from typing import Literal
 
@@ -25,7 +27,7 @@ from . import _events
 from ._angles import calc_uniform_angles
 from ._band_phases import band_phases
 from ._opts import default_system
-from ._slr import NOMINAL_FLIP, design_slr
+from ._slr import NOMINAL_FLIP, _resampled, design_recursive_slr, design_slr
 
 PulseType = Literal["st", "ex", "se", "inv", "sat"]
 FilterType = Literal["ls", "pm", "min", "max", "ms"]
@@ -203,6 +205,7 @@ def _play_slr(
     return_gz,
     slice_thickness,
     system,
+    bandwidth=None,
     **event,
 ):
     """Build an SLR waveform's event, and under ``return_gz`` its gradient and rephaser.
@@ -218,7 +221,7 @@ def _play_slr(
         dwell=dwell,
         return_gz=return_gz,
         slice_thickness=slice_thickness,
-        bandwidth=time_bw_product / duration,
+        bandwidth=time_bw_product / duration if bandwidth is None else bandwidth,
         time_bw_product=time_bw_product,
         system=system,
         center=center_pos * duration,
@@ -852,3 +855,121 @@ def make_half_passages(
         )
         for half in (sweep, np.conj(sweep[::-1]))
     )
+
+
+#: Core samples a recursive SLR train is designed at before it is resampled
+#: onto the raster: each pulse is an inverse SLR transform over four times
+#: that many samples.
+RECURSIVE_SAMPLES = 256
+
+
+def make_recursive_slr_pulses(
+    n_segments: int,
+    *,
+    duration: float = DEFAULT_DURATION,
+    time_bw_product: float = DEFAULT_TIME_BANDWIDTH_PRODUCT,
+    spin_echo: bool = False,
+    refocusing_tbw: float = 8.0,
+    t1: float = math.inf,
+    segment_tr: float = 0.06,
+    use_mz: bool = True,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+    slice_thickness: float = 0.0,
+    return_gz: bool = False,
+    dwell: float = 0.0,
+    delay: float = 0.0,
+    system=None,
+    use: str = "excitation",
+):
+    """Design SLR pulses that each excite the same transverse magnetisation.
+
+    For a segmented acquisition of magnetisation that recovers slowly or not
+    at all -- hyperpolarised spins -- each pulse tips a larger share of what
+    the earlier ones left, the last one 90 degrees. With ``use_mz`` each pulse
+    is designed against the longitudinal profile the earlier ones actually
+    left, so the slice profile stays the same from segment to segment too
+    (SigPy's ``dz_recursive_rf``). The pulses are large-tip designs, played at
+    their designed amplitude.
+
+    Parameters
+    ----------
+    n_segments : int
+        Pulses in the train.
+    duration : float, optional
+        Of each pulse, in s: a windowed SLR core with a taper either side.
+    spin_echo : bool, optional
+        Design for a spin-echo segment, whose refocusing pulse is returned too.
+    refocusing_tbw : float, optional
+        Time-bandwidth product of that refocusing pulse.
+    t1, segment_tr : float, optional
+        Longitudinal relaxation time and the time between pulses, in s;
+        ``t1=inf`` is no recovery.
+    use_mz : bool, optional
+        Design each pulse against the profile the earlier ones left.
+    return_gz : bool, optional
+        Return each pulse with its selection gradient and rephaser, as
+        :func:`make_slr_pulse` does.
+
+    Other parameters are as in :func:`make_slr_pulse`.
+
+    Returns
+    -------
+    pulses : tuple
+        One RF event per segment, or ``(rf, gz, gzr)`` per segment under
+        ``return_gz``.
+    refocusing : SimpleNamespace or tuple
+        Only with ``spin_echo``: the refocusing pulse, in the same form.
+
+    Raises
+    ------
+    ValueError
+        If ``n_segments`` is below one, or ``return_gz`` is asked for without
+        a positive ``slice_thickness``.
+    """
+    if n_segments < 1:
+        raise ValueError("n_segments must be at least one")
+    system = default_system(system)
+    dwell = dwell or system.rf_raster_time
+    if return_gz and slice_thickness <= 0:
+        raise ValueError("slice_thickness must be > 0 when return_gz=True")
+    window = 1.75
+    samples = _slr_sample_count(duration, dwell)
+    core = min(RECURSIVE_SAMPLES, max(8, 2 * round(samples / window / 2)))
+    relaxation = 0.0 if math.isinf(t1) else 1.0 - math.exp(-segment_tr / t1)
+    pulses, refocusing = design_recursive_slr(
+        n_segments,
+        core,
+        time_bw_product,
+        spin_echo=spin_echo,
+        refocusing_tbw=refocusing_tbw,
+        window=window,
+        cancel_alpha_phase=cancel_alpha_phase,
+        relaxation=relaxation,
+        use_mz=use_mz,
+        passband_ripple=passband_ripple,
+        stopband_ripple=stopband_ripple,
+    )
+    core_duration = samples * dwell * core / pulses.shape[0]
+
+    def play(waveform, tbw):
+        return _play_slr(
+            _resampled(waveform, samples),
+            np.pi / 2,
+            designed=True,
+            dwell=dwell,
+            time_bw_product=tbw,
+            center_pos=0.5,
+            return_gz=return_gz,
+            slice_thickness=slice_thickness,
+            system=system,
+            bandwidth=tbw / core_duration,
+            delay=delay,
+            use=use,
+        )
+
+    train = tuple(play(pulses[:, jj], time_bw_product) for jj in range(n_segments))
+    if not spin_echo:
+        return train
+    return train, play(refocusing, refocusing_tbw)

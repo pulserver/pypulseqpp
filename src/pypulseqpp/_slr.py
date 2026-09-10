@@ -113,31 +113,9 @@ def _check_slab(n: int, tbw: float, d1: float, d2: float, subbands: int) -> floa
     return transition
 
 
-def design_gslider(
-    n: int,
-    time_bandwidth_product: float,
-    num_subslices: int,
-    subslice: int,
-    *,
-    flip_angle: float,
-    phase: float = np.pi,
-    passband_ripple: float = 0.01,
-    stopband_ripple: float = 0.01,
-    cancel_alpha_phase: bool = True,
-) -> np.ndarray:
-    """Return a gSlider pulse in radians per sample: ``subslice`` at ``phase``.
-
-    Derived from SigPy's ``dz_gslider_b``. Sub-slices are counted from the
-    lowest frequency.
-    """
-    g = int(num_subslices)
-    if g < 1 or not 0 <= subslice < g:
-        raise ValueError(f"subslice must lie in [0, {g}), got {subslice}")
-    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
-    ftw = _check_slab(n, tbw, d1, d2, g)
+def _gslider_beta(n, tbw, g, subslice, d1, d2, ftw, phase):
+    """Return the gSlider beta: ``subslice``, in the design's band order, at ``phase``."""
     tilt = np.exp(1j * phase)
-    # The design's bands run opposite to the frequency the pulse selects.
-    subslice = g - 1 - subslice
     if g == 1:
         beta = _least_squares(n, tbw, d1, d2)
     elif g % 2 and subslice == g // 2:
@@ -186,39 +164,15 @@ def design_gslider(
         beta = _to_baseband(
             _firls(n, bands, notch, weight), shift
         ) + tilt * _to_baseband(_firls(n, bands, sub, weight), shift)
-    return _large_tip(beta, flip_angle, cancel_alpha_phase)
+    return beta
 
 
-def design_hadamard(
-    n: int,
-    time_bandwidth_product: float,
-    order: int,
-    row: int,
-    *,
-    flip_angle: float,
-    passband_ripple: float = 0.01,
-    stopband_ripple: float = 0.01,
-    cancel_alpha_phase: bool = True,
-) -> np.ndarray:
-    """Return a slab pulse in radians per sample, sub-bands signed by a Hadamard row.
-
-    Derived from SigPy's ``dz_hadamard_b``. Row 0 is the plain slab; sub-bands
-    are counted from the lowest frequency.
-    """
-    from scipy.linalg import hadamard
-
-    if order < 1 or order & (order - 1):
-        raise ValueError(f"order must be a power of two, got {order}")
-    if not 0 <= row < order:
-        raise ValueError(f"row must lie in [0, {order}), got {row}")
-    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
-    ftw = _check_slab(n, tbw, d1, d2, order)
-    if row == 0:
-        beta = _least_squares(n, tbw, d1, d2)
-        return _large_tip(beta, flip_angle, cancel_alpha_phase)
-
-    # The design's bands run opposite to the frequency the pulse selects.
-    encode = hadamard(order)[row][::-1]
+def _hadamard_beta(n, tbw, encode, d1, d2, ftw):
+    """Return the slab beta whose sub-bands, in the design's band order, ``encode`` signs."""
+    encode = np.asarray(encode)
+    order = encode.size
+    if np.all(encode == 1):
+        return _least_squares(n, tbw, d1, d2)
     shift = n // 4
     half, edge = tbw / order / 2, ftw * tbw / 2
     # Neighbouring sub-bands of one sign merge into one band with no
@@ -241,6 +195,62 @@ def design_hadamard(
     positive = _firls(n, bands, (desired > 0).astype(float), weight)
     negative = _firls(n, bands, (desired < 0).astype(float), weight)
     beta = _to_baseband(positive - negative, shift)
+    return beta
+
+
+def design_gslider(
+    n: int,
+    time_bandwidth_product: float,
+    num_subslices: int,
+    subslice: int,
+    *,
+    flip_angle: float,
+    phase: float = np.pi,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+) -> np.ndarray:
+    """Return a gSlider pulse in radians per sample: ``subslice`` at ``phase``.
+
+    Derived from SigPy's ``dz_gslider_b``. Sub-slices are counted from the
+    lowest frequency.
+    """
+    g = int(num_subslices)
+    if g < 1 or not 0 <= subslice < g:
+        raise ValueError(f"subslice must lie in [0, {g}), got {subslice}")
+    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
+    ftw = _check_slab(n, tbw, d1, d2, g)
+    # The design's bands run opposite to the frequency the pulse selects.
+    beta = _gslider_beta(n, tbw, g, g - 1 - subslice, d1, d2, ftw, phase)
+    return _large_tip(beta, flip_angle, cancel_alpha_phase)
+
+
+def design_hadamard(
+    n: int,
+    time_bandwidth_product: float,
+    order: int,
+    row: int,
+    *,
+    flip_angle: float,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+) -> np.ndarray:
+    """Return a slab pulse in radians per sample, sub-bands signed by a Hadamard row.
+
+    Derived from SigPy's ``dz_hadamard_b``. Row 0 is the plain slab; sub-bands
+    are counted from the lowest frequency.
+    """
+    if order < 1 or order & (order - 1):
+        raise ValueError(f"order must be a power of two, got {order}")
+    if not 0 <= row < order:
+        raise ValueError(f"row must lie in [0, {order}), got {row}")
+    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
+    ftw = _check_slab(n, tbw, d1, d2, order)
+    from scipy.linalg import hadamard
+
+    # The design's bands run opposite to the frequency the pulse selects.
+    beta = _hadamard_beta(n, tbw, hadamard(order)[row][::-1], d1, d2, ftw)
     return _large_tip(beta, flip_angle, cancel_alpha_phase)
 
 
@@ -543,3 +553,136 @@ def _design(
             time_bandwidth_product,
         )
     return _beta_to_rf(scale * beta, cancel_alpha_phase)
+
+
+def design_b1_selective(
+    beta, dwell: float, centre_hz: float, *, split_and_reflect=True
+):
+    """Return the sign pattern and frequency sweep (Hz) of a B1-selective pulse.
+
+    In the frame tilted onto the RF field, the constant-magnitude RF plays
+    the part of a gradient -- its strength is the local B1 -- and the
+    frequency sweep plays the part of the RF, so a filter ``beta``, in
+    radians per ``dwell``, modulated to ``centre_hz`` and kept odd, selects
+    that band of B1 (Grissom, Cao and Does, J Magn Reson 242:189, 2014;
+    derived from SigPy's ``sigpy.mri.rf.b1sel``). Split and reflect keeps the
+    selectivity at large tip. Both returned arrays hold ``2 * beta.size``
+    samples: the RF is reversed over the first and last quarter.
+    """
+    n = beta.size
+    half = n // 2
+    t = np.arange(n) * dwell - n * dwell / 2
+    carrier = np.exp(2j * np.pi * centre_hz * t)
+    odd = np.imag(beta * carrier - beta[::-1] * np.conj(carrier))
+    outer = (odd[half::-1], odd[n:half:-1])
+    if not split_and_reflect:
+        outer = tuple(0.0 * part for part in outer)
+    sweep = np.concatenate((outer[0], odd, outer[1])) / (
+        2.0 if split_and_reflect else 1.0
+    )
+    signs = np.concatenate((-np.ones(half), np.ones(n), -np.ones(half)))
+    return signs, sweep / (2.0 * np.pi * dwell)
+
+
+def _centred(transform, values):
+    return np.fft.fftshift(transform(np.fft.ifftshift(values)))
+
+
+def design_recursive_slr(
+    n_segments: int,
+    n: int,
+    time_bandwidth_product: float,
+    *,
+    spin_echo: bool = False,
+    refocusing_tbw: float = 8.0,
+    zero_pad: int = 4,
+    window: float = 1.75,
+    cancel_alpha_phase: bool = True,
+    relaxation: float = 0.0,
+    use_mz: bool = True,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+):
+    """Return SLR pulses, in radians per sample, that each leave the same transverse profile.
+
+    The flips grow to 90 degrees at the last segment, each taking a larger
+    share of what the earlier ones left along z; with ``use_mz`` every beta is
+    solved against the longitudinal profile the earlier pulses actually
+    left, so the slice profile holds across segments too. ``relaxation`` is
+    ``exp(-segment_tr / t1)``'s complement, ``1 - exp(-segment_tr / t1)``.
+    Derived from SigPy's ``dz_recursive_rf``.
+
+    Returns ``(pulses, refocusing)``: pulses ``(window * n, n_segments)`` and
+    the refocusing pulse over the same window, or ``None``.
+    """
+    fft = lambda values: _centred(np.fft.fft, values)  # noqa: E731
+    ifft = lambda values: _centred(np.fft.ifft, values)  # noqa: E731
+    length = int(zero_pad * n)
+    pad = (length - n) // 2
+    d1, d2 = passband_ripple, stopband_ripple
+
+    if spin_echo:
+        scale, d1se, d2se = _calc_ripples("se", d1, d2)
+        b_ref = np.zeros(length, dtype=np.complex128)
+        b_ref[pad : pad + n] = scale * _least_squares(n, refocusing_tbw, d1se, d2se)
+        rf_ref = _beta_to_rf(b_ref, False)
+        bref = fft(b_ref)
+        bref /= np.abs(bref).max()
+        bref_mag = np.abs(bref)
+        aref_mag = np.abs(np.sqrt(1 - bref_mag**2))
+        flip_ref = 2 * np.arcsin(bref_mag[length // 2])
+
+    flips = np.zeros(n_segments)
+    flips[-1] = np.pi / 2
+    for jj in range(n_segments - 2, -1, -1):
+        shrink = np.cos(flip_ref) if spin_echo else 1.0
+        flips[jj] = np.arctan(shrink * np.sin(flips[jj + 1]))
+
+    core = round((window - 1) * n)
+    taper = signal.windows.blackman(core)
+    shape = np.concatenate((taper[: core // 2], np.ones(n), taper[core // 2 :]))
+    left = (length - shape.size) // 2
+    windowed = np.zeros(length)
+    windowed[left : left + shape.size] = shape
+
+    beta = np.zeros((length, n_segments), dtype=np.complex128)
+    rf = np.zeros((length, n_segments), dtype=np.complex128)
+    beta[pad : pad + n, 0] = _least_squares(n, time_bandwidth_product, d1, d2)
+    spectrum = fft(beta[:, 0]) * np.exp(
+        -1j * np.pi / length * np.arange(-length / 2, length / 2)
+    )
+    beta[:, 0] = ifft(spectrum / np.abs(spectrum).max()) * np.sin(flips[0] / 2)
+    alpha = _beta_to_alpha(beta[:, 0])
+    if cancel_alpha_phase:
+        beta[:, 0] = np.fft.ifft(
+            np.fft.fft(beta[:, 0]) * np.exp(-1j * np.angle(np.fft.fft(alpha[::-1])))
+        )
+    beta[:, 0] *= windowed
+    rf[:, 0] = _beta_to_rf(beta[:, 0], False)
+    B = fft(beta[:, 0])
+    A = fft(_beta_to_alpha(beta[:, 0]))
+    wanted = 2 * A * np.conj(B) * bref**2 if spin_echo else 2 * np.conj(A) * B
+
+    mz = np.ones(length, dtype=np.complex128)
+    for jj in range(1, n_segments):
+        if spin_echo:
+            mz = mz * (1 - 2 * (np.abs(A * bref_mag) ** 2 + np.abs(aref_mag * B) ** 2))
+        else:
+            mz = mz * (1 - 2 * np.abs(B) ** 2) * (1 - relaxation) + relaxation
+        if use_mz:
+            # |Mxy| = |Mz 2 a b| with |a| = sqrt(1 - |b|^2): a quadratic in |b|^2.
+            gain = 4 * (bref_mag**4 if spin_echo else 1.0) * mz**2
+            root = np.real(np.sqrt(gain**2 - 4 * gain * np.abs(wanted) ** 2))
+            magnitude = np.sqrt((-gain + root) / (-2 * gain))
+            magnitude[np.isnan(magnitude)] = 0.0
+            A = fft(_beta_to_alpha(ifft(magnitude)))
+            B = wanted / (2 * np.conj(A) * mz)
+        else:
+            B = B * np.sin(flips[jj] / 2) / np.sin(flips[jj - 1] / 2)
+        beta[:, jj] = ifft(B) * windowed
+        B = fft(beta[:, jj])
+        A = fft(_beta_to_alpha(beta[:, jj]))
+        rf[:, jj] = _beta_to_rf(beta[:, jj], False)
+
+    keep = slice(left, left + shape.size)
+    return rf[keep], (rf_ref[keep] if spin_echo else None)
