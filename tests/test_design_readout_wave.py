@@ -15,7 +15,6 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
-from pypulseqpp.sequences.readout._common import wave_gradients
 
 SYSTEM = pp.Opts.default
 FOV = (0.24, 0.24, 0.16)
@@ -210,9 +209,7 @@ def test_wave_needs_both_encoded_axes_free():
 
 def test_the_flat_top_has_to_hold_a_quarter_period_of_edge():
     with pytest.raises(ValueError, match="gradient raster periods"):
-        wave_gradients(
-            SYSTEM, flat_time=1e-4, delay=0.0, cycles=8, amplitude=8e-3, mode="both"
-        )
+        pp.make_wave_gradients(1e-4, 8, 8e-3, system=SYSTEM)
 
 
 # %% switching it off

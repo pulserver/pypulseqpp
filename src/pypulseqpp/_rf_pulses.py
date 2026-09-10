@@ -9,6 +9,7 @@ from __future__ import annotations
 
 __all__ = [
     "make_2d_selective_pulse",
+    "make_half_passages",
     "make_sigpy_pulse",
     "make_slr_pulse",
     "make_sms_pulse",
@@ -751,3 +752,81 @@ def _small_tip_weights(target, coordinates, kspace):
     if np.allclose(weights, 0.0):
         raise ValueError("the requested target has no response on this trajectory")
     return weights
+
+
+def make_half_passages(
+    duration: float,
+    *,
+    adiabaticity: float = 8,
+    dwell: float = 10e-6,
+    pulse_type: str = "hypsec",
+    use: str = "preparation",
+    system=None,
+) -> tuple:
+    """Build the adiabatic pair that tips magnetization down and stores it back.
+
+    A half passage is one half of a full adiabatic sweep. Run from far
+    off-resonance to on-resonance, it carries magnetization from ``+z`` into
+    the transverse plane; run in reverse, it carries it back. Both are
+    adiabatic, so above a threshold transmit amplitude neither depends on
+    what the amplitude actually is -- which is why a T2 preparation uses them
+    instead of a pair of hard 90s.
+
+    The two are exact mirrors: the second is the first time-reversed and
+    conjugated. That is what makes the phase the sweep accrues on the way down
+    unwind on the way up, so what is stored is the magnetization's *magnitude*
+    and not a phase that varied with transmit field.
+
+    Parameters
+    ----------
+    duration : float
+        Duration of each half passage, in s.
+    adiabaticity : float, optional
+        Sweep-rate margin over the adiabatic condition. The default is twice
+        an inversion's, because a half passage has only half a sweep to
+        converge in.
+    dwell : float, optional
+        RF raster, in s.
+    pulse_type : str, optional
+        Sweep family, as :func:`make_adiabatic_pulse` names them.
+    use : str, optional
+        What the pulses are for, as Pulseq records it.
+    system : Opts, optional
+        System limits.
+
+    Returns
+    -------
+    down, up : SimpleNamespace
+        The half passage that tips down, and the reverse one that stores what
+        is left back on ``z``.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pypulseqpp as pp
+    >>> down, up = pp.make_half_passages(4e-3)
+    >>> bool(np.allclose(np.asarray(down.signal), np.conj(np.asarray(up.signal))[::-1]))
+    True
+    """
+    system = default_system(system)
+    full = _events.make_adiabatic_pulse(
+        pulse_type=pulse_type,
+        duration=2.0 * duration,
+        dwell=dwell,
+        adiabaticity=adiabaticity,
+        system=system,
+        use=use,
+    )
+    signal = np.asarray(full.signal)
+    sweep = signal[: signal.size // 2]
+    return tuple(
+        _events.make_arbitrary_rf(
+            signal=half,
+            flip_angle=np.pi / 2.0,
+            no_signal_scaling=True,
+            dwell=dwell,
+            system=system,
+            use=use,
+        )
+        for half in (sweep, np.conj(sweep[::-1]))
+    )
