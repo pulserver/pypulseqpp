@@ -11,7 +11,7 @@ import numpy as np
 import pypulseqpp as pp
 
 from .._module import SequenceModule
-from ._common import as_tuple, bridge, present, solve_delay
+from ._common import as_tuple, present, solve_delay
 
 #: Fraction of ``max_grad`` the readout plateau may reach.
 _READOUT_GRAD_MARGIN = 0.8
@@ -190,13 +190,13 @@ class _BssfpReadout(SequenceModule):
         # What the read axis does outside the acquisition: down off the
         # plateau and back onto it, carrying the echo to k = 0 on the way.
         entry_area = -0.5 * amplitude * readout_duration
-        gx_rew = bridge(
-            system,
-            "x",
-            -amplitude * (flat_span - 0.5 * readout_duration),
-            amplitude,
-            0.0,
-        )
+        gx_rew = pp.make_extended_trapezoid_area(
+            area=-amplitude * (flat_span - 0.5 * readout_duration),
+            channel="x",
+            grad_start=amplitude,
+            grad_end=0.0,
+            system=system,
+        )[0]
         entry_times, entry_amplitudes = _vertices(system, entry_area, 0.0, amplitude)
 
         rf_center = float(rf.delay) + float(rf.center)

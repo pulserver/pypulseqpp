@@ -15,9 +15,6 @@ __all__ = [
     "Radial",
     "Rosette",
     "Spiral",
-    "radial_trajectory",
-    "rosette_trajectory",
-    "spiral_trajectory",
 ]
 
 import copy
@@ -27,10 +24,10 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._trajectories import _as_scalar, _validate_common
 from ._common import AXES as _AXES
 
 _SPIRAL_DIRECTIONS = ("outward", "inward", "in_out")
-_SPIRAL_DENSITIES = ("constant", "variable", "dual")
 
 
 def traj2grad(
@@ -72,175 +69,6 @@ def traj2grad(
             [gradient, np.zeros((gradient.shape[0], 3 - gradient.shape[1]))]
         )
     return gradient
-
-
-def _as_scalar(value, name, cast=float):
-    array = np.asarray(value)
-    if array.ndim == 0:
-        return cast(array)
-    if array.size == 0:
-        raise ValueError(f"{name} cannot be empty")
-    first = cast(array.flat[0])
-    if not np.all(array == array.flat[0]):
-        raise ValueError(
-            f"{name} must be isotropic for a rotationally symmetric trajectory"
-        )
-    return first
-
-
-def _validate_common(fov, matrix, oversamp, bandwidth_hz_px):
-    fov_m = _as_scalar(fov, "fov")
-    n = _as_scalar(matrix, "matrix", int)
-    if fov_m <= 0 or n < 2:
-        raise ValueError("fov must be positive and matrix must be >= 2")
-    if oversamp < 1:
-        raise ValueError("oversamp must be >= 1")
-    if bandwidth_hz_px <= 0:
-        raise ValueError("bandwidth_hz_px must be positive")
-    return fov_m, n
-
-
-def _cumtrapz(values, x):
-    out = np.zeros_like(values, dtype=float)
-    out[1:] = np.cumsum(0.5 * (values[1:] + values[:-1]) * np.diff(x))
-    return out
-
-
-def radial_trajectory(fov, matrix, *, num_points=None):
-    """Return a canonical full radial spoke in cycles/m."""
-    fov_m, n = _validate_common(fov, matrix, 1.0, 1.0)
-    count = int(num_points or n)
-    if count < 2:
-        raise ValueError("num_points must be >= 2")
-    kmax = n / (2.0 * fov_m)
-    return np.column_stack((np.linspace(-kmax, kmax, count), np.zeros(count)))
-
-
-def spiral_trajectory(
-    fov,
-    matrix,
-    design_interleaves,
-    *,
-    density="constant",
-    inner_design_interleaves=None,
-    outer_design_interleaves=None,
-    variable_density_power=2.0,
-    transition_radius=0.5,
-    transition_speed=12.0,
-    num_points=1024,
-):
-    """Generate one NumPy spiral-out interleave in cycles/m.
-
-    ``design_interleaves`` sets the nominal constant-density pitch; it does
-    not prescribe how many rotations the caller acquires.  The optional
-    ``inner_design_interleaves`` and ``outer_design_interleaves`` describe the
-    local pitch for variable- and dual-density designs.  Constant density uses
-    one value, variable density changes smoothly as
-    ``radius ** variable_density_power``, and dual density uses two plateaus
-    joined by a logistic transition.
-    """
-    fov_m, n = _validate_common(fov, matrix, 1.0, 1.0)
-    design_interleaves = int(design_interleaves)
-    num_points = int(num_points)
-    if design_interleaves < 1 or num_points < 4:
-        raise ValueError("design_interleaves must be >= 1 and num_points must be >= 4")
-    if density not in _SPIRAL_DENSITIES:
-        raise ValueError(f"density must be one of {_SPIRAL_DENSITIES}, got {density!r}")
-
-    inner = float(
-        design_interleaves
-        if inner_design_interleaves is None
-        else inner_design_interleaves
-    )
-    if outer_design_interleaves is None:
-        if density == "variable":
-            outer = 2.0 * inner
-        elif density == "dual":
-            raise ValueError(
-                "outer_design_interleaves is required for dual-density spirals"
-            )
-        else:
-            outer = inner
-    else:
-        outer = float(outer_design_interleaves)
-    if inner <= 0 or outer <= 0:
-        raise ValueError(
-            "inner_design_interleaves and outer_design_interleaves must be positive"
-        )
-
-    radius = np.linspace(0.0, 1.0, num_points)
-    if density == "constant":
-        local_interleaves = np.full_like(radius, inner)
-    elif density == "variable":
-        if variable_density_power <= 0:
-            raise ValueError("variable_density_power must be positive")
-        local_interleaves = inner + (outer - inner) * radius ** float(
-            variable_density_power
-        )
-    else:
-        if not 0.0 < transition_radius < 1.0 or transition_speed <= 0:
-            raise ValueError(
-                "transition_radius must be in (0, 1) and transition_speed must be positive"
-            )
-        blend = 1.0 / (
-            1.0 + np.exp(-float(transition_speed) * (radius - float(transition_radius)))
-        )
-        blend = (blend - blend[0]) / (blend[-1] - blend[0])
-        local_interleaves = inner + (outer - inner) * blend
-
-    # For a square matrix, dphi/dr = pi*N/n_interleaves gives N/2 turns
-    # for a single-shot constant-density spiral and the corresponding local
-    # pitch for multi-shot / variable-density paths.
-    phi = _cumtrapz(np.pi * n / local_interleaves, radius)
-    kmax = n / (2.0 * fov_m)
-    rho = kmax * radius
-    return np.column_stack((rho * np.cos(phi), rho * np.sin(phi)))
-
-
-def rosette_trajectory(
-    fov,
-    matrix,
-    *,
-    petals=5,
-    angular_frequency_ratio=3.0 / 5.0,
-    num_points=2049,
-):
-    """Generate one multi-petal rosette base interleave in cycles/m.
-
-    The path is
-
-    ``rho(u) = kmax * sin(pi * petals * u)`` and
-    ``theta(u) = pi * petals * angular_frequency_ratio * u``.
-
-    Consequently, ``petals`` is the number of center-to-center radial lobes
-    played within this one interleave.  Increasing it adds more k-space
-    center crossings and lengthens the gradient waveform.  The angular
-    frequency ratio is ``omega_angular / omega_radial``: zero degenerates to
-    a repeatedly traversed line, values below one produce relatively open
-    petals, one produces the constant-speed circular limiting case, and
-    values above one wind more tightly while each radial lobe is played.
-    Neither parameter describes shot-to-shot rotations; callers rotate the
-    complete returned interleave independently.
-
-    ``num_points`` only controls the numerical polyline used to describe the
-    ideal path.  It does not set the number of acquired ADC samples.
-    """
-    fov_m, n = _validate_common(fov, matrix, 1.0, 1.0)
-    petals, num_points = int(petals), int(num_points)
-    angular_frequency_ratio = float(angular_frequency_ratio)
-    if (
-        petals < 1
-        or not math.isfinite(angular_frequency_ratio)
-        or angular_frequency_ratio <= 0
-        or num_points < 5
-    ):
-        raise ValueError(
-            "petals and angular_frequency_ratio must be positive and num_points must be >= 5"
-        )
-    u = np.linspace(0.0, 1.0, num_points)
-    rho = (n / (2.0 * fov_m)) * np.sin(np.pi * petals * u)
-    theta = np.pi * petals * angular_frequency_ratio * u
-    return np.column_stack((rho * np.cos(theta), rho * np.sin(theta)))
 
 
 def _stretch_gradient(gradient, target_duration, raster):
@@ -694,7 +522,7 @@ class Radial(NonCartesianGradient):
             system=system,
         )
         adc = _make_adc(system, n_adc, read_duration)
-        trajectory = radial_trajectory(fov_m, n, num_points=n_adc)
+        trajectory = pp.calc_radial_trajectory(fov_m, n, num_points=n_adc)
         super().__init__(
             system=system,
             gradients=(grad,),
@@ -765,7 +593,7 @@ class Spiral(NonCartesianGradient):
             system = pp.apply_system_derates(system)
 
         factor = 2 if direction == "in_out" else 1
-        path_out = spiral_trajectory(
+        path_out = pp.calc_spiral_trajectory(
             fov_m,
             n,
             factor * design_interleaves,
@@ -958,7 +786,7 @@ class Rosette(NonCartesianGradient):
             raise ValueError("axes must contain two distinct gradient channels")
         if derate:
             system = pp.apply_system_derates(system)
-        path = rosette_trajectory(
+        path = pp.calc_rosette_trajectory(
             fov_m,
             n,
             petals=petals,

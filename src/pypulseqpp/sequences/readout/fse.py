@@ -13,11 +13,10 @@ import pypulseqpp as pp
 from .._module import SequenceModule
 from ._common import (
     as_tuple,
-    bridge,
     left_align_rephaser,
     present,
     solve_delay,
-    wave_gradients,
+    wave_channels,
 )
 
 #: Fraction of ``max_grad`` the readout plateau may reach.
@@ -275,16 +274,17 @@ class _FseReadout(SequenceModule):
         gy_wave = gz_wave = None
         wave_peak = 0.0
         if wave is not None:
-            built = wave_gradients(
-                system,
-                flat_time=readout_duration,
+            sine, cosine = wave_channels(wave)
+            gy_wave, gz_wave, wave_peak = pp.make_wave_gradients(
+                readout_duration,
+                wave_cycles,
+                wave_amplitude,
+                sine_channel=sine,
+                cosine_channel=cosine,
                 delay=float(adc.delay),
-                cycles=wave_cycles,
-                amplitude=wave_amplitude,
-                mode=wave,
+                return_amplitude=True,
+                system=system,
             )
-            gy_wave, gz_wave = built.get("y"), built.get("z")
-            wave_peak = built["amplitude"]
         echo_offset = float(adc.delay) + n_pre * dwell
         flat_span = pp.ceil_to_raster(float(adc.delay) + readout_duration, raster)
         gx = pp.make_extended_trapezoid(
@@ -303,9 +303,13 @@ class _FseReadout(SequenceModule):
             area=ramp_area + spoil_area + 0.5 * amplitude * flat_span,
             system=system,
         )
-        gx_bridge_pre = bridge(
-            system, "x", ramp_area + spoil_area + rebalance, 0.0, amplitude
-        )
+        gx_bridge_pre = pp.make_extended_trapezoid_area(
+            area=ramp_area + spoil_area + rebalance,
+            channel="x",
+            grad_start=0.0,
+            grad_end=amplitude,
+            system=system,
+        )[0]
         _, post_times, post_amplitudes = pp.make_extended_trapezoid_area(
             area=ramp_area + spoil_area - rebalance,
             channel="x",

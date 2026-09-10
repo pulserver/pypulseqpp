@@ -9,7 +9,7 @@ import numpy as np
 import pypulseqpp as pp
 
 from ..excitation._base import RfModule, rf_reference
-from ._common import half_passages, spoiler_gradients
+from ._common import spoiler_gradients
 
 _FINAL_TIPS = ("up", "down")
 
@@ -159,8 +159,11 @@ class T2Preparation(RfModule):
         if voxel_size_m <= 0:
             raise ValueError("voxel_size_m must be positive")
 
-        rf_prep, rf_store = half_passages(
-            system, half_passage_duration_s, adiabaticity=adiabaticity, dwell_s=dwell_s
+        rf_prep, rf_store = pp.make_half_passages(
+            half_passage_duration_s,
+            adiabaticity=adiabaticity,
+            dwell=dwell_s,
+            system=system,
         )
         rf_ref = pp.make_adiabatic_pulse(
             pulse_type="hypsec",
