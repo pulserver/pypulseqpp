@@ -42,6 +42,7 @@ from importlib.metadata import version as _distribution_version
 import pypulseq as _pypulseq
 
 from . import _events
+from ._adiabatic import make_adiabatic_pulse as _make_adiabatic_pulse
 from ._angles import (
     calc_golden_angles,
     calc_projection_shell,
@@ -201,6 +202,9 @@ block_to_events = interoperating(_block_to_events)
 
 # Ours, over upstream's: a hard pulse answers its own width rather than zero.
 calc_rf_bandwidth = interoperating(_calc_rf_bandwidth)
+
+# Ours, over upstream's: its two sweeps, with BIR-4 and GOIA-WURST beside them.
+make_adiabatic_pulse = _make_adiabatic_pulse
 
 # Ours, over upstream's: the rasters both vendors can play.
 Opts = _Opts
