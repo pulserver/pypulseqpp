@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dynamic = ["version"]
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "LICENSES/*"]
 keywords = ["mri", "pulseq", "pypulseq", "pulse sequence"]
 authors = [{ name = "Matteo Cencini", email = "matteo.cencini@gmail.com" }]
 classifiers = [
@@ -54,7 +54,7 @@ Source = "https://github.com/pulserver/pypulseqpp"
 
 [tool.scikit-build]
 cmake.source-dir = "."
-sdist.include = ["src/**", "examples/**/*.py", "tests/**", "README.md", "LICENSE"]
+sdist.include = ["src/**", "examples/**/*.py", "tests/**", "README.md", "LICENSE", "LICENSES/*"]
 # The `include` patterns override the ignore rules, so byte code left in the
 # tree ships with the source. `sdist.exclude` does not take it back out; the
 # tree has to be clean, which is what `scripts/format_and_lint.sh` leaves it.

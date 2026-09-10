@@ -113,7 +113,8 @@ and a label here is named rather than numbered -- see the section on that.
 |---|---|
 | `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
 | `external/MRArbGrad/` | A submodule: the MRArbGrad solver, which re-parameterises a k-space path within the gradient and slew limits. Three of its files are compiled in; see `external/NOTICE.md`. |
-| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad` and `sampling` as submodules of it. |
+| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad`, `sampling` and `slr` as submodules of it. |
+| `LICENSES/` | The licenses of code derived from other projects, shipped in the wheel beside `LICENSE`: SigPy's BSD 3-Clause, for the SLR design, root flipping, the multiband phase tables and the Poisson-disc sampler. A module derived from one says so in its docstring and names the file. |
 | `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
 | `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
 | `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
