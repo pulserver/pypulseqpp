@@ -13,24 +13,24 @@ import numpy as np
 import pytest
 
 import pypulseqpp as pp
-from pypulseqpp import cli, examples
+from pypulseqpp import cli, sequences
 
 SMALL = {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0, "n_dummy": 0}
 
 
-@pytest.mark.parametrize("name", examples.__all__)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_zoo_entry_is_callable_as_the_sequence_it_builds(name):
     """A script is its main, docstring and signature included."""
-    script = getattr(examples, name)
+    script = getattr(sequences, name)
 
     assert callable(script)
     assert script.__doc__ == script.main.__doc__
     assert "system" in script.__signature__.parameters
 
 
-@pytest.mark.parametrize("name", examples.__all__)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_zoo_entry_builds_a_sequence_that_passes_its_timing_check(name):
-    seq = getattr(examples, name)(**SMALL)
+    seq = getattr(sequences, name)(**SMALL)
 
     assert isinstance(seq, pp.Sequence)
     is_ok, errors = seq.check_timing()
@@ -41,7 +41,7 @@ def test_a_zoo_entry_builds_a_sequence_that_passes_its_timing_check(name):
 
 
 def gre(**kwargs):
-    return examples.gre2D_sequence(**{**SMALL, **kwargs})
+    return sequences.gre2D_sequence(**{**SMALL, **kwargs})
 
 
 def test_every_line_is_one_repetition_of_the_same_blocks():
@@ -61,7 +61,7 @@ def test_the_prescription_asked_for_is_the_one_written_down():
 
 def test_the_slices_of_a_pass_are_not_neighbours():
     """A TR too short for every slice deals them into passes, spread out."""
-    kernel = examples.gre2D_sequence.GREKernel(
+    kernel = sequences.gre2D_sequence.GREKernel(
         pp.Opts(), n_x=32, n_y=16, n_slices=8, tr=40e-3, n_acs=0, n_dummy=0
     )
 
@@ -100,7 +100,7 @@ def test_every_slice_is_excited_at_the_repetition_time_asked_for():
     """Including the odd pass, which holds a slice more and waits less."""
     lines, tr = 8, 0.25
     seq = gre(n_x=256, n_y=lines, n_slices=120, tr=tr)
-    kernel = examples.gre2D_sequence.GREKernel(
+    kernel = sequences.gre2D_sequence.GREKernel(
         pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s"),
         n_x=256,
         n_y=lines,
@@ -135,7 +135,7 @@ def test_undersampling_acquires_fewer_lines_than_it_encodes():
 
 def test_the_calibration_block_leads_the_scan():
     """A reconstruction calibrates while the rest of the scan is arriving."""
-    kernel = examples.gre2D_sequence.GREKernel(
+    kernel = sequences.gre2D_sequence.GREKernel(
         pp.Opts(), n_x=32, n_y=32, acceleration=2, n_acs=8, n_dummy=0
     )
 
@@ -150,7 +150,7 @@ def test_the_command_line_writes_what_the_call_builds(tmp_path):
     path = tmp_path / "gre.seq"
 
     status = cli.run(
-        examples.gre2D_sequence.main,
+        sequences.gre2D_sequence.main,
         [
             "-o",
             str(path),
@@ -171,7 +171,7 @@ def test_the_command_line_writes_what_the_call_builds(tmp_path):
 
 def test_a_flag_is_named_and_described_by_the_function_it_runs(capsys):
     with pytest.raises(SystemExit):
-        cli.run(examples.gre2D_sequence.main, ["--help"])
+        cli.run(sequences.gre2D_sequence.main, ["--help"])
 
     printed = capsys.readouterr().out
 
@@ -211,7 +211,7 @@ def test_running_the_module_as_a_script_writes_a_sequence(tmp_path):
         [
             sys.executable,
             "-m",
-            "pypulseqpp.examples.sequence.gre2D_sequence",
+            "pypulseqpp.sequences.sequence.gre2D_sequence",
             "-o",
             str(path),
             "--n-x",
