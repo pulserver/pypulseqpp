@@ -270,12 +270,29 @@ def _forget_closed() -> None:
             viewer._forget()
 
 
+#: Said when SeqEyes cannot start for want of a library the system provides.
+_SYSTEM_LIBRARIES = (
+    "SeqEyes runs on PySide6's Qt, which draws with the system's display "
+    "libraries; a desktop has them already. On Debian or Ubuntu, what drawing "
+    "needs is installed with\n"
+    "    sudo apt install libegl1 libgl1 libx11-6 libdbus-1-3 libfontconfig1 "
+    "libfreetype6 libglib2.0-0 libxkbcommon0"
+)
+
+
 def _said(folder: Path) -> str:
-    """Return what SeqEyes printed while showing what is in ``folder``."""
+    """Return what SeqEyes printed while showing what is in ``folder``.
+
+    A library the system was expected to provide and did not is followed by
+    how to install it.
+    """
     try:
-        return (folder / "seqeyes.log").read_text(errors="replace").strip()
+        said = (folder / "seqeyes.log").read_text(errors="replace").strip()
     except OSError:
         return ""
+    if "error while loading shared libraries" in said:
+        return f"{said}\n\n{_SYSTEM_LIBRARIES}"
+    return said
 
 
 def _folder() -> Path:

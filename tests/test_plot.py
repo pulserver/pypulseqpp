@@ -305,6 +305,26 @@ def test_the_packaged_viewer_is_pointed_at_its_qt_and_no_other_is(
     assert other.get("QT_PLUGIN_PATH") == _plot.os.environ.get("QT_PLUGIN_PATH")
 
 
+def test_a_missing_system_library_is_named_with_how_to_install_it(tmp_path):
+    folder = tmp_path / "drawing"
+    folder.mkdir()
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            "import sys; print('seqeyes: error while loading shared libraries: "
+            "libEGL.so.1: cannot open shared object file'); sys.exit(127)",
+        ],
+        stdout=(folder / "seqeyes.log").open("wb"),
+        stderr=subprocess.STDOUT,
+    )
+    viewer = _plot.Viewer(process, folder)
+
+    with pytest.raises(RuntimeError, match=r"libEGL\.so\.1") as failed:
+        viewer.wait()
+    assert "sudo apt install libegl1" in str(failed.value)
+
+
 def test_a_viewer_that_fails_says_what_seqeyes_printed(tmp_path):
     folder = tmp_path / "drawing"
     folder.mkdir()

@@ -8,6 +8,25 @@ The wheel carries the SeqEyes program and no Qt: it runs on the Qt that
 `PySide6-Essentials` installs. `pypulseqpp-seqeyes file.seq` opens a file
 from the command line, with SeqEyes' own options.
 
+## Linux
+
+PySide6's Qt draws with the system's display libraries. A desktop has them;
+a bare server or container needs, on Debian or Ubuntu,
+
+```bash
+# To draw offscreen -- plot(save=True) with QT_QPA_PLATFORM=offscreen
+sudo apt install libegl1 libgl1 libx11-6 libdbus-1-3 libfontconfig1 \
+  libfreetype6 libglib2.0-0 libxkbcommon0
+# And to open a window under X11 (Wayland needs none of these)
+sudo apt install libx11-xcb1 libxkbcommon-x11-0 libxcb1 libxcb-cursor0 \
+  libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+  libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-shm0 \
+  libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xkb1
+```
+
+`libxcb-cursor0` is the one an Ubuntu desktop may lack: Qt needs it to open an
+X11 window, and says so if it is missing.
+
 ## Licence
 
 GPL-3.0-or-later. SeqEyes is BSD-3-Clause (`seqeyes/LICENSE`, and
