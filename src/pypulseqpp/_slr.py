@@ -46,12 +46,9 @@ def _calc_ripples(pulse_type: str, d1: float, d2: float) -> tuple[float, float, 
     return float(scale), float(d1), float(d2)
 
 
-def _least_squares(n: int, tbw: float, d1: float, d2: float) -> np.ndarray:
-    transition = _dinf(d1, d2) / tbw
-    bands = np.asarray(
-        [0.0, (1.0 - transition) * tbw / 2.0, (1.0 + transition) * tbw / 2.0, n / 2.0]
-    ) / (n / 2.0)
-    h = signal.firls(n + 1, bands, [1.0, 1.0, 0.0, 0.0], weight=[1.0, d1 / d2])
+def _firls(n: int, bands, desired, weight) -> np.ndarray:
+    """Return an ``n``-sample least-squares FIR filter, bands normalised to Nyquist."""
+    h = signal.firls(n + 1, np.asarray(bands, dtype=float), desired, weight=weight)
     # MATLAB's firls result is shifted by half a sample relative to SciPy.
     phase = np.exp(
         1j
@@ -60,7 +57,183 @@ def _least_squares(n: int, tbw: float, d1: float, d2: float) -> np.ndarray:
         / (2.0 * (n + 1))
         * np.concatenate((np.arange(0, n / 2 + 1), np.arange(-n / 2, 0)))
     )
-    return np.real(np.fft.ifft(np.fft.fft(h) * phase))[:n]
+    return np.fft.ifft(np.fft.fft(h) * phase)[:n]
+
+
+def _least_squares(n: int, tbw: float, d1: float, d2: float) -> np.ndarray:
+    transition = _dinf(d1, d2) / tbw
+    bands = np.asarray(
+        [0.0, (1.0 - transition) * tbw / 2.0, (1.0 + transition) * tbw / 2.0, n / 2.0]
+    ) / (n / 2.0)
+    return np.real(_firls(n, bands, [1.0, 1.0, 0.0, 0.0], [1.0, d1 / d2]))
+
+
+def _to_baseband(h: np.ndarray, shift: int) -> np.ndarray:
+    """Keep the positive-frequency band of real ``h`` and move it from ``shift`` to DC.
+
+    ``shift`` is in cycles per ``h.size`` samples.
+    """
+    n = h.size
+    carrier = np.exp(-1j * 2.0 * np.pi / n * shift * np.arange(n)) / 2.0
+    return signal.hilbert(np.real(h)) * carrier * np.exp(-1j * np.pi / n * shift)
+
+
+def _check_slab(n: int, tbw: float, d1: float, d2: float, subbands: int) -> float:
+    """Return the fractional transition width.
+
+    Refuses a slab that overruns ``n`` samples once shifted to ``n // 4``, and
+    sub-bands narrower than the transitions that bound them.
+    """
+    if n < 8 or n % 2:
+        raise ValueError("n must be an even integer >= 8")
+    if not 0 < d1 < 1 or not 0 < d2 < 1:
+        raise ValueError("passband_ripple and stopband_ripple must lie in (0, 1)")
+    transition = _dinf(d1, d2) / tbw
+    if tbw <= 0 or (1.0 + transition) * tbw / 2.0 >= n // 4:
+        raise ValueError(
+            f"a time-bandwidth product of {tbw} does not fit {n} samples; "
+            "lengthen the pulse or lower it"
+        )
+    if tbw / subbands <= _dinf(d1, d2):
+        raise ValueError(
+            f"{subbands} sub-slices of a time-bandwidth product of {tbw} are "
+            f"narrower than their transitions; raise it above {_dinf(d1, d2) * subbands:.1f}"
+        )
+    return transition
+
+
+def design_gslider(
+    n: int,
+    time_bandwidth_product: float,
+    num_subslices: int,
+    subslice: int,
+    *,
+    flip_angle: float,
+    phase: float = np.pi,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+) -> np.ndarray:
+    """Return a gSlider pulse in radians per sample: ``subslice`` at ``phase``.
+
+    Derived from SigPy's ``dz_gslider_b``. Sub-slices are counted from the
+    lowest frequency.
+    """
+    g = int(num_subslices)
+    if g < 1 or not 0 <= subslice < g:
+        raise ValueError(f"subslice must lie in [0, {g}), got {subslice}")
+    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
+    ftw = _check_slab(n, tbw, d1, d2, g)
+    tilt = np.exp(1j * phase)
+    # The design's bands run opposite to the frequency the pulse selects.
+    subslice = g - 1 - subslice
+    if g % 2 and subslice == g // 2:
+        if g == 1:
+            return _beta_to_rf(
+                np.sin(flip_angle / 2) * _least_squares(n, tbw, d1, d2),
+                cancel_alpha_phase,
+            )
+        # The centred sub-slice is at DC already: a notch and the band it
+        # leaves, designed together and summed with the band's phase.
+        bands = np.asarray(
+            [
+                0,
+                (1 / g - ftw) * tbw / 2,
+                (1 / g + ftw) * tbw / 2,
+                (1 - ftw) * tbw / 2,
+                (1 + ftw) * tbw / 2,
+                n / 2,
+            ]
+        ) / (n / 2)
+        weight = [1.0, 1.0, d1 / d2]
+        beta = _firls(n, bands, [0, 0, 1, 1, 0, 0], weight) + tilt * _firls(
+            n, bands, [1, 1, 0, 0, 0, 0], weight
+        )
+    else:
+        # Off-centre sub-slices are designed one-sided about ``shift`` and
+        # brought down to DC, so the band can carry a complex weight.
+        shift = n // 4
+        centre = shift + (subslice + 0.5 - g / 2) * tbw / g
+        half, edge = tbw / g / 2, ftw * tbw / 2
+        left = [shift - (1 + ftw) * tbw / 2, shift - (1 - ftw) * tbw / 2]
+        right = [shift + (1 - ftw) * tbw / 2, shift + (1 + ftw) * tbw / 2]
+        if 0 < subslice < g - 1:
+            inner = [
+                centre - half - edge,
+                centre - half + edge,
+                centre + half - edge,
+                centre + half + edge,
+            ]
+            notch, sub = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+            weight = [d1 / d2, 1, 1, 1, d1 / d2]
+        elif subslice == 0:
+            inner = [centre + half - edge, centre + half + edge]
+            notch, sub = [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0]
+            weight = [d1 / d2, 1, 1, d1 / d2]
+        else:
+            inner = [centre - half - edge, centre - half + edge]
+            notch, sub = [0, 0, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0]
+            weight = [d1 / d2, 1, 1, d1 / d2]
+        bands = np.asarray([0, *left, *inner, *right, n / 2]) / (n / 2)
+        beta = _to_baseband(
+            _firls(n, bands, notch, weight), shift
+        ) + tilt * _to_baseband(_firls(n, bands, sub, weight), shift)
+    return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+
+
+def design_hadamard(
+    n: int,
+    time_bandwidth_product: float,
+    order: int,
+    row: int,
+    *,
+    flip_angle: float,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+) -> np.ndarray:
+    """Return a slab pulse in radians per sample, sub-bands signed by a Hadamard row.
+
+    Derived from SigPy's ``dz_hadamard_b``. Row 0 is the plain slab; sub-bands
+    are counted from the lowest frequency.
+    """
+    from scipy.linalg import hadamard
+
+    if order < 1 or order & (order - 1):
+        raise ValueError(f"order must be a power of two, got {order}")
+    if not 0 <= row < order:
+        raise ValueError(f"row must lie in [0, {order}), got {row}")
+    tbw, d1, d2 = float(time_bandwidth_product), passband_ripple, stopband_ripple
+    ftw = _check_slab(n, tbw, d1, d2, order)
+    if row == 0:
+        beta = _least_squares(n, tbw, d1, d2)
+        return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+
+    # The design's bands run opposite to the frequency the pulse selects.
+    encode = hadamard(order)[row][::-1]
+    shift = n // 4
+    half, edge = tbw / order / 2, ftw * tbw / 2
+    # Neighbouring sub-bands of one sign merge into one band with no
+    # transition between them.
+    bands, desired, weight = [0.0, shift - (1 + ftw) * tbw / 2], [0, 0], [d1 / d2]
+    for k in range(order):
+        centre = shift + (k + 0.5 - order / 2) * tbw / order
+        if k == 0 or encode[k] != encode[k - 1]:
+            bands.append(centre - half + edge)
+            desired.append(encode[k])
+        if k == order - 1 or encode[k] != encode[k + 1]:
+            bands.append(centre + half - edge)
+            desired.append(encode[k])
+            weight.append(1.0)
+    bands += [shift + (1 + ftw) * tbw / 2, n / 2]
+    desired += [0, 0]
+    weight.append(d1 / d2)
+    bands = np.asarray(bands) / (n / 2)
+    desired = np.asarray(desired)
+    positive = _firls(n, bands, (desired > 0).astype(float), weight)
+    negative = _firls(n, bands, (desired < 0).astype(float), weight)
+    beta = _to_baseband(positive - negative, shift)
+    return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
 
 
 def _linear_phase(n: int, tbw: float, d1: float, d2: float) -> np.ndarray:
