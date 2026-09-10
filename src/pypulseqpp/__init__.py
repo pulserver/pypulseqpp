@@ -72,6 +72,9 @@ from ._schedules import (
 from ._sequence import Sequence as _Sequence
 from ._sim_rf import bloch as _bloch
 from ._sim_rf import sim_rf as _sim_rf
+from ._slice_encoding import make_gslider_pulse as _make_gslider_pulse
+from ._slice_encoding import make_hadamard_pulse as _make_hadamard_pulse
+from ._slice_encoding import make_pins_pulse as _make_pins_pulse
 from ._timing import (
     calc_adc_timing,
     ceil_to_raster,
@@ -199,6 +202,9 @@ make_slr_pulse = interoperating(_make_slr_pulse)
 #: SigpyPulseOpts argument bundle has nothing here to configure.
 make_sigpy_pulse = make_slr_pulse
 make_sms_pulse = interoperating(_make_sms_pulse)
+make_gslider_pulse = interoperating(_make_gslider_pulse)
+make_hadamard_pulse = interoperating(_make_hadamard_pulse)
+make_pins_pulse = interoperating(_make_pins_pulse)
 make_spsp_pulse = interoperating(_make_spsp_pulse)
 make_wave_gradients = interoperating(_make_wave_gradients)
 
