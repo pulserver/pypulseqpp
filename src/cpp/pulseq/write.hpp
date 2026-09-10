@@ -10,7 +10,9 @@
 #ifndef PULSEQ_CXX_WRITE_HPP
 #define PULSEQ_CXX_WRITE_HPP
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 namespace pulseq
 {
@@ -72,6 +74,18 @@ namespace pulseq
      *         block-duration rasters.
      */
     std::string write_text(Sequence& seq, bool create_signature);
+
+    /**
+     * Serialize the blocks @p rows names, in that order, as a `.seq` text file.
+     *
+     * @p rows holds 1-based block indices, and the file numbers the blocks it
+     * holds from 1. Every library is written whole whichever blocks refer to
+     * it, which the format allows.
+     *
+     * @throws std::out_of_range if a row is not one of the sequence's blocks.
+     */
+    std::string write_text(
+        Sequence& seq, bool create_signature, const std::vector<int32_t>& rows);
 
 } // namespace pulseq
 

@@ -19,6 +19,7 @@ import numpy as np
 import pypulseq as _upstream
 
 from . import _ext as _cxx
+from . import _plot
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
@@ -1170,6 +1171,83 @@ class Sequence:
     def version_revision(self) -> int:
         """Its revision."""
         return self._native.version_revision()
+
+    # -- drawing -------------------------------------------------------
+
+    def plot(
+        self,
+        label: str = "",
+        show_blocks: bool = False,
+        save: bool = False,
+        time_range=(0, np.inf),
+        time_disp: str = "s",
+        grad_disp: str = "kHz/m",
+        plot_now: bool = True,
+        clear: bool = True,
+        overlay=None,
+        stacked: bool = False,
+        show_guides: bool = False,
+        *,
+        block_range=None,
+        tr_range=None,
+    ) -> _plot.Viewer:
+        """Draw the sequence in SeqEyes.
+
+        SeqEyes is an optional dependency, installed with
+        ``pip install 'pypulseqpp[plot]'``. It reads the sequence as a file,
+        so what it is handed is only what is asked to be drawn.
+
+        Parameters
+        ----------
+        label, show_blocks, save, time_disp, grad_disp, clear, overlay, stacked, show_guides
+            Upstream's, accepted so a script written for it runs. SeqEyes
+            draws units, labels and block edges its own way, from its own
+            settings; one given a value other than its default is reported
+            and ignored.
+        time_range : sequence of float, default (0, inf)
+            The seconds to draw, measured from the start of the scan.
+        plot_now : bool, default True
+            Wait for the window to be closed before returning. When False,
+            the window is left open and the returned viewer is live.
+        block_range : sequence of int, optional
+            The first and last block to draw, 1-based and inclusive.
+        tr_range : sequence of int, optional
+            The first and last repetition to draw, 1-based and inclusive.
+            A repetition is the period of the block definition stream, and
+            the first is the first full one, so a prologue -- dummy shots, a
+            preparation, a noise scan -- is not counted.
+
+        Returns
+        -------
+        Viewer
+            The window: `Viewer.wait` blocks until it is closed and
+            `Viewer.close` closes it.
+
+        Raises
+        ------
+        ModuleNotFoundError
+            If SeqEyes is not installed.
+        ValueError
+            If more than one range is given, a range is outside the sequence,
+            or ``tr_range`` is asked of a sequence that does not repeat.
+        """
+        whole = tuple(time_range) == (0, np.inf)
+        return _plot.plot(
+            self,
+            time_range=None if whole else time_range,
+            block_range=block_range,
+            tr_range=tr_range,
+            plot_now=plot_now,
+            label=label,
+            show_blocks=show_blocks,
+            save=save,
+            time_disp=time_disp,
+            grad_disp=grad_disp,
+            clear=clear,
+            overlay=overlay,
+            stacked=stacked,
+            show_guides=show_guides,
+        )
 
     # -- the scanner ---------------------------------------------------
 

@@ -1,0 +1,30 @@
+name: Viewer release
+
+# Publishes pypulseqpp-seqeyes, the GPL viewer package in viewer/, from a tag
+# of its own: it is versioned after the SeqEyes release it builds, not after
+# pypulseqpp.
+
+on:
+  push:
+    tags:
+      - "viewer-v[0-9]+.[0-9]+.[0-9]+*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/viewer-wheels.yml
+
+  publish-to-pypi:
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-viewer
+      url: https://pypi.org/p/pypulseqpp-seqeyes
+    permissions:
+      id-token: write # trusted publishing (OIDC)
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: "{viewer-wheels-*,viewer-sdist}"
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,3 +1,6 @@
 [submodule "external/MRArbGrad"]
 	path = external/MRArbGrad
 	url = https://github.com/mcencini/MRArbGrad
+[submodule "viewer/seqeyes"]
+	path = viewer/seqeyes
+	url = https://github.com/xingwangyong/seqeyes

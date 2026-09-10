@@ -1,0 +1,83 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pypulseqpp-seqeyes"
+# SeqEyes' own release: the submodule in seqeyes/ is pinned to its v0.3.03.
+version = "0.3.3"
+description = "SeqEyes, the Pulseq sequence viewer, built for pypulseqpp's Sequence.plot."
+readme = "README.md"
+requires-python = ">=3.10"
+# SeqEyes is BSD-3-Clause; QCustomPlot, the plotting widget compiled into it,
+# is GPL-3.0-or-later, and so is the program they make together.
+license = "GPL-3.0-or-later AND BSD-3-Clause"
+license-files = ["LICENSE", "seqeyes/LICENSE", "seqeyes/licenses/license_safe_pns"]
+authors = [{ name = "Matteo Cencini", email = "matteo.cencini@gmail.com" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Programming Language :: C++",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+]
+# The Qt the viewer runs on. It is built against 6.8, and Qt keeps binary
+# compatibility within a major version, so any later 6.x runs it.
+dependencies = ["PySide6-Essentials>=6.8,<7"]
+
+[project.scripts]
+pypulseqpp-seqeyes = "pypulseqpp_seqeyes:main"
+
+[project.urls]
+Source = "https://github.com/pulserver/pypulseqpp/tree/main/viewer"
+SeqEyes = "https://github.com/xingwangyong/seqeyes"
+
+[tool.scikit-build]
+# A program rather than an extension: it runs under any Python, so the wheel
+# is tagged py3-none-<platform> and one build serves every interpreter.
+wheel.py-api = "py3"
+wheel.packages = ["src/pypulseqpp_seqeyes"]
+# The submodule is what the source distribution exists to carry.
+sdist.include = ["seqeyes/**"]
+
+[tool.cibuildwheel]
+build = "cp312-*"
+skip = "*-musllinux_*"
+build-verbosity = 1
+# Installs the wheel with PySide6 and opens a sequence in it, headless.
+test-command = "python {package}/tests/smoke.py"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+# glibc 2.28, which is what the wheel's tag promises; Qt's own Linux build and
+# PySide6's are made against the same.
+manylinux-x86_64-image = "manylinux_2_28"
+before-all = [
+  # Headers Qt's CMake packages ask for, and the libraries the offscreen
+  # platform draws with when the smoke test runs.
+  "dnf install -y mesa-libGL-devel mesa-libEGL-devel libxkbcommon-devel fontconfig freetype",
+  # The command is `aqt`, not the package's name, so it is named: the
+  # manylinux image's pipx runs on uv, which guesses no further.
+  "pipx run --spec aqtinstall aqt install-qt linux desktop 6.8.3 linux_gcc_64 --outputdir /opt/qt",
+]
+environment = { CMAKE_PREFIX_PATH = "/opt/qt/6.8.3/gcc_64" }
+# Qt is PySide6's, found at run time; grafting it in would ship a second copy.
+# The GL dispatch libraries are never grafted: PySide6's Qt loads the
+# system's, and a second copy in the same process crashes it.
+repair-wheel-command = "auditwheel repair --exclude 'libQt6*' --exclude 'libGL*' --exclude 'libOpenGL*' --exclude 'libEGL*' -w {dest_dir} {wheel}"
+
+[tool.cibuildwheel.macos]
+# Qt's macOS build is universal, so one wheel carries both architectures.
+archs = ["universal2"]
+before-all = "pipx run --spec aqtinstall aqt install-qt mac desktop 6.8.3 clang_64 --outputdir $HOME/qt"
+environment = { CMAKE_PREFIX_PATH = "$HOME/qt/6.8.3/macos", MACOSX_DEPLOYMENT_TARGET = "12.0" }
+# delocate would copy Qt's frameworks in; the viewer finds PySide6's.
+repair-wheel-command = ""
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+before-all = "pipx run --spec aqtinstall aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 --outputdir C:/qt"
+environment = { CMAKE_PREFIX_PATH = "C:/qt/6.8.3/msvc2022_64" }

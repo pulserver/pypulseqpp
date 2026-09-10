@@ -116,6 +116,7 @@ and a label here is named rather than numbered -- see the section on that.
 | `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
 | `examples/sequence/` | The zoo: one complete sequence per file, installed as `pypulseqpp.examples.<name>` and reachable flat from there. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
+| `viewer/` | A package of its own, `pypulseqpp-seqeyes`, and GPL: SeqEyes, the viewer `Sequence.plot` draws in, built from the submodule in `viewer/seqeyes` to run on the Qt that PySide6 installs. `pypulseqpp[plot]` installs it; nothing under it is in pypulseqpp's sdist or wheel. |
 
 ## Build and test
 

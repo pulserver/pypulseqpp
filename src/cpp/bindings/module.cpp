@@ -409,6 +409,10 @@ PYBIND11_MODULE(_ext, module)
     auto sequence_class =
         py::class_<Sequence>(module, "Sequence", "Event libraries and a block table.")
             .def(py::init<>())
+            .def(
+                "copy", [](const Sequence& self) { return Sequence(self); },
+                "Return a sequence of its own holding every library, the block table "
+                "and the definitions this one holds.")
 
         /* -- header ---------------------------------------------------- */
         .def("set_version", &Sequence::set_version, py::arg("major"), py::arg("minor"),
@@ -421,6 +425,8 @@ PYBIND11_MODULE(_ext, module)
              "this package writes.")
         .def("set_rasters", &Sequence::set_rasters, py::arg("rf"), py::arg("grad"),
              py::arg("adc"), py::arg("block"))
+        .def("block_duration_raster", &Sequence::block_duration_raster,
+             "The raster a block's duration is a whole number of, in seconds.")
         .def("publish_rasters", &Sequence::publish_rasters,
              "Record the raster times in `[DEFINITIONS]`.")
 
@@ -845,16 +851,24 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "write_text",
-        [](Sequence& sequence, bool create_signature) {
+        [](Sequence& sequence, bool create_signature, const py::object& rows) {
             std::string written;
+            if (rows.is_none())
             {
                 py::gil_scoped_release unlocked;
                 written = pulseq::write_text(sequence, create_signature);
             }
+            else
+            {
+                const auto chosen = rows.cast<std::vector<int32_t>>();
+                py::gil_scoped_release unlocked;
+                written = pulseq::write_text(sequence, create_signature, chosen);
+            }
             return py::bytes(written);
         },
-        py::arg("sequence"), py::arg("create_signature") = true,
-        "Serialize as a Pulseq `.seq` text file.");
+        py::arg("sequence"), py::arg("create_signature") = true, py::arg("rows") = py::none(),
+        "Serialize as a Pulseq `.seq` text file: every block, or the 1-based blocks "
+        "`rows` names, in that order.");
 
     module.def(
         "write_text_v141",
