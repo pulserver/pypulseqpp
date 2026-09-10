@@ -54,7 +54,9 @@ def bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
     Parameters
     ----------
     b1_hz : array_like
-        Complex transverse field per time step, shape ``(T,)``, in Hz.
+        Complex transverse field per time step, in Hz: ``(T,)`` for one field
+        every position sees, or ``(P, T)`` for a field of each position's own,
+        as parallel transmit channels summed through their B1 maps give.
     bz_hz : array_like
         Longitudinal field, shape ``(P, T)`` or ``(P, 1)``, in Hz.
     dt : float
@@ -104,11 +106,16 @@ def bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
         else _np.asarray(initial, dtype=float)
     )
 
+    drive = b1_hz if b1_hz.ndim == 2 else b1_hz[None, :]
+    if drive.shape[0] not in (1, n_pos):
+        raise ValueError(
+            f"b1_hz holds fields for {drive.shape[0]} positions, bz_hz for {n_pos}"
+        )
     two_pi_dt = 2.0 * _np.pi * dt
-    for step in range(len(b1_hz)):
+    for step in range(drive.shape[1]):
         omega = _np.empty((n_pos, 3))
-        omega[:, 0] = two_pi_dt * b1_hz[step].real
-        omega[:, 1] = two_pi_dt * b1_hz[step].imag
+        omega[:, 0] = two_pi_dt * drive[:, step].real
+        omega[:, 1] = two_pi_dt * drive[:, step].imag
         omega[:, 2] = two_pi_dt * bz_hz[:, step if bz_hz.shape[1] > 1 else 0]
 
         angle = _np.linalg.norm(omega, axis=1)
