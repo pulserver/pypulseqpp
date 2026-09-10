@@ -25,7 +25,7 @@ _OURS = (
     # are shipped code whose files are not under the package directory.
     *(
         Path(entry).resolve()
-        for entry in importlib.import_module("pypulseqpp.examples").__path__
+        for entry in importlib.import_module("pypulseqpp.sequences.sequence").__path__
     ),
 )
 

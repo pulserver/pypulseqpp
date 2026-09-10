@@ -37,9 +37,23 @@ The encoding plan is the script's own. The masks, orderings and angle
 generators one is usually built from are a layer down, in the main namespace
 -- ``make_uniform_mask``, ``make_poisson_disc_mask``, ``calc_traversal_order``,
 ``calc_golden_angles`` -- because they answer with plain arrays.
+
+Beside the modules sit the complete sequences they are composed into -- the
+zoo -- reached by name and callable as the sequence each builds::
+
+    seq = sequences.gre2D_sequence(n_x=128, n_y=128, n_slices=5)
+
+Each is also a script: ``python -m pypulseqpp.sequences.sequence.gre2D_sequence
+-o gre2d.seq --n-y 64``, which is :func:`pypulseqpp.cli.run` reading the same
+signature.
 """
 
 from __future__ import annotations
+
+import importlib as _importlib
+import inspect as _inspect
+from types import ModuleType as _ModuleType
+from typing import Any
 
 from ._module import SequenceModule
 from .excitation import (
@@ -147,4 +161,42 @@ READOUT = (
 #: Base classes, for a family this package does not ship.
 BASES = ("NonCartesianReadout", "OffResonanceSaturation", "RfModule")
 
-__all__ = sorted({*EXCITATION, *PREPARATION, *READOUT, *BASES, "SequenceModule"})
+#: Complete sequences, one per module, written in the repo's `examples/sequence/`
+#: and mapped in beside this package. Each is reached here by name, imported on
+#: first use, and callable as the sequence it builds.
+ZOO = tuple(sorted(_importlib.import_module(f"{__name__}.sequence").__all__))
+
+__all__ = sorted({*EXCITATION, *PREPARATION, *READOUT, *BASES, *ZOO, "SequenceModule"})
+
+
+class SequenceScript(_ModuleType):
+    """A zoo module, callable as the sequence it builds.
+
+    A script *is* its ``main``, so the module carries ``main``'s docstring and
+    signature rather than the file's: :func:`help` and
+    :func:`inspect.signature` on it answer for the call about to be made.
+    """
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.main(*args, **kwargs)
+
+
+def _as_script(module: _ModuleType) -> _ModuleType:
+    """Present ``module`` as the ``main`` it wraps."""
+    main = getattr(module, "main", None)
+    if main is not None and type(module) is not SequenceScript:
+        module.__class__ = SequenceScript
+        module.__doc__ = main.__doc__
+        module.__signature__ = _inspect.signature(main)
+    return module
+
+
+def __getattr__(name: str):
+    """Import one zoo sequence on first use."""
+    if name in ZOO:
+        return _as_script(_importlib.import_module(f"{__name__}.sequence.{name}"))
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return list(__all__)

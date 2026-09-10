@@ -48,7 +48,8 @@ so a wheel stays self-contained.
 
 `examples/sequence/` holds one complete sequence per file, and
 `pyproject.toml` maps the directory into the package so each is
-`pypulseqpp.examples.<name>` however it was written. `pypulseqpp.examples`
+`pypulseqpp.sequences.<name>` however it was written, beside the modules it
+is composed of. `pypulseqpp.sequences`
 presents them flat and imports one on first use; a module *is* its `main`, so
 it is callable and carries `main`'s docstring and signature.
 
@@ -116,7 +117,7 @@ and a label here is named rather than numbered -- see the section on that.
 | `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
 | `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
 | `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
-| `examples/sequence/` | The zoo: one complete sequence per file, installed as `pypulseqpp.examples.<name>` and reachable flat from there. |
+| `examples/sequence/` | The zoo: one complete sequence per file, installed beside `pypulseqpp.sequences` and reachable as `pypulseqpp.sequences.<name>`. |
 | `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
 
 ## Build and test
