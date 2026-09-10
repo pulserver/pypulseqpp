@@ -51,13 +51,15 @@ def rf_timeline(module, b1_scale=1.0):
 def final_magnetization(module, *, b1_scale=1.0, off_resonance_hz=0.0):
     """Magnetization after the module's RF, starting from ``+z``."""
     b1 = rf_timeline(module, b1_scale)
-    return pp.bloch(b1, np.full((1, 1), off_resonance_hz), RASTER)[0]
+    return pp.sim_bloch(b1, np.full((1, 1), off_resonance_hz), RASTER)[0]
 
 
 def spectral_profile(module, span_hz=6000.0, count=121):
     """Longitudinal magnetization against off-resonance, over ``span_hz``."""
     frequencies = np.linspace(-0.5 * span_hz, 0.5 * span_hz, count)
-    magnetization = pp.bloch(rf_timeline(module), frequencies.reshape(-1, 1), RASTER)
+    magnetization = pp.sim_bloch(
+        rf_timeline(module), frequencies.reshape(-1, 1), RASTER
+    )
     return frequencies, magnetization[:, 2]
 
 

@@ -24,7 +24,7 @@ def played(rf, scale=1.0, offsets_hz=(0.0,)):
     """Magnetisation after the pulse at each off-resonance, from +z."""
     signal = np.asarray(rf.signal) * scale
     dwell = float(rf.t[1] - rf.t[0])
-    return pp.bloch(signal, np.asarray(offsets_hz, dtype=float)[:, None], dwell)
+    return pp.sim_bloch(signal, np.asarray(offsets_hz, dtype=float)[:, None], dwell)
 
 
 @pytest.mark.parametrize("pulse_type", ["hypsec", "wurst"])
@@ -100,7 +100,7 @@ def inversion(rf, gz, positions, scale=1.0):
     dwell = float(rf.t[1] - rf.t[0])
     field = gradient_at(gz, rf.delay + np.asarray(rf.t))
     offsets = np.asarray(positions)[:, None] * field[None, :]
-    return pp.bloch(np.asarray(rf.signal) * scale, offsets, dwell)[:, 2]
+    return pp.sim_bloch(np.asarray(rf.signal) * scale, offsets, dwell)[:, 2]
 
 
 def test_a_goia_wurst_pulse_inverts_its_slice_and_leaves_the_rest():
