@@ -1,0 +1,104 @@
+name: Viewer wheels
+
+# SeqEyes, built from viewer/ as the pypulseqpp-seqeyes wheels that
+# `pip install 'pypulseqpp[plot]'` installs. Reusable: the viewer release
+# publishes what this builds, and any change under viewer/ runs it.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    paths: ["viewer/**", ".gitmodules", ".github/workflows/viewer-*.yml"]
+  push:
+    branches: [main]
+    paths: ["viewer/**", ".gitmodules", ".github/workflows/viewer-*.yml"]
+
+jobs:
+  wheels:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The platforms pypulseqpp ships for. Each build job also installs the
+        # wheel beside PySide6 and draws a sequence with it: see
+        # viewer/tests/smoke.py and [tool.cibuildwheel] in viewer/pyproject.toml.
+        os: [ubuntu-latest, macos-14, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive # SeqEyes is the submodule in viewer/seqeyes
+
+      - uses: pypa/cibuildwheel@v4.2.0
+        with:
+          package-dir: viewer
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: viewer-wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  plot:
+    # pypulseqpp's own plot tests, against the wheel just built: the test that
+    # opens SeqEyes skips when there is none, so here it is made to run.
+    name: plot / ${{ matrix.os }}
+    needs: wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0 # setuptools_scm reads the tags
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: viewer-wheels-${{ matrix.os }}
+          path: viewer-wheel
+
+      # PySide6's Qt draws with the system's display libraries, which every
+      # desktop has and the runner image does not all of. These are what
+      # drawing offscreen needs; viewer/README.md lists them too.
+      - name: System libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libx11-6 libdbus-1-3 \
+            libfontconfig1 libfreetype6 libglib2.0-0 libxkbcommon0
+
+      - name: Install
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[dev]" viewer-wheel/*.whl
+
+      - name: Test
+        run: python -m pytest tests/test_plot.py -ra
+
+  sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip build
+          python -m build --sdist viewer --outdir dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: viewer-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error

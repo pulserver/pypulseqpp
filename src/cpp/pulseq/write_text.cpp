@@ -343,7 +343,164 @@ namespace pulseq
     /*  The writer                                                        */
     /* ================================================================== */
 
-    std::string write_text(Sequence& seq, bool create_signature)
+    /**
+     * The library rows a set of blocks plays, by id: nonzero where a row is
+     * referred to. Slot 0 stands for "none" and is never written.
+     *
+     * An excerpt of a scan is written with only these, because a per-playout
+     * value -- a phase-encode amplitude, a spoiling phase -- is a library row
+     * of its own, so the libraries grow with the scan as the blocks do.
+     */
+    struct Referenced
+    {
+        std::vector<int32_t> rf, grad, adc, chain, trigger, label_set, label_inc, shim,
+            rotation, soft_delay, shape;
+    };
+
+    /** Each extension specification the sequence declares, by the member numbering it. */
+    static std::vector<std::pair<int, std::vector<int32_t> Referenced::*>> specifications(
+        const Sequence& seq)
+    {
+        const std::pair<const char*, std::vector<int32_t> Referenced::*> kinds[] = {
+            {"TRIGGERS", &Referenced::trigger},   {"LABELSET", &Referenced::label_set},
+            {"LABELINC", &Referenced::label_inc}, {"RF_SHIMS", &Referenced::shim},
+            {"ROTATIONS", &Referenced::rotation}, {"DELAYS", &Referenced::soft_delay},
+        };
+        std::vector<std::pair<int, std::vector<int32_t> Referenced::*>> declared;
+        for (const auto& kind : kinds)
+        {
+            const int type = seq.find_extension_type_id(kind.first);
+            if (type != 0)
+                declared.emplace_back(type, kind.second);
+        }
+        return declared;
+    }
+
+    /**
+     * What row @p id is numbered in the file: its own id when every row is
+     * written, its place among the rows kept otherwise.
+     */
+    static double renumbered(const std::vector<int32_t>& numbering, double id)
+    {
+        if (numbering.empty() || id <= 0)
+            return id;
+        const long at = std::lround(id);
+        return static_cast<size_t>(at) < numbering.size() ? numbering[static_cast<size_t>(at)]
+                                                           : 0;
+    }
+
+    static void mark(std::vector<int32_t>& used, double id)
+    {
+        const long at = std::lround(id);
+        if (at > 0 && static_cast<size_t>(at) < used.size())
+            used[static_cast<size_t>(at)] = 1;
+    }
+
+    static Referenced referenced_by(const Sequence& seq, const std::vector<int32_t>& rows)
+    {
+        Referenced used;
+        auto sized = [](std::vector<int32_t>& mask, int count)
+        { mask.assign(static_cast<size_t>(count) + 1, 0); };
+        sized(used.rf, seq.rf_library().size());
+        sized(used.grad, seq.num_gradients());
+        sized(used.adc, seq.adc_library().size());
+        sized(used.chain, seq.extensions_library().size());
+        sized(used.trigger, seq.trigger_library().size());
+        sized(used.label_set, seq.label_set_library().size());
+        sized(used.label_inc, seq.label_inc_library().size());
+        sized(used.shim, seq.rf_shim_library().size());
+        sized(used.rotation, seq.rotation_library().size());
+        sized(used.soft_delay, static_cast<int>(seq.soft_delay_library().size()));
+        sized(used.shape, seq.shape_library().size());
+
+        const IntTable& chains = seq.extensions_library();
+        const int32_t* events = seq.block_events();
+        for (const int32_t block : rows)
+        {
+            const int32_t* row = events + static_cast<size_t>(block - 1) * BLOCK_WIDTH;
+            mark(used.rf, row[0]);
+            for (int axis = 1; axis <= 3; ++axis)
+                mark(used.grad, row[axis]);
+            mark(used.adc, row[4]);
+            // Chains share their tails, so a link already marked has the rest
+            // of its chain marked too.
+            for (int32_t link = row[5]; link > 0 && !used.chain[static_cast<size_t>(link)];
+                 link = chains.row(link)[2])
+                used.chain[static_cast<size_t>(link)] = 1;
+        }
+
+        const auto declared = specifications(seq);
+        for (int id = 1; id <= chains.size(); ++id)
+        {
+            if (!used.chain[static_cast<size_t>(id)])
+                continue;
+            const int32_t* link = chains.row(id);
+            for (const auto& kind : declared)
+            {
+                if (kind.first == link[0])
+                    mark(used.*kind.second, link[1]);
+            }
+        }
+
+        for (int id = 1; id <= seq.rf_library().size(); ++id)
+        {
+            if (!used.rf[static_cast<size_t>(id)])
+                continue;
+            const double* d = seq.rf_library().row(id);
+            for (int column = 1; column <= 3; ++column)
+                mark(used.shape, d[column]);
+        }
+        for (int id = 1; id <= seq.num_gradients(); ++id)
+        {
+            if (!used.grad[static_cast<size_t>(id)] || seq.grad_kind(id) != GradKind::Arbitrary)
+                continue;
+            const double* d = seq.arb_library().row(seq.grad_row(id));
+            mark(used.shape, d[3]);
+            mark(used.shape, d[4]);
+        }
+        for (int id = 1; id <= seq.adc_library().size(); ++id)
+        {
+            if (used.adc[static_cast<size_t>(id)])
+                mark(used.shape, seq.adc_library().row(id)[7]);
+        }
+        // A reader holds a file's ids to running without gaps, so the rows
+        // kept are numbered afresh, in the order the library holds them.
+        for (std::vector<int32_t>* numbering :
+             {&used.rf, &used.grad, &used.adc, &used.chain, &used.trigger, &used.label_set,
+              &used.label_inc, &used.shim, &used.rotation, &used.soft_delay, &used.shape})
+        {
+            int32_t next = 0;
+            for (size_t id = 1; id < numbering->size(); ++id)
+            {
+                if ((*numbering)[id])
+                    (*numbering)[id] = ++next;
+            }
+        }
+        return used;
+    }
+
+    /** Whether row @p id is written: every row is when @p used is empty. */
+    static bool kept(const std::vector<int32_t>& used, int id)
+    {
+        return used.empty() || used[static_cast<size_t>(id)] != 0;
+    }
+
+    /** Whether any of a library's @p count rows is written. */
+    static bool keeps_any(const std::vector<int32_t>& used, int count)
+    {
+        if (used.empty())
+            return count > 0;
+        for (size_t id = 1; id < used.size(); ++id)
+        {
+            if (used[id])
+                return true;
+        }
+        return false;
+    }
+
+    /** Write the blocks @p rows names, or every block if it is null. */
+    static std::string write_text_of(
+        Sequence& seq, bool create_signature, const std::vector<int32_t>* rows)
     {
         // Prewrite: a sequence built block by block registers its waveforms as
         // it was given them, because compressing a candidate that
@@ -352,6 +509,7 @@ namespace pulseq
         seq.compress_shapes();
 
         const int n_blocks = seq.num_blocks();
+        const size_t n_written = rows ? rows->size() : static_cast<size_t>(n_blocks);
         const std::vector<long> ticks = duration_ticks(seq);
 
         // The rasters go in because a reader cannot recover a block duration
@@ -373,7 +531,7 @@ namespace pulseq
         // Blocks dominate a large file; ~35 characters each is close enough
         // that the buffer grows a couple of times rather than a couple of
         // dozen.
-        out.reserve(static_cast<size_t>(n_blocks) * 36 + 4096);
+        out.reserve(n_written * 36 + 4096);
 
         out.append("# Pulseq sequence file\n# Created by PyPulseq\n\n");
 
@@ -400,10 +558,19 @@ namespace pulseq
 
         out.append("# Format of blocks:\n");
         out.append("# NUM DUR RF  GX  GY  GZ  ADC  EXT\n");
+        // Every library row under its own id, or for an excerpt only the rows
+        // its blocks play, numbered afresh.
+        Referenced used;
+        if (rows)
+            used = referenced_by(reading, *rows);
+        static_assert(BLOCK_FILE_COLUMNS == 6, "a block row is RF, three gradients, ADC, chain");
+        const std::vector<int32_t>* const numbering[BLOCK_FILE_COLUMNS] = {
+            &used.rf, &used.grad, &used.grad, &used.grad, &used.adc, &used.chain};
+
         out.append("[BLOCKS]\n");
-        if (n_blocks > 0)
+        if (n_written > 0)
         {
-            const int number_width = decimal_width(n_blocks);
+            const int number_width = decimal_width(static_cast<long>(n_written));
             const int widths[8] = {number_width, 3, 3, 3, 3, 3, 2, 2};
             const int32_t* events = reading.block_events();
             const long* tick = ticks.data();
@@ -416,18 +583,22 @@ namespace pulseq
 
             render_rows(
                 out,
-                static_cast<size_t>(n_blocks),
+                n_written,
                 row_bound,
                 [&](char* cursor, size_t i)
                 {
-                    const int32_t* row = events + i * BLOCK_WIDTH;
+                    const size_t block = rows ? static_cast<size_t>((*rows)[i] - 1) : i;
+                    const int32_t* row = events + block * BLOCK_WIDTH;
                     cursor = put_int_field(cursor, static_cast<long>(i) + 1, widths[0]);
                     *cursor++ = ' ';
-                    cursor = put_int_field(cursor, tick[i], widths[1]);
+                    cursor = put_int_field(cursor, tick[block], widths[1]);
                     for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     {
                         *cursor++ = ' ';
-                        cursor = put_int_field(cursor, row[column], widths[column + 2]);
+                        cursor = put_int_field(
+                            cursor,
+                            static_cast<long>(renumbered(*numbering[column], row[column])),
+                            widths[column + 2]);
                     }
                     *cursor++ = '\n';
                     return cursor;
@@ -437,7 +608,7 @@ namespace pulseq
 
         /* -- RF -------------------------------------------------------- */
 
-        if (!reading.rf_library().empty())
+        if (keeps_any(used.rf, reading.rf_library().size()))
         {
             out.append("# Format of RF events:\n");
             out.append("# id ampl. mag_id phase_id time_shape_id center delay freqPPM phasePPM "
@@ -451,6 +622,8 @@ namespace pulseq
             const double raster = reading.rf_raster_time();
             for (int id = 1; id <= reading.rf_library().size(); ++id)
             {
+                if (!kept(used.rf, id))
+                    continue;
                 const double* d = reading.rf_library().row(id);
                 const double center = d[4] * 1e6;
                 const double delay = std::rint(d[5] / raster) * raster * 1e6;
@@ -458,11 +631,11 @@ namespace pulseq
                 appendf(
                     out,
                     "%.0f %12g %.0f %.0f %.0f %g %g %g %g %g %g %c\n",
-                    static_cast<double>(id),
+                    renumbered(used.rf, id),
                     d[0],
-                    d[1],
-                    d[2],
-                    d[3],
+                    renumbered(used.shape, d[1]),
+                    renumbered(used.shape, d[2]),
+                    renumbered(used.shape, d[3]),
                     center,
                     delay,
                     d[6],
@@ -484,6 +657,8 @@ namespace pulseq
         std::vector<int> arbitrary, trapezoids;
         for (int id = 1; id <= reading.num_gradients(); ++id)
         {
+            if (!kept(used.grad, id))
+                continue;
             if (reading.grad_kind(id) == GradKind::Arbitrary)
                 arbitrary.push_back(id);
             else
@@ -504,12 +679,12 @@ namespace pulseq
                 appendf(
                     out,
                     "%.0f %12g %12g %12g %.0f %.0f %.0f\n",
-                    static_cast<double>(id),
+                    renumbered(used.grad, id),
                     d[0],
                     d[1],
                     d[2],
-                    d[3],
-                    d[4],
+                    renumbered(used.shape, d[3]),
+                    renumbered(used.shape, d[4]),
                     std::rint(d[5] * 1e6));
             }
             out.push_back('\n');
@@ -527,7 +702,7 @@ namespace pulseq
                 appendf(
                     out,
                     "%2.0f %12g %3.0f %4.0f %3.0f %3.0f\n",
-                    static_cast<double>(id),
+                    renumbered(used.grad, id),
                     d[0],
                     1e6 * d[1],
                     1e6 * d[2],
@@ -539,7 +714,7 @@ namespace pulseq
 
         /* -- ADC ------------------------------------------------------- */
 
-        if (!reading.adc_library().empty())
+        if (keeps_any(used.adc, reading.adc_library().size()))
         {
             out.append("# Format of ADC events:\n");
             out.append("# id num dwell delay freqPPM phasePPM freq phase phase_id\n");
@@ -547,11 +722,13 @@ namespace pulseq
             out.append("[ADC]\n");
             for (int id = 1; id <= reading.adc_library().size(); ++id)
             {
+                if (!kept(used.adc, id))
+                    continue;
                 const double* d = reading.adc_library().row(id);
                 appendf(
                     out,
                     "%.0f %.0f %.0f %.0f %g %g %g %g %.0f\n",
-                    static_cast<double>(id),
+                    renumbered(used.adc, id),
                     d[0],
                     1e9 * d[1],
                     1e6 * d[2],
@@ -559,34 +736,55 @@ namespace pulseq
                     d[4],
                     d[5],
                     d[6],
-                    d[7]);
+                    renumbered(used.shape, d[7]));
             }
             out.push_back('\n');
         }
 
         /* -- extension chains ------------------------------------------ */
 
-        if (!reading.extensions_library().empty())
+        if (keeps_any(used.chain, reading.extensions_library().size()))
         {
             out.append("# Format of extension lists:\n");
             out.append("# id type ref next_id\n");
             out.append("# next_id of 0 terminates the list\n");
             out.append("# Extension list is followed by extension specifications\n");
             out.append("[EXTENSIONS]\n");
-            const int count = reading.extensions_library().size();
             const IntTable& chains = reading.extensions_library();
+            const auto declared = specifications(reading);
+            const std::vector<int32_t> as_stored;
+            std::vector<int> written;
+            written.reserve(static_cast<size_t>(chains.size()));
+            for (int id = 1; id <= chains.size(); ++id)
+            {
+                if (kept(used.chain, id))
+                    written.push_back(id);
+            }
             render_rows(
                 out,
-                static_cast<size_t>(count),
+                written.size(),
                 4 * 13 + 1,
                 [&](char* cursor, size_t i)
                 {
-                    const int32_t* row = chains.row(static_cast<int>(i) + 1);
-                    cursor = put_int_field(cursor, static_cast<long>(i) + 1, 1);
-                    for (int column = 0; column < EXTENSION_WIDTH; ++column)
+                    const int id = written[i];
+                    const int32_t* row = chains.row(id);
+                    // A type this writer does not number keeps its references.
+                    const std::vector<int32_t>* refs = &as_stored;
+                    for (const auto& kind : declared)
+                    {
+                        if (kind.first == row[0])
+                            refs = &(used.*kind.second);
+                    }
+                    const long fields[1 + EXTENSION_WIDTH] = {
+                        static_cast<long>(renumbered(used.chain, id)),
+                        row[0],
+                        static_cast<long>(renumbered(*refs, row[1])),
+                        static_cast<long>(renumbered(used.chain, row[2]))};
+                    cursor = put_int_field(cursor, fields[0], 1);
+                    for (int column = 1; column <= EXTENSION_WIDTH; ++column)
                     {
                         *cursor++ = ' ';
-                        cursor = put_int_field(cursor, row[column], 1);
+                        cursor = put_int_field(cursor, fields[column], 1);
                     }
                     *cursor++ = '\n';
                     return cursor;
@@ -596,18 +794,20 @@ namespace pulseq
 
         /* -- extension specifications ---------------------------------- */
 
-        if (!reading.trigger_library().empty())
+        if (keeps_any(used.trigger, reading.trigger_library().size()))
         {
             out.append("# Extension specification for digital output and input triggers:\n");
             out.append("# id type channel delay (us) duration (us)\n");
             appendf(out, "extension TRIGGERS %d\n", seq.extension_type_id("TRIGGERS"));
             for (int id = 1; id <= reading.trigger_library().size(); ++id)
             {
+                if (!kept(used.trigger, id))
+                    continue;
                 const double* d = reading.trigger_library().row(id);
                 appendf(
                     out,
                     "%.0f %.0f %.0f %.0f %.0f\n",
-                    static_cast<double>(id),
+                    renumbered(used.trigger, id),
                     d[0],
                     d[1],
                     1e6 * d[2],
@@ -617,15 +817,21 @@ namespace pulseq
         }
 
         {
-            const std::pair<const char*, const IntTable*> label_sections[2] = {
-                {"LABELSET", &reading.label_set_library()},
-                {"LABELINC", &reading.label_inc_library()},
-            };
-            for (const auto& section : label_sections)
+            struct LabelSection
             {
-                if (section.second->empty())
+                const char* name;
+                const IntTable* library;
+                const std::vector<int32_t>* used;
+            };
+            const LabelSection label_sections[2] = {
+                {"LABELSET", &reading.label_set_library(), &used.label_set},
+                {"LABELINC", &reading.label_inc_library(), &used.label_inc},
+            };
+            for (const LabelSection& section : label_sections)
+            {
+                if (!keeps_any(*section.used, section.library->size()))
                     continue;
-                const bool increment = section.first[5] == 'I';
+                const bool increment = section.name[5] == 'I';
                 out.append(
                     increment ? "# Extension specification for increasing labels:\n"
                               : "# Extension specification for setting labels:\n");
@@ -633,18 +839,20 @@ namespace pulseq
                 appendf(
                     out,
                     "extension %s %d\n",
-                    section.first,
-                    seq.extension_type_id(section.first));
-                for (int id = 1; id <= section.second->size(); ++id)
+                    section.name,
+                    seq.extension_type_id(section.name));
+                for (int id = 1; id <= section.library->size(); ++id)
                 {
-                    const int32_t* row = section.second->row(id);
+                    if (!kept(*section.used, id))
+                        continue;
+                    const int32_t* row = section.library->row(id);
                     // The name is what the file carries; the number was only
                     // ever how this sequence indexed it.
                     const std::string& name = reading.label_name(row[1]);
                     appendf(
                         out,
                         "%.0f %.0f %s\n",
-                        static_cast<double>(id),
+                        renumbered(*section.used, id),
                         static_cast<double>(row[0]),
                         name.empty() ? "UNKNOWN" : name.c_str());
                 }
@@ -652,16 +860,19 @@ namespace pulseq
             }
         }
 
-        if (!reading.rf_shim_library().empty())
+        if (keeps_any(used.shim, reading.rf_shim_library().size()))
         {
             out.append("# Extension specification for RF shimming:\n");
             out.append("# id num_chan magn_c1 phase_c1 magn_c2 phase_c2 ...\n");
             appendf(out, "extension RF_SHIMS %d\n", seq.extension_type_id("RF_SHIMS"));
             for (int id = 1; id <= reading.rf_shim_library().size(); ++id)
             {
+                if (!kept(used.shim, id))
+                    continue;
                 const int length = reading.rf_shim_library().length(id);
                 const double* values = reading.rf_shim_library().row(id);
-                appendf(out, "%d %d", id, length / 2);
+                appendf(
+                    out, "%d %d", static_cast<int>(renumbered(used.shim, id)), length / 2);
                 for (int i = 0; i < length; ++i)
                     appendf(out, " %g", values[i]);
                 out.push_back('\n');
@@ -669,13 +880,15 @@ namespace pulseq
             out.push_back('\n');
         }
 
-        if (!reading.rotation_library().empty())
+        if (keeps_any(used.rotation, reading.rotation_library().size()))
         {
             out.append("# Extension specification for rotation events:\n");
             out.append("# id RotQuat0 RotQuatX RotQuatY RotQuatZ\n");
             appendf(out, "extension ROTATIONS %d\n", seq.extension_type_id("ROTATIONS"));
             for (int id = 1; id <= reading.rotation_library().size(); ++id)
             {
+                if (!kept(used.rotation, id))
+                    continue;
                 const double* d = reading.rotation_library().row(id);
                 // Two spaces after the id: the reference writer prints the
                 // id with a trailing space and then each component with a
@@ -684,7 +897,7 @@ namespace pulseq
                 appendf(
                     out,
                     "%.0f  %g %g %g %g\n",
-                    static_cast<double>(id),
+                    renumbered(used.rotation, id),
                     d[0],
                     d[1],
                     d[2],
@@ -693,37 +906,41 @@ namespace pulseq
             out.push_back('\n');
         }
 
-        if (!reading.soft_delay_library().empty())
+        if (keeps_any(used.soft_delay, static_cast<int>(reading.soft_delay_library().size())))
         {
             out.append("# Extension specification for soft delays:\n");
             out.append("# id num offset factor hint\n");
             out.append("# ..  ..     us     ..   ..\n");
             appendf(out, "extension DELAYS %d\n", seq.extension_type_id("DELAYS"));
-            int id = 1;
+            int id = 0;
             for (const SoftDelay& row : reading.soft_delay_library())
             {
+                ++id;
+                if (!kept(used.soft_delay, id))
+                    continue;
                 appendf(
                     out,
                     "%.0f %.0f %g %g %s\n",
-                    static_cast<double>(id),
+                    renumbered(used.soft_delay, id),
                     static_cast<double>(row.num),
                     row.offset * 1e6,
                     row.factor,
                     row.hint.c_str());
-                ++id;
             }
             out.push_back('\n');
         }
 
         /* -- shapes ---------------------------------------------------- */
 
-        if (!reading.shape_library().empty())
+        if (keeps_any(used.shape, reading.shape_library().size()))
         {
             out.append("# Sequence Shapes\n");
             out.append("[SHAPES]\n\n");
             for (int id = 1; id <= reading.shape_library().size(); ++id)
             {
-                appendf(out, "shape_id %.0f\n", static_cast<double>(id));
+                if (!kept(used.shape, id))
+                    continue;
+                appendf(out, "shape_id %.0f\n", renumbered(used.shape, id));
                 appendf(
                     out,
                     "num_samples %.0f\n",
@@ -766,6 +983,25 @@ namespace pulseq
     /* ================================================================== */
     /*  Pulseq 1.4.1                                                      */
     /* ================================================================== */
+
+    std::string write_text(Sequence& seq, bool create_signature)
+    {
+        return write_text_of(seq, create_signature, nullptr);
+    }
+
+    std::string write_text(
+        Sequence& seq, bool create_signature, const std::vector<int32_t>& rows)
+    {
+        const int n_blocks = seq.num_blocks();
+        for (const int32_t row : rows)
+        {
+            if (row < 1 || row > n_blocks)
+                throw std::out_of_range(
+                    "block " + std::to_string(row) + " is not one of the sequence's " +
+                    std::to_string(n_blocks) + " blocks");
+        }
+        return write_text_of(seq, create_signature, &rows);
+    }
 
     std::string write_text_v141(Sequence& seq, bool create_signature, double gamma, double field)
     {

@@ -104,7 +104,7 @@ what upstream's `Opts` does: it carries no such field.
 The one-line methods, the aliases and the no-ops are in. What is left, by
 what it would take:
 
-**Open.** `sound`, deferred with `plot`.
+**Open.** `sound`.
 
 ## Promoted extensions
 
@@ -401,7 +401,7 @@ finish at instead of an array. A sequence with no ADC asked for the `adc`
 evolution therefore reports final values.
 
 **Deferred.** Safety -- `calculate_pns`, `calculate_gradient_spectrum`,
-`calc_rf_power` -- and plotting -- `plot`, `paper_plot`, `sound` -- and
+`calc_rf_power` -- and plotting -- `paper_plot`, `sound` -- and
 `auto_label`.
 
 ## The repeating unit
@@ -448,5 +448,5 @@ it. Each blocked test names the one thing it waits for:
 - **A host to drive a sequence from**, which the navigator's tests reach for
   and which belongs to `pulserver` rather than here. Six tests skip.
 - **`tile`**, so a scan can write its averages out rather than leave them to
-  an interpreter's repeat count, and **`Sequence.plot`**. Both are named where
-  the sequence that would use them stands.
+  an interpreter's repeat count. It is named where the sequence that would
+  use it stands.

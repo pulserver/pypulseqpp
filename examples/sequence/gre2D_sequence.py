@@ -33,7 +33,7 @@ MAX_SLEW = 200.0
 
 
 def main(
-    # Restore with Sequence.plot: plot: bool = False,
+    plot: bool = False,
     test_report: bool = False,
     write_seq: bool = False,
     seq_filename: str = "gre_2d.seq",
@@ -77,13 +77,15 @@ def main(
     arriving -- which puts the centre of k-space in the transient, hence
     ``n_dummy``. More slices than one TR can hold are split into passes.
 
-    Three parameters the sequence this was ported from also took are
-    commented out rather than dropped: ``plot``, ``fov_offset`` and
-    ``n_averages``, each waiting on one operation this package has not grown
-    yet -- ``Sequence.plot``, ``TransformFOV`` and ``tile``.
+    Two parameters the sequence this was ported from also took are commented
+    out rather than dropped: ``fov_offset`` and ``n_averages``, each waiting
+    on one operation this package has not grown yet -- ``TransformFOV`` and
+    ``tile``.
 
     Parameters
     ----------
+    plot : bool, optional
+        Draw the finished sequence in SeqEyes.
     test_report : bool, optional
         Print a report on the finished sequence.
     write_seq : bool, optional
@@ -326,8 +328,8 @@ def main(
     if test_report:
         print(seq.test_report())
 
-    # if plot:
-    #     seq.plot()
+    if plot:
+        seq.plot()
 
     if write_seq:
         cli.write_sequence(seq, seq_filename)
