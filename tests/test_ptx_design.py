@@ -145,8 +145,10 @@ def test_one_uniform_channel_excites_the_disc_and_not_beyond():
 
 
 def test_a_tailored_pulse_flattens_the_b1_it_was_designed_for():
+    """Inside the disc, where the target asks for the flip; the plain design
+    carries the map's 60 % hump into the profile."""
     maps = bright_centre(16)
-    picks = [(8, 8), (8, 5), (5, 8), (6, 6), (10, 10)]
+    picks = [(8, 8), (8, 5), (5, 8), (6, 6), (9, 9)]
     positions = in_plane(picks)
     tailored, gradients, _ = selective(maps)
     plain_rf, plain_gradients, _ = pp.make_2d_selective_pulse(
@@ -158,7 +160,9 @@ def test_a_tailored_pulse_flattens_the_b1_it_was_designed_for():
         delay=plain_rf.delay,
         system=SYSTEM,
     )
-    assert spread(transverse(tailored, gradients, maps, picks, positions)) < spread(
+    achieved = transverse(tailored, gradients, maps, picks, positions)
+    assert achieved[0] == pytest.approx(np.sin(FLIP), rel=0.15)
+    assert spread(achieved) < spread(
         transverse(plain, plain_gradients, maps, picks, positions)
     )
 
@@ -181,15 +185,46 @@ def spokes(maps, count):
 
 
 def test_spokes_flatten_a_b1_that_one_spoke_cannot():
+    """Over the grid the weights were fitted on: the fit trades error between
+    points, so a handful of them need not improve."""
     maps = bright_centre(12)
-    picks = [(6, 6), (6, 2), (2, 6), (3, 3), (9, 9), (6, 9)]
+    picks = [(i, j) for i in range(12) for j in range(12)]
     x, y = grid_positions(12)
-    positions = np.array([[x[p], y[p], 0.0] for p in picks])
+    positions = np.column_stack([x.ravel(), y.ravel(), np.zeros(x.size)])
     flat = [
         spread(transverse(*spokes(maps, count)[:2], maps, picks, positions))
         for count in (1, 3)
     ]
-    assert flat[1] < flat[0]
+    assert flat[1] < 0.7 * flat[0]
+
+
+def test_a_spokes_pulse_plays_what_its_design_predicts():
+    """The built pulse, simulated, against the kernel's own small-tip sum."""
+    from pypulseqpp._ext import ptx
+
+    maps = bright_centre(12)
+    x, y = grid_positions(12)
+    flat = np.column_stack([x.ravel(), y.ravel()])
+    reach = 8 / FOV
+    pitch = np.arange(-reach / 2, reach / 2 - 1 / FOV + 1e-9, 1 / FOV)
+    grid = np.array([(a, b) for a in pitch for b in pitch if a or b], dtype=float)
+    where, amounts = ptx.spokes(
+        maps.reshape(1, -1),
+        flat,
+        np.full(flat.shape[0], FLIP),
+        np.ones(flat.shape[0]),
+        grid,
+        3,
+    )
+    predicted = np.abs(
+        (amounts[0][None, :] * np.exp(-2j * np.pi * flat @ where.T)).sum(1)
+        * maps.ravel()
+    )
+    rf, gradients, _ = spokes(maps, 3)
+    picks = [(i, j) for i in range(12) for j in range(12)]
+    positions = np.column_stack([flat, np.zeros(flat.shape[0])])
+    simulated = transverse(rf, gradients, maps, picks, positions)
+    assert np.allclose(simulated, np.sin(predicted), rtol=0.01, atol=0.0)
 
 
 def test_spokes_still_select_a_slice():
