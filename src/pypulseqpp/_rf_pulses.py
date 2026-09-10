@@ -23,8 +23,9 @@ import numpy as np
 
 from . import _events
 from ._angles import calc_uniform_angles
+from ._band_phases import band_phases
 from ._opts import default_system
-from ._slr import design_slr
+from ._slr import NOMINAL_FLIP, design_slr
 
 PulseType = Literal["st", "ex", "se", "inv", "sat"]
 FilterType = Literal["ls", "pm", "min", "max", "ms"]
@@ -61,6 +62,7 @@ def make_slr_pulse(
     passband_ripple: float = 0.01,
     stopband_ripple: float = 0.01,
     cancel_alpha_phase: bool = False,
+    root_flip: bool = False,
     max_grad: float = 0.0,
     max_slew: float = 0.0,
     system=None,
@@ -103,6 +105,16 @@ def make_slr_pulse(
         Ripple allowed in each band.
     cancel_alpha_phase : bool, optional
         Remove the SLR alpha polynomial's phase.
+    root_flip : bool, optional
+        Flip the roots of the SLR beta polynomial for the lowest peak B1 the
+        same slice profile allows (Sharma, Lustig and Grissom, 2016). The
+        profile's magnitude is unchanged and its phase is no longer linear, so
+        it suits a refocusing or inversion pulse, and an excitation whose
+        phase is refocused another way. Needs a ``pulse_type`` with a nominal
+        flip, and searches every subset of the passband's roots. The pulse
+        plays at the amplitude it was designed at, scaled by ``flip_angle``
+        over that nominal flip, because its winding phase makes its area no
+        measure of its flip.
     max_grad, max_slew : float, optional
         Override the system limits for the selection gradient.
     system : pypulseq.Opts, optional
@@ -120,8 +132,10 @@ def make_slr_pulse(
     Raises
     ------
     ValueError
-        If ``center_pos`` is outside ``[0, 1]``, or ``return_gz`` is asked for
-        without a positive ``slice_thickness``.
+        If ``center_pos`` is outside ``[0, 1]``, ``return_gz`` is asked for
+        without a positive ``slice_thickness``, or ``root_flip`` is asked of a
+        small-tip pulse, alongside ``cancel_alpha_phase``, or of a passband
+        with more roots than an exhaustive search can visit.
 
     Examples
     --------
@@ -155,11 +169,20 @@ def make_slr_pulse(
         passband_ripple=passband_ripple,
         stopband_ripple=stopband_ripple,
         cancel_alpha_phase=cancel_alpha_phase,
+        root_flip=root_flip,
     )
+    if root_flip:
+        # A root-flipped pulse's phase winds through it, so its area is no
+        # measure of its flip: it plays at the amplitude it was designed at,
+        # scaled from the flip it was designed for.
+        waveform = (
+            waveform * (flip_angle / NOMINAL_FLIP[pulse_type]) / (2.0 * np.pi * dwell)
+        )
     actual_duration = n * dwell
     result = _events.make_arbitrary_rf(
         signal=waveform,
         flip_angle=flip_angle,
+        no_signal_scaling=root_flip,
         delay=delay,
         dwell=dwell,
         freq_offset=freq_offset,
@@ -219,9 +242,11 @@ def make_sms_pulse(
         Spacing between adjacent bands (Hz).
     sideband_power : float or sequence of float, optional
         Power of each off-resonance band relative to the on-resonance band.
-    phases : {'quadratic'} or sequence of float, optional
-        Per-band phase (rad). ``'quadratic'`` is the MATLAB reference schedule;
-        ``None`` leaves every band in phase.
+    phases : {'quadratic', 'wong', 'malik'} or sequence of float, optional
+        Per-band phase (rad), lowest frequency first, or a schedule that keeps
+        the peak down: Grissom's quadratic one, Wong's optimised table (3 to
+        16 bands) or Malik's Hermitian one (4 to 12 bands). ``None`` leaves
+        every band in phase.
 
     Returns
     -------
@@ -284,15 +309,12 @@ def _band_weights(num_bands: int, sideband_power, phases) -> np.ndarray:
         raise ValueError("band powers must be finite and >= 0")
     if phases is None:
         phase = np.zeros(num_bands)
-    elif isinstance(phases, str) and phases == "quadratic":
-        position = np.arange(num_bands) - (num_bands - 1) / 2.0
-        phase = (3.4 / num_bands) * position**2
     elif isinstance(phases, str):
-        raise ValueError("phases must be 'quadratic' or one value per band")
+        phase = band_phases(num_bands, phases)
     else:
         phase = np.asarray(phases, dtype=float)
         if phase.shape != (num_bands,):
-            raise ValueError("phases must be 'quadratic' or one value per band")
+            raise ValueError("phases must be a schedule name or one value per band")
     return np.sqrt(powers) * np.exp(1j * phase)
 
 
