@@ -70,30 +70,24 @@ def make_gslider_pulse(
         If ``subslice`` is out of range, or the time-bandwidth product does not
         fit the pulse's samples.
     """
-    system = default_system(system)
-    dwell = dwell or system.rf_raster_time
-    if return_gz and slice_thickness <= 0:
-        raise ValueError("slice_thickness must be > 0 when return_gz=True")
-    waveform = design_gslider(
-        _slr_sample_count(duration, dwell),
-        time_bw_product,
-        num_subslices,
-        subslice,
-        flip_angle=flip_angle,
-        phase=subslice_phase,
-        passband_ripple=passband_ripple,
-        stopband_ripple=stopband_ripple,
-        cancel_alpha_phase=cancel_alpha_phase,
-    )
-    return _play_slr(
-        waveform,
+    return _slab_pulse(
+        lambda n: design_gslider(
+            n,
+            time_bw_product,
+            num_subslices,
+            subslice,
+            phase=subslice_phase,
+            flip_angle=flip_angle,
+            passband_ripple=passband_ripple,
+            stopband_ripple=stopband_ripple,
+            cancel_alpha_phase=cancel_alpha_phase,
+        ),
         flip_angle,
-        designed=True,
+        duration=duration,
         dwell=dwell,
         time_bw_product=time_bw_product,
-        center_pos=0.5,
-        return_gz=return_gz,
         slice_thickness=slice_thickness,
+        return_gz=return_gz,
         system=system,
         delay=delay,
         freq_offset=freq_offset,
@@ -159,29 +153,23 @@ def make_hadamard_pulse(
         If ``order`` is not a power of two, ``row`` is out of range, or the
         time-bandwidth product does not fit the pulse's samples.
     """
-    system = default_system(system)
-    dwell = dwell or system.rf_raster_time
-    if return_gz and slice_thickness <= 0:
-        raise ValueError("slice_thickness must be > 0 when return_gz=True")
-    waveform = design_hadamard(
-        _slr_sample_count(duration, dwell),
-        time_bw_product,
-        order,
-        row,
-        flip_angle=flip_angle,
-        passband_ripple=passband_ripple,
-        stopband_ripple=stopband_ripple,
-        cancel_alpha_phase=cancel_alpha_phase,
-    )
-    return _play_slr(
-        waveform,
+    return _slab_pulse(
+        lambda n: design_hadamard(
+            n,
+            time_bw_product,
+            order,
+            row,
+            flip_angle=flip_angle,
+            passband_ripple=passband_ripple,
+            stopband_ripple=stopband_ripple,
+            cancel_alpha_phase=cancel_alpha_phase,
+        ),
         flip_angle,
-        designed=True,
+        duration=duration,
         dwell=dwell,
         time_bw_product=time_bw_product,
-        center_pos=0.5,
-        return_gz=return_gz,
         slice_thickness=slice_thickness,
+        return_gz=return_gz,
         system=system,
         delay=delay,
         freq_offset=freq_offset,
@@ -191,6 +179,37 @@ def make_hadamard_pulse(
         use=use,
         freq_ppm=freq_ppm,
         phase_ppm=phase_ppm,
+    )
+
+
+def _slab_pulse(
+    design,
+    flip_angle,
+    *,
+    duration,
+    dwell,
+    time_bw_product,
+    slice_thickness,
+    return_gz,
+    system,
+    **event,
+):
+    """Play ``design(n)``, a large-tip waveform in radians per sample, centred."""
+    system = default_system(system)
+    dwell = dwell or system.rf_raster_time
+    if return_gz and slice_thickness <= 0:
+        raise ValueError("slice_thickness must be > 0 when return_gz=True")
+    return _play_slr(
+        design(_slr_sample_count(duration, dwell)),
+        flip_angle,
+        designed=True,
+        dwell=dwell,
+        time_bw_product=time_bw_product,
+        center_pos=0.5,
+        return_gz=return_gz,
+        slice_thickness=slice_thickness,
+        system=system,
+        **event,
     )
 
 

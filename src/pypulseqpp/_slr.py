@@ -78,18 +78,29 @@ def _to_baseband(h: np.ndarray, shift: int) -> np.ndarray:
     return signal.hilbert(np.real(h)) * carrier * np.exp(-1j * np.pi / n * shift)
 
 
+def _check_design(n: int, tbw: float, d1: float, d2: float) -> None:
+    if n < 8 or n % 2:
+        raise ValueError("n must be an even integer >= 8")
+    if tbw <= 0:
+        raise ValueError("time_bandwidth_product must be > 0")
+    if not 0 < d1 < 1 or not 0 < d2 < 1:
+        raise ValueError("passband_ripple and stopband_ripple must lie in (0, 1)")
+
+
+def _large_tip(beta: np.ndarray, flip_angle: float, cancel_alpha_phase: bool):
+    """Return the pulse tipping by ``flip_angle`` where ``|beta|`` is one."""
+    return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+
+
 def _check_slab(n: int, tbw: float, d1: float, d2: float, subbands: int) -> float:
     """Return the fractional transition width.
 
     Refuses a slab that overruns ``n`` samples once shifted to ``n // 4``, and
     sub-bands narrower than the transitions that bound them.
     """
-    if n < 8 or n % 2:
-        raise ValueError("n must be an even integer >= 8")
-    if not 0 < d1 < 1 or not 0 < d2 < 1:
-        raise ValueError("passband_ripple and stopband_ripple must lie in (0, 1)")
+    _check_design(n, tbw, d1, d2)
     transition = _dinf(d1, d2) / tbw
-    if tbw <= 0 or (1.0 + transition) * tbw / 2.0 >= n // 4:
+    if (1.0 + transition) * tbw / 2.0 >= n // 4:
         raise ValueError(
             f"a time-bandwidth product of {tbw} does not fit {n} samples; "
             "lengthen the pulse or lower it"
@@ -127,12 +138,9 @@ def design_gslider(
     tilt = np.exp(1j * phase)
     # The design's bands run opposite to the frequency the pulse selects.
     subslice = g - 1 - subslice
-    if g % 2 and subslice == g // 2:
-        if g == 1:
-            return _beta_to_rf(
-                np.sin(flip_angle / 2) * _least_squares(n, tbw, d1, d2),
-                cancel_alpha_phase,
-            )
+    if g == 1:
+        beta = _least_squares(n, tbw, d1, d2)
+    elif g % 2 and subslice == g // 2:
         # The centred sub-slice is at DC already: a notch and the band it
         # leaves, designed together and summed with the band's phase.
         bands = np.asarray(
@@ -178,7 +186,7 @@ def design_gslider(
         beta = _to_baseband(
             _firls(n, bands, notch, weight), shift
         ) + tilt * _to_baseband(_firls(n, bands, sub, weight), shift)
-    return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+    return _large_tip(beta, flip_angle, cancel_alpha_phase)
 
 
 def design_hadamard(
@@ -207,7 +215,7 @@ def design_hadamard(
     ftw = _check_slab(n, tbw, d1, d2, order)
     if row == 0:
         beta = _least_squares(n, tbw, d1, d2)
-        return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+        return _large_tip(beta, flip_angle, cancel_alpha_phase)
 
     # The design's bands run opposite to the frequency the pulse selects.
     encode = hadamard(order)[row][::-1]
@@ -233,7 +241,7 @@ def design_hadamard(
     positive = _firls(n, bands, (desired > 0).astype(float), weight)
     negative = _firls(n, bands, (desired < 0).astype(float), weight)
     beta = _to_baseband(positive - negative, shift)
-    return _beta_to_rf(np.sin(flip_angle / 2) * beta, cancel_alpha_phase)
+    return _large_tip(beta, flip_angle, cancel_alpha_phase)
 
 
 def _linear_phase(n: int, tbw: float, d1: float, d2: float) -> np.ndarray:
@@ -460,12 +468,7 @@ def design_slr(
     root_flip: bool = False,
 ) -> np.ndarray:
     """Return a dimensionless SLR RF waveform."""
-    if n < 8 or n % 2:
-        raise ValueError("n must be an even integer >= 8")
-    if time_bandwidth_product <= 0:
-        raise ValueError("time_bandwidth_product must be > 0")
-    if not 0 < passband_ripple < 1 or not 0 < stopband_ripple < 1:
-        raise ValueError("passband_ripple and stopband_ripple must lie in (0, 1)")
+    _check_design(n, time_bandwidth_product, passband_ripple, stopband_ripple)
     if root_flip and pulse_type not in NOMINAL_FLIP:
         raise ValueError(
             "root flipping needs a nominal flip: pulse_type 'ex', 'se', 'inv' or 'sat'"
