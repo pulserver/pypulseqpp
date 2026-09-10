@@ -14,18 +14,10 @@ _AXES = ("x", "y", "z")
 
 
 class SmsExcitation(RfModule):
-    """A slice-selective pulse modulated to excite several slices at once.
+    """SLR slice excitation modulated into simultaneous spectral bands.
 
-    A gradient turns frequency into position, so multiplying one designed pulse
-    by a sum of complex exponentials excites a comb of slices for the price of
-    one. What it costs is peak B1: the bands add in phase at the centre of the
-    pulse, so a ``n``-band pulse peaks at ``n`` times the single-band one unless
-    the phases are spread. ``phases='quadratic'`` does that, and is what makes a
-    high band count feasible at all.
-
-    The band spacing is stated as a **slice gap** and converted through the
-    selection gradient the module built, so the answer follows the pulse rather
-    than having to be recomputed whenever the thickness or duration changes.
+    Slice centre spacing is converted to frequency using the selection
+    gradient. Band phases control the combined peak B1.
 
     Parameters
     ----------
@@ -45,13 +37,13 @@ class SmsExcitation(RfModule):
         Per-band phase (rad). ``'quadratic'`` spreads the peak; ``None`` leaves
         every band in phase, which is the worst case for peak B1.
     rephase : bool, optional
-        Build a rephaser at all.
+        Include a slice rephaser.
     time_bw_product : float, optional
         Time-bandwidth product of the underlying slice profile.
     axis : {'z', 'x', 'y'}, optional
         Selection axis.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
     ----------
@@ -60,11 +52,11 @@ class SmsExcitation(RfModule):
     gz : TrapEvent
         The selection gradient.
     gz_reph : TrapEvent
-        Its rephaser, when ``rephase``.
+        Its rephaser, only when ``rephase=True``.
     band_offsets_hz : numpy.ndarray
-        Where each band sits (Hz), zero among them.
+        Band frequency offsets (Hz), symmetric about zero.
     band_positions_m : numpy.ndarray
-        The same, as slice positions (m).
+        Slice centre positions (m).
     peak_ratio : float
         Peak B1 relative to the single-band pulse the bands were made from.
 
@@ -85,30 +77,11 @@ class SmsExcitation(RfModule):
     >>> sms.band_positions_m.round(6).tolist()
     [-0.024, 0.0, 0.024]
 
-    Spreading the band phases is what keeps the peak down:
-
     >>> stacked = design.SmsExcitation(
     ...     system, 60.0, thickness_m=3e-3, slice_gap_m=24e-3, n_bands=3, phases=None
     ... )
     >>> round(stacked.peak_ratio, 1), bool(sms.peak_ratio < stacked.peak_ratio)
     (3.0, True)
-
-    Three slices from one pulse, at the gap they were asked for:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       design.SmsExcitation(
-           system, 60.0, thickness_m=3e-3, slice_gap_m=24e-3, n_bands=3
-       ).plot_rf(
-           title="SMS, three bands 24 mm apart",
-           extent=40,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -167,25 +140,10 @@ class SmsExcitation(RfModule):
 
 
 class MultibandExcitation(RfModule):
-    """A pulse with off-resonance sidebands and no gradient at all.
+    """Non-spatially-selective RF excitation with off-resonance sidebands.
 
-    The same modulation :class:`SmsExcitation` uses, with nothing to turn
-    frequency into position -- so the sidebands saturate wherever their offset
-    reaches rather than exciting a slice. That is what an inhomogeneous
-    magnetisation transfer experiment wants: the on-resonance band tips the
-    free pool by ``flip_angle_deg`` while the sidebands deposit power into the
-    bound pool, and comparing one sideband against two symmetric ones at the
-    **same total power** is the ihMT measurement.
-
-    Power, not amplitude, is what has to match. Two sidebands each at
-    ``sqrt(beta/2)`` of the centre band's amplitude carry the same total
-    ``|B1|^2`` as one at ``sqrt(beta)``, and halving an amplitude instead --
-    which looks natural -- delivers half the power and turns the ihMT
-    difference into a power difference.
-
-    Give ``b1rms_ut`` and ``tr`` to have the sideband power solved for a total
-    root-mean-square B1 over the repetition, which is how the experiment is
-    normally specified; give ``sideband_power`` to state it directly.
+    Sideband weights are specified as power relative to the central band,
+    not amplitude. A target B1 RMS and TR can instead determine the weights.
 
     Parameters
     ----------
@@ -211,14 +169,14 @@ class MultibandExcitation(RfModule):
     time_bw_product : float, optional
         Time-bandwidth product of the underlying envelope.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
     ----------
     rf : RfEvent
         The modulated pulse.
     band_offsets_hz : numpy.ndarray
-        Where each band sits (Hz), zero among them.
+        Band frequency offsets (Hz), including the on-resonance band.
     band_power_fraction : numpy.ndarray
         Share of the total ``|B1|^2`` each band carries.
     sideband_power : float
@@ -249,9 +207,6 @@ class MultibandExcitation(RfModule):
     >>> round(dual.b1rms_ut, 6)
     2.0
 
-    Two sidebands or one, the total power is the same -- which is what makes
-    the difference between them an ihMT measurement rather than a power one:
-
     >>> single = design.MultibandExcitation(
     ...     system, 7.0, duration_s=2e-3, band_offset_hz=7000.0, n_bands=2,
     ...     b1rms_ut=2.0, tr=30e-3,
@@ -259,28 +214,8 @@ class MultibandExcitation(RfModule):
     >>> round(single.b1rms_ut, 6)
     2.0
 
-    One sideband therefore carries exactly what two carry between them:
-
     >>> single.sideband_power == 2 * dual.sideband_power
     True
-
-    Three bands in frequency and none in space, which is what makes this a
-    saturation rather than a slice selection:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.MultibandExcitation(
-           pp.Opts(), 7.0, duration_s=2e-3, band_offset_hz=7000.0, n_bands=3
-       ).plot_rf(
-           title="dual-sideband saturation, 7 kHz offsets",
-           kind="excitation",
-           extent=12000,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -363,7 +298,6 @@ def _b1_squared_integral(rf, system: pp.Opts) -> float:
 
 
 def _peak_ratio(banded, single) -> float:
-    """Peak amplitude of a modulated pulse against the one it was made from."""
     return float(
         np.max(np.abs(np.asarray(banded.signal)))
         / np.max(np.abs(np.asarray(single.signal)))

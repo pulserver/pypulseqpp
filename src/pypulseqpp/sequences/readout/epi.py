@@ -24,24 +24,12 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _EpiReadout(SequenceModule):
-    """One excitation and the EPI train that follows it: ``etl`` lines per TR.
+    """One RF event followed by an EPI train with a fixed phase-encode pattern.
 
-    The train walks a fixed pattern of phase-encode steps and replays it every
-    repetition. Only the *origin* moves, so the scan loop scales one prewinder
-    per axis and leaves the blips alone::
-
-        for shot, (ky, kz) in enumerate(plan):
-            seq.add_block(epi.rf, epi.gz)
-            epi.shot_labels[0].value, epi.shot_labels[1].value = ky, kz
-            seq.add_block(epi.gx_pre, pp.scale_grad(epi.gy_pre, ky / half_ny),
-                          *epi.shot_labels)
-            for line in range(epi.etl):
-                seq.add_block(epi.gx[line], epi.adc, *epi.line_labels[line])
-            seq.add_block(epi.gx_spoil)
-
-    The blips ride the readout ramps rather than costing time of their own,
-    which is what keeps the echo spacing near the sampling window. See
-    :doc:`../reference/design` for the built-in orderings and what each is for.
+    The scan loop sets the shot origin by scaling prewinders. Blips implement
+    the relative offsets and share the readout ramps; flyback blips instead
+    play in the rewind gaps. TE is measured to the first echo, not the echo
+    that acquires central phase encoding.
 
     Attributes
     ----------
@@ -97,7 +85,7 @@ class _EpiReadout(SequenceModule):
     echo_time : float
         The first line's, which is what ``te`` sets.
     bandwidth_hz : float
-        Achieved receiver bandwidth.
+        Achieved ADC sampling rate (Hz).
     n_samples : int
         Samples per line.
     delta_kx : float
@@ -141,8 +129,8 @@ class _EpiReadout(SequenceModule):
     oversampling : float, optional
         Read oversampling.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what the two
-        rasters allowed.
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved raster-compatible rate.
     ramp_sampling : bool, optional
         Sample across the read ramps as well as the plateau, which is what
         makes the echo spacing short. Turn it off for a rectangular window at
@@ -528,11 +516,7 @@ def _read_lobe(
 
 
 def _area_between(trapezoid: Any, start: float, stop: float) -> float:
-    """Zeroth moment of a trapezoid over one interval of it.
-
-    Exact rather than a closed form for the corners, because the pad either
-    side of the window is not always shorter than the ramp it sits on.
-    """
+    """Integrate a trapezoid over a time interval (s), returning area in 1/m."""
     rise, flat = float(trapezoid.rise_time), float(trapezoid.flat_time)
     fall, amplitude = float(trapezoid.fall_time), float(trapezoid.amplitude)
     times = np.array([0.0, rise, rise + flat, rise + flat + fall])
@@ -552,17 +536,11 @@ def _blip_events(
     anchor: Any,
     etl: int,
 ) -> list:
-    """One phase-encode event per line, split across the read ramps.
+    """Split each phase-encode step across adjacent readout ramps.
 
-    A step between two lines is halved: the first half plays out on the falling
-    ramp of the line it leaves, the second on the rising ramp of the line it
-    enters. Every step is the same shape scaled, so they all take ``blip_span``
-    however far they move and the echo spacing stays constant.
-
-    Which event a line plays is decided entirely by the pair of steps flanking
-    it, and a train of hundreds of lines is built from a handful of distinct
-    pairs, so each one is constructed once and the lines that share it share
-    the event -- as the read lobes of a flyback train already do.
+    The outgoing half plays on the earlier line; the incoming half plays on
+    the next. All steps use blip_span, preserving constant echo spacing.
+    Repeated flanking-step pairs share one event.
     """
     widest = int(np.max(np.abs(steps))) if len(steps) else 0
     if not widest or blip_span == 0.0:
@@ -606,12 +584,7 @@ def _gap_blips(
     gap_span: float,
     etl: int,
 ) -> list:
-    """One whole phase-encode step per rewind block, for a flyback train.
-
-    There is no ramp to hide on, so the step is played whole in the gap the
-    rewind already occupies. Entry ``j`` belongs to the gap after line ``j``,
-    which is why the last is always ``None``.
-    """
+    """Return flyback-gap blips; entry j follows line j and the last is None."""
     widest = int(np.max(np.abs(steps))) if len(steps) else 0
     if not widest:
         return [None] * etl
@@ -641,7 +614,6 @@ def _flank(system: pp.Opts, entering: Any, leaving: Any, anchor: Any):
 
 
 def _span(system: pp.Opts, *events: Any) -> float:
-    """Where a block holding ``events`` ends, ignoring the ones that are None."""
     events = [event for event in events if event is not None]
     if not events:
         return 0.0
@@ -649,7 +621,6 @@ def _span(system: pp.Opts, *events: Any) -> float:
 
 
 def _area(event: Any) -> float:
-    """Zeroth moment of a gradient event, whichever kind it is."""
     if event.type == "trap":
         return float(event.area)
     return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
@@ -659,7 +630,7 @@ class EpiReadout2D(_EpiReadout):
     """A single- or multi-shot EPI train, frequency-encoded along x.
 
     ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`_EpiReadout` for the ordering, timing and spoiling arguments.
+    :class:`~pypulseqpp.sequences.readout.epi._EpiReadout` for the ordering, timing and spoiling arguments.
 
     Examples
     --------
@@ -674,55 +645,12 @@ class EpiReadout2D(_EpiReadout):
     >>> epi.etl, int(epi.adc.num_samples)
     (64, 64)
 
-    Segmenting shortens the train and widens the blip, leaving the lattice
-    alone:
-
     >>> half = design.EpiReadout2D(
     ...     system, excitation.rf, excitation.gz, excitation.gz_reph,
     ...     fov=0.22, matrix=64, segments=2,
     ... )
     >>> half.etl, int(half.order[1, 0])
     (32, 2)
-
-    The whole plane from one excitation: the prewinder places k at a corner
-    and every blip steps it one line, so the train is the lattice.
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 60.0, 3e-3)
-       epi = design.EpiReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=32,
-       )
-       trajectory(
-           epi,
-           ky=[-1.0],
-           per="shot",
-           label="line",
-           title="EpiReadout2D, a 32-line train",
-       )
-
-    The blips are what separates the lines, and the alternating read lobe is
-    why every other one is reversed:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 60.0, 3e-3)
-       epi = design.EpiReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=32,
-       )
-       epi.plot(time_disp="ms", grad_disp="mT/m", stacked=True, plot_now=False)
     """
 
     _ndim = 2
@@ -749,36 +677,8 @@ class EpiReadout3D(_EpiReadout):
     >>> epi.etl
     16
 
-    The partition walks the CAIPI cycle and wraps, so its blips take two values:
-
     >>> sorted(set(int(step) for step in epi.order[1:, 1] - epi.order[:-1, 1]))
     [-1, 2]
-
-    Under ``scheme="caipi"`` the partition blips walk a cycle alongside the
-    phase blips, so the train covers a sheared lattice rather than one plane:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       epi = design.EpiReadout3D(
-           system, slab.rf, slab.gz,
-           fov=(0.22, 0.22, 0.12), matrix=(32, 32, 8),
-           scheme="caipi", acceleration=2, partition_acceleration=2, caipi_shift=1,
-       )
-       trajectory(
-           epi,
-           ky=[-1.0],
-           kz=[-1.0],
-           per="shot",
-           plane="yz",
-           label="line",
-           title="EpiReadout3D, the CAIPI lattice one train covers",
-       )
     """
 
     _ndim = 3

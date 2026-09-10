@@ -7,484 +7,284 @@ This file is the SOURCE. CLAUDE.md and GEMINI.md are generated from it by
 scripts/sync_agent_docs.sh, which pre-commit runs. Edit this file, never those.
 -->
 
-## What this package is
+## Scope and compatibility
 
-Fast drop-in PyPulseq replacement over a C++ sequence core, with hardware safety checks.
+pypulseqpp provides PyPulseq-compatible sequence authoring over a C++ core.
+Preserve supported Python signatures, event conventions and reference file
+output. Not every upstream feature is implemented; do not document an absent
+method as available.
 
-The contract is PyPulseq's own API: a design script written against
-`pypulseq` must run here unchanged, with the same functions, the same
-signatures and the same `.seq` output. What differs is what each call does
-underneath. Events are compact compiled objects, `add_block` is one compiled
-call, and reading and writing, in text and in binary, are C++.
+The package owns sequence storage, text/binary I/O, deduplication, structural
+repetition detection, timing and gradient checks, waveform and k-space analysis,
+FOV transforms, RF/gradient design, sampling, and reusable sequence modules.
+PNS, RF-power and mechanical-resonance analysis and tiling are deferred.
 
-The package owns everything that is true about a sequence in isolation:
-parsing and writing, event deduplication, structural TR and base-block
-detection, block timing against a system's rasters and dead times, gradient
-amplitude, slew and continuity checks, PNS and mechanical resonance, k-space
-and gradient-moment calculation, and sequence-level operations such as FOV
-transformation and tiling.
+Scanner execution, segmentation, protocol contracts and consoles belong to
+Pulserver. Vendor-specific execution logic does not belong here.
 
-It owns the design of what goes into one, too: RF pulses, trajectories,
-sampling patterns and the module toolbox. A pulse is a waveform and a
-trajectory is a gradient, and both are true of a sequence in isolation --
-nothing about designing one needs to know which scanner will play it. So
-`make_slr_pulse`, `traj_to_grad`, the spiral and rosette solvers, the
-undersampling masks and view orderings, and the `sequences` subpackage of
-composable modules are all here.
-
-What is not here is anything that needs a scanner or a reconstruction in the
-picture: segmentation, the scanner-side execution stream, protocol contracts
-and consoles live in `pulserver`. If a change here needs to know which vendor
-will play the sequence, it belongs there.
-
-The runtime dependencies are NumPy, SciPy and PyPulseq. PyPulseq is the API
-this package replaces and the facade re-exports its namespace, so its
-factories build the events and this builds the sequence under them; SciPy
-supplies the filter design and the rotation algebra the pulse and trajectory
-design rests on. The extension itself links nothing but the standard library,
-so a wheel stays self-contained.
-
-## The zoo
-
-`examples/sequence/` holds one complete sequence per file, and
-`pyproject.toml` maps the directory into the package so each is
-`pypulseqpp.sequences.<name>` however it was written, beside the modules it
-is composed of. `pypulseqpp.sequences`
-presents them flat and imports one on first use; a module *is* its `main`, so
-it is callable and carries `main`'s docstring and signature.
-
-Each is also a script, through `pypulseqpp.cli.run`, which reads `main`'s
-signature for the flags and `main`'s NumPy `Parameters` block for their help
-text -- so the prescription is written down once, in the function, and the
-command line follows it.
-
-**A module reachable through the package is not necessarily one it ships.**
-An editable install puts every prefix of a mapped path on the package's
-search path, so mapping `examples/sequence` puts the repo root on
-`pypulseqpp.__path__` and `setup.py` walks as `pypulseqpp.setup`. Anything
-walking that path asks where a name's file is *before* importing it, because
-importing what is merely reachable runs it -- `tests/test_docstrings.py` is
-the one that does, and `setup()` takes pytest's own arguments if it is
-reached.
-
-`pypulseq-matlab-like` is a test dependency and nothing more -- the
-transcription of MATLAB Pulseq that defines the file format, used for
-byte-parity fixtures, never imported by the package. It is not on PyPI;
-`tests/seq/` carries its reference corpus so the reader is tested without it,
-and the tests that build sequences skip when it is absent.
-
-## The Python facade
-
-`import pypulseqpp as pp` is the only import a script needs. Everything
-upstream exposes still *resolves* -- `pp.x` answers wherever `pypulseq.x`
-did, and a test holds that -- but reachable and advertised are different
-promises. `__all__` carries the vocabulary a sequence is written in, and
-leaves out the imports upstream's own `__init__` happens to make (`np`,
-`math`, `importlib`, its submodules) and the few helpers that describe
-arithmetic rather than a sequence (`eps`, `round_half_up`). Two names are
-withheld outright, with a reason rather than a bare `AttributeError`:
-`add_ramps`, whose `calc_ramp` raises for any ramp of more than zero
-intermediate points, and `add_custom_label`, because a label here is named
-and needs no registering.
-
-Every callable goes through
-`_events.interoperating` -- not only the factories, because `calc_duration`,
-`align`, `split_gradient` and `rotate` all take events and upstream implements
-them with `isinstance` checks and `deepcopy`, neither of which a compiled
-event satisfies. The decorator hands them a namespace on the way in and
-converts what comes back, so upstream's helpers work against events they were
-never written for.
-
-A `make_*` factory hands back an event whose scalar fields are `PyMemberDef`
-offsets rather than dictionary entries, and `add_block` unpacks a whole block
-and registers it in one compiled call. On a gradient echo loop that is 780 ns
-a block against upstream's 59.6 us.
-
-Four things are ours rather than upstream's, and three of them are meant to
-go. `Sequence` stays: upstream's is a different implementation, and this is
-the one with the compiled core under it. `make_rotation` and `make_rf_shim`
-arrived with Pulseq 1.5.1 and upstream 1.5.0 does not have them. `make_label`
-is here because upstream's refuses a name outside the list Pulseq defines,
-and a label here is named rather than numbered -- see the section on that.
+Runtime dependencies are NumPy, SciPy and PyPulseq. The native extension links
+the standard library and threads. The optional GPL viewer is distributed
+separately from the MIT core.
 
 ## Layout
 
-| Path | What lives there |
+| Path | Purpose |
 |---|---|
-| `src/cpp/pulseq/` | The C++17 core: event libraries, the block table, the shape codec, the writers. It knows nothing about Python. |
-| `external/MRArbGrad/` | A submodule: the MRArbGrad solver, which re-parameterises a k-space path within the gradient and slew limits. Three of its files are compiled in; see `external/NOTICE.md`. |
-| `src/cpp/bindings/` | The pybind11 sources, building one extension module, `pypulseqpp._ext`, with `arbgrad`, `sampling` and `slr` as submodules of it. |
-| `LICENSES/` | The licenses of code derived from other projects, shipped in the wheel beside `LICENSE`: SigPy's BSD 3-Clause, for the SLR design, root flipping, the multiband phase tables and the Poisson-disc sampler. A module derived from one says so in its docstring and names the file. |
-| `src/pypulseqpp/` | The Python package: the facade over the core. `_events.py` converts between PyPulseq's namespaces and the compiled events and holds the decorators; `_sequence.py` is the sequence a script builds; `_make_*.py` are the factories upstream does not have; `_rf_pulses.py`, `_traj_to_grad.py`, `_masks.py`, `_angles.py` and their neighbours are the design layer. |
-| `src/pypulseqpp/sequences/` | The module toolbox: `SequenceModule` and the excitation, preparation and readout modules built on it. Not imported by the top-level namespace; a script asks for it by name. |
-| `src/pypulseqpp/cli/` | Turning a script into a command line: `run` builds the parser from the script's own signature and docstring, `write_sequence` writes the form the destination reads. Not authoring vocabulary, so not in the main namespace. |
-| `examples/sequence/` | The zoo: one complete sequence per file, installed beside `pypulseqpp.sequences` and reachable as `pypulseqpp.sequences.<name>`. |
-| `tests/` | pytest. `reference.py` builds the reference sequences with upstream, `convert.py` loads one into the core, and `test_parity.py` compares what the two write. |
-| `viewer/` | A package of its own, `pypulseqpp-seqeyes`, and GPL: SeqEyes, the viewer `Sequence.plot` draws in, built from the submodule in `viewer/seqeyes` to run on the Qt that PySide6 installs. `pypulseqpp[plot]` installs it; nothing under it is in pypulseqpp's sdist or wheel. |
+| `src/cpp/pulseq/` | Python-independent C++17 storage, codecs, I/O and analysis |
+| `src/cpp/bindings/` | CPython/pybind11 bindings for `pypulseqpp._ext`, including `arbgrad`, `sampling` and `slr` |
+| `external/MRArbGrad/` | Vendored gradient solver submodule; see `external/NOTICE.md` |
+| `src/pypulseqpp/` | Python facade, event conversion, sequence operations and design |
+| `src/pypulseqpp/sequences/` | Reusable excitation, preparation and readout modules |
+| `src/pypulseqpp/cli/` | Signature-driven command-line parsing and sequence writing |
+| `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
+| `tests/` | API, numerical, format-parity and invariant tests |
+| `docs/` | Markdown/Sphinx documentation and generated API reference |
+| `viewer/` | Separate `pypulseqpp-seqeyes` package; excluded from the core distribution |
+
+Do not edit vendored submodule contents as part of core maintenance.
 
 ## Build and test
 
 ```bash
-git submodule update --init --recursive   # the solver in external/ is compiled in
-pip install -e .[dev]
-bash scripts/format_and_lint.sh   # rewrites in place; --check to verify only
+git submodule update --init --recursive
+pip install -e '.[dev]'
+bash scripts/format_and_lint.sh --check
 pytest -q
 ```
 
-A checkout without the submodule has no trajectory solver, and the build says
-so rather than failing on a missing header.
+Build and test steps are mandatory before reporting a change complete. Run
+them and report their actual results; do not assume success. The formatting
+script rewrites files when called without `--check`.
 
-Build and test steps are mandatory before reporting a change complete. Run them
-and report the exact output; do not assume success.
+For documentation changes, also run:
 
-## Language rules
+```bash
+sphinx-build -W --keep-going -b html docs docs/build/html
+```
 
-**`src/cpp/` is C++17.** It is the hot path for million-block sequences:
-measure before adding an allocation per block. The extension links nothing but
-the standard library and threads, so a wheel is self-contained on Linux,
-macOS and Windows and an end user never needs a compiler.
+The development extra includes documentation dependencies. Do not add a new
+documentation or linting dependency solely for a cleanup.
 
-**Python targets 3.10+.** Python code is the API surface and the glue; a loop
-over blocks in Python is a bug, not a slow path.
+## Language and performance constraints
 
-## Performance
+- Native code targets C++17; Python targets 3.10+.
+- Keep per-block loops in C++. Measure before adding allocations on the
+  million-block hot path.
+- Per-block binding calls use `METH_FASTCALL`, not pybind11 argument
+  conversion. `add_block` registers all events in one native call.
+- Scalar event fields use `PyMemberDef` offsets. Waveform accessors expose
+  samples at their stored amplitude.
+- Block-table arrays are copy-on-write snapshots. A view owns its buffer,
+  survives sequence destruction and does not observe later mutations.
+  Preserve the capacity-based fast-path ownership check.
+- Substantial native work, including deduplication, compression and writing,
+  releases the GIL.
+- Every native mutation must invalidate derived analysis through the core
+  revision counter. Keep the Python cache guard a revision comparison, not
+  a per-block Python attribute update.
+- Run `benchmarks/throughput.py` before and after changing bindings. Report
+  measurements rather than asserting performance improvements.
 
-The design loop is the hot path: one call per block, and a protocol-scale scan
-has millions of them. Two rules follow, and both are easy to undo by accident.
+## Facade and event contracts
 
-**A per-block call is bound by hand with `METH_FASTCALL`, not by pybind11.**
-The arguments arrive as a C array of borrowed references, so nothing is
-allocated and no tuple is built. `add_block` is bound this way, and
-`test_adding_a_block_goes_through_the_fast_calling_convention` fails if it
-stops being. Passing a bound object per block instead costs an order of
-magnitude, because constructing that object is then the whole call.
+`pypulseqpp` re-exports upstream authoring vocabulary alongside its own
+implementations. Upstream imports and arithmetic helpers need not appear in
+`__all__`. `add_ramps` and `add_custom_label` are intentionally withheld:
+the upstream ramp solver is unsupported, and custom labels need no explicit
+registration here.
 
-**The block table is read back as a view, not a copy.** `block_events` and
-`block_durations` return arrays pointing straight into the table, which is
-what keeps a million-row table free to read a column out of. The array owns a
-share of the buffer and the table is copied before it is written while a view
-is out, so a view is a snapshot: it does not see later writes, and it stays
-valid even if the sequence is collected. The copy-before-write check is a
-capacity comparison on the per-block path and an atomic one only when the
-table actually grows -- keep it that way.
+The interoperability decorator converts compiled events to namespaces for
+upstream functions and converts returned events back. This applies to event
+consumers such as `calc_duration`, `align`, `split_gradient` and `rotate`,
+not only factories.
 
-**A call that does real work releases the GIL.** Deduplication, shape
-compression and writing all run without it.
+Waveforms are normalised beside scalar amplitudes. Amplitude changes preserve
+shape registrations; waveform replacement invalidates them. Registration IDs
+are sequence-local. Decoded blocks are independent event snapshots.
 
-**What has been worked out about a sequence is kept, and the core says when
-to drop it.** The timing check asks what the gradients slew at and how long
-the whole sequence lasts; both are passes over the block table, so `Sequence`
-keeps them. Every mutation of the core bumps a revision, in step with the
-deduplication claim being dropped, and the kept answers are read through a
-guard that compares one integer -- so a block added, a duration written, an
-axis scaled, a soft delay applied or duplicates collapsed all invalidate them,
-and none of it costs the design loop an attribute write per block.
+## Storage invariants
 
-`benchmarks/throughput.py` reports what a block costs. Run it before and after
-touching the bindings, and quote what came back rather than asserting an
-improvement.
+Libraries and block indices are 1-based; zero event IDs mean absence.
+Trapezoids and arbitrary gradients share file IDs but occupy separate tables.
 
-The registration calls are the remaining cost: a design loop that registers
-each event from Python pays a binding crossing per event. The answer is
-`add_block_events(*events)`, one fastcall that unpacks compiled event objects
-and registers them inside C++, so a block costs one crossing rather than one
-per event. That needs the compiled event types, so it lands with the Python
-API rather than before it.
+Shape roles are a bit mask, recorded when events reference a shape.
+Deduplication ORs the roles of merged shapes.
 
-## What a shape is played as
+Event definitions separate fixed timing/shape data from playout parameters.
+RF magnitude, phase and time shapes belong to definitions; arbitrary gradient
+waveforms belong to instances. ADC and extension choices do not distinguish
+block definitions. Pure delays share one definition independent of duration;
+triggers and digital outputs are not pure delays.
 
-A `[SHAPES]` entry does not say what it is; the file says so only where an
-event refers to it. Each entry therefore carries a mask of `ShapeRole`, set
-where the reference is made -- `register_rf` marks its magnitude, phase and
-time shapes, `register_arbitrary` its waveform and times, `register_adc` its
-phase modulation -- so "every gradient waveform" is answered without walking
-the event libraries. A file read back fills the mask in on the way past,
-because reading registers its events too, and nothing in the format changes.
+Registration creates definitions. Deduplication rebuilds them after
+renumbering shapes and events, so definition IDs are not stable across it.
+Before deduplication, equal separately registered shapes can yield distinct
+definitions.
 
-It is a mask rather than a tag because deduplication merges shapes holding the
-same numbers, and the merge ORs the roles: after it, one entry really is
-played both ways.
+## File-format invariants
 
-## What a report says a sequence is
+`pypulseq-matlab-like`, a transcription of MATLAB Pulseq, is the file-format
+authority. Upstream PyPulseq remains the Python API reference. The format
+reference is a test-only Git dependency; tests requiring it skip when absent,
+while the checked-in `tests/seq/` corpus remains usable.
 
-`test_report` reads a sequence back as a description of an experiment: the
-echo and repetition times, the flip angles, what the encoding covers, and how
-hard the gradients are driven. Most of it is counting, integrating the sampled
-trajectory or reading the corner waveforms. Two answers are worked out, and
-both are compiled because both are per-playout questions with per-definition
-answers.
+Parse complete files before registering libraries and then blocks. Both text
+and binary use the shared builder. Legacy text conversion derives missing RF
+centres, gradient endpoints and pre-1.4 block durations. Missing RF uses stay
+undefined unless inference is requested. Pre-1.4 shapes require forced
+decoding before re-encoding because equal encoded/sample counts are ambiguous.
 
-**A flip angle belongs to the envelope, not to the playout.** How far a pulse
-tips is the integral of its envelope times the amplitude it is played at, and
-the envelope is what the RF definition holds. So the integral is taken once
-per definition and multiplied by each distinct amplitude played through it: an
-inversion train sweeping one pulse over a thousand flip angles is one integral
-and a thousand multiplies, and playing each of those a hundred times costs
-nothing further. Before deduplication a pulse registered twice brings shapes
-of its own and so splits into two definitions, which is the same
-conservatively-finer answer the definition stream gives.
+Default writers declare Pulseq 1.5.1. The 1.4.1 writer folds ppm offsets into
+absolute offsets using gamma in Hz/T and field strength in tesla, drops RF
+centre/use and gradient endpoints, warns when omitting soft delays, and
+refuses rotation or RF-shim extensions.
 
-**What the encoding covers is a pass over every sample.** The sampled
-trajectory is binned onto a lattice of its own extent over four million, which
-says how many distinct positions each axis visits, how often one is revisited
--- slices, averages, contrasts -- and whether the positions fill the grid they
-span. A coordinate one cell from one already seen is the same one, since a
-position reached along two different ramps can land either side of a boundary.
+Binary records are little-endian. Times use integer picoseconds and shape
+samples use float32. Both forms support optional MD5 signatures.
+`check_timing`, not writing alone, records `TotalDuration`.
 
-**The gradient peaks come from the waveforms, not from the safety pass.** The
-two answer different questions and `pypulseqpp.safety` says so: it weighs what
-the libraries store, so a rotation -- which moves where a gradient is played
-without moving the row it is stored in -- leaves it reporting an idle axis the
-scan drives at full amplitude, and its vector peak is the magnitude a rotation
-*could* ask of one amplifier rather than the one the sequence reaches. The
-report says what the scan does, so it reads the waveforms.
-`test_a_rotated_sequence_plays_axes_its_stored_rows_do_not_name` holds the
-difference.
+Binary definition names and value counts use int32 lengths. Builtin label
+IDs follow the reference order. Names beyond that table are stored in the
+`CustomLabels` definition in assignment order; do not add a custom section.
 
-## Reading, and the two forms of a file
+## Analysis invariants
 
-A sequence is written as Pulseq text or as Pulseq binary, and read back from
-either -- told apart by what is in the bytes rather than by the name they were
-stored under. The reader is the writer's inverse and is tested as one: a file
-written, read and written again is the file it started as, byte for byte.
+Use physical, rotated waveforms for played gradient limits. Simultaneous
+vector peaks are not the norm of independently attained axis peaks.
+Within-block slew and boundary continuity are separate checks.
 
-**The file is parsed whole before anything is registered.** `[BLOCKS]` comes
-before the libraries it names and `[SHAPES]` comes last, so a reader that
-registered as it went would be adding blocks whose events do not exist yet --
-and a block is split into a definition and an instance as it is added, which
-needs those events split already. Both forms fill a `Parsed` and hand it to
-one builder, so the rules that turn a file into a sequence are written once.
-Reading therefore forks exactly as building does, and a sequence off disk is
-indistinguishable from one that was built.
+FOV translation is expressed in logical metres. Prescription rotation is
+composed after existing block rotation. The unbroken gradient integral used
+for RF/ADC shift phase is distinct from excitation/reset-aware k-space used
+for echo anchoring. Preserve both across consecutive ranges.
 
-**An older file is converted, not merely parsed.** Every revision back to
-1.2.0 is read, and each moved something. 1.5 added an RF pulse's `center`, an
-arbitrary gradient's `first` and `last` sample, and the ppm offsets; before 1.4
-a gradient carries no time shape, a block's duration is an index into a
-`[DELAYS]` section rather than a count of rasters, a zero trapezoid is written
-with no ramps, and 1.2 has no extension column at all.
+RF phase shapes store cycles; ADC modulation and event phase offsets use
+radians. See `NEXT.md` for compatibility notes and the native headers for
+individual range and state contracts.
 
-None of that is a default that can be filled in, so it is derived. The centre
-comes from the pulse's own envelope, taking the middle of its peak. The
-gradient edges come from walking the block table in playing order: `last` is
-the waveform's end, extrapolated the way the factory would have, and `first`
-is where the axis was left by the block before, which is zero unless the
-previous gradient ran to that block's end. A pre-1.4 duration is the longest
-thing the block plays. And every shape is decoded and re-encoded, because
-before 1.4 an encoded shape whose length happened to equal its sample count
-could not be told from one that was never encoded.
+## Examples and tests
 
-The corpus holds one sequence at 1.2.0, 1.3.0, 1.3.1, 1.4.0, 1.4.1, 1.4.2 and
-1.5.0, so what the 1.5.0 file says is what the others are held to, and the
-reference reader is the arbiter where they legitimately differ.
+Example modules are callable through their `main` functions. The CLI derives
+flags from signatures and help text from NumPy-style Parameters sections.
 
-Two things a 1.4 file cannot give back. It has no `use` column, so what a
-pulse is *for* stays undefined rather than being guessed from its flip angle;
-and one derived `last` differs from the value the design knew, because an
-extrapolation is not the original. The reference toolbox derives the same
-number from the same file, which is what makes that the format's limit rather
-than a difference between readers. Before 1.4 two more things move: an
-extended trapezoid is held in fewer shapes, and 1.2.0's blocks last longer
-than 1.5.0's -- the reference reader agrees on both.
+Editable package mappings can expose repository files that are not shipped.
+Before importing modules discovered by walking a package path, check their
+source location; importing a reachable `setup.py` can execute the build.
 
-**A file can be written for a scanner from before 1.5.** `write_text_v141`
-produces Pulseq 1.4.1: the ppm offsets are folded back into absolute hertz at
-a gyromagnetic ratio and a field, which is the only place those two are needed
-and why they are arguments; an RF pulse's centre and use go, and so do an
-arbitrary gradient's first and last sample, because 1.4 has no column for any
-of them. Its output is byte-identical to the reference toolbox's for every
-sequence 1.4.1 can express.
+Use pytest functions and fixtures, never `unittest.TestCase`. Test names
+state the invariant. Preserve:
 
-Two things it will not do quietly. A soft delay is left out with a warning, as
-the reference does. A rotation or an RF shim makes it refuse: the reference
-drops both silently, and a file missing a rotation is a different scan rather
-than a coarser description of the same one.
+- Reference byte parity with deduplication enabled and disabled. New event
+  kinds need reference fixtures where the reference supports them.
+- Numerical parity between native and plain implementations, with explicit
+  tests for intentional differences.
+- Text and binary round trips, including extensions and custom labels.
+- Definition/instance separation and repetition-detection invariants.
+- The fast calling convention and snapshot ownership.
 
-**What each form carries.** The binary form is the more faithful container for
-everything except shapes: times cross as integer picoseconds and amplitudes as
-float64, where the text form writes nine significant digits. Shape samples are
-the exception -- float32 in binary, nine digits in text -- so a waveform comes
-back within a float32 of itself and everything else comes back exactly. Only
-the text form has a `[SIGNATURE]`, and only it is verified, on request.
+Block numbering may close gaps in reference files; the noise-scan parity
+test compares the remaining columns explicitly.
 
-A binary file always declares at least revision 1: the format arrived with
-Pulseq 1.5.1, so a file claiming 1.5.0 claims a revision that had no way to
-write it.
+## Documentation and docstrings
 
-## Where the format comes from
+Documentation in this project is written primarily for human developers. Optimize for clarity, precision, and high information density. Do not make documentation verbose in order to help an LLM understand the code.
 
-`pypulseq-matlab-like` is the authority, being a transcription of MATLAB
-Pulseq. Where another implementation disagrees -- upstream `pypulseq`
-included -- that one is followed, and what this package writes is compared
-against it byte for byte. Upstream differs from it in ways that are not
-cosmetic: an `OFF` label missing from the table and `TRID` in the wrong place,
-so labels resolve to the wrong names; `freqPPm` for `freqPPM`; a soft delay's
-offset as `%.0f` rather than `%g`.
+### General principles
 
-Every file declares revision 1.5.1, whatever the sequence uses and whatever
-it came in declaring: a writer says which revision of the format it produced,
-not which subset a sequence happened to use. `TotalDuration` is not written,
-because the authority records it when reporting on a sequence rather than
-when writing one.
+Preserve NumPy-style Python docstrings. Write concise technical prose for
+developers and MR scientists. Document units, frames, composition order,
+state, side effects and non-obvious return conventions where useful.
 
-Two places this decided something about the binary layout:
+Do not restate names, annotations, obvious attributes or implementation steps.
+Private helpers need no filler docstrings. Package/module docstrings describe
+purpose briefly; architectural constraints belong here or in dedicated docs.
 
-- **A definition's name carries its length in front of it**, as an int32, and
-  the value count is an int32 too -- not a NUL-terminated name and a
-  single-byte count. The byte would have capped a definition at 255 values,
-  which `SlicePositions` on a 256-slice acquisition exceeds.
-- **A label's name travels in `[DEFINITIONS]`, not in a section.** See below.
+Describe the code as it is, not its history. Avoid “used to”, “previously”,
+“this replaces”, fixed-bug narratives and comparisons with removed designs.
+Preserve non-obvious invariants a maintainer could accidentally break, and
+protect them with tests where possible.
 
-`tests/test_interoperability.py` holds both directions against that toolbox
-and skips when it is not installed, since it is not on PyPI.
+Do not print measured constants that are not guaranteed across releases or
+hardware. Use symbols and their sources. Benchmark tables must be generated
+by benchmark scripts rather than maintained by hand.
 
-## A label the builtin table does not carry
+* Document information that is not obvious from names, signatures, type annotations, or the implementation itself.
+* Prefer direct technical prose over narrative, tutorial-style, conversational, literary, or essay-like explanations.
+* Do not use docstrings to record your reasoning process or to narrate how the code works line by line.
+* Do not restate the signature in prose.
+* Do not document parameters or attributes with descriptions that merely repeat their names or types.
+* Do not add documentation solely for completeness or because a symbol exists.
+* Preserve the project's established docstring format and terminology.
 
-A label is named, not numbered. The text form writes the name and reads it
-back, and `label_id` mints one for a name it has not seen, so a sequence may
-use a label Pulseq does not define with nothing to configure first -- where
-the reference toolbox makes the caller extend a vocabulary by hand.
+Conciseness is a means, not the goal. Preserve enough detail to state non-obvious contracts precisely.
 
-The binary form writes the **number**, and a number means something only
-against a table. `builtin_labels()` is that table, in the reference toolbox's
-order, and it is a seed for the numbering rather than a statement about what a
-label may be: with any other order our `NOISE` reads there as `IMA`. For a
-name past the end of it no fixed list can help, which is the point of allowing
-one.
+### Information worth documenting
 
-So the names past the table are listed in `[DEFINITIONS]`, as `CustomLabels`,
-in the order they were minted, and a number above the table's length resolves
-by position. **Only the custom names go there** -- the builtins are shared, so
-listing them would be overhead saying what every reader already knows. Both
-forms carry definitions already and a reader must tolerate a key it does not
-know, so a file using an invented label stays readable by anything that reads
-the format at all; a section of its own would not have.
+Document these when relevant and non-obvious:
 
-## Definitions and instances
+* purpose and externally visible behavior;
+* physical units;
+* coordinate or reference frames;
+* transformation/composition order;
+* invariants and state transitions;
+* side effects;
+* important preconditions or assumptions;
+* non-obvious return conventions;
+* behavior at boundaries or special values;
+* state whose meaning is not apparent from its name/type;
+* compatibility constraints;
+* surprising behavior that is intentional and must be preserved.
 
-A scan is a handful of things played many times with different numbers in
-them. Every event registered is therefore split in two: a **definition**, what
-is the same every time it is played, and the per-playout parameters carried by
-each block that plays it. A block is a definition of its own -- the
-definitions its events play, and how long it lasts -- so the stream of block
-definition ids is where the repeating unit becomes visible: a gradient echo
-reads 1 2 3 4 1 2 3 4 whatever its phase encode is doing.
+These details are more important than minimizing line count.
 
-| | Definition | Instance |
-|---|---|---|
-| RF | magnitude, phase and time shapes; delay; center; use | amplitude, frequency and phase offsets, and their ppm forms |
-| Trapezoid | rise, flat and fall times; delay | amplitude |
-| Arbitrary gradient | time shape; delay | amplitude, waveform shape |
-| ADC | sample count, dwell, delay | frequency and phase offsets, their ppm forms, phase modulation shape |
-| Block | the definitions its RF and three gradients play, and its duration | the rows above, and the ADC definition it digitises with |
-| Pure delay | nothing: every one of them is one definition | its duration, in `block_durations` |
+### Packages and modules
 
-Which column falls on which side is a statement about the hardware rather than
-about the file. A gradient's *waveform* is on the instance side because a shot
-really can arrive with its own arm, which is what a sparkling readout is; an
-RF pulse's shapes are not, because nothing swaps a pulse envelope between
-repetitions. The ADC is left out of the block definition altogether, so a
-preparation shot playing the imaging shot's gradients with the digitiser off
-is the same definition as the shot it stands in for, and a position digitised
-two ways still repeats every shot rather than every pair. So is the extension
-chain: a rotation and a label are things one playout does.
+Package and module docstrings should normally be brief: usually a one-line summary or a few sentences describing the responsibility of the package/module.
 
-**A pure delay is one definition, and its duration is not part of it.** A
-block that plays something lasts as long as its longest event, or as long as
-the duration it was asked for if that is longer and it is padded out; either
-way the duration follows from the content, so it belongs to the definition. A
-block with no RF, no gradient, no ADC and no trigger or digital output plays
-nothing, and an interpreter sets how long it waits there at run time -- so a
-TI fill and the pad that follows it are one position waited at for two
-different times, not two sequences. Labels, flags and a rotation may be
-present; none of them makes the block play anything, and a rotation has no
-gradient to remap. A trigger or a digital output does, wherever it sits in the
-extension chain, so which chains carry one is recorded as they are built and
-read off per block rather than walked.
+Do not put a design essay, implementation walkthrough, usage tutorial, or historical rationale in a module docstring. Put substantial architectural rationale in dedicated documentation, or a focused code comment if it is local to an implementation decision.
 
-**The fork happens where the reference is made.** Each `register_*` interns
-its definition, `add_block` interns the block's, and reading a file forks as
-it parses because reading registers its events. Nothing walks the sequence
-afterwards to work it out, and the instance parameters are read out of the
-event libraries on demand rather than stored a second time.
+### Classes
 
-**Deduplication re-derives it.** A definition key names shapes by id, and
-collapsing identical library rows moves those ids and shrinks the per-event
-tables, so `remove_duplicates` ends by rebuilding every definition from the
-rows that survived. Definition ids change across it, as shape and event ids
-already do. Two events the file cannot tell apart are one definition once it
-has run, which is the point at which that sentence is true at all: before it,
-two separately registered but equal shapes split one pulse into two
-definitions, and the stream is conservatively finer than the scan.
+A class docstring should explain what abstraction the class represents and any important semantic conventions.
 
-## Tests
+Document constructor parameters and public attributes when their meaning is useful and not obvious. Do not mechanically enumerate every attribute.
 
-pytest with plain functions and fixtures — never `unittest.TestCase`. A test
-name states the invariant it protects, so a failure reads as a sentence.
+For stateful classes, document state variables whose interpretation or lifecycle would otherwise be unclear.
 
-Two invariants hold everything else up, and each has a test:
+### Functions and methods
 
-- **Parity.** The `.seq` a reference sequence writes here is byte-identical to
-  what upstream `pypulseq` writes for it, signature included. The comparison
-  is live rather than against a checked-in file, so it cannot go stale, and it
-  runs with deduplication both on and off: a sequence that agrees before
-  collapsing identical library rows and disagrees after has a renumbering bug
-  rather than a writing bug. A new event kind is not finished until it appears
-  in a sequence in `tests/reference.py`.
+State what the operation means rather than narrating its implementation.
 
-  One sequence is held differently and says why. `gre_with_noise_scan` drops
-  a degenerate block, and the reference toolbox keys its blocks in a
-  dictionary so the gap stays in the numbering where this package closes it.
-  A block id is a label nothing refers to, so what is held there is that
-  every row after that column is the same, in the same order.
-- **Fast path equals plain path.** Wherever a compiled call stands in for a
-  calculation PyPulseq does in Python, a test holds the two equal on the
-  reference sequences. Speed is never taken on assertion.
-- **The fork says what the scan is.** `tests/test_structure.py` states each
-  half of the split as a property of a sequence built to have it: a gradient
-  echo repeats at four positions, a phase encode is one definition at many
-  amplitudes, a sparkling readout is one definition with a waveform per shot,
-  and a pulse registered twice over equal shapes is one definition once
-  deduplication has run. `inversion_recovery_train` and `triggered_delays`
-  are in the reference zoo so the same properties are held on sequences built
-  by upstream rather than only on sequences written to have them.
-- **A file read back is the file that was written.** Every reference sequence
-  goes out as text and as binary and comes back through the reader, and what
-  it writes the second time is compared with what it wrote the first. The
-  reference toolbox's own files are read the same way, so the reader is held
-  against the format as another implementation produces it. The 1.5.1 event
-  kinds -- rotations, RF shims, and labels outside Pulseq's table -- have no
-  upstream to compare against, so `tests/extended.py` builds them on the core
-  and a round trip holds them.
+Document parameters, return values, exceptions, units, frames, side effects, or special cases only where they convey useful semantics beyond the signature.
 
-## Comments and docstrings
+A short precise statement is preferred to a long explanatory paragraph.
 
-Write for someone reading the code as it is now, who has no memory of any
-earlier version of it. **Never** write text whose subject is the history of the
-code. Banned in comments, docstrings and prose alike:
+### Private and helper functions
 
-- "used to", "was once", "no longer", "previously", "now that", "this replaces",
-  "the old X", "before the fix"
-- justifying the present shape by contrast with a shape that is gone
-- naming a bug that has been fixed, or the session that fixed it
-- restating what the code plainly says
+Private helpers do not require docstrings merely because they are functions.
 
-A docstring carries what a caller needs: one line of what, Parameters, Returns,
-Raises. A comment earns its place only by explaining a non-obvious algorithm or
-a choice a reader would otherwise undo — and even then, prefer a well-named
-function or a test whose name states the invariant, because those cannot go
-stale silently. When tempted to explain *why not the other way*, write a test.
+Add or retain a helper docstring when it communicates a non-obvious contract, invariant, state transition, algorithmic assumption, side effect, special return convention, or other information useful to a maintainer.
 
-Stale comments are actively harmful. Deleting an outdated comment is always
-correct; rewriting one to describe the change is not.
+If a private helper's behavior is obvious from its name, signature, and short implementation, omit the docstring rather than adding filler.
 
-## Documentation style
+### Comments versus docstrings
 
-The audience is MR scientists. Write in the vocabulary of pulse sequences and
-physics, not of software architecture. Never justify a design by describing the
-design it replaced.
+Use docstrings for the contract and semantics of an abstraction.
 
-Do not print a measured constant that is not guaranteed across releases or
-hardware. Name the symbol and where it comes from, and let the build supply the
-number. Benchmark tables in the README are regenerated by the benchmark script,
-not typed in.
+Use local comments for implementation details, algorithmic tricks, performance-sensitive choices, and explanations of why a particular piece of code is written in a non-obvious way.
+
+Do not move local implementation commentary into a docstring simply to preserve it.
+
+### Style to avoid
+
+Avoid generated prose such as:
+
+* extended scenarios used where a direct rule would suffice;
+* phrases describing code metaphorically or narratively;
+* repeated explanations of implementation mechanics;
+* obvious descriptions such as "the first value", "the system options", or "helper for X";
+* commentary about what is "common", "usually", or "nearly all" unless this is a meaningful documented constraint;
+* large `Parameters` or `Attributes` sections containing mostly information already present in type annotations;
+* statements whose primary purpose is to make the code easier for an LLM to reconstruct.
+
+When modifying existing code, clean up nearby documentation that clearly violates these rules, but do not broaden an otherwise focused code change into a repository-wide documentation rewrite unless requested.

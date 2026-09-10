@@ -1,10 +1,4 @@
-"""The magnetization preparations, checked by simulating what they leave behind.
-
-A preparation's whole job is the state of the magnetization when it ends, so
-that is what is measured: the module's RF is laid out on its own timeline and
-integrated through the Bloch equation. Where a gradient carries the weighting
-instead, the weighting is integrated from the played waveform.
-"""
+"""Preparation magnetisation and diffusion weighting checked by independent integration."""
 
 from __future__ import annotations
 
@@ -26,15 +20,7 @@ def system():
 
 
 def rf_timeline(module, b1_scale=1.0):
-    """The module's RF as one complex field, on one raster.
-
-    Gradients are left out: every module here is non-selective, so a gradient
-    only spoils, and spoiling is not what these assertions are about. The
-    pulses are resampled because they do not share a raster -- an SLR pulse
-    comes out on the RF raster and an adiabatic one on the dwell it was
-    designed with -- and the transmit offsets are put back, since they are
-    fields on the event rather than part of the envelope.
-    """
+    """Resample RF on one timeline, including transmit offsets but excluding gradients."""
     b1 = np.zeros(round(module.duration / RASTER), dtype=complex)
     start = 0.0
     for block in module.blocks:

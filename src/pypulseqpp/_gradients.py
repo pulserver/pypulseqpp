@@ -1,10 +1,4 @@
-"""Gradient factories stated in imaging terms rather than in area.
-
-Each is a thin wrapper over one of PyPulseq's own factories, taking the
-quantity a sequence actually knows -- a resolution, a field of view, cycles of
-dephasing across a voxel -- and doing the one division that turns it into an
-area.
-"""
+"""Gradient factories using resolution, FOV and voxel dephasing."""
 
 from __future__ import annotations
 
@@ -25,15 +19,10 @@ from ._opts import default_system
 
 
 def concatenate_gradients(*grads: Any, system=None):
-    """Lay gradients on one channel end to end and sum them into one event.
+    """Concatenate gradients on one channel without modifying the inputs.
 
-    Each gradient after the first is delayed to begin where the previous one
-    ends, so the result plays them back to back on the shared channel. This is
-    what folds a slice rephaser onto its selection gradient -- exactly what a
-    slab excitation does internally -- so a spectral-spatial or multiband pulse,
-    whose rephaser is a separate event, can hand a 3D or SMS readout one merged
-    ``z`` lobe rather than a second gradient the readout has no block for. The
-    inputs are not modified; ``None`` entries are dropped.
+    Skip None entries. The first gradient keeps its delay; subsequent gradients
+    start when the preceding gradient ends.
 
     Parameters
     ----------
@@ -99,16 +88,9 @@ def concatenate_gradients(*grads: Any, system=None):
 def make_phase_encoding(
     channel: str, resolution: float, system=None, duration: float | None = None
 ):
-    """Encode one phase-encode axis at full amplitude, for a target resolution.
+    """Create a positive phase-encode template of area ``1 / (2 * resolution)``.
 
-    The largest phase-encode step an acquisition needs is set by resolution
-    alone: index ``i`` of ``n`` encodes area ``(i - n/2) / fov``, so the extreme
-    is ``(n/2) / fov``, and since ``resolution = fov / n`` that is
-    ``1 / (2 * resolution)``. Field of view and matrix size cancel, so neither
-    is asked for.
-
-    This builds **one** gradient. Which views are played, and in what order, is
-    a scan loop's business; scale this template per view.
+    Scale the template per acquired view.
 
     Parameters
     ----------
@@ -467,7 +449,6 @@ def _balanced(shape: np.ndarray, envelope: np.ndarray) -> np.ndarray:
 
 
 def _trapezoid(channel: str, area: float, system, duration: float | None):
-    """One trapezoid of the given area, with the duration left free unless set."""
     arguments = {"channel": channel, "area": area, "system": default_system(system)}
     if duration is not None:
         arguments["duration"] = duration

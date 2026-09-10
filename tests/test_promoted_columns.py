@@ -1,16 +1,4 @@
-"""The extensions the block table keeps a column for.
-
-A rotation and an RF shim are extensions: the file writes them as ones, the
-block's extension chain names them, and nothing about the format knows they
-are anything else. They are *also* columns of the block table, because
-everything that draws a gradient or plays a pulse wants them before it can do
-anything at all, and walking a chain to find them costs a pointer chase per
-block.
-
-Which makes one thing worth holding: the column and the chain say the same,
-through every way a block table can be built or moved -- appended, rewritten,
-written out and read back, deduplicated.
-"""
+"""Rotation and RF-shim columns remain consistent with extension chains."""
 
 import numpy as np
 import pytest

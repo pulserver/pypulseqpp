@@ -302,19 +302,7 @@ def make_hexagon_gradient_area(
     area: float,
     system=None,
 ):
-    """Design the shortest gradient carrying ``area`` between two amplitudes.
-
-    A trapezoid starts and ends at zero. This does not: it is handed the
-    amplitude the axis is already at and the amplitude the next event needs
-    it at, and finds the shortest waveform between them enclosing the area
-    asked for -- which is a hexagon rather than a trapezoid whenever the two
-    ends differ. What a continuous readout needs between two arms, and what a
-    spiral or a radial trajectory joins its shots with.
-
-    The duration is searched for rather than solved: the shortest one that
-    admits a solution is taken, from the ramp between the two end amplitudes
-    upwards, and a doubling-then-bisection search takes over where that range
-    holds none.
+    """Design a minimum-duration gradient with specified area and endpoint amplitudes.
 
     Parameters
     ----------

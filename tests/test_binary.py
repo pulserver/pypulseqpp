@@ -1,14 +1,4 @@
-"""The binary form of a sequence file.
-
-The same sequence as the text form and the same units; only the container
-changes. So the test of record is that the two agree: a sequence written both
-ways and read back both ways is one sequence, and what the binary form
-cannot carry is named rather than discovered.
-
-There is one thing it cannot carry. Shape samples are single precision where
-the text form writes nine significant digits, so a waveform comes back within
-a float32 of itself and everything else comes back exactly.
-"""
+"""Binary/text round trips, allowing float32 precision for binary shape samples."""
 
 import numpy as np
 import pytest

@@ -1,11 +1,4 @@
-"""Where a 2D readout puts the slice rephaser it was handed.
-
-The rephaser has one job -- take kz back to zero before the acquisition -- and
-one placement constraint: it has to run straight off the selection lobe, so it
-belongs at the head of the first block after the pulse. Both are checked
-against k-space and against the recorded blocks rather than against the
-arithmetic that produced them.
-"""
+"""Slice rephasing in the first post-RF block and its effect on TE."""
 
 from __future__ import annotations
 

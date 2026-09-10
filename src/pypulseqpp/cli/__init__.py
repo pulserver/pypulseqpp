@@ -1,16 +1,4 @@
-"""Running a sequence script from a shell.
-
-A sequence script is a function: keyword arguments in, a
-:class:`~pypulseqpp.Sequence` out. :func:`run` reads that function's own
-signature and docstring and builds the command line from them, so a script
-gains a `--help` listing every parameter it takes without writing the parser
-down a second time -- and one that cannot fall out of step with the function,
-because there is only one place the parameters are stated.
-
-This is not part of the authoring vocabulary, so it is a subpackage rather
-than a name in the main namespace: `import pypulseqpp.cli` when writing a
-script, never when writing a sequence.
-"""
+"""Command-line interfaces derived from sequence-function signatures and NumPy docstrings."""
 
 from __future__ import annotations
 
@@ -34,57 +22,23 @@ _SCALARS = (bool, int, float, str)
 
 
 def write_sequence(seq, output_path: str, *, offline: bool = True) -> str | None:
-    """Write a finished sequence in the form its destination reads.
-
-    The two destinations want opposite things, and a script should not have to
-    remember which is which.
-
-    ``offline=True`` -- a bench, another toolbox, a file someone will read.
-    Pulseq text, signed, with the timing checked here because nothing
-    downstream will check it.
-
-    ``offline=False`` -- straight to a scanner. The binary form, which an
-    interpreter parses faster and which keeps the precision the text form
-    rounds away, and no signature: the interpreter checks the timing against
-    its own rasters at download, which is the pass that decides.
-
-    Both are deduplicated first. It costs a millisecond and takes several
-    times the size off the file.
+    """Write a deduplicated copy as Pulseq text or binary.
 
     Parameters
     ----------
     seq : pypulseqpp.Sequence
-        The finished sequence.
+        Sequence to write; not modified.
     output_path : str
-        Where to write it.
-    offline : bool, optional
-        Which of the two forms to write.
+        Destination path.
+    offline : bool, default True
+        True writes signed text with timing warnings. False writes binary
+        using write_binary's default signature setting, without a timing check.
 
     Returns
     -------
     str or None
-        The signature, when one was written.
-
-    Examples
-    --------
-    >>> import os, tempfile
-    >>> import pypulseqpp as pp
-    >>> from pypulseqpp.cli import write_sequence
-    >>> seq = pp.Sequence(pp.Opts())
-    >>> _ = seq.add_block(pp.make_block_pulse(flip_angle=0.2, duration=1e-3))
-    >>> gx = pp.make_trapezoid("x", flat_area=100, flat_time=2.56e-3, rise_time=2e-4)
-    >>> _ = seq.add_block(gx, pp.make_adc(num_samples=80, dwell=3.2e-5, delay=gx.rise_time))
-    >>> folder = tempfile.mkdtemp()
-
-    Text is signed, so the caller is handed a signature:
-
-    >>> len(write_sequence(seq, os.path.join(folder, "scan.seq")))
-    32
-
-    The scanner form is binary and unsigned:
-
-    >>> write_sequence(seq, os.path.join(folder, "scan.bin"), offline=False) is None
-    True
+        Text signature when offline; None for binary, even if the binary file
+        contains a signature.
     """
     seq = seq.remove_duplicates()
     if not offline:
@@ -94,13 +48,7 @@ def write_sequence(seq, output_path: str, *, offline: bool = True) -> str | None
 
 
 def _scalar(annotation) -> type | None:
-    """Read the type a flag parses out of whatever the parameter is annotated.
-
-    A parameter is often stated as more than one thing -- ``float | None`` for
-    one that may be left to the sequence to choose, ``float | tuple`` for one
-    that may be given per axis. The flag parses the scalar either way, so what
-    is looked for is the first scalar in the annotation.
-    """
+    """Return the first supported scalar type in an annotation or union."""
     if annotation is _inspect.Parameter.empty:
         return None
     members = (
@@ -154,7 +102,6 @@ def _described(doc: str | None) -> dict[str, str]:
 
 
 def _add(parser, name: str, kind: type, default, help_text: str) -> None:
-    """One parameter of the function, as one option of the parser."""
     flag = "--" + name.replace("_", "-")
     if kind is bool:
         if default is True:

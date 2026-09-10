@@ -1,16 +1,4 @@
-"""What a block accepts, and where a gradient that does not join up is said so.
-
-Ported from `pypulseq-matlab-like`'s `test_block`, which asks these questions
-of `add_block` and `set_block` because that is where the toolbox answers them:
-it refuses a block whose gradient does not continue the one before. Here the
-answer comes from `check_timing` instead -- the raster runs on between blocks,
-so a step across a join is a slew like any other, and judging it against the
-system's slew limit is a thing to do once over a finished sequence rather than
-per block on the design loop's hot path.
-
-So the verdicts below are the toolbox's, case for case; only where they are
-delivered differs.
-"""
+"""Block validation; gradient joins are checked by check_timing, not insertion."""
 
 import numpy as np
 import pytest

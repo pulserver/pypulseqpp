@@ -1,16 +1,4 @@
-"""The sequence zoo: one complete sequence per module.
-
-Every module here is installed beside :mod:`pypulseqpp.sequences` and reached
-from there -- ``pypulseqpp.sequences.gre2D_sequence``, whatever directory it
-was written in. Each is a worked example of the whole authoring stack: the
-:mod:`pypulseqpp.sequences` modules it composes, the encoding plan it builds
-from :mod:`pypulseqpp`, and the loop that writes the blocks::
-
-    from pypulseqpp import sequences
-
-    seq = sequences.gre2D_sequence(n_x=128, n_y=128, n_slices=5)
-    seq.write("gre2D.seq")
-"""
+"""Complete sequence scripts, reached as ``pypulseqpp.sequences.<name>``."""
 
 from __future__ import annotations
 

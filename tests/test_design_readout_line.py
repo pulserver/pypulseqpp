@@ -1,10 +1,4 @@
-"""The Cartesian line readouts.
-
-Checked against k-space rather than against event fields wherever possible:
-the module's job is to put the echo where it says it did, and
-`calculate_kspace` is the only thing that answers that without re-deriving the
-arithmetic under test.
-"""
+"""Cartesian line timing, spoiling pathways and per-shot encoding."""
 
 from __future__ import annotations
 
@@ -334,7 +328,6 @@ def test_a_mismatched_fov_says_how_many_it_wanted(system, slab):
 
 
 def test_a_whole_3d_scan_is_a_plain_pypulseq_loop(system, slab, tmp_path):
-    """Design once, index per shot, write. No module writes a scan loop."""
     readout = design.LineReadout3D(
         system,
         slab.rf,

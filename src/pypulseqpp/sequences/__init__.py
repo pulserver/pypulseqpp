@@ -1,51 +1,9 @@
-"""Reusable, composable sequence modules.
+"""Composable excitation, preparation and readout modules.
 
-A :class:`SequenceModule` is a handful of Pulseq blocks that always travel
-together -- an excitation with its slice-select and rephaser, a preparation
-with its spoiler, one whole readout TR. It solves its gradients, budgets its
-TE and TR and lands its ADC on both rasters once, at construction, and
-publishes the events under the names its constructor gave them, so a scan
-loop reaches them by name.
-
-Modules are a convenience, never a requirement. Nothing here iterates the
-sequence for you and nothing hides a scan loop: a script reads the events it
-wants, scales them per shot, and writes plain Pulseq::
-
-    import pypulseqpp as pp
-    from pypulseqpp import sequences
-
-    system = pp.Opts()
-    excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3, is_slab=True)
-    readout = sequences.LineReadout3D(
-        system, excitation.rf, excitation.gz, fov=(0.22, 0.22, 0.12),
-        matrix=(128, 128, 64), te=4e-3, tr=10e-3,
-    )
-
-    phases = pp.make_rf_spoiling_schedule(128 * 64)
-    seq = pp.Sequence(system)
-    for shot, (ky, kz) in enumerate(plan):
-        readout.rf.phase_offset = readout.adc.phase_offset = phases[shot]
-        seq.add_block(readout.rf, readout.gz)
-        seq.add_block(
-            pp.scale_grad(readout.gy_pre, ky),
-            pp.scale_grad(readout.gz_pre, kz),
-            readout.gx_pre,
-        )
-        seq.add_block(readout.gx, readout.adc)
-
-The encoding plan is the script's own. The masks, orderings and angle
-generators one is usually built from are a layer down, in the main namespace
--- ``make_uniform_mask``, ``make_poisson_disc_mask``, ``calc_traversal_order``,
-``calc_golden_angles`` -- because they answer with plain arrays.
-
-Beside the modules sit the complete sequences they are composed into -- the
-zoo -- reached by name and callable as the sequence each builds::
-
-    seq = sequences.gre2D_sequence(n_x=128, n_y=128, n_slices=5)
-
-Each is also a script: ``python -m pypulseqpp.sequences.sequence.gre2D_sequence
--o gre2d.seq --n-y 64``, which is :func:`pypulseqpp.cli.run` reading the same
-signature.
+Modules expose reusable events and block layouts. The caller supplies the
+acquisition loop, sampling order and per-shot event changes. Complete
+sequences built from them are reached as ``sequences.<name>`` and are
+callable as their ``main``.
 """
 
 from __future__ import annotations

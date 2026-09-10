@@ -26,3 +26,6 @@ htmlcov/
 
 # Benchmark inputs are fetched, never committed.
 data/
+
+docs/build/
+docs/generated/

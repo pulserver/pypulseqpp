@@ -12,17 +12,9 @@ _AXES = ("x", "y", "z")
 
 
 class InversionPreparation(RfModule):
-    """A non-selective adiabatic inversion followed by a crusher.
+    """Non-selective adiabatic inversion followed by an optional crusher.
 
-    Inversion recovery in the form a scan loop wants it: the pulse that
-    inverts, and the gradient that destroys whatever transverse magnetisation
-    the pulse left behind. The inversion time itself is **not** here — TI is
-    the gap between this module and the readout that samples the recovery, so
-    it belongs to the loop that plays both, which is also the only place that
-    knows how many readouts share one inversion.
-
-    The crusher is stated as cycles of dephasing across a voxel rather than as
-    an area, so the same numbers mean the same thing at any resolution.
+    The acquisition loop supplies the inversion-time delay.
 
     Parameters
     ----------
@@ -69,30 +61,6 @@ class InversionPreparation(RfModule):
     >>> prep = design.InversionPreparation(pp.Opts(), duration_s=8e-3)
     >>> len(prep.blocks)
     2
-
-    Tag every inversion with the shot it opens::
-
-        prep = design.InversionPreparation(system, labels=("REP",))
-        for shot in range(num_shots):
-            prep.prep_labels[0].value = shot
-            for block in prep.blocks:
-                seq.add_block(*block)
-
-    The pulse and its spoiler together, which is what the TI is measured
-    from:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.InversionPreparation(pp.Opts(), 8e-3).plot_rf(
-           title="inversion preparation, 8 ms",
-           whole=True,
-           extent=2000,
-           plot_now=False,
-       )
     """
 
     def init_module(

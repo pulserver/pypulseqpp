@@ -1,36 +1,4 @@
-"""Fast drop-in PyPulseq replacement over a C++ sequence core.
-
-The contract is PyPulseq's own API: a design script written against
-`pypulseq` runs here unchanged, with the same functions and the same
-signatures. What differs is what each call does underneath. A `make_*`
-factory hands back an event whose fields are in slots rather than in a
-dictionary, `add_block` registers a whole block in one compiled call, and
-reading and writing are C++.
-
-## The namespace
-
-Everything upstream exposes is re-exported, so `import pypulseqpp as pp`
-is the only import a script needs. Every callable goes through
-`_events.interoperating`, not only the factories: `calc_duration`,
-`align`, `split_gradient` and `rotate` all take events, and upstream
-implements them with `isinstance` checks and `deepcopy`, neither of which
-a compiled event satisfies. The decorator hands them a namespace on the
-way in and converts what comes back, so upstream's own helpers work
-against events they were never written for.
-
-## What is ours rather than upstream's
-
-`Sequence` is ours outright: upstream's is a different implementation, and
-this is the one with the compiled core under it. So are `check_timing` and
-`print_error_report`, which read the core's own tables; the name upstream
-carries under `check_timing` is its module rather than a callable.
-
-Three factories, because upstream 1.5.0 does not have them: `make_rotation`
-and `make_rf_shim`, which arrived with Pulseq 1.5.1, and `make_label`,
-because upstream's refuses a name outside the list Pulseq defines and a
-label here is named rather than numbered. Each is meant to go when
-upstream grows its own.
-"""
+"""PyPulseq-compatible sequence design and analysis over a C++ core."""
 
 from __future__ import annotations
 

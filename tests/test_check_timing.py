@@ -1,16 +1,4 @@
-"""What pypulseqpp says is wrong with a sequence's timing, the toolbox says too.
-
-The judgement is a compiled pass over the block table rather than a walk over
-decoded blocks, so what has to be held is that it reaches the same verdict:
-the same problems, in the same order, with the same numbers in them. Each test
-here breaks one thing about a sequence and holds the two reports equal.
-
-One rule is deliberately not the toolbox's. Its `check_timing` module rejects
-a soft delay whose numeric id is zero, which flags every soft delay in its own
-reference files, because the toolbox writes the first one as zero. MATLAB
-Pulseq accepts zero and so does this, and
-`test_a_soft_delay_numbered_zero_is_addressable` states that.
-"""
+"""Timing findings against the reference toolbox; soft-delay ID zero is valid."""
 
 import numpy as np
 import pytest
@@ -119,7 +107,6 @@ def findings(seq):
 
 
 def _plain(value):
-    """A NumPy scalar as the Python number it stands for."""
     if isinstance(value, np.floating):
         return float(value)
     if isinstance(value, np.integer):
@@ -535,7 +522,6 @@ def test_a_file_that_declares_a_duration_it_does_not_have_is_reported(
 
 
 def _off_resonance(**offsets):
-    """A sequence with one pulse and one window, offset as asked."""
     opts = system()
     opts.max_freq_offset = 5000.0
     seq = pypulseqpp.Sequence(opts)

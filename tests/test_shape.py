@@ -1,11 +1,4 @@
-"""The shape codec encodes what PyPulseq's encodes.
-
-A `[SHAPES]` entry is run-length encoded on its derivative, so a gradient that
-ramps and holds costs a handful of numbers rather than its whole raster. The
-encoding is part of the file format, which is why the test of record is not a
-property but a comparison: our encoder against the reference one, sample for
-sample.
-"""
+"""Shape-codec parity with the reference implementation."""
 
 import numpy as np
 import pytest

@@ -1,11 +1,4 @@
-"""The zero-echo-time readout.
-
-Three things make ZTE what it is, and each is checked against what the module
-plays: the gradient is already up when the pulse fires, so a spoke starts at
-the centre of k-space; it never returns to zero between views, so a shell costs
-one ramp; and the shell is written out spoke by spoke, so nothing but the shot
-is a rotation.
-"""
+"""Continuous-gradient ZTE shells, central sampling gaps and shot rotations."""
 
 from __future__ import annotations
 

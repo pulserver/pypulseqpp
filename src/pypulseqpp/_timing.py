@@ -27,17 +27,14 @@ def calc_adc_timing(
     adc_raster_time: float,
     min_readout_duration: float = 0.0,
 ) -> tuple[float, float]:
-    """Return an ADC dwell and readout duration legal on both time rasters.
+    """Choose an ADC dwell while seeking a gradient-raster-aligned readout.
 
-    A requested receiver bandwidth almost never lands on a legal dwell: the ADC
-    is quantized to ``adc_raster_time`` while the readout gradient must end on
-    ``grad_raster_time``. This solves both at once, returning the achievable
-    dwell closest to the request and the duration ``num_samples * dwell``, which
-    is by construction a whole number of gradient rasters -- so the ADC can be
-    laid exactly over the flat top.
+    Search upward from the nearest ADC-raster dwell that meets the duration
+    floor. Report achieved receiver bandwidth as ``1 / dwell``.
 
-    Report the returned dwell as the actual receiver bandwidth, not the
-    requested one.
+    If the bounded search finds no common-raster solution, the returned
+    duration may be off the gradient raster; check it before constructing
+    events.
 
     Parameters
     ----------
@@ -57,12 +54,13 @@ def calc_adc_timing(
     dwell : float
         Feasible dwell time (s), a multiple of ``adc_raster_time``.
     duration : float
-        ``num_samples * dwell`` (s), a multiple of ``grad_raster_time``.
+        ``num_samples * dwell`` (s).
 
     Raises
     ------
     ValueError
-        If ``num_samples`` is below one, or any time is not positive.
+        If the sample count, dwell or rasters are not positive, or the
+        duration floor is negative.
 
     Examples
     --------
@@ -102,18 +100,19 @@ def quantize_readout_timing(
     adc_raster_s: float,
     min_flat_time_s: float,
 ) -> tuple[float, float]:
-    """Search as calc_adc_timing does, keyed on bandwidth per pixel not dwell.
+    """Choose a dwell using receiver bandwidth, defined as 1/dwell in Hz.
 
-    Walks upward from the smallest ADC-raster-multiple dwell that meets
-    ``min_flat_time_s``, and keeps the one whose ``nx_ro * dwell`` lands on the
-    gradient raster closest to the requested bandwidth.
+    Search upward from the nearest ADC-raster dwell satisfying the duration
+    floor, for at most MAX_RASTER_SEARCH_STEPS candidates. If none aligns
+    the readout to the gradient raster, return that starting dwell.
+    Inputs must have positive sample count, bandwidth and rasters.
 
     Parameters
     ----------
     nx_ro : int
         Number of readout samples.
     target_bw_hz_px : float
-        Requested receiver bandwidth per pixel (Hz).
+        Requested receiver bandwidth (Hz), despite the parameter suffix.
     grad_raster_s, adc_raster_s : float
         Gradient and ADC rasters (s).
     min_flat_time_s : float
@@ -124,7 +123,8 @@ def quantize_readout_timing(
     dwell_s : float
         ADC dwell time (s), a multiple of ``adc_raster_s``.
     flat_time_s : float
-        ``nx_ro * dwell_s`` (s), a multiple of ``grad_raster_s``.
+        ``nx_ro * dwell_s`` (s); gradient-raster alignment is not guaranteed
+        if the search is exhausted.
 
     Examples
     --------
@@ -161,57 +161,10 @@ def quantize_readout_timing(
 
 
 def round_to_raster(value_s: float, raster_s: float = 1e-5) -> float:
-    """Round ``value_s`` to the nearest multiple of ``raster_s``.
-
-    An RF pulse's center of mass -- an adiabatic hypsec pulse's weighted center,
-    say -- generally does not fall on a raster boundary, so a delay computed
-    from it has to be re-aligned before it can be a block duration.
-
-    Parameters
-    ----------
-    value_s : float
-        Time to round (s).
-    raster_s : float, optional
-        Raster period (s).
-
-    Returns
-    -------
-    float
-        ``value_s`` rounded to the nearest raster multiple.
-
-    Examples
-    --------
-    >>> import pypulseqpp as pp
-    >>> round(pp.round_to_raster(1.23456e-3), 12)
-    0.00123
-    """
+    """Round seconds to the nearest raster multiple, with ties to even."""
     return round(value_s / raster_s) * raster_s
 
 
 def ceil_to_raster(value_s: float, raster_s: float) -> float:
-    """Round ``value_s`` up to the next multiple of ``raster_s``.
-
-    A small tolerance keeps a value already on the raster from being pushed up
-    a full step by floating-point noise.
-
-    Parameters
-    ----------
-    value_s : float
-        Time to round (s).
-    raster_s : float
-        Raster period (s).
-
-    Returns
-    -------
-    float
-        Smallest raster multiple ``>= value_s`` (up to tolerance).
-
-    Examples
-    --------
-    >>> import pypulseqpp as pp
-    >>> pp.ceil_to_raster(1.01e-5, 1e-5)
-    2e-05
-    >>> pp.ceil_to_raster(2e-5, 1e-5)
-    2e-05
-    """
+    """Round seconds upward to the raster, allowing for floating-point tolerance."""
     return math.ceil(value_s / raster_s - 1e-10) * raster_s

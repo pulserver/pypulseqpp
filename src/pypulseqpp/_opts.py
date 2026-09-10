@@ -1,4 +1,4 @@
-"""System limits, with raster defaults that play on either vendor."""
+"""System limits and shared raster defaults."""
 
 from __future__ import annotations
 
@@ -18,55 +18,19 @@ from pypulseq.convert import convert as _convert
 
 
 class Opts(_pp.Opts):
-    """PyPulseq's system limits, on rasters both vendors can play.
+    """PyPulseq system limits with shared raster defaults.
 
-    The constructor signature is upstream's, argument for argument; only the
-    defaults differ, and only for the rasters and the dead and ringdown
-    times.
+    The constructor accepts PyPulseq's parameters. Defaults are 20 us for
+    gradients and block durations, 2 us for RF and ADC, and zero for RF/ADC
+    dead time and RF ringdown. Specify the actual hardware timings before
+    checking a sequence.
 
-    A raster default is the common multiple of the two vendors' hardware
-    rasters -- 20 us for gradients and block durations, over GE's 4 us and
-    Siemens' 10 us, and 2 us for RF and ADC, over Siemens' 1 us and 100 ns
-    and GE's 2 us -- so a sequence designed without a scanner in mind lands
-    on the raster of either. Dead and ringdown times default to zero because
-    they are properties of a coil and a chain rather than of the format; name
-    the ones you are designing for.
+    Gradient and slew limits are stored in Hz/m and Hz/m/s after conversion
+    from grad_unit and slew_unit; gamma is in Hz/T and B0 in T.
 
-    Amplitude, slew, gamma and B0 keep upstream's defaults.
-
-    Constructing this class does not change what the factories use. What they
-    read is one shared default, which is this class's as soon as the package
-    is imported and which :meth:`set_as_default` and :meth:`reset_default`
-    move.
-
-    Notes
-    -----
-    A coarser gradient raster quantises a ramp more coarsely, so a blip
-    designed at 20 us can come out longer than the same blip at 10 us. Name
-    ``grad_raster_time`` when designing for one scanner.
-
-    Examples
-    --------
-    >>> import pypulseqpp as pp
-    >>> system = pp.Opts()
-    >>> system.grad_raster_time, system.rf_raster_time
-    (2e-05, 2e-06)
-
-    Designing for one vendor means naming its raster and its limits:
-
-    >>> ge = pp.Opts(
-    ...     grad_raster_time=4e-6,
-    ...     max_grad=50, grad_unit="mT/m",
-    ...     max_slew=200, slew_unit="T/m/s",
-    ... )
-    >>> ge.grad_raster_time
-    4e-06
-
-    An amplitude is held in Hz/m, so reading one back in mT/m divides by
-    ``gamma``:
-
-    >>> round(ge.max_grad / ge.gamma * 1e3, 1)
-    50.0
+    Importing pypulseqpp installs these defaults for PyPulseq factories.
+    Constructing Opts alone does not change the shared default; use
+    set_as_default or reset_default.
     """
 
     def __init__(
@@ -135,17 +99,9 @@ def apply_system_derates(
     grad_derate: float = MAX_GRAD_DERATE,
     slew_derate: float = MAX_SLEW_DERATE,
 ) -> _pp.Opts:
-    """Derate the gradient and slew limits, on a copy of ``opts``.
+    """Return a copy with gradient and slew limits scaled from their base values.
 
-    The headroom belongs to the waveform being designed, not to the sequence:
-    a designer that wants to stay clear of the ceiling derates the limits it
-    designs against, while the sequence goes on declaring what the scanner
-    actually has. Handing back a copy is what keeps those two apart -- a
-    derate applied in place would travel to every module sharing the system
-    object and put already-designed events over a limit that moved under
-    them.
-
-    The base limits ride on the copy, so derating twice does not compound.
+    Base limits are retained on the copy, so repeated derating does not compound.
 
     Parameters
     ----------
@@ -197,17 +153,7 @@ def cap_system(
     grad_unit: str = "mT/m",
     slew_unit: str = "T/m/s",
 ) -> _pp.Opts:
-    """Cap the gradient and slew limits, on a copy of ``opts``.
-
-    A sequence never has to drive its gradients as hard as the scanner
-    allows. This lowers ``max_grad`` and ``max_slew`` to the smaller of what
-    the system reports and the ceiling asked for, so a design can be held
-    below the hardware -- for nerve-stimulation headroom, for acoustic
-    comfort, for eddy-current control -- while still honouring a scanner that
-    is *less* capable than the ceiling.
-
-    A limit is only ever lowered, so one ceiling is safe across scanners of
-    different gradient performance; ``None`` on either axis leaves it alone.
+    """Return a copy with gradient and slew limits lowered to the specified ceilings.
 
     Parameters
     ----------

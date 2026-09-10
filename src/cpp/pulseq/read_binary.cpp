@@ -1,15 +1,6 @@
 /**
  * @file read_binary.cpp
- * @brief The Pulseq binary sequence reader.
- *
- * The inverse of write_binary.cpp, and the same shape as the text reader: the
- * file is taken apart into a Parsed and handed to the one builder, so both
- * forms of a sequence file become a Sequence by the same rules.
- *
- * Little-endian, as every writer of this format produces. A file written the
- * other way round is recognised -- the version triple is what gives it away,
- * since a major version of 1 read backwards is an enormous number -- and
- * refused by name rather than read as nonsense.
+ * @brief Parse little-endian Pulseq binary records for the shared sequence builder.
  */
 
 #include "pulseq/binary.hpp"

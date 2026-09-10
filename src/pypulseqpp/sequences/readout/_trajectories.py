@@ -1,11 +1,4 @@
-"""Non-Cartesian base interleaves: one shot's worth of designed gradient.
-
-A trajectory object here owns the *waveform*, not the acquisition: the
-gradients that trace one canonical interleave, the ADC that samples it, and
-the bridges that reach k-space and come back. Where that interleave is played,
-and how many rotated copies of it a scan acquires, belongs to the readout
-module that plays it and to the loop above that.
-"""
+"""Canonical non-Cartesian gradient interleaves with ADCs and moment bridges."""
 
 from __future__ import annotations
 
@@ -106,13 +99,7 @@ def _make_grad_events(system, gradient, axes, *, first=None, last=None):
 
 
 def _adc_samples(system, n_samples):
-    """Round a sample count to a whole number of the receiver's divisor.
-
-    A non-Cartesian arm is as long as the slew limit makes it, so the count
-    that falls out of its duration is whatever it is -- and a receiver
-    digitises in groups. Rounded down rather than up, because the samples
-    have to fit inside the gradient that carries them.
-    """
+    """Round down to a multiple of the ADC sample divisor, with at least one group."""
     divisor = int(getattr(system, "adc_samples_divisor", 0) or 1)
     return max(divisor, int(n_samples) // divisor * divisor)
 
@@ -148,21 +135,10 @@ def _sample_gradient_trajectory(gradient, raster, adc):
 
 
 def _moment_bridges(system, area, grad_start, grad_end, axes):
-    """One bridge per axis, solved so that together they stay inside the limits.
+    """Solve simultaneous bridges under rotation-invariant vector limits.
 
-    Each bridge is solved on its own, because each has its own moment to
-    deliver -- but they are *played together*, and the limits are on the
-    vector. Two axes each solved against the full ceiling combine to root-two
-    times it, which no per-axis check sees and which the scanner does. Under a
-    rotation it is not even hidden: the extension mixes the axes, so the
-    combined amplitude turns up on a single one.
-
-    So both the amplitude and the slew are derated by the square root of the
-    number of axes bridged at once, which is the bound that makes any
-    combination of them legal and leaves the bridge as rotation invariant as
-    the waveform it brackets. The endpoints are not excursions: they come from
-    a readout already solved against the vector limit, and enter as boundary
-    conditions the solver ramps around rather than as amplitudes it caps.
+    Derate interior amplitude and slew by sqrt(number of active axes).
+    Endpoints are fixed by the already vector-limited readout.
     """
     active = [
         index
@@ -247,14 +223,17 @@ class NonCartesianGradient:
 
     @property
     def gx(self):
+        """Gradient on channel x, or None when this interleave does not drive it."""
         return next((g for g in self.gradients if g.channel == "x"), None)
 
     @property
     def gy(self):
+        """Gradient on channel y, or None when this interleave does not drive it."""
         return next((g for g in self.gradients if g.channel == "y"), None)
 
     @property
     def gz(self):
+        """Gradient on channel z, or None when this interleave does not drive it."""
         return next((g for g in self.gradients if g.channel == "z"), None)
 
     @property
@@ -263,20 +242,10 @@ class NonCartesianGradient:
         return tuple(gradient.channel for gradient in self.gradients)
 
     def rotated(self, angle: float) -> NonCartesianGradient:
-        """Interleave turned by ``angle`` radians in its own plane.
+        """Return an explicitly rotated planar interleave with unchanged timing.
 
-        A rotation is normally left to the Pulseq rotation extension, which
-        costs one quaternion per shot instead of one waveform. This is for the
-        case that cannot express: an interpreter without the extension, or a
-        set of interleaves the caller wants written out in full.
-
-        The waveform samples are rotated directly rather than the path
-        re-solved, so the result is the same gradient seen from a turned frame
-        -- identical duration, identical slew, exactly the intended geometry.
-        The prewinder and rewinder pairs are rotated the same way, on the
-        union of the base pair's vertex times, so every angle plays identical
-        timing corners: exactly what an interpreter applying the rotation
-        extension to the base events would play.
+        Rotate waveform samples and bridges on their shared vertex grid.
+        The returned bundle shares the ADC with the source.
 
         Parameters
         ----------
@@ -335,31 +304,17 @@ class NonCartesianGradient:
 
 
 def _bridge_area(event, axes) -> np.ndarray:
-    """One bridge's moment, placed on the axis it drives."""
     moment = np.zeros(len(axes))
     moment[axes.index(event.channel)] = float(np.trapezoid(event.waveform, event.tt))
     return moment
 
 
 def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
-    """Turn the base bridge pair in plane, keeping the corners it shares.
+    """Rotate a bridge pair on the union of its vertex times.
 
-    A rotation event mixes the two axes sample by sample, so the explicit
-    path materializes exactly that: both base bridges are evaluated on the
-    union of their vertex times and the amplitude pair is turned at every
-    vertex. Every angle therefore plays the base's timing corners -- the
-    same corners an interpreter applying the rotation extension would play.
-
-    `anchor` places a shorter bridge inside the pair's span the way the
-    played block does: a rewinder starts with the readout's end ("left"), a
-    prewinder ends at the readout's start ("right"). Outside its own extent
-    a bridge holds its boundary value, which for a bridge that starts or
-    ends the repetition is zero.
-
-    Feasibility is rotation-invariant by construction for slew (the base
-    solve derates by the root of the axis count), and checked here for
-    amplitude: the vector magnitude, which no rotation changes, must fit
-    the per-axis ceiling.
+    Right-anchor prewinders and left-anchor rewinders. Shorter bridges hold
+    their boundary values outside their extent. Check vector amplitude
+    against the per-axis ceiling to keep all in-plane rotations feasible.
     """
     if not events:
         return ()

@@ -1,16 +1,4 @@
-"""What repeats in a scan, and what varies between its repetitions.
-
-Every event registered is split in two: a *definition*, which is what stays
-the same however often it is played, and the per-playout parameters that go
-with each block that plays it. A block is then a definition of its own, and
-the stream of block definition ids is where the repeating unit becomes
-visible -- a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase encode is
-doing.
-
-The tests below are that split, one property each. They are written against
-the compiled core directly, because the split is a property of the container
-rather than of the API over it.
-"""
+"""Native definition/instance partitioning and structural block equivalence."""
 
 import numpy as np
 import pytest

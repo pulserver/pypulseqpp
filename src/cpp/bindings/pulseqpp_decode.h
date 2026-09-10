@@ -1,23 +1,6 @@
 /**
  * @file pulseqpp_decode.h
- * @brief One block, as the events it plays rather than as the ids they are stored under.
- *
- * The core holds a block the way the file does: a row of library ids and a
- * duration. That is what makes a million-block scan cheap to build and to
- * write, and it is all `add_block` and the writers ever need. Everything that
- * *looks at* a sequence needs the events themselves.
- *
- * What comes back is the compiled event types, not namespaces, and that is the
- * point twice over. In Python they read like the events a factory hands
- * back -- `rf.signal`, `gx.waveform`, `gx.area`, `adc.dwell` -- because those
- * are computed from the same fields either way. Handed to `add_block` or
- * `set_block` they take the fast path, and the shape registration comes with
- * them, so reading a block out and putting it back registers nothing new.
- *
- * Nothing is converted on the way. The libraries store a pulse as a magnitude
- * in 0..1, a phase in turns and one amplitude, and an arbitrary gradient as a
- * normalised waveform and one amplitude; the compiled events store them the
- * same way. Decoding is decompressing the shapes and copying the row.
+ * @brief Decode stored blocks into compiled Python events, preserving shape registrations.
  */
 
 #ifndef PULSERVER_PULSEQPP_DECODE_H

@@ -1,16 +1,4 @@
-"""Reading a `.seq` file back, and getting the sequence that wrote it.
-
-The reader is the writer's inverse, so the test of record is a round trip
-rather than a set of expected values: a file written here, read back and
-written again is the file it started as, byte for byte. A column scaled by
-the wrong power of ten fails that comparison, where a test written against
-numbers someone typed in would only fail if they had typed the right ones.
-
-The stronger half is the same trip through the reference toolbox. Upstream
-writes the file, we read it, and what we write back is compared with what
-upstream wrote -- so the reader is held against the format as another
-implementation produces it, not only against our own writer.
-"""
+"""Reader round trips and parity with reference-toolbox files."""
 
 import numpy as np
 import pytest
@@ -87,7 +75,7 @@ def test_reading_leaves_the_sequence_split_as_building_it_would(
 def test_the_per_playout_numbers_come_back_to_the_precision_the_file_holds(
     reference_name, build_reference
 ):
-    """An amplitude is written to six significant digits, so that is the floor."""
+    """Compare instance parameters at the precision used by text serialisation."""
     built = to_core(build_reference())
 
     loaded = _ext.read(_ext.write_text(built, True))

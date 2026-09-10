@@ -1,4 +1,4 @@
-"""The four undersampling mask modes, as one family."""
+"""Regular Cartesian undersampling with a fully sampled calibration region."""
 
 from __future__ import annotations
 
@@ -8,10 +8,7 @@ import numpy as np
 
 
 def make_uniform_mask(shape, acceleration, calibration=0) -> np.ndarray:
-    """Regular undersampling with a fully sampled centre.
-
-    The fourth mode beside CAIPIRINHA, random and Poisson-disc, and the only one
-    that works on a single phase-encode axis.
+    """Generate a regular undersampling mask with a fully sampled centre.
 
     Parameters
     ----------

@@ -1,21 +1,4 @@
-"""The sequence as what the gradients and the digitiser actually do.
-
-A block table says which events a sequence plays and when each block starts.
-Everything that looks at what a sequence *does* -- where it goes in k-space,
-how fast the gradients slew, when a sample is taken, what a plot draws --
-needs the other view: one waveform per axis over the whole scan, on a time
-base shared by all of them.
-
-Building it is a pass over every block, and a block contributes a handful of
-points rather than one, so it is compiled. What comes back is what the
-toolboxes return, in the same shapes.
-
-A waveform is given here as its corners. A gradient is played by
-interpolating between the samples it is given, so the points where its slope
-changes describe it completely: a trapezoid is four points however long its
-flat top, and a shape stored on the raster is restored to the corners the
-interpreter will draw between.
-"""
+"""Expand sequence blocks into gradient corners, RF envelopes and ADC timing."""
 
 from __future__ import annotations
 
@@ -39,7 +22,7 @@ _EPS = 1e-9
 
 
 def _expand(seq, append_rf=False, time_range=None, block_range=None):
-    """Run the compiled pass, and say what it had to complain about."""
+    """Expand a selected range and emit warnings returned by the native core."""
     if block_range is not None and time_range is not None:
         raise ValueError("Specify either block_range or time_range, not both")
 
@@ -171,16 +154,13 @@ def waveforms_and_times(
 
     Notes
     -----
-    Three things the five-tuple cannot say, and ``compat=False`` is where
-    they come out:
+    Gradient channels are ``(2, n)`` arrays of time (s) and amplitude (Hz/m);
+    the optional RF channel is complex with amplitude in Hz. Block rotations
+    are applied. Time ranges retain scan-relative times; block ranges restart
+    the time base at the first selected block.
 
-    - *Every* RF use. Pulseq has seven and the tuple carries two: an
-      inversion, a saturation or a preparation pulse is not in it at all.
-    - The per-sample ADC phase and phase modulation -- the phase a sample is
-      actually acquired with, which is what a simulation wants. The reference
-      toolbox returns the modulation as a sixth value; upstream returns
-      neither.
-    - Which block each pulse and each ADC window is in.
+    With ``compat=False``, the named result also includes all RF use tags,
+    per-sample ADC phases and 1-based RF/ADC block indices.
     """
     expanded, elapsed = _expand(seq, append_RF, time_range, block_range)
     found = _named(expanded, elapsed, append_RF)
@@ -196,7 +176,6 @@ def waveforms_and_times(
 
 
 def _shift_row(moments, elapsed):
-    """Move the time row of a 3-by-n moment array."""
     if not elapsed or moments.size == 0:
         return moments
     moved = np.array(moments, copy=True)
@@ -217,8 +196,8 @@ def adc_times(seq, time_range=None):
     t_adc : np.ndarray
         When every sample is taken, in seconds from the start of the scan.
     fp_adc : np.ndarray
-        n-by-2, one row per ADC window rather than per sample: the frequency
-        and phase offsets it was asked for, as the sequence records them.
+        n-by-2, one row per ADC window rather than per sample: frequency (Hz)
+        and phase (rad) offsets, without ppm corrections.
     """
     expanded, elapsed = _expand(seq, time_range=time_range)
     return _shifted(expanded["t_adc"], elapsed), expanded["window_fp"]
@@ -267,18 +246,14 @@ def get_gradients(
     time_range=None,
     block_range=None,
 ):
-    """Return each gradient axis as a piecewise polynomial.
-
-    A waveform given as its corners is a first-order spline, so handing it
-    back as one lets a caller read the gradient at any moment, and integrate
-    it, without interpolating by hand.
+    """Return physical-axis gradient splines in Hz/m over seconds.
 
     Parameters
     ----------
     seq : Sequence
         The sequence to expand.
     trajectory_delay : float or sequence of float, default 0
-        How late each axis plays what it was asked to, in seconds.
+        Timing correction (s); positive values advance the gradient.
     gradient_offset : float or sequence of float, default 0
         A background gradient per axis, in Hz/m.
     time_range, block_range
@@ -363,7 +338,6 @@ def get_gradients(
 
 
 def _per_axis(value, axes):
-    """One value per axis, whether one was given or several."""
     if isinstance(value, (int, float)):
         return [float(value)] * axes
     given = list(value)

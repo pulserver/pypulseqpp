@@ -70,12 +70,7 @@ def make_slr_pulse(
     freq_ppm: float = 0.0,
     phase_ppm: float = 0.0,
 ):
-    """Design a pulse by Shinnar-Le Roux, solving the FIR filter in-package.
-
-    Shinnar-Le Roux turns a flip-angle profile into a filter design problem,
-    which gives a far sharper slice at a given time-bandwidth product than a
-    windowed sinc, and lets the passband and stopband ripple be specified
-    rather than discovered. SciPy solves the filter, so SigPy is not needed.
+    """Design an RF pulse using the Shinnar-Le Roux algorithm.
 
     Parameters
     ----------
@@ -332,14 +327,8 @@ def make_spsp_pulse(
 ):
     """Design a spectral-spatial pulse on an alternating slice gradient.
 
-    Selects a slice *and* a spectral band at once: a train of short
-    slice-selective subpulses rides an alternating gradient, and the subpulse
-    envelope, sampled at the subpulse repetition rate, sets the spectral
-    profile. Water-selective excitation therefore costs no separate
-    fat-saturation module and no extra TR time.
-
-    Both envelopes are SLR designs. ``n_subpulses`` is rounded up to an even
-    count so the alternating gradient ends balanced.
+    Both envelopes use SLR designs. The subpulse count is rounded up to an
+    even number; a rephaser is returned only when the residual area is nonzero.
 
     Parameters
     ----------
@@ -550,26 +539,11 @@ def make_2d_selective_pulse(
     freq_offset: float = 0.0,
     phase_offset: float = 0.0,
 ):
-    """Design a pulse selective in two dimensions, on a spiral trajectory.
+    """Design a small-tip 2D-selective pulse on a spiral excitation trajectory.
 
-    Under the small-tip approximation the transverse magnetisation a pulse
-    leaves behind is the Fourier transform of its envelope sampled along the
-    path the gradients trace through *excitation* k-space. So the design runs
-    backwards: pick the path, evaluate the desired profile's transform along
-    it, and that is the envelope.
-
-    A spiral is the usual path. It covers a disc of excitation k-space in one
-    gradient-efficient shot and ends at the origin, so the pulse refocuses
-    itself and needs no rephaser. Interleaves are traversed centre-out with RF
-    on, then retraced with RF off to bring the path back to the origin before
-    the next one begins -- concatenating bare interleaves instead walks around
-    the outer k-space endpoints and displaces the profile.
-
-    The envelope is compensated for how fast the path moves, since a sum over
-    uniform time steps has to stand in for an integral over k-space. Arc length
-    is the right weight here and the full polar area element is not: the
-    designer's interleaves already fan out radially, so weighting by radius as
-    well over-corrects and leaves a hole in the middle of the excited disc.
+    Each centre-out interleave is followed by an RF-off retrace to the origin.
+    The envelope uses arc-length weighting, without an additional radial
+    density factor. The closed trajectory requires no separate rephaser.
 
     Parameters
     ----------
@@ -590,9 +564,7 @@ def make_2d_selective_pulse(
         disc.
     n_interleaves : int, optional
         Spiral arms to play. The default is what covers excitation k-space at
-        Nyquist. Fewer is a proportionally shorter pulse and a repeated disc
-        that moves proportionally closer, which is the trade a 2D pulse always
-        makes.
+        Nyquist. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
     axes : sequence of str, optional
         The two gradient channels the trajectory runs on.
     system : pypulseq.Opts, optional
@@ -600,7 +572,7 @@ def make_2d_selective_pulse(
     use : str, optional
         Pulseq ``use`` tag.
     freq_offset, phase_offset : float, optional
-        Carried on the pulse.
+        Event offsets in Hz and radians, respectively.
 
     Returns
     -------
@@ -609,8 +581,7 @@ def make_2d_selective_pulse(
     gradients : tuple of GradEvent
         One arbitrary gradient per axis, to be played in the pulse's block.
     rephasers : tuple of TrapEvent
-        Whatever the trajectory did not return to the origin. Empty for a
-        spiral, which is the point of choosing one.
+        Empty tuple: the closed spiral trajectory needs no separate rephaser.
 
     Raises
     ------
@@ -736,7 +707,6 @@ def make_2d_selective_pulse(
 
 
 def _selective_target(matrix, fov, selective_size, target):
-    """Read the desired profile and the positions it is specified on."""
     axes = [
         (np.arange(n) - (n - 1) / 2.0) * (extent / n)
         for n, extent in zip(matrix, fov, strict=True)

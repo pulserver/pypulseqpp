@@ -1,11 +1,4 @@
-"""Lowering a system's gradient and slew limits below what it reports.
-
-The sequence plugins hold their sequences under a per-plugin ceiling with
-:func:`cap_system`, and a trajectory designer keeps headroom below that with
-:func:`apply_system_derates`. These pin the contract both rely on: a copy is
-returned so a shared system object is never mutated, the limits are only ever
-lowered, and repeating either does not compound.
-"""
+"""Non-mutating gradient-limit caps and non-compounding derates."""
 
 from __future__ import annotations
 

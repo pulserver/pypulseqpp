@@ -1,27 +1,6 @@
 /**
  * @file analysis.hpp
- * @brief What a sequence is, read off the libraries and the trajectory.
- *
- * A report on a sequence answers two questions that neither the block table
- * nor the waveforms answer directly: how hard each pulse tips the
- * magnetisation, and what the encoding covers.
- *
- * ### The flip angle is a property of the envelope, not of the playout
- *
- * How far a pulse tips is the integral of its envelope times the amplitude it
- * is played at. The envelope belongs to the RF *definition* and the amplitude
- * to the playout, so an inversion train sweeping one pulse over a thousand
- * flip angles is one integral and a thousand multiplies -- and playing each of
- * those a hundred times costs nothing further, since a block names a library
- * row rather than carrying one.
- *
- * ### What the encoding covers is a property of the samples
- *
- * Where the ADC samples fall in k-space says how many distinct positions the
- * scan visits, how often each is revisited -- slices, averages, contrasts --
- * and whether the positions form a grid. All three fall out of binning the
- * sampled trajectory onto a lattice fine enough to separate neighbouring
- * positions and coarse enough to merge one position reached twice.
+ * @brief RF flip angles, label evolution and sampled k-space coverage.
  */
 
 #ifndef PULSEQ_ANALYSIS_HPP
@@ -46,13 +25,7 @@ namespace pulseq
     std::vector<double> flip_angles(const Sequence& sequence);
 
     /**
-     * What a label is set to, block by block.
-     *
-     * A label is running state: set or incremented where a block says so, and
-     * in force until another block says otherwise. So reading one back is a
-     * walk over the blocks in order, applying what each carries -- which is
-     * a pass over the extension chains rather than over decoded blocks, and
-     * costs nothing for the blocks that carry none, which is most of them.
+     * Label values carried across blocks until set or incremented again.
      */
     struct LabelEvolution
     {

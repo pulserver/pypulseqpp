@@ -1,56 +1,12 @@
 /**
  * @file dedup.cpp
- * @brief Sequence::remove_duplicates() -- collapse every library onto its
- *        distinct rows and renumber everything that points at them.
+ * @brief Deduplicate library rows at the text format's numeric precision.
  *
- * ### What decides that two events are one event
- *
- * The precision the `.seq` file writes the column at, and nothing else.  A
- * trapezoid's amplitude is written `%12g`, so two amplitudes agreeing to six
- * significant digits are written identically and cannot be two rows; its ramp
- * times are written as whole microseconds, so two delays agreeing to 1e-6 s
- * are the same delay.  Rounding to that precision therefore costs nothing --
- * the file could not have carried the difference -- and it is what turns the
- * six million gradient rows of a 3D protocol into the couple of thousand the
- * scan actually plays.
- *
- * A profile entry is *significant digits* when positive and *decimal places*
- * when zero or negative.  The distinction is about units: significant-digit
- * rounding is scale invariant, so a column stored in seconds and written in
- * microseconds may use it, while a column whose file precision is absolute
- * (a delay quantised to the microsecond, a dwell time to the nanosecond) has
- * to name decimal places in the unit the library holds -- SI.
- *
- * The rounded row is what survives.  That is not a detail: were the original
- * kept, a sequence written and read back would hold different numbers from the
- * one deduplicated here, and the second write would not match the first.
- *
- * ### Two deliberate differences from the Python this replaces
- *
- * The ADC library's shape reference rounds *exactly* rather than to six
- * significant digits.  It is an id, not a measurement, and at six digits a
- * sequence with more than 999999 shapes would have collapsed two different
- * ones onto each other.
- *
- * Negative zero is folded onto zero.  The two are the same number and differ
- * only in the bits a hash looks at, so a phase encode scaled by minus nothing
- * would otherwise be a row of its own.
- *
- * ### Order
- *
- * Bottom up: shapes first, then the events that name them, then the gradient
- * numbering that spans two of those, then each extension's own specification,
- * then the chains that string the specifications together, and last the block
- * table that points at all of it.  Every level is renumbered before anything
- * above it is rewritten.
- *
- * New ids are handed out in order of first appearance, which is the order
- * plain Pulseq would have assigned had it registered each row as it came.
- *
- * The definitions are re-derived at the end rather than renumbered along the
- * way: two events the file cannot tell apart are one row here, and so one
- * definition, which is a statement that is only true once every library has
- * settled.
+ * Rounded rows survive; negative zero is folded into zero and shape IDs are
+ * compared exactly. Positive precision entries mean significant digits;
+ * non-positive entries mean decimal places in the stored SI unit.
+ * Libraries are processed in dependency order, IDs follow first appearance,
+ * and definitions are rebuilt after all references have been renumbered.
  */
 
 #include "pulseq/sequence.hpp"
@@ -105,20 +61,10 @@ namespace pulseq
         }
 
         /**
-         * One value at the precision that decides identity.
+         * Round to the identity precision, using ties-to-even for NumPy parity.
          *
-         * Halfway cases round to even -- `rint` under the default rounding
-         * mode, which is what NumPy's `round` does too, so the two
-         * implementations of this pass agree on the ties.
-         *
-         * Zero is answered directly rather than by softening `log10` with a
-         * small epsilon, which is how the NumPy version of this avoids taking
-         * the logarithm of nothing.  That epsilon is not harmless: it is a
-         * *floor*, so every value below it shares one exponent and rounding to
-         * nine significant digits keeps four.  Sequences really do carry such
-         * numbers -- a phase that came out of a cosine at pi/2 is 6e-17, and a
-         * shape sample can be smaller still -- and there is no reason for the
-         * pass that decides two events are the same to also blunt them.
+         * Handle zero explicitly: adding an epsilon before log10 would reduce the
+         * significant-digit precision of small nonzero values.
          */
         /**
          * ceil(log10(a)) for a > 0, by binary exponent and at most two table

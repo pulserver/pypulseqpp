@@ -22,14 +22,12 @@ _NEGLIGIBLE = 1e-6
 
 
 def _peak(grad) -> float:
-    """Strongest amplitude a trapezoid or arbitrary gradient reaches."""
     if grad.type == "trap":
         return abs(grad.amplitude)
     return float(_np.max(_np.abs(grad.waveform)))
 
 
 def _matrix(rotation) -> _np.ndarray:
-    """One rotation, however it was named, as a 3x3 matrix."""
     given = _np.asarray(rotation, dtype=float)
     if given.shape == (3, 3):
         return given
@@ -62,16 +60,9 @@ def _matrix(rotation) -> _np.ndarray:
 
 
 def rotate_3d(rotation, *args, system=None) -> list:
-    """Rotate the gradients in ``args`` onto a new set of axes.
+    """Rotate and sum gradient projections onto the output axes.
 
-    :func:`pypulseq.rotate` turns a block about one axis; this turns it by a
-    general rotation, which is what a scan prescribed on an oblique slice
-    asks for. Each gradient is projected onto all three output axes and the
-    projections landing on the same axis are summed, so one readout on x
-    becomes a readout on x and one on y.
-
-    Anything that is not a gradient -- a pulse, an ADC, a label, a number --
-    comes back untouched, and first.
+    Non-gradient events are returned unchanged, before the rotated gradients.
 
     Parameters
     ----------

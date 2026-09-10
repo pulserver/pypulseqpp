@@ -1,10 +1,6 @@
-"""What a block costs, measured rather than asserted.
+"""Measure per-call registration and block-insertion costs.
 
-A protocol-scale scan is millions of blocks, so the design loop's cost is set
-by the calls inside it. This reports the per-call cost of the ones a loop
-makes, which is the number to watch when the bindings change.
-
-    python benchmarks/throughput.py
+Run with python benchmarks/throughput.py.
 """
 
 from __future__ import annotations

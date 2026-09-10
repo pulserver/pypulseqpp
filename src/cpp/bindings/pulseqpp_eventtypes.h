@@ -1,49 +1,11 @@
 /**
  * @file pulseqpp_eventtypes.h
- * @brief Python bindings for pulseq's event classes.
+ * @brief CPython event types with direct scalar fields and computed waveform properties.
  *
- * These are what `pypulseqpp.make_*` hands back: the same events
- * PyPulseq builds, converted once into slots.  They quack like the
- * `SimpleNamespace` they replace -- `rf.signal` is the complex waveform at its
- * real amplitude, `grad.waveform` is the scaled samples -- so anything
- * downstream that reads an event keeps working.
- *
- * ### The point of them
- *
- * Reading a `SimpleNamespace` costs a dictionary lookup per field, and a
- * three-dimensional protocol reads tens of millions.  Here a field is an
- * offset.
- *
- * ### Setters do not validate
- *
- * Deliberately.  `make_*` checked the event when it built it; a loop that
- * moves a phase encode from one line to the next is not making a new
- * assertion about the hardware, and re-deriving one per block is precisely
- * the cost this exists to remove.  A caller that wants the checks back calls
- * `make_*` again.
- *
- * ### Scaling is one number
- *
- * `signal` and `waveform` are stored normalised beside a scalar amplitude, so
- * `rf.amplitude *= 0.5` is a single write and leaves the registered shape
- * valid.  Assigning to `signal` or `waveform` outright re-normalises and
- * drops the registration, because that really is a new waveform.
- *
- * ### Why these are hand-written CPython types
- *
- * A pybind11 `def_readwrite` is a property: reading one is a descriptor call
- * into a lambda, and it measured at 178 ns against a `SimpleNamespace`
- * field's 56 ns.  So the dictionary lookups removed from `add_block` came
- * straight back on the loop's own arithmetic, which touches an amplitude or a
- * phase offset several times per repetition.
- *
- * A `PyMemberDef` is not a call.  It is a type code and a byte offset, and
- * `PyMember_GetOne` reads the double out of the instance directly, so the C++
- * object has to live *inside* the `PyObject` rather than behind a pointer --
- * which is the one thing pybind11's instance layout will not do.  Hence
- * `Holder<T>`, nine static types, and `tp_members` for every scalar.  The
- * fields that are not scalars -- waveforms, names, the computed areas -- stay
- * accessor-shaped in `tp_getset`, where the cost is beside the work.
+ * Scalar fields use PyMemberDef offsets into Holder<T>; non-scalars use
+ * accessors. Setters do not validate hardware limits. Assigning a waveform
+ * renormalises its samples and invalidates its shape registration; changing
+ * only its amplitude preserves the registration.
  */
 
 #ifndef PULSERVER_PULSEQPP_EVENTTYPES_H
@@ -295,23 +257,11 @@ namespace pulseqpp_types
         PyObject_HEAD T event;
 
         /**
-         * Where `event.id` and `event.shape_IDs` live.
+         * Compatibility attributes assigned by PyPulseq scripts, not registration keys.
          *
-         * PyPulseq scripts write these: `gx.id = seq.register_grad_event(gx)`
-         * is how upstream tells its own `add_block` that an event is already
-         * in the libraries.  Nothing here reads them -- the shape memoization
-         * is `Event::registered` and the array-identity cache -- but a script
-         * being run against this package unchanged has to be able to make the
-         * assignment, so the attributes are real and store what they are given.
-         *
-         * They come *after* `event`, so `EVENT_OFFSET` and every
-         * `PULSEQPP_FIELD` offset are exactly what they were.
-         *
-         * Null until assigned, and reading one that has never been set raises
-         * AttributeError rather than returning a default.  That is not
-         * fussiness: upstream's own `register_grad_event` branches on
-         * `hasattr(event, 'shape_IDs')` and would believe ids belonging to a
-         * different sequence's libraries if the attribute always existed.
+         * Unset attributes raise AttributeError so upstream hasattr-based checks do
+         * not mistake them for existing registrations. Keep them after event to
+         * preserve the scalar field offsets.
          */
         PyObject* compat_id;
         PyObject* compat_shape_ids;

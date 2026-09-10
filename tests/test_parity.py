@@ -1,18 +1,4 @@
-"""The file pypulseqpp writes is the file the reference toolbox writes.
-
-This is the invariant the package rests on. A design script that ran against
-`pypulseq-matlab-like` -- the transcription of MATLAB Pulseq this package
-treats as the authority for the format -- has to produce the same sequence
-here, and "the same" means the bytes, not a tolerance: an interpreter reads
-the file, and a file that differs is a different scan.
-
-Nothing is excused: what is compared is the bytes.
-
-Both deduplication modes are checked. Collapsing identical library rows
-renumbers every reference to them, so a sequence that agrees before
-deduplication and disagrees after has a renumbering bug rather than a writing
-bug, and the two cases separate those.
-"""
+"""Byte-for-byte reference-toolbox output parity with and without deduplication."""
 
 import pytest
 

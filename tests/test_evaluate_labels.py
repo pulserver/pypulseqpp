@@ -1,13 +1,4 @@
-"""What a label is set to, block by block.
-
-A label is running state: set or incremented where a block says so, and in
-force until another block says otherwise. Reading one back is therefore a walk
-over the blocks in order -- which is what makes it worth doing over the
-extension chains rather than over decoded blocks, and why a block carrying no
-label costs a column read.
-
-What is held here is the toolbox's own answer, for every way it can be asked.
-"""
+"""Sticky label state, evolution modes and scalar return conventions."""
 
 import numpy as np
 import pytest

@@ -1,14 +1,4 @@
-"""Loading the compiled kernels that ship inside the wheel.
-
-``pypulseqpp._ext`` is one extension module, built for each interpreter this
-package supports. A kernel that will not import therefore means a broken
-installation -- most often a wheel built for one interpreter imported from
-another -- and never an optional extra a caller may reasonably do without.
-
-:func:`require` says so, naming the mismatch, rather than letting a caller
-fall through to a slower Python path whose only symptom is unexplained
-runtime.
-"""
+"""Load required compiled kernels and report missing or incompatible binaries."""
 
 from __future__ import annotations
 

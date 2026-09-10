@@ -1,17 +1,4 @@
-"""What a ``ROTATIONS`` extension means, pinned against the reference toolbox.
-
-A block's gradients are written in a logical frame; the physical vector the
-amplifiers play is the extension's quaternion matrix **applied to** that
-vector -- ``g_physical = R @ g_logical``. That is the sense of
-``mr.rotate3D`` in the reference toolbox, which bakes a rotation into the
-gradients at design time and so defines what resolving the extension has to
-produce.
-
-Both consumers resolve it -- the trajectory core and the gradient-continuity
-check -- and they must agree. A rotation about a single axis cannot tell
-``R`` from its transpose, the two differing only in the sign of one
-component, so the rotations here are deliberately general.
-"""
+"""Physical gradients use R @ logical; trajectory and continuity checks must agree."""
 
 from __future__ import annotations
 

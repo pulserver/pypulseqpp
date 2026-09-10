@@ -1,10 +1,6 @@
 /**
  * @file write.hpp
- * @brief Serializing a pulseq::Sequence as a Pulseq `.seq` text file.
- *
- * The writer takes the sequence by non-const reference because it records
- * `TotalDuration` in `[DEFINITIONS]` before it starts, which is what PyPulseq
- * does.
+ * @brief Serialise Pulseq text, recording custom label definitions when needed.
  */
 
 #ifndef PULSEQ_CXX_WRITE_HPP
@@ -20,12 +16,8 @@ namespace pulseq
     class Sequence;
 
     /**
-     * Record in `[DEFINITIONS]` the label names the builtin table does not
-     * carry, so a label number above that table resolves by position.
-     *
-     * Both writers call it: the text form writes a label's name and the
-     * binary form its number, but the number is what the binary form has and
-     * this is what gives it a meaning.
+     * Record custom label names in assignment order in the CustomLabels definition.
+     * Binary IDs beyond the builtin table resolve by position in this list.
      */
     void declare_custom_labels(Sequence& seq);
 
@@ -44,22 +36,12 @@ namespace pulseq
     int required_revision(const Sequence& seq);
 
     /**
-     * Serialize as a Pulseq 1.4.1 `.seq` text file.
+     * Serialise Pulseq 1.4.1 text.
      *
-     * For a scanner whose interpreter predates 1.5. What 1.5 added is folded
-     * back or dropped: the ppm frequency and phase offsets become absolute
-     * hertz at @p gamma and @p field, which is the only place those two are
-     * needed and why they are arguments rather than read from the sequence;
-     * an RF pulse's centre and use go, and so do an arbitrary gradient's
-     * first and last sample, because 1.4 has no column for any of them.
-     *
-     * A soft delay is dropped, which the reference toolbox also does and
-     * warns about -- the file is then only partly what the sequence said.
-     *
-     * @throws std::runtime_error if the sequence rotates or shims, neither of
-     *         which 1.4 can express at all. Dropping a rotation would move
-     *         every gradient it turns, so the file is refused rather than
-     *         written wrong.
+     * Fold ppm offsets into absolute offsets using @p gamma (Hz/T) and @p field
+     * (tesla). Omit RF centre/use, gradient endpoints and soft-delay extensions;
+     * soft-delay omission emits a warning.
+     * @throws std::runtime_error for rotation or RF-shim extensions.
      */
     std::string write_text_v141(
         Sequence& seq, bool create_signature, double gamma = 42576000.0, double field = 1.5);

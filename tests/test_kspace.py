@@ -1,11 +1,4 @@
-"""Where the sequence goes in k-space, held against the toolbox.
-
-The trajectory is the integral of the gradient waveforms, reset at every
-excitation and turned around at every refocusing. It is what the report, the
-FOV transform and any reconstruction read, so what matters is not that it
-looks right but that it is the same trajectory the toolbox follows -- every
-sample, every corner.
-"""
+"""K-space integration parity and invariance under equivalent waveform layouts."""
 
 import math
 
@@ -77,14 +70,7 @@ def assert_same(expected, got, where, atol=1e-7):
 
 
 def assert_same_curve(their_t, their_k, our_t, our_k, where):
-    """The two follow the same trajectory, whatever each spent saying it.
-
-    The toolbox reports one moment this package does not, wherever an axis
-    starts late: the pad above begins a sloping stretch a picosecond early,
-    and the raster is walked through every sloping stretch, so the stretch
-    begins one raster tick early and a point is reported where nothing
-    happens. So the moments are compared as a set rather than as a list.
-    """
+    """Compare trajectories at shared moments; the reference may add padding-induced knots."""
     their_t = np.asarray(their_t, dtype=float)
     our_t = np.asarray(our_t, dtype=float)
     if their_t.size == 0:

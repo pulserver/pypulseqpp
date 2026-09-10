@@ -29,17 +29,10 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _ArmedReadout(SequenceModule):
-    """Arm bookkeeping for the readouts that sample outwards from k-space centre.
+    """Block layouts for compact or explicitly rotated interleaves.
 
-    A scan of these plays one arm per repetition, and there are two ways to
-    hold the set. The compact one keeps a single arm and lets the loop turn it
-    with a ``ROTATIONS`` extension, so the waveform is stored once however many
-    arms there are. The explicit one writes every arm out as its own waveform,
-    which any reader can play without composing a rotation.
-
-    :meth:`arm` covers both, so a loop asks for arm *i* and plays what comes
-    back: with one base arm every index is that arm, and the rotation the loop
-    supplies is what distinguishes them.
+    A compact layout reuses one base arm for any arm index; the acquisition
+    loop supplies its rotation. An explicit layout stores each arm separately.
     """
 
     def arm(self, index: int) -> list[tuple]:
@@ -83,20 +76,11 @@ class _ArmedReadout(SequenceModule):
 
 
 class _RadialReadout(_ArmedReadout):
-    """A full radial spoke, prephaser and rewinder merged into one waveform.
+    """Radial repetition with spoke, prephaser and rewinder in one waveform.
 
-    Prephaser, traversal and rewinder are one continuous gradient, so the loop
-    plays a spoke in a single ``add_block`` and one rotation event orients the
-    whole thing. The ADC sits on the plateau. A slice rephaser rides the same
-    block, on the axis the rotation turns about, so it comes back unturned::
-
-        for angle in pp.calc_golden_angles(n_spokes):
-            rotation = pp.make_rotation(Rotation.from_euler("z", angle))
-            seq.add_block(readout.gx, readout.gz_reph, readout.adc, rotation)
-
-    ``explicit=True`` with ``angles`` writes every spoke out instead, so ``gx``
-    and ``gy`` come back as **lists** -- one registered waveform per spoke,
-    which is what the rotation extension exists to avoid.
+    The ADC samples the plateau. A slice rephaser may share an axis left
+    invariant by the shot rotation. With explicit=True, angles selects
+    materialised spokes; otherwise the loop supplies rotation extensions.
 
     Attributes
     ----------
@@ -151,8 +135,8 @@ class _RadialReadout(_ArmedReadout):
     oversampling : float, optional
         Readout oversampling: more samples along the same spoke.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what the two
-        rasters actually allowed.
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved raster-compatible rate.
     spoiling_cycles : float, optional
         Dephasing left at the end of the TR, in cycles across
         ``voxel_size_m``. Zero leaves the spoke rewound.
@@ -161,13 +145,9 @@ class _RadialReadout(_ArmedReadout):
     spoiling_axis : {'z', 'x', 'y'}, optional
         Axis the spoiler is played on.
     n_echoes : int, optional
-        Times the path is replayed per repetition. Every echo traverses the
-        same k, so the train is one trajectory at a series of echo times: a
-        spoke is prephaser-through-rewinder in one waveform and already comes
-        back, and an arm that does not is bracketed between echoes by its own
-        rewinder and prewinder. ``echo_spacing`` is what separates them, and
-        each acquisition carries its own ``ECO``: a scan loop hands over a
-        whole arm, so the echo boundaries inside it are the readout's to count.
+        Path traversals per repetition, separated by ``echo_spacing``.
+        Each retraces the same k-space coordinates and carries its own ``ECO``
+        label. Non-Cartesian arms use rewinders/prewinders between echoes.
     explicit : bool, optional
         Write out one spoke per entry of ``angles`` instead of one base spoke.
     angles : array-like, optional
@@ -394,101 +374,21 @@ class RadialReadout2D(_RadialReadout):
     >>> len(readout.blocks), readout.gx.channel
     (2, 'x')
 
-    The rephaser costs nothing: it runs under the prephaser at the head of the
-    spoke, in the very block the loop rotates.
-
     >>> any(event is readout.gz_reph for event in readout.blocks[1])
     True
-
-    One waveform, one rotation per spoke. Golden angles put every new spoke
-    in the widest gap the previous ones left, so any prefix of the scan
-    covers the plane:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.RadialReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64,
-       )
-       trajectory(
-           readout,
-           angles=pp.calc_golden_angles(13),
-           label="spoke",
-           title="RadialReadout2D, thirteen golden-angle spokes",
-       )
     """
 
 
 class RadialStackReadout(_RadialReadout):
-    """Radial spokes in-plane, Cartesian partitions along z: stack of stars.
-
-    Examples
-    --------
-    Spokes in the plane and Cartesian steps along z: the same spoke on every
-    partition, which is what lets an inverse FFT along z reduce the volume to
-    independent planes.
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.RadialStackReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
-       )
-       trajectory(
-           readout,
-           angles=np.repeat(pp.calc_uniform_angles(8), 3),
-           kz=np.tile([-0.8, 0.0, 0.8], 8),
-           label="spoke",
-           title="RadialStackReadout, eight spokes on three partitions",
-       )
-    """
+    """Radial spokes in-plane, Cartesian partitions along z: stack of stars."""
 
     _phase_axis = "z"
 
 
 class RadialProjectionReadout(_RadialReadout):
-    """Radial spokes turned over a sphere: a koosh-ball acquisition.
+    """Radial spokes for a spherical projection acquisition.
 
-    Its blocks are a 2D readout's: what makes it a projection acquisition is
-    the rotations the loop applies, and those belong to the loop. The class
-    exists so the intent is stated where the readout is built, and so that a
-    partition encode -- which such an acquisition has no place for -- is
-    refused rather than quietly accepted.
-
-    Examples
-    --------
-    The same spoke turned over a sphere. Nothing about the blocks changes;
-    the rotations are the acquisition:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.RadialProjectionReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=64,
-       )
-       trajectory(
-           readout,
-           angles=pp.calc_projection_shell(48)[0],
-           label="spoke",
-           title="RadialProjectionReadout, 48 directions on a sphere",
-       )
+    The loop supplies 3D rotations. Partition encoding is not supported.
     """
 
     _rotated_axes = AXES
@@ -500,21 +400,11 @@ class RadialProjectionReadout(_RadialReadout):
 
 
 class NonCartesianReadout(_ArmedReadout):
-    """A solved interleave, bracketed by the bridges that reach it and leave it.
+    """A solved interleave with moment bridges and a repetition-time budget.
 
-    Where a radial spoke is one continuous lobe, a spiral or a rosette is a
-    waveform solved against the vector limits, and whichever of its endpoints
-    is away from k = 0 needs a bridge of its own. So the repetition is the
-    pulse, a prewinder block when the path does not start at the centre, the
-    acquisition, and a rewinder block when it does not end there.
-
-    Subclass this to add a family: design a :class:`NonCartesianGradient` and
-    hand it over. Everything below -- the bracket alignment, the TE and TR
-    budget, the spoiler, the ``explicit`` path -- is inherited, and the events
-    a subclass builds are published alongside the ones built here.
-
-    Orientation is the loop's business; see :class:`_RadialReadout` for the
-    two ways to apply it, which are the same here.
+    Nonzero k-space endpoints require prewinder or rewinder blocks. A
+    subclass supplies a NonCartesianGradient; the acquisition loop controls
+    per-shot orientation.
 
     Attributes
     ----------
@@ -548,15 +438,18 @@ class NonCartesianReadout(_ArmedReadout):
 
     Parameters
     ----------
-    Shared with :class:`_RadialReadout`, except that the interleave arrives as
-    ``trajectory`` rather than being built from ``fov`` and ``matrix``.
+    trajectory : NonCartesianGradient
+        Solved gradient interleave with ADC sampling and moment bridges.
+
+    Other Parameters
+    ----------------
+    system, rf, gz, gz_reph, fov_z, matrix_z, te, tr
+        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.
+    spoiling_cycles, voxel_size_m, spoiling_axis, n_echoes, explicit, angles, labels, trigger
+        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.
 
     Examples
     --------
-    A family is a trajectory and nothing else: design one, hand it over, and
-    the bracket alignment, the TE and TR budget, the spoiler and the
-    explicit-rotation path are inherited.
-
     >>> import numpy as np
     >>> import pypulseqpp.sequences as design
     >>> import pypulseqpp as pp
@@ -568,28 +461,6 @@ class NonCartesianReadout(_ArmedReadout):
     ... )
     >>> isinstance(readout, design.NonCartesianReadout)
     True
-
-    Whatever the trajectory, the arm is what the loop plays and rotates:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.SpiralReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64, design_interleaves=6, direction="in_out",
-       )
-       trajectory(
-           readout,
-           angles=np.arange(6) * 2 * np.pi / 6,
-           label="interleave",
-           title="an in-out spiral family, six interleaves",
-       )
     """
 
     _phase_axis: str | None = None
@@ -798,7 +669,42 @@ class NonCartesianReadout(_ArmedReadout):
 
 
 class _SpiralReadout(NonCartesianReadout):
-    """One spiral arm, solved for the requested pitch and bandwidth."""
+    """Spiral design parameters shared by 2D, stack and projection readouts.
+
+    Parameters
+    ----------
+    fov : float
+        Isotropic field of view (m).
+    matrix : int
+        In-plane matrix size.
+    design_interleaves : int, optional
+        Nominal pitch, not the number of arms acquired.
+    direction : {'outward', 'inward', 'in_out'}, optional
+        Centre-to-edge, edge-to-centre, or edge-to-centre-to-edge traversal.
+    density : {'constant', 'variable', 'dual'}, optional
+        Constant pitch, a radial power-law transition, or a logistic transition.
+    inner_design_interleaves, outer_design_interleaves : float, optional
+        Local pitch at the centre and edge. Inner defaults to design_interleaves;
+        outer defaults to twice inner for variable density and is required for dual.
+    variable_density_power : float, optional
+        Positive exponent of the normalised radius for variable density.
+    transition_radius, transition_speed : float, optional
+        Normalised transition radius (between 0 and 1) and positive logistic
+        steepness for dual density.
+    oversampling : float, optional
+        ADC oversampling factor, at least one.
+    readout_bandwidth_hz : float, optional
+        Requested ADC sampling rate (Hz), not bandwidth per pixel.
+    n_points : int, optional
+        Geometric path samples supplied to the solver, not ADC samples.
+    derate : bool, optional
+        Apply the package's system derates before solving.
+
+    See Also
+    --------
+    NonCartesianReadout : Shared RF, timing, spoiling and orientation parameters.
+
+    """
 
     def init_module(
         self,
@@ -867,97 +773,49 @@ class SpiralReadout2D(_SpiralReadout):
     ... )
     >>> readout.trajectory.direction
     'in_out'
-
-    One designed interleave, rotated into the rest. Eight of them fill the
-    plane the density asked for:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.SpiralReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64, design_interleaves=8,
-       )
-       trajectory(
-           readout,
-           angles=np.arange(8) * 2 * np.pi / 8,
-           label="interleave",
-           title="SpiralReadout2D, eight interleaves",
-       )
     """
 
 
 class SpiralStackReadout(_SpiralReadout):
-    """Spiral arms in-plane, Cartesian partitions along z.
-
-    Examples
-    --------
-    The in-plane interleave is the 2D one; z is encoded by a trapezoid, so
-    the volume is a stack of identical planes:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.SpiralStackReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=64, design_interleaves=8,
-           fov_z=0.12, matrix_z=16,
-       )
-       trajectory(
-           readout,
-           angles=np.repeat(np.arange(4) * 2 * np.pi / 4, 3),
-           kz=np.tile([-0.8, 0.0, 0.8], 4),
-           label="interleave",
-           title="SpiralStackReadout, four interleaves on three partitions",
-       )
-    """
+    """Spiral arms in-plane, Cartesian partitions along z."""
 
     _phase_axis = "z"
 
 
 class SpiralProjectionReadout(_SpiralReadout):
-    """Spiral arms turned over a sphere.
-
-    Examples
-    --------
-    The same interleave turned over a sphere, so each one is a spiral on its
-    own plane through the origin:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.SpiralProjectionReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=64, design_interleaves=8,
-       )
-       trajectory(
-           readout,
-           angles=pp.calc_projection_shell(16)[0],
-           label="interleave",
-           title="SpiralProjectionReadout, sixteen orientations",
-       )
-    """
+    """Spiral arms turned over a sphere."""
 
     _rotated_axes = AXES
 
 
 class _RosetteReadout(NonCartesianReadout):
-    """One multi-petal rosette interleave."""
+    """Rosette design parameters shared by 2D, stack and projection readouts.
+
+    Parameters
+    ----------
+    fov : float
+        Isotropic field of view (m).
+    matrix : int
+        In-plane matrix size.
+    petals : int, optional
+        Centre-to-centre radial lobes in one interleave, not shots.
+    angular_frequency_ratio : float, optional
+        Positive angular-to-radial frequency ratio.
+    echo_spacing_s : float, optional
+        Requested centre-crossing interval (s). The waveform is stretched when
+        necessary; requests shorter than the time-optimal spacing are rejected.
+    oversampling : float, optional
+        ADC oversampling factor, at least one.
+    readout_bandwidth_hz : float, optional
+        Requested ADC sampling rate (Hz), not bandwidth per pixel.
+    derate : bool, optional
+        Apply the package's system derates before solving.
+
+    See Also
+    --------
+    NonCartesianReadout : Shared RF, timing, spoiling and orientation parameters.
+
+    """
 
     def init_module(
         self,
@@ -991,94 +849,17 @@ class _RosetteReadout(NonCartesianReadout):
 
 
 class RosetteReadout2D(_RosetteReadout):
-    """One multi-petal rosette interleave in a plane.
-
-    Examples
-    --------
-    Every petal passes through the centre, so a rosette samples k = 0 once
-    per petal and the low frequencies are revisited throughout the readout:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.RosetteReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=48, petals=5,
-       )
-       trajectory(
-           readout,
-           angles=np.arange(4) * 2 * np.pi / 4,
-           label="arm",
-           title="RosetteReadout2D, four rotations of a five-petal arm",
-       )
-    """
+    """One multi-petal rosette interleave in a plane."""
 
 
 class RosetteStackReadout(_RosetteReadout):
-    """Rosette petals in-plane, Cartesian partitions along z.
-
-    Examples
-    --------
-    The in-plane arm is the 2D one; z is a trapezoid, so the volume is a
-    stack of identical rosettes:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.RosetteStackReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=48, petals=5,
-           fov_z=0.12, matrix_z=16,
-       )
-       trajectory(
-           readout,
-           angles=np.repeat(np.arange(3) * 2 * np.pi / 3, 3),
-           kz=np.tile([-0.8, 0.0, 0.8], 3),
-           label="arm",
-           title="RosetteStackReadout, three arms on three partitions",
-       )
-    """
+    """Rosette petals in-plane, Cartesian partitions along z."""
 
     _phase_axis = "z"
 
 
 class RosetteProjectionReadout(_RosetteReadout):
-    """Rosette petals turned over a sphere.
-
-    Examples
-    --------
-    The same arm turned over a sphere, so every petal lies on its own plane
-    through the origin and k = 0 is revisited from every direction:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
-       readout = design.RosetteProjectionReadout(
-           system, slab.rf, slab.gz, fov=0.22, matrix=48, petals=5,
-       )
-       trajectory(
-           readout,
-           angles=pp.calc_projection_shell(12)[0],
-           label="arm",
-           title="RosetteProjectionReadout, twelve orientations",
-       )
-    """
+    """Rosette petals turned over a sphere."""
 
     _rotated_axes = AXES
 
@@ -1091,7 +872,6 @@ class RosetteProjectionReadout(_RosetteReadout):
 def _checked_layout(
     n_echoes, spoiling_cycles, spoiling_axis, explicit, angles, labels=None
 ) -> int:
-    """Validate the arguments every non-Cartesian readout shares."""
     n_echoes = int(n_echoes)
     if n_echoes < 1:
         raise ValueError("n_echoes must be >= 1")
@@ -1115,15 +895,10 @@ def _checked_layout(
 
 
 def _accept_rephaser(gz_reph, module, occupied):
-    """Slice rephaser this readout can carry, left-aligned, or ``None``.
+    """Return a left-aligned rephaser on an axis invariant under shot rotation.
 
-    A non-Cartesian readout is oriented by rotating its blocks, and a rotation
-    mixes whichever axes it turns. A rephaser sitting on one of those axes is
-    turned with the interleave: it stops rephasing the slice and starts
-    dephasing it by an amount that changes shot to shot, which nothing
-    downstream would report. So a rephaser is only accepted on an axis the
-    rotation leaves alone -- z for an in-plane acquisition, none at all for a
-    projection.
+    Only z is accepted for in-plane or stack readouts; projections accept
+    none. Return None when no rephaser is supplied.
     """
     if gz_reph is None:
         return None
@@ -1145,11 +920,9 @@ def _accept_rephaser(gz_reph, module, occupied):
 
 
 def _partition_encode(axis, fov_z, matrix_z, owner, system):
-    """Partition encode and its rewinder, or a refusal.
+    """Return a stack's partition encode and rewinder.
 
-    Only a stack has an axis to encode on. A readout without one that is handed
-    ``fov_z`` anyway has been mistaken for a stack, and quietly dropping the
-    argument would leave a 2D acquisition wearing a 3D protocol.
+    Reject partition arguments for non-stack readouts.
     """
     if axis is None:
         if fov_z is not None or matrix_z is not None:
@@ -1169,24 +942,14 @@ def _armed(trigger):
 
 
 def _at(events, index):
-    """Arm's entry of a per-arm list, or the shared event."""
     return events[index] if isinstance(events, list) else events
 
 
 def _share_time_grid(system, events):
-    """Re-emit a bracket's two halves on one set of vertex times.
+    """Put each bracket's x/y events on the union of their vertex times.
 
-    A prewinder and a rewinder are solved one axis at a time, so the x and y
-    halves come back with different breakpoints and different lengths. Played
-    as they are that is harmless -- each axis ends where it should. Under a
-    rotation it is not: resolving the extension mixes the two axes, and a
-    breakpoint one of them does not have becomes a step, which reads as a slew
-    violation in a waveform that never violated anything.
-
-    Both halves are therefore resampled onto the union of their times. The
-    padding is exact rather than approximate: an aligned bracket has every
-    half at zero on the side it does not reach, so a half that starts or ends
-    early is being extended with the zero it already held.
+    Pad shorter events with zero at the aligned edge. Shared timing preserves
+    the same piecewise-linear waveform under explicit or extension rotation.
     """
     present = [event for event in events if event is not None]
     if len(present) < 2:
@@ -1274,16 +1037,10 @@ def _resolution(trajectory: NonCartesianGradient) -> float:
 
 
 def _echo_offset_of(trajectory: NonCartesianGradient, raster: float) -> float:
-    """Time from the start of the acquisition block to its k = 0 crossing.
+    """Return the readout's nearest k=0 crossing time in seconds.
 
-    Read off the integrated gradient rather than assumed: a spiral crosses at
-    its first sample, an in-out spiral halfway through, and a rosette at every
-    petal.
-
-    Integrated against each event's own ``tt`` rather than against a raster
-    count, because the two are not the same thing. A solved waveform stores one
-    amplitude per raster, but an extended trapezoid stores only its vertices,
-    whose midpoint is nowhere near halfway through the readout.
+    Integrate using each event's stored times, which may be nonuniform
+    vertices rather than raster samples.
     """
     events = trajectory.gradients
     span = max(float(e.delay) + float(np.asarray(e.tt)[-1]) for e in events)

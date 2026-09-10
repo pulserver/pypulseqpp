@@ -1,10 +1,4 @@
-"""Every docstring example runs, against the installed package.
-
-The examples are the documentation, so one that has drifted is a broken one.
-They are collected from the package as imported rather than from the source
-tree, so this says the same thing about an editable checkout and about an
-installed wheel.
-"""
+"""Execute doctests from shipped modules, excluding merely importable workspace files."""
 
 import doctest
 import importlib
@@ -31,11 +25,7 @@ _OURS = (
 
 
 def _shipped(info) -> bool:
-    """Whether a name is the package's own, asked before importing it.
-
-    Before, because importing what is merely *reachable* runs it: the root's
-    `setup.py` would walk as `pypulseqpp.setup` and call `setup()`.
-    """
+    """Check file ownership before import; editable paths can expose executable setup.py."""
     spec = info.module_finder.find_spec(info.name)
     origin = getattr(spec, "origin", None)
     if origin is None:

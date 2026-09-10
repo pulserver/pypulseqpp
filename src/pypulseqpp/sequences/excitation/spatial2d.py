@@ -12,21 +12,11 @@ from ._base import RfModule, rf_reference
 
 
 class SpatialSelective2DExcitation(RfModule):
-    """A pulse that excites a column rather than a slice.
+    """Small-tip spiral excitation selective in two dimensions.
 
-    Two gradients run during the pulse instead of one, tracing a spiral through
-    excitation k-space, and the envelope is the desired profile's Fourier
-    transform sampled along that path. So the excited region is a disc in plane
-    and unbounded through it -- a pencil beam, which is what an inner-volume or
-    navigator acquisition wants.
-
-    The spiral ends where it started, so the pulse refocuses itself: there is
-    no rephaser to place and ``gradients`` is the whole gradient story.
-
-    What a 2D pulse cannot escape is that the profile **repeats**. The
-    trajectory samples excitation k-space at a finite pitch, so a second
-    excited disc sits one ``fov`` away along each axis; ``fov`` has to cover
-    the object, not just the spot.
+    The selected disc extends along the unencoded axis. Its periodic replicas
+    are set by the excitation FOV, which should cover the object. Each arm
+    is retraced with RF off; the closed trajectory needs no separate rephaser.
 
     Parameters
     ----------
@@ -52,7 +42,7 @@ class SpatialSelective2DExcitation(RfModule):
     axes : sequence of str, optional
         The two gradient channels the trajectory runs on.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
     ----------
@@ -85,28 +75,8 @@ class SpatialSelective2DExcitation(RfModule):
     >>> len(pencil.blocks), [gradient.channel for gradient in pencil.gradients]
     (1, ['x', 'y'])
 
-    The spiral closes on itself, so nothing has to unwind it:
-
     >>> pencil.self_refocused, pencil.rephasers
     (True, ())
-
-    The subpulses and the excitation k-space they deposit energy along. A
-    pulse played under moving gradients tips the transform of what is laid
-    down on this path, so the path is the design:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import excitation_kspace
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation_kspace(
-           design.SpatialSelective2DExcitation(
-               system, 30.0, fov=0.256, matrix=16, selective_size=0.04
-           ),
-           title="2D spiral pencil beam, 16 turns",
-       )
     """
 
     def init_module(

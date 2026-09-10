@@ -1,11 +1,4 @@
-"""The sequence a design script builds, over the compiled core.
-
-What a caller holds is this; what does the work is a `pypulseqpp._ext`
-sequence underneath. The methods here are the ones a design loop and a
-writer need, and each is a single call into the core rather than a loop in
-Python: `add_block` unpacks its events and registers them inside C++, and
-reading and writing are compiled passes.
-"""
+"""Pulseq sequence construction, I/O and analysis over the compiled core."""
 
 from __future__ import annotations
 
@@ -45,12 +38,7 @@ _UPSTREAM_BLOCK_WIDTH = 7
 
 
 class _BlockDurations(MutableMapping):
-    """Every block's duration in seconds, keyed by 1-based block index.
-
-    The shape the toolboxes hand back, over the block table the core holds:
-    reading one reads the table, writing one writes it. It is a view rather
-    than a copy, so it reflects the sequence as it stands.
-    """
+    """Mutable duration mapping in seconds, keyed by 1-based block index."""
 
     __slots__ = ("_native",)
 
@@ -81,21 +69,18 @@ class _BlockDurations(MutableMapping):
 
 
 class Sequence:
-    """A Pulseq sequence: event libraries, a block table, and definitions."""
+    """A Pulseq sequence containing events, blocks and definitions.
+
+    Parameters
+    ----------
+    system : pypulseq.Opts, optional
+        System limits and rasters. Defaults to the shared system; rasters
+        are recorded in the native sequence.
+    use_block_cache : bool, default True
+        Compatibility flag, retained but not used to cache decoded blocks.
+    """
 
     def __init__(self, system=None, use_block_cache: bool = True) -> None:
-        """Start an empty sequence.
-
-        Parameters
-        ----------
-        system : pypulseq.Opts, optional
-            The system the sequence is designed against. Its rasters are
-            recorded, because a block's duration is stored as a count of
-            them and a reader cannot recover the seconds without them.
-        use_block_cache : bool, default True
-            Accepted and remembered; nothing here caches. See the no-ops at
-            the end of this class.
-        """
         self._native = _cxx.Sequence()
         self.system = system
         self._use_block_cache = use_block_cache
@@ -148,7 +133,6 @@ class Sequence:
     # block on the design loop's hot path.
 
     def _forget_if_changed(self) -> None:
-        """Drop what was worked out if the sequence has changed since."""
         edits = self._native.edits()
         if edits != self._analysed_at:
             self._analysed_at = edits
@@ -195,54 +179,27 @@ class Sequence:
         self._native.set_block_events(index, *events)
 
     def get_block(self, index: int) -> SimpleNamespace:
-        """Return the block at ``index``, 1-based, as the events it plays.
-
-        Parameters
-        ----------
-        index : int
-            Which block, counting from 1.
+        """Decode a block by its 1-based index.
 
         Returns
         -------
         SimpleNamespace
-            ``block_duration`` and one field per event: ``rf``, ``gx``,
-            ``gy``, ``gz``, ``adc``, ``soft_delay`` and ``rotation``, each
-            None when the block has none, and ``trig`` and ``label`` as
-            lists when it has any.
+            Stored block duration and compiled events. Missing scalar events
+            are None; trigger and label chains are lists.
 
         Notes
         -----
-        The events are the compiled kind, so they read in Python the way a
-        factory's do -- ``rf.signal``, ``gx.waveform``, ``gx.area`` -- and go
-        back into `add_block` or `set_block` on the fast path. They carry the
-        shapes they were stored under, so reading a block out and putting it
-        back registers no shape twice.
-
-        The whole block can be passed on as it stands: `add_block` and
-        `set_block` take one, which is how a block moves from one sequence to
-        another with its duration intact.
+        The returned block can be passed to add_block or set_block, including
+        its stored duration. Editing decoded events does not edit the stored
+        block; use set_block to replace it.
         """
         return SimpleNamespace(**self._native.decode_block(index))
 
     def get_raw_block_content_IDs(self, index: int) -> SimpleNamespace:
-        """Return the block at ``index`` as the ids its events are stored under.
+        """Return stored event IDs for a 1-based block index without decoding shapes.
 
-        Parameters
-        ----------
-        index : int
-            Which block, counting from 1.
-
-        Returns
-        -------
-        SimpleNamespace
-            ``block_duration`` and the library id of each event, 0 where the
-            block has none. ``ext`` is the extension chain, as a 2-by-n array
-            of type and reference ids.
-
-        Notes
-        -----
-        Nothing is decompressed: this is the row of the block table, which is
-        what a caller comparing blocks or counting distinct events wants.
+        Missing events have ID zero. The extension chain is a ``(2, n)``
+        array of type IDs and reference IDs; block duration is in seconds.
         """
         row = self._native.get_block(index)
         return SimpleNamespace(
@@ -257,21 +214,14 @@ class Sequence:
 
     @property
     def block_durations(self) -> _BlockDurations:
-        """Every block's duration in seconds, keyed by 1-based block index.
+        """Mutable duration mapping in seconds, keyed by 1-based block index.
 
-        Writing one sets it: ``seq.block_durations[3] = 5e-3`` moves that
-        block's duration in the table underneath.
-
-        Notes
-        -----
-        The whole column, for a caller reading rather than editing, is
-        ``seq._native.block_durations()`` -- an array pointing straight into
-        the block table, which is what makes a million-row table free to sum.
+        Assigning an entry changes the stored block duration.
         """
         return _BlockDurations(self._native)
 
     def duration(self) -> tuple[float, int, np.ndarray]:
-        """Return how long the sequence plays for, and what it is made of.
+        """Return total duration, block count and per-event block counts.
 
         Returns
         -------
@@ -283,12 +233,6 @@ class Sequence:
             How many blocks carry an event in each column of the block
             table, in upstream's column order: delay, RF, the three
             gradient axes, ADC, extension.
-
-        Notes
-        -----
-        Both the sum and the counts are one compiled pass over the block
-        table, so asking this of a million-block scan reads the table twice
-        and allocates nothing the size of it.
         """
         native = self._native
         counts = np.zeros(_UPSTREAM_BLOCK_WIDTH)
@@ -299,19 +243,10 @@ class Sequence:
 
     @property
     def block_events(self) -> dict:
-        """Return every block's event ids, keyed by 1-based block index.
+        """Return event IDs keyed by 1-based block index.
 
-        Each value is a row in upstream's column order: delay, RF, the
-        three gradient axes, ADC, extension. Column 0 is upstream's delay
-        library, which Pulseq 1.5 does not have.
-
-        Notes
-        -----
-        This builds a dictionary the length of the sequence, which is what
-        the toolboxes hand back and what a script inspecting a sequence
-        expects. It is for looking at a sequence, not for walking one: the
-        block table itself is `block_durations` and the core's own view,
-        which cost nothing to read a column out of.
+        Rows contain delay, RF, gx, gy, gz, ADC and extension IDs. The delay
+        column is zero for Pulseq 1.5. This allocates a dictionary for all blocks.
         """
         rows = np.zeros(
             (self._native.num_blocks(), _UPSTREAM_BLOCK_WIDTH), dtype=np.int32
@@ -343,7 +278,7 @@ class Sequence:
     # -- timing --------------------------------------------------------
 
     def check_timing(self, print_errors: bool = False):
-        """Return whether the sequence is playable, and every problem found.
+        """Check timing, gradient continuity and the stored total duration.
 
         Parameters
         ----------
@@ -356,6 +291,10 @@ class Sequence:
             True when nothing was found.
         error_report : list of SimpleNamespace
             One entry per problem, in block order.
+
+        Notes
+        -----
+        May record TotalDuration. Does not check all scanner safety constraints.
         """
         is_ok, error_report = _check_timing(self)
         if not is_ok and print_errors:
@@ -480,11 +419,7 @@ class Sequence:
 
     @property
     def num_blocks(self) -> int:
-        """How many blocks the sequence has.
-
-        ``len(seq)`` answers the same question and is what a Python caller
-        reaches for; this is what a script reads when it is saying so.
-        """
+        """Number of blocks; equivalent to ``len(seq)``."""
         return self._native.num_blocks()
 
     def evaluate_labels(
@@ -494,7 +429,7 @@ class Sequence:
         time_range=None,
         block_range=None,
     ) -> dict:
-        """Return what each label the sequence uses is set to.
+        """Evaluate running label values in block order.
 
         Parameters
         ----------
@@ -514,17 +449,14 @@ class Sequence:
         Returns
         -------
         dict
-            One entry per label used, name to value. With ``evolution``, the
-            values are arrays -- one entry per point recorded; without it,
-            each is the single number the label finishes at.
+            Label names mapped to their recorded values. Values are arrays if
+            any label has more than one recorded value; otherwise they are
+            scalars, with zero for an empty record.
 
         Notes
         -----
-        A label is running state: set or incremented where a block says so,
-        and in force until another block says otherwise. So this is a walk
-        over the blocks in order -- but over the extension chains rather than
-        over decoded blocks, and a block carrying no label costs a column
-        read, which is most of them.
+        Labels retain their values until set or incremented. For a partial range,
+        ``init`` supplies the incoming state; preceding blocks are not evaluated.
         """
         first, last = self._range_for(time_range, block_range)
         found = _cxx.evaluate_labels(
@@ -584,11 +516,14 @@ class Sequence:
         )
 
     def waveforms(self, append_RF: bool = False, time_range=None, block_range=None):
-        """Return the gradient waveforms alone, one 2-by-n array per axis."""
+        """Return gradient corners as time (s) over amplitude (Hz/m), per axis.
+
+        ``append_RF=True`` appends a complex RF channel in Hz.
+        """
         return _waveforms(self, append_RF, time_range, block_range)
 
     def adc_times(self, time_range=None):
-        """Return when every ADC sample is taken, and each window's offsets."""
+        """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad)."""
         return _adc_times(self, time_range)
 
     def rf_times(self, time_range=None, *, compat: bool = True):
@@ -602,18 +537,14 @@ class Sequence:
     def calculate_kspace(
         self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None
     ):
-        """Return where the sequence goes in k-space, and where it samples.
+        """Integrate physical-axis gradients with excitation resets and refocusing.
 
-        A gradient moves the spins' phase, and the phase they have
-        accumulated is where the sequence has got to in k-space -- so the
-        trajectory is the integral of the gradient waveforms. An excitation
-        starts the phase over and a refocusing turns it around, which is what
-        makes a spin echo come back.
+        Block rotations are applied. K-space coordinates are in 1/m.
 
         Parameters
         ----------
         trajectory_delay : float or sequence of float, default 0
-            How late each axis plays what it was asked to, in seconds.
+            Per-axis timing correction (s); positive values advance the gradient.
         gradient_offset : float or sequence of float, default 0
             A background gradient per axis, in Hz/m.
         block_range : sequence of int, optional
@@ -624,11 +555,11 @@ class Sequence:
         k_traj_adc : np.ndarray
             3-by-n: where each ADC sample sits in k-space, in 1/m.
         k_traj : np.ndarray
-            The whole trajectory, at every time it changes direction.
+            Full trajectory in 1/m, sampled through ramps and at event times.
         t_excitation : np.ndarray
         t_refocusing : np.ndarray
         t_adc : np.ndarray
-            When the pulses act and the samples are taken.
+            RF-centre and ADC times in seconds relative to the selected range.
         """
         return _calculate_kspace(self, trajectory_delay, gradient_offset, block_range)
 
@@ -642,16 +573,10 @@ class Sequence:
         block_range=None,
         samples_only: bool = False,
     ):
-        """Return everything following the trajectory produces, by name.
+        """Return detailed trajectory results, including times and slice positions.
 
-        The five values `calculate_kspace` hands back are what upstream
-        reports; this is all ten the reference toolbox does -- the
-        trajectory's own time base, the slice positions and the gradients as
-        splines besides -- for the analysis here that wants them.
-
-        With ``samples_only`` it answers where the samples were taken and
-        leaves the trajectory between them unbuilt, which is most of the
-        work and no part of the answer.
+        With ``samples_only=True``, omit the intermediate trajectory arrays
+        without changing ADC sample positions.
         """
         return _kspace_detail(
             self, trajectory_delay, gradient_offset, block_range, samples_only
@@ -664,7 +589,12 @@ class Sequence:
         time_range=None,
         block_range=None,
     ):
-        """Return each gradient axis as a piecewise polynomial."""
+        """Return physical-axis gradient splines in Hz/m over seconds.
+
+        Positive trajectory_delay advances the gradients. A scalar delay or
+        offset applies to all axes. Inactive axes with no offset return None.
+        Time and block ranges are mutually exclusive.
+        """
         return _get_gradients(
             self, trajectory_delay, gradient_offset, time_range, block_range
         )
@@ -672,55 +602,30 @@ class Sequence:
     # -- what the sequence is ------------------------------------------
 
     def test_report(self) -> str:
-        """Return what the sequence is, as the report a person reads."""
+        """Return a formatted sequence timing, encoding and gradient report."""
         return _report_text(_report_data(self))
 
     def test_report_dict(self) -> dict:
-        """Return what the sequence is, as named statistics.
-
-        See :func:`pypulseqpp._report.report_data`.
-        """
+        """Return timing, encoding and gradient statistics; see report_data."""
         return _report_data(self)
 
     # -- the repeating unit --------------------------------------------
 
     def _detect_tr(self) -> tuple[int, int]:
-        """Return the repeating unit of the scan, in blocks.
-
-        A scan is a handful of things played over and over with different
-        numbers in them, and the stream of block definition ids is where that
-        shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase
-        encode is doing. This is the period of that stream and where it
-        starts, so the blocks before the start are the prologue -- dummy
-        shots, preparation, a noise scan -- and everything from there on is
-        the scan repeating.
+        """Detect the period of the block-definition stream.
 
         Returns
         -------
         size : int
-            How many blocks one repetition lasts, or 0 if the sequence does
-            not repeat.
+            Blocks per repetition, or zero if no repetition is detected.
         start : int
-            The 1-based index of the first block of the first full
-            repetition.
+            1-based start of the first full repetition; earlier blocks form
+            the prologue.
 
         Notes
         -----
-        Private because neither toolbox has it: this is what the analysis
-        here reaches for, not part of the API a design script is written
-        against.
-
-        The answer is recorded as the ``TRsize`` definition and read from
-        there next time, so a sequence written and read back does not have to
-        work it out again. ``TRsize`` is this package's own name, not one the
-        Pulseq format defines; nothing writes it unless this is called.
-
-        The core remembers it too, and forgets on anything that could change
-        it: adding or rewriting a block, and collapsing duplicates, which
-        renumbers the very ids the repeat is read off. Either way the next
-        call works it out again. That is the same bargain
-        `remove_duplicates` makes -- do the pass once, skip it until
-        something invalidates it.
+        Records ``TRsize`` in sequence definitions. Structural edits invalidate
+        the native detection cache.
         """
         recorded = self.get_definition("TRsize")
         if recorded != "":
@@ -911,7 +816,6 @@ class Sequence:
     def _register(
         self, event, kinds: tuple[str, ...], called: str, wanted: str
     ) -> dict:
-        """Register ``event``, insisting it is one of ``kinds``."""
         stored = _cxx.register_event(self._native, event)
         if stored["kind"] not in kinds:
             raise ValueError(f"{called}() takes {wanted}, not a {stored['kind']} event")
@@ -997,7 +901,10 @@ class Sequence:
         check_timing: bool = False,
         v141_compat: bool = False,
     ) -> str | None:
-        """Write a Pulseq `.seq` file.
+        """Write Pulseq text and record its signature metadata.
+
+        With ``v141_compat=True``, metadata is recorded on the written source
+        (the deduplicated copy when requested).
 
         Parameters
         ----------
@@ -1006,8 +913,8 @@ class Sequence:
         create_signature : bool, default True
             Sign the file, so a reader can tell it has not been edited.
         remove_duplicates : bool, default True
-            Collapse identical library rows first. The sequence held here is
-            left as it is; what is written is the collapsed copy.
+            Collapse identical library rows first. Write a collapsed
+            copy, leaving this sequence's event libraries unchanged.
         check_timing : bool, default False
             Judge the timing first, and warn if anything is wrong.
         v141_compat : bool, default False
@@ -1037,7 +944,7 @@ class Sequence:
         return self._note_signature(written, "text")
 
     def write_binary(self, name, create_signature: bool = True) -> str | None:
-        """Write the binary form, which a scanner parses faster.
+        """Write Pulseq binary, with float32 shape samples.
 
         Parameters
         ----------
@@ -1059,7 +966,12 @@ class Sequence:
     def write_v141(
         self, name, create_signature: bool = True, gamma=42576000.0, field=1.5
     ) -> str | None:
-        """Write a Pulseq 1.4.1 file, for an interpreter that predates 1.5."""
+        """Write Pulseq 1.4.1 text, returning its MD5 signature or None.
+
+        ``gamma`` is in Hz/T and ``field`` in T; together they convert ppm
+        offsets to absolute offsets. Soft delays are omitted with a warning.
+        Rotation and RF-shim extensions raise RuntimeError.
+        """
         written = _cxx.write_text_v141(self._native, create_signature, gamma, field)
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
@@ -1251,13 +1163,7 @@ class Sequence:
 
     # -- the scanner ---------------------------------------------------
 
-    #: Upstream's own, run against this sequence.
-    #:
-    #: It finds the scanner and hands the sequence to whatever that scanner's
-    #: installer wants, and the only thing an installer asks of a sequence is
-    #: `write(filename)` -- which means here what it means there. So the
-    #: method is taken rather than rewritten, and a scanner PyPulseq learns to
-    #: talk to is one this talks to as well.
+    #: Upstream scanner installation, using this sequence's write method.
     install = _upstream.Sequence.install
 
     # -- collapsing ----------------------------------------------------
@@ -1281,11 +1187,10 @@ class Sequence:
         return target
 
     def _copy(self) -> Sequence:
-        """Return a sequence holding everything this one holds.
+        """Copy through binary serialisation, sharing the system object.
 
-        The core has no copy of its own, so the copy goes through the binary
-        form: it carries every library, the block table and the definitions,
-        and reading it back is a compiled pass.
+        Waveform samples have binary float32 precision. Cache flags and TRID
+        names are copied; Python analysis caches are not.
         """
         other = Sequence(self.system)
         other._native = _cxx.read(_cxx.write_binary(self._native), False)
@@ -1309,16 +1214,12 @@ class Sequence:
 
     # -- no-ops --------------------------------------------------------
     #
-    # The toolboxes cache decompressed blocks and registration results in
-    # Python, and a design script turns that off or clears it to bound its
-    # memory. Nothing here caches: a block is decoded in C++ on the way out
-    # and an event carries the ids it was registered under. So the flags are
-    # remembered and never read, the sizes are zero, and clearing is
-    # nothing to do.
+    # Compatibility flags do not control native shape registrations or the
+    # revision-guarded analysis caches. Decoded blocks are not cached.
 
     @property
     def use_block_cache(self) -> bool:
-        """What was asked for. Nothing here caches decompressed blocks."""
+        """Compatibility flag; decoded blocks are not cached."""
         return self._use_block_cache
 
     @use_block_cache.setter
@@ -1327,7 +1228,7 @@ class Sequence:
 
     @property
     def use_event_cache(self) -> bool:
-        """What was asked for. Nothing here caches registration results."""
+        """Compatibility flag; registration results are not cached in Python."""
         return self._use_event_cache
 
     @use_event_cache.setter
@@ -1345,10 +1246,10 @@ class Sequence:
         return 0
 
     def clear_block_cache(self) -> None:
-        """Nothing to clear."""
+        """Compatibility no-op."""
 
     def clear_event_cache(self) -> None:
-        """Nothing to clear."""
+        """Compatibility no-op."""
 
     def clear_caches(self) -> None:
-        """Nothing to clear."""
+        """Compatibility no-op."""

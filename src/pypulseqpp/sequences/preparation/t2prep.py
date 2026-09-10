@@ -15,28 +15,11 @@ _FINAL_TIPS = ("up", "down")
 
 
 class T2Preparation(RfModule):
-    """A 90 - 180 - 90 sandwich that leaves T2 weighting on the z axis.
+    """Adiabatic T2 preparation with tip-down, refocusing and storage pulses.
 
-    Magnetization is tipped into the transverse plane, left to decay for the
-    preparation echo time, and put back on ``z``. What the readout then sees is
-    already T2-weighted, whatever its own echo time is -- which is the point:
-    the contrast is decoupled from the acquisition, so a bSSFP or a short-TE
-    gradient echo can carry T2 contrast it could never generate itself.
-
-    Every pulse is adiabatic and non-selective. The 90s are half passages, run
-    forwards to tip down and time-reversed to store -- the mirror is what
-    makes the storage undo the excitation rather than repeat it. The 180s in
-    the middle are full passages.
-
-    **Refocusing pulses come in pairs, and the count must be even.** An
-    adiabatic full passage inverts z cleanly but leaves transverse
-    magnetization with a phase that depends on transmit amplitude, so it is
-    not a refocusing pulse on its own; a second one undoes what the first did.
-    Simulated over 0.7 to 1.3 of nominal B1, a pair restores 0.80 to 1.00 of
-    the magnetization while a single pulse ranges from -0.69 to +0.98. An odd
-    count is refused rather than corrected: the leftover phase is not half a
-    turn -- it measures about 202 degrees for these pulses -- so there is no
-    phase to hard-code that would stay right for another duration or sweep.
+    Refocusing pulses must occur in pairs to cancel their B1-dependent phase.
+    The final half passage is time-reversed and conjugated relative to the
+    first; final_tip selects storage on +z or -z.
 
     Parameters
     ----------
@@ -65,8 +48,7 @@ class T2Preparation(RfModule):
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
     labels : sequence of str, optional
-        Counters emitted on the first pulse's block. A preparation is where a
-        shot begins, so it is the natural place to say which shot this is.
+        Counters emitted on the first pulse's block.
 
     Attributes
     ----------
@@ -101,30 +83,6 @@ class T2Preparation(RfModule):
     >>> prep = design.T2Preparation(pp.Opts(), 50e-3)
     >>> round(prep.echo_time * 1e3, 2)
     49.99
-
-    Sweep the preparation echo time to fit T2::
-
-        for te in (0.0, 30e-3, 60e-3):
-            prep = design.T2Preparation(system, te)
-            for block in prep.blocks:
-                seq.add_block(*block)
-
-    Tipped down, refocused twice, tipped back: over the band the refocusing
-    covers, the whole module returns the magnetisation to z, and what it lost
-    on the way is T2 weighting:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.T2Preparation(pp.Opts(), 40e-3).plot_rf(
-           title="T2 preparation, TE 40 ms",
-           whole=True,
-           extent=600,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -240,16 +198,10 @@ class T2Preparation(RfModule):
 
 
 class T1T2Preparation(T2Preparation):
-    """T2 preparation that stores on ``-z``, so T1 recovery starts too.
+    """T2 preparation with storage on -z to initiate T1 recovery.
 
-    The same sandwich as :class:`T2Preparation` with the storing pulse turned
-    over. The magnetization that lands on ``-z`` carries the T2 weighting the
-    echo time gave it *and* then recovers through the null, so one module
-    produces joint T1/T2 contrast and no separate inversion is needed. The
-    inversion time is the gap to the readout, which belongs to the loop.
-
-    Takes everything :class:`T2Preparation` does except ``final_tip``, which is
-    what this class fixes.
+    Accepts T2Preparation parameters except final_tip, which is fixed.
+    The acquisition loop supplies the recovery interval.
 
     Examples
     --------
@@ -258,22 +210,6 @@ class T1T2Preparation(T2Preparation):
     >>> prep = design.T1T2Preparation(pp.Opts(), 50e-3)
     >>> prep.final_tip
     'down'
-
-    The same module tipping down instead of up, so the readout that follows
-    sees an inversion recovering as well as a T2 decay:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.T1T2Preparation(pp.Opts(), 40e-3).plot_rf(
-           title="T1-T2 preparation, TE 40 ms",
-           whole=True,
-           extent=600,
-           plot_now=False,
-       )
     """
 
     def init_module(self, system: pp.Opts, echo_time_s: float, **kwargs) -> None:

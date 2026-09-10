@@ -1,16 +1,4 @@
-"""Writing a file a scanner from before 1.5 can read.
-
-1.5 added an RF pulse's centre and use, an arbitrary gradient's first and
-last sample, the ppm offsets, rotations, RF shims and soft delays. Writing
-1.4.1 means putting each of those back where it came from or leaving it out,
-and the tests of record are the reference toolbox's own bytes for the same
-sequence.
-
-Two of them cannot be left out quietly. A rotation turns every gradient it
-applies to and a shim changes what each transmit channel plays, so a file
-without them is a different scan rather than a coarser description of the
-same one -- the reference toolbox drops both silently, and this refuses.
-"""
+"""Pulseq 1.4.1 output parity and rejection of unrepresentable extensions."""
 
 import numpy as np
 import pytest

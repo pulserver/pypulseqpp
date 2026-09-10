@@ -1,16 +1,4 @@
-"""A block read back out is the events it plays, and they go straight back in.
-
-`get_block` answers with the compiled event types rather than with
-namespaces, which makes one object serve two purposes. In Python it reads the
-way an event from a factory reads -- `rf.signal`, `gx.waveform`, `gx.area` --
-because those are computed from the same fields either way. Handed to
-`add_block` or `set_block` it takes the fast path, and it carries the shapes
-it was stored under, so a sequence read out block by block and put back
-registers no waveform twice and writes the same file.
-
-What is held here is both halves: every field agreeing with the toolbox's own
-decoded block, and the round trip leaving the file alone.
-"""
+"""Decoded-event parity and duration-preserving block replay."""
 
 from types import SimpleNamespace
 
@@ -139,7 +127,6 @@ def decoded(core, index):
 def test_reading_every_block_out_and_back_writes_the_same_file(
     reference_name, build_reference
 ):
-    """The round trip the compiled events exist for."""
     if reference_name in test_parity.NUMBERED_AROUND_A_DROPPED_BLOCK:
         pytest.skip("the reference leaves a gap in the block numbering")
 

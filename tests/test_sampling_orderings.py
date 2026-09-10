@@ -1,11 +1,4 @@
-"""Echo-train orderings: the target-echo, padding, and coverage contract.
-
-The Cartesian echo-train plugins deal their views into trains with the
-builtin orderings rather than by hand, so these pin the properties they lean
-on: every ordering covers its views once, ``center_echo`` lands the k-space
-centre on the requested echo (folding the radius away from it for the
-adaptive one), and ``pad`` gives every train the same ``None``-filled length.
-"""
+"""Echo-train coverage, zero-based centre echoes and None padding."""
 
 from __future__ import annotations
 

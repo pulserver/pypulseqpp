@@ -1,10 +1,4 @@
-"""Off-resonance saturation: MT, inhomogeneous MT, and the Bloch-Siegert pulse.
-
-Three modules that share one shape -- a strong pulse placed away from water,
-played a few times, and (usually) spoiled. What separates them is where the
-pulse sits in frequency and what envelope carries it, so that is all the
-subclasses do.
-"""
+"""Off-resonance MT, ihMT and Bloch-Siegert preparations."""
 
 from __future__ import annotations
 
@@ -26,17 +20,7 @@ from ._common import spoiler_gradients
 
 
 class OffResonanceSaturation(RfModule):
-    """A train of off-resonance pulses, optionally spoiled.
-
-    The layout every off-resonance preparation has: the same pulse played
-    ``n_pulses`` times back to back, then a spoiler if one was asked for. One
-    event, replayed, so it publishes as one ``rf_prep`` however long the train
-    is.
-
-    Subclass this to add a family: design the pulse and hand it over. What
-    makes each family is the envelope and the offset -- an SLR passband for
-    magnetization transfer, a Fermi plateau for Bloch-Siegert -- and neither
-    changes anything below.
+    """Repeat one off-resonance pulse, followed by an optional three-axis spoiler.
 
     Parameters
     ----------
@@ -71,8 +55,6 @@ class OffResonanceSaturation(RfModule):
 
     Examples
     --------
-    The pulse is the family's; the train and the spoiler are this class's.
-
     >>> import numpy as np
     >>> import pypulseqpp.sequences as design
     >>> import pypulseqpp as pp
@@ -85,30 +67,8 @@ class OffResonanceSaturation(RfModule):
     >>> len(prep.blocks)
     4
 
-    One event replayed, so three pulses cost one waveform:
-
     >>> prep.blocks[0] == prep.blocks[1] == prep.blocks[2]
     True
-
-    Three pulses back to back, and what they leave along z:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts()
-       pulse = pp.make_gauss_pulse(
-           flip_angle=np.deg2rad(500), duration=8e-3, freq_offset=-1500.0,
-           use="saturation", system=system,
-       )
-       design.OffResonanceSaturation(system, pulse, n_pulses=3).plot_rf(
-           title="three saturation pulses, 1.5 kHz below resonance",
-           whole=True,
-           extent=3000,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -152,14 +112,7 @@ def saturation_pulse(
     freq_offset_hz: float,
     time_bw_product: float,
 ) -> Any:
-    """SLR envelope both MT families saturate with.
-
-    SLR rather than a Gaussian: what an MT experiment is trying to control is
-    *where in frequency* the power lands, and an SLR design states the
-    passband, the stopband and the ripple between them instead of leaving them
-    to the tails of a window function. The pulse is non-selective in space --
-    there is no gradient -- so its only profile is the spectral one.
-    """
+    """Design the non-spatially-selective SLR envelope used by MT preparations."""
     return pp.make_slr_pulse(
         np.deg2rad(flip_angle_deg),
         duration=duration_s,
@@ -173,17 +126,7 @@ def saturation_pulse(
 
 
 class MtPreparation(OffResonanceSaturation):
-    """Off-resonance saturation of the bound pool, then a spoiler.
-
-    A long, high-flip pulse placed a kilohertz or two from water saturates the
-    broad macromolecular resonance without exciting free water directly. That
-    saturation transfers to water over the following milliseconds, and the
-    readout sees the reduced signal. The spoiler removes whatever transverse
-    magnetization the pulse did produce.
-
-    Compare an acquisition with this module against one without to get the MT
-    ratio; the module is played or not played, rather than scaled, because
-    scaling the envelope changes the saturation non-linearly.
+    """Off-resonance SLR saturation followed by an optional spoiler.
 
     Parameters
     ----------
@@ -220,21 +163,6 @@ class MtPreparation(OffResonanceSaturation):
     >>> mt = design.MtPreparation(pp.Opts())
     >>> len(mt.blocks), round(float(mt.rf_prep.freq_offset))
     (2, -1500)
-
-    One band, off resonance, and the free pool left alone at zero:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.MtPreparation(pp.Opts()).plot_rf(
-           title="MT saturation, 1.5 kHz below resonance",
-           whole=True,
-           extent=3000,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -262,29 +190,11 @@ class MtPreparation(OffResonanceSaturation):
 
 
 class IhMtPreparation(OffResonanceSaturation):
-    """Saturation at both offsets at once, for the inhomogeneous MT difference.
+    """Simultaneous dual-offset saturation for ihMT measurements.
 
-    The bound pool has a component whose lineshape is inhomogeneously
-    broadened, and saturating one side of water leaves it partly unsaturated
-    while saturating both sides at once does not. Acquiring both and taking
-    the difference isolates that component:
-    ``ihMT = (MT+ + MT-) / 2 - MT_dual``, where the two single-offset arms are
-    :class:`MtPreparation` at plus and minus ``freq_offset_hz`` and this module
-    is the dual-offset one.
-
-    Dual-offset means *simultaneously*, not alternately, so the pulse is built
-    by modulating one envelope into two bands with
-    :func:`~pypulseqpp.make_sms_pulse` -- the same wrapper that turns
-    one slice into several -- and shifting the pair so neither band lands on
-    water.
-
-    **The two arms are matched on power, not on amplitude.** Deposited power
-    goes as the integral of the squared envelope, and two bands each at
-    ``A / sqrt(2)`` integrate to the same as one band at ``A`` -- so that is
-    the scaling used, and what the subtraction removes is the inhomogeneous
-    saturation rather than a power difference. It costs peak amplitude: the
-    two bands add in phase at the centre of the pulse, so the dual pulse peaks
-    about 1.41 times higher than the single-offset one at the same setting.
+    Each band receives 1/sqrt(2) of the matched single-offset amplitude.
+    Compare against positive- and negative-offset MtPreparation acquisitions
+    at matched deposited power.
 
     Parameters
     ----------
@@ -323,22 +233,6 @@ class IhMtPreparation(OffResonanceSaturation):
     >>> ihmt = design.IhMtPreparation(pp.Opts())
     >>> ihmt.band_offsets_hz.tolist()
     [-1500.0, 1500.0]
-
-    Both bands at once, which is the measurement: the same total power as one
-    band, delivered symmetrically:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.IhMtPreparation(pp.Opts()).plot_rf(
-           title="ihMT saturation, both sidebands",
-           whole=True,
-           extent=3000,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -374,24 +268,11 @@ class IhMtPreparation(OffResonanceSaturation):
 
 
 class BlochSiegertPreparation(OffResonanceSaturation):
-    """An off-resonance pulse that writes a B1-squared phase shift, and nothing else.
+    """Off-resonance Fermi pulse for Bloch-Siegert B1 mapping.
 
-    A strong pulse far from resonance barely tips anything, but it shifts the
-    water resonance by an amount proportional to the square of the transmit
-    amplitude. Acquiring one image with the pulse at ``+f`` and one at ``-f``
-    turns that shift into a phase difference, and the phase difference into a
-    B1 map. Nothing about the readout changes.
-
-    Two things follow from what the pulse is for. There is **no spoiler** --
-    the module runs between the excitation and the readout, and spoiling would
-    destroy the very signal that is meant to carry the phase. And the envelope
-    is a **Fermi** function: a flat top with smooth shoulders, which keeps the
-    time-integrated squared amplitude high (the shift is proportional to it)
-    while keeping the spectral tails away from water.
-
-    The calibration constants a reconstruction needs come back on the module:
-    ``kbs`` is the shift per unit squared Pulseq amplitude and
-    ``kbs_per_gauss2`` the same in the conventional rad/G^2.
+    By default, no spoiler is played, preserving transverse phase between
+    excitation and readout. Calibration constants describe phase per squared
+    RF amplitude.
 
     Parameters
     ----------
@@ -440,22 +321,6 @@ class BlochSiegertPreparation(OffResonanceSaturation):
     >>> pulse = design.BlochSiegertPreparation(pp.Opts())
     >>> len(pulse.blocks), round(pulse.kbs_per_gauss2, 1)
     (1, 86.6)
-
-    The pulse sits far enough off resonance to shift the phase without
-    tipping much, and the residual dip is what "far enough" costs:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.BlochSiegertPreparation(pp.Opts()).plot_rf(
-           title="Bloch-Siegert probe, 4 kHz off resonance",
-           whole=True,
-           extent=(-1000, 8000),
-           plot_now=False,
-       )
     """
 
     def init_module(

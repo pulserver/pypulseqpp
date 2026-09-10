@@ -267,19 +267,10 @@ namespace pulseq
 
 
         /**
-         * A walk over one gradient's corners, taking what it has swept at
-         * each of a series of instants that only ever move forwards.
+         * Integrate gradient corners at nondecreasing sample times.
          *
-         * The instants an event asks about are its sample times, and those
-         * increase, so the corners are walked once for the whole event
-         * rather than from the first corner for every sample: a spiral of
-         * ten thousand samples over ten thousand corners costs their sum
-         * rather than their product.
-         *
-         * Both totals are carried, because both are wanted at the same
-         * instants: the area, which is where k stands, and its fractional
-         * part in turns, which is the phase -- taken per segment because the
-         * whole reaches thousands of turns and only the fraction survives.
+         * Carry both the area and fractional phase in turns; accumulate fractional
+         * phase per segment to avoid loss of precision over long acquisitions.
          */
         struct Sweep
         {
@@ -513,12 +504,9 @@ namespace pulseq
 
     bool advance_origin(char use, const double at[3], double origin[3])
     {
-        /* A pulse that records no use is read as an excitation, which is what
-         * `calculate_kspace` reads it as -- one sequence cannot have two
-         * stories about where its trajectory restarts. Before revision 1.5.0
-         * the format had nowhere to write a use, so a file older than that
-         * arrives with every pulse undefined; `detect_rf_use` is what fills
-         * them in from what each pulse does. */
+        /**
+         * Treat undefined RF use as excitation, matching calculate_kspace().
+         */
         if (use == 'e' || use == 'u')
         {
             /* A new trajectory: k is zero from here. */
@@ -797,18 +785,10 @@ namespace pulseq
         const int32_t* events = seq.block_events();
         Played played[3];
 
-        /* Which instant each readout is referenced to.
-         *
-         * A readout is one definition played many times, and not every
-         * playout passes the centre of k-space: a phase encode far out never
-         * comes near it, and its own nearest sample is wherever the readout
-         * axis happens to cross, which moves with the encode. The playout
-         * that does pass the centre is the sequence's echo, and it fixes the
-         * instant for every playout of that readout -- so the profile is one
-         * shape the whole table shares rather than one registered per shot,
-         * and every shot is referenced to the same place in the trajectory.
-         *
-         * Keyed by the readout: which block definition, digitised how.
+        /**
+         * Choose one ADC phase reference per block/ADC definition in this range.
+         * Use the playout nearest k-space zero, so repeated readouts share a phase
+         * profile even when their phase encodes differ.
          */
         std::map<std::pair<int32_t, int32_t>, std::pair<double, double>> pivot;
         if (scope == FovShiftScope::RfAndAdc)
@@ -975,19 +955,10 @@ namespace pulseq
                 const double opens = delay + 0.5 * dwell;
                 const double closes =
                     delay + (static_cast<double>(samples) - 0.5) * dwell;
-                /* Referenced to the echo, not to the middle of the window:
-                 * the two are the same instant only for a readout that is
-                 * symmetric about the centre of k-space, and a partial
-                 * Fourier or asymmetric-echo readout is not. Anchoring there
-                 * means the frequency and the phase alone place the centre of
-                 * k-space where the shift asks, and the profile carries only
-                 * the curvature around it.
-                 *
-                 * The instant is the readout's, worked out once in the pass
-                 * above from the playout that comes nearest the centre --
-                 * not this playout's own nearest sample, which for a phase
-                 * encode far out is wherever the readout axis crosses and
-                 * moves with the encode. */
+                /**
+                 * Reference ADC phase to the definition's nearest k-space approach,
+                 * not the window midpoint or this playout's nearest sample.
+                 */
                 const size_t at_block = static_cast<size_t>(index) - 1;
                 const std::vector<int32_t>& block_defs = seq.instance_definitions();
                 const std::vector<int32_t>& adc_defs = seq.instance_adc_definitions();
@@ -1020,16 +991,9 @@ namespace pulseq
 
                 if (!turning.empty())
                 {
-                    /* What a frequency and a phase cannot say. Under a
-                     * gradient that does not move this is identically zero,
-                     * which is why a Cartesian readout costs two numbers and
-                     * carries no shape at all.
-                     *
-                     * The reconstructor does not need this -- it has the
-                     * trajectory and applies the shift itself, which is what
-                     * lets it re-apply one without the sequence being touched
-                     * again. It is here because a file handed to another
-                     * toolbox has nobody to do that for it. */
+                    /**
+                     * Store residual phase curvature; constant gradients need no modulation shape.
+                     */
                     added.assign(static_cast<size_t>(samples), 0.0);
                     for (const Turning& axis : turning)
                     {
@@ -1053,16 +1017,10 @@ namespace pulseq
                 }
             }
 
-            /* What this block swept, added to the unbroken running total.
-             * Not where the trajectory stands -- `origin` is that, and it
-             * restarts at every excitation. A phase means something only as a
-             * difference, and the difference a readout is measured by is
-             * against its own excitation, so resetting between the two would
-             * reference them to different zeros and put a phase on the signal
-             * that is not the shift.
-             *
-             * Both are carried: the phase is counted from the one, and the
-             * echo a readout is referenced to is found on the other. */
+            /**
+             * Advance the unbroken phase integral separately from the RF-reset origin.
+             * RF and ADC must retain a common phase reference across excitation.
+             */
             double swept[3];
             advance_walk(seq, row, played, origin, swept);
             for (int axis = 0; axis < 3; ++axis)

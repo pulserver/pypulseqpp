@@ -1,16 +1,4 @@
-"""Setting a soft delay to the value a scan is to be run at.
-
-A soft delay says how a block's duration follows from a value the console
-supplies -- `duration = value / factor + offset` -- so a TE or a TR is chosen
-at the scanner rather than baked into the file. `apply_soft_delay` writes the
-chosen values into the block durations, and `get_default_soft_delay_values`
-reads back what each one stands for if nobody sets it.
-
-Ported from the reference toolbox's `test_soft_delay.py`, as plain functions.
-`apply_soft_delay` is upstream's own method run against this sequence: it
-reads the blocks and writes their durations, which mean the same thing here,
-so it is taken rather than rewritten.
-"""
+"""Soft-delay defaults, raster-rounded durations and reference-toolbox parity."""
 
 import numpy as np
 import pypulseq as upstream
@@ -107,7 +95,6 @@ def test_the_same_delay_moves_every_block_that_plays_it(system):
 
 
 def test_applying_a_delay_matches_upstream(system):
-    """Held against the toolbox whose method this is."""
 
     def build(module):
         sequence = module.Sequence(system=system)

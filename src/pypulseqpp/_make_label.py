@@ -1,16 +1,4 @@
-"""Label events, for a vocabulary that is not fixed in advance.
-
-Upstream's `make_label` checks the name against the list Pulseq defines and
-refuses anything else, so a sequence carrying its own bookkeeping -- a bin
-index, a preparation state -- has to abuse a counter that means something
-else. This one accepts any name.
-
-That costs nothing, because a label is named rather than numbered: the file
-writes the name, the reader reads it back, and a name the builtin table does
-not carry is listed in `[DEFINITIONS]` so its number means something too.
-Recognising it is the interpreter's business, and one it does not recognise
-it ignores.
-"""
+"""Pulseq label events, including custom names registered on first use."""
 
 from __future__ import annotations
 

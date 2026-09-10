@@ -1,16 +1,4 @@
-"""What a sequence plays, held against the toolbox that defines it.
-
-`waveforms_and_times` is the routine every analysis starts from: it turns a
-block table into one waveform per axis over the whole scan, on a time base
-shared by all of them, and says when each pulse acts and each sample is
-taken. Everything else here reads that -- k-space, the gradient maxima, the
-report, a plot -- so what it produces has to be what the toolbox produces,
-point for point.
-
-The comparison is the arrays, not a tolerance on some summary of them: a
-waveform that agrees in shape and disagrees in a corner is a different
-gradient.
-"""
+"""Waveform corners and RF/ADC timing compared with the reference toolbox."""
 
 import numpy as np
 import pytest

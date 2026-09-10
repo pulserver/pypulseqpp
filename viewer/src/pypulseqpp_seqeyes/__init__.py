@@ -1,12 +1,7 @@
-"""SeqEyes, the Pulseq sequence viewer, built to run on the Qt PySide6 installs.
+"""Launch the bundled SeqEyes executable using PySide6's Qt libraries.
 
-The program is ``bin/seqeyes`` beside this file. It is linked against Qt but
-carries none: it runs on the Qt that ``PySide6-Essentials`` installs, which
-this package depends on. `environment` says where that is, and `main` runs the
-program with it, which is what the ``pypulseqpp-seqeyes`` command does.
-
-This package is GPL-3.0-or-later. SeqEyes itself is BSD-3-Clause; QCustomPlot,
-the plotting widget compiled into it, is GPL.
+This separate viewer package is GPL-3.0-or-later; SeqEyes is BSD-3-Clause
+and its QCustomPlot component is GPL-3.0-or-later.
 """
 
 from __future__ import annotations
@@ -28,7 +23,6 @@ def executable() -> Path:
 
 
 def _qt() -> tuple[Path, Path]:
-    """Return where PySide6 keeps Qt's libraries, and its plugins."""
     spec = importlib.util.find_spec("PySide6")
     if spec is None or not spec.submodule_search_locations:
         raise ModuleNotFoundError(

@@ -1,54 +1,76 @@
 # pypulseqpp
 
-Fast drop-in PyPulseq replacement over a C++ sequence core, with hardware safety checks.
+Pulseq sequence design and analysis with a C++ core and a PyPulseq-compatible
+Python interface.
 
 [![Tests](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml/badge.svg)](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml)
 [![codecov](https://codecov.io/gh/pulserver/pypulseqpp/branch/main/graph/badge.svg)](https://codecov.io/gh/pulserver/pypulseqpp)
 [![PyPI](https://img.shields.io/pypi/v/pypulseqpp.svg)](https://pypi.org/project/pypulseqpp/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/pulserver/pypulseqpp/blob/main/LICENSE)
 
-pypulseqpp is the sequence core of [Pulserver](https://github.com/pulserver/pulserver),
-as a package of its own. The contract is [PyPulseq](https://github.com/imr-framework/pypulseq)'s
-API: a design script written against it runs here unchanged, with the same
-functions, the same signatures and the same `.seq` output. Underneath, events
-are compact compiled objects, `add_block` is one compiled call, and reading
-and writing, in text and in binary, are C++.
+pypulseqpp combines compiled event storage, block registration and analysis
+with [PyPulseq](https://github.com/imr-framework/pypulseq) event factories.
+It also provides RF and gradient design, sampling patterns, and composable
+excitation, preparation and readout modules.
 
 ## Scope
 
-The package owns what is true about a sequence in isolation:
+- Pulseq text and binary reading/writing, signatures and event deduplication.
+- Waveform expansion, k-space trajectories, sequence reports and structural
+  repetition detection.
+- Timing, gradient amplitude, slew and boundary-continuity checks.
+- Logical-frame FOV scaling, rotation and translation.
+- Pulse, trajectory and sampling design, with reusable sequence modules.
 
-- reading and writing `.seq`, text and binary, with event deduplication;
-- structural TR and base-block detection;
-- hardware checks: block timing against a system's rasters and dead times,
-  gradient amplitude, slew and continuity, PNS, mechanical resonance;
-- k-space trajectory and gradient-moment calculation;
-- sequence-level operations such as FOV transformation and tiling.
+This is an alpha package, not a complete replacement for every PyPulseq
+feature. PNS, SAR and mechanical
+resonance assessment are not provided by the core checks; passing them does
+not establish scanner or patient safety.
 
-It does not own segmentation, the scanner-side execution stream, protocol
-contracts or consoles, which live in Pulserver, nor pulse, trajectory and
-sampling design, which lives in its own package.
-
-The runtime dependency is NumPy alone. Wheels ship the compiled core for
-Linux, macOS and Windows, so no compiler is needed to install.
-
-## Status
-
-Early. The compiled core holds the event libraries, the block table, the shape
-codec and the text writer, and what it writes is byte-identical to PyPulseq on
-every sequence in the reference zoo, signature included. The PyPulseq-shaped
-Python API over it is being written: today the core is reachable only as
-`pypulseqpp._ext`, so a design script cannot yet run against this package.
-
-Still to come: the reader, the binary writer, k-space and moments, and the
-safety engine.
+Scanner execution, protocol orchestration and reconstruction integration
+belong to [Pulserver](https://github.com/pulserver/pulserver).
 
 ## Install
+
+Requires Python 3.10 or later. Runtime dependencies are NumPy, SciPy and
+PyPulseq; the native core is included in platform wheels.
 
 ```bash
 pip install pypulseqpp
 ```
 
-## Development
+The optional viewer is a separate GPL-licensed package:
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+pip install 'pypulseqpp[plot]'
+```
+
+## Basic use
+
+```python
+import pypulseqpp as pp
+
+system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+seq = pp.Sequence(system)
+gx = pp.make_trapezoid("x", area=100, system=system)
+seq.add_block(gx)
+ok, errors = seq.check_timing()
+seq.write("example.seq")
+```
+
+Sequence-module classes are available from `pypulseqpp.sequences`.
+The [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
+groups sequence operations, event design, sampling, modules and checks.
+
+## Development and documentation
+
+See the [contribution guide](https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md)
+for installation and checks. Build the local Markdown/Sphinx documentation with:
+
+```bash
+pip install -e '.[doc]'
+make -C docs html
+```
+
+Open `docs/build/html/index.html`. The API reference is populated; the user
+guide, developer guide and examples sections are scaffolds.

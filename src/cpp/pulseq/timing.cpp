@@ -1,19 +1,6 @@
 /**
  * @file timing.cpp
- * @brief Block timing checks.  See timing.hpp.
- *
- * Two passes.  The first decides, once per library row, everything that is a
- * property of the event itself: whether its delay, its dwell and its ramps
- * land on a raster, and how far past the start of a block it reaches.  The
- * second walks the block table -- integer columns, no decoding -- attributing
- * each row's verdict to the blocks that play it and asking the questions only
- * a block can answer: whether its stored duration matches what it holds,
- * whether RF and digitisation have their settling windows, and whether soft
- * delays sharing a numeric id agree about how long they stand for.
- *
- * Findings come out in the order a reader walks a block -- its duration, then
- * RF, the three gradient axes, the ADC and a trigger, then the dead-time
- * margins, then the soft delay.
+ * @brief Event and block timing checks; see timing.hpp.
  */
 
 #include "pulseq/timing.hpp"

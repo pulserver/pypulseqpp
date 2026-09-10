@@ -1,9 +1,4 @@
-"""Shared fixtures.
-
-The reference sequences are built by the toolbox pypulseqpp replaces, so every
-test that uses one is comparing against the implementation of record rather
-than against a value someone wrote down.
-"""
+"""Shared reference-toolbox and native-extension sequence fixtures."""
 
 import pytest
 

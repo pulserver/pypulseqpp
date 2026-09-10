@@ -1,35 +1,9 @@
-"""PyPulseq's event factories, returning events with their fields in slots.
+"""Conversion between PyPulseq namespaces and compiled event objects.
 
-Every ``make_*`` here is upstream's, wrapped: it builds the event exactly as
-PyPulseq does -- same validation, same defaults, same bug fixes when upstream
-ships them -- and the result is converted once into a C++ object whose fields
-are offsets rather than dictionary entries.
-
-That conversion is the whole trick. Reading a ``SimpleNamespace`` costs a
-dictionary lookup per field, which is unremarkable until a three-dimensional
-protocol reads tens of millions of them; on a 512x1024x512 MPRAGE it is about
-half the time spent building the sequence.
-
-The objects that come back quack like the namespaces they replace. ``rf.signal``
-is the complex waveform at its real amplitude and ``grad.waveform`` the scaled
-samples, both rebuilt on demand, so anything downstream that reads an event --
-including PyPulseq's own plotting and k-space code -- keeps working.
-
-**Scaling is one number.** RF and arbitrary gradients are stored as a
-normalised shape beside a scalar amplitude, which is how the file stores them
-too. So::
-
-    rf.amplitude *= 0.5          # one write; the registered shape still stands
-
-is not merely faster than rescaling the samples, it is *better*: a variable
-flip angle train is one magnitude shape at many amplitudes, and this is what
-lets it be registered once. Assigning to ``signal`` or ``waveform`` outright
-re-normalises and drops the registration, because that really is a new
-waveform.
-
-Setters do not re-validate. ``make_*`` checked the event when it built it, and
-a loop moving a phase encode from one line to the next is not making a new
-claim about the hardware.
+Compiled RF and arbitrary-gradient events store a normalised shape and a
+scalar amplitude. Assigning signal or waveform replaces the shape and
+invalidates its registration; changing amplitude preserves the shape.
+Event setters do not revalidate hardware limits.
 """
 
 from __future__ import annotations
@@ -84,13 +58,7 @@ _CONVERTERS: dict[str, Callable[[Any], Any]] = {
 
 
 def convert(event: Any) -> Any:
-    """One PyPulseq event as a slotted one; anything else is passed through.
-
-    Idempotent, so converting an already-converted event is free -- which
-    matters because a factory that returns several events (a slice-selective
-    pulse returns three) is converted element by element and callers may hand
-    the results back in.
-    """
+    """Convert a PyPulseq event to a compiled event; return other objects unchanged."""
     kind = getattr(event, "type", None)
     if kind is None or isinstance(event, _cxx.Event):
         return event
@@ -99,15 +67,10 @@ def convert(event: Any) -> Any:
 
 
 def _shape_dur(tt: Any) -> float:
-    """How long an arbitrary gradient lasts, from the times it stores.
+    """Return gradient duration from sample-centre or vertex times.
 
-    PyPulseq gives ``tt`` two meanings and tells them apart by where it
-    starts. A uniformly rastered waveform stores *sample centres*, so the
-    first is half a raster in and the shape runs half a raster past the last;
-    an extended trapezoid stores *vertices*, the first at zero, and the shape
-    ends at the last one. Reading the second as though it were the first
-    invents a tail out of the final ramp, which lands the duration off the
-    gradient raster and makes every alignment against it illegal.
+    Raster samples extend half an interval beyond the last centre. Extended
+    trapezoids start at zero and end at their final vertex.
     """
     times = _np.asarray(tt, dtype=float)
     if times.size < 2:
@@ -164,18 +127,9 @@ _FIELD_NAMES: dict[type, tuple[str, ...]] = {}
 
 
 def as_namespace(event: Any) -> Any:
-    """One slotted event as the :class:`~types.SimpleNamespace` upstream reads.
+    """Convert a compiled event to a PyPulseq-compatible SimpleNamespace.
 
-    The inverse of :func:`convert`, and the reason the rest of PyPulseq's
-    namespace works here at all. Upstream's helpers -- ``calc_duration``,
-    ``align``, ``split_gradient``, ``scale_grad``, ``rotate`` -- do not merely
-    read attributes off what they are given; they run ``isinstance(x,
-    SimpleNamespace)`` checks and ``copy.deepcopy``, and a C++ event satisfies
-    neither. Handing them a namespace is what makes those functions usable
-    without forking any of them.
-
-    Anything that is not one of our events is returned unchanged, so this is
-    safe to map over an arbitrary argument list.
+    Non-event objects are returned unchanged.
     """
     if not isinstance(event, _cxx.Event):
         return event
@@ -238,17 +192,10 @@ def _raised(value: Any) -> Any:
 
 
 def interoperating(function: Callable[..., Any]) -> Callable[..., Any]:
-    """Adapt ``function`` to namespaces inward and slotted events outward.
+    """Wrap a callable with recursive event conversion.
 
-    One decorator for the whole of PyPulseq's namespace, not just its
-    factories. Both directions are needed and for different reasons: outward,
-    so what a caller gets back is the fast representation the rest of this
-    package expects; inward, so upstream's own type checks and ``deepcopy``
-    calls see what they were written against.
-
-    Both conversions are identity on anything that is not an event, so a
-    function that never touches one -- ``calc_ramp``, ``traj_to_grad`` -- pays
-    only the walk over its arguments and is otherwise untouched.
+    Arguments become namespaces for PyPulseq type checks and deepcopy;
+    returned events become compiled objects. Other values pass through.
     """
 
     @functools.wraps(function)
@@ -269,15 +216,7 @@ def interoperating(function: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def _converting(factory: Callable[..., Any]) -> Callable[..., Any]:
-    """Convert whatever ``factory`` hands back.
-
-    Tuples are converted element by element: ``make_sinc_pulse(return_gz=True)``
-    hands back the pulse and its two gradients together.
-
-    Kept separate from :func:`interoperating` because a factory builds an event
-    out of numbers rather than out of other events, so lowering its arguments
-    would be a walk that never finds anything.
-    """
+    """Convert factory results, including each event in a returned tuple."""
 
     @functools.wraps(factory)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -307,43 +246,7 @@ def _make_arbitrary_grad(
     system=None,
     oversampling: bool = False,
 ) -> _SimpleNamespace:
-    """One gradient event from an arbitrary waveform, upstream's contract.
-
-    Samples sit at raster-interval centres, ``system.grad_raster_time``
-    apart; ``first``/``last`` are the edge values, linearly extrapolated when
-    absent. Field for field and error for error the event upstream's factory
-    builds, with the amplitude and slew checks reduced as vector operations
-    rather than per-sample Python iteration -- which is the entire reason
-    this factory is implemented here rather than delegated.
-
-    Parameters
-    ----------
-    channel : str
-        One of ``x``, ``y``, ``z``.
-    waveform : numpy.ndarray
-        Amplitudes at raster centres, Hz/m.
-    first, last : float, optional
-        Edge values; extrapolated from the end samples when omitted.
-    delay : float
-        Seconds before the waveform starts.
-    max_grad, max_slew : float, optional
-        Limits; ``system``'s when omitted or zero.
-    system : Opts, optional
-        ``Opts.default`` when omitted.
-    oversampling : bool
-        The waveform samples a grid twice as fine; its length must be odd.
-
-    Returns
-    -------
-    SimpleNamespace
-        The gradient event.
-
-    Raises
-    ------
-    ValueError
-        On an invalid channel, an amplitude or slew violation, or an even
-        oversampled length.
-    """
+    """Build the namespace fallback for make_arbitrary_grad."""
     if system is None:
         system = _pp.Opts.default
     if max_grad is None or max_grad == 0:
@@ -428,15 +331,10 @@ def make_arbitrary_grad(
     system=None,
     oversampling: bool = False,
 ):
-    """One gradient event from an arbitrary waveform, upstream's contract.
+    """Create a gradient from amplitudes sampled at raster centres.
 
-    Samples sit at raster-interval centres, ``system.grad_raster_time``
-    apart; ``first``/``last`` are the edge values, linearly extrapolated when
-    absent. Returns the event with its fields in slots, like every factory
-    in this namespace. A contiguous float array takes a single compiled
-    pass -- validation, normalisation and the event in one -- which is what
-    lets a scan of distinct waveforms assemble at memory bandwidth through
-    this per-event signature.
+    ``first`` and ``last`` specify boundary amplitudes and are extrapolated
+    from the endpoint samples when omitted.
 
     Parameters
     ----------

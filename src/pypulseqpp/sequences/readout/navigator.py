@@ -28,27 +28,12 @@ _TURNS = {
 
 
 class SpiralNavigator(SequenceModule):
-    """Three orthogonal spiral navigators, for image-based motion tracking.
+    """Three orthogonal thick-slab spiral navigators.
 
-    One low-flip thick-slab excitation and one single-shot spiral arm are
-    designed, then played three times under the quarter turns that carry them
-    onto the axial, sagittal and coronal planes. Three planes are what make the
-    pose observable: a single plane leaves through-plane translation and two
-    rotations unconstrained.
-
-    A navigator resolves rigid pose, not anatomy, so the in-plane resolution is
-    deliberately coarse and the slab deliberately thick — a short readout is
-    less sensitive to off-resonance, and the tracking runs on image content
-    rather than on detail.
-
-    The **flip angle is not a free parameter**. A navigator excites the same
-    water the host sequence images, so every navigator costs the imaging volume
-    some longitudinal magnetization. Raising the flip buys navigator SNR
-    directly out of the host sequence's contrast, which is why the default is
-    low and why a train of them belongs in dead time rather than anywhere else.
-
-    Every acquisition is labelled ``NAV``, which is what puts the readouts in
-    their own encoding space for a reconstruction to find.
+    Reuses one excitation and readout under axial, sagittal and coronal
+    rotations. ADC blocks carry NAV labels. Navigator excitations perturb
+    the host sequence's longitudinal magnetisation; choose flip angle and
+    repetition count accordingly.
 
     Parameters
     ----------
@@ -175,14 +160,7 @@ class SpiralNavigator(SequenceModule):
     def fit(
         self, window: float, requested: int | str = "auto", *, limit: int | None = None
     ) -> int:
-        """How many navigators to play in a window of dead time.
-
-        **Filling the window is not the goal.** The dead time a navigator train
-        rides in is usually a longitudinal recovery, and a navigator excites the
-        very magnetisation that recovery is restoring: at the default flip each
-        one costs ``cos(8 deg) ** 3 = 0.97`` of Mz where its slabs cut the
-        imaging volume, so a train that filled a recovery would take a quarter
-        of it. ``limit`` is how a caller keeps the recovery a recovery.
+        """Return the navigator count that fits a time window.
 
         Parameters
         ----------
@@ -222,12 +200,10 @@ class SpiralNavigator(SequenceModule):
 
 
 def _acquires(block: tuple) -> bool:
-    """Whether ``block`` carries an acquisition window."""
     return any(getattr(event, "type", "") == "adc" for event in block)
 
 
 def _turn_of(turn: tuple[str, float]) -> Any:
-    """Return the rotation a plane is reached by."""
     from scipy.spatial.transform import Rotation
 
     axis, degrees = turn

@@ -1,9 +1,4 @@
-"""The namespace a design script imports.
-
-`import pypulseqpp as pp` has to be `import pypulseq as pp` with the same
-functions and the same signatures, so what is tested here is that upstream's
-own vocabulary still works -- against events it was never written for.
-"""
+"""PyPulseq namespace compatibility and compiled-event interoperability."""
 
 import math
 
@@ -16,7 +11,6 @@ from pypulseqpp import _ext
 
 
 def test_every_factory_hands_back_a_compiled_event():
-    """The whole point: a field is a slot, not a dictionary entry."""
     made = [
         pp.make_trapezoid("x", area=1000, duration=1e-3),
         pp.make_adc(num_samples=64, duration=1e-3),
@@ -79,7 +73,6 @@ def test_a_helper_gives_back_what_the_rest_of_the_package_wants():
 
 
 def test_scaling_a_gradient_stays_in_the_compiled_form():
-    """The hot call: a phase encode is scaled once per shot."""
     gx = pp.make_trapezoid("x", area=1000, duration=1e-3)
 
     scaled = pp.scale_grad(gx, 0.5)
@@ -108,7 +101,6 @@ def test_scaling_a_gradient_stays_in_the_compiled_form():
     ],
 )
 def test_a_helper_answers_what_upstream_answers(call):
-    """The whole namespace, not only the factories: same numbers either way."""
     system = upstream.Opts(
         max_grad=30, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s"
     )
@@ -171,7 +163,6 @@ def test_what_is_advertised_is_what_a_sequence_is_written_in():
 
 
 def test_calc_duration_agrees_with_upstream():
-    """Same answer, whichever representation the event is in."""
     theirs = upstream.make_trapezoid("x", area=1000, duration=1e-3)
     ours = pp.make_trapezoid("x", area=1000, duration=1e-3)
 
@@ -287,7 +278,6 @@ def test_a_block_lasts_as_long_as_the_longest_thing_in_it():
 
 
 def test_the_namespace_carries_what_upstream_carries():
-    """A script written against upstream finds every name it reaches for."""
     missing = [
         name
         for name in dir(upstream)
@@ -671,7 +661,6 @@ def test_registering_a_pulse_hands_back_its_row_and_its_shapes():
 
 
 def test_registering_a_pulse_twice_registers_its_shapes_once():
-    """What pre-registration is for: the waveform is the expensive part."""
     sequence = pp.Sequence(pp.Opts())
     pulse = pp.make_sinc_pulse(
         flip_angle=math.pi / 8, duration=1e-3, use="excitation", return_gz=False

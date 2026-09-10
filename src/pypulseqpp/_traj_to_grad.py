@@ -19,20 +19,12 @@ def traj_to_grad(
     start_at_zero: bool = True,
     end_at_zero: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Gradient and slew rate for the k-space trajectory ``k``.
+    """Convert a k-space path to gradient and slew waveforms.
 
-    Two readings of "convert a trajectory", chosen with ``time_optimal``.
-
-    Under the default, ``k`` carries **geometry only**: the path is
-    re-parameterised in time by MRArbGrad, slowing through high-curvature
-    regions so that ``max_grad`` and ``max_slew`` hold everywhere by
-    construction. Resample the same path more finely and the gradient does not
-    change; sample it too coarsely and the *path* changes, which is the only
-    thing that should. The returned length is the solver's, not ``k``'s.
-
-    With ``time_optimal=False`` the samples are taken as already sitting on the
-    raster and are differentiated, giving ``len(k) - 1`` gradient samples and
-    whatever slew that spacing implies -- including one past the limit.
+    By default, samples describe geometry and MRArbGrad chooses the timing
+    within vector gradient and slew limits; output length can differ from
+    input length. With ``time_optimal=False``, samples already lie on the
+    raster and are differentiated without limit enforcement.
 
     Parameters
     ----------

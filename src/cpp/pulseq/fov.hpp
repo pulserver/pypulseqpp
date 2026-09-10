@@ -1,32 +1,10 @@
 /**
  * @file fov.hpp
- * @brief Moving the imaging volume of a sequence that is already designed.
+ * @brief Logical-frame k-space integration and field-of-view transformations.
  *
- * Shifting the field of view is a phase, and the phase is `dr . k`: where the
- * trajectory stands times how far the volume moved. So everything here is
- * built on knowing where k stands, which is what `block_k_origins` says.
- *
- * ### The frame the shift is written in
- *
- * A prescribed offset is written in the *logical* frame -- `(1, 0, 0)` moves
- * the reconstructed image along its own x, whichever physical axis that turns
- * out to be. That is not a limitation to work around; it is what makes this
- * cheap. Rotate `dr` and `k` together and `dr . k` does not change, so a shift
- * written in the frame the gradients are designed in needs to know nothing
- * about the rotation the scanner applies -- the prescribed orientation, and
- * PMC composed into it. An offset that arrives in the physical frame is
- * turned once by the caller, `dr_logical = R^T dr_physical`, and never again.
- *
- * A block's own `ROTATIONS` extension is a different object and does not
- * vanish: it turns the gradients *inside* the logical frame, so that block's
- * phase is `dr . (R k)`. Everything here works in the unrotated logical
- * frame, which is why a turned readout is handed on rather than baked.
- *
- * ### Units
- *
- * k is in 1/m and a shift in m, so `dr . k` is in **cycles**, with no factor
- * of two pi anywhere -- which is also the unit an RF phase shape is stored
- * in, so a phase profile goes in unscaled.
+ * Translations are in logical metres and k-space coordinates in 1/m.
+ * Their dot product is a phase in cycles; event phase offsets and ADC
+ * modulation are in radians, while RF phase shapes store cycles.
  */
 
 #ifndef PULSEQ_FOV_HPP
@@ -41,107 +19,55 @@ namespace pulseq
 {
 
     /**
-     * Where a pulse leaves the trajectory.
+     * Update the trajectory origin at an RF centre.
      *
-     * An excitation starts a new one, so k is zero after it. A refocusing
-     * turns it around: what was `k` becomes `-k`, which is what walks a spin
-     * echo back towards the origin. Everything else -- an inversion, a
-     * saturation, a pulse doing something a scan does not encode against --
-     * leaves it where it was.
-     *
-     * @param use     The pulse's recorded use, as its first letter.
-     * @param at      Where k stands at the pulse's centre.
-     * @param origin  The running origin, updated in place.
-     * @return Whether the pulse moved it.
+     * Excitation (including undefined use) resets k to zero; refocusing reverses
+     * k. Other uses leave the origin unchanged. @p at and @p origin are in 1/m.
+     * @return Whether the origin changed.
      */
     bool advance_origin(char use, const double at[3], double origin[3]);
 
     /**
-     * Where the trajectory stands at the start of each block.
+     * Return k-space at each block's start in the unrotated logical frame (1/m).
      *
-     * The running total of what every gradient before it has swept, reset by
-     * each excitation and turned around by each refocusing -- at the pulse's
-     * *centre*, not at its block boundary, so a refocusing between two
-     * crushers has each crusher counted on the right side of the flip.
+     * Excitation resets and refocusing reverses k at the RF centre; undefined
+     * RF use is treated as excitation. Block rotation extensions are not applied.
      *
-     * Answered in the logical frame: a block's `ROTATIONS` extension is not
-     * applied, because `dr . k` does not care and the consumer that does can
-     * read the rotation off the block.
-     *
-     * @param seq     The sequence to walk.
-     * @param first   First block to report, 1-based.
-     * @param last    Last block, or 0 for the end of the sequence.
-     * @param carry   Where k stands entering @p first, updated in place to
-     *                where it stands leaving @p last. A caller walking a scan
-     *                in chunks hands the same array back in; one walking from
-     *                the beginning starts it at zero.
-     * @return One origin per block in the range, in order.
-     *
-     * A pulse that records no use is read as an excitation, which is what
-     * `calculate_kspace` reads it as: one sequence cannot have two stories
-     * about where its trajectory restarts. Before revision 1.5.0 the format
-     * had nowhere to write a use, so a file older than that arrives with
-     * every pulse undefined, and `detect_rf_use` is what fills them in.
+     * @param first  First block, 1-based inclusive.
+     * @param last   Last block inclusive, or 0 for the sequence end.
+     * @param carry  Incoming k at @p first, updated in place to outgoing k at
+     *               @p last. Earlier blocks are not integrated; initialise to
+     *               zero at the sequence start and reuse across consecutive chunks.
      */
     std::vector<std::array<double, 3>> block_k_origins(
         const Sequence& seq, int first, int last, double carry[3]);
 
     /**
-     * Where a readout samples k, per axis, in 1/m.
+     * Return ADC-sampled k-space in the unrotated logical frame (1/m).
      *
-     * The block's origin plus what its gradients sweep by each sample. This
-     * is what a reconstructor is handed instead of a phase: given the
-     * trajectory it forms `dr . k` itself, which means a prescription can
-     * change -- a new offset, a pose update from motion correction -- without
-     * the sequence being touched again, and it is the same array the metadata
-     * a reconstruction is enriched with wants anyway.
-     *
-     * Absolute rather than per-readout, so an interleave that never passes
-     * through the centre still carries coordinates the rest of the
-     * acquisition agrees with.
-     *
-     * In the logical frame, and the block's own `ROTATIONS` extension is not
-     * applied: it is the caller's, because a consumer that turns the
-     * trajectory usually wants to turn the shift with it, and turning both
-     * changes nothing.
-     *
-     * @param seq     The sequence to read.
-     * @param block   Which block, 1-based.
-     * @param origin  Where k stands entering it, from `block_k_origins`.
-     * @return One vector per axis, each as long as the readout has samples.
-     *         Empty for a block that does not acquire.
+     * @param block   1-based block index.
+     * @param origin  Incoming k at the block start, as from block_k_origins().
+     * @return Three sample vectors, or three empty vectors for a block without ADC.
+     *         Block rotation extensions are not applied.
      */
     std::array<std::vector<double>, 3> absolute_trajectory(
         const Sequence& seq, int block, const double origin[3]);
 
     /**
-     * Resize the field of view by @p scale, per logical axis.
+     * Multiply gradient amplitudes by @p scale on each logical axis.
      *
-     * A gradient is a normalised shape beside one amplitude, so this is a
-     * multiplication and the shapes are untouched -- which is the whole
-     * reason it is cheap. A scale of zero on an axis silences it, as the
-     * reference toolbox has it: the field of view along that axis is what the
-     * gradient divides, so no gradient is no encoding.
-     *
-     * Rows are rewritten rather than written over: a gradient belongs to
-     * every block that names it, and only the blocks in range are being
-     * resized. Deduplication collapses the copies afterwards.
+     * FOV size varies inversely with the multiplier; zero suppresses encoding
+     * on that axis. New event rows preserve blocks outside the selected range.
+     * Shapes are unchanged. Block indices are 1-based inclusive; last=0 means end.
      */
     void apply_fov_scale(
         Sequence& seq, const double scale[3], int first, int last);
 
     /**
-     * Turn the field of view by @p quaternion, scalar first.
+     * Compose the scalar-first @p quaternion after each block's existing rotation.
      *
-     * Attached to each block as a `ROTATIONS` extension rather than baked
-     * into new waveforms: baking would cost one waveform per orientation,
-     * where attaching costs four numbers and lets a thousand orientations
-     * share the one trajectory they were designed from.
-     *
-     * A block that already turns is composed with rather than overwritten --
-     * the new turn is applied after the one the block carries, so a module
-     * that placed itself at design time keeps its own orientation inside the
-     * prescription's.
+     * The result is stored in a ROTATIONS extension; waveforms are not resampled.
+     * Block indices are 1-based inclusive; last=0 means the sequence end.
      */
     void apply_fov_rotation(
         Sequence& seq, const double quaternion[4], int first, int last);
@@ -150,81 +76,38 @@ namespace pulseq
     enum class FovShiftScope
     {
         /**
-         * The RF side only. Every readout is left to a consumer that will
-         * apply the shift itself from the trajectory -- which is what a
-         * reconstructor wants anyway, and what lets it re-apply the shift for
-         * a new prescription without the sequence being touched again.
+         * Modify RF only; the consumer must apply ADC translation from the trajectory.
          */
         RfOnly,
         /**
-         * Both sides, so the file needs nothing downstream. What a `.seq`
-         * handed to another toolbox has to be.
+         * Modify RF and ADC frequency, phase and modulation.
          */
         RfAndAdc,
     };
 
     /**
-     * Move the field of view by @p shift_m, written in logical metres.
+     * Apply translation in logical metres to RF and, optionally, ADC events.
      *
-     * ### What each event gets
+     * Constant gradients require only frequency and phase offsets. Residual
+     * phase under varying gradients is stored in RF phase shapes (cycles) or
+     * ADC modulation (radians). RF phase is referenced to the pulse centre.
+     * ADC phase is referenced to the nearest k-space approach, shared across
+     * playouts of the same block/ADC definition within the selected range.
      *
-     * **A pulse** is always handled: nothing downstream could do it instead.
-     * Under a gradient that does not change across the pulse -- a slice
-     * select's flat top, which is nearly every pulse -- the shift is a
-     * frequency and a phase on the RF row, and no shape is registered.
-     * Otherwise the phase shape gains `dr . k(t)`, referenced to the pulse's
-     * own centre so what the pulse does is unchanged.
+     * Phase uses the unbroken gradient integral in @p carry, not the
+     * excitation-reset trajectory in @p origin. Resetting the phase integral
+     * between excitation and readout would give them inconsistent references.
+     * Fractional cycles are accumulated per segment to limit roundoff.
      *
-     * **A readout** gets the same split under `RfAndAdc`: a frequency, a
-     * phase, and whatever will not fit in those into `phase_modulation`.
-     * Under a constant gradient the residual is identically zero, so a
-     * Cartesian readout costs two numbers.
+     * @param first   First block, 1-based inclusive.
+     * @param last    Last block inclusive, or 0 for the sequence end.
+     * @param carry   Incoming unbroken gradient integral (1/m), updated in place.
+     * @param origin  Incoming excitation/refocusing-aware k (1/m), updated in place.
+     * @param exempt  One byte per selected block, nonzero to suppress edits while
+     *                still advancing both integrals. Null exempts nothing.
      *
-     * ### Where the phase comes from, and why not from the trajectory
-     *
-     * `dr` against everything the gradients have swept -- unbroken, and
-     * deliberately *not* `block_k_origins`. The trajectory restarts at every
-     * excitation, and it is right to; a phase does not. What a readout is
-     * measured by is its phase against the phase its own excitation was
-     * given, so the two have to be counted from the same place, and resetting
-     * between them references them to different zeros and leaves a phase on
-     * the signal that is not the shift. Two identical repetitions would then
-     * read their echoes at different phases, which is how this was caught.
-     *
-     * The fractional part is taken per segment rather than at the end: the
-     * total reaches thousands of turns across a scan and only the fraction is
-     * a phase, so summing first spends the precision on what is thrown away.
-     *
-     * ### Where a readout is referenced to
-     *
-     * The echo -- where the readout passes closest to the centre of k-space,
-     * by the rule `test_report` measures an echo time by. Not the middle of
-     * the sampling window, which is the same instant only for a readout
-     * symmetric about the origin: a partial Fourier or asymmetric-echo
-     * readout is not. Anchoring at the echo means the frequency and the phase
-     * alone place the centre of k-space where the shift asks, and the profile
-     * carries only the curvature around it. A pulse is referenced to the
-     * centre its designer recorded, which is what the format carries the
-     * field for.
-     *
-     * Which is why both walks are here. The phase is counted from @p carry,
-     * unbroken; the echo is found on @p origin, which restarts at every
-     * excitation. They are different quantities and a shift needs both.
-     *
-     * @param seq      The sequence to move.
-     * @param shift_m  The offset, in logical metres.
-     * @param scope    Which sides to write on.
-     * @param first    First block to move, 1-based.
-     * @param last     Last block, or 0 for the end.
-     * @param carry    What the gradients have swept entering @p first,
-     *                 unbroken, updated in place.
-     * @param origin   Where the trajectory stands entering @p first, updated
-     *                 in place.
-     * @param exempt   One byte per block in range, non-zero where a block is
-     *                 to be walked but not written -- a module that placed
-     *                 itself. Null exempts nothing. Exempt blocks still count
-     *                 towards both walks, because what they sweep is where
-     *                 everything after them stands.
+     * Earlier blocks are not integrated. A zero translation returns without
+     * advancing either integral.
      */
     void apply_fov_shift(
         Sequence& seq,

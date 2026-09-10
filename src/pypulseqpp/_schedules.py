@@ -20,16 +20,10 @@ def make_rf_spoiling_schedule(
     initial_phase: float = 0.0,
     initial_increment: float = 0.0,
 ) -> np.ndarray:
-    """Return the quadratic RF-spoiling phase schedule, in radians.
+    """Return quadratic RF-spoiling phases in radians.
 
-    RF spoiling destroys residual transverse magnetization by advancing the
-    excitation phase quadratically: the increment itself grows by
-    ``increment`` every TR, so the phase never repeats over any short cycle
-    and coherences average away. 117 degrees is the standard choice for
-    spoiled GRE.
-
-    Set the same value as the excitation ``phase_offset`` **and** the ADC
-    ``phase_offset`` of each TR, so the receiver demodulates in step.
+    Apply each phase to both excitation and ADC offsets. With the default
+    initial increment, the first two phases are equal.
 
     Parameters
     ----------
@@ -54,25 +48,6 @@ def make_rf_spoiling_schedule(
     >>> np.rad2deg(make_rf_spoiling_schedule(4)).round(1)
     array([  0.,   0., 117., 351.])
 
-    Apply it per TR, to the pulse and the receiver alike::
-
-        phases = make_rf_spoiling_schedule(n_reps)
-        for shot, phase in enumerate(phases):
-            readout.rf.phase_offset = readout.adc.phase_offset = phase
-            ...
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import matplotlib.pyplot as plt
-       from pypulseqpp import make_rf_spoiling_schedule
-       plt.figure(figsize=(6, 3))
-       plt.plot(np.rad2deg(make_rf_spoiling_schedule(64)), marker="o", ms=3, lw=0.7)
-       plt.xlabel("repetition"); plt.ylabel("RF phase [deg]")
-       plt.title("quadratic RF spoiling, 117 deg increment")
-       plt.tight_layout()
-
     See Also
     --------
     make_phase_cycling_schedule : the balanced-SSFP alternative.
@@ -93,13 +68,7 @@ def make_phase_cycling_schedule(
     length: int,
     phases: Sequence[float] = (0.0, np.pi),
 ) -> np.ndarray:
-    """Tile a fixed phase cycle to ``length`` entries, in radians.
-
-    Unlike RF spoiling, phase *cycling* deliberately repeats: the excitation
-    phase steps through a short, fixed pattern so that the steady state is
-    preserved and its off-resonance response is shifted in a controlled way.
-    The default ``(0, pi)`` alternation is standard bSSFP; longer cycles
-    (``0, pi/2, pi, 3pi/2``) are used to move or average the banding pattern.
+    """Repeat a phase cycle, reducing each entry modulo 2*pi.
 
     Parameters
     ----------
@@ -122,18 +91,6 @@ def make_phase_cycling_schedule(
     >>> np.rad2deg(make_phase_cycling_schedule(4, (0.0, np.pi / 2)))
     array([ 0., 90.,  0., 90.])
 
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import matplotlib.pyplot as plt
-       from pypulseqpp import make_phase_cycling_schedule
-       plt.figure(figsize=(6, 3))
-       plt.plot(np.rad2deg(make_phase_cycling_schedule(16)), marker="o", ms=3, lw=0.7)
-       plt.xlabel("repetition"); plt.ylabel("RF phase [deg]")
-       plt.title("bSSFP (0, pi) phase cycling")
-       plt.tight_layout()
-
     See Also
     --------
     make_rf_spoiling_schedule : for spoiled, non-steady-state sequences.
@@ -152,15 +109,10 @@ def make_traps_schedule(
     *,
     variable: bool = True,
 ) -> np.ndarray:
-    """Return a TRAPS variable refocusing flip-angle schedule, in radians.
+    """Return a variable refocusing flip-angle schedule in radians.
 
-    A long FSE train played at a constant 180 degrees both exceeds SAR limits
-    and decays fast. TRAPS instead starts high and sweeps down to a low target
-    flip angle, driving the magnetization into a pseudo-steady state whose
-    signal decays far more slowly — so a much longer echo train stays usable.
-
-    ``variable=False`` returns a constant ``target_flip_angle`` train, which is
-    the useful comparison baseline.
+    ``variable=False`` gives a constant target angle. Otherwise the sequence
+    approaches the target exponentially from an initial angle derived from it.
 
     Parameters
     ----------
@@ -174,8 +126,8 @@ def make_traps_schedule(
     Returns
     -------
     numpy.ndarray
-        Refocusing flip angles (rad), length ``length``, monotonically
-        decreasing towards ``target_flip_angle``.
+        Refocusing flip angles (rad), length ``length``, approaching
+        ``target_flip_angle``.
 
     Examples
     --------
@@ -185,29 +137,9 @@ def make_traps_schedule(
     >>> np.rad2deg(flips)[[0, -1]].round(1)
     array([153. , 120.2])
 
-    Use it as a per-echo envelope scale, ``flips / np.pi`` being the factor
-    each refocusing pulse's amplitude is multiplied by::
-
-        flips = make_traps_schedule(etl, np.deg2rad(120))
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import matplotlib.pyplot as plt
-       from pypulseqpp import make_traps_schedule
-       plt.figure(figsize=(6, 3))
-       for target in (60, 90, 120):
-           flips = make_traps_schedule(32, np.deg2rad(target))
-           plt.plot(np.rad2deg(flips), marker="o", ms=3, label=f"target {target} deg")
-       plt.xlabel("echo"); plt.ylabel("refocusing flip [deg]")
-       plt.title("TRAPS schedules, ETL 32"); plt.legend(fontsize=8)
-       plt.tight_layout()
-
     References
     ----------
     Alsop, TRAPS / variable-flip refocusing, DOI ``10.1002/mrm.1910370422``.
-
     """
     if length < 1:
         raise ValueError("length must be >= 1")

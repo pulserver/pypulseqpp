@@ -1,16 +1,13 @@
-"""Cartesian undersampling masks and view orderings.
+"""Cartesian undersampling masks and echo-train orderings.
 
-Plain arrays: a boolean mask over the phase-encode grid, or a list of shots
-each holding the view indices it acquires in order. Turning either into a scan
-loop belongs to :mod:`pypulseqpp.design`.
+Masks are boolean arrays; orderings contain zero-based indices into the
+input coordinates. Optional padding uses None, not an acquired view.
 
 References
 ----------
-Echo-train reordering follows Buonincontri et al., "Doubling the repetition
-time without paying the price: 3D TSE with individually parameterized echo
-trains", ISMRM abstract 566-05-007 (Fig. 2). Random shuffling follows Tamir et
-al., "T2 Shuffling", Magn Reson Med 2017;77:180-195. The Poisson-disc kernel is
-ported from SigPy's ``sigpy.mri.samp.poisson`` (BSD 3-Clause).
+Echo-train reordering: Buonincontri et al., ISMRM abstract 566-05-007,
+Fig. 2. Shuffling: Tamir et al., Magn Reson Med 2017;77:180-195.
+Poisson-disc sampling derives from SigPy (BSD 3-Clause).
 """
 
 from __future__ import annotations
@@ -115,14 +112,7 @@ def calc_calibration_lines(
     *,
     partial_fourier: float = 1.0,
 ) -> list[int]:
-    """Return the autocalibration view indices for a phase-encode axis.
-
-    The fully sampled block at the centre of k-space that
-    :func:`calc_sampled_lines` acquires whatever the acceleration is -- the
-    subset a reconstruction calibrates its coil sensitivities from. It is the
-    single source of truth for *which* views are autocalibration views, so the
-    count a 2D sequence needs and the rectangle a 3D sequence carves both read
-    the same window rather than each re-deriving it.
+    """Return centred calibration indices after partial-Fourier truncation.
 
     Parameters
     ----------
@@ -170,24 +160,12 @@ def calc_sampled_pairs(
     elliptical: bool = True,
     order: str = "calibration_first",
 ) -> tuple[list[tuple[int, int]], int]:
-    """Return the ``(line, partition)`` pairs a 2D phase-encode grid samples.
+    """Return acquired (line, partition) pairs and the calibration count.
 
-    The 3D counterpart of :func:`calc_sampled_lines`: a CAIPIRINHA lattice
-    (:func:`make_caipirinha_mask`) on the two phase-encode axes, a fully
-    sampled autocalibration *rectangle* at the centre of k-space, and partial
-    Fourier on either axis. ``caipi_shift`` is the per-``ky``-block shift the
-    lattice applies along kz; ``0`` degenerates to a plain ``r_y x r_z``
-    grid. ``elliptical`` drops the pairs outside the inscribed ``ky``-``kz``
-    ellipse -- the corners a Cartesian grid samples but a round object never
-    fills -- which is a disk when ``n_y == n_z``.
-
-    ``'calibration_first'`` leads the traversal with the rectangle -- every
-    sampled pair whose line *and* partition are both autocalibration views --
-    partitions outer and lines inner, then the remaining pairs in the same
-    nesting. This is what lets a reconstruction calibrate the moment the
-    rectangle is complete rather than at the end of the scan. The rectangle is
-    carved out explicitly because a product of two per-axis calibration-first
-    orders would interleave autocalibration and non-autocalibration pairs.
+    Combines a CAIPIRINHA lattice, central calibration rectangle and
+    partial-Fourier truncation. Optional elliptical cropping retains the
+    calibration rectangle. Traversal is partitions-outer, lines-inner;
+    calibration_first moves calibration pairs ahead of the other pairs.
 
     Parameters
     ----------
@@ -205,12 +183,8 @@ def calc_sampled_pairs(
         r_z``. ``0`` (the default) is a regular lattice; a non-zero shift
         spreads the aliasing into both phase-encode directions. Default is 0.
     elliptical : bool, optional
-        Restrict the sampled support to the inscribed ``(ky, kz)`` ellipse,
-        dropping the corners of k-space a round object never occupies. The
-        autocalibration rectangle, being central, is kept whatever this is.
-        ``False`` samples the full rectangle, which costs the corners' scan
-        time for resolution along the diagonals no anatomy has. Default is
-        True.
+        Restrict sampling to the inscribed ellipse while retaining calibration
+        points. Partial-Fourier truncation still applies.
     order : str, optional
         ``'calibration_first'`` (the default) leads with the rectangle;
         ``'ascending'`` traverses the whole grid partitions-outer,
@@ -285,13 +259,7 @@ def calc_sampled_pairs(
 
 
 def _elliptical_support(shape: tuple[int, int]) -> np.ndarray:
-    """Inscribe an ellipse in the ``(ky, kz)`` grid, as a boolean mask.
-
-    A point is inside when its distance from the centre, normalised by each
-    axis' half-extent, is within one -- so the ellipse touches the middle of
-    every edge and drops the four corners. A disk when the two counts match.
-    The centre is at ``n // 2``, where the sequences place ``k = 0``.
-    """
+    """Return an elliptical mask centred at ``(ny // 2, nz // 2)``."""
     n_y, n_z = shape
     ky = (np.arange(n_y) - n_y // 2) / (n_y / 2)
     kz = (np.arange(n_z) - n_z // 2) / (n_z / 2)
@@ -299,7 +267,6 @@ def _elliptical_support(shape: tuple[int, int]) -> np.ndarray:
 
 
 def _checked_partial_fourier(partial_fourier: float) -> float:
-    """Return ``partial_fourier`` if it is a valid fraction, else raise."""
     if not 0.5 < partial_fourier <= 1.0:
         raise ValueError("partial_fourier must be in (0.5, 1]")
     return partial_fourier
@@ -431,16 +398,6 @@ def make_linear_order(
     >>> shots = pp.make_linear_order([[0, 0], [1, 0], [0, 1], [1, 1]], 2)
     >>> sorted(i for shot in shots for i in shot)
     [0, 1, 2, 3]
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import pypulseqpp as pp
-       from _figures import order_figure
-       ky, kz = np.meshgrid(np.arange(-16, 16), np.arange(-16, 16))
-       coords = np.column_stack([ky.ravel(), kz.ravel()])
-       order_figure([("linear", pp.make_linear_order(coords, 32))], coords)
     """
     if np.asarray(coords).ndim == 0:
         count = int(coords)
@@ -515,20 +472,6 @@ def make_centric_order(
     >>> all(len(s) <= 5 for s in shots)
     True
 
-    Echo index (colour) is global distance-from-centre rank, so the earliest
-    echoes of *every* shot cluster near the centre rather than each shot
-    starting its own center-out sweep (contrast :func:`make_radial_order`):
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import pypulseqpp as pp
-       from _figures import order_figure
-       ky, kz = np.meshgrid(np.arange(-16, 16), np.arange(-16, 16))
-       coords = np.column_stack([ky.ravel(), kz.ravel()])
-       order_figure([("centric", pp.make_centric_order(coords, 32))], coords)
-
     See Also
     --------
     make_radial_order, make_linear_order, make_radial_adaptive_order
@@ -595,19 +538,6 @@ def make_radial_order(
     >>> shots = pp.make_radial_order(coords, 5)
     >>> all(len(s) <= 5 for s in shots)
     True
-
-    Echo index (colour) across (ky, kz) determines the T2 weighting of each
-    region of k-space:
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import pypulseqpp as pp
-       from _figures import order_figure
-       ky, kz = np.meshgrid(np.arange(-16, 16), np.arange(-16, 16))
-       coords = np.column_stack([ky.ravel(), kz.ravel()])
-       order_figure([("radial", pp.make_radial_order(coords, 32))], coords)
 
     See Also
     --------
@@ -680,16 +610,6 @@ def make_radial_adaptive_order(
     7
     >>> sum(len(shot) for shot in shots) == len(coords)
     True
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import pypulseqpp as pp
-       from _figures import order_figure
-       ky, kz = np.meshgrid(np.arange(-16, 16), np.arange(-16, 16))
-       coords = np.column_stack([ky.ravel(), kz.ravel()])
-       order_figure([("radial adaptive", pp.make_radial_adaptive_order(coords, 32))], coords)
     """
     pts = _as_coords(coords)
     n = len(pts)
@@ -757,16 +677,6 @@ def make_shuffling_order(
     >>> b = pp.make_shuffling_order(coords, 8, seed=0)
     >>> a == b
     True
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import pypulseqpp as pp
-       from _figures import order_figure
-       ky, kz = np.meshgrid(np.arange(-16, 16), np.arange(-16, 16))
-       coords = np.column_stack([ky.ravel(), kz.ravel()])
-       order_figure([("T2 shuffling", pp.make_shuffling_order(coords, 32, seed=0))], coords)
     """
     pts = _as_coords(coords)
     n = len(pts)
@@ -800,8 +710,9 @@ def make_random_mask(
 ) -> np.ndarray:
     """Generate a uniform-random undersampling mask with a calibration region.
 
-    Exactly ``round(N / accel)`` locations are sampled (including the fully
-    sampled centered calibration block), drawn uniformly at random.
+    Sample ``round(ny * nz / accel)`` locations, retaining the calibration
+    block and drawing the remainder uniformly without replacement. If the
+    calibration block exceeds this target, retain it without adding samples.
 
     Parameters
     ----------
@@ -825,23 +736,6 @@ def make_random_mask(
     >>> mask = pp.make_random_mask((32, 32), 4.0, calib=(8, 8), seed=0)
     >>> mask.shape
     (32, 32)
-
-    .. plot::
-       :include-source: false
-
-       import matplotlib.pyplot as plt
-       import pypulseqpp as pp
-       fig, axes = plt.subplots(1, 3, figsize=(9, 3.2))
-       masks = [
-           ("random, R=4", pp.make_random_mask((64, 64), 4.0, calib=(12, 12), seed=0)),
-           ("poisson-disc, R=4", pp.make_poisson_disc_mask((64, 64), 4.0, calib=(12, 12), seed=1)),
-           ("CAIPI 2x2, delta=1", pp.make_caipirinha_mask((64, 64), 2, 2, delta=1)),
-       ]
-       for ax, (title, mask) in zip(axes, masks):
-           ax.imshow(mask.T, cmap="gray", origin="lower", interpolation="nearest")
-           ax.set_title(title, fontsize=9)
-           ax.set_xlabel("ky"); ax.set_ylabel("kz")
-       fig.tight_layout()
 
     See Also
     --------
@@ -895,7 +789,8 @@ def make_caipirinha_mask(
     Returns
     -------
     numpy.ndarray
-        Boolean mask of ``shape`` with exact acceleration ``ry * rz``.
+        Boolean mask with nominal acceleration ``ry * rz``; finite grid
+        boundaries can change the realised factor.
 
     Examples
     --------
@@ -903,19 +798,6 @@ def make_caipirinha_mask(
     >>> mask = pp.make_caipirinha_mask((8, 8), 2, 2, delta=1)
     >>> int(mask.sum())
     16
-
-    .. plot::
-       :include-source: false
-
-       import matplotlib.pyplot as plt
-       import pypulseqpp as pp
-       fig, axes = plt.subplots(1, 3, figsize=(9, 3.2))
-       for ax, delta in zip(axes, (0, 1, 2)):
-           ax.imshow(pp.make_caipirinha_mask((32, 16), 2, 3, delta=delta).T,
-                     cmap="gray", origin="lower", interpolation="nearest")
-           ax.set_title(f"ry=2, rz=3, delta={delta}", fontsize=9)
-           ax.set_xlabel("ky"); ax.set_ylabel("kz")
-       fig.tight_layout()
 
     References
     ----------
@@ -946,7 +828,7 @@ def make_poisson_disc_mask(
 ) -> np.ndarray:
     """Generate a variable-density Poisson-disc undersampling mask.
 
-    Ported from ``refcode/sigpy`` (``sigpy.mri.samp.poisson``): sampling
+    Adapted from SigPy's ``sigpy.mri.samp.poisson``: sampling
     density falls off as ``1 / (1 + s|r|)`` with the slope ``s`` found by
     binary search so the realized acceleration matches ``accel`` within
     ``tol``; points are placed with Bridson dart throwing.
@@ -979,19 +861,6 @@ def make_poisson_disc_mask(
     >>> mask = pp.make_poisson_disc_mask((48, 48), 4.0, calib=(8, 8), seed=1)
     >>> mask.shape
     (48, 48)
-
-    .. plot::
-       :include-source: false
-
-       import matplotlib.pyplot as plt
-       import pypulseqpp as pp
-       fig, axes = plt.subplots(1, 3, figsize=(9, 3.2))
-       for ax, accel in zip(axes, (2.0, 4.0, 8.0)):
-           ax.imshow(pp.make_poisson_disc_mask((64, 64), accel, calib=(12, 12), seed=1).T,
-                     cmap="gray", origin="lower", interpolation="nearest")
-           ax.set_title(f"R={accel:g}", fontsize=9)
-           ax.set_xlabel("ky"); ax.set_ylabel("kz")
-       fig.tight_layout()
 
     References
     ----------

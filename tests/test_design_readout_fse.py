@@ -1,11 +1,4 @@
-"""The fast spin-echo readouts.
-
-Checked against k-space and against the refocusing times the sequence reports,
-rather than against event fields: what an FSE train has to get right is that
-every echo starts the same line, that the echoes sit halfway between the
-pulses that make them, and that a scan loop replaying the published events
-reproduces the timing the module claims.
-"""
+"""FSE echo timing and encoded trajectories from replayed module events."""
 
 from __future__ import annotations
 

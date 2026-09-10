@@ -23,22 +23,12 @@ FOV_EXEMPT_FLAGS = ("NOPOS", "NOROT")
 
 
 class FatSaturation(RfModule):
-    """A fat-selective pulse and the spoiler that discards what it tipped.
+    """SLR fat saturation with a three-axis spoiler and optional spatial selection.
 
-    An SLR ``"sat"`` pulse tips fat past the transverse plane -- 110 degrees by
-    default, so the residual is insensitive to a transmit field that falls
-    short -- and the spoiler destroys what it tipped.
-
-    ``thickness_m`` makes it a band rather than the whole volume;
-    ``position_mm`` and ``orientation`` place that band here, at design time,
-    through :class:`~pypulseqpp.TransformFOV`. The module then sets
-    ``NOPOS`` and ``NOROT`` on its first block and clears them on its last, so
-    a transform applied to the finished scan moves the imaging volume and
-    leaves the band where it was put.
-
-    A band that is both fat- and slice-selective is displaced along its own
-    selection axis by the chemical shift, which is why one is usually made
-    generously thick.
+    Position and orientation place the selection band at construction.
+    NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV
+    placement leaves the band unchanged. Position is specified in logical
+    millimetres; the RF frequency offset remains in ppm.
 
     Parameters
     ----------
@@ -84,8 +74,7 @@ class FatSaturation(RfModule):
         Its selection gradient. Only when ``thickness_m`` was given, and named
         for the logical axis whatever ``axis`` was.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        The three-axis spoiler. Three axes rather than one because what is
-        being destroyed is a full excitation, not a residue.
+        Closing spoiler on all three axes.
     prep_labels : list of LabelSetEvent
         ``NOPOS`` and ``NOROT``, set on the first block.
     reset_labels : list of LabelSetEvent
@@ -111,37 +100,8 @@ class FatSaturation(RfModule):
     >>> len(fatsat.blocks), round(fatsat.freq_offset_hz)
     (2, -441)
 
-    The exemption is on the pulse's own block, alongside it rather than in a
-    block of its own:
-
     >>> [event.type for event in fatsat.blocks[0]]
     ['rf', 'labelset', 'labelset']
-
-    A band, tilted and offset, that a later FOV transform will leave alone::
-
-        from scipy.spatial.transform import Rotation
-
-        band = design.FatSaturation(
-            system, thickness_m=0.08, position_mm=(0.0, 0.0, 25.0),
-            orientation=Rotation.from_euler("y", 30, degrees=True),
-        )
-
-    What the pulse leaves along z, across the spectrum. The band sits at the
-    fat resonance and water is untouched:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.FatSaturation(pp.Opts(B0=3.0)).plot_rf(
-           title="fat saturation at 3 T",
-           kind="saturation",
-           whole=True,
-           extent=(-800, 400),
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -262,7 +222,6 @@ class FatSaturation(RfModule):
 
 
 def _as_matrix(orientation: Any) -> np.ndarray | None:
-    """Orientation as the ``(3, 3)`` matrix ``TransformFOV`` takes."""
     if orientation is None:
         return None
     if hasattr(orientation, "as_matrix"):

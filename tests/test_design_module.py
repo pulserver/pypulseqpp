@@ -1,9 +1,4 @@
-"""What a `SequenceModule` publishes, and what it refuses to.
-
-A module's whole contract is that the events it designed come back under the
-names its constructor gave them, collapsed to one object per name when only
-one object ever wore it. Everything here pins one half of that rule.
-"""
+"""Automatic event publication, identity deduplication and explicit registration."""
 
 from __future__ import annotations
 
@@ -86,11 +81,7 @@ def test_blocks_are_the_published_events_in_play_order(system):
 
 
 def test_mutating_a_published_event_shows_through_the_blocks(system):
-    """The blocks hold the very objects that were published, not copies.
-
-    Pulseq events are C extension types and cannot be copied, so this is not an
-    optimisation -- it is the only thing a per-shot loop can do.
-    """
+    """Published events and recorded block tuples share object identities."""
     arms = Arms(system, num_arms=1)
     arms.rf.phase_offset = 1.25
     assert arms.blocks[0][0].phase_offset == 1.25

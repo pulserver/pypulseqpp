@@ -1,19 +1,4 @@
-"""What a sequence is, read back as a report on the scan it plays.
-
-Everything here is already known: how many blocks there are and what they
-carry, how long the scan lasts, where the gradients go and where the digitiser
-samples them. The report is where those become a description of an experiment
--- the echo time, the repetition time, the flip angles, the resolution the
-encoding reaches, how often k-space is revisited and whether it is sampled on
-a grid.
-
-Two of the answers are worked out rather than looked up, and both are compiled
-passes. A flip angle is the integral of a pulse's envelope times the amplitude
-it is played at, so an inversion train sweeping one pulse over a thousand flip
-angles is one integral and a thousand multiplies. What the encoding covers is
-found by binning the sampled trajectory onto a lattice fine enough to separate
-neighbouring positions, which is a pass over every sample the scan takes.
-"""
+"""Sequence timing, encoding coverage and gradient statistics."""
 
 from __future__ import annotations
 
@@ -58,6 +43,10 @@ def report_data(seq) -> dict[str, Any]:
         A sequence whose encoding visits more than one position also carries
         ``dimensions``, ``spatial_resolution_mm``, ``repetitions`` and
         ``is_cartesian``.
+
+    Notes
+    -----
+    Calls check_timing, which may record TotalDuration.
     """
     native = seq._native
     flip_angles_deg = _cxx.flip_angles(native)
@@ -185,12 +174,11 @@ def _echo_time(k_traj_adc, t_adc):
 
 
 def _te_and_tr(t_excitation, t_echo, duration):
-    """Return the echo time and the repetition time, in seconds.
+    """Return TE and TR in seconds.
 
-    TE is measured from the excitation the echo belongs to; TR from that
-    excitation to the next one, or between the last two if the echo is in the
-    last repetition. A sequence that never passes through the centre of
-    k-space has no echo to measure to.
+    TE uses the excitation preceding the closest approach to k = 0, or NaN
+    without one. TR uses neighbouring excitations, falling back to total
+    duration when fewer than two excitations are present.
     """
     before = (
         t_excitation[t_excitation < t_echo]
@@ -243,12 +231,7 @@ def _coverage(k_traj_adc) -> dict[str, Any]:
 
 
 def _gradient_peaks(gw_data):
-    """Return the strongest gradient and slew, per axis and as a magnitude.
-
-    A per-axis peak is read off the waveform the axis plays. A magnitude is
-    what a rotated sequence can ask of one amplifier, so the axes are first
-    put on the time base they share.
-    """
+    """Return physical-axis and simultaneous vector peaks in Hz/m and Hz/m/s."""
     axes = len(gw_data)
     ga = np.zeros(axes)
     gs = np.zeros(axes)
@@ -275,7 +258,7 @@ def _gradient_peaks(gw_data):
 
 
 def report_text(data: dict[str, Any]) -> str:
-    """Return :func:`report_data`'s answer as the report a person reads."""
+    """Format the statistics returned by report_data."""
     event_count = data["event_count"]
     flip_angles_deg = data["flip_angles_deg"]
     unique_k_positions = data["unique_k_positions"]
