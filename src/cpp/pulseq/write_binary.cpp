@@ -1,32 +1,10 @@
 /**
  * @file write_binary.cpp
- * @brief The Pulseq binary sequence writer.
+ * @brief Little-endian Pulseq binary serialisation.
  *
- * Every field goes out little-endian byte by byte, so the file a machine
- * writes does not depend on the machine.
- *
- * ### Times are integer picoseconds, rounded half to even
- *
- * The reference writer is MATLAB and Python, whose `round` breaks a tie
- * towards the even number; C's `llround` breaks it away from zero. A delay
- * landing exactly halfway between two picoseconds is rare and the difference
- * is a picosecond, but it is a difference in the bytes, so `nearbyint` under
- * the default rounding mode is what is used here.
- *
- * ### The signature
- *
- * A file is signed the way the text form is signed and for the same reason:
- * an MD5 of everything written before the section that carries it, so a file
- * says whether it is the file that was written. The digest is stored raw
- * here where the text form writes it as hex, and the section ends with how
- * many bytes it covers, which is what lets a reader check it without knowing
- * how long the section itself is.
- *
- * ### What the format cannot carry
- *
- * Shape samples are single precision, where the text form writes nine
- * significant digits -- so for a shape the text file is the more faithful
- * container, and for everything else the binary one is.
+ * Times use integer picoseconds, rounded to even for reference byte parity.
+ * Shape samples use float32. An optional signature stores the raw MD5 digest
+ * of the preceding bytes and the byte count covered.
  */
 
 #include "pulseq/binary.hpp"

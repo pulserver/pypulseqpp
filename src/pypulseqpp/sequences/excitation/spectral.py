@@ -14,16 +14,10 @@ _AXES = ("x", "y", "z")
 
 
 class FrequencySelectiveExcitation(RfModule):
-    """A pulse that tips one spectral band and leaves the rest alone.
+    """SLR excitation of a spectral band without spatial selection.
 
-    No gradient, so nothing is spatially selective: the envelope alone sets the
-    profile, and the duration follows from the passband --
-    ``time_bw_product / bandwidth_hz``. That is the whole design, and it is why
-    a narrow band costs a long pulse.
-
-    The offset is carried in **ppm** rather than hertz, so the interpreter
-    resolves it against the field the scan actually runs at. Pass
-    ``freq_offset_hz`` instead to pin it to a frequency.
+    Duration is time_bw_product / bandwidth_hz, rounded up to the RF raster.
+    Absolute-Hz and field-relative ppm offsets are additive.
 
     Parameters
     ----------
@@ -43,7 +37,7 @@ class FrequencySelectiveExcitation(RfModule):
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
         SLR design family.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
     passband_ripple, stopband_ripple : float, optional
         Ripple allowed in each band of the spectral profile.
 
@@ -69,24 +63,9 @@ class FrequencySelectiveExcitation(RfModule):
     >>> len(water.blocks), round(water.duration_s * 1e3, 3)
     (1, 20.0)
 
-    A narrower band is a longer pulse, and nothing else changes:
-
     >>> narrow = design.FrequencySelectiveExcitation(pp.Opts(), 90.0, bandwidth_hz=100.0)
     >>> narrow.duration_s == 2 * water.duration_s
     True
-
-    The band it tips, and the rest of the spectrum it leaves where it was:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.FrequencySelectiveExcitation(pp.Opts(), 90.0, bandwidth_hz=200.0).plot_rf(
-           title="water excitation, 200 Hz passband",
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -133,17 +112,10 @@ class FrequencySelectiveExcitation(RfModule):
 
 
 class SpspExcitation(RfModule):
-    """A spectral-spatial pulse: one slice and one spectral band at once.
+    """Spectral-spatial excitation using SLR subpulses on an alternating gradient.
 
-    A train of short slice-selective subpulses rides an alternating selection
-    gradient, and the subpulse envelope -- sampled at the subpulse repetition
-    rate -- sets the spectral profile. Water-only excitation therefore costs no
-    separate fat-saturation module and no extra TR time, which is what makes it
-    worth the design.
-
-    The two selectivities trade against each other through ``n_subpulses``:
-    more subpulses widen the spectral profile's free range and lengthen the
-    pulse.
+    The spectral time-bandwidth product and bandwidth set total duration.
+    Subpulse count controls spectral repetition spacing.
 
     Parameters
     ----------
@@ -158,8 +130,10 @@ class SpspExcitation(RfModule):
         total duration.
     freq_offset_hz : float, optional
         Centre of the spectral band (Hz).
+    is_slab : bool, optional
+        Merge any rephaser into the selection gradient rather than a second block.
     rephase : bool, optional
-        Build a rephaser at all.
+        Include a slice rephaser.
     spatial_time_bw_product : float, optional
         Time-bandwidth product of each spatial subpulse.
     spectral_time_bw_product : float, optional
@@ -169,7 +143,7 @@ class SpspExcitation(RfModule):
     axis : {'z', 'x', 'y'}, optional
         Selection axis.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
     ----------
@@ -178,7 +152,7 @@ class SpspExcitation(RfModule):
     gz : GradEvent
         The alternating selection gradient.
     gz_reph : TrapEvent
-        Its rephaser, when ``rephase``.
+        Its rephaser, only when needed, rephase=True and is_slab=False.
 
     Raises
     ------
@@ -197,37 +171,8 @@ class SpspExcitation(RfModule):
     >>> len(water.blocks), water.gz.channel
     (2, 'z')
 
-    The selection gradient alternates, one lobe per subpulse:
-
     >>> water.gz.type
     'grad'
-
-    The subpulse train, and what it tips over position *and* frequency
-    together -- which is the whole point of the pulse, and is why this one
-    is drawn over a plane rather than along an axis. The passband repeats at
-    the subpulse rate, and where those repeats fall is what the subpulse
-    count buys:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       design.SpspExcitation(
-           system,
-           30.0,
-           thickness_m=10e-3,
-           spectral_bandwidth_hz=300.0,
-           n_subpulses=12,
-       ).plot_rf(
-           title="spectral-spatial, 10 mm and 300 Hz",
-           plane="zf",
-           extent=15.0,
-           samples=71,
-           plot_now=False,
-       )
     """
 
     def init_module(

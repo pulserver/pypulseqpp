@@ -1,25 +1,6 @@
 /**
  * @file pulseqpp_events.h
- * @brief `add_block(*events)`: PyPulseq event objects straight into the C++
- *        libraries, with no sequence object in between.
- *
- * This is the ergonomic path -- `seq.add_block(rf, gx, gy, gz, adc, lin, par)`
- * with the objects `make_trapezoid` and friends hand back -- and it is one
- * call per block rather than one per event, because everything between the
- * objects and the libraries is done here.
- *
- * The one cost that cannot be moved is that the events *are* Python objects:
- * a trapezoid is five attribute reads whoever does them.  They are done
- * against the instance dictionary with interned keys rather than through
- * `getattr`, which skips the descriptor protocol and the temporary each
- * lookup would otherwise build -- worth roughly a third of the extraction on
- * a block carrying seven events.
- *
- * Nothing is checked against a library on the way in and no waveform is
- * compressed: a scan built this way registers a row per use and a shape per
- * shot, and `remove_duplicates` followed by the writers' prewrite pass turns
- * that into the file.  Searching per event would make building quadratic in
- * the thing that is already the largest.
+ * @brief Register a block's events in one call, with sequence-local shape memoisation.
  */
 
 #ifndef PULSERVER_PULSEQPP_EVENTS_H
@@ -46,26 +27,11 @@ namespace pulseqpp_events
     namespace py = pybind11;
 
     /**
-     * A sequence, plus the one thing the "register everything, sort it out
-     * later" design cannot do blindly.
+     * Sequence storage with shape registrations cached by array identity.
      *
-     * Event rows are small -- a trapezoid is five doubles -- so appending one
-     * per use and collapsing them at the end costs a few tens of bytes per
-     * block and is plainly the right trade.  A *shape* is not small.  A spiral
-     * arm is several thousand samples, and a stack-of-spirals protocol plays
-     * half a million of them: registering the waveform again on every shot
-     * would cost twenty-five gigabytes before deduplication ever ran, to end
-     * up with the thousand distinct arms the scan actually has.
-     *
-     * So shapes -- and only shapes -- are remembered by the identity of the
-     * array they came from.  Not by their contents: hashing a waveform per
-     * shot is the cost this design exists to avoid.  A caller that reuses an
-     * array registers its shape once; one that builds a new array every time
-     * gets a new shape, which is exactly right, because it really is telling
-     * us it made a new waveform.
-     *
-     * The arrays are held so their addresses cannot be reused by something
-     * else once they are collected.
+     * Hold references to cached arrays so their addresses cannot be reused.
+     * Reusing an array reuses its shape; a new array registers a new shape even
+     * if its values match. Event rows are appended and deduplicated separately.
      */
     /**
      * What a waveform resolves to: its shapes, and the amplitude the row
@@ -1149,23 +1115,11 @@ namespace pulseqpp_events
     /* ================================================================== */
 
     /**
-     * Register one event's *shapes* into @p seq without adding a block, and
-     * report the ids.
+     * Register an event's shapes without adding a block; return shape IDs only.
      *
-     * This is the half of upstream's `register_*_event` that means something
-     * here.  The other half -- an event-library row id -- is deliberately not
-     * produced: rows are appended per block and renumbered by
-     * `remove_duplicates`, so there is no id to hand out that would still be
-     * true afterwards.
-     *
-     * Doing it early is not a saving on its own; the same shapes would be
-     * registered by the first `add_block` and memoized identically.  What it
-     * buys is what upstream's API is for -- the cost lands here rather than on
-     * whichever loop iteration happened to come first.
-     *
-     * Works for both event flavours: a slotted event memoizes on itself
-     * (`Event::registered`, keyed by this sequence's serial), a namespace one
-     * on the identity of the array behind it (`BoundSequence::shape_ids`).
+     * Event row IDs are not returned: rows are appended per block and renumbered
+     * by deduplication. Compiled events cache registrations by sequence serial;
+     * namespace events use the sequence's array-identity cache.
      */
     inline std::vector<int32_t> warm_event(BoundSequence& seq, const py::handle& event)
     {

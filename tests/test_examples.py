@@ -1,9 +1,4 @@
-"""The sequence zoo, and the command line every entry is also reachable through.
-
-What is held here is what a zoo entry promises: that it builds a legal
-sequence, that the prescription it was asked for is the one in the file, and
-that the module answers for its own ``main``.
-"""
+"""Sequence examples, recorded prescriptions and generated command-line interfaces."""
 
 import subprocess
 import sys

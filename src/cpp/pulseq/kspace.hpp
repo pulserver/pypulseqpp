@@ -1,18 +1,8 @@
 /**
  * @file kspace.hpp
- * @brief Where the sequence goes in k-space, and where it samples.
+ * @brief Integrate piecewise-linear physical gradients into k-space trajectories.
  *
- * A gradient moves the spins' phase, and the phase they have accumulated is
- * where the sequence has got to in k-space -- so the trajectory is the
- * integral of the gradient waveforms. Between two corners a gradient is a
- * straight line and its integral is a parabola, so the trajectory is exact
- * between the corners rather than sampled at them.
- *
- * Two things reset it. An excitation starts the phase over, so k returns to
- * the origin; a refocusing turns the accumulated phase around, so k reflects
- * through it, which is what makes a spin echo come back. The trajectory is
- * therefore a run of periods separated by the pulses, each shifted to begin
- * where the pulse before it left off.
+ * Excitation resets k-space and refocusing reverses it at the RF centre.
  */
 
 #ifndef PULSEQ_KSPACE_HPP
@@ -30,7 +20,9 @@ namespace pulseq
     /** What the trajectory is followed under. */
     struct KspaceOptions
     {
-        /** How late each axis plays what it was asked to, in seconds. */
+        /**
+         * Timing correction in seconds, subtracted from gradient times (positive advances).
+         */
         std::array<double, 3> delay{{0.0, 0.0, 0.0}};
         /** A background gradient per axis, in Hz/m. */
         std::array<double, 3> offset{{0.0, 0.0, 0.0}};
@@ -43,17 +35,8 @@ namespace pulseq
         double gamma = 42576000.0;
 
         /**
-         * Answer only where the samples are, not the whole trajectory.
-         *
-         * The trajectory is reported at every moment it changes direction,
-         * and through every gradient ramp at the raster, so that a plot of it
-         * is a plot of the gradient. A caller who wants where the samples
-         * were taken -- a reconstruction, a description of the scan -- does
-         * not need any of those, and building them is nearly all the work.
-         *
-         * The answer is the same either way: the trajectory between two
-         * corners is a parabola and integrating it is exact, so a moment
-         * reported in between changes nothing about a sample either side.
+         * Omit the full trajectory grid and return only ADC-sampled positions.
+         * Analytic integration between corners gives the same ADC positions in both modes.
          */
         bool samples_only = false;
     };

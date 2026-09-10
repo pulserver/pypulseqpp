@@ -18,36 +18,12 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _BssfpReadout(SequenceModule):
-    """One balanced repetition -- rewind, excite, read -- with TE at TR/2.
+    """Balanced SSFP repetition with TE fixed at TR/2.
 
-    Every axis returns to k = 0 between one pulse centre and the next, so the
-    rephasers are built here rather than taken: their areas follow from that,
-    not from the pulse. Pass the excitation with ``rephase=False``.
-
-    A scan loop, with the alternating phase and the two transients a steady
-    state needs::
-
-        nominal = bssfp.rf.amplitude
-        bssfp.rf.amplitude = 0.5 * nominal          # the half-flip pulse, and
-        seq.add_block(bssfp.rf, bssfp.gz, *bssfp.prep_labels)
-        seq.add_block(bssfp.wait_prep, *bssfp.train_labels)
-        bssfp.rf.amplitude = nominal                # half a TR before the first
-
-        for shot, ky in enumerate(plan):
-            bssfp.rf.phase_offset = bssfp.adc.phase_offset = np.pi * ((shot + 1) % 2)
-            if shot:                                # the first has no plateau to
-                seq.add_block(bssfp.gx_rew,         # leave and nothing to rewind
-                              pp.scale_grad(bssfp.gy_rew, plan[shot - 1]), bssfp.gz_rew)
-            else:
-                seq.add_block(bssfp.wait_rewind, bssfp.gz_rew)
-            seq.add_block(bssfp.rf, bssfp.gz)
-            seq.add_block(bssfp.gx, bssfp.adc, pp.scale_grad(bssfp.gy_pre, ky),
-                          bssfp.gz_pre)
-        seq.add_block(bssfp.gx_rew, pp.scale_grad(bssfp.gy_rew, plan[-1]), bssfp.gz_rew,
-                      *bssfp.end_labels)
-
-    See :doc:`../reference/design` for the timing that fixes TE at TR/2, why
-    the half-flip pulse opposes the first excitation, and what ``ONCE`` marks.
+    Selection rephasers are designed here to balance area between RF centres;
+    supply an excitation with rephase=False. The acquisition loop must handle
+    the initial half flip, the first rewind and final ramp-down. Preparation,
+    train and end labels set ONCE to 1, 0 and 2, respectively.
 
     Attributes
     ----------
@@ -84,7 +60,7 @@ class _BssfpReadout(SequenceModule):
     tr, te : float
         Repetition and echo time (s); ``te`` is always half of ``tr``.
     bandwidth_hz : float
-        Achieved receiver bandwidth.
+        Achieved ADC sampling rate (Hz).
     n_samples : int
         Samples per repetition.
     delta_kx : float
@@ -116,8 +92,8 @@ class _BssfpReadout(SequenceModule):
     oversampling : float, optional
         Read oversampling.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what the two
-        rasters allowed.
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved raster-compatible rate.
     labels : sequence of str, optional
         Counters emitted on the acquisition block.
     trigger : event, optional
@@ -309,7 +285,6 @@ class _BssfpReadout(SequenceModule):
 
 
 def _area(event: Any) -> float:
-    """Zeroth moment of a gradient event, or zero when there is none."""
     if event is None:
         return 0.0
     if event.type == "trap":
@@ -318,13 +293,11 @@ def _area(event: Any) -> float:
 
 
 def _span(raster: float, *events: Any) -> float:
-    """Where a block holding ``events`` ends, ignoring the ones that are None."""
     events = [event for event in events if event is not None]
     return pp.ceil_to_raster(pp.calc_duration(*events), raster) if events else 0.0
 
 
 def _vertices(system: pp.Opts, area: float, grad_start: float, grad_end: float):
-    """Bridged lobe as the arrays it is built from, so it can be extended."""
     _, times, amplitudes = pp.make_extended_trapezoid_area(
         area=area, channel="x", grad_start=grad_start, grad_end=grad_end, system=system
     )
@@ -356,106 +329,20 @@ def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
 
 
 class BssfpReadout2D(_BssfpReadout):
-    """A slice-selective balanced SSFP repetition, phase-encoded along y.
+    """Slice-selective balanced SSFP, phase-encoded along y.
 
-    ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`_BssfpReadout` for the arguments and the scan loop.
-
-    Examples
-    --------
-    >>> import pypulseqpp.sequences as design
-    >>> import pypulseqpp as pp
-    >>> system = pp.Opts()
-    >>> excitation = design.SpatialSelectiveExcitation(system, 40.0, 5e-3, 1e-3, rephase=False)
-    >>> bssfp = design.BssfpReadout2D(
-    ...     system, excitation.rf, excitation.gz, fov=0.28, matrix=192,
-    ... )
-    >>> bssfp.te == bssfp.tr / 2
-    True
-
-    Every axis is rewound before the next excitation, so the trajectory is
-    the same line at whatever ``ky`` the loop scales to and nothing is left
-    over at the end of a repetition:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(
-           system, 40.0, 5e-3, 1e-3, rephase=False
-       )
-       readout = design.BssfpReadout2D(
-           system, excitation.rf, excitation.gz, fov=0.28, matrix=64,
-           readout_bandwidth_hz=60e3, half_flip_prep=False,
-       )
-       trajectory(
-           readout,
-           ky=np.linspace(-1, 1, 9),
-           per="shot",
-           label="shot",
-           title="BssfpReadout2D, nine repetitions",
-       )
+    fov and matrix accept two values, readout first. Shared parameters and
+    transient requirements are documented on _BssfpReadout.
     """
 
     _ndim = 2
 
 
 class BssfpReadout3D(_BssfpReadout):
-    """A slab-selective balanced SSFP repetition, encoded along y and z.
+    """Slab-selective balanced SSFP, encoded along y and z.
 
-    ``fov`` and ``matrix`` take three values, readout first. The partition
-    encode shares the rephasers' window and is added onto them, which stays one
-    trapezoid because the two are built over the same timing -- so a partition
-    costs an amplitude, not a waveform::
-
-        seq.add_block(bssfp.gx, bssfp.adc, pp.scale_grad(bssfp.gy_pre, ky),
-                      pp.add_gradients([bssfp.gz_pre,
-                                        pp.scale_grad(bssfp.gz_partition, kz)],
-                                       system=system))
-
-    Examples
-    --------
-    >>> import pypulseqpp.sequences as design
-    >>> import pypulseqpp as pp
-    >>> system = pp.Opts()
-    >>> slab = design.SpatialSelectiveExcitation(system, 40.0, 0.12, 1e-3, rephase=False)
-    >>> bssfp = design.BssfpReadout3D(
-    ...     system, slab.rf, slab.gz, fov=(0.28, 0.28, 0.12), matrix=(192, 192, 48),
-    ... )
-    >>> pp.add_gradients(
-    ...     [bssfp.gz_pre, pp.scale_grad(bssfp.gz_partition, 1.0)], system=system
-    ... ).type
-    'trap'
-
-    The partition encode rides the slab rephaser, so a repetition is one
-    point of the ``(ky, kz)`` plane and the pair is rewound together:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 40.0, 0.12, 1e-3, rephase=False)
-       readout = design.BssfpReadout3D(
-           system, slab.rf, slab.gz, fov=(0.28, 0.28, 0.12), matrix=(64, 64, 16),
-           readout_bandwidth_hz=60e3, half_flip_prep=False,
-       )
-       trajectory(
-           readout,
-           ky=np.tile(np.linspace(-1, 1, 5), 3),
-           kz=np.repeat(np.linspace(-1, 1, 3), 5),
-           per="shot",
-           plane="yz",
-           label="shot",
-           title="BssfpReadout3D, a 5 x 3 corner of the encoding plane",
-       )
+    fov and matrix accept three values, readout first. Add each scaled
+    partition encode to its corresponding slice rephaser; they share timing.
     """
 
     _ndim = 3

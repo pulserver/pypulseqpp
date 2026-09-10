@@ -1,15 +1,4 @@
-"""The ways a rotation can be said, and that they all say the same thing.
-
-`make_rotation` is the one constructor whose API the reference toolbox owns
-outright: upstream PyPulseq has none, the extension arrived with Pulseq 1.5.1,
-and a script written against the toolbox says its rotation in one of six ways.
-All six are here, and each is held to the toolbox's own answer.
-
-They are worked out here rather than asked of SciPy, which matters because a
-scan builds one per shot: a turn about z is a cosine and a sine, where
-`Rotation.from_euler` costs forty microseconds. SciPy is asked only for a
-matrix, where what it does -- projecting onto a rotation -- is the work.
-"""
+"""Rotation constructor forms and angle ranges against the reference toolbox."""
 
 import math
 

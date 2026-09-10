@@ -1,12 +1,4 @@
-"""Cartesian view sampling: the ACS block, its count, and the 3D rectangle.
-
-These pin the invariants the Cartesian sequence plugins lean on now that they
-build their traversals from the builtins rather than by hand: the
-autocalibration lines are a subset of the sampled lines, the rectangle
-:func:`calc_sampled_pairs` carves is exactly the pairs whose line and
-partition are both calibration views, and the leading ``n_calibration`` pairs
-are that rectangle.
-"""
+"""Cartesian calibration membership, partial Fourier and acquisition order."""
 
 from __future__ import annotations
 
@@ -105,7 +97,6 @@ def test_no_acceleration_samples_the_whole_grid():
 
 
 def test_the_support_is_the_inscribed_ellipse_unless_told_otherwise():
-    """The corners a round object never fills are not worth their scan time."""
     disk, _ = calc_sampled_pairs((16, 16), (1, 1), (0, 0))
     full, _ = calc_sampled_pairs((16, 16), (1, 1), (0, 0), elliptical=False)
     assert set(disk) < set(full)

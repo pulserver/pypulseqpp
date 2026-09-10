@@ -1,18 +1,8 @@
 /**
  * @file shape.hpp
- * @brief Pulseq's shape codec: run-length encoding of the derivative.
+ * @brief Pulseq shape compression: run-length encoding of the derivative.
  *
- * A gradient or pulse shape is stored in a `.seq` file compressed, and the
- * scheme is chosen for what MR waveforms actually look like: a constant run
- * and a linear ramp both differentiate to one repeated number, so a trapezoid
- * of ten thousand samples is a handful of them.
- *
- * Compression is not free -- it is a pass over every sample, with a
- * quantisation and a correction term -- which is why it belongs *here*, at the
- * end, rather than where a shape is registered.  A scan that registers a
- * waveform per shot registers hundreds of thousands of them and keeps a few:
- * compressing on the way in pays for every candidate, compressing on the way
- * out pays only for the survivors.
+ * Compression is deferred until the library is prepared for writing.
  */
 
 #ifndef PULSEQ_CXX_SHAPE_HPP

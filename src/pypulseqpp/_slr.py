@@ -1,12 +1,10 @@
-"""Shinnar-Le Roux pulse design in NumPy and SciPy.
+"""NumPy/SciPy SLR design derived from SigPy and Pauly's rf_tools.
 
-The filter designs, the forward and inverse SLR transforms, the ripple
-bookkeeping, root flipping and Leja ordering are derived from SigPy's
-``sigpy.mri.rf.slr`` and ``sigpy.util.leja`` (Copyright (c) 2016, Frank Ong
-and The Regents of the University of California; BSD 3-Clause, see
-``LICENSES/SigPy-BSD-3-Clause.txt``), which transcribe John Pauly's
-``rf_tools``. The exhaustive root-flip search is compiled, in
-``pypulseqpp._ext.slr``.
+Filter design, the SLR transforms, root flipping and Leja ordering derive from
+SigPy's ``sigpy.mri.rf.slr`` and ``sigpy.util.leja`` (Copyright (c) 2016, Frank
+Ong and The Regents of the University of California; BSD 3-Clause, see
+``LICENSES/SigPy-BSD-3-Clause.txt``). The exhaustive root-flip search is
+compiled in ``pypulseqpp._ext.slr``.
 """
 
 from __future__ import annotations

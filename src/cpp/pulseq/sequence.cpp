@@ -1,10 +1,6 @@
 /**
  * @file sequence.cpp
- * @brief Storage and block operations for pulseq::Sequence.
- *
- * See src/cpp/include/pulseq/sequence.hpp for the model.  Everything here is
- * bookkeeping: appending rows, handing out ids, and reading a block back.
- * The writers, the reader and deduplication live beside this file.
+ * @brief Storage and block operations for pulseq::Sequence; see sequence.hpp.
  */
 
 #include "pulseq/shape.hpp"
@@ -668,20 +664,10 @@ namespace pulseq
     namespace
     {
         /**
-         * Pairwise summation, as NumPy's `.sum()` does it.
+         * Match NumPy's pairwise summation and blocking order.
          *
-         * Adding a couple of million block durations left to right lets the
-         * rounding error grow with the number of terms; summing in a balanced
-         * tree makes it grow with the logarithm instead, which on a scan of two
-         * million blocks is the difference between an error in the last few
-         * bits and one that is visible.
-         *
-         * The blocking is NumPy's exactly -- eight accumulators up to 128
-         * elements, splitting on a multiple of eight above that -- and that is
-         * deliberate rather than incidental: `TotalDuration` goes into the
-         * binary file as a full float64, so a sequence written here and the
-         * same one written through NumPy have to agree to the bit, not just to
-         * nine significant figures.
+         * TotalDuration is serialised as float64 in binary, so reference parity
+         * requires identical rounding, not merely agreement to text precision.
          */
         double pairwise_sum(const double* values, size_t n)
         {

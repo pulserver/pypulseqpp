@@ -1,21 +1,4 @@
-"""Whether a sequence can be played as it is written.
-
-A sequencer starts an event on one of its clock ticks and nowhere else, and it
-needs a settling window either side of RF and of digitisation. A pulse asked
-for 3.7 microseconds into a block is not played 3.7 microseconds in; it is
-played wherever the interpreter rounds it to. This says which times cannot be
-honoured, and by how far each one misses, before the file leaves the bench.
-
-Two more questions are asked of the sequence as a whole. A gradient waveform
-has to be picked up where the axis already is and left where the next one will
-find it, or the amplifier is asked for a step in no time at all; and a
-`TotalDuration` already recorded has to be what the blocks add up to.
-
-The judging is a compiled pass over the block table, and the continuity is the
-same pass the safety check makes. What comes back is one namespace per
-problem, carrying the fields its kind reports, which is what a message
-template naming them formats against.
-"""
+"""Raster, dead-time, gradient-continuity and stored-duration checks."""
 
 from __future__ import annotations
 
@@ -51,13 +34,12 @@ error_messages = {
 
 
 def _limit(system, name: str, fallback: float) -> float:
-    """Return what ``system`` says ``name`` is, or ``fallback`` if it is silent."""
     value = getattr(system, name, None)
     return fallback if value is None else float(value)
 
 
 def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
-    """Return whether ``seq`` is playable, and every problem found.
+    """Check timing, gradient continuity and the stored total duration.
 
     Parameters
     ----------
@@ -81,14 +63,8 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
 
     Notes
     -----
-    Asking twice costs the compiled pass twice but the continuity pass once:
-    what the gradients slew at is kept on the sequence and dropped the moment
-    the sequence changes.
-
-    The first check records `TotalDuration` in `[DEFINITIONS]`; later ones
-    hold it to what the blocks add up to. A sequence read from a file that
-    already declares it is held to it from the first check, so a file whose
-    stated duration is not its own is caught rather than quietly corrected.
+    Records TotalDuration when absent or invalidated by a sequence edit.
+    An existing duration loaded from a file is checked, not overwritten.
     """
     system = seq.system
     if system is None:
@@ -122,17 +98,7 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
 
 
 def _continuity(seq) -> list[SimpleNamespace]:
-    """Return every place a gradient does not carry on from the last one.
-
-    An axis is at zero wherever nothing is playing on it, so a waveform that
-    starts away from where the block before left the axis asks the amplifier
-    for that whole step within one raster interval -- and a sequence that ends
-    with an axis still on has never ramped it down.
-
-    This is a pass over the block table reading two numbers per gradient, so
-    it is asked afresh every time rather than kept: what it costs is less than
-    what noticing that the sequence has changed since the last answer would.
-    """
+    """Report inter-block gradient jumps and a nonzero final gradient."""
     from .safety import check_grad_continuity
 
     report = check_grad_continuity(seq)[1]
@@ -162,13 +128,9 @@ def _continuity(seq) -> list[SimpleNamespace]:
 
 
 def _total_duration(seq) -> SimpleNamespace | None:
-    """Record how long the sequence lasts, or say the record disagrees.
+    """Record TotalDuration if absent; otherwise check it within 1 ns.
 
-    Returns
-    -------
-    SimpleNamespace or None
-        A finding when `TotalDuration` is held to and does not hold; None
-        when it was recorded here, which is what the first check does.
+    Return None after recording or on agreement, and a finding on mismatch.
     """
     played = seq.duration()[0]
     recorded = seq.get_definition("TotalDuration") if seq._duration else ""
@@ -191,17 +153,11 @@ def _total_duration(seq) -> SimpleNamespace | None:
 
 
 def _format_message(template: str, **fields) -> str:
-    """Evaluate ``template`` as an f-string over ``fields``.
-
-    The templates compute in place -- a time in seconds is printed in
-    microseconds by the template rather than by the caller -- so formatting one
-    is evaluating it, not substituting into it.
-    """
+    """Evaluate a trusted f-string template against the supplied finding fields."""
     return eval(f'f"""{template}"""', fields)  # noqa: S307
 
 
 def _message(finding: SimpleNamespace) -> str:
-    """Return what one finding says, in the unit its field is read in."""
     unit, multiplier = ("ns", 1e9) if finding.field == "dwell" else ("us", 1e6)
     return _format_message(
         error_messages[finding.error_type],

@@ -41,7 +41,7 @@ def _applied(q, vector, count):
 
 
 def _free_precession(f, seconds: float, count: int):
-    """Turn about z by what ``seconds`` of free precession comes to."""
+    """Accumulate off-resonance z rotation over a time interval in seconds."""
     angle = -f * seconds
     return _np.column_stack(
         (_np.cos(angle / 2.0), _np.zeros((count, 2)), _np.sin(angle / 2.0))
@@ -75,20 +75,20 @@ def bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
     A hard pulse of 250 Hz held for 1 ms is a 90 degree flip; on resonance it
     takes ``+z`` onto ``-y``:
 
-    >>> on_resonance = _np.zeros((1, 1))
-    >>> pp.bloch(_np.full(1000, 250.0 + 0j), on_resonance, 1e-6).round(3)
+    >>> on_resonance = np.zeros((1, 1))
+    >>> pp.bloch(np.full(1000, 250.0 + 0j), on_resonance, 1e-6).round(3)
     array([[ 0., -1.,  0.]])
 
     Twice the amplitude inverts it:
 
-    >>> pp.bloch(_np.full(1000, 500.0 + 0j), on_resonance, 1e-6).round(3)
+    >>> pp.bloch(np.full(1000, 500.0 + 0j), on_resonance, 1e-6).round(3)
     array([[ 0., -0., -1.]])
 
     ``bz_hz`` carries one row per position, so a whole slice profile comes
     back at once:
 
-    >>> offsets = _np.array([[0.0], [500.0], [-500.0]])
-    >>> pp.bloch(_np.full(1000, 250.0 + 0j), offsets, 1e-6).round(3)
+    >>> offsets = np.array([[0.0], [500.0], [-500.0]])
+    >>> pp.bloch(np.full(1000, 250.0 + 0j), offsets, 1e-6).round(3)
     array([[ 0.   , -1.   ,  0.   ],
            [ 0.773,  0.162,  0.614],
            [-0.773,  0.162,  0.614]])
@@ -137,18 +137,11 @@ def sim_rf(
     bandwidth_multiplier: float = 4.0,
     dt: float | None = None,
 ):
-    """Simulate an RF pulse across off-resonance, as MATLAB's ``simRf`` does.
+    """Simulate an RF pulse versus off-resonance without relaxation.
 
-    The pulse is integrated as a train of hard pulses, one per raster step,
-    and the rotation each step is accumulated as a quaternion; the whole
-    accumulated rotation is applied once at the end, to three starting
-    magnetisations at once. Relaxation is left out, which is what makes a
-    single accumulated rotation valid -- over a pulse of a few milliseconds
-    T1 and T2 do nothing a profile would show.
-
-    Off-resonance stands in for position: through a slice-select gradient a
-    frequency is a distance, so the profile against frequency is the slice
-    profile.
+    Uses a hard-pulse approximation. Spatial effects of selection gradients
+    are not integrated; frequency may be converted to position for a constant
+    selection gradient.
 
     Parameters
     ----------

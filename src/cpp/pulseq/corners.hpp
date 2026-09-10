@@ -1,24 +1,6 @@
 /**
  * @file corners.hpp
- * @brief A gradient as the points where its slope changes.
- *
- * A gradient is played by interpolating linearly between the samples it is
- * given, so the waveform is fully described by the points where its slope
- * changes and nothing is lost by leaving out the rest. A trapezoid is four
- * points however long its flat top is.
- *
- * A shape stored at the centre of each raster interval is a different matter:
- * the samples are not the corners, and the waveform the interpreter draws
- * passes through points half a raster from any of them. Anything asking what
- * a sequence *does* -- what it draws, how strong it gets, how fast it changes
- * -- has to ask about those points rather than about the samples, which is
- * what `restore_shape_corners` is for and why this is one place rather than
- * one per caller.
- *
- * The corners belong to the gradient rather than to the block: the same event
- * played a hundred thousand times draws the same shape, and only where it
- * starts moves. So they are worked out once per gradient and offset per
- * block, which is what `CornerCache` is.
+ * @brief Piecewise-linear gradient corners and lazy per-event corner caching.
  */
 
 #ifndef PULSEQ_CORNERS_HPP
@@ -42,14 +24,10 @@ namespace pulseq
         bool empty_with_amplitude = false;
 
         /**
-         * A trapezoid's ramps, kept so its corners can be added up from where
-         * the block starts rather than offset from zero.
+         * Keep trapezoid timing components to preserve floating-point addition order.
          *
-         * `(start + rise) + flat` and `(rise + flat) + start` are not the same
-         * double, and a corner one bit out lands on the other side of
-         * `floor(t / raster)` -- which changes which raster points a
-         * trajectory is followed through. Four additions is nothing; the shape
-         * of a long waveform is what the cache is really for.
+         * (start + rise) + flat can differ from (rise + flat) + start enough to
+         * change floor(t / raster), and hence the trajectory evaluation grid.
          */
         bool trapezoid = false;
         double ramps[3] = {0.0, 0.0, 0.0};
@@ -79,28 +57,20 @@ namespace pulseq
     };
 
     /**
-     * Restore the corners of a gradient stored on the raster.
+     * Restore gradient corners from raster-centred samples and recorded endpoints.
      *
-     * A shape stored at the centre of each raster interval does not say what
-     * the gradient is at the interval boundaries, and those are where its
-     * slope changes. They follow from the samples and the recorded first and
-     * last value: each boundary is twice the sample before it less the
-     * boundary before that, which is exact when the shape really was sampled
-     * from a piecewise-linear waveform. Where that recurrence drifts -- it
-     * accumulates error, and the recorded last value is the check -- the
-     * average of the neighbouring samples is used instead.
+     * If the boundary recurrence reaches @p last, use its boundaries, replacing
+     * them with adjacent-sample averages where they agree within tolerance,
+     * and remove collinear points. Otherwise retain
+     * the original sample centres with the recorded endpoints added.
      *
-     * Points the waveform passes straight through are dropped, so what comes
-     * back is the corners and nothing else.
-     *
-     * @param waveform  The samples, at the centre of each raster interval.
-     * @param first     The value at the start of the first interval.
-     * @param last      The value at the end of the last.
-     * @param raster    The gradient raster time.
-     * @param times     Filled with the corner times, from zero.
-     * @param values    Filled with the corner values.
-     * @return False if the recurrence did not reach @p last, in which case
-     *         the samples are returned with the edges added and nothing else.
+     * @param waveform  Gradient samples in Hz/m.
+     * @param first     Value at the start of the first interval, in Hz/m.
+     * @param last      Value at the end of the last interval, in Hz/m.
+     * @param raster    Gradient raster in seconds.
+     * @param times     Output times in seconds relative to waveform start.
+     * @param values    Output gradient values in Hz/m.
+     * @return Whether the boundary recurrence reached the recorded last value.
      */
     bool restore_shape_corners(
         const std::vector<double>& waveform,

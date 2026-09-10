@@ -1,9 +1,4 @@
-"""A block read back as the events it plays.
-
-Ported from the reference toolbox's `test_block2events`. Upstream hands a
-list of events back inside a tuple rather than as one, which its own
-docstring says it does not; the toolbox is the authority and is followed.
-"""
+"""Block flattening and event pass-through against the reference toolbox."""
 
 import math
 from types import SimpleNamespace

@@ -1,25 +1,10 @@
 /**
  * @file binary.hpp
- * @brief The Pulseq binary sequence file, as MATLAB Pulseq's writeBinary
- *        defines it.
+ * @brief Pulseq 1.5.1 binary format, using little-endian records and picosecond times.
  *
- * The same sequence as the text form and the same units; only the container
- * changes. What it buys is parsing: the scanner reads a block table of fixed
- * records instead of formatting and reparsing a decimal number per column,
- * and times cross as integer picoseconds rather than as nine significant
- * digits.
- *
- * A binary file declares revision 1 like any other written here, which is
- * also the oldest revision that could have produced one: the format arrived
- * with Pulseq 1.5.1.
- *
- * Nothing here writes a signature section. One toolbox does, and a file
- * carrying one is read and its signature skipped.
- *
- * A label crosses as a number, and a number means something only against the
- * builtin table. Names past that table are carried in `[DEFINITIONS]` rather
- * than in a section of their own, so a file using one stays readable by
- * anything that reads this format at all.
+ * Shape samples are float32. Optional MD5 signatures are written and can be
+ * checked with binary_signature(). Custom label names are stored in the
+ * CustomLabels definition, in the order of their assigned IDs.
  */
 
 #ifndef PULSEQ_CXX_BINARY_HPP
@@ -59,7 +44,9 @@ namespace pulseq
         SEC_SOFTDELAYS = 13,
         SEC_RFSHIMS = 14,
         SEC_ROTATIONS = 15,
-        /** Written by MATLAB Pulseq; read and skipped, never written here. */
+        /**
+         * Optional MD5 signature section; checked by binary_signature().
+         */
         SEC_SIGNATURE = 0x00FFFFFF,
     };
 

@@ -17,26 +17,11 @@ _SCHEMES = ("uniform", "golden")
 
 
 class _PropellerReadout(_EpiReadout):
-    """One blade: a short EPI train across the centre of k-space, and the angles to turn it to.
+    """Centred EPI blade with an in-plane rotation schedule.
 
-    A blade is ``blade_width`` phase-encode lines wide and the full matrix
-    long, straddling ``k = 0``, so every blade samples the centre and none of
-    them needs placing: the loop turns the blade and plays it again::
-
-        from scipy.spatial.transform import Rotation
-
-        for angle in blade.blade_angles:
-            rotation = pp.make_rotation(Rotation.from_euler("z", angle))
-            seq.add_block(blade.rf, blade.gz)
-            seq.add_block(blade.gx_pre, pp.scale_grad(blade.gy_pre, blade.blade_start),
-                          rotation)
-            for line in range(blade.etl):
-                seq.add_block(blade.gx[line], blade.adc,
-                              *present(blade.gy_blips[line]), rotation)
-            seq.add_block(blade.gx_spoil, rotation)
-
-    The gradients stay on their own axes and a ``ROTATIONS`` extension turns
-    the block, which is what keeps one blade waveform serving every angle.
+    Each blade is blade_width phase-encode lines wide and spans the readout
+    matrix. Scale gy_pre by blade_start and apply the blade's rotation to
+    its encoding gradients. Slice and partition axes remain along z.
 
     Attributes
     ----------
@@ -78,7 +63,7 @@ class _PropellerReadout(_EpiReadout):
         How the default angles are spread. ``'uniform'`` divides half a turn
         between the blades, which is exact for the whole set and only for the
         whole set. ``'golden'`` leaves any prefix of the set near-uniform,
-        which is what a motion-corrected or abandoned scan needs.
+        including incomplete acquisitions.
     angles : array_like, optional
         In-plane angles (rad) to use instead of generating a set.
     fov_z, matrix_z : float, int
@@ -187,34 +172,8 @@ class PropellerReadout2D(_PropellerReadout):
     >>> blade.etl, blade.n_blades
     (16, 13)
 
-    Every blade is the same train, so the loop turns it rather than rebuilding
-    it, and the angles divide half a turn:
-
     >>> float(round(blade.blade_angles[1] - blade.blade_angles[0], 6))
     0.241661
-
-    Each blade is a short Cartesian train, and the blades are the same train
-    turned. Every blade crosses the centre, which is what makes the
-    self-navigation work:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 60.0, 3e-3)
-       blade = design.PropellerReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64, blade_width=8,
-       )
-       trajectory(
-           blade,
-           angles=blade.blade_angles[:5],
-           label="line",
-           title="PropellerReadout2D, five blades of eight lines",
-       )
     """
 
     _ndim = 2

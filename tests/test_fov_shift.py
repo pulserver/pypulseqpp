@@ -1,28 +1,4 @@
-"""Moving the field of view of a sequence that is already designed.
-
-A shift is a phase, and the phase is ``dr . k``: how far the volume moved,
-against where the trajectory stands. Everything here holds that one identity,
-because it is what a shift *means* -- the phase every pulse is transmitted
-with and every sample is acquired with has to come out as ``dr . k(t)``,
-however the sequence chooses to split it between a frequency, a phase and a
-profile.
-
-That split is worth having. Under a gradient that does not move across an
-event the whole shift is two numbers on the event's own row, so a Cartesian
-readout carries no profile at all; only where the gradient moves is there
-anything left over.
-
-Held against the identity rather than against the reference toolbox, and on
-purpose: the toolbox references a readout to an origin of its own, so its
-answer is this one plus a constant per readout. A constant is a global phase
-on a readout and changes no image, but it makes a comparison against
-`dr . k` meaningless until it is taken out. See `NEXT.md` for what is left
-once it is.
-
-The shift is written in the logical frame, which is the frame the gradients
-were designed in. ``dr . k`` does not change when both are turned, so it
-needs to know nothing about the rotation the scanner applies.
-"""
+"""Logical-frame shifts checked against dr dot k in cycles, including RF/ADC phase references."""
 
 import math
 

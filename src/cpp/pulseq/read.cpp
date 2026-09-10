@@ -1,32 +1,10 @@
 /**
  * @file read.cpp
- * @brief The Pulseq `.seq` text reader.
+ * @brief Pulseq text parsing and conversion of supported legacy versions.
  *
- * The inverse of write_text.cpp, and written against it: every unit converted
- * on the way out is converted back here, and the round-trip test writes,
- * reads and writes again and compares the two files byte for byte. A column
- * scaled by the wrong power of ten therefore shows up as a differing file
- * rather than as a sequence that plays slightly wrong.
- *
- * ### Two passes, and why
- *
- * The file is parsed whole before anything is registered. `[BLOCKS]` comes
- * before the libraries it names and `[SHAPES]` comes last, so a reader that
- * registered as it went would be adding blocks whose events do not exist yet
- * -- and a block is split into a definition and an instance as it is added,
- * which needs the events it names to have been split already. Parsing into
- * tables first also means the file's own numbering is what decides the order
- * things are registered in, so the ids the sequence hands out are the ids the
- * file used.
- *
- * ### Which revisions
- *
- * 1.5.0 and above. Pulseq grew columns as it went -- 1.4 has no `center` on
- * an RF event, no `first` or `last` on an arbitrary gradient and no ppm
- * offsets anywhere -- and those three are not defaults that can be filled in:
- * the reference toolbox recovers them by decompressing every waveform and
- * walking the block table. An older file is refused by version, naming what
- * it is, rather than read with its columns silently one place out.
+ * Parsing precedes registration because blocks may refer to libraries later
+ * in the file. Legacy conversion derives RF centres, gradient endpoints and
+ * block durations before building the sequence.
  */
 
 #include "pulseq/read.hpp"

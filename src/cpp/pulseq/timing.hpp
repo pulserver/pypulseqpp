@@ -1,13 +1,6 @@
 /**
  * @file timing.hpp
- * @brief Whether every event time in a sequence lands where a scanner can put it.
- *
- * A sequencer can only start an event on one of its clock ticks, and it needs
- * a settling window around RF and digitisation. A design that asks for a pulse
- * 3.7 microseconds in is not played 3.7 microseconds in; it is played wherever
- * the interpreter rounds it to, and the sequence that comes back off the
- * scanner is not the one that was designed. This answers, before the file
- * leaves the bench, which times cannot be honoured and by how far each misses.
+ * @brief Check raster alignment, block durations and RF/ADC dead-time margins.
  */
 
 #ifndef PULSEQ_TIMING_HPP

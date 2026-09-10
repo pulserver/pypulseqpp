@@ -1,9 +1,4 @@
-"""Excitations selective in frequency, in several bands, or in two dimensions.
-
-Each is checked against what the pulse actually does -- the spectral profile
-from a Bloch simulation, the excited profile from the small-tip forward model --
-rather than against the arithmetic that built it.
-"""
+"""Selective RF profiles checked by Bloch and small-tip forward models."""
 
 from __future__ import annotations
 

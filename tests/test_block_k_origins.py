@@ -1,20 +1,4 @@
-"""Where the trajectory stands at the start of each block.
-
-Shifting the field of view is a phase, and the phase is ``dr . k``, so
-everything that moves a volume is built on knowing where k stands. That is a
-running total of what every gradient has swept, restarted by each excitation
-and turned around by each refocusing -- at the pulse's centre, not at its
-block boundary, so a refocusing between two crushers has each crusher counted
-on its own side of the flip.
-
-It is answered in the logical frame: a block's rotation is not applied,
-because ``dr . k`` does not change when both are turned, and that is what
-lets a shift written in the frame the gradients were designed in ignore the
-rotation the scanner applies.
-
-The test of record is the trajectory this package already builds: an origin
-is k at a block's first moment, so `calculate_kspace` has to agree with it.
-"""
+"""Logical k-space origins, RF-centre resets and chunked integration."""
 
 import numpy as np
 import pytest
@@ -142,12 +126,7 @@ def test_a_pulse_acts_at_its_centre_not_at_its_block():
 
 
 def test_the_walk_can_be_taken_in_chunks():
-    """A scan too large to hold at once is walked a piece at a time.
-
-    Nothing says a repeating unit begins with an excitation, so where k stands
-    entering a chunk is not something a chunk can work out for itself: it is
-    handed in, and handed back out.
-    """
+    """Incoming k-space state is supplied by the preceding chunk, not inferred locally."""
     opts = system()
     sequence = pp.Sequence(opts)
     lobe = pp.make_trapezoid("x", area=1000, duration=1e-3, system=opts)

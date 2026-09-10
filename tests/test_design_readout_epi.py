@@ -1,10 +1,4 @@
-"""The echo-planar readout.
-
-What makes an EPI train an EPI train is checked against the trajectory the
-sequence reports: every line lands on the phase-encode step the ordering asked
-for, no line drifts while it is being acquired, and moving the shot origin
-moves the whole train and nothing else.
-"""
+"""EPI line offsets, echo times, blips and flyback layouts."""
 
 from __future__ import annotations
 

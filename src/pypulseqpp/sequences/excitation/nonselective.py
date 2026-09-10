@@ -14,10 +14,7 @@ _AXES = ("x", "y", "z")
 
 
 class NonSelectiveExcitation(RfModule):
-    """A hard pulse: one rectangular envelope, no gradient.
-
-    The simplest excitation there is, and the right one whenever the slab is
-    the coil — 3D encoding, a whole-volume preparation, a calibration TR.
+    """Rectangular RF excitation without a selection gradient.
 
     Parameters
     ----------
@@ -26,12 +23,10 @@ class NonSelectiveExcitation(RfModule):
     flip_angle_deg : float, optional
         Nominal flip angle (degrees).
     duration_s : float, optional
-        Pulse duration (s). Shorter is broader in frequency; the bandwidth is
-        ``1 / duration_s``.
+        Pulse duration (s); spectral width scales inversely with duration.
     use : str, optional
-        What the pulse is for. The trajectory and label cores read this to
-        find where a readout period begins, so leaving it ``"undefined"``
-        makes the module unanalysable.
+        Pulseq use tag. Undefined pulses are treated as excitations by
+        k-space analysis.
     freq_offset_hz, phase_offset_rad : float, optional
         Transmit offsets designed into the pulse. A scan loop moves
         ``module.rf.freq_offset`` and ``module.rf.phase_offset`` per shot
@@ -49,20 +44,6 @@ class NonSelectiveExcitation(RfModule):
     >>> excitation = design.NonSelectiveExcitation(pp.Opts(), flip_angle_deg=10.0)
     >>> round(excitation.center * 1e6)
     500
-
-    With no gradient there is nothing to be selective in but frequency, and
-    the profile is the transform of a rectangle:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.NonSelectiveExcitation(pp.Opts(), 90.0, 0.5e-3).plot_rf(
-           title="hard 90, 0.5 ms",
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -91,25 +72,10 @@ class NonSelectiveExcitation(RfModule):
 
 
 class NonSelectiveRefocusing(RfModule):
-    """A hard 180 between two crushers.
+    """Rectangular refocusing pulse between two identical crushers.
 
-    The refocusing half of a spin echo, applied to everything the coil
-    reaches. Hard rather than shaped because a non-selective refocusing pulse
-    has no profile to design: what matters is that it is broadband enough to
-    turn the whole spectrum, which is what a short rectangle is.
-
-    The crushers are what make it usable. No 180 is perfect, and the part of
-    the magnetisation it tips *into* the transverse plane rather than through
-    it becomes an FID that would otherwise be read alongside the echo. A pair
-    of identical lobes, one each side, leaves the refocused pathway untouched
-    -- it accrues one lobe's phase before the pulse and unwinds it after --
-    while everything the pulse newly excited sees only the second lobe and
-    dephases. Being one event played twice, they are exactly identical, which
-    is the condition that makes the cancellation exact.
-
-    The pulse is phased a quarter turn from the excitation, which is the CPMG
-    condition: a train of such pulses then refocuses its own flip-angle error
-    on alternate echoes instead of accumulating it.
+    The default phase is pi/2 radians for CPMG with a zero-phase excitation.
+    Set spoiling_cycles=0 to omit the crushers.
 
     Parameters
     ----------
@@ -154,24 +120,8 @@ class NonSelectiveRefocusing(RfModule):
     >>> len(refocusing.blocks), refocusing.blocks[0] == refocusing.blocks[2]
     (3, True)
 
-    Without crushers it is the pulse alone:
-
     >>> len(design.NonSelectiveRefocusing(pp.Opts(), spoiling_cycles=0.0).blocks)
     1
-
-    The pulse and both crushers together, integrated as one:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.NonSelectiveRefocusing(pp.Opts(), duration_s=0.5e-3).plot_rf(
-           title="hard 180 between crushers",
-           whole=True,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -218,15 +168,7 @@ class NonSelectiveRefocusing(RfModule):
 
 
 class Inversion(RfModule):
-    """An adiabatic inversion pulse, alone.
-
-    Adiabatic because an inversion is worth doing right: above a threshold B1
-    the flip stops depending on B1 at all, so the inversion holds across a
-    transmit field that a hard pulse would leave partially inverted.
-
-    This is the pulse on its own — no crusher, no inversion time. Those belong
-    to the preparation the pulse is used in; see
-    :class:`~pypulseqpp.sequences.InversionPreparation`.
+    """Non-selective adiabatic inversion without a crusher or inversion-time delay.
 
     Parameters
     ----------
@@ -257,20 +199,6 @@ class Inversion(RfModule):
     >>> inversion = design.Inversion(pp.Opts(), duration_s=8e-3)
     >>> round(inversion.duration * 1e3, 1)
     8.0
-
-    The sweep, and the band it inverts. The plateau is flat because an
-    adiabatic pulse inverts everything above its threshold equally:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       design.Inversion(pp.Opts(), 8e-3).plot_rf(
-           title="hyperbolic secant inversion, 8 ms",
-           plot_now=False,
-       )
     """
 
     def init_module(

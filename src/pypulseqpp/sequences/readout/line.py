@@ -29,25 +29,16 @@ _SPOILING_POSITIONS = ("pre", "post")
 
 
 class _LineReadout(SequenceModule):
-    """One Cartesian line, from the RF that starts it to the end of the TR.
+    """Cartesian line readout from the supplied RF event to the end of TR.
 
-    The pulse is an event rather than a module, so the same class gives a
-    gradient echo from an excitation or the second half of a spin echo from a
-    refocusing pulse. Phase encoding is designed at full amplitude for the
-    loop to scale::
+    An excitation produces a gradient echo; a refocusing event represents
+    the readout half of a spin echo. Phase-encode templates require per-shot
+    scaling.
 
-        seq.add_block(readout.gx_pre, pp.scale_grad(readout.gy_pre, ky))
-
-    ============================ ================================================
-    ``spoiling_cycles = 0``      balanced: every axis is rewound to k = 0
-    ``> 0``, ``position='post'`` SSFP-FID: the dephasing lobe follows the readout
-    ``> 0``, ``position='pre'``  SSFP-Echo: it precedes the readout instead
-    ============================ ================================================
-
-    Under ``'pre'`` the residual offsets this repetition's own k-space, so
-    :meth:`calculate_kspace` -- which traces the FID from rest -- reports a
-    trajectory that never crosses k = 0. That is the pathway being read, not a
-    design error; ``echo_time`` is still the interval it says it is.
+    Zero spoiling balances the gradients. Positive spoiling after acquisition
+    selects SSFP-FID; pre-acquisition spoiling selects SSFP-Echo. In the latter
+    case the FID trajectory reported by calculate_kspace need not cross k=0;
+    echo_time still describes the timing interval.
 
     Attributes
     ----------
@@ -101,8 +92,8 @@ class _LineReadout(SequenceModule):
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
-        Matrix size, per encoded axis. This sets the gradient *areas*; how many
-        lines are actually played is the scan loop's business.
+        Matrix size per encoded axis, used to set gradient areas. The scan
+        loop controls the number and order of acquired lines.
     te : float, optional
         Echo time (s), from the RF isodelay to the first echo. ``None`` is as
         short as possible.
@@ -117,10 +108,8 @@ class _LineReadout(SequenceModule):
         and the sampled field of view grows -- while the k-space width, and so
         the resolution, is fixed by ``fov`` and ``matrix`` alone.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what was
-        achieved: the dwell has to land on the ADC raster while the readout
-        duration lands on the gradient raster, and both together rarely admit
-        the number asked for.
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved rate, subject to both ADC and gradient raster constraints.
     spoiling_cycles : float, optional
         Residual dephasing left at the end of the TR, in cycles across
         ``voxel_size_m``. Zero is balanced.
@@ -419,7 +408,6 @@ class _LineReadout(SequenceModule):
 
 
 def _area(event) -> float:
-    """Zeroth moment of a gradient event, whichever kind it is."""
     if event.type == "trap":
         return float(event.area)
     return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
@@ -453,7 +441,7 @@ class LineReadout2D(_LineReadout):
     """One Cartesian line, frequency-encoded along x and phase-encoded along y.
 
     ``fov`` and ``matrix`` take two values here, readout first. See
-    :class:`_LineReadout` for the timing, spoiling and echo-train arguments.
+    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the timing, spoiling and echo-train arguments.
 
     Examples
     --------
@@ -468,50 +456,8 @@ class LineReadout2D(_LineReadout):
     >>> int(readout.adc.num_samples)
     128
 
-    The rephaser rides the prewinder block, at its head:
-
     >>> readout.blocks[1] == (readout.gx_pre, readout.gy_pre, readout.gz_reph)
     True
-
-    One line per repetition: the loop scales ``gy_pre`` and the same events
-    walk k-space line by line.
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.LineReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64,
-       )
-       trajectory(
-           readout,
-           ky=np.linspace(-1, 1, 9),
-           per="shot",
-           label="shot",
-           title="LineReadout2D, nine repetitions",
-       )
-
-    The blocks one repetition is made of, which is what the loop replays:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-       readout = design.LineReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           fov=0.22, matrix=64,
-       )
-       readout.plot(time_disp="ms", grad_disp="mT/m", stacked=True, plot_now=False)
     """
 
     _ndim = 2
@@ -521,7 +467,7 @@ class LineReadout3D(_LineReadout):
     """One Cartesian line of a 3D slab, phase-encoded along y and z.
 
     ``fov`` and ``matrix`` take three values, readout first. See
-    :class:`_LineReadout` for the shared arguments.
+    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the shared arguments.
 
     Examples
     --------
@@ -535,70 +481,6 @@ class LineReadout3D(_LineReadout):
     ... )
     >>> readout.gy_pre.channel, readout.gz_pre.channel
     ('y', 'z')
-
-    Two encodes to scale rather than one, so a repetition is a point in the
-    ``(ky, kz)`` plane and the readout runs perpendicular to it:
-
-    .. plot::
-
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)
-       readout = design.LineReadout3D(
-           system, slab.rf, slab.gz, fov=(0.22, 0.22, 0.12), matrix=(64, 64, 16),
-       )
-       trajectory(
-           readout,
-           ky=np.tile(np.linspace(-1, 1, 5), 3),
-           kz=np.repeat(np.linspace(-1, 1, 3), 5),
-           per="shot",
-           plane="yz",
-           label="shot",
-           title="LineReadout3D, a 5 x 3 corner of the encoding plane",
-       )
-
-    With ``wave`` set, a corkscrew turns under the readout's flat top and every
-    voxel is smeared along it. It encloses no net area and enters and leaves at
-    zero, so the line ends its readout at the ``(ky, kz)`` its own phase encode
-    put it at, whether the corkscrew was played or scaled away:
-
-    .. plot::
-
-       import matplotlib.pyplot as plt
-       import numpy as np
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import SERIES, _style
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)
-       readout = design.LineReadout3D(
-           system, slab.rf, slab.gz, fov=(0.22, 0.22, 0.12), matrix=(128, 128, 64),
-           wave="both", wave_cycles=8,
-       )
-
-       raster = system.grad_raster_time
-       figure, axes = plt.subplots(2, 1, figsize=(7.0, 4.4), sharex=True)
-       for index, (event, name) in enumerate(
-           ((readout.gy_wave, "phase"), (readout.gz_wave, "partition"))
-       ):
-           waveform = np.asarray(event.waveform) / system.gamma * 1e3
-           time = (event.delay + np.arange(waveform.size) * raster) * 1e3
-           axes[0].plot(time, waveform, color=SERIES[index], label=name)
-           axes[1].plot(
-               time,
-               np.cumsum(waveform) * raster * 1e-3 * system.gamma,
-               color=SERIES[index],
-           )
-       _style(axes[0], "gradient, mT/m")
-       _style(axes[1], "k, 1/m")
-       axes[1].set_xlabel("time within the readout block, ms")
-       axes[0].legend(frameon=False, fontsize=8)
-       figure.suptitle("the corkscrew starts and ends where the encode left it")
     """
 
     _ndim = 3

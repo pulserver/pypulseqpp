@@ -15,24 +15,11 @@ from ._common import spoiler_gradients
 
 
 class DiffusionPreparation(RfModule):
-    """A 90 - G - 180 - G - 90 sandwich that leaves diffusion weighting on z.
+    """Non-selective diffusion preparation with hard tip-down and storage pulses.
 
-    What survives to be stored on ``z`` is attenuated by ``exp(-b D)``, so any
-    readout can follow and the weighting need not come from the readout's own
-    echo. Non-selective: a slice-selective diffusion experiment is a spin-echo
-    readout whose imaging pulses carry the gradients, not a preparation.
-
-    The 90s are hard rather than adiabatic half passages, which cannot survive
-    the single refocusing pulse a diffusion pair needs -- see
-    :class:`~pypulseqpp.sequences.T2Preparation`, which insists on an even number
-    for the same reason. The cost is B1 robustness.
-
-    One canonical design along z at ``b_value``; the loop scales it with
-    :meth:`scale_for` and turns it with a rotation event::
-
-        for direction, b in plan:
-            g = pp.scale_grad(prep.g_diff, prep.scale_for(b))
-            rotation = pp.make_rotation(direction)
+    A matched gradient pair surrounds one refocusing pulse. Design one axis
+    at b_value, then scale the pair for lower b-values and rotate it per
+    direction. The closing spoiler is separate from the diffusion pair.
 
     Parameters
     ----------
@@ -99,20 +86,6 @@ class DiffusionPreparation(RfModule):
     500
     >>> round(prep.scale_for(125.0), 3)
     0.5
-
-    The whole module, pulses and diffusion lobes together. Both lobes are the
-    same sign because the refocusing pulse between them is what makes the
-    pair sensitising rather than balanced:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       prep = design.DiffusionPreparation(system, 500.0)
-       prep.plot(time_disp="ms", grad_disp="mT/m", stacked=True, plot_now=False)
     """
 
     def init_module(
@@ -228,10 +201,7 @@ class DiffusionPreparation(RfModule):
         self.max_b_value = float(max_b_value)
 
     def scale_for(self, b_value: float) -> float:
-        """Amplitude factor for ``g_diff`` that gives ``b_value``.
-
-        The b-value goes as the square of the gradient amplitude, so this is a
-        square root rather than a ratio -- the thing worth having a method for.
+        """Return the gradient-amplitude factor for a requested b-value.
 
         Parameters
         ----------
@@ -258,11 +228,9 @@ class DiffusionPreparation(RfModule):
 
 
 def _pair_b_value(lobe, middle_duration: float, raster: float) -> float:
-    """b-value of two identical lobes with a refocusing pulse between them.
+    """Integrate b in s/mm^2 for a rasterised pair of identical trapezoids.
 
-    Integrated from the rasterized trapezoid, and with the second lobe's sign
-    reversed: in the frame the refocusing pulse leaves behind, the two lobes
-    dephase in the same direction rather than cancelling.
+    Negate the second lobe in the effective gradient to account for refocusing.
     """
     count = round(pp.calc_duration(lobe) / raster)
     times = (np.arange(count) + 0.5) * raster

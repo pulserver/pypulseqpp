@@ -1,9 +1,4 @@
-"""The spiral navigator: three orthogonal planes, flagged and then unflagged.
-
-A navigator earns its place by making a rigid pose observable, which needs the
-three planes to be genuinely orthogonal, and by not contaminating the scan it
-rides in, which needs its flag to be turned off again.
-"""
+"""Navigator plane orientation, NAV label lifetime and host timing."""
 
 from __future__ import annotations
 

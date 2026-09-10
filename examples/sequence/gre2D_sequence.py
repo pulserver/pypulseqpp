@@ -65,22 +65,11 @@ def main(
     rf_spoiling_increment_deg: float = 117.0,
     spoiling_cycles: float = 4.0,
 ) -> pp.Sequence:
-    """Build an RF-spoiled 2D Cartesian gradient-echo sequence.
+    """Build an RF-spoiled, multi-slice 2D Cartesian gradient echo.
 
-    One frequency-encoded line per repetition, from a slice-selective SLR
-    excitation. Phase encoding may be undersampled with a fully sampled
-    autocalibration block and truncated by partial Fourier; the readout may be
-    a partial echo.
-
-    The autocalibration block leads the traversal and closes a segment of its
-    own, so a reconstruction can calibrate while the rest of the scan is still
-    arriving -- which puts the centre of k-space in the transient, hence
-    ``n_dummy``. More slices than one TR can hold are split into passes.
-
-    Two parameters the sequence this was ported from also took are commented
-    out rather than dropped: ``fov_offset`` and ``n_averages``, each waiting
-    on one operation this package has not grown yet -- ``TransformFOV`` and
-    ``tile``.
+    Calibration lines precede imaging lines. Partial Fourier truncates phase
+    encoding; partial echo truncates the pre-echo samples. Slices are divided
+    into passes when they do not all fit within the requested TR.
 
     Parameters
     ----------
@@ -133,10 +122,8 @@ def main(
         Fully sampled autocalibration lines at the centre of k-space,
         acquired ahead of the rest of the scan.
     n_dummy : int, optional
-        Repetitions played without acquiring, before the first line of each
-        pass, to bring the magnetisation to steady state. The calibration
-        block leads the traversal, so these are what keeps the centre of
-        k-space -- which sets the contrast -- out of the transient.
+        Non-acquiring repetitions before the first line of each pass,
+        including calibration. These allow the RF-spoiled transient to settle.
     rf_spoiling_increment_deg : float, optional
         Quadratic RF spoiling phase increment, in degrees.
     spoiling_cycles : float, optional
@@ -363,31 +350,17 @@ def GREKernel(
     n_dummy: int = 16,
     spoiling_cycles: float = 4.0,
 ) -> SimpleNamespace:
-    """Design the repetitions, and the plan that repeats them.
+    """Design GRE event templates and the sampling plan.
 
-    Whatever the scan loop needs: the excitation, one readout per distinct
-    pass size, which slices each pass holds, the phase-encode lines the
-    sampling asks for, and the time they add up to.
-
-    Building the modules *is* the feasibility check. A TE shorter than one
-    repetition can achieve makes
-    :class:`~pypulseqpp.sequences.LineReadout2D` raise, as does any
-    out-of-range matrix, fov or fraction.
-
-    A TR too short for every slice does *not* raise. The slices are dealt into
-    as many passes as it takes, spread across the slab so the slices of one
-    pass are not neighbours, and each pass gets a repetition of its own length
-    ``tr / (slices in the pass)``. A pass therefore lasts exactly one TR
-    whatever its size, which is what makes the requested TR exact for every
-    slice rather than exact for most of them.
+    An infeasible TE raises ValueError. Slices that do not fit in one TR are
+    distributed round-robin into passes; each pass uses a per-slice interval
+    of TR divided by its slice count.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
-    fov, n_x, n_y, n_slices, slice_thickness, slice_order, flip_angle_deg, te, \
-tr, readout_bandwidth_hz, partial_echo, partial_fourier, acceleration, n_acs, \
-n_dummy, spoiling_cycles
+    fov, n_x, n_y, n_slices, slice_thickness, slice_order, flip_angle_deg, te, tr, readout_bandwidth_hz, partial_echo, partial_fourier, acceleration, n_acs, n_dummy, spoiling_cycles
         As for :func:`main`.
 
     Returns

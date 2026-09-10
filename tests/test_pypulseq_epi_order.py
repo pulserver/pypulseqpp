@@ -1,9 +1,4 @@
-"""Within-shot EPI orderings.
-
-The ordering is checked against the thing it is supposed to produce: the CAIPI
-scheme against the lattice :func:`make_caipirinha_mask` defines, and the
-partition blips against the two values Stirnberg's appendix predicts.
-"""
+"""Within-shot EPI offsets, CAIPI coverage and zigzag step bounds."""
 
 from __future__ import annotations
 
@@ -126,7 +121,6 @@ def test_a_train_segmented_by_the_blip_cycle_needs_no_partition_blips():
 
 
 def test_a_caipi_train_stays_inside_its_partition_cycle():
-    """Bounded blips are the point: the pattern wraps rather than climbing."""
     order = pp.calc_epi_order(
         32, scheme="caipi", partition_acceleration=5, caipi_shift=2
     )
@@ -147,7 +141,6 @@ def test_a_zigzag_turns_inside_its_segment():
 
 
 def test_a_zigzag_never_steps_further_than_one_blip():
-    """Short blips are what keep the echo spacing short."""
     order = pp.calc_epi_order(40, scheme="zigzag", acceleration=6, extent=24)
     assert np.abs(np.diff(order[:, 0])).max() == 6
 
@@ -161,7 +154,6 @@ def test_the_return_pass_samples_between_the_outward_one():
 
 
 def test_a_zigzag_revisits_the_same_lines_at_later_echoes():
-    """Sampling one line at many echo times is the whole point of the traversal."""
     order = pp.calc_epi_order(21, scheme="zigzag", acceleration=4, extent=12)
     visits = np.bincount(order[:, 0])
     assert visits.max() > 1

@@ -1,16 +1,4 @@
-"""Where the sequence goes in k-space, and where it is sampled.
-
-A gradient moves the spins' phase, and the phase they have accumulated is
-where the sequence has got to in k-space -- so the trajectory is the integral
-of the gradient waveforms, which `waveforms_and_times` has already reduced to
-their corners. Between two corners a gradient is a straight line, so its
-integral is a parabola, and the whole trajectory is exact rather than sampled.
-
-Two things reset it. An excitation starts the phase over, so k returns to the
-origin; a refocusing turns the accumulated phase around, so k reflects through
-the origin. The trajectory is therefore built as a run of periods separated by
-the pulses, each shifted to start where the pulse leaves it.
-"""
+"""K-space integration with excitation resets and refocusing sign changes."""
 
 from __future__ import annotations
 
@@ -45,7 +33,7 @@ def calculate_kspace(
     seq : Sequence
         The sequence to follow.
     trajectory_delay : float or sequence of float, default 0
-        How late each axis plays what it was asked to, in seconds.
+        Timing correction (s); positive values advance the gradient.
     gradient_offset : float or sequence of float, default 0
         A background gradient per axis, in Hz/m.
     block_range : sequence of int, optional
@@ -56,13 +44,13 @@ def calculate_kspace(
     k_traj_adc : np.ndarray
         3-by-n: where each ADC sample sits in k-space, in 1/m.
     k_traj : np.ndarray
-        3-by-m: the whole trajectory, at every time it changes direction.
+        3-by-m trajectory in 1/m, sampled through ramps and at event times.
     t_excitation : np.ndarray
-        When each excitation acts.
+        RF centres in seconds relative to the selected range.
     t_refocusing : np.ndarray
-        When each refocusing acts.
+        RF centres in seconds relative to the selected range.
     t_adc : np.ndarray
-        When each sample is taken.
+        ADC times in seconds relative to the selected range.
 
     Notes
     -----
@@ -87,38 +75,21 @@ def detail(
     block_range=None,
     samples_only: bool = False,
 ) -> dict:
-    """Return everything following the trajectory produces.
+    """Return trajectory, RF, ADC and slice-position results by name.
 
     Returns
     -------
     dict
-        ``k_traj_adc``, ``t_adc``, ``k_traj``, ``t_ktraj``, ``t_excitation``,
-        ``t_refocusing``, ``slicepos``, ``t_slicepos``, ``gw_pp`` and
-        ``pm_adc`` -- what the reference toolbox reports, by name rather than
-        by position.
+        ``k_traj_adc`` and ``k_traj`` in 1/m; time arrays ``t_adc``,
+        ``t_ktraj``, ``t_excitation``, ``t_refocusing`` and ``t_slicepos``
+        in seconds; ``slicepos`` in metres; gradient splines ``gw_pp`` in
+        Hz/m; and ADC phase modulation ``pm_adc`` in radians.
 
     Other Parameters
     ----------------
     samples_only : bool, default False
-        Answer only where the samples were taken. ``k_traj`` and ``t_ktraj``
-        come back empty; everything else is what it would have been.
-
-        The trajectory is reported at every moment it changes direction and
-        through every gradient ramp at the raster, so that drawing it draws
-        the gradient -- and building all of that is most of the work. A
-        caller who wants where the samples were, for a reconstruction or to
-        say what the scan is, needs none of it. The sample positions are the
-        same either way: the trajectory between two corners is a parabola and
-        integrating it is exact, so a moment reported in between changes
-        nothing about a sample either side of it.
-
-    Notes
-    -----
-    The integration is a compiled pass. Both the gradient corners and the
-    moments the trajectory is asked about are in order, so it walks them
-    together rather than searching one for the other, and the moments it has
-    to know are gathered and sorted once instead of an array being built per
-    ramp.
+        Leave ``k_traj`` and ``t_ktraj`` empty, with all other results
+        unchanged. ADC positions are integrated analytically either way.
     """
     if np.any(np.abs(trajectory_delay) > 100e-6):
         warn(
@@ -171,7 +142,6 @@ def _blocks_asked_for(block_range):
 
 
 def _per_axis(value):
-    """One value per gradient axis, whether one was given or three."""
     if np.isscalar(value):
         return [float(value)] * 3
     given = [float(each) for each in value]
@@ -181,11 +151,6 @@ def _per_axis(value):
 
 
 def _spline(channel):
-    """One axis's gradient as the first-order spline it is.
-
-    A waveform given as its corners is a straight line between them, so its
-    coefficients are the slope and the value it starts each piece at.
-    """
     from scipy.interpolate import PPoly
 
     times = channel["t"]

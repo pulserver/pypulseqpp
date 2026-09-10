@@ -1,9 +1,4 @@
-"""The base factories: events and plain arrays, stated in imaging terms.
-
-What each is checked against is the quantity it was asked for -- an area, a
-k-space cell count, a dwell that lands on two rasters at once -- rather than
-against another implementation of the same arithmetic.
-"""
+"""Factory contracts for gradient areas, raster timing, RF pulses and sampling."""
 
 from __future__ import annotations
 
@@ -74,7 +69,6 @@ def test_a_blip_refuses_to_stand_still(system):
     ("grad_raster", "adc_raster"), [(10e-6, 100e-9), (20e-6, 2e-6), (4e-6, 2e-6)]
 )
 def test_the_adc_lands_on_both_rasters_at_once(num_samples, grad_raster, adc_raster):
-    """The whole point: the readout can then sit exactly over the flat top."""
     dwell, duration = pp.calc_adc_timing(
         num_samples, 3.7e-6, grad_raster_time=grad_raster, adc_raster_time=adc_raster
     )
@@ -297,7 +291,6 @@ def test_golden_angles_never_repeat_and_tiny_ones_step_less_far():
 
 
 def test_raga_angles_come_from_a_finite_equidistant_support():
-    """What makes RAGA reproducible bin to bin, unlike a true golden angle."""
     angles = pp.calc_raga_angles(200, approximation_order=8)
     support = np.unique(np.round(angles, 9))
     assert len(support) < 200
@@ -358,7 +351,6 @@ def test_an_extended_trapezoid_lasts_until_its_last_vertex(grad_raster):
 
 @pytest.mark.parametrize("grad_raster", [10e-6, 20e-6])
 def test_a_solved_bridge_lands_on_the_gradient_raster(grad_raster):
-    """The case the two conventions are told apart for: a bridged spoiler."""
     system = pp.Opts(
         max_grad=40,
         grad_unit="mT/m",

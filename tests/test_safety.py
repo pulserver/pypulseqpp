@@ -1,15 +1,4 @@
-"""What the gradients ask of the amplifiers.
-
-Two limits bound every gradient a scanner will play: how strong it may be and
-how fast it may change. Both are read off the libraries rather than off an
-expanded waveform -- a gradient is a normalised shape and one amplitude, so
-the steepest step belongs to the shape and what an instance asks for is that
-times its own amplitude.
-
-Which means the answer has to be checked against the waveform it stands for,
-and that is what most of these tests do: expand the sequence and take the
-peaks the long way round.
-"""
+"""Gradient checks compared with expanded physical-axis waveforms."""
 
 import math
 

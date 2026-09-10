@@ -1,10 +1,4 @@
-"""PROPELLER readouts.
-
-A blade is an EPI train, so what is tested here is only what makes it a blade:
-that it straddles the centre of k-space without being placed there, that one
-waveform serves every angle, and that the rotation is what puts each blade
-where it belongs.
-"""
+"""Centred EPI blades, in-plane rotations and partition encoding."""
 
 from __future__ import annotations
 

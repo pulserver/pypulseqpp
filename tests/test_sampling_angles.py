@@ -1,11 +1,4 @@
-"""The two angular conventions the rotated-readout plugins share.
-
-Radial lines and PROPELLER blades are diametric, so they spread over a half
-turn; spiral arms are one-sided, so they spread over the whole turn. These pin
-that both the golden and the uniform builtins express each convention, and that
-the full-turn golden angle is the classic 137.51 degrees the spiral plugins
-used to hard-code.
-"""
+"""Half-turn radial and full-turn spiral angle conventions."""
 
 from __future__ import annotations
 

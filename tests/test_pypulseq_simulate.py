@@ -1,11 +1,4 @@
-"""``sim_rf``: a Bloch simulation of one RF pulse, across off-resonance.
-
-A port of MATLAB's ``mr.simRf``, which upstream PyPulseq has no equivalent of,
-so there is no second implementation to diff against. What is checked instead
-is physics the pulses themselves state: a 90 tips fully and a 180 inverts, a
-refocusing pulse refocuses where an excitation pulse does not, and the width
-of the profile is the bandwidth the pulse was designed for.
-"""
+"""RF simulation checked against flip, refocusing and bandwidth expectations."""
 
 from __future__ import annotations
 

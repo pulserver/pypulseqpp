@@ -1,11 +1,6 @@
 /**
  * @file module.cpp
- * @brief The compiled sequence core, bound as `pypulseqpp._ext`.
- *
- * The binding is deliberately thin: it hands NumPy rows straight to the
- * library's registration calls and returns the ids they mint. Every design
- * decision about what a row means lives on the Python side, and every
- * decision about how rows are stored lives in C++.
+ * @brief Compiled sequence storage and analysis bindings for pypulseqpp._ext.
  */
 
 #include <pybind11/numpy.h>

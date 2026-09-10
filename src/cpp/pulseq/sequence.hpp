@@ -1,37 +1,10 @@
 /**
  * @file sequence.hpp
- * @brief A Pulseq sequence: event libraries, a block table, and the operations
- *        that build and read them.
+ * @brief Pulseq event libraries, block storage and sequence operations.
  *
- * This is the model PyPulseq keeps as a `Sequence`, held the way a large scan
- * needs it held.  The difference is not the contents -- every library here is
- * the same library the file format defines -- but the shape of the container:
- * each one is a dense array of fixed-width rows rather than a dictionary of
- * tuples, because a three-dimensional protocol has millions of blocks and an
- * object per row is the whole cost of building one.
- *
- * Nothing here knows about Python, and nothing here knows about pulseg.  The
- * reader below it (src/c/pulseq) and this are the two halves of a Pulseq
- * implementation that can be lifted out on their own.
- *
- * ### Gradients
- *
- * A gradient is either a trapezoid (five numbers) or an arbitrary waveform (a
- * shape reference and five more), and the file format numbers both in one
- * sequence -- trapezoid 3 and arbitrary 4 can sit in the same scan.  Keeping
- * them in one ragged table would cost a branch and a variable stride on every
- * read, so they are stored apart, in two tables that are each fixed-width, and
- * `grad_slot_` maps the shared id onto whichever row is real: a positive value
- * indexes the trapezoid table, a negative one the arbitrary table.
- *
- * The shared id is what a block stores and what the file carries, so a
- * sequence written out is numbered exactly as PyPulseq would have numbered it.
- * The split is an implementation detail that never reaches the file.
- *
- * ### Ids
- *
- * Every library is 1-based, and 0 means "no event" wherever a block refers to
- * one.  That is the file format's convention, not a choice made here.
+ * Library IDs are 1-based; a block's zero ID means no event. Trapezoid and
+ * arbitrary gradients share file IDs but occupy separate fixed-width tables.
+ * The signed grad_slot_ mapping selects the corresponding table.
  */
 
 #ifndef PULSEQ_CXX_SEQUENCE_HPP
@@ -785,24 +758,10 @@ namespace pulseq
     /* ================================================================== */
 
     /**
-     * The key of a definition: what is the same every time it is played.
+     * Interned key for the event parameters fixed across playouts.
      *
-     * A scan is a handful of things played many times with different numbers
-     * in them. Splitting each event into the part that is fixed -- the shape
-     * of an RF pulse, the ramp times of a trapezoid, how long an ADC window
-     * is -- and the part a playout sets -- an amplitude, an offset, which
-     * waveform this shot uses -- is what turns a million blocks into a few
-     * definitions and a table of numbers, and it is what makes the repeating
-     * unit visible: the definition ids of a gradient echo read 1 2 3 4 1 2 3
-     * 4, whatever its phase encode is doing.
-     *
-     * Which column falls on which side is a statement about the hardware, not
-     * about the file. A gradient's waveform is on the instance side because a
-     * shot really can arrive with its own arm; an RF pulse's shapes are not,
-     * because nothing swaps a pulse envelope between repetitions.
-     *
-     * Four words are enough for every kind, and each kind is interned in its
-     * own table, so the layouts below need not agree with one another.
+     * RF shape IDs belong to the definition; gradient waveform IDs belong to
+     * the instance. Each event kind has a separate table and key layout.
      */
     struct DefKey
     {
@@ -1144,39 +1103,21 @@ namespace pulseq
         int32_t soft_delay_number(const std::string& hint, int32_t requested);
 
         /**
-         * Set each named soft delay to the value given, in block durations.
+         * Set soft-delay block durations from values keyed by hint.
          *
-         * A soft delay says how long its block lasts in terms of a value the
-         * console supplies: `duration = value / factor + offset`, rounded onto
-         * the block raster. This walks the block table, finds the soft delay
-         * each block heads without decoding anything else, and writes the
-         * durations back.
-         *
-         * Blocks are written as they are reached, so a sequence stopped by a
-         * problem has the blocks before it already moved -- which is what the
-         * toolbox does, and what a caller correcting the problem expects.
-         *
-         * @param values  What each delay, by its hint, is to be set to.
-         * @return What was found; see SoftDelayReport.
+         * Duration is value / factor + offset, rounded to the block raster.
+         * Updates are incremental: an error leaves earlier blocks modified.
+         * @return Validation findings; see SoftDelayReport.
          */
         SoftDelayReport apply_soft_delays(const std::map<std::string, double>& values);
 
         /**
-         * Work out what each unlabelled pulse is for, from what it does.
-         *
-         * Before revision 1.5.0 the format had nowhere to record whether a
-         * pulse excites, refocuses or saturates, so a file older than that
-         * arrives with its pulses unlabelled and the answer has to be read
-         * off the pulse itself: anything up to ninety degrees excites, a long
-         * pulse sitting where fat resonates saturates, and the rest
-         * refocuses.
-         *
-         * Only pulses the file did not label are touched, so nothing a
-         * sequence already states about itself is overwritten.
+         * Infer undefined RF uses from flip angle, duration and frequency offset.
+         * Existing uses are preserved. Legacy files have no RF-use column.
          *
          * @param b0     Field strength in tesla, for the fat offset.
          * @param gamma  Gyromagnetic ratio in Hz/T.
-         * @return How many pulses were labelled.
+         * @return Number of pulses assigned a use.
          */
         int detect_rf_uses(double b0, double gamma);
 

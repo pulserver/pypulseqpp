@@ -1,10 +1,4 @@
-"""What `Sequence.plot` hands SeqEyes, and which blocks a range names.
-
-SeqEyes is a separate program and an optional one, so most of what is held
-here is the file written for it: the blocks asked for, played at the times
-the scan plays them, with the labels the scan has reached. The test that
-opens it skips when it is not installed.
-"""
+"""SeqEyes range selection, excerpt contents and optional viewer integration."""
 
 import math
 import subprocess

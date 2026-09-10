@@ -1,9 +1,4 @@
-"""Which revision of the format a sequence is held as.
-
-Ported from `pypulseq-matlab-like`'s `test_aux_version`. A sequence built here
-is what this package writes; one read from a file is what that file declared,
-which is not the same question and is why both are worth being able to ask.
-"""
+"""Stored Pulseq revision after construction and legacy-file conversion."""
 
 import pypulseqpp as pp
 

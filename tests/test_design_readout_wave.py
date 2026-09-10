@@ -1,12 +1,4 @@
-"""Wave encoding: the corkscrew a readout plays, and what it must not disturb.
-
-A wave-encoded readout spreads every voxel along itself, so the aliasing
-parallel imaging has to separate is spread with it. What makes that usable
-rather than merely clever is everything the corkscrew leaves alone: k has to
-end where it would have ended without it, the gradients have to stay inside
-the system, and switching it off for one readout has to change nothing else
-about the sequence.
-"""
+"""Wave-encoding balance, limits and zero-amplitude structural invariance."""
 
 from __future__ import annotations
 
@@ -41,15 +33,7 @@ def readout(**kwargs):
 
 
 def moment(event) -> float:
-    """The zeroth moment of a gradient event, in 1/m.
-
-    The samples sit at raster centres and what is drawn runs between the
-    interval boundaries, which follow from the samples by a recurrence that
-    makes every interval worth the raster times its own sample -- ends
-    included. So the moment is the plain sum times the raster, which is the
-    area :meth:`~pypulseqpp.Sequence.calculate_kspace` integrates and the one
-    anything downstream would have to undo.
-    """
+    """Integrate zero-boundary raster samples in 1/m; endpoint samples have full weight."""
     waveform = np.asarray(event.waveform)
     return float(waveform.sum()) * SYSTEM.grad_raster_time
 

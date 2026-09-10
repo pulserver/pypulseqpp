@@ -1,4 +1,4 @@
-"""The few things every readout module would otherwise write out twice."""
+"""Shared readout timing, rephasing and wave-encoding utilities."""
 
 from __future__ import annotations
 
@@ -76,10 +76,7 @@ def solve_delay(
 
 
 def left_align_rephaser(gz_reph: Any, occupied: tuple[str, ...], owner: str):
-    """Slice rephaser placed at the head of its block, or ``None``.
-
-    Left-aligned because a rephaser has to run straight off the selection lobe:
-    anything between the two is time the slice spends dephasing for nothing.
+    """Copy a rephaser with zero delay, rejecting occupied gradient channels.
 
     Parameters
     ----------

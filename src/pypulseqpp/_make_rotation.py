@@ -1,22 +1,4 @@
-"""Rotation extension event constructor.
-
-Attaching one of these to a block rotates every gradient in it, without
-redesigning any waveform. That is what makes non-Cartesian readouts cheap: one
-base spoke or interleaf is designed, and each shot is the same waveform under
-a different rotation.
-
-Which means a scan builds one of these per shot, hundreds of thousands of
-times, so what it costs to build one is what a design loop spends. A rotation
-about z is a cosine and a sine; asking SciPy for the same thing costs forty
-microseconds a shot, ninety times what the block itself costs. So the angle
-forms are worked out here and SciPy is asked only where it is actually needed,
-which is turning a matrix into a quaternion.
-
-The event carries whichever it was given: a rotation object, kept so that
-``add_block`` keys its quaternion cache on that object's identity and asks
-once per orientation rather than once per block; or the four numbers
-themselves, worked out here.
-"""
+"""Pulseq rotation extension events using scalar-first quaternions."""
 
 from __future__ import annotations
 
@@ -32,7 +14,7 @@ _TWO_PI = 2.0 * math.pi
 
 
 def _from_axis_and_angle(axis, angle: float) -> np.ndarray:
-    """Return the quaternion turning by @p angle about @p axis, scalar first."""
+    """Return a scalar-first quaternion for an axis-angle rotation in radians."""
     direction = np.asarray(axis, dtype=float).reshape(-1)
     length = float(np.linalg.norm(direction))
     if length == 0.0:
@@ -50,7 +32,7 @@ def _from_axis_and_angle(axis, angle: float) -> np.ndarray:
 
 
 def _from_polar(phi: float, theta: float) -> np.ndarray:
-    """Rz(phi) then Ry(theta), which is the MATLAB toolbox's `qz * qy`."""
+    """Compose ``Rz(phi) @ Ry(theta)``: apply the y rotation first."""
     if not -math.pi <= phi < _TWO_PI:
         raise ValueError(
             f"rotation angle phi ({phi:.2f}) is invalid. "
@@ -68,12 +50,7 @@ def _from_polar(phi: float, theta: float) -> np.ndarray:
 
 
 def _from_matrices(matrices: np.ndarray):
-    """One quaternion per 3x3 matrix, scalar first.
-
-    SciPy is asked here and only here: turning a matrix into a quaternion
-    means projecting it onto a rotation first, and its answer is the one the
-    toolbox's answer is.
-    """
+    """Return scalar-first quaternions using SciPy's matrix orthogonalisation."""
     from scipy.spatial.transform import Rotation
 
     quaternions = np.atleast_2d(
@@ -90,53 +67,37 @@ def _event(quaternion) -> SimpleNamespace:
 
 
 def make_rotation(*args: Any) -> SimpleNamespace | list[SimpleNamespace]:
-    """Create a rotation extension event.
+    """Create a rotation extension event for a block's gradients.
 
     Parameters
     ----------
     *args
-        One of the forms the reference toolbox takes, or a rotation object:
+        Accepted forms (angles in radians):
 
-        - ``make_rotation(rotation)`` — anything exposing ``as_quat``, which
-          is a :class:`scipy.spatial.transform.Rotation`. Kept as it is.
-        - ``make_rotation(phi)`` — a turn about z.
-        - ``make_rotation(phi, theta)`` — ``Rz(phi)`` then ``Ry(theta)``.
-        - ``make_rotation(axis, angle)`` — a turn about a three-vector.
-        - ``make_rotation(quaternion)`` — four numbers, scalar first,
-          normalised here.
-        - ``make_rotation(matrix)`` — a 3x3 rotation matrix.
-        - ``make_rotation(matrices)`` — an Nx3x3 stack, giving a list of
-          events, one per matrix.
+        - ``(rotation,)`` : a SciPy rotation object, retained by reference.
+        - ``(phi,)`` : rotation about z.
+        - ``(phi, theta)`` : ``Rz(phi) @ Ry(theta)``; y is applied first.
+        - ``(axis, angle)`` : rotation about a nonzero three-vector.
+        - ``(quaternion,)`` : four scalar-first components, normalised here.
+        - ``(matrix,)`` : a 3-by-3 rotation matrix.
+        - ``(matrices,)`` : an N-by-3-by-3 stack of rotation matrices.
 
     Returns
     -------
-    types.SimpleNamespace or list
-        Rotation extension event (``type == 'rot3D'``), or one per matrix
-        when given a stack of them.
+    types.SimpleNamespace or list of types.SimpleNamespace
+        Event with ``type == "rot3D"``, or one event per stacked matrix.
+
+    Raises
+    ------
+    ValueError
+        For an unrecognised form, zero axis or quaternion, or an angle outside
+        its accepted range: ``phi`` in ``[-pi, 2*pi)``, ``theta`` and
+        axis-angle rotations in ``[-pi, pi]``.
 
     Notes
     -----
-    The angle ranges are the toolbox's: ``phi`` within ``[-pi, 2*pi)``,
-    ``theta`` within ``[-pi, pi]``, and an axis-angle turn within ``[0, pi]``.
-
-    Reusing one rotation *object* across blocks costs one ``as_quat`` call for
-    all of them; the angle forms cost no SciPy call at all.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pypulseqpp as pp
-    >>> pp.make_rotation(np.pi / 4).type
-    'rot3D'
-
-    Rotate a radial base spoke over a golden-angle plan::
-
-        for angle in pp.calc_golden_angles(377):
-            readout(seq, rotation=pp.make_rotation(angle))
-
-    See Also
-    --------
-    calc_projection_shell : directions spread over the sphere, to rotate onto.
+    Registration caches quaternions by rotation-object identity. Reuse the
+    same object for blocks with the same orientation.
     """
     if not args:
         raise ValueError(

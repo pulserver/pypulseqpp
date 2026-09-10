@@ -1,14 +1,4 @@
-"""A binary file says whether it is the file that was written.
-
-Ported from `pypulseq-matlab-like`'s `test_binary_signature`. The binary form
-carries an MD5 of everything written before the section that carries it, the
-way the text form does -- so a file that has been truncated, patched or
-half-copied says so rather than being parsed into something plausible.
-
-The digest is stored raw where the text form writes it as hex, and the section
-ends with how many bytes it covers, which is what lets a reader check it
-without parsing anything.
-"""
+"""Binary MD5 storage, verification and reference-toolbox interoperability."""
 
 import numpy as np
 import pytest

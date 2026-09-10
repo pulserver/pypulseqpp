@@ -1,35 +1,11 @@
 /**
  * @file events.hpp
- * @brief The events a block is made of, held the way a sequence wants them.
+ * @brief Event storage with normalised waveforms and sequence-local shape registrations.
  *
- * PyPulseq's `make_*` functions hand back a `SimpleNamespace`, and reading one
- * costs a dictionary lookup per field.  That is fine once; it is not fine two
- * million times, which is what building a three-dimensional protocol does.
- * These are the same events with the fields in slots.
- *
- * ### Waveforms are stored normalised
- *
- * An RF pulse is kept as a magnitude in 0..1, a phase in turns, and one scalar
- * amplitude; an arbitrary gradient as a normalised waveform and one scalar.
- * That is exactly how the file stores them -- the `[SHAPES]` entry is
- * normalised and the amplitude lives in the event row -- so nothing is being
- * transformed for our convenience.
- *
- * What it buys is that **scaling a pulse is one number**.  A variable flip
- * angle train is the same magnitude shape at a hundred amplitudes, and with
- * this layout it registers that shape once and writes a hundred rows that
- * differ in a single column.  Scaling the samples instead would make a hundred
- * shapes that deduplication then has to discover are related, having already
- * paid to store them.
- *
- * ### Registered ids ride along
- *
- * Once a waveform has been registered with a sequence, its shape ids are kept
- * here so the next block that plays it does not go looking again -- which is
- * what Pulseq's own `registerGradEvent` does with `event.shapeIDs`.  The
- * difference is the `owner` stamp: ids are only reused for the sequence that
- * issued them, so the same event played into a second sequence registers
- * afresh instead of pointing at a shape that sequence has never heard of.
+ * RF magnitude is normalised to [0, 1], phase is in turns, and amplitude is in
+ * Hz. Gradients store normalised samples and a signed amplitude in Hz/m.
+ * Changing only amplitude preserves the registered shape. Registration IDs
+ * are valid only for the sequence identified by their owner stamp.
  */
 
 #ifndef PULSEQ_CXX_EVENTS_HPP

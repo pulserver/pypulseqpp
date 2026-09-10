@@ -1,20 +1,4 @@
-"""Where a readout samples k, which is what a reconstructor is handed.
-
-A shift is a phase and the phase is ``dr . k``, so a reconstructor given the
-trajectory can form the phase itself -- and form it again for a different
-prescription, a pose update from motion correction among them, without the
-sequence being touched. That is why the trajectory rather than the phase is
-the thing handed over, and it is the same array the metadata an acquisition
-is enriched with wants anyway.
-
-It is absolute: an interleave that never passes through the centre still
-carries coordinates the rest of the acquisition agrees with.
-
-The test of record is the trajectory this package already reports at its ADC
-samples, which `calculate_kspace` arrives at a completely different way --
-a dense time base over the whole scan, rather than a walk from a block's own
-origin.
-"""
+"""Logical-frame ADC trajectories compared with whole-sequence k-space integration."""
 
 import numpy as np
 import pytest

@@ -1,11 +1,4 @@
-"""The balanced SSFP readouts.
-
-What a bSSFP repetition has to get right is that every axis comes back to
-k = 0, that the echo sits exactly halfway between two pulses, and that the read
-axis never leaves the plateau between one acquisition and the next. All three
-are checked against the trajectory the sequence reports rather than against
-event fields.
-"""
+"""bSSFP balance between RF centres, TE=TR/2 and transient phase conventions."""
 
 from __future__ import annotations
 

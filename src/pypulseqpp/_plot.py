@@ -1,22 +1,6 @@
-"""Drawing a sequence in SeqEyes.
+"""Launch the optional SeqEyes viewer on a selected sequence range.
 
-SeqEyes is a Pulseq viewer: a program of its own, which reads a `.seq` file
-and draws the waveforms and the k-space trajectory. `Sequence.plot` writes the
-sequence where SeqEyes can read it and opens a window on it.
-
-It is an optional dependency: ``pip install 'pypulseqpp[plot]'`` installs
-``pypulseqpp-seqeyes``, which is SeqEyes built from this repository's
-``viewer/`` and run on the Qt that PySide6 installs; a ``seqeyes`` on ``PATH``
-is used otherwise. It is GPL-licensed and a separate program, so a package
-building on this one and deployed without it -- a headless host, a scanner
-console -- carries none of it.
-
-What is drawn is chosen by blocks, by time, or by repetition. A repetition is
-the structural one: the period of the block definition stream, counted from
-the first full repetition, so a prologue of dummy shots or a preparation is
-not counted as one. SeqEyes' own TR is ``RepetitionTime`` laid end to end from
-the start of the scan, which is the same only for a scan with no prologue and
-a constant repetition time.
+Install with ``pypulseqpp[plot]``, or provide ``seqeyes`` on PATH.
 """
 
 from __future__ import annotations
@@ -183,7 +167,6 @@ def blocks_for(
 
 
 def _pair(given) -> tuple[float, float]:
-    """Return a range's two ends, refusing one that is not a range."""
     if len(given) != 2:
         raise ValueError(f"a range is two numbers, not {len(given)}")
     low, high = float(given[0]), float(given[1])
@@ -418,15 +401,10 @@ def _capture(program: Path, arguments: list[str], path: Path, where: Path) -> No
 
 
 def _excerpt(seq, first: int, last: int) -> bytes:
-    """Return the text of blocks ``first`` to ``last`` alone.
+    """Serialise an inclusive block range with a local time base.
 
-    SeqEyes reads a file in time proportional to its blocks and to how long
-    it lasts, so a few repetitions of a long scan are written as those
-    repetitions and the library rows they play, on a clock starting at the
-    first of them. What the scan has done before is carried only where it
-    changes what is drawn: a block of no duration leads, setting each label
-    to what it has reached, so a counter reads what the scan would have it
-    read.
+    Prepend a zero-duration block with incoming label values, so displayed
+    counters match the original sequence.
     """
     native = seq._native
     if first == 1 and last == native.num_blocks():
@@ -449,7 +427,6 @@ def _excerpt(seq, first: int, last: int) -> bytes:
 
 
 def _is_default(value, default) -> bool:
-    """Whether an option was left as upstream's default, which asks for nothing."""
     return value is default or (type(value) is type(default) and value == default)
 
 

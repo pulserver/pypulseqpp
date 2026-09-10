@@ -1,17 +1,9 @@
 /**
  * @file parsed.hpp
- * @brief What a sequence file said, before any of it is registered.
+ * @brief Intermediate text and binary records consumed by build_sequence().
  *
- * Both readers fill this and hand it to build_sequence(), so the two forms of
- * the file differ only in how they are taken apart. The rules that turn a
- * file into a sequence -- what order the libraries are registered in, that
- * the ids handed out are the ids the file used, that blocks come last because
- * a block is forked as it is added -- are written once, here and in the
- * builder, rather than twice.
- *
- * Every library is keyed by the id the file gave it rather than collected in
- * the order the rows appear, so a file whose rows are out of order still
- * registers them in the numbering it declared.
+ * Libraries are keyed by file ID so registration preserves numbering even
+ * when rows appear out of order. Events must be registered before blocks.
  */
 
 #ifndef PULSEQ_CXX_PARSED_HPP
@@ -75,7 +67,9 @@ namespace pulseq
         /** Pre-1.4 only: per block, the delay id its duration column held. */
         std::map<int, int32_t> block_delay;
 
-        /** Text only: the binary form carries no signature. */
+        /**
+         * Text signature fields; binary verification uses binary_signature() separately.
+         */
         bool has_signature = false;
         std::string signature;
         /** Where the `[SIGNATURE]` header starts, so the digest knows its end. */

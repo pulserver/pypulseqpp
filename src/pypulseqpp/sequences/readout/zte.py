@@ -20,46 +20,15 @@ _READOUT_GRAD_MARGIN = 0.95
 
 
 class ZteReadout(SequenceModule):
-    """A whole shell of a continuous-gradient ZTE, ramp up to ramp down.
+    """Continuous-gradient ZTE shell, including its initial and final ramps.
 
-    Two things define the family, and the module is laid out to give both.
-    The readout gradient is already at full amplitude when the pulse fires, so
-    encoding begins at the pulse and every spoke runs from the centre of
-    k-space outward -- the echo time is the dead time, not a design choice.
-    And the gradient never returns to zero between spokes: after each
-    acquisition it slews straight onto the next direction, so a shell costs one
-    ramp up and one ramp down however many views it holds. A gradient that
-    only ever *turns* is what makes a well-designed ZTE quiet.
+    Each view excites on a held gradient, then acquires while slewing toward
+    the next direction. The final view ramps to zero. Generated shells are
+    replayed under shot_rotations; do not rotate individual views again.
 
-    The shell is therefore one continuous waveform, written out view by view::
-
-        zte = design.ZteReadout(system, hard.rf, fov=0.24, matrix=192)
-
-        for shot in zte.shot_rotations:
-            turn = pp.make_rotation(Rotation.from_matrix(shot))
-            seq.add_block(*zte.g_ramp, turn)
-            for view in range(len(zte.directions)):
-                seq.add_block(zte.rf, *zte.g_hold[view], turn)
-                seq.add_block(zte.adc, *zte.g_read[view], turn)
-
-    A view is two blocks -- pulse and hold, then acquire and turn -- because a
-    block carries at most one of an RF and an ADC. It costs nothing: gradients
-    need not reach zero at a block boundary, so the plateau runs through and
-    the whole shell is one segment.
-
-    **The only rotation is the shot.** A generated shell runs pole to pole, so
-    turning it about ``z`` by ``2 * pi / n_shots`` leaves its ends where they
-    were and slides every intermediate spoke onto the azimuthal gaps the shell
-    left behind. ``n_shots`` congruent shells then cover the sphere, one
-    ``ROTATIONS`` extension each, and the waveform memory holds one shell
-    rather than the whole sphere. It is also what keeps a shell short enough
-    to fit: raising ``n_shots`` divides a fixed sphere into more, shorter
-    segments rather than acquiring more spokes.
-
-    The centre of k-space is not acquired. Transmit ringdown and receiver dead
-    time run into the spoke, and the samples that fall inside them are dropped
-    rather than squeezed: ``n_missing`` of them, reported so a reconstruction
-    can fill the gap. This module does no filling of its own.
+    Transmit ringdown and receiver dead time leave n_missing central samples.
+    The module reports this gap but does not fill it. Longer TR extends
+    the inter-view slew rather than adding an idle delay.
 
     Attributes
     ----------
@@ -96,7 +65,7 @@ class ZteReadout(SequenceModule):
     gap : float
         Pulse centre to the first sample (s).
     bandwidth_hz : float
-        Achieved receiver bandwidth.
+        Achieved ADC sampling rate (Hz).
     delta_k : float
         Radial k-space step (1/m).
     kmax : float
@@ -134,8 +103,8 @@ class ZteReadout(SequenceModule):
     oversampling : float, optional
         Radial oversampling: a finer ``delta_k`` along the same spoke.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what the two
-        rasters allowed. It sets the gradient amplitude too, the spoke being
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved raster-compatible rate. It sets the gradient amplitude too, the spoke being
         traversed at one sample per ``delta_k``.
     tr : float, optional
         Pulse centre to pulse centre (s). ``None`` is as short as the widest
@@ -165,26 +134,8 @@ class ZteReadout(SequenceModule):
     >>> len(zte.g_read), zte.shot_rotations.shape
     (64, (256, 3, 3))
 
-    The samples the dead time costs are dropped, not compressed:
-
     >>> zte.n_samples + zte.n_missing == zte.n_nominal
     True
-
-    The module is the shell, so what it plays is the koosh ball one shot
-    acquires -- every spoke leaving the centre, their ends walking pole to
-    pole:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       hard = design.NonSelectiveExcitation(system, 4.0, duration_s=10e-6)
-       zte = design.ZteReadout(
-           system, hard.rf, fov=0.24, matrix=48, n_views=24, n_shots=1
-       )
-       zte.plot_kspace(plot_now=False)
     """
 
     def init_module(
@@ -390,7 +341,6 @@ def _unit(directions: Any) -> np.ndarray:
 
 
 def _slew_span(system: pp.Opts, delta: float) -> float:
-    """Time to change the gradient vector by ``delta`` within the slew limit."""
     return max(
         system.grad_raster_time,
         pp.ceil_to_raster(delta / system.max_slew, system.grad_raster_time),

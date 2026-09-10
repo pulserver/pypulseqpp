@@ -10,12 +10,7 @@ __all__ = ["make_rf_shim"]
 
 
 def make_rf_shim(shim_vector) -> SimpleNamespace:
-    """Create an RF shim extension event.
-
-    On a parallel-transmit system each channel plays the same RF envelope
-    scaled by its own complex weight. This event carries that weight vector
-    for a block, so a single designed pulse can be re-shimmed per slice or per
-    excitation without redesigning the envelope.
+    """Create complex per-transmit-channel weights for a block's RF envelope.
 
     Parameters
     ----------

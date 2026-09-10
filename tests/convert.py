@@ -1,16 +1,4 @@
-"""Loading an upstream sequence into the compiled core.
-
-The parity tests need one sequence held two ways: as the reference toolbox
-built it, and as pypulseqpp's core holds it. This module is the bridge, and it
-exists only for the tests -- the package itself never imports the toolbox.
-
-Nothing here interprets a row. Upstream's libraries and the core's are the
-same libraries, in the same order, with the same columns, because both are the
-file format's; so the rows cross as they stand and their ids cross with them.
-
-Every registration is checked to have landed on the id it came from, since a
-renumbering would show up as a confusing diff much later.
-"""
+"""Transfer reference-toolbox library rows into the native core, preserving IDs."""
 
 from __future__ import annotations
 

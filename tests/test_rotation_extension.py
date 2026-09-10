@@ -1,15 +1,4 @@
-"""A rotation carried as an extension plays what rotating the events plays.
-
-Ported from `pypulseq-matlab-like`'s `test_rotation_extension`. The point of
-the extension is that one waveform serves every shot: a radial base spoke is
-designed once and each spoke is that spoke under a different rotation, so
-nothing is redesigned and nothing is registered twice. That only holds if the
-sequence plays what it would have played had the gradients been rotated when
-they were made -- which is what `rotate` does, and what these compare against.
-
-The rotation survives a file and a block-by-block rebuild, because it is
-written as an extension and read back as one.
-"""
+"""Rotation-extension parity with explicitly rotated gradients and file round trips."""
 
 import math
 from pathlib import Path

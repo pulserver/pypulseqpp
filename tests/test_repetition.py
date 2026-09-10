@@ -1,16 +1,4 @@
-"""What the scan repeats, found from the definitions rather than the blocks.
-
-A scan is a handful of things played over and over with different numbers in
-them. The structural fork already says which: two blocks playing the same
-things for the same length share a definition id whatever their amplitudes,
-so a gradient echo's definition stream reads 1 2 3 4 1 2 3 4 whatever its
-phase encode is doing. Finding the repeating unit is then finding the period
-of an array of integers, and that is a pass in C++ rather than a comparison
-of blocks event by event.
-
-What is held here is the period, where it starts, and when the answer goes
-stale.
-"""
+"""Block-definition periods, prologues and cache invalidation."""
 
 import math
 

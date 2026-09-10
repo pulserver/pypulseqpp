@@ -1,24 +1,6 @@
 /**
  * @file waveforms.hpp
- * @brief The sequence as what the gradients and the digitiser actually do.
- *
- * A block table says which events a sequence plays and when each block
- * starts. Everything that looks at what a sequence *does* -- where it goes in
- * k-space, how fast the gradients slew, when a sample is taken, what a plot
- * draws -- needs the other view: one waveform per axis over the whole scan,
- * on a time base shared by all of them.
- *
- * Building it is a pass over every block, and a block contributes a handful
- * of points rather than one, so this is the routine whose cost grows fastest
- * with the size of a scan. It is here, in C++, for that reason.
- *
- * ### A waveform is its corners
- *
- * A gradient is played by interpolating linearly between the samples it is
- * given, so the waveform is fully described by the points where its slope
- * changes and nothing is lost by leaving out the rest. A trapezoid is four
- * points however long its flat top is; a shape stored on the raster is
- * restored to the corners the interpreter will draw between.
+ * @brief Expand blocks into physical gradient corners, RF envelopes and ADC sampling.
  */
 
 #ifndef PULSEQ_WAVEFORMS_HPP
@@ -51,10 +33,7 @@ namespace pulseq
     };
 
     /**
-     * One RF pulse's moment: when it acts, and at what frequency and phase.
-     *
-     * The time is the pulse's centre, which is where it is taken to act; the
-     * phase is what it has accumulated by then.
+     * RF centre time (seconds), frequency (Hz) and phase at the centre (radians).
      */
     struct PulseMoment
     {
@@ -75,13 +54,8 @@ namespace pulseq
         std::vector<std::complex<double>> rf_signal;
 
         /**
-         * Every RF pulse, in play order, with what it is for and which block
-         * plays it.
-         *
-         * Pulseq has seven uses and an answer that carries two of them drops
-         * an inversion, a saturation and a preparation on the floor. They are
-         * all here, tagged, and a caller wanting the two buckets sorts them
-         * out by tag.
+         * All RF centres in play order, with use codes and 1-based block indices.
+         * Includes uses other than excitation and refocusing.
          */
         std::vector<PulseMoment> pulses;
         std::vector<char> pulse_uses;
@@ -98,19 +72,18 @@ namespace pulseq
         std::vector<int> window_blocks;
         std::vector<int> window_samples;
 
-        /** Every ADC sample: when it is taken, and the phase it is taken at. */
+        /**
+         * Per-sample times in seconds, frequency in Hz, phase and modulation in radians.
+         * Frequency and phase include ppm terms; modulation is stored separately.
+         */
         std::vector<double> adc_times;
         std::vector<double> adc_frequency;
         std::vector<double> adc_phase;
         std::vector<double> adc_modulation;
 
         /**
-         * How long the blocks expanded last, in total.
-         *
-         * The same running sum the waveform times are measured against, so a
-         * caller asking whether an axis stops before the end is comparing two
-         * numbers that were added up the same way. Adding the durations again
-         * elsewhere gives a different last bit, and the answer flips.
+         * Duration in seconds, accumulated in the same order as waveform times.
+         * Use this value for endpoint comparisons to avoid roundoff discrepancies.
          */
         double duration = 0.0;
 

@@ -1,12 +1,4 @@
-"""The variable-density Poisson-disc mask, and the search that finds it.
-
-Bridson dart-throwing is stochastic, so the acceleration a density slope
-yields is a noisy function of that slope and the binary search over it is a
-search over a noisy objective. These tests pin the three properties that makes
-necessary: it must not fail on a request it can satisfy, it must not report a
-worse mask than one it already saw, and it must say which of the two reasons
-it is refusing for.
-"""
+"""Poisson-disc reproducibility, acceleration tolerance and infeasible requests."""
 
 from __future__ import annotations
 
@@ -38,12 +30,7 @@ def _quantum(shape, acceleration):
 def test_a_request_is_either_met_or_refused_for_a_reason_it_states(
     shape, acceleration, calib, seed
 ):
-    """No seed-dependent failures left over.
-
-    Two refusals are legitimate and both are arithmetic, not luck: the
-    calibration block alone is denser than the request, or the grid is too
-    coarse for one sample to land inside the tolerance.
-    """
+    """Reject unattainable calibration density or discrete sample-count tolerance."""
     tolerance = 0.1
     try:
         mask = make_poisson_disc_mask(

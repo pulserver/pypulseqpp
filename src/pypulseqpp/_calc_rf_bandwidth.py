@@ -28,7 +28,6 @@ def _full_freq_offset(rf) -> float:
 
 
 def _at_baseband(rf):
-    """``rf`` tuned to zero, which is where its width is measured."""
     at_rest = _SimpleNamespace(**vars(rf))
     at_rest.freq_offset = 0.0
     at_rest.freq_ppm = 0.0
@@ -36,22 +35,10 @@ def _at_baseband(rf):
 
 
 def _with_zero_edges(rf, dt: float):
-    """``rf`` with one zero sample placed a raster step outside each end.
+    """Pad the envelope with zero samples one ``dt`` outside each end.
 
-    A pulse is resampled onto the spectrum's time grid by interpolation, and
-    that grid spans ``1 / dw`` -- tens of milliseconds, against a pulse of a
-    few. Interpolation holds the end samples across everything beyond them,
-    so an envelope that does not itself reach zero is read as one that never
-    stops, and the held tail is a rectangle tens of times longer than the
-    pulse. Its transform is a spike at the centre frequency, and a spike
-    above the passband moves the half height the flanks are found at.
-
-    A hard pulse is the extreme: two samples, one at each end of a
-    rectangle, held on both sides into a rectangle without end, whose
-    transform is a delta and whose width is therefore zero. An SLR pulse is
-    the ordinary case, its ends a percent of its peak and its passband read
-    a third narrow. The zero samples give the interpolation somewhere to
-    land, which is where the pulse actually ends.
+    This prevents interpolation from extending nonzero endpoint values
+    across the FFT window.
     """
     edged = _SimpleNamespace(**vars(rf))
     edged.t = _np.concatenate(([rf.t[0] - dt], rf.t, [rf.t[-1] + dt]))
@@ -60,13 +47,10 @@ def _with_zero_edges(rf, dt: float):
 
 
 def _crossing(frequency, height, cutoff: float) -> float:
-    """Where the flank crosses ``cutoff``, between the two bins that bracket it.
+    """Interpolate the first threshold crossing from the supplied edge.
 
-    Walked inward from the edge, so a side lobe over the threshold cannot
-    narrow the answer, and interpolated rather than rounded to a bin: a flank
-    is a smooth function, and taking the first bin above the cutoff makes the
-    answer's precision the bin width. That is what would otherwise force a
-    fine ``dw`` -- and the transform is the whole cost of asking.
+    Includes sidelobes above the cutoff; callers reverse the arrays for the
+    opposite edge.
     """
     above = _np.flatnonzero(height >= cutoff * height.max())
     if not above.size:
@@ -82,7 +66,7 @@ def _crossing(frequency, height, cutoff: float) -> float:
 
 
 def _width(frequency, spectrum, cutoff: float) -> float:
-    """Distance between the two flanks of the main lobe."""
+    """Return the width between outermost threshold crossings, or zero for a zero spectrum."""
     height = _np.abs(_np.asarray(spectrum, dtype=complex))
     frequency = _np.asarray(frequency, dtype=float)
     if not height.size or not (height.max() > 0.0):
@@ -100,21 +84,12 @@ def calc_rf_bandwidth(
     dw: float = 10,
     dt: float | None = None,
 ):
-    """Spectral width of an RF pulse, from an FFT of its envelope.
+    """Estimate RF bandwidth from the envelope's Fourier magnitude.
 
-    A low-flip-angle approximation: the excitation profile is taken to be the
-    Fourier transform of the pulse, and the bandwidth the width of that
-    transform's main lobe at ``cutoff`` of its height.
-
-    PyPulseq's function, called with a pulse it can answer. Two things are
-    put right first. The pulse is given the zero it steps down to on either
-    side of it, because the resampling before the transform otherwise holds
-    its end samples out to the edge of the window -- which reads a hard pulse
-    as a rectangle without end and answers zero for it, and reads an SLR
-    pulse's one-percent ends as a spike above its own passband. And a pulse
-    carrying a frequency offset is measured at baseband, the offset going
-    back onto the frequency axis afterwards, because retuning a pulse moves
-    its band without widening it.
+    Uses the outermost crossings at ``cutoff`` times the peak, with linear
+    interpolation between bins. This is a small-tip approximation, not a Bloch
+    simulation. Frequency offsets shift the returned axis without changing
+    the measured width; ppm offsets use the default system's gamma and B0.
 
     Parameters
     ----------

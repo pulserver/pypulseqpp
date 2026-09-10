@@ -1,14 +1,4 @@
-"""Scaling one gradient axis of a sequence already built.
-
-Ported from the reference toolbox's `test_mod_grad_axis.py`, as plain
-functions rather than a class. What is held is what its tests hold: the
-amplitude and the area scale, the timing does not, the other axes are left
-alone, and scaling by a factor and then by its reciprocal comes back to where
-it started.
-
-The scaling itself is a pass over the block table in C++, because the question
-"which gradients are played only on this axis" is asked of every block.
-"""
+"""Gradient-axis scaling, shared-row rejection and deduplication."""
 
 import math
 

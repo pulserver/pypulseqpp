@@ -1,52 +1,8 @@
-"""Arbitrary-gradient waveform design for non-Cartesian trajectories.
+"""MRArbGrad waveform design.
 
-Thin Python wrapper around the MRArbGrad C++ solver, which this package
-carries as a submodule under ``external/`` (see ``external/NOTICE.md``). Each
-function below designs a
-single slew/gradient-limited **base waveform** (one shot, standard
-orientation) plus the number of shots required for full k-space coverage —
-it does not enumerate shots or apply any rotation itself.
-
-:func:`traj2grad` is the reusable exception: it accepts arbitrary 2D/3D
-NumPy k-space samples in cycles/m and returns a rasterized gradient in Hz/m.
-
-Where the shots go is not the solver's business and is not here either:
-:func:`pypulseqpp.calc_golden_angles` and its family say what angle each shot
-is played at, and :func:`pypulseqpp.make_rotation` turns one into a rotation
-the base arm is replayed under.
-
-Note there is a single :func:`spiral` entry point, not separate
-constant-pitch/variable-density functions: MRArbGrad's variable-density
-spiral trajectory function algebraically reduces to the exact constant-pitch
-(Archimedean) formula when its two shape parameters are equal, so a separate
-binding would be a redundant special case (see ``external/NOTICE.md`` for the
-derivation).
-
-Units
------
-:func:`spiral` and :func:`rosette` operate in MRArbGrad's native normalized
-units:
-
-- ``fov`` in meters, ``n_pix`` a plain pixel count.
-- ``slew_limit`` in Hz/pix/s, ``grad_limit`` in Hz/pix (*not* T/m/s, T/m —
-  these "per pixel" units fold the gyromagnetic ratio and FOV/matrix size
-  into the limit so the solver never needs gamma explicitly).
-- ``dt`` in seconds (gradient raster time).
-
-Use :func:`to_gradient_tesla_per_meter` to convert a returned waveform to SI
-units before handing it to :func:`pypulseqpp.make_arbitrary_grad`.
-
-Examples
---------
->>> from pypulseqpp import _arbgrad as arbgrad
->>> wf = arbgrad.spiral(fov=0.256, n_pix=128,
-...                     slew_limit=50 * 42.5756e6 * 0.256 / 128,
-...                     grad_limit=50e-3 * 42.5756e6 * 0.256 / 128,
-...                     dt=10e-6)
->>> wf.gradient.shape[1]
-3
->>> wf.n_shots > 0
-True
+Spiral and rosette designs return one unrotated base shot in Hz/pixel;
+traj2grad accepts k-space paths in cycles/m and returns gradients in Hz/m.
+Shot ordering and rotation are supplied by the caller.
 """
 
 from __future__ import annotations
@@ -76,7 +32,7 @@ class BaseWaveform:
     Parameters
     ----------
     k0 : np.ndarray
-        Shape ``(3,)`` k-space start offset of this shot (native units).
+        Shape ``(3,)`` k-space start offset of this shot (cycles/pixel).
     gradient : np.ndarray
         Shape ``(n_samp, 3)`` gradient waveform samples, one row per
         ``dt``-spaced sample, columns are x/y/z (native Hz/pix units).

@@ -1,11 +1,4 @@
-"""The refocusing pulses, hard and slice-selective.
-
-A refocusing pulse is judged by two things: how completely it inverts, and
-whether its crushers are symmetric enough to leave the refocused pathway alone
-while destroying the FID an imperfect inversion leaves behind. Both are
-measured here -- the first by simulating the pulse, the second by integrating
-the gradient either side of the pulse centre.
-"""
+"""Refocusing profiles and matched crusher moments about RF centres."""
 
 from __future__ import annotations
 

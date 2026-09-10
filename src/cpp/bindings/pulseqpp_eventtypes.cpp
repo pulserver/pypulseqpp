@@ -839,22 +839,10 @@ namespace pulseqpp_types
         }
 
         /**
-         * `scale_grad(grad, scale)` for an event that is already unpacked.
+         * Scale an unpacked gradient while retaining its normalised shape registration.
          *
-         * A trapezoid's area and flat area are computed from its amplitude,
-         * and an arbitrary gradient stores its waveform normalised with the
-         * peak beside it, so scaling either one is a copy of the struct and a
-         * multiply -- no field-by-field walk, and for the arbitrary case no
-         * touching of the samples at all.
-         *
-         * The copy keeps `registered`, which names the *shape* the sequence
-         * already holds: scaling does not change a normalised waveform, so
-         * the scaled event registers against the same shape and differs only
-         * in the amplitude its row carries.  `id` is dropped, as upstream
-         * drops it, because the row it named was the unscaled one.
-         *
-         * METH_FASTCALL: the caller's arguments arrive as a C array, so a
-         * call that does two multiplies does not first build a tuple.
+         * Clear the compatibility row id, which refers to the unscaled event.
+         * METH_FASTCALL avoids allocating an argument tuple on this hot path.
          */
         PyObject* scale_grad_fast(PyObject*, PyObject* const* args, Py_ssize_t nargs)
         {

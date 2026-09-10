@@ -1,13 +1,4 @@
-"""The binary form, against the toolbox that defines it.
-
-`pypulseq-matlab-like` is a transcription of MATLAB Pulseq, and it is where
-the binary layout in this package comes from. These tests hold the two
-readers and writers against each other in both directions.
-
-It is not on PyPI, so it is not a dependency and these skip without it:
-
-    pip install git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like
-"""
+"""Bidirectional binary interoperability with the optional reference toolbox."""
 
 import math
 

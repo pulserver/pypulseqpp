@@ -1,10 +1,4 @@
-"""The non-Cartesian readouts, and the interleaves they are built from.
-
-The trajectory designers are checked against the geometry they claim -- where
-the path starts, where it ends, how far out it reaches -- and the readout
-modules against what a scan loop needs from them: one interleave, oriented by
-the loop, with a TE that points at the k = 0 crossing.
-"""
+"""Non-Cartesian geometry, moment bridges, timing and explicit rotations."""
 
 from __future__ import annotations
 

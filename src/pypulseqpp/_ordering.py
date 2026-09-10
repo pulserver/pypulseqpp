@@ -26,6 +26,7 @@ def interleaved(n: int) -> np.ndarray:
 
 
 def center_out(n: int) -> np.ndarray:
+    """Order positions by distance from the middle, the lower index first on a tie."""
     n = _count(n)
     center = (n - 1) / 2.0
     return np.asarray(
@@ -53,12 +54,7 @@ _TRAVERSALS = {
 def calc_traversal_order(
     n: int, order: str = "sequential", *, seed: int = 0
 ) -> np.ndarray:
-    """Return the order in which to visit ``n`` positions of a one-dimensional loop.
-
-    The ordering primitive behind any outer loop that is a plain count —
-    3D partitions, slices, inversion times, diffusion directions, dynamic
-    frames. Each scheme is just a permutation of ``range(n)``, so the loop
-    stays yours: iterate the result instead of ``range(n)``.
+    """Return a permutation of zero-based positions for a one-dimensional loop.
 
     Parameters
     ----------
@@ -89,20 +85,6 @@ def calc_traversal_order(
     [0, 2, 4, 1, 3, 5]
     >>> calc_traversal_order(5, "center_out").tolist()
     [2, 1, 3, 0, 4]
-
-    Drive a stack-of-spirals partition loop centre-out, with the in-plane
-    angle advancing continuously across the whole scan::
-
-        rotations = iter(design.make_noncartesian_2d_sampling(matrix, views=nz * nviews).to_rotations())
-        for par in pp.calc_traversal_order(nz, "center_out"):
-            for view in range(nviews):
-                readout.set_state(lin_idx=view, par_idx=int(par), rotation=next(rotations))
-                for _block in readout:
-                    seq.add_block(*_block)
-
-    See Also
-    --------
-    pypulseqpp.design.make_slice_loop : slice/SMS grouping built on this.
     """
     if order == "random":
         return random_order(n, seed)
@@ -115,11 +97,7 @@ def calc_traversal_order(
 
 
 def calc_chunk_indices(indices: list[int], size: int) -> list[list[int]]:
-    """Split a flat index list into consecutive chunks of at most ``size``.
-
-    The generic shot/echo-train splitter: ``indices`` is the acquisition order
-    and ``size`` the inner train length. A trailing partial chunk is kept as is
-    rather than padded or dropped.
+    """Split indices into consecutive chunks, retaining a shorter final chunk.
 
     Parameters
     ----------

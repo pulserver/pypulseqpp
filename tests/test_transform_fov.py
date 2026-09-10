@@ -1,16 +1,4 @@
-"""A prescription applied to a designed sequence.
-
-Where the volume sits, which way it faces and how big it is are three things
-done to a sequence that was designed without knowing any of them. A scale is a
-multiplication on a gradient's amplitude, a rotation is four numbers attached
-to a block, and a shift is a phase -- ``dr . k`` -- written onto every pulse
-and every readout that follows.
-
-The invariants below are the reference toolbox's, asked of this API. Two
-answers differ from it on purpose and say so where they are asserted: a
-rotation is never baked into new waveforms here, and a shift's residual phase
-is held against ``dr . k(t)`` itself rather than against a wrapped ``k``.
-"""
+"""FOV scaling, rotation composition, logical shifts and persistent transform state."""
 
 from __future__ import annotations
 
@@ -72,11 +60,7 @@ def one_block(system, *events):
 
 
 def played_areas(seq) -> np.ndarray:
-    """The area each axis is driven through, in 1/m, rotations included.
-
-    Read off the waveforms rather than the stored rows, because a rotation
-    here moves what a block plays without moving the row it plays it from.
-    """
+    """Return physical-axis integrated gradient areas in 1/m, including rotations."""
     waveforms = seq.waveforms_and_times()[0]
     return np.array(
         [
@@ -421,12 +405,7 @@ def test_every_readout_of_a_repeated_shot_is_moved(system):
 
 
 def receive_phase(block, samples=None):
-    """The phase a readout is demodulated with, in turns, sample by sample.
-
-    Three pieces say it: a constant, a frequency read from the readout's own
-    start, and -- only where the gradient moves under the readout -- a phase
-    per sample.
-    """
+    """Return per-sample receive phase in cycles, including offsets and modulation."""
     count = int(block.adc.num_samples)
     when = float(block.adc.dwell) * (np.arange(count) + 0.5)
     phase = float(block.adc.phase_offset) + TURN * float(block.adc.freq_offset) * when
@@ -651,13 +630,7 @@ def test_an_exempt_block_keeps_the_phase_it_was_designed_with(system):
 
 
 def acquired_against_its_excitation(moved, excitation, readout, shift, k):
-    """A readout's phase measured from the phase its own excitation was given.
-
-    The physical quantity. Which origin the two are counted from is a choice
-    -- shift both and nothing observable moves -- so only their difference
-    means anything, and it has to come out as ``dr . k`` with ``k`` counted
-    from that excitation.
-    """
+    """Subtract the excitation phase from each readout phase, in cycles."""
     block = moved.get_block(readout)
     return wrapped(
         receive_phase(block)
@@ -667,16 +640,7 @@ def acquired_against_its_excitation(moved, excitation, readout, shift, k):
 
 
 def test_every_playout_of_a_readout_shares_one_reference(system):
-    """The echo belongs to the readout, not to the playout.
-
-    Not every playout passes the centre of k-space. Here each shot has its
-    own prewinder, so each crosses the readout axis at its own instant and a
-    pivot chosen per playout would be five different instants -- and five
-    phase profiles registered for one readout. The playout that comes
-    nearest the centre fixes the instant for all of them, so the table
-    shares one shape, and every shot is still acquired at the phase the
-    shift asks for.
-    """
+    """The nearest-to-origin playout defines one ADC pivot and profile for all shots."""
     shift = 0.011
     gx = flat("x", 5000, 1.4e-3, system)
     samples = 192
@@ -897,14 +861,7 @@ def test_a_time_range_and_a_block_range_are_not_given_together(system):
 
 
 def test_a_scan_can_be_moved_a_repetition_at_a_time(system):
-    """What a consumer too large to hold a scan at once does.
-
-    The transform carries where both walks stand, so a range picked up where
-    the last one left off gives what one call over the whole scan would have.
-    Which ranges is the consumer's business -- `_detect_tr` says how long a
-    repetition is and where the first one starts, and the pieces here are two
-    of them at a time.
-    """
+    """Carry cumulative area and RF-reset origin between consecutive ranges."""
     shift = 0.01
     rf = sinc(system)
     gx = flat("x", 2000, 2e-3, system)

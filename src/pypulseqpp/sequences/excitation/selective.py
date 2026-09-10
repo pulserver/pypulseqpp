@@ -14,28 +14,11 @@ _AXES = ("x", "y", "z")
 
 
 class SpatialSelectiveExcitation(RfModule):
-    """An SLR pulse under a selection gradient, with its rephaser.
+    """SLR excitation with a selection gradient and optional rephasing.
 
-    SLR rather than a windowed sinc: it turns the slice profile into a filter
-    design problem, so the passband and stopband ripple are asked for rather
-    than discovered, and the profile is far squarer at the same
-    time-bandwidth product.
-
-    ``is_slab`` decides how the rephaser is delivered, and the choice matters
-    to whatever plays this module:
-
-    - ``False`` (a 2D slice) publishes ``gz`` and ``gz_reph`` and lays out
-      **two** blocks. The rephaser is separable, so a readout can fold its
-      moment into its own prewinder and the excitation can then be played
-      without it.
-    - ``True`` (a 3D slab) concatenates the two into ``gz`` alone and lays out
-      **one** block. A slab excitation is played once per TR next to a
-      partition encode that occupies the same axis anyway, so nothing is saved
-      by keeping the rephaser separate, and one gradient is one event for the
-      readout to accept.
-
-    To skip the rephasing entirely — a spin echo whose refocusing pulse
-    re-winds the selection lobe — pass ``rephase=False``.
+    A slice publishes separate gz and gz_reph events in two blocks. With
+    is_slab=True, rephasing is merged into gz in one block. Set rephase=False
+    to omit it; a readout may instead include the rephaser's moment.
 
     Parameters
     ----------
@@ -50,7 +33,7 @@ class SpatialSelectiveExcitation(RfModule):
     is_slab : bool, optional
         Merge the rephaser into the selection gradient, as above.
     rephase : bool, optional
-        Build a rephaser at all.
+        Include a slice rephaser.
     time_bw_product : float, optional
         Time-bandwidth product. Higher is a squarer profile and a longer pulse
         at the same bandwidth.
@@ -60,7 +43,7 @@ class SpatialSelectiveExcitation(RfModule):
         SLR design family. ``"ex"`` for a large-tip excitation, ``"se"`` for a
         refocusing pulse.
     use : str, optional
-        What the pulse is for; the trajectory core reads it.
+        Pulseq RF-use tag, used by trajectory integration.
     passband_ripple, stopband_ripple : float, optional
         Ripple allowed in each band of the slice profile.
 
@@ -81,36 +64,15 @@ class SpatialSelectiveExcitation(RfModule):
 
     Examples
     --------
-    A 2D slice keeps its rephaser separate, in a second block:
-
     >>> import pypulseqpp.sequences as design
     >>> import pypulseqpp as pp
     >>> slice_ = design.SpatialSelectiveExcitation(pp.Opts(), 15.0, 5e-3)
     >>> len(slice_.blocks), slice_.gz_reph.channel
     (2, 'z')
 
-    A slab merges it, so the whole excitation is one block and one gradient:
-
     >>> slab = design.SpatialSelectiveExcitation(pp.Opts(), 8.0, 0.12, is_slab=True)
     >>> len(slab.blocks), slab.gz.type
     (1, 'grad')
-
-    The slice the pulse selects, and the envelope that selects it. The SLR
-    design puts the passband where it was asked for and holds the ripple to
-    what it was given:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       design.SpatialSelectiveExcitation(system, 90.0, 3e-3).plot_rf(
-           title="SLR excitation, 90 degrees over 3 mm",
-           extent=8,
-           plot_now=False,
-       )
     """
 
     def init_module(
@@ -177,24 +139,10 @@ class SpatialSelectiveExcitation(RfModule):
 
 
 class SpatialSelectiveRefocusing(RfModule):
-    """An SLR 180 under a selection gradient, with its crushers bridged on.
+    """SLR refocusing with matched crushers joined to the selection plateau.
 
-    The refocusing half of a slice-selective spin echo. The SLR pulse is
-    designed with the ``"se"`` profile rather than the excitation one, because
-    the two solve different problems: an excitation profile is the transverse
-    magnetisation a pulse produces from equilibrium, a refocusing profile is
-    how completely it inverts, and a pulse optimal for one is not optimal for
-    the other.
-
-    The crushers ride the selection lobe rather than waiting for it to fall to
-    zero. A pair of identical lobes, one each side of the pulse, is invisible
-    to the refocused pathway -- the phase one winds the other unwinds -- and
-    fatal to the FID an imperfect 180 leaves behind, which sees only the second
-    lobe. Bridging them onto the plateau makes the whole thing a single
-    gradient event, which is also what lets a readout accept it as its ``gz``.
-
-    The pulse is phased a quarter turn from the excitation, the CPMG
-    condition.
+    Uses the spin-echo SLR profile. The default RF phase is pi/2 radians
+    for a zero-phase excitation (CPMG).
 
     Parameters
     ----------
@@ -243,30 +191,6 @@ class SpatialSelectiveRefocusing(RfModule):
     >>> refocusing = design.SpatialSelectiveRefocusing(pp.Opts(), 5e-3)
     >>> len(refocusing.blocks), refocusing.gz.type
     (1, 'grad')
-
-    A spin echo is then the same readout an excitation would open, given the
-    refocusing pulse instead::
-
-        readout = design.LineReadout2D(
-            system, refocusing.rf_ref, refocusing.gz,
-            fov=0.22, matrix=128, te=15e-3,
-        )
-
-    Refocusing efficiency across the slice, which is what an ``"se"`` profile
-    is designed against and an excitation profile is not:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       design.SpatialSelectiveRefocusing(system, 3e-3).plot_rf(
-           title="SLR refocusing, 3 mm",
-           extent=8,
-           plot_now=False,
-       )
     """
 
     def init_module(

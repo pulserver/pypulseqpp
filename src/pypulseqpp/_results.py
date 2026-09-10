@@ -1,19 +1,4 @@
-"""What an expansion knows, said in names rather than in tuple positions.
-
-Upstream PyPulseq's `waveforms_and_times` returns five values, and a script
-written against it unpacks five. That is what `compat=True` is for, and it is
-the default everywhere: a drop-in replacement has to hand back what the thing
-it replaces hands back.
-
-What that tuple cannot say is the rest of what the pass already worked out.
-Pulseq has seven RF uses; the tuple carries two, and an inversion pulse does
-not appear in it at all. The ADC offsets come at two granularities and the
-tuple carries one of them. So `compat=False` returns these instead, which
-carry all of it and say what each part is.
-
-The shapes are the ones `pulserver` settled on, because a script written
-against that reads the same way here.
-"""
+"""Named waveform and timing results for ``compat=False``."""
 
 from __future__ import annotations
 
@@ -45,11 +30,11 @@ def use_of(code: str) -> str:
 
 @dataclass(frozen=True)
 class Waveforms:
-    """The gradient waveforms, and the RF envelope if it was asked for.
+    """Gradient corner waveforms and an optional complex RF envelope.
 
-    Each channel is a ``(2, n)`` array of times in seconds over amplitudes in
-    Hz/m, which is upstream's layout. ``rf`` is complex, and is None unless
-    ``append_RF`` was set.
+    Each channel has shape ``(2, n)``: time in seconds, then amplitude.
+    Gradient amplitudes are in Hz/m; RF amplitudes are in Hz.
+    ``rf`` is None unless RF expansion was requested.
     """
 
     gx: np.ndarray
@@ -74,14 +59,11 @@ class Waveforms:
 
 @dataclass(frozen=True)
 class RfTimes:
-    """Every RF pulse, in play order, with its use.
+    """RF centres in play order, including all Pulseq use tags.
 
-    One flat table rather than upstream's two buckets, so nothing is dropped
-    and a caller who wants the buckets asks for them by name.
-
-    ``freq_offset`` and ``phase_offset`` carry the ppm terms, and the phase
-    carries the ``2*pi*f*t_centre`` term that takes it to the pulse's centre,
-    which is the convention both toolboxes use.
+    ``t`` is in seconds; ``block`` contains 1-based indices. Frequency
+    offsets are in Hz and phase offsets in radians, including ppm terms.
+    Phase includes ``2*pi*frequency*centre`` relative to the RF event.
     """
 
     t: np.ndarray
@@ -91,12 +73,10 @@ class RfTimes:
     block: np.ndarray
 
     def of(self, *uses: str) -> RfTimes:
-        """Return the pulses carrying any of ``uses``, as another `RfTimes`.
+        """Select pulses with any of the specified use tags.
 
-        More than one, because upstream's buckets are not one use each: a
-        pulse whose row records no use reads back as ``undefined``, and
-        upstream counts it as an excitation. Reproducing upstream is asking
-        for both.
+        An undefined use is not implicitly included with excitation; request
+        both tags to reproduce the PyPulseq excitation group.
         """
         unknown = set(uses) - set(RF_USES)
         if unknown:
@@ -123,19 +103,16 @@ class RfTimes:
 
 @dataclass(frozen=True)
 class AdcTimes:
-    """Every ADC sample, and the offsets that apply to it.
+    """ADC sampling times and offsets at window and sample resolution.
 
-    Two granularities, because the two toolboxes disagree about which one
-    ``fp_adc`` means and both are worth having:
+    Per window, ``freq_offset`` (Hz) and ``phase_offset`` (rad) are stored
+    offsets without ppm corrections; ``block`` is 1-based and
+    ``num_samples`` gives the window length.
 
-    - **Per window**: ``freq_offset``, ``phase_offset``, ``block``,
-      ``num_samples``. This is upstream's ``fp_adc`` -- the offsets as the
-      event records them, with no ppm term folded in.
-    - **Per sample**: ``t``, ``phase_modulation``, ``sample_phase``. The last
-      two are the toolbox's ``pm_adc`` and the second row of its ``fp_adc``:
-      the phase each sample is actually acquired with, ppm and phase
-      modulation and the accumulated ``2*pi*f*t`` all in. That is the number a
-      simulation or a demodulator wants.
+    Per sample, ``t`` is in seconds, ``phase_modulation`` and
+    ``sample_phase`` are in radians, and ``sample_frequency`` is in Hz.
+    Sample phase includes ppm terms, modulation and accumulated
+    ``2*pi*frequency*time`` within the ADC event.
     """
 
     t: np.ndarray
@@ -158,12 +135,11 @@ class AdcTimes:
 
 @dataclass(frozen=True)
 class WaveformsAndTimes:
-    """Everything `waveforms_and_times` knows.
+    """Waveforms, RF centres and ADC timing, including all RF use tags.
 
-    Upstream's five values are ``waveforms.channels``,
-    ``rf.of("excitation", "undefined").tfp``, ``rf.of("refocusing").tfp``,
-    ``adc.t`` and ``adc.fp``. What it cannot express is the other five RF
-    uses, the per-sample ADC phase, and which block each of them is in.
+    The PyPulseq-compatible tuple is ``(waveforms.channels,
+    rf.of("excitation", "undefined").tfp, rf.of("refocusing").tfp,
+    adc.t, adc.fp)``.
     """
 
     waveforms: Waveforms

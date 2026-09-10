@@ -1,24 +1,8 @@
 /**
  * @file write_text.cpp
- * @brief The Pulseq `.seq` text writer.
+ * @brief Pulseq text serialisation with reference-compatible numeric formatting.
  *
- * The layout is PyPulseq's, with the two 1.5.1 extension sections added.
- * Every format string below is character for character the one PyPulseq
- * uses, and that is not stylistic: the test that proves this file correct
- * diffs its output byte for byte against PyPulseq's for the same sequence,
- * so a `%g` that should have been a `%12g` shows up as a failed comparison
- * rather than as a subtly different file.
- *
- * (C's printf and Python's `%` agree on every conversion used here -- checked
- * across denormals, -0.0, and the exponent boundaries -- so matching the
- * format string is enough to match the bytes.)
- *
- * Two sections are as long as the scan rather than as long as the design:
- * `[BLOCKS]`, which has a row per block, and `[EXTENSIONS]`, which has one per
- * distinct chain and therefore one per labelled readout before deduplication.
- * Those two go through `render_rows` below, which lays digits
- * straight into a preallocated buffer, in parallel; everything else is per
- * distinct event and goes through snprintf.
+ * Format precision and whitespace are covered by byte-parity tests.
  */
 
 #include "pulseq/sequence.hpp"
@@ -244,20 +228,8 @@ namespace pulseq
         }
 
         /**
-         * Name the labels the builtin table does not, in `[DEFINITIONS]`.
-         *
-         * A label is written by name in the text form and by number in the
-         * binary one, and a number means something only against a table. The
-         * builtin table is shared, so a builtin label needs nothing said
-         * about it; a name a sequence invented is minted past the end of that
-         * table and its number would mean nothing anywhere else.
-         *
-         * So the names past the table are listed, in the order they were
-         * minted, and a number above the table's length resolves by position
-         * in that list. It goes in `[DEFINITIONS]` because both forms carry
-         * definitions already and a reader is obliged to tolerate a key it
-         * does not know -- a new section would make every file using a custom
-         * label unreadable by anything that predates it.
+         * Store custom names in assignment order under the CustomLabels definition.
+         * Binary label IDs beyond the builtin table index this list.
          */
     } // namespace
 

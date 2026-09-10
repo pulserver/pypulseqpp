@@ -1,15 +1,4 @@
-"""The per-channel weights a block plays its pulse through.
-
-Ported from `pypulseq-matlab-like`'s `test_make_rf_shim`. On a parallel
-transmit system every channel plays the same envelope scaled by its own
-complex weight, so one designed pulse can be re-shimmed per slice without
-redesigning anything -- which only works if the weights survive being stored
-in a block, written to a file and read back.
-
-The weights are stored as an extension, and no compiled event type carries
-one, so what comes back out of `get_block` is the namespace `make_rf_shim`
-hands in. That is the round trip these hold.
-"""
+"""Complex transmit-channel weights through registration and file round trips."""
 
 import numpy as np
 import pytest

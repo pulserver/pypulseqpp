@@ -1,16 +1,4 @@
-"""The reader, against files this package did not write.
-
-`tests/seq/` holds the reference corpus: one sequence at seven revisions,
-the MATLAB toolbox's own output beside the Python toolbox's, and a spread of
-real acquisitions -- EPI, TSE, HASTE, MPRAGE, UTE, radial, labels and soft
-delays. A reader tested only against files its own writer produced is tested
-against its own assumptions, so these are the tests of record for reading.
-
-What is compared is the file, normalised the way the reference suite
-normalises it: the signature goes, since it covers bytes that legitimately
-move, and so does trailing whitespace. Two lines are excluded and named
-below, because they say who wrote the file rather than what the sequence is.
-"""
+"""Pulseq reader coverage using external sequence files and format revisions."""
 
 from __future__ import annotations
 
@@ -61,20 +49,7 @@ def rows(text: bytes, section: str):
 
 
 def normalise(text: bytes) -> str:
-    """A file's content, without what a rewrite is allowed to move.
-
-    Four things go. Comments, because they are the writing toolbox's own
-    prose -- this corpus holds files from two of them and MATLAB's differ from
-    the Python ones word for word, so keeping comments would compare who wrote
-    a file rather than what is in it. The signature, because it covers the
-    bytes above it and so moves whenever any of them do. And `TotalDuration`,
-    which every writer recomputes from the blocks, so a file that never
-    carried one gains it. And the revision, which says which revision of the
-    format the writer implements rather than anything about the sequence, so
-    a 1.5.0 file read here goes back out as 1.5.1.
-
-    What is left is every line that says what the sequence plays.
-    """
+    """Remove comments, signatures, TotalDuration and writer revision before comparison."""
     out = text.decode().replace("\r\n", "\n").replace("\r", "\n")
     out = re.sub(r"\n\[SIGNATURE\][\s\S]*$", "", out)
     out = re.sub(r"^#.*\n", "", out, flags=re.MULTILINE)

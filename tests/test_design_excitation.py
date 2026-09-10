@@ -1,10 +1,4 @@
-"""The excitation and preparation modules.
-
-What these pin is the part a caller cannot check by eye: that the slice really
-is rephased, that the slab merge changes how the gradient is delivered without
-changing its moment, and that `center` points at the isodelay a TE is measured
-from rather than at the start of the pulse.
-"""
+"""Slice/slab rephasing, crusher moments and module-centre timing."""
 
 from __future__ import annotations
 
@@ -118,7 +112,6 @@ def test_the_rephaser_undoes_the_selection_moment_after_isocentre(system):
 
 
 def test_without_rephasing_the_slice_is_left_dephased(system):
-    """The counterpart: what the rephaser was cancelling is a real moment."""
     excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3, rephase=False)
     scale = abs(excitation.gz.area)
     assert abs(_moment_after(excitation, excitation.center)) > 0.4 * scale
@@ -222,7 +215,6 @@ def test_labels_get_one_slot_each_on_the_inversion_block(system):
 
 
 def test_one_label_is_published_as_the_event_itself(system):
-    """The publication rule is identity, so one object is one object."""
     prep = design.InversionPreparation(system, labels=("REP",))
     assert prep.prep_labels.label == "REP"
 
@@ -257,7 +249,6 @@ def test_an_impossible_preparation_is_refused(system, kwargs, message):
 
 
 def test_modules_compose_into_a_plain_pypulseq_loop(system):
-    """The whole authoring style, in six lines: read events, write add_block."""
     prep = design.InversionPreparation(system, duration_s=8e-3)
     excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
 

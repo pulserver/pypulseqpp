@@ -1,15 +1,4 @@
-"""Sequences using the 1.5.1 event kinds, built on the core directly.
-
-Rotations, RF shims and labels outside Pulseq's own table arrived in 1.5.1
-and 1.5.2, and the reference toolbox this package is tested against does not
-implement them -- it has no `make_rotation`, no `make_rf_shim` and no way to
-add a label name. So these sequences are built against the core itself, and
-what holds them is a round trip rather than a comparison with another
-writer's bytes.
-
-They are deliberately small: what is being tested is that each section is
-written, read and registered again, not that the numbers in it mean anything.
-"""
+"""Small native-core fixtures covering rotations, RF shims and custom labels."""
 
 from __future__ import annotations
 
@@ -22,7 +11,6 @@ CUSTOM_LABEL = "SPARKLE"
 
 
 def _readout(sequence):
-    """One readout worth of events, so a block has something to play."""
     gradient = sequence.register_trap(np.array([2000.0, 1e-4, 2e-3, 1e-4, 0.0]))
     adc = np.zeros(8)
     adc[0], adc[1] = 128.0, 1e-5

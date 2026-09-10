@@ -1,13 +1,4 @@
-"""What the report says a sequence is.
-
-The report is where a sequence stops being a block table and becomes a
-description of an experiment: the echo and repetition times, the flip angles,
-what the encoding covers and how hard it drives the gradients. It reads what
-is already there, so what is held here is that it reads it the way the
-toolbox does -- and that the two answers it works out for itself, the flip
-angle off each RF library row and the binning of the sampled trajectory,
-agree with the same calculation written plainly.
-"""
+"""Sequence report parity and independently calculated encoding statistics."""
 
 import math
 

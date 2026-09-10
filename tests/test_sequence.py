@@ -1,11 +1,4 @@
-"""The event libraries and the block table.
-
-A sequence is libraries of events plus a table saying which of them play
-together and for how long. These tests hold the parts of that model a caller
-depends on: that ids are handed out in append order, that a block keeps the
-ids it was given, and that collapsing duplicates renumbers every reference to
-them without changing what plays.
-"""
+"""Native event IDs, block tables, snapshots and deduplication."""
 
 import numpy as np
 import pytest

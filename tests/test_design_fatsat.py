@@ -1,10 +1,4 @@
-"""Fat saturation, and the placement that has to survive the scan's own transform.
-
-The point of the module is not the pulse -- it is that a band put somewhere at
-design time stays there when the finished sequence is repositioned. That is
-checked end to end: build a scan, transform it, and read back where the band's
-pulse and the imaging pulse each ended up.
-"""
+"""Fat-saturation selectivity and persistence of prescribed band placement."""
 
 from __future__ import annotations
 
@@ -218,7 +212,6 @@ def test_the_spoiler_is_not_turned_with_the_band(system):
 
 
 def _scan_with(fatsat, system):
-    """One repetition: the saturation, then a slice excitation."""
     excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
     seq = pp.Sequence(system)
     for block in fatsat.blocks:

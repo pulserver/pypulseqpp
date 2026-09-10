@@ -1,10 +1,4 @@
-"""How wide in frequency a pulse is.
-
-Ported from the reference toolbox's `test_calc_rf_bandwidth`. The answers
-here are PyPulseq's, except where its own answer is no answer at all: a hard
-pulse is stored as the two ends of a rectangle, and the spectrum of a
-rectangle held on either side of them is a delta.
-"""
+"""RF bandwidth, interpolation and frequency-offset invariance."""
 
 import math
 
@@ -19,7 +13,6 @@ RECTANGLE_HALF_WIDTH = 1.2067
 
 
 def test_upstream_answers_a_hard_pulse_with_nothing():
-    """The gap this stands in for; the answer below is against it."""
     hard = upstream.make_block_pulse(math.pi / 2, duration=1e-3)
 
     assert float(np.ravel(upstream.calc_rf_bandwidth(hard))[0]) == 0.0
@@ -107,7 +100,6 @@ def test_a_retuned_pulse_is_measured_about_where_it_is_tuned():
 
 
 def test_a_sinc_this_far_off_resonance_defeats_upstream():
-    """The gap the baseband measurement stands in for."""
     theirs = upstream.make_sinc_pulse(
         math.pi / 2, duration=2e-3, time_bw_product=4, freq_offset=1500.0
     )

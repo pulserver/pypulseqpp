@@ -1,17 +1,4 @@
-"""A label the builtin table does not carry.
-
-A label is named, not numbered. The text form writes the name and reads it
-back, and `label_id` mints one for a name it has not seen, so a sequence is
-free to use a label Pulseq does not define with nothing to configure first.
-
-The binary form writes the *number*, and a number means something only
-against a table. The builtin table is shared, so a builtin label needs
-nothing said about it; a name a sequence invented is minted past the end of
-that table and is listed in `[DEFINITIONS]`, which both forms carry already
-and which every reader is obliged to tolerate. A section of its own would
-have made every file using a custom label unreadable by anything that
-predates it.
-"""
+"""Built-in label IDs and CustomLabels names across text and binary files."""
 
 import numpy as np
 import pytest

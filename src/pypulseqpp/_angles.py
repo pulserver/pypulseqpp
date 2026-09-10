@@ -1,8 +1,4 @@
-"""Projection angles for radial and other rotated acquisitions.
-
-Each returns one angle per spoke, in radians. Grouping spokes into shots, and
-turning angles into rotation matrices, belongs to :mod:`pypulseqpp.design`.
-"""
+"""Projection angles in radians and rotation matrices for radial acquisitions."""
 
 from __future__ import annotations
 
@@ -41,24 +37,10 @@ def _generalized_fibonacci(order, index):
 
 
 def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
-    """Return ``n`` golden-angle spoke rotations, in radians.
+    """Return golden-angle rotations in radians, accumulated modulo 2*pi.
 
-    Consecutive spokes advance by a golden increment, so any contiguous
-    temporal window of spokes stays near-uniformly distributed — the property
-    that makes golden-angle ordering the default for retrospectively binned and
-    free-breathing acquisitions.
-
-    Two conventions, selected by ``full_circle``, for the two geometries a
-    rotated readout comes in. A diametric spoke -- a radial line, a PROPELLER
-    blade -- is ``pi``-periodic, so its golden angle is the MRI golden angle
-    ``pi / phi`` (111.25 degrees; Winkelmann). A one-sided arm -- a spiral
-    interleaf -- covers the whole turn, so its golden angle is the classic
-    full-circle ``2 * pi / phi**2`` (137.51 degrees).
-
-    A flat angle array, accumulated modulo ``2 * pi``: index it per shot,
-    pair it with a base waveform and
-    :func:`pypulseqpp.make_rotation`. Use :func:`make_radial_tilt` when
-    the angular period or the segmentation matters.
+    For diametric spokes the increment is ``pi / phi``; for full-circle
+    arms it is ``2*pi / phi**2``, where phi is the golden ratio.
 
     Parameters
     ----------
@@ -81,34 +63,8 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     >>> np.rad2deg(pp.calc_golden_angles(4)).round(2)
     array([  0.  , 111.25, 222.49, 333.74])
 
-    The full-circle convention advances by the classic 137.51-degree golden
-    angle instead:
-
     >>> np.rad2deg(pp.calc_golden_angles(3, full_circle=True)).round(2)
     array([  0.  , 137.51, 275.02])
-
-    Where each increment puts the first 34 spokes — golden angle spreads them in any window, tiny golden angle does the same in smaller steps, RAGA snaps them to a fixed equidistant support:
-
-    .. plot::
-       :include-source: false
-
-       import numpy as np
-       import matplotlib.pyplot as plt
-       import pypulseqpp as pp
-       schemes = [
-           ("uniform", pp.calc_uniform_angles(34)),
-           ("golden", pp.calc_golden_angles(34)),
-           ("tiny golden, N=4", pp.calc_tiny_golden_angles(34, index=4)),
-           ("RAGA", pp.calc_raga_angles(34, approximation_order=9)),
-       ]
-       fig, axes = plt.subplots(1, 4, figsize=(11, 3.1), subplot_kw={"polar": True})
-       for ax, (name, angles) in zip(axes, schemes):
-           for order, angle in enumerate(angles):
-               ax.plot([angle, angle + np.pi], [1, 1], lw=1,
-                       color=plt.cm.viridis(order / (len(angles) - 1)))
-           ax.set_yticks([])
-           ax.set_title(name, fontsize=8)
-       fig.tight_layout()
 
     References
     ----------
@@ -118,7 +74,6 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     --------
     calc_tiny_golden_angles : smaller increments with the same uniformity.
     calc_raga_angles : rational, exactly repeatable approximation.
-    make_radial_tilt : full spoke tilt schedule with period and segmentation control.
     """
     step = 2.0 * np.pi / _PHI**2 if full_circle else np.pi / _PHI
     return _accumulated(n, step)
@@ -127,16 +82,10 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
 def calc_raga_angles(
     n: int, *, tiny_index: int = 1, approximation_order: int = 13
 ) -> np.ndarray:
-    """Return ``n`` RAGA (rational approximate golden-angle) spoke rotations.
+    """Return rational approximate golden-angle (RAGA) rotations.
 
-    RAGA replaces the irrational golden increment with the nearest Fibonacci
-    ratio, so the angular *support* is finite and exactly equidistant while
-    the temporal index order stays golden-like. Every bin of a binned
-    reconstruction therefore draws from the same fixed angle set, which is
-    what makes RAGA reproducible bin to bin where plain golden angle is not.
-
-    The support holds ``fib(approximation_order, tiny_index)`` distinct
-    angles; ``n`` may exceed that, in which case angles repeat.
+    The finite support contains ``fib(approximation_order, tiny_index)``
+    equidistant angles. Angles repeat when ``n`` exceeds the support size.
 
     Parameters
     ----------
@@ -184,14 +133,10 @@ def calc_raga_angles(
 
 
 def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
-    """Return ``n`` tiny-golden-angle spoke rotations, in radians.
+    """Return tiny-golden rotations with increment ``pi / (phi + index - 1)``.
 
-    The increment ``pi / (phi + index - 1)`` shrinks with ``index`` while
-    keeping the golden distribution: ``index=1`` reproduces
-    :func:`calc_golden_angles`, higher indices step less far between
-    consecutive spokes. Smaller steps mean smaller eddy-current and
-    steady-state disruption per view, which is why tiny golden angles are
-    preferred for bSSFP and other steady-state radial acquisitions.
+    ``index=1`` gives the radial golden-angle increment; larger indices
+    reduce the angular step.
 
     Parameters
     ----------
@@ -232,16 +177,7 @@ def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
 
 
 def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
-    """Return ``n`` equally spaced spoke rotations, in radians.
-
-    The uniform counterpart of :func:`calc_golden_angles`. Optimal coverage for
-    a *fixed*, known-in-advance count — and only then, since any partial window
-    of the acquisition leaves an angular gap.
-
-    ``span`` selects the geometry the same way ``full_circle`` does for the
-    golden angle: ``pi`` spreads ``pi``-periodic diametric spokes (radial
-    lines, PROPELLER blades) over a half turn, and the default ``2 * pi``
-    spreads one-sided arms (spiral interleaves) over the whole turn.
+    """Return equally spaced rotations in the half-open interval [0, span).
 
     Parameters
     ----------
@@ -280,22 +216,10 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
 
 
 def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spiral"):
-    """Cover the sphere with one base shell of spokes and a rotation per shot.
+    """Return a pole-to-pole base shell and z-axis rotations for each shot.
 
-    A continuous-gradient readout writes its shell out as one waveform and
-    cannot afford one per shot, so the sphere is covered by rotating that
-    shell. The shell runs from ``+z`` to ``-z``, visiting every polar ring
-    once, so turning it about ``z`` by ``2 * pi / n_shots`` puts ``n_shots``
-    evenly spaced spokes on each ring: full coverage, and every shot congruent
-    with every other.
-
-    Consecutive views inside the shell subtend a **constant angle**, so every
-    turn between them asks the amplifier for the same slew. The repetition
-    time has to hold the widest turn, and a constant step is what stops the
-    other turns wasting it.
-
-    The two poles are the exception -- they sit on the rotation axis, so all
-    shots share them.
+    Consecutive base directions have equal angular separation. Rotated shells
+    share both poles; each nonpolar ring has one spoke per shot.
 
     Parameters
     ----------
@@ -365,16 +289,10 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
 
 
 def _constant_step_spiral(n_views: int) -> np.ndarray:
-    """Spread ``n`` views over a sphere, a constant angle apart along a spiral.
+    """Place equal-angle neighbours on equal-area polar rings.
 
-    The polar ladder is fixed first, at equal-area heights from ``+1`` to
-    ``-1``, and each azimuth increment is then *solved* rather than chosen,
-    from ``cos(step) = cos(t_k) cos(t_k+1) + sin(t_k) sin(t_k+1) cos(dphi)``.
-
-    The step itself is not free: at the poles ``sin(t) = 0``, so no azimuth
-    increment buys any angle there and the whole step has to be polar. That
-    fixes it at the polar gap next to the pole, which is the widest of them;
-    every other gap has slack, and the azimuth increments take it up.
+    The polar gap next to a pole fixes the angular step. Solve each azimuth
+    increment from the spherical cosine relation.
     """
     height = np.linspace(1.0, -1.0, n_views)
     polar = np.arccos(np.clip(height, -1.0, 1.0))
@@ -393,7 +311,6 @@ def _constant_step_spiral(n_views: int) -> np.ndarray:
 
 
 def _turns_about_z(angles: np.ndarray) -> np.ndarray:
-    """One rotation matrix about ``z`` per angle."""
     return Rotation.from_euler(
         "z", np.asarray(angles, dtype=float).reshape(-1, 1)
     ).as_matrix()

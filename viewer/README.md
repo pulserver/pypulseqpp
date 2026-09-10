@@ -14,7 +14,7 @@ PySide6's Qt draws with the system's display libraries. A desktop has them;
 a bare server or container needs, on Debian or Ubuntu,
 
 ```bash
-# To draw offscreen -- plot(save=True) with QT_QPA_PLATFORM=offscreen
+# For offscreen rendering with QT_QPA_PLATFORM=offscreen
 sudo apt install libegl1 libgl1 libx11-6 libdbus-1-3 libfontconfig1 \
   libfreetype6 libglib2.0-0 libxkbcommon0
 # And to open a window under X11 (Wayland needs none of these)

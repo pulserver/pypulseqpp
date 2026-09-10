@@ -1,23 +1,7 @@
-"""What the gradients ask of the amplifiers, and whether the scanner allows it.
+"""Gradient amplitude, slew and inter-block continuity checks.
 
-Two limits bound every gradient a scanner will play: how strong it may be,
-and how fast it may change. Neither is a property of one waveform -- three
-axes play at once, and what an amplifier sees on its own axis depends on how
-the sequence is rotated -- so both are asked of the block, not of the event.
-
-The checks here take the sequence and, optionally, a different `Opts` from
-the one it was designed against: a sequence written for one scanner is often
-the question "will this run on that one", and answering it should not mean
-building the sequence again.
-
-What is weighed is the waveform the interpreter draws, not the samples the
-file stores. The two are not the same: a shape kept at the centre of each
-raster interval turns its corners half a raster from any sample it holds, and
-passes outside all of them. But the corners belong to the gradient rather
-than to the block -- an event plays the same shape every time it is played,
-and only where it starts moves -- so they are worked out once for it and read
-per block. A readout repeated a hundred thousand times costs one pass over
-its corners.
+Checks use physical-axis waveforms after applying block rotations.
+These checks do not establish scanner or patient safety.
 """
 
 from __future__ import annotations
@@ -30,7 +14,6 @@ __all__ = ["check_grad_continuity", "check_max_grad", "check_max_slew"]
 
 
 def _limits(seq, system):
-    """Return the limits to judge against: the ones given, or the sequence's."""
     chosen = system if system is not None else seq.system
     if chosen is None:
         raise ValueError(
@@ -51,11 +34,9 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     Parameters
     ----------
     seq : Sequence
-        The sequence to weigh.
+        Sequence to check.
     system : pypulseq.Opts, optional
-        The scanner to weigh it against. Defaults to the one the sequence was
-        built with, so asking whether a sequence will run somewhere else is
-        passing that scanner here.
+        System limits; defaults to seq.system.
 
     Returns
     -------
@@ -68,33 +49,10 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    Two peaks are reported because two questions are being asked. A sequence
-    played as written asks one amplifier for the per-axis peak, and that is
-    what the limit bounds. A sequence played rotated can put the whole vector
-    on one axis, so ``vector`` is what it would ask for then -- reported
-    rather than judged, since whether it will be rotated is not something the
-    sequence says.
-
-    ``per_axis`` is the worst of ``axes``. The three are what says which
-    amplifier is asked for what, which is the question once one of them is
-    over its limit. A block that turns its gradients plays a share of all
-    three on every axis, and its own rotation is applied before its peaks are
-    read: what ``axes`` reports is what the amplifiers are asked for, not what
-    the stored rows say.
-
-    The vector peak is exact rather than an upper bound. A gradient is a
-    handful of points with straight lines between them, so what the three ask
-    for together is decided at the moments any of them turns a corner.
-    Combining the three axes' own peaks would answer a different question:
-    what the amplifiers would be asked for if the peaks happened at once,
-    which they need not.
-
-    What is weighed is the waveform an interpreter draws, corner to corner,
-    which is not the samples the sequence stores: a shape kept at raster
-    centres passes outside every sample it holds. The corners belong to the
-    gradient, so this is still a pass over the events a block names rather
-    than over every waveform in the scan.
-
+    Block rotations are applied before per-axis peaks are evaluated. Only the
+    largest per-axis peak is checked against the limit; a nonpositive limit
+    disables this check. The vector peak is the maximum simultaneous Euclidean
+    magnitude, not the norm of independently occurring axis peaks.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_grad")
@@ -115,7 +73,7 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
     Parameters
     ----------
     seq : Sequence
-        The sequence to weigh.
+        Sequence to check.
     system : pypulseq.Opts, optional
         The scanner to weigh it against; the sequence's own by default.
 
@@ -129,22 +87,10 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    What happens *between* two blocks is a different question with a different
-    answer -- a gradient starting where the last one did not end asks for its
-    whole step in no time at all -- and `check_grad_continuity` is what asks
-    it.
-
-    The vector peak is exact rather than an upper bound. Each axis slews at
-    one rate at a time, so the three together are constant between the moments
-    any of them changes, and the peak is the largest they reach on one of
-    those stretches. Combining the three axes' own peaks would answer a
-    different question: what the amplifiers would be asked for if the peaks
-    happened at once, which they need not.
-
-    A block that turns its gradients plays a share of all three on every axis.
-    That does not change how much is asked for between them -- turning a
-    vector does not change how long it is -- so ``vector`` is the same either
-    way; it changes which amplifier is asked for what, which is ``axes``.
+    Checks within-block slew after block rotations, not boundary jumps.
+    Only the largest per-axis peak is limited; a nonpositive limit disables
+    this check. Vector slew is the maximum simultaneous Euclidean magnitude.
+    Use check_grad_continuity for inter-block transitions.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_slew")
@@ -182,19 +128,10 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    An axis is at zero wherever nothing is playing on it, so a waveform that
-    starts away from where the last block left the axis asks the amplifier for
-    that whole step within one raster interval. A sequence that ends with a
-    gradient still on has not ramped down, which is the same fault at the end
-    of the scan and is reported as ``ends_at_zero``.
-
-    The endpoints are compared in the frame the amplifiers work in, so a block
-    that turns its gradients has its own endpoints turned first: two blocks
-    playing the same waveform at different rotations do not continue one
-    another, and saying they do would miss the jump.
-
-    This is what `pypulseqpp.Sequence.check_timing` asks; the slew limit
-    within a block is `check_max_slew`.
+    Compare endpoints in physical coordinates after block rotations.
+    A missing gradient is zero. Jumps are assessed over one gradient raster,
+    and the final gradient must be zero. Block indices are 1-based, axes are
+    zero-based integers, amplitudes are in Hz/m and slew is in Hz/m/s.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_slew")
@@ -210,7 +147,6 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
 
 def _peak(found: dict) -> SimpleNamespace:
-    """One peak, with the axis named rather than numbered."""
     axis = found["axis"]
     return SimpleNamespace(
         value=found["value"],

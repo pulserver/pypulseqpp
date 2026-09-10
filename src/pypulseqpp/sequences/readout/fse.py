@@ -24,26 +24,11 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _FseReadout(SequenceModule):
-    """One excitation and the CPMG train that follows it: ``etl`` lines per TR.
+    """One excitation and a CPMG echo train.
 
-    Both pulses are passed in as events, so the same class builds a
-    slice-selective 2D train, a slab-selective 3D train, or the single-slab 3D
-    train that refocuses non-selectively. Every echo replays the same events;
-    the flip schedule and the line each echo encodes are the scan loop's, moved
-    on the published events::
-
-        nominal = fse.rf_ref.amplitude
-        for echo, (ky, flip) in enumerate(plan):
-            fse.rf_ref.amplitude = nominal * flip / np.pi
-            seq.add_block(fse.rf_ref, fse.gz_ref)
-            if echo == 0 and fse.esp_first > fse.esp:
-                seq.add_block(fse.wait_esp1)
-            seq.add_block(fse.gx_bridge_pre, pp.scale_grad(fse.gy_pre, ky))
-            seq.add_block(fse.gx, fse.adc)
-            seq.add_block(fse.gx_bridge_post, pp.scale_grad(fse.gy_rew, ky))
-
-    See :doc:`../reference/design` for why the encodes are separate trapezoids,
-    what the read-axis crushing is for, and when ``esp_first`` exceeds ``esp``.
+    Pulses and selection gradients are supplied as events. The scan loop
+    scales phase encodes and refocusing amplitudes per echo. echo_times lists
+    all echo centres; the sampling order determines the effective TE.
 
     Attributes
     ----------
@@ -93,7 +78,7 @@ class _FseReadout(SequenceModule):
     etl : int
         Echoes per repetition.
     bandwidth_hz : float
-        Achieved receiver bandwidth.
+        Achieved ADC sampling rate (Hz).
     n_samples : int
         Samples per echo.
     delta_kx : float
@@ -128,8 +113,8 @@ class _FseReadout(SequenceModule):
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
-        Matrix size, per encoded axis. This sets the gradient *areas*; how many
-        lines are played, and in what order, is the scan loop's business.
+        Matrix size per encoded axis, used to set gradient areas. The scan
+        loop controls the number and order of acquired lines.
     etl : int, optional
         Echo train length: refocusing pulses, and encoded lines, per
         repetition.
@@ -149,8 +134,8 @@ class _FseReadout(SequenceModule):
         Read oversampling: ``delta_kx`` shrinks and the sampled field of view
         grows, while resolution is fixed by ``fov`` and ``matrix``.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth. Read ``bandwidth_hz`` for what the two
-        rasters allowed.
+        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
+        achieved raster-compatible rate.
     spoiling_cycles : float, optional
         Read-axis crushing each side of every acquisition, in cycles across
         ``voxel_size_m``.
@@ -451,7 +436,6 @@ class _FseReadout(SequenceModule):
 
 
 def _span(system: pp.Opts, *events: Any) -> float:
-    """Where a block holding ``events`` ends, ignoring the ones that are None."""
     events = [event for event in events if event is not None]
     if not events:
         return 0.0
@@ -481,7 +465,7 @@ class FseReadout2D(_FseReadout):
     """A slice-selective CPMG train, frequency-encoded along x.
 
     ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`_FseReadout` for the timing, crushing and encoding arguments.
+    :class:`~pypulseqpp.sequences.readout.fse._FseReadout` for the timing, crushing and encoding arguments.
 
     Examples
     --------
@@ -498,117 +482,18 @@ class FseReadout2D(_FseReadout):
     >>> fse.etl, int(fse.adc.num_samples)
     (8, 192)
 
-    Every echo replays the same events:
-
     >>> fse.blocks[-3] == (fse.gx_bridge_pre, fse.gy_pre)
     True
-
-    Which line each echo encodes is the loop's, and it is the whole of the
-    contrast: this train is played in centric order, so the k-space centre is
-    acquired at the first echo and the effective echo time is one spacing.
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 90.0, 3e-3)
-       refocusing = design.SpatialSelectiveRefocusing(system, 3e-3)
-       fse = design.FseReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           rf_ref=refocusing.rf_ref, gz_ref=refocusing.gz,
-           fov=0.22, matrix=128, etl=5, readout_bandwidth_hz=100e3,
-       )
-       trajectory(
-           fse,
-           ky=[0.0, 0.25, -0.25, 0.5, -0.5],
-           title="FseReadout2D, five echoes in centric order",
-       )
-
-    One excitation and the train that follows it, echo spacing and all:
-
-    .. plot::
-       :include-source:
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       excitation = design.SpatialSelectiveExcitation(system, 90.0, 3e-3)
-       refocusing = design.SpatialSelectiveRefocusing(system, 3e-3)
-       fse = design.FseReadout2D(
-           system, excitation.rf, excitation.gz, excitation.gz_reph,
-           rf_ref=refocusing.rf_ref, gz_ref=refocusing.gz,
-           fov=0.22, matrix=128, etl=5, readout_bandwidth_hz=100e3,
-       )
-       fse.plot(time_disp="ms", grad_disp="mT/m", stacked=True, plot_now=False)
     """
 
     _ndim = 2
 
 
 class FseReadout3D(_FseReadout):
-    """A single-slab CPMG train, phase-encoded along y and partition-encoded along z.
+    """Single-slab CPMG train, phase-encoded along y and partition-encoded along z.
 
-    ``fov`` and ``matrix`` take three values, readout first. Refocus
-    non-selectively and raise ``spoiling_cycles``: that pairing is what makes
-    single-slab 3D FSE efficient.
-
-    Examples
-    --------
-    >>> import pypulseqpp.sequences as design
-    >>> import pypulseqpp as pp
-    >>> system = pp.Opts()
-    >>> slab = design.SpatialSelectiveExcitation(system, 90.0, 0.16, is_slab=True)
-    >>> refocusing = design.NonSelectiveRefocusing(
-    ...     system, duration_s=0.6e-3, spoiling_cycles=0.0
-    ... )
-    >>> fse = design.FseReadout3D(
-    ...     system, slab.rf, slab.gz, rf_ref=refocusing.rf_ref,
-    ...     fov=(0.22, 0.22, 0.16), matrix=(192, 192, 80), etl=32,
-    ...     spoiling_cycles=2.0,
-    ... )
-
-    Both encodes are trapezoids -- one waveform at many amplitudes:
-
-    >>> fse.gy_pre.type, fse.gz_pre.type
-    ('trap', 'trap')
-
-    The slab pulse does not fit in half a spacing, so the first echo pays for
-    it and the other thirty-one do not:
-
-    >>> fse.esp_first > fse.esp
-    True
-
-    Two encodes per echo, so the train is a path through the ``(ky, kz)``
-    plane rather than a stack of lines. Where that path starts and how fast
-    it leaves the centre is the ordering the loop chose:
-
-    .. plot::
-
-       import pypulseqpp.sequences as design
-       import pypulseqpp as pp
-       from _figures import trajectory
-
-       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-       slab = design.SpatialSelectiveExcitation(system, 90.0, 0.16, is_slab=True)
-       refocusing = design.NonSelectiveRefocusing(
-           system, duration_s=0.6e-3, spoiling_cycles=0.0
-       )
-       fse = design.FseReadout3D(
-           system, slab.rf, slab.gz, rf_ref=refocusing.rf_ref,
-           fov=(0.22, 0.22, 0.16), matrix=(128, 128, 32), etl=5,
-           spoiling_cycles=2.0, readout_bandwidth_hz=100e3,
-       )
-       trajectory(
-           fse,
-           ky=[0.0, 0.3, -0.3, 0.6, -0.6],
-           kz=[0.0, 0.2, 0.4, 0.6, 0.8],
-           plane="yz",
-           title="FseReadout3D, five echoes in the encoding plane",
-       )
+    fov and matrix accept three values, readout first. Supports selective
+    or non-selective refocusing; non-selective pulses use read-axis crushing.
     """
 
     _ndim = 3
