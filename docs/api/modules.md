@@ -17,7 +17,10 @@ and the sampling order from the prescription its `init_sequence` accepts.
 one `kernel` call per repetition. Settings that are not prescribed are class
 attributes, so a subclass that overrides one is the same sequence under
 another setting. Each zoo script reached as `sequences.<name>` defines one,
-and its `main` builds and designs it.
+and its `main` builds and designs it. An application that plays prescans
+ahead of its scan, such as a calibration or a navigator, lists them in
+{meth}`~SequenceApp.prescans`; {meth}`~SequenceApp.write` then writes one file
+per sequence, each naming the next as its `NextSequence`.
 
 ```{eval-rst}
 .. autosummary::

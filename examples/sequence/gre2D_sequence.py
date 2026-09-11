@@ -201,7 +201,7 @@ class Gre2DApp(sequences.SequenceApp):
     def kernel(self, s: int, line: int | None, phase: float, pad: float) -> None:
         """One slice excitation at one line; ``line=None`` plays a dummy."""
         rf, gz, ro, seq = self.exc.rf, self.exc.gz, self.ro, self.seq
-        rf.freq_offset = gz.amplitude * self.positions[s]
+        rf.freq_offset = self.exc.selection_amplitude * self.positions[s]
         rf.phase_offset = phase - 2 * np.pi * rf.freq_offset * rf.center
         ro.adc.phase_offset = phase
 

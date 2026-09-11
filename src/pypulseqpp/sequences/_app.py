@@ -5,6 +5,8 @@ from __future__ import annotations
 import inspect
 import typing
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import pypulseqpp as pp
@@ -100,13 +102,55 @@ class SequenceApp(ABC):
         self.kernel(*args, **kwargs)
         return self
 
-    def design(self) -> pp.Sequence:
-        """Play the whole scan into a new :attr:`seq`, finalize it and return it."""
+    def prescans(self) -> dict[str, Callable[[], None]]:
+        """Return the sequences played before this one, as the loops that play them.
+
+        :meth:`write` writes each as its own file ahead of the main one, in
+        order, and each file names the next as its ``NextSequence``: an
+        interpreter plays the chain as one scan while every file stays one
+        repeating unit. A prescan loop writes its own definitions. None by
+        default.
+        """
+        return {}
+
+    def design(self, prescan: str | None = None) -> pp.Sequence:
+        """Play the whole scan, or the named prescan, into a new :attr:`seq`."""
         self.seq = pp.Sequence(self.system)
         self._label_state, self._label_steps = {}, {}
-        self.loop()
-        self.finalize()
+        if prescan is None:
+            self.loop()
+            self.finalize()
+        else:
+            self.prescans()[prescan]()
         return self.seq
+
+    def write(self, path: str | Path, *, offline: bool = True) -> list[str]:
+        """Design and write the chain of prescans and the main sequence.
+
+        The first file of the chain is written at ``path`` and the others
+        beside it as ``<stem>_<prescan>.seq`` and ``<stem>_main.seq``; without
+        prescans the main sequence alone is written at ``path``. ``offline``
+        selects signed text or binary, as :func:`pypulseqpp.cli.write_sequence`
+        takes it.
+
+        Returns
+        -------
+        list of str
+            The written paths, in play order.
+        """
+        from pypulseqpp.cli import write_sequence
+
+        path = Path(path)
+        names = [*self.prescans(), None]
+        paths = [path] + [
+            path.with_name(f"{path.stem}_{name or 'main'}.seq") for name in names[1:]
+        ]
+        for i, name in enumerate(names):
+            seq = self.design(name)
+            if i + 1 < len(names):
+                seq.set_definition(key="NextSequence", value=paths[i + 1].name)
+            write_sequence(seq, str(paths[i]), offline=offline)
+        return [str(p) for p in paths]
 
     def labels(self, **values: int) -> list:
         """Return the label events that bring each label to its new value.
@@ -183,16 +227,30 @@ def _make_main(cls: type[SequenceApp]):
         system: pp.Opts | None = None,
         **protocol: Any,
     ) -> pp.Sequence:
-        seq = cls(system, **protocol).design()
+        app = cls(system, **protocol)
+        seq = app.design()
         if test_report:
             print(seq.test_report())
         if plot:
             seq.plot()
         if write_seq:
-            from pypulseqpp.cli import write_sequence
-
-            write_sequence(seq, seq_filename or f"{cls.NAME}.seq")
+            app.write(seq_filename or f"{cls.NAME}.seq")
+            seq = app.seq
         return seq
+
+    def write_to(
+        path: str,
+        *,
+        offline: bool = True,
+        system: pp.Opts | None = None,
+        test_report: bool = False,
+        **protocol: Any,
+    ) -> list[str]:
+        app = cls(system, **protocol)
+        paths = app.write(path, offline=offline)
+        if test_report:
+            print(app.seq.test_report())
+        return paths
 
     hints = typing.get_type_hints(cls.init_sequence)
     own = list(inspect.signature(main).parameters.values())[:-1]
@@ -210,6 +268,7 @@ def _make_main(cls: type[SequenceApp]):
     main.__annotations__ = {**typing.get_type_hints(main), **hints}
     main.__module__ = cls.__module__
     main.__qualname__ = "main"
+    main.write_to = write_to
 
     summary, _, rest = (inspect.getdoc(cls) or "").partition("\n\n")
     main.__doc__ = "\n\n".join(

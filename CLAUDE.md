@@ -179,7 +179,9 @@ Each example module defines one `SequenceApp` subclass and exposes
 `main = <App>.main`, which builds and designs it; the module is callable as
 that `main`. `init_sequence` designs, `loop` plays the scan by calling
 `kernel` once per repetition, and `design()` wraps `loop` with a fresh
-sequence and `finalize`. Settings a user does not prescribe are class
+sequence and `finalize`. Prescans listed by `prescans()` are written
+by `write()` as separate files linked through `NextSequence`, so each file
+stays one repeating unit. Settings a user does not prescribe are class
 attributes a subclass overrides; `MAX_GRAD` and `MAX_SLEW` have no default.
 Module-level helpers may stay in the script, but nothing may be imported from
 `examples/`. The CLI derives flags from `main`'s signature, which is

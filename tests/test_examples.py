@@ -397,6 +397,29 @@ def test_a_label_set_before_a_change_of_once_is_written_again_after_it():
     }
 
 
+def test_a_prescan_is_written_first_and_names_the_main_sequence_next(tmp_path):
+    class Prescanned(sequences.gre2D_sequence.Gre2DApp):
+        def prescans(self):
+            return {"calibration": lambda: self.kernel(0, 8, 0.0, self.raster)}
+
+    app = Prescanned(pp.Opts(), **SMALL["gre2D_sequence"])
+    paths = app.write(tmp_path / "scan.seq")
+    first, main = pp.Sequence(), pp.Sequence()
+    first.read(paths[0])
+    main.read(paths[1])
+
+    assert [p.rsplit("/", 1)[-1] for p in paths] == ["scan.seq", "scan_main.seq"]
+    assert first.definitions["NextSequence"] == "scan_main.seq"
+    assert "NextSequence" not in main.definitions
+    assert len(first.block_events) < len(main.block_events)
+
+
+def test_without_prescans_the_scan_is_one_file(tmp_path):
+    paths = gre_app().write(tmp_path / "scan.seq")
+
+    assert paths == [str(tmp_path / "scan.seq")]
+
+
 def test_one_call_plays_one_repetition():
     app = gre_app()
     app(0, 8, 0.0, app.raster)

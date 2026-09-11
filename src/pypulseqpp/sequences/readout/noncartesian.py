@@ -431,6 +431,9 @@ class NonCartesianReadout(_ArmedReadout):
         One per name in ``labels``; a bare event when there is one.
     wait_te, wait_tr : DelayEvent
         Present only when a TE or TR longer than the minimum was asked for.
+    wait_pre, wait_rew : DelayEvent
+        Pads setting the span of the prewinder and rewinder blocks, which can
+        outlast their gradients. Absent when that block is not played.
     trajectory : NonCartesianGradient
         The designed interleave, for its ``trajectory`` array and timings.
     echo_spacing : float
@@ -574,8 +577,8 @@ class NonCartesianReadout(_ArmedReadout):
         gx_pre, gy_pre = _bracket(arms, "prewinders", "right", pre_span, system)
         gx, gy = _bracket(arms, "gradients", None, 0.0, system)
         gx_rew, gy_rew = _bracket(arms, "rewinders", "left", rew_span, system)
-        _pre_floor = pp.make_delay(pre_span) if pre_span else None
-        _rew_floor = pp.make_delay(rew_span) if rew_span else None
+        wait_pre = pp.make_delay(pre_span) if pre_span else None
+        wait_rew = pp.make_delay(rew_span) if rew_span else None
 
         # Replaying an arm re-enters k where the last one left it, so an echo
         # train has to come back to the head of the arm between echoes: the
@@ -599,14 +602,14 @@ class NonCartesianReadout(_ArmedReadout):
                 self.seq.add_block(rf)
             if wait_te is not None:
                 self.seq.add_block(wait_te, *present(gz_reph))
-            if _pre_floor is not None:
+            if wait_pre is not None:
                 self.seq.add_block(
                     *present(_at(gx_pre, i_arm)),
                     *present(_at(gy_pre, i_arm)),
                     *present(gz_pre),
                     *(() if wait_te else present(gz_reph)),
                     *_armed(trigger),
-                    _pre_floor,
+                    wait_pre,
                 )
             for i_echo in range(n_echoes):
                 if i_echo:
@@ -629,13 +632,13 @@ class NonCartesianReadout(_ArmedReadout):
                     *adc_labels,
                     *([echo_labels[i_echo]] if n_echoes > 1 else []),
                 )
-            if _rew_floor is not None:
+            if wait_rew is not None:
                 self.seq.add_block(
                     *present(_at(gx_rew, i_arm)),
                     *present(_at(gy_rew, i_arm)),
                     *present(gz_rew),
                     *present(gz_spoil),
-                    _rew_floor,
+                    wait_rew,
                 )
 
         tr_min = self.seq.duration()[0] / len(arms)
