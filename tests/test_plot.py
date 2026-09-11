@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 import pypulseqpp as pp
-from pypulseqpp import _plot
+from pypulseqpp.plot import _seqeyes as _plot
 
 
 @pytest.fixture

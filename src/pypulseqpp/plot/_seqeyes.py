@@ -18,7 +18,7 @@ from warnings import warn
 
 import numpy as np
 
-from . import _ext as _cxx
+from .. import _ext as _cxx
 
 __all__ = ["Viewer", "blocks_for", "executable", "plot"]
 
@@ -414,7 +414,7 @@ def _excerpt(seq, first: int, last: int) -> bytes:
     if not any(reached.values()):
         return _cxx.write_text(native, False, rows)
 
-    from . import make_label  # the package imports this module
+    from .. import make_label  # the package imports this module
 
     labels = [
         make_label(label=name, type="SET", value=int(value))

@@ -37,6 +37,7 @@ separately from the MIT core.
 | `src/pypulseqpp/` | Python facade, event conversion, sequence operations and design |
 | `src/pypulseqpp/sequences/` | Reusable excitation, preparation and readout modules |
 | `src/pypulseqpp/cli/` | Signature-driven command-line parsing and sequence writing |
+| `src/pypulseqpp/plot/` | Figures: SeqEyes view, publication diagram, k-space and RF profiles |
 | `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
 | `tests/` | API, numerical, format-parity and invariant tests |
 | `docs/` | Markdown/Sphinx documentation and generated API reference |
