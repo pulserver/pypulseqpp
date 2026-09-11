@@ -23,6 +23,11 @@ def arm_angles(n_arms: int, scheme: str) -> np.ndarray:
     return np.asarray(pp.calc_uniform_angles(n_arms))
 
 
+def _at(events, index):
+    """Return an explicit readout's event for arm ``index``, or a compact one's event."""
+    return events[index] if isinstance(events, list) else events
+
+
 class GreSpiral2DApp(sequences.SequenceApp):
     """RF-spoiled, multi-slice 2D spiral gradient echo: one interleave per repetition.
 
@@ -45,9 +50,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
     NAME = "gre_spiral_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design of the selective pulse. The selection amplitude, which slice
-    #: offsets are converted against, is ``TIME_BW_PRODUCT / (PULSE_DURATION *
-    #: thickness)``.
+    #: SLR design of the selective pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
 
@@ -217,14 +220,15 @@ class GreSpiral2DApp(sequences.SequenceApp):
         """One excitation of slice ``s`` reading ``arm``; ``None`` plays a dummy.
 
         A dummy plays the first arm's orientation without its ADC or the
-        readout's ``ECO`` labels. The arm's blocks are the readout's own, so
-        the TE and echo spacing it solved are kept; every block driving an
-        in-plane gradient carries the arm's rotation.
+        readout's ``ECO`` labels. The blocks follow the readout's layout: the
+        slice rephaser on the TE wait, or on the prewinder block when there is
+        no wait; between echoes, the arm's rewinder and prewinder. Every block
+        driving an in-plane gradient carries the arm's rotation.
         """
-        rf, gz, seq = self.exc.rf, self.exc.gz, self.seq
-        rf.freq_offset = gz.amplitude * self.positions[s]
-        rf.phase_offset = phase - 2 * np.pi * rf.freq_offset * rf.center
-        self.ro.adc.phase_offset = phase
+        exc, ro, seq = self.exc, self.ro, self.seq
+        exc.rf.freq_offset = exc.selection_amplitude * self.positions[s]
+        exc.rf.phase_offset = phase - 2 * np.pi * exc.rf.freq_offset * exc.rf.center
+        ro.adc.phase_offset = phase
 
         acquire = arm is not None
         once = {"ONCE": int(not acquire)} if self.n_dummy else {}
@@ -233,20 +237,42 @@ class GreSpiral2DApp(sequences.SequenceApp):
         else:
             labels = self.labels(SLC=s, **once)
         index = arm if acquire else 0
-        rotation = self.rotations[index]
+        turn = [] if self.rotations[index] is None else [self.rotations[index]]
 
-        seq.add_block(rf, gz, *labels)
-        for events in self.ro.arm(index)[1:]:
-            played = [
-                e
-                for e in events
-                if acquire
-                or not (e is self.ro.adc or getattr(e, "type", "") == "labelset")
-            ]
-            turned = rotation is not None and any(
-                getattr(e, "channel", None) in ("x", "y") for e in played
-            )
-            seq.add_block(*played, *([rotation] if turned else []))
+        def events(*names):
+            """Return the arm's published events among ``names``, with its rotation."""
+            found = [_at(getattr(ro, n, None), index) for n in names]
+            found = [e for e in found if e is not None]
+            return [*found, *turn] if found else []
+
+        wait_te = getattr(ro, "wait_te", None)
+        wait_pre = getattr(ro, "wait_pre", None)
+        wait_rew = getattr(ro, "wait_rew", None)
+        gz_spoil = getattr(ro, "gz_spoil", None)
+        n_echoes = len(self.echo_times)
+
+        seq.add_block(exc.rf, exc.gz, *labels)
+        if wait_te is not None:
+            seq.add_block(wait_te, ro.gz_reph)
+        if wait_pre is not None:
+            reph = [] if wait_te is not None else [ro.gz_reph]
+            seq.add_block(*events("gx_pre", "gy_pre"), *reph, wait_pre)
+        for echo in range(n_echoes):
+            if echo:
+                for bracket in (
+                    ("gx_echo_rew", "gy_echo_rew"),
+                    ("gx_echo_pre", "gy_echo_pre"),
+                ):
+                    if found := events(*bracket):
+                        seq.add_block(*found)
+            acquired = []
+            if acquire:
+                eco = [ro.echo_labels[echo]] if n_echoes > 1 else []
+                acquired = [ro.adc, *eco]
+            seq.add_block(*events("gx", "gy"), *acquired)
+        if wait_rew is not None:
+            spoil = [] if gz_spoil is None else [gz_spoil]
+            seq.add_block(*events("gx_rew", "gy_rew"), *spoil, wait_rew)
         if wait is not None:
             seq.add_block(wait)
 

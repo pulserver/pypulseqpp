@@ -34,15 +34,6 @@ def _present(*events) -> list:
     return [event for event in events if event is not None]
 
 
-def _floor(readout, event):
-    """Return a delay as long as the readout's own block holding ``event``.
-
-    The readout pads its encode blocks with delays it does not publish.
-    """
-    block = next(b for b in readout.arm(0) if any(e is event for e in b))
-    return pp.make_delay(pp.calc_duration(*block))
-
-
 class GreStackOfSpirals3DApp(sequences.SequenceApp):
     """RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z.
 
@@ -194,8 +185,6 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             explicit=not use_rotation_ext,
             angles=None if use_rotation_ext else self.shot_angles.ravel(),
         )
-        self.pre_floor = _floor(ro, ro.gz_pre)
-        self.rew_floor = _floor(ro, ro.gz_rew)
         self.rotations = (
             [pp.make_rotation(float(angle)) for angle in self.shot_angles.ravel()]
             if use_rotation_ext
@@ -246,25 +235,33 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             _at(getattr(ro, "gy_rew", None), shot),
         )
 
-        seq.add_block(ro.rf, ro.gz, *once)
+        gz_reph = getattr(ro, "gz_reph", None)
         wait_te = getattr(ro, "wait_te", None)
+        wait_pre = getattr(ro, "wait_pre", None)
+        wait_rew = getattr(ro, "wait_rew", None)
+
+        # The rephaser rides the first block after the pulse, and the rotation
+        # only the blocks that drive an in-plane gradient.
+        seq.add_block(ro.rf, ro.gz, *once)
         if wait_te is not None:
-            seq.add_block(wait_te)
-        # The rotation rides only the blocks that drive an in-plane gradient.
-        seq.add_block(
-            *pre,
-            pp.scale_grad(ro.gz_pre, kz),
-            self.pre_floor,
-            *(rotation if pre else []),
-        )
+            seq.add_block(wait_te, *_present(gz_reph))
+        if wait_pre is not None:
+            seq.add_block(
+                *pre,
+                pp.scale_grad(ro.gz_pre, kz),
+                *([] if wait_te is not None else _present(gz_reph)),
+                wait_pre,
+                *(rotation if pre else []),
+            )
         seq.add_block(_at(ro.gx, shot), _at(ro.gy, shot), *acquisition, *rotation)
-        seq.add_block(
-            *rew,
-            pp.scale_grad(ro.gz_rew, kz),
-            *_present(getattr(ro, "gz_spoil", None)),
-            self.rew_floor,
-            *(rotation if rew else []),
-        )
+        if wait_rew is not None:
+            seq.add_block(
+                *rew,
+                pp.scale_grad(ro.gz_rew, kz),
+                *_present(getattr(ro, "gz_spoil", None)),
+                wait_rew,
+                *(rotation if rew else []),
+            )
         wait_tr = getattr(ro, "wait_tr", None)
         if wait_tr is not None:
             seq.add_block(wait_tr)

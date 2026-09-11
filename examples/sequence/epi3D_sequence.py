@@ -1,4 +1,4 @@
-"""3D gradient-echo EPI, slab-selective, with its prescan in the same sequence."""
+"""3D gradient-echo EPI, slab-selective, written as a linked chain of sequences."""
 
 from __future__ import annotations
 
@@ -19,12 +19,13 @@ class Epi3DApp(sequences.SequenceApp):
     A shell is one partition for a plain stack of trains, or, under
     ``acceleration_z`` above 1, a band of ``acceleration_z`` partitions the
     CAIPI sawtooth walks within the train. Every acquisition carries ``REV``
-    for its read polarity and its partition as ``PAR``. The prescan precedes
-    the imaging under ``ONCE = 1``: an undersampled scan first acquires a
-    Cartesian gradient-echo calibration over the central ``n_acs x n_acs_z``
-    rectangle (``REF``); then :attr:`NAVIGATOR_LINES` blip-nulled lines at the
-    centre partition (``NAV``), an opposite-phase-encode reference train
-    (``SET = 1``), and the dummy shots. ``spsp`` excites water only.
+    for its read polarity and its partition as ``PAR``. The imaging is
+    preceded by linked prescans (:meth:`prescans`): an undersampled scan's
+    ``calibration``, a Cartesian gradient echo over the central ``n_acs x
+    n_acs_z`` rectangle (``REF``); then the ``navigator``,
+    :attr:`NAVIGATOR_LINES` blip-nulled lines at the centre partition (``NAV``,
+    ``REF``) and an opposite-phase-encode reference train (``SET = 1``).
+    ``spsp`` excites water only.
 
     Examples
     --------
@@ -196,6 +197,22 @@ class Epi3DApp(sequences.SequenceApp):
         self.epi = sequences.EpiReadout3D(
             system, self.exc.rf, self.exc.gz, etl=etl, **train
         )
+        # Segment s starts s lattice lines up, so its partition offsets start
+        # s * caipi_shift up the CAIPI sawtooth, wrapped into the shell: each
+        # start is a train of its own.
+        trains = {0: self.epi}
+        for segment in range(segments):
+            start = segment * caipi_shift % acceleration_z
+            if start not in trains:
+                order = self.epi.order.copy()
+                order[:, 1] = (order[:, 1] + start) % acceleration_z
+                trains[start] = sequences.EpiReadout3D(
+                    system, self.exc.rf, self.exc.gz, order=order, **train
+                )
+        self.trains = [
+            trains[segment * caipi_shift % acceleration_z]
+            for segment in range(segments)
+        ]
         # The navigator and the reference play the full-length train.
         self.ref_epi = (
             sequences.EpiReadout3D(system, self.exc.rf, self.exc.gz, **train)
@@ -226,42 +243,72 @@ class Epi3DApp(sequences.SequenceApp):
                 labels=("LIN", "PAR"),
             )
 
-    def loop(self) -> None:
-        """Play the prescan under ``ONCE = 1``, then every repetition of the volume."""
-        az = self.acceleration_z
+    def prescans(self) -> dict:
+        """Return ``calibration`` (when undersampled) and ``navigator``."""
+        chain = {"calibration": self.calibrate} if self.acs else {}
+        return {**chain, "navigator": self.navigate}
+
+    def calibrate(self) -> None:
+        """Play the gradient-echo calibration over the central rectangle."""
         for view in self.acs:
             self.kernel(view, "calibration")
+        self._define(Name=f"{self.NAME}_calibration")
+
+    def navigate(self) -> None:
+        """Play the navigator and the opposite-phase-encode reference."""
         self.kernel(None, "navigator")
         if self.opposite_reference:
             self.kernel((0, self.matrix[2] // 2), "reference")
+        self._define(Name=f"{self.NAME}_navigator", EchoSpacing=self.ref_epi.esp)
+
+    def _define(self, **definitions) -> None:
+        for key, value in {
+            "FOV": list(self.fov),
+            "Matrix": list(self.matrix),
+            **definitions,
+        }.items():
+            self.seq.set_definition(key=key, value=value)
+
+    def loop(self) -> None:
+        """Play the dummy shots, then every repetition of the volume."""
+        az = self.acceleration_z
         for _ in range(self.n_dummy):
             self.kernel((self.first_y, self.shells[0] * az), "dummy")
         for repetition in range(self.n_repetitions):
             for segment in range(self.segments):
+                line = self.first_y + segment * self.acceleration
+                start = int(self.trains[segment].order[0, 1])
                 for shell in self.shells:
-                    origin = (self.first_y + segment * self.acceleration, shell * az)
-                    self.kernel(origin, "image", repetition)
+                    origin = (line, shell * az + start)
+                    self.kernel(origin, "image", repetition, segment)
 
     def kernel(
-        self, origin: tuple[int, int] | None, kind: str = "image", repetition: int = 0
+        self,
+        origin: tuple[int, int] | None,
+        kind: str = "image",
+        repetition: int = 0,
+        segment: int = 0,
     ) -> None:
         """One shot of ``kind``, one of :data:`KINDS`.
 
         ``origin`` is the ``(line, partition)`` the train starts from, or the
         one a calibration shot acquires; ``None`` leaves both encodes at the
-        centre. The ``reference`` train negates the phase-encode prewinder and
-        blips; the ``navigator`` plays :attr:`NAVIGATOR_LINES` lines without
-        blips.
+        centre. An ``image`` shot plays the train of its ``segment``. The
+        ``reference`` train negates the phase-encode prewinder and blips, and
+        each of its lines is labelled with the view it plays; the
+        ``navigator`` plays :attr:`NAVIGATOR_LINES` lines without blips.
         """
         seq = self.seq
         n_y, n_z = self.matrix[1:]
         flags = {
-            "calibration": {"ONCE": 1, "NAV": 0, "REF": 1, "SET": 0, "REV": 0},
-            "navigator": {"ONCE": 1, "NAV": 1, "REF": 1, "SET": 0},
-            "reference": {"ONCE": 1, "NAV": 0, "REF": 0, "SET": 1},
+            "calibration": {"REF": 1},
+            "navigator": {"NAV": 1, "REF": 1, "SET": 0},
+            "reference": {"NAV": 0, "REF": 0, "SET": 1},
             "dummy": {"ONCE": 1},
-            "image": {"ONCE": 0, "NAV": 0, "REF": 0, "SET": 0, "REP": repetition},
+            "image": {"REP": repetition},
         }[kind]
+        if kind == "image" and self.n_dummy:
+            flags["ONCE"] = 0
         labels = self.labels(**flags)
         line, partition = (n_y / 2, n_z / 2) if origin is None else origin
         sign = -1.0 if kind == "reference" else 1.0
@@ -287,7 +334,7 @@ class Epi3DApp(sequences.SequenceApp):
                 seq.add_block(wait_tr)
             return
 
-        epi = self.epi if kind in ("dummy", "image") else self.ref_epi
+        epi = {"image": self.trains[segment], "dummy": self.epi}.get(kind, self.ref_epi)
         acquire = kind != "dummy"
         blipped = kind != "navigator"
         encoded = acquire and origin is not None
@@ -297,13 +344,30 @@ class Epi3DApp(sequences.SequenceApp):
         wait_te = getattr(epi, "wait_te", None)
         if wait_te is not None:
             seq.add_block(wait_te)
-        if encoded:
+        shot_labels, line_labels = (), [()] * n_lines
+        if encoded and kind == "reference":
+            # The line encode and every blip are negated, so line i plays
+            # line n_y - line - order_y (modulo n_y) and partition - order_z.
+            offsets = epi.order - epi.order[0]
+            line_labels = [
+                (
+                    pp.make_label("LIN", "SET", int(y)),
+                    pp.make_label("PAR", "SET", int(z)),
+                )
+                for y, z in zip(
+                    (n_y - line - offsets[:, 0]) % n_y,
+                    partition - offsets[:, 1],
+                    strict=True,
+                )
+            ]
+        elif encoded:
             epi.shot_labels[0].value, epi.shot_labels[1].value = line, partition
+            shot_labels, line_labels = epi.shot_labels, epi.line_labels
         seq.add_block(
             epi.gx_pre,
             pp.scale_grad(epi.gy_pre, ky),
             pp.scale_grad(epi.gz_pre, kz),
-            *(epi.shot_labels if encoded else ()),
+            *shot_labels,
         )
         for i in range(n_lines):
             events = [epi.gx[i]]
@@ -315,8 +379,7 @@ class Epi3DApp(sequences.SequenceApp):
                     for blip in (epi.gy_blips[i], epi.gz_blips[i])
                     if blip is not None
                 ]
-            if encoded:
-                events += epi.line_labels[i]
+            events += line_labels[i]
             seq.add_block(*events)
         seq.add_block(
             epi.gx_spoil, pp.scale_grad(epi.gy_rew, ky), pp.scale_grad(epi.gz_rew, kz)

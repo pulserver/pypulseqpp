@@ -1,6 +1,7 @@
 """The 2D non-Cartesian zoo entries: radial, spiral and PROPELLER."""
 
 import importlib
+from itertools import pairwise
 
 import numpy as np
 import pytest
@@ -230,6 +231,83 @@ def test_the_refocusing_pulse_is_not_turned():
     seq = module("se_propeller2D_sequence").main(**SMALL["se_propeller2D_sequence"])
 
     assert all(b.rotation is None for b in blocks(seq) if b.rf is not None)
+
+
+# -- every shot ------------------------------------------------------------
+
+
+def area(event):
+    if event.type == "trap":
+        return float(event.area)
+    return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
+
+
+@pytest.mark.parametrize(
+    ("name", "prescription"),
+    [
+        ("gre_radial2D_sequence", {"n_dummy": 1}),
+        ("gre_spiral2D_sequence", {"n_dummy": 1, "n_echoes": 2}),
+        ("se_propeller2D_sequence", {"n_dummy": 1}),
+        ("se_propeller2D_sequence", {"blade_width": 7}),
+    ],
+)
+def test_every_shot_closes_its_in_plane_gradient_moment(name, prescription):
+    """A residual moment would turn with the shot and differ from one to the next."""
+    built = app(name, **prescription)
+    seq = built.design()
+    delta_k = 1.0 / built.fov
+
+    # Nothing in-plane plays before a refocusing pulse, so a shot's moment is
+    # the plain integral of the played physical waveforms between excitations.
+    waveforms = seq.waveforms()
+    excitations = np.asarray(seq.rf_times()[0])
+    edges = [*excitations, seq.duration()[0]]
+
+    def moment(axis, start, stop):
+        t, g = (np.asarray(v, dtype=float) for v in waveforms[axis][:2])
+        grid = np.unique(np.concatenate([t[(t > start) & (t < stop)], [start, stop]]))
+        return np.trapezoid(np.interp(grid, t, g, left=0.0, right=0.0), grid)
+
+    moments = [[moment(axis, a, b) for axis in (0, 1)] for a, b in pairwise(edges)]
+
+    shots = len(built.angles) if hasattr(built, "angles") else built.blade.n_blades
+    assert len(moments) == built.n_dummy + shots
+    assert np.abs(moments).max() < 1e-3 * delta_k
+
+
+def layout(block):
+    return (
+        round(block.block_duration, 9),
+        *(getattr(block, c) is not None for c in ("rf", "gx", "gy", "gz", "adc")),
+        *(
+            round(area(getattr(block, c)), 6)
+            for c in ("gx", "gy", "gz")
+            if getattr(block, c) is not None
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    ("name", "prescription"),
+    [
+        ("gre_radial2D_sequence", {"te": None}),
+        ("gre_radial2D_sequence", {"te": 2.6e-3}),
+        ("gre_radial2D_sequence", {"te": 5e-3, "slice_thickness": 20e-3}),
+        ("gre_radial2D_sequence", {"use_rotation_ext": False}),
+        ("gre_spiral2D_sequence", {"te": None}),
+        ("gre_spiral2D_sequence", {"te": 6e-3, "n_echoes": 3}),
+        ("gre_spiral2D_sequence", {"use_rotation_ext": False, "n_echoes": 2}),
+    ],
+)
+def test_a_shot_plays_the_block_layout_its_readout_solved(name, prescription):
+    """Same blocks, durations and gradient areas as the module's first arm."""
+    built = app(name, tr=None, **prescription)
+    seq = built.design()
+    n = len(built.ro.arm(0))
+
+    played = [layout(seq.get_block(i)) for i in range(1, n + 1)]
+    solved = [layout(built.ro.seq.get_block(i)) for i in range(1, n + 1)]
+    assert played == solved
 
 
 # -- the command line ------------------------------------------------------

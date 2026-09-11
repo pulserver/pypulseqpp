@@ -27,6 +27,15 @@ def stack_angles(
     return (angles[:, None] + step * np.arange(n_z)[None, :]).ravel(), True
 
 
+def _at(event, shot: int):
+    """Return the explicit layout's copy of ``event`` for ``shot``, or ``event``."""
+    return event[shot] if isinstance(event, list) else event
+
+
+def _present(*events) -> list:
+    return [event for event in events if event is not None]
+
+
 class MprageStackOfSpirals3DApp(sequences.SequenceApp):
     """3D MPRAGE whose shots play spiral arms of one partition.
 
@@ -279,33 +288,49 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
         inv, ro, seq = self.inv, self.ro, self.seq
         n_z = self.matrix[2]
         kz = (partition - n_z / 2) / (n_z / 2)
+        # Events this design's layout may lack: in-plane prewinders for an arm
+        # that starts off k = 0, a slice rephaser, TE and TR waits, a spoiler.
+        wait_te, wait_tr = getattr(ro, "wait_te", None), getattr(ro, "wait_tr", None)
+        gz_reph, gz_spoil = getattr(ro, "gz_reph", None), getattr(ro, "gz_spoil", None)
+        gx_pre, gy_pre = getattr(ro, "gx_pre", None), getattr(ro, "gy_pre", None)
+        gz_pre, gz_rew = pp.scale_grad(ro.gz_pre, kz), pp.scale_grad(ro.gz_rew, kz)
 
         seq.add_block(inv.rf_prep, *self.labels(**(flags or {})))
         seq.add_block(inv.gz_spoil)
         seq.add_block(self.wait_ti)
         for arm, phase in zip(arms, phases, strict=True):
             shot = arm * n_z + partition if self.staggered else arm
-            rotation = self.rotations[shot]
+            # The rotation rides every block that drives x or y.
+            turn = _present(self.rotations[shot])
             # The slab sits at isocentre, so the excitation has no frequency
             # offset and its phase is the spoiling phase alone.
             ro.rf.phase_offset = phase
             ro.adc.phase_offset = phase
-            # The arm's blocks as the readout laid them out, with the partition
-            # encode scaled, the rotation on every block driving x or y, and a
-            # dummy's ADC dropped.
-            for block in ro.arm(shot):
-                events = [
-                    pp.scale_grad(e, kz) if e is ro.gz_pre or e is ro.gz_rew else e
-                    for e in block
-                    if acquire or e is not ro.adc
-                ]
-                if rotation is not None and any(
-                    getattr(e, "channel", "") in ("x", "y") for e in events
-                ):
-                    events.append(rotation)
-                if acquire and any(e is ro.adc for e in block):
-                    events += self.labels(LIN=arm, PAR=partition)
-                seq.add_block(*events)
+
+            seq.add_block(ro.rf, ro.gz)
+            if wait_te is not None:
+                seq.add_block(wait_te, *_present(gz_reph))
+            in_plane = _present(_at(gx_pre, shot), _at(gy_pre, shot))
+            seq.add_block(
+                *in_plane,
+                gz_pre,
+                *_present(None if wait_te is not None else gz_reph),
+                ro.wait_pre,
+                *(turn if in_plane else []),
+            )
+            acquisition = (
+                [ro.adc, *self.labels(LIN=arm, PAR=partition)] if acquire else []
+            )
+            seq.add_block(_at(ro.gx, shot), _at(ro.gy, shot), *acquisition, *turn)
+            seq.add_block(
+                *_present(_at(ro.gx_rew, shot), _at(ro.gy_rew, shot)),
+                gz_rew,
+                *_present(gz_spoil),
+                ro.wait_rew,
+                *turn,
+            )
+            if wait_tr is not None:
+                seq.add_block(wait_tr)
         seq.add_block(self.wait_recovery)
 
     def finalize(self) -> None:

@@ -179,14 +179,14 @@ class Bssfp2DApp(sequences.SequenceApp):
         """
         ro, seq = self.ro, self.seq
         rf = ro.rf
-        rf.freq_offset = ro.gz.amplitude * self.positions[s]
+        rf.freq_offset = self.exc.selection_amplitude * self.positions[s]
         centre_phase = -2 * np.pi * rf.freq_offset * rf.center
 
         if previous_ky is None:
             # Half the flip at phase 0, opposite to the first excitation's pi,
             # lands the magnetisation on the bisector the steady state
-            # oscillates about. The module writes ONCE, which the application's
-            # labels do not see, so every label's next change is made a SET.
+            # oscillates about. The module writes ONCE on this block and the
+            # next, so the labels restart here as a ONCE through labels() would.
             self.restart_labels()
             rf.amplitude = 0.5 * self.nominal
             rf.phase_offset = centre_phase

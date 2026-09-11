@@ -236,8 +236,8 @@ def test_once_marks_each_slice_half_flip_and_closing_rewind():
     assert list(half_flips) == [1, len(chunks[0]) + 1]
 
 
-def test_each_slice_sets_the_labels_it_changes_rather_than_incrementing_them():
-    """The module's ONCE change restarts the label steps, as a label ONCE would."""
+def test_each_slice_sets_every_label_on_its_first_acquisition():
+    """The module's ONCE change restarts the labels, as a ONCE through labels() would."""
     a = app(BSSFP, n_slices=3, n_dummy=0)
     seq = a.design()
     n_blocks = len(seq.block_events)
@@ -246,7 +246,12 @@ def test_each_slice_sets_the_labels_it_changes_rather_than_incrementing_them():
     ]
 
     for first in acquiring[:: len(a.lines)]:
-        assert {e.type for e in first.label} == {"labelset"}
+        assert sorted((e.label, e.type) for e in first.label) == [
+            ("IMA", "labelset"),
+            ("LIN", "labelset"),
+            ("SEG", "labelset"),
+            ("SLC", "labelset"),
+        ]
 
 
 def test_a_repetition_shorter_than_the_balanced_one_is_refused():

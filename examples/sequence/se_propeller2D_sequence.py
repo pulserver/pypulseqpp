@@ -35,9 +35,7 @@ class SePropeller2DApp(sequences.SequenceApp):
     NAME = "se_propeller_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design shared by the excitation and the refocusing pulse. The
-    #: selection amplitude of both, which slice offsets are converted against,
-    #: is ``TIME_BW_PRODUCT / (PULSE_DURATION * thickness)``.
+    #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
 
@@ -123,11 +121,6 @@ class SePropeller2DApp(sequences.SequenceApp):
             time_bw_product=self.TIME_BW_PRODUCT,
             spoiling_cycles=crusher_cycles,
         )
-        # The refocusing gradient is crushers and plateau in one waveform, so
-        # its amplitude is the crusher peak; the plateau is the design's.
-        self.refocusing_amplitude = self.TIME_BW_PRODUCT / (
-            self.PULSE_DURATION * slice_thickness
-        )
 
         def blade(first_line_te: float | None):
             return sequences.PropellerReadout2D(
@@ -172,6 +165,10 @@ class SePropeller2DApp(sequences.SequenceApp):
         wait = pp.round_to_raster(half_te - half_te_floor, raster)
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
         self.gy_pre = pp.scale_grad(self.blade.gy_pre, self.blade.blade_start)
+        # The last line sits this fraction of gy_pre from the centre, and the
+        # closing block brings the phase-encode axis back from it.
+        end = self.blade.blade_start + self.blade.order[-1, 0] / (blade_width / 2)
+        self.gy_rew = pp.scale_grad(self.blade.gy_rew, end)
         # One event per distinct angle.
         made: dict[float, object] = {}
         self.rotations = [
@@ -225,9 +222,9 @@ class SePropeller2DApp(sequences.SequenceApp):
         """
         exc, ref, blade, seq = self.exc, self.ref, self.blade, self.seq
         position = self.positions[s]
-        exc.rf.freq_offset = exc.gz.amplitude * position
+        exc.rf.freq_offset = exc.selection_amplitude * position
         exc.rf.phase_offset = -2 * np.pi * exc.rf.freq_offset * exc.rf.center
-        ref.rf_ref.freq_offset = self.refocusing_amplitude * position
+        ref.rf_ref.freq_offset = ref.selection_amplitude * position
         ref.rf_ref.phase_offset = (
             np.pi / 2 - 2 * np.pi * ref.rf_ref.freq_offset * ref.rf_ref.center
         )
@@ -258,7 +255,7 @@ class SePropeller2DApp(sequences.SequenceApp):
                 *([blip] if blip is not None else []),
                 rotation,
             )
-        seq.add_block(blade.gx_spoil, rotation)
+        seq.add_block(blade.gx_spoil, self.gy_rew, rotation)
         if wait is not None:
             seq.add_block(wait)
 

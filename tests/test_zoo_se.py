@@ -106,15 +106,17 @@ def test_the_slices_of_a_spin_echo_pass_are_not_neighbours_and_keep_the_tr():
 def test_every_refocusing_pulse_selects_the_slice_its_excitation_does(name):
     """Refocusing offset = excitation offset x the ratio of selection amplitudes.
 
-    The refocusing pulse selects on the plateau between its crushers,
-    ``TIME_BW_PRODUCT / (PULSE_DURATION * thickness)``, not on the crusher peak
-    its gradient's ``amplitude`` reports.
+    The refocusing pulse selects on the plateau between its crushers, its
+    ``selection_amplitude``, not on the crusher peak its gradient's
+    ``amplitude`` reports.
     """
     thickness = 4e-3
     sequence = app(name, n_slices=3, slice_thickness=thickness, slice_gap=1e-3)
     pulses, _ = played(sequence.design())
-    excitation = sequence.exc.gz.amplitude
-    refocusing = APPS[name].TIME_BW_PRODUCT / (APPS[name].PULSE_DURATION * thickness)
+    excitation = sequence.exc.selection_amplitude
+    refocusing = sequence.ref.selection_amplitude
+
+    assert refocusing != pytest.approx(sequence.ref.gz.amplitude)
 
     excited, pairs = [], []
     for _, use, offset in pulses:

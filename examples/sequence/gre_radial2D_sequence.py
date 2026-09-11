@@ -48,9 +48,7 @@ class GreRadial2DApp(sequences.SequenceApp):
     NAME = "gre_radial_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design of the selective pulse. The selection amplitude, which slice
-    #: offsets are converted against, is ``TIME_BW_PRODUCT / (PULSE_DURATION *
-    #: thickness)``.
+    #: SLR design of the selective pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
 
@@ -192,6 +190,16 @@ class GreRadial2DApp(sequences.SequenceApp):
         self.slab_thickness = n_slices * (slice_thickness + slice_gap) - slice_gap
         self.spoiling_increment = np.deg2rad(rf_spoiling_increment_deg)
 
+        # The readout carries the slice rephaser on its TE wait when the wait
+        # is at least as long, and on the spoke otherwise.
+        self.wait_te = getattr(self.ro, "wait_te", None)
+        on_wait = self.wait_te is not None and self.wait_te.delay >= pp.calc_duration(
+            self.ro.gz_reph
+        )
+        self.reph_on_wait = [self.ro.gz_reph] if on_wait else []
+        self.reph_on_spoke = [] if on_wait else [self.ro.gz_reph]
+        self.gz_spoil = getattr(self.ro, "gz_spoil", None)
+
     def loop(self) -> None:
         """Play each pass: its dummies, then every spoke at each of its slices."""
         spokes = [None] * self.n_dummy + list(range(len(self.angles)))
@@ -210,13 +218,13 @@ class GreRadial2DApp(sequences.SequenceApp):
         """One excitation of slice ``s`` reading ``spoke``; ``None`` plays a dummy.
 
         A dummy plays the first spoke's orientation without its ADC. The
-        spoke's blocks are the readout's own, so the TE it solved is kept;
-        every block driving an in-plane gradient carries the spoke's rotation.
+        spoke block carries the spoke's rotation, and the slice rephaser when
+        the TE wait cannot hold it.
         """
-        rf, gz, seq = self.exc.rf, self.exc.gz, self.seq
-        rf.freq_offset = gz.amplitude * self.positions[s]
-        rf.phase_offset = phase - 2 * np.pi * rf.freq_offset * rf.center
-        self.ro.adc.phase_offset = phase
+        exc, ro, seq = self.exc, self.ro, self.seq
+        exc.rf.freq_offset = exc.selection_amplitude * self.positions[s]
+        exc.rf.phase_offset = phase - 2 * np.pi * exc.rf.freq_offset * exc.rf.center
+        ro.adc.phase_offset = phase
 
         acquire = spoke is not None
         once = {"ONCE": int(not acquire)} if self.n_dummy else {}
@@ -226,14 +234,22 @@ class GreRadial2DApp(sequences.SequenceApp):
             labels = self.labels(SLC=s, **once)
         index = spoke if acquire else 0
         rotation = self.rotations[index]
+        gx, gy = ro.gx, ro.gy
+        if isinstance(gx, list):  # explicit: one turned spoke per angle
+            gx, gy = gx[index], gy[index]
 
-        seq.add_block(rf, gz, *labels)
-        for events in self.ro.arm(index)[1:]:
-            played = [e for e in events if acquire or e is not self.ro.adc]
-            turned = rotation is not None and any(
-                getattr(e, "channel", None) in ("x", "y") for e in played
-            )
-            seq.add_block(*played, *([rotation] if turned else []))
+        seq.add_block(exc.rf, exc.gz, *labels)
+        if self.wait_te is not None:
+            seq.add_block(self.wait_te, *self.reph_on_wait)
+        seq.add_block(
+            gx,
+            gy,
+            *([ro.adc] if acquire else []),
+            *self.reph_on_spoke,
+            *([rotation] if rotation is not None else []),
+        )
+        if self.gz_spoil is not None:
+            seq.add_block(self.gz_spoil)
         if wait is not None:
             seq.add_block(wait)
 

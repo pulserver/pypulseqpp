@@ -30,9 +30,7 @@ class Se2DApp(sequences.SequenceApp):
     NAME = "se_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design shared by the excitation and the refocusing pulse. The
-    #: refocusing selection amplitude, which slice offsets are converted
-    #: against, is ``TIME_BW_PRODUCT / (PULSE_DURATION * thickness)``.
+    #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
 
@@ -130,11 +128,6 @@ class Se2DApp(sequences.SequenceApp):
             time_bw_product=self.TIME_BW_PRODUCT,
             spoiling_cycles=crusher_cycles,
         )
-        # The refocusing gradient's amplitude is its crusher peak; the pulse
-        # selects on the plateau between the crushers.
-        self.ref_amplitude = self.TIME_BW_PRODUCT / (
-            self.PULSE_DURATION * slice_thickness
-        )
         self.ref_phase = float(self.ref.rf_ref.phase_offset)
 
         # TE is solved in two halves about the 180. The readout owns the second,
@@ -224,9 +217,11 @@ class Se2DApp(sequences.SequenceApp):
         """One slice excitation at one line; ``line=None`` plays a dummy."""
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
         position = self.positions[s]
-        exc.rf.freq_offset = exc.gz.amplitude * position
+        # Each pulse selects at its own plateau; a crushed refocusing
+        # gradient's amplitude is its crusher peak.
+        exc.rf.freq_offset = exc.selection_amplitude * position
         exc.rf.phase_offset = -2 * np.pi * exc.rf.freq_offset * exc.rf.center
-        ref.rf_ref.freq_offset = self.ref_amplitude * position
+        ref.rf_ref.freq_offset = ref.selection_amplitude * position
         ref.rf_ref.phase_offset = (
             self.ref_phase - 2 * np.pi * ref.rf_ref.freq_offset * ref.rf_ref.center
         )

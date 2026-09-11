@@ -31,9 +31,7 @@ class Fse2DApp(sequences.SequenceApp):
     NAME = "fse_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design shared by the excitation and the refocusing pulses. The
-    #: refocusing selection amplitude, which slice offsets are converted
-    #: against, is ``TIME_BW_PRODUCT / (PULSE_DURATION * thickness)``.
+    #: SLR design shared by the excitation and the refocusing pulses.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
 
@@ -124,7 +122,7 @@ class Fse2DApp(sequences.SequenceApp):
             duration_s=self.PULSE_DURATION,
             time_bw_product=self.TIME_BW_PRODUCT,
         )
-        refocusing = sequences.SpatialSelectiveRefocusing(
+        self.ref = sequences.SpatialSelectiveRefocusing(
             system,
             slice_thickness,
             duration_s=self.PULSE_DURATION,
@@ -136,18 +134,13 @@ class Fse2DApp(sequences.SequenceApp):
             self.exc.rf,
             self.exc.gz,
             self.exc.gz_reph,
-            rf_ref=refocusing.rf_ref,
-            gz_ref=refocusing.gz,
+            rf_ref=self.ref.rf_ref,
+            gz_ref=self.ref.gz,
             fov=self.fov,
             matrix=(n_x, n_y),
             etl=etl,
             readout_bandwidth_hz=readout_bandwidth_hz,
             spoiling_cycles=readout_crusher_cycles,
-        )
-        # The refocusing gradient's amplitude is its crusher peak; the pulse
-        # selects on the plateau between the crushers.
-        self.ref_amplitude = self.TIME_BW_PRODUCT / (
-            self.PULSE_DURATION * slice_thickness
         )
         self.ref_phase = float(fse.rf_ref.phase_offset)
         self.n_center = 0 if te is None else int(np.argmin(abs(fse.echo_times - te)))
@@ -217,9 +210,11 @@ class Fse2DApp(sequences.SequenceApp):
         fse, seq = self.fse, self.seq
         n_y = self.matrix[1]
         position = self.positions[s]
-        fse.rf.freq_offset = fse.gz.amplitude * position
+        # Each pulse selects at its own plateau; a crushed refocusing
+        # gradient's amplitude is its crusher peak.
+        fse.rf.freq_offset = self.exc.selection_amplitude * position
         fse.rf.phase_offset = -2 * np.pi * fse.rf.freq_offset * fse.rf.center
-        fse.rf_ref.freq_offset = self.ref_amplitude * position
+        fse.rf_ref.freq_offset = self.ref.selection_amplitude * position
         fse.rf_ref.phase_offset = (
             self.ref_phase - 2 * np.pi * fse.rf_ref.freq_offset * fse.rf_ref.center
         )
