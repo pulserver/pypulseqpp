@@ -10,12 +10,14 @@ from __future__ import annotations
 __all__ = [
     "make_2d_selective_pulse",
     "make_half_passages",
+    "make_recursive_slr_pulses",
     "make_sigpy_pulse",
     "make_slr_pulse",
     "make_sms_pulse",
     "make_spsp_pulse",
 ]
 
+import math
 from collections.abc import Sequence
 from typing import Literal
 
@@ -25,7 +27,7 @@ from . import _events
 from ._angles import calc_uniform_angles
 from ._band_phases import band_phases
 from ._opts import default_system
-from ._slr import NOMINAL_FLIP, design_slr
+from ._slr import NOMINAL_FLIP, _resampled, design_recursive_slr, design_slr
 
 PulseType = Literal["st", "ex", "se", "inv", "sat"]
 FilterType = Literal["ls", "pm", "min", "max", "ms"]
@@ -170,29 +172,60 @@ def make_slr_pulse(
         # A root-flipped pulse's phase winds through it, so its area is no
         # measure of its flip: it plays at the amplitude it was designed at,
         # scaled from the flip it was designed for.
-        waveform = (
-            waveform * (flip_angle / NOMINAL_FLIP[pulse_type]) / (2.0 * np.pi * dwell)
-        )
-    actual_duration = n * dwell
-    result = _events.make_arbitrary_rf(
-        signal=waveform,
-        flip_angle=flip_angle,
-        no_signal_scaling=root_flip,
-        delay=delay,
+        waveform = waveform * (flip_angle / NOMINAL_FLIP[pulse_type])
+    return _play_slr(
+        waveform,
+        flip_angle,
+        designed=root_flip,
         dwell=dwell,
-        freq_offset=freq_offset,
-        phase_offset=phase_offset,
+        time_bw_product=time_bw_product,
+        center_pos=center_pos,
         return_gz=return_gz,
         slice_thickness=slice_thickness,
-        bandwidth=time_bw_product / actual_duration,
-        time_bw_product=time_bw_product,
+        system=system,
+        delay=delay,
+        freq_offset=freq_offset,
+        phase_offset=phase_offset,
         max_grad=max_grad,
         max_slew=max_slew,
-        system=system,
         use=use,
         freq_ppm=freq_ppm,
         phase_ppm=phase_ppm,
-        center=center_pos * actual_duration,
+    )
+
+
+def _play_slr(
+    waveform,
+    flip_angle,
+    *,
+    designed,
+    dwell,
+    time_bw_product,
+    center_pos,
+    return_gz,
+    slice_thickness,
+    system,
+    bandwidth=None,
+    **event,
+):
+    """Build an SLR waveform's event, and under ``return_gz`` its gradient and rephaser.
+
+    A ``designed`` waveform is in radians per sample and plays as it is; any
+    other is scaled until its area is ``flip_angle``.
+    """
+    duration = waveform.size * dwell
+    result = _events.make_arbitrary_rf(
+        signal=waveform / (2.0 * np.pi * dwell) if designed else waveform,
+        flip_angle=flip_angle,
+        no_signal_scaling=designed,
+        dwell=dwell,
+        return_gz=return_gz,
+        slice_thickness=slice_thickness,
+        bandwidth=time_bw_product / duration if bandwidth is None else bandwidth,
+        time_bw_product=time_bw_product,
+        system=system,
+        center=center_pos * duration,
+        **event,
     )
     if not return_gz:
         return result
@@ -534,6 +567,10 @@ def make_2d_selective_pulse(
     target: np.ndarray | None = None,
     n_interleaves: int | None = None,
     axes: Sequence[str] = ("x", "y"),
+    b1_maps=None,
+    off_resonance=None,
+    magnitude_only: bool = False,
+    regularization: float = 0.0,
     system=None,
     use: str = "excitation",
     freq_offset: float = 0.0,
@@ -567,6 +604,21 @@ def make_2d_selective_pulse(
         Nyquist. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
     axes : sequence of str, optional
         The two gradient channels the trajectory runs on.
+    b1_maps : array_like, optional
+        Complex B1+ per transmit channel, ``(num_channels, matrix, matrix)``,
+        relative to nominal. When given, the pulse is designed in the
+        spatial domain against them (Grissom et al., Magn Reson Med 56:620,
+        2006) and returned as a pTx pulse, one waveform per channel, whose
+        small-tip flip is ``flip_angle`` times the target; a single channel
+        is a pulse tailored to that channel's B1.
+    off_resonance : array_like, optional
+        Off-resonance map, ``(matrix, matrix)``, in Hz, for the spatial-domain
+        design.
+    magnitude_only : bool, optional
+        Fit only the target's magnitude in the spatial-domain design, leaving
+        its phase free (magnitude least squares).
+    regularization : float, optional
+        Tikhonov weight on the waveforms' power in the spatial-domain design.
     system : pypulseq.Opts, optional
         System limits.
     use : str, optional
@@ -577,7 +629,8 @@ def make_2d_selective_pulse(
     Returns
     -------
     rf : RfEvent
-        The pulse, sampled on the gradient raster.
+        The pulse, sampled on the gradient raster; a pTx pulse when
+        ``b1_maps`` is given.
     gradients : tuple of GradEvent
         One arbitrary gradient per axis, to be played in the pulse's block.
     rephasers : tuple of TrapEvent
@@ -667,19 +720,42 @@ def make_2d_selective_pulse(
     # which is what puts the final phase in the right place.
     kspace = -np.cumsum((gradient * system.gamma)[::-1], axis=0)[::-1] * dwell
     desired, coordinates = _selective_target(shape, extent, selective_size, target)
-    weights = _small_tip_weights(desired, coordinates, kspace)
-    weights *= np.r_[np.linalg.norm(np.diff(kspace, axis=0), axis=1), 0.0]
-    weights[~np.concatenate(active)] = 0.0
+    if b1_maps is None:
+        weights = _small_tip_weights(desired, coordinates, kspace)
+        weights *= np.r_[np.linalg.norm(np.diff(kspace, axis=0), axis=1), 0.0]
+        weights[~np.concatenate(active)] = 0.0
+        rf = _events.make_arbitrary_rf(
+            signal=weights,
+            flip_angle=flip_angle,
+            dwell=dwell,
+            freq_offset=freq_offset,
+            phase_offset=phase_offset,
+            system=system,
+            use=use,
+        )
+    else:
+        from ._ptx import _selective_waveforms, make_ptx_pulse
 
-    rf = _events.make_arbitrary_rf(
-        signal=weights,
-        flip_angle=flip_angle,
-        dwell=dwell,
-        freq_offset=freq_offset,
-        phase_offset=phase_offset,
-        system=system,
-        use=use,
-    )
+        waveforms = _selective_waveforms(
+            flip_angle * desired,
+            coordinates,
+            kspace,
+            np.concatenate(active),
+            b1_maps,
+            shape,
+            off_resonance,
+            magnitude_only,
+            regularization,
+            dwell,
+        )
+        rf = make_ptx_pulse(
+            waveforms,
+            dwell=dwell,
+            freq_offset=freq_offset,
+            phase_offset=phase_offset,
+            system=system,
+            use=use,
+        )
     gradients = []
     rephasers = []
     for index, axis in enumerate(axes):
@@ -822,3 +898,121 @@ def make_half_passages(
         )
         for half in (sweep, np.conj(sweep[::-1]))
     )
+
+
+#: Core samples a recursive SLR train is designed at before it is resampled
+#: onto the raster: each pulse is an inverse SLR transform over four times
+#: that many samples.
+RECURSIVE_SAMPLES = 256
+
+
+def make_recursive_slr_pulses(
+    n_segments: int,
+    *,
+    duration: float = DEFAULT_DURATION,
+    time_bw_product: float = DEFAULT_TIME_BANDWIDTH_PRODUCT,
+    spin_echo: bool = False,
+    refocusing_tbw: float = 8.0,
+    t1: float = math.inf,
+    segment_tr: float = 0.06,
+    use_mz: bool = True,
+    passband_ripple: float = 0.01,
+    stopband_ripple: float = 0.01,
+    cancel_alpha_phase: bool = True,
+    slice_thickness: float = 0.0,
+    return_gz: bool = False,
+    dwell: float = 0.0,
+    delay: float = 0.0,
+    system=None,
+    use: str = "excitation",
+):
+    """Design SLR pulses that each excite the same transverse magnetisation.
+
+    For a segmented acquisition of magnetisation that recovers slowly or not
+    at all -- hyperpolarised spins -- each pulse tips a larger share of what
+    the earlier ones left, the last one 90 degrees. With ``use_mz`` each pulse
+    is designed against the longitudinal profile the earlier ones actually
+    left, so the slice profile stays the same from segment to segment too
+    (SigPy's ``dz_recursive_rf``). The pulses are large-tip designs, played at
+    their designed amplitude.
+
+    Parameters
+    ----------
+    n_segments : int
+        Pulses in the train.
+    duration : float, optional
+        Of each pulse, in s: a windowed SLR core with a taper either side.
+    spin_echo : bool, optional
+        Design for a spin-echo segment, whose refocusing pulse is returned too.
+    refocusing_tbw : float, optional
+        Time-bandwidth product of that refocusing pulse.
+    t1, segment_tr : float, optional
+        Longitudinal relaxation time and the time between pulses, in s;
+        ``t1=inf`` is no recovery.
+    use_mz : bool, optional
+        Design each pulse against the profile the earlier ones left.
+    return_gz : bool, optional
+        Return each pulse with its selection gradient and rephaser, as
+        :func:`make_slr_pulse` does.
+
+    Other parameters are as in :func:`make_slr_pulse`.
+
+    Returns
+    -------
+    pulses : tuple
+        One RF event per segment, or ``(rf, gz, gzr)`` per segment under
+        ``return_gz``.
+    refocusing : SimpleNamespace or tuple
+        Only with ``spin_echo``: the refocusing pulse, in the same form.
+
+    Raises
+    ------
+    ValueError
+        If ``n_segments`` is below one, or ``return_gz`` is asked for without
+        a positive ``slice_thickness``.
+    """
+    if n_segments < 1:
+        raise ValueError("n_segments must be at least one")
+    system = default_system(system)
+    dwell = dwell or system.rf_raster_time
+    if return_gz and slice_thickness <= 0:
+        raise ValueError("slice_thickness must be > 0 when return_gz=True")
+    window = 1.75
+    samples = _slr_sample_count(duration, dwell)
+    core = min(RECURSIVE_SAMPLES, max(8, 2 * round(samples / window / 2)))
+    relaxation = 0.0 if math.isinf(t1) else 1.0 - math.exp(-segment_tr / t1)
+    pulses, refocusing = design_recursive_slr(
+        n_segments,
+        core,
+        time_bw_product,
+        spin_echo=spin_echo,
+        refocusing_tbw=refocusing_tbw,
+        window=window,
+        cancel_alpha_phase=cancel_alpha_phase,
+        relaxation=relaxation,
+        use_mz=use_mz,
+        passband_ripple=passband_ripple,
+        stopband_ripple=stopband_ripple,
+    )
+    core_duration = samples * dwell * core / pulses.shape[0]
+
+    def play(waveform, tbw):
+        return _play_slr(
+            _resampled(waveform, samples),
+            np.pi / 2,
+            designed=True,
+            dwell=dwell,
+            time_bw_product=tbw,
+            center_pos=0.5,
+            return_gz=return_gz,
+            slice_thickness=slice_thickness,
+            system=system,
+            bandwidth=tbw / core_duration,
+            delay=delay,
+            use=use,
+        )
+
+    train = tuple(play(pulses[:, jj], time_bw_product) for jj in range(n_segments))
+    if not spin_echo:
+        return train
+    return train, play(refocusing, refocusing_tbw)

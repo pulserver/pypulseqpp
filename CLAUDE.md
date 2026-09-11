@@ -31,7 +31,7 @@ separately from the MIT core.
 | Path | Purpose |
 |---|---|
 | `src/cpp/pulseq/` | Python-independent C++17 storage, codecs, I/O and analysis |
-| `src/cpp/bindings/` | CPython/pybind11 bindings for `pypulseqpp._ext`, including `arbgrad`, `sampling`, `sim` and `slr` |
+| `src/cpp/bindings/` | CPython/pybind11 bindings for `pypulseqpp._ext`, including `arbgrad`, `ptx`, `sampling`, `sim` and `slr` |
 | `external/MRArbGrad/` | Vendored gradient solver submodule; see `external/NOTICE.md` |
 | `src/pypulseqpp/` | Python facade, event conversion, sequence operations and design |
 | `src/pypulseqpp/sequences/` | Reusable excitation, preparation and readout modules |
@@ -97,6 +97,16 @@ The interoperability decorator converts compiled events to namespaces for
 upstream functions and converts returned events back. This applies to event
 consumers such as `calc_duration`, `align`, `split_gradient` and `rotate`,
 not only factories.
+
+A dynamic pTx pulse is one arbitrary RF event holding every transmit
+channel's waveform one after another over a shared time base, so its time
+shape restarts once per channel (Roos et al., Magn Reson Med 2025,
+doi:10.1002/mrm.30601). The channel count is the number of samples at the
+first sample time, as the reference interpreter reads it. `make_ptx_pulse`
+writes the layout and `split_ptx_pulse` reads it; the core's timing check
+judges one channel's time base, and flip-angle integrals take each channel on
+its own time base and sum them, which is the flip where every channel has
+unit, in-phase sensitivity. The rule lives in `src/cpp/pulseq/channels.hpp`.
 
 Waveforms are normalised beside scalar amplitudes. Amplitude changes preserve
 shape registrations; waveform replacement invalidates them. Registration IDs

@@ -18,6 +18,10 @@ from ._angles import (
     calc_tiny_golden_angles,
     calc_uniform_angles,
 )
+from ._b1_pulses import make_b1_gslider_pulse as _make_b1_gslider_pulse
+from ._b1_pulses import make_b1_hadamard_pulse as _make_b1_hadamard_pulse
+from ._b1_pulses import make_b1_selective_pulse as _make_b1_selective_pulse
+from ._b1_pulses import make_bloch_siegert_pulse as _make_bloch_siegert_pulse
 from ._block_to_events import block_to_events as _block_to_events
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
 from ._check_timing import check_timing as _check_timing
@@ -57,8 +61,12 @@ from ._opts import (
 )
 from ._opts import Opts as _Opts
 from ._ordering import calc_traversal_order
+from ._ptx import calc_rf_shim, split_ptx_pulse
+from ._ptx import make_ptx_pulse as _make_ptx_pulse
+from ._ptx import make_spokes_pulse as _make_spokes_pulse
 from ._rf_pulses import make_2d_selective_pulse as _make_2d_selective_pulse
 from ._rf_pulses import make_half_passages as _make_half_passages
+from ._rf_pulses import make_recursive_slr_pulses as _make_recursive_slr_pulses
 from ._rf_pulses import make_slr_pulse as _make_slr_pulse
 from ._rf_pulses import make_sms_pulse as _make_sms_pulse
 from ._rf_pulses import make_spsp_pulse as _make_spsp_pulse
@@ -72,6 +80,9 @@ from ._schedules import (
 from ._sequence import Sequence as _Sequence
 from ._sim_rf import sim_bloch as _sim_bloch
 from ._sim_rf import sim_rf as _sim_rf
+from ._slice_encoding import make_gslider_pulse as _make_gslider_pulse
+from ._slice_encoding import make_hadamard_pulse as _make_hadamard_pulse
+from ._slice_encoding import make_pins_pulse as _make_pins_pulse
 from ._timing import (
     calc_adc_timing,
     ceil_to_raster,
@@ -199,6 +210,16 @@ make_slr_pulse = interoperating(_make_slr_pulse)
 #: SigpyPulseOpts argument bundle has nothing here to configure.
 make_sigpy_pulse = make_slr_pulse
 make_sms_pulse = interoperating(_make_sms_pulse)
+make_recursive_slr_pulses = interoperating(_make_recursive_slr_pulses)
+make_b1_selective_pulse = interoperating(_make_b1_selective_pulse)
+make_b1_gslider_pulse = interoperating(_make_b1_gslider_pulse)
+make_b1_hadamard_pulse = interoperating(_make_b1_hadamard_pulse)
+make_bloch_siegert_pulse = interoperating(_make_bloch_siegert_pulse)
+make_gslider_pulse = interoperating(_make_gslider_pulse)
+make_hadamard_pulse = interoperating(_make_hadamard_pulse)
+make_pins_pulse = interoperating(_make_pins_pulse)
+make_ptx_pulse = interoperating(_make_ptx_pulse)
+make_spokes_pulse = interoperating(_make_spokes_pulse)
 make_spsp_pulse = interoperating(_make_spsp_pulse)
 make_wave_gradients = interoperating(_make_wave_gradients)
 
