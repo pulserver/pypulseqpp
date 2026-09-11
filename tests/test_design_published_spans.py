@@ -1,5 +1,6 @@
 """Amplitudes and pads a hand-written scan loop needs from the modules."""
 
+import numpy as np
 import pytest
 
 import pypulseqpp as pp
@@ -42,3 +43,32 @@ def test_the_prewinder_and_rewinder_blocks_last_what_their_pads_say():
 
     for pad in (readout.wait_pre, readout.wait_rew):
         assert any(d == pytest.approx(pad.delay) for d in durations)
+
+
+def test_a_spectral_spatial_slice_moves_where_it_is_shifted():
+    """The profile a Bloch simulation of the shifted pulse excites is centred there."""
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
+    water = design.SpspExcitation(
+        system, 30.0, thickness_m=10e-3, spectral_bandwidth_hz=300.0
+    )
+    rf, gz = water.rf, water.gz
+    samples = rf.delay + np.asarray(rf.t)
+    gradient = np.interp(samples, gz.delay + np.asarray(gz.tt), np.asarray(gz.waveform))
+    z = np.linspace(-25e-3, 25e-3, 201)
+    dt = float(np.diff(rf.t).mean())
+    designed = np.array(rf.signal)
+
+    def centre_and_peak():
+        m = pp.sim_bloch(np.asarray(rf.signal), z[:, None] * gradient[None, :], dt)
+        excited = np.abs(m[:, 0] + 1j * m[:, 1])
+        return (excited * z).sum() / excited.sum(), excited.max()
+
+    centred, peak = centre_and_peak()
+    water.shift(6e-3, phase=0.3)
+    moved, moved_peak = centre_and_peak()
+
+    assert centred == pytest.approx(0.0, abs=0.1e-3)
+    assert moved == pytest.approx(6e-3, abs=0.2e-3)
+    assert moved_peak == pytest.approx(peak, rel=1e-3)
+    assert rf.phase_offset == pytest.approx(0.3)
+    assert np.allclose(np.asarray(water.shift(0.0).signal), designed)

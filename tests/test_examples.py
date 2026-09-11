@@ -95,6 +95,14 @@ SMALL = {
         "n_acs": 0,
         "n_dummy": 0,
     },
+    "bssfp3D_sequence": {
+        "n_x": 64,
+        "n_y": 16,
+        "n_z": 4,
+        "n_acs": 0,
+        "n_acs_z": 0,
+        "n_dummy": 0,
+    },
     "fse3D_sequence": {
         "n_x": 32,
         "n_y": 16,

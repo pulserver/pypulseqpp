@@ -6,6 +6,7 @@ import importlib
 
 __all__ = [
     "bssfp2D_sequence",
+    "bssfp3D_sequence",
     "epi2D_sequence",
     "epi3D_sequence",
     "fse2D_sequence",
