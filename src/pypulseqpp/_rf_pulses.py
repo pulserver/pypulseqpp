@@ -170,29 +170,59 @@ def make_slr_pulse(
         # A root-flipped pulse's phase winds through it, so its area is no
         # measure of its flip: it plays at the amplitude it was designed at,
         # scaled from the flip it was designed for.
-        waveform = (
-            waveform * (flip_angle / NOMINAL_FLIP[pulse_type]) / (2.0 * np.pi * dwell)
-        )
-    actual_duration = n * dwell
-    result = _events.make_arbitrary_rf(
-        signal=waveform,
-        flip_angle=flip_angle,
-        no_signal_scaling=root_flip,
-        delay=delay,
+        waveform = waveform * (flip_angle / NOMINAL_FLIP[pulse_type])
+    return _play_slr(
+        waveform,
+        flip_angle,
+        designed=root_flip,
         dwell=dwell,
-        freq_offset=freq_offset,
-        phase_offset=phase_offset,
+        time_bw_product=time_bw_product,
+        center_pos=center_pos,
         return_gz=return_gz,
         slice_thickness=slice_thickness,
-        bandwidth=time_bw_product / actual_duration,
-        time_bw_product=time_bw_product,
+        system=system,
+        delay=delay,
+        freq_offset=freq_offset,
+        phase_offset=phase_offset,
         max_grad=max_grad,
         max_slew=max_slew,
-        system=system,
         use=use,
         freq_ppm=freq_ppm,
         phase_ppm=phase_ppm,
-        center=center_pos * actual_duration,
+    )
+
+
+def _play_slr(
+    waveform,
+    flip_angle,
+    *,
+    designed,
+    dwell,
+    time_bw_product,
+    center_pos,
+    return_gz,
+    slice_thickness,
+    system,
+    **event,
+):
+    """Build an SLR waveform's event, and under ``return_gz`` its gradient and rephaser.
+
+    A ``designed`` waveform is in radians per sample and plays as it is; any
+    other is scaled until its area is ``flip_angle``.
+    """
+    duration = waveform.size * dwell
+    result = _events.make_arbitrary_rf(
+        signal=waveform / (2.0 * np.pi * dwell) if designed else waveform,
+        flip_angle=flip_angle,
+        no_signal_scaling=designed,
+        dwell=dwell,
+        return_gz=return_gz,
+        slice_thickness=slice_thickness,
+        bandwidth=time_bw_product / duration,
+        time_bw_product=time_bw_product,
+        system=system,
+        center=center_pos * duration,
+        **event,
     )
     if not return_gz:
         return result
