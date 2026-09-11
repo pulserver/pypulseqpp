@@ -664,6 +664,59 @@ class Sequence:
 
     # -- what the sequence is ------------------------------------------
 
+    def calc_rf_power(
+        self, block_range=None, window_duration: float | None = None
+    ) -> tuple[float, float, float, float]:
+        """Return the RF's mean power, peak power, RMS amplitude and energy.
+
+        As MATLAB Pulseq's ``calcRfPower``.
+
+        Parameters
+        ----------
+        block_range : sequence of int, optional
+            First and last block, 1-based and inclusive; all by default.
+        window_duration : float, optional
+            Seconds. Energy, mean power and rms are then the largest over runs
+            of whole blocks no longer than this, each divided by it.
+
+        Returns
+        -------
+        mean_pwr : float
+            Hz^2.
+        peak_pwr : float
+            Hz^2.
+        rf_rms : float
+            Hz.
+        total_energy : float
+            Hz^2 s.
+
+        Notes
+        -----
+        Each pulse is read as :func:`pypulseqpp.calc_rf_power` reads it, a
+        dynamic pTx pulse as the root-sum-square of its channels. The values
+        are relative: divide ``rf_rms`` by gamma for tesla and the powers by
+        gamma squared. :func:`pypulseqpp.safety.check_sar` gives SAR.
+        """
+        if self.num_blocks == 0:
+            return 0.0, 0.0, 0.0, 0.0
+        first, last = (
+            (1, self.num_blocks)
+            if block_range is None
+            else _plot.blocks_for(self, block_range=block_range)
+        )
+        found = _cxx.rf_power(
+            self._native,
+            first,
+            last,
+            window=0.0 if window_duration is None else float(window_duration),
+        )
+        return (
+            found["mean_power"],
+            found["peak_power"],
+            found["rms"],
+            found["energy"],
+        )
+
     def test_report(self) -> str:
         """Return a formatted sequence timing, encoding and gradient report."""
         return _report_text(_report_data(self))

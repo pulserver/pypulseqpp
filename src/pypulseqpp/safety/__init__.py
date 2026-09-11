@@ -1,4 +1,4 @@
-"""Gradient amplitude, slew, continuity, mechanical-resonance and PNS checks.
+"""Gradient amplitude, slew, continuity, mechanical-resonance, PNS and SAR checks.
 
 Checks use physical-axis waveforms after applying block rotations.
 These checks do not establish scanner or patient safety.
@@ -11,17 +11,22 @@ from types import SimpleNamespace
 from .. import _ext as _cxx
 from ._pns import ChronaxieModel, check_pns, read_safe_model
 from ._resonance import ForbiddenBand, check_mech_resonance, read_forbidden_bands
+from ._sar import VopModel, check_sar, example_vops, read_vops
 
 __all__ = [
     "ChronaxieModel",
     "ForbiddenBand",
+    "VopModel",
     "check_grad_continuity",
     "check_max_grad",
     "check_max_slew",
     "check_mech_resonance",
     "check_pns",
+    "check_sar",
+    "example_vops",
     "read_forbidden_bands",
     "read_safe_model",
+    "read_vops",
 ]
 
 

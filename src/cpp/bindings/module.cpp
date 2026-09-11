@@ -34,6 +34,7 @@
 #include "pulseq/pns.hpp"
 #include "pulseq/read.hpp"
 #include "pulseq/resonance.hpp"
+#include "pulseq/rf_safety.hpp"
 #include "pulseq/safety.hpp"
 #include "pulseq/write.hpp"
 
@@ -1262,6 +1263,83 @@ PYBIND11_MODULE(_ext, module)
         "Nerve response to the physical-axis slew, as a fraction of threshold: "
         "SAFE (a1..a3, tau1..tau3 in ms, stim_limit, g_scale per axis) or "
         "chronaxie (chronaxie s, rheobase T/m/s, alpha).");
+
+    module.def(
+        "rf_power",
+        [](const Sequence& sequence, int first, int last, double window, double dt) {
+            pulseq::RfPower found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::rf_power(sequence, first, last, window, dt);
+            }
+            py::dict out;
+            out["mean_power"] = found.mean_power;
+            out["peak_power"] = found.peak_power;
+            out["rms"] = found.rms;
+            out["energy"] = found.energy;
+            return out;
+        },
+        py::arg("sequence"), py::arg("first"), py::arg("last"), py::arg("window") = 0.0,
+        py::arg("dt") = 1e-6,
+        "RF mean power (Hz^2), peak power (Hz^2), rms (Hz) and energy (Hz^2 s) of "
+        "blocks first..last, as MATLAB Pulseq's calcRfPower; window <= 0 for none.");
+
+    using ComplexArray =
+        py::array_t<std::complex<double>, py::array::c_style | py::array::forcecast>;
+    module.def(
+        "vop_sar",
+        [](const Sequence& sequence, const ComplexArray& vops,
+           const py::array_t<double, py::array::c_style | py::array::forcecast>& drive,
+           const ComplexArray& default_shim, int size, int start,
+           const py::object& global_matrix, double dt) {
+            if (vops.ndim() != 3 || vops.shape(1) != vops.shape(2))
+                throw std::invalid_argument("vops is (N, Nc, Nc)");
+            pulseq::SarModel model;
+            model.channels = static_cast<int>(vops.shape(1));
+            model.vops.assign(vops.data(), vops.data() + vops.size());
+            if (!global_matrix.is_none())
+            {
+                const auto global = py::cast<ComplexArray>(global_matrix);
+                model.global.assign(global.data(), global.data() + global.size());
+            }
+            model.drive.assign(drive.data(), drive.data() + drive.size());
+            model.default_shim.assign(
+                default_shim.data(), default_shim.data() + default_shim.size());
+            model.dt = dt;
+
+            std::vector<pulseq::SarWindow> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::vop_sar(sequence, model, size, start);
+            }
+
+            const py::ssize_t count = static_cast<py::ssize_t>(found.size());
+            py::array_t<int> first(count), last(count), vop(count);
+            py::array_t<double> duration(count), local(count), global(count);
+            for (py::ssize_t i = 0; i < count; ++i)
+            {
+                const pulseq::SarWindow& window = found[static_cast<size_t>(i)];
+                first.mutable_data()[i] = window.first;
+                last.mutable_data()[i] = window.last;
+                vop.mutable_data()[i] = window.vop;
+                duration.mutable_data()[i] = window.duration;
+                local.mutable_data()[i] = window.local;
+                global.mutable_data()[i] = window.global;
+            }
+            py::dict out;
+            out["first"] = first;
+            out["last"] = last;
+            out["duration"] = duration;
+            out["local"] = local;
+            out["vop"] = vop;
+            out["global"] = global;
+            return out;
+        },
+        py::arg("sequence"), py::arg("vops"), py::arg("drive"), py::arg("default_shim"),
+        py::arg("size"), py::arg("start"), py::arg("global_matrix") = py::none(),
+        py::arg("dt") = 1e-6,
+        "Time-averaged VOP and global SAR of each window: the prologue, each "
+        "repetition of `size` blocks from `start`, and the tail.");
 
     module.def(
         "evaluate_labels",

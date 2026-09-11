@@ -36,8 +36,8 @@ by the job they perform.
 : Composable excitation, preparation, and readout modules.
 
 {doc}`safety`
-: Sequence-level gradient amplitude, slew-rate, continuity, mechanical-resonance
-  and peripheral nerve stimulation checks.
+: Sequence-level gradient amplitude, slew-rate, continuity, mechanical-resonance,
+  peripheral nerve stimulation and SAR checks.
 
 {doc}`plotting`
 : The SeqEyes view, the publication diagram, and k-space and RF-profile
