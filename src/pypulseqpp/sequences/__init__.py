@@ -13,6 +13,7 @@ import inspect as _inspect
 from types import ModuleType as _ModuleType
 from typing import Any
 
+from ._app import SequenceApp
 from ._module import SequenceModule
 from .excitation import (
     FrequencySelectiveExcitation,
@@ -124,7 +125,9 @@ BASES = ("NonCartesianReadout", "OffResonanceSaturation", "RfModule")
 #: name, imported on first use, and callable as its ``main``.
 ZOO = tuple(sorted(_importlib.import_module(f"{__name__}.sequence").__all__))
 
-__all__ = sorted({*EXCITATION, *PREPARATION, *READOUT, *BASES, *ZOO, "SequenceModule"})
+__all__ = sorted(
+    {*EXCITATION, *PREPARATION, *READOUT, *BASES, *ZOO, "SequenceApp", "SequenceModule"}
+)
 
 
 class SequenceScript(_ModuleType):
