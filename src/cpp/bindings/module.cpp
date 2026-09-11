@@ -26,6 +26,7 @@
 #include "pulseqpp_eventtypes.h"
 #include "arbgrad.h"
 #include "sampling.h"
+#include "sim.h"
 #include "ptx.h"
 #include "slr.h"
 
@@ -347,6 +348,12 @@ PYBIND11_MODULE(_ext, module)
     sampling.attr("__name__") = "pypulseqpp._ext.sampling";
     py::module_::import("sys").attr("modules")["pypulseqpp._ext.sampling"] = sampling;
     pypulseqpp_bind_sampling(sampling);
+
+    // The Bloch simulation both sim_bloch and sim_rf run on.
+    py::module_ sim = module.def_submodule("sim");
+    sim.attr("__name__") = "pypulseqpp._ext.sim";
+    py::module_::import("sys").attr("modules")["pypulseqpp._ext.sim"] = sim;
+    pypulseqpp_bind_sim(sim);
 
     // Shinnar-Le Roux pulse design, for the searches too slow to run in NumPy.
     py::module_ slr = module.def_submodule("slr");

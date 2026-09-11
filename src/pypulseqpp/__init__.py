@@ -78,7 +78,7 @@ from ._schedules import (
     make_traps_schedule,
 )
 from ._sequence import Sequence as _Sequence
-from ._sim_rf import bloch as _bloch
+from ._sim_rf import sim_bloch as _sim_bloch
 from ._sim_rf import sim_rf as _sim_rf
 from ._slice_encoding import make_gslider_pulse as _make_gslider_pulse
 from ._slice_encoding import make_hadamard_pulse as _make_hadamard_pulse
@@ -194,7 +194,7 @@ Opts = _Opts
 make_hexagon_gradient_area = interoperating(_make_hexagon_gradient_area)
 rotate_3d = interoperating(_rotate_3d)
 sim_rf = interoperating(_sim_rf)
-bloch = _bloch
+sim_bloch = _sim_bloch
 
 # Waveform and pulse design. Each goes through the interoperation decorator
 # for the same reason: the bodies build with PyPulseq's own factories and

@@ -19,7 +19,7 @@ def transverse(rf, offsets_hz, fields=None):
     offsets = np.asarray(offsets_hz, dtype=float)[:, None]
     if fields is not None:
         offsets = offsets * fields[None, :]
-    m = pp.bloch(np.asarray(rf.signal), offsets, dwell)
+    m = pp.sim_bloch(np.asarray(rf.signal), offsets, dwell)
     return m[:, 0] + 1j * m[:, 1]
 
 

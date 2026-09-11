@@ -18,7 +18,7 @@ def transverse_at(rf, scales):
     dwell = float(rf.t[1] - rf.t[0])
     out = []
     for scale in scales:
-        m = pp.bloch(scale * signal, np.zeros((1, 1)), dwell)[0]
+        m = pp.sim_bloch(scale * signal, np.zeros((1, 1)), dwell)[0]
         out.append(m[0] + 1j * m[1])
     return np.asarray(out)
 
@@ -82,7 +82,7 @@ def phase_left(rf, scale):
     """Phase added to transverse magnetisation where B1 is ``scale`` of nominal."""
     signal = np.asarray(rf.signal)
     dwell = float(rf.t[1] - rf.t[0])
-    m = pp.bloch(
+    m = pp.sim_bloch(
         scale * signal, np.zeros((1, 1)), dwell, initial=np.array([1.0, 0.0, 0.0])
     )[0]
     return float(np.angle(m[0] + 1j * m[1]))
@@ -96,7 +96,7 @@ def test_a_bloch_siegert_phase_grows_with_the_square_of_b1():
 def test_a_bloch_siegert_pulse_leaves_the_magnetisation_along_z():
     rf = pp.make_bloch_siegert_pulse(10e-6, 4e-3, system=SYSTEM)
     signal = np.asarray(rf.signal)
-    m = pp.bloch(signal, np.zeros((1, 1)), float(rf.t[1] - rf.t[0]))[0]
+    m = pp.sim_bloch(signal, np.zeros((1, 1)), float(rf.t[1] - rf.t[0]))[0]
     assert m[2] > 0.99
 
 
@@ -120,7 +120,7 @@ def train_profile(pulses, offsets_hz):
     state = np.tile([0.0, 0.0, 1.0], (len(offsets_hz), 1))
     left = []
     for rf in pulses:
-        m = pp.bloch(
+        m = pp.sim_bloch(
             np.asarray(rf.signal), np.asarray(offsets_hz)[:, None], dwell, initial=state
         )
         left.append(np.hypot(m[:, 0], m[:, 1]))
@@ -145,7 +145,7 @@ def test_a_spin_echo_train_comes_with_a_refocusing_pulse_that_inverts():
     _, refocusing = pp.make_recursive_slr_pulses(
         3, duration=4e-3, spin_echo=True, system=SYSTEM
     )
-    m = pp.bloch(
+    m = pp.sim_bloch(
         np.asarray(refocusing.signal),
         np.zeros((1, 1)),
         float(refocusing.t[1] - refocusing.t[0]),

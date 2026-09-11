@@ -55,7 +55,7 @@ def root_flipped(n, tbw, pulse_type, filter_type="min"):
 def profile(rf, n, tbw):
     """Magnetisation after the pulse, from +z, across three bandwidths."""
     offsets = np.linspace(-3.0, 3.0, 241) * tbw / (n * DWELL)
-    return pp.bloch(np.asarray(rf) / (2 * np.pi * DWELL), offsets[:, None], DWELL)
+    return pp.sim_bloch(np.asarray(rf) / (2 * np.pi * DWELL), offsets[:, None], DWELL)
 
 
 # %% filters
@@ -67,7 +67,7 @@ def test_every_filter_design_selects_the_slice_it_was_designed_for(filter_type):
     rf = _slr.design_slr(n, tbw, pulse_type="ex", filter_type=filter_type)
     bandwidth = tbw / (n * DWELL)
     offsets = np.array([0.0, 3.0 * bandwidth, -3.0 * bandwidth])[:, None]
-    magnetisation = pp.bloch(rf / (2 * np.pi * DWELL), offsets, DWELL)
+    magnetisation = pp.sim_bloch(rf / (2 * np.pi * DWELL), offsets, DWELL)
     assert np.hypot(*magnetisation[0, :2]) > 0.95
     assert np.all(magnetisation[1:, 2] > 0.95)
 
@@ -203,8 +203,8 @@ def test_a_root_flipped_pulse_on_a_fine_raster_keeps_the_coarse_design_profile()
     fine = _slr.design_slr(fine_n, 8, pulse_type="inv", root_flip=True)
     offsets = (np.linspace(-3.0, 3.0, 241) * 8 / duration)[:, None]
     fine_dwell = duration / fine_n
-    at_fine = pp.bloch(fine / (2 * np.pi * fine_dwell), offsets, fine_dwell)
-    at_coarse = pp.bloch(coarse / (2 * np.pi * DWELL), offsets, DWELL)
+    at_fine = pp.sim_bloch(fine / (2 * np.pi * fine_dwell), offsets, fine_dwell)
+    at_coarse = pp.sim_bloch(coarse / (2 * np.pi * DWELL), offsets, DWELL)
     assert np.allclose(at_fine[:, 2], at_coarse[:, 2], atol=2e-2)
 
 

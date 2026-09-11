@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["bloch", "sim_rf"]
+__all__ = ["sim_bloch", "sim_rf"]
 
 import warnings as _warnings
 
@@ -10,6 +10,7 @@ import numpy as _np
 import pypulseq as _pp
 
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
+from ._ext import sim as _kernels
 
 #: Simulation raster against the pulse's bandwidth: a wider pulse is
 #: integrated in finer steps, since the rotation per step is what the hard
@@ -17,57 +18,45 @@ from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
 _RASTERS = ((2e4, 1e-6), (1e4, 2e-6), (4e3, 5e-6), (0.0, 10e-6))
 
 
-def _quat_multiply(q, r):
-    """Hamilton product of two ``(N, 4)`` scalar-first quaternion arrays."""
-    scalar = (
-        q[:, 0] * r[:, 0] - q[:, 1] * r[:, 1] - q[:, 2] * r[:, 2] - q[:, 3] * r[:, 3]
-    )
-    vector = q[:, :1] * r[:, 1:] + r[:, :1] * q[:, 1:] + _np.cross(q[:, 1:], r[:, 1:])
-    return _np.column_stack((scalar, vector))
+def _about_z(angle):
+    """Right-hand rotations about z by ``angle``, one ``(3, 3)`` per entry."""
+    cosine, sine = _np.cos(angle), _np.sin(angle)
+    turns = _np.zeros((_np.size(angle), 3, 3))
+    turns[:, 0, 0] = turns[:, 1, 1] = cosine
+    turns[:, 0, 1], turns[:, 1, 0] = -sine, sine
+    turns[:, 2, 2] = 1.0
+    return turns
 
 
-def _quat_conjugate(q):
-    conjugated = q.copy()
-    conjugated[:, 1:] *= -1.0
-    return conjugated
+def sim_bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
+    """Simulate the Bloch equation without relaxation, in hard-pulse steps.
 
-
-def _applied(q, vector, count):
-    """``q* v q`` for every row of ``q``, as a complex transverse pair."""
-    m = _np.zeros((count, 4))
-    m[:, 1:] = vector
-    turned = _quat_multiply(_quat_conjugate(q), _quat_multiply(m, q))
-    return turned[:, 1] + 1j * turned[:, 2], turned[:, 3]
-
-
-def _free_precession(f, seconds: float, count: int):
-    """Accumulate off-resonance z rotation over a time interval in seconds."""
-    angle = -f * seconds
-    return _np.column_stack(
-        (_np.cos(angle / 2.0), _np.zeros((count, 2)), _np.sin(angle / 2.0))
-    )
-
-
-def bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
-    """Integrate the Bloch equation over a hard-pulse approximation.
+    Each step turns the magnetisation, the right-hand way, about its effective
+    field -- the RF in the transverse plane, the off-resonance along z -- by
+    the angle that field precesses it through in ``dt``.
 
     Parameters
     ----------
     b1_hz : array_like
-        Complex transverse field per time step, in Hz: ``(T,)`` for one field
-        every position sees, or ``(P, T)`` for a field of each position's own,
-        as parallel transmit channels summed through their B1 maps give.
+        Complex transverse field per step, in Hz: ``(T,)`` for one field every
+        position sees, or ``(P, T)`` for a field of each position's own, as
+        parallel transmit channels summed through their B1 maps give.
     bz_hz : array_like
-        Longitudinal field, shape ``(P, T)`` or ``(P, 1)``, in Hz.
+        Longitudinal field, in Hz: ``(P, T)``, or ``(P, 1)`` held throughout.
     dt : float
-        Raster step, in seconds.
+        Step, in s.
     initial : array_like, optional
-        Starting magnetisation, ``(3,)``. Defaults to ``+z``.
+        Starting magnetisation, ``(3,)`` or ``(P, 3)``; ``+z`` by default.
 
     Returns
     -------
     numpy.ndarray
-        Final magnetisation, shape ``(P, 3)``.
+        Final magnetisation, ``(P, 3)``.
+
+    Raises
+    ------
+    ValueError
+        If the fields' shapes disagree on positions or steps.
 
     Examples
     --------
@@ -78,61 +67,33 @@ def bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
     takes ``+z`` onto ``-y``:
 
     >>> on_resonance = np.zeros((1, 1))
-    >>> pp.bloch(np.full(1000, 250.0 + 0j), on_resonance, 1e-6).round(3)
+    >>> pp.sim_bloch(np.full(1000, 250.0 + 0j), on_resonance, 1e-6).round(3) + 0.0
     array([[ 0., -1.,  0.]])
 
     Twice the amplitude inverts it:
 
-    >>> pp.bloch(np.full(1000, 500.0 + 0j), on_resonance, 1e-6).round(3)
-    array([[ 0., -0., -1.]])
+    >>> pp.sim_bloch(np.full(1000, 500.0 + 0j), on_resonance, 1e-6).round(3) + 0.0
+    array([[ 0.,  0., -1.]])
 
     ``bz_hz`` carries one row per position, so a whole slice profile comes
     back at once:
 
     >>> offsets = np.array([[0.0], [500.0], [-500.0]])
-    >>> pp.bloch(np.full(1000, 250.0 + 0j), offsets, 1e-6).round(3)
+    >>> pp.sim_bloch(np.full(1000, 250.0 + 0j), offsets, 1e-6).round(3) + 0.0
     array([[ 0.   , -1.   ,  0.   ],
            [ 0.773,  0.162,  0.614],
            [-0.773,  0.162,  0.614]])
     """
     b1_hz = _np.asarray(b1_hz, dtype=complex)
     bz_hz = _np.atleast_2d(_np.asarray(bz_hz, dtype=float))
-    n_pos = bz_hz.shape[0]
-
-    magnetisation = _np.zeros((n_pos, 3))
-    magnetisation[:] = (
+    turns = _kernels.rotations(b1_hz, bz_hz, float(dt))
+    start = (
         _np.array([0.0, 0.0, 1.0])
         if initial is None
         else _np.asarray(initial, dtype=float)
     )
-
-    drive = b1_hz if b1_hz.ndim == 2 else b1_hz[None, :]
-    if drive.shape[0] not in (1, n_pos):
-        raise ValueError(
-            f"b1_hz holds fields for {drive.shape[0]} positions, bz_hz for {n_pos}"
-        )
-    two_pi_dt = 2.0 * _np.pi * dt
-    for step in range(drive.shape[1]):
-        omega = _np.empty((n_pos, 3))
-        omega[:, 0] = two_pi_dt * drive[:, step].real
-        omega[:, 1] = two_pi_dt * drive[:, step].imag
-        omega[:, 2] = two_pi_dt * bz_hz[:, step if bz_hz.shape[1] > 1 else 0]
-
-        angle = _np.linalg.norm(omega, axis=1)
-        active = angle > 1e-15
-        if not _np.any(active):
-            continue
-        axis = _np.zeros_like(omega)
-        axis[active] = omega[active] / angle[active, None]
-
-        cosine, sine = _np.cos(angle)[:, None], _np.sin(angle)[:, None]
-        dot = _np.sum(axis * magnetisation, axis=1)[:, None]
-        magnetisation = (
-            magnetisation * cosine
-            + _np.cross(axis, magnetisation) * sine
-            + axis * dot * (1.0 - cosine)
-        )
-    return magnetisation
+    start = _np.broadcast_to(start, (turns.shape[0], 3))
+    return _np.einsum("pij,pj->pi", turns, start)
 
 
 def sim_rf(
@@ -246,8 +207,6 @@ def sim_rf(
             int(max(1, _np.round(bandwidth / df))),
         )
     )
-    count = f.size
-
     envelope = (
         2
         * _np.pi
@@ -258,33 +217,16 @@ def sim_rf(
     )
     envelope = envelope * _np.exp(1j * (phase_offset + 2 * _np.pi * freq_offset * t))
 
-    q = _np.zeros((count, 4))
-    q[:, 0] = 1.0
-    q = _quat_multiply(q, _free_precession(f, dt * t.size * prephase_factor, count))
+    elapsed = dt * t.size
+    turns = (
+        _about_z(f * elapsed * rephase_factor)
+        @ _kernels.rotations(envelope / (2 * _np.pi), (f / (2 * _np.pi))[:, None], dt)
+        @ _about_z(f * elapsed * prephase_factor)
+    )
 
-    for step in range(t.size):
-        angle = -dt * _np.sqrt(abs(envelope[step]) ** 2 + f**2)
-        magnitude = _np.abs(angle)
-        axis = _np.column_stack(
-            (
-                _np.full(count, envelope[step].real),
-                _np.full(count, envelope[step].imag),
-                f,
-            )
-        )
-        turning = magnitude > 0
-        axis[turning] *= dt / magnitude[turning, None]
-        q = _quat_multiply(
-            q,
-            _np.column_stack(
-                (_np.cos(angle / 2.0), _np.sin(angle / 2.0)[:, None] * axis)
-            ),
-        )
-
-    q = _quat_multiply(q, _free_precession(f, dt * t.size * rephase_factor, count))
-
-    mz_xy, mz_z = _applied(q, (0.0, 0.0, 1.0), count)
-    mx_xy, _ = _applied(q, (1.0, 0.0, 0.0), count)
-    my_xy, _ = _applied(q, (0.0, 1.0, 0.0), count)
+    mz_xy = turns[:, 0, 2] + 1j * turns[:, 1, 2]
+    mz_z = turns[:, 2, 2]
+    mx_xy = turns[:, 0, 0] + 1j * turns[:, 1, 0]
+    my_xy = turns[:, 0, 1] + 1j * turns[:, 1, 1]
 
     return mz_z, mz_xy, f / (2 * _np.pi), (mx_xy + 1j * my_xy) / 2.0, mx_xy, my_xy

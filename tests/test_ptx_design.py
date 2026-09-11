@@ -80,7 +80,7 @@ def transverse(rf, gradients, maps, picks, positions):
         positions[:, [i]] * fields.get(axis, idle)[None, :]
         for i, axis in enumerate("xyz")
     )
-    m = pp.bloch(drive, np.broadcast_to(bz, drive.shape), dwell)
+    m = pp.sim_bloch(drive, np.broadcast_to(bz, drive.shape), dwell)
     return np.abs(m[:, 0] + 1j * m[:, 1])
 
 

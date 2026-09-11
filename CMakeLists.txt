@@ -42,6 +42,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/pulseqpp_eventtypes.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/arbgrad.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/sampling.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings/sim.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/ptx.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/slr.cpp
     # The three translation units of the MRArbGrad solver; the rest of it is

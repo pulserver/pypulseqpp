@@ -1,7 +1,7 @@
 """The compiled small-tip pTx kernels, against the model they state and a Bloch simulation.
 
 The model is written out in NumPy here, and the kernels are held to it; the
-model itself is held to ``pp.bloch`` at small tip, which has never seen it. The
+model itself is held to ``pp.sim_bloch`` at small tip, which has never seen it. The
 solvers are held to what they claim: a reachable target is reached, magnitude
 least squares fits magnitude better than plain least squares, a shim evens the
 field out, and more spokes correct more of a B1 profile.
@@ -88,7 +88,7 @@ def test_the_model_is_the_bloch_equation_at_small_tip():
     simulated = []
     for s in range(positions):
         field = sens[:, s] @ b
-        m = pp.bloch(field, (x[s, 0] * gradient + df[s])[None, :], DWELL)[0]
+        m = pp.sim_bloch(field, (x[s, 0] * gradient + df[s])[None, :], DWELL)[0]
         simulated.append(m[0] + 1j * m[1])
     simulated = np.asarray(simulated)
     assert np.abs(predicted - simulated).max() < 0.03 * np.abs(simulated).max()
