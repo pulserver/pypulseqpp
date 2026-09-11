@@ -34,6 +34,8 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/fov.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/kspace.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/pns.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/raster.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/resonance.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/rfft.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/safety.cpp

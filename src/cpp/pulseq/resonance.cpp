@@ -5,7 +5,7 @@
 
 #include "pulseq/resonance.hpp"
 
-#include "pulseq/corners.hpp"
+#include "pulseq/raster.hpp"
 #include "pulseq/rfft.hpp"
 
 #include <algorithm>
@@ -19,44 +19,8 @@ namespace pulseq
     {
 
         constexpr double kPi = 3.14159265358979323846;
-        /* Fraction of a raster interval a time may miss a sample centre by. */
-        constexpr double kRasterEps = 1e-9;
-
-        /** First sample whose centre (n + 1/2) dt is not before @p time. */
-        int64_t first_sample_from(double time, double dt)
-        {
-            return static_cast<int64_t>(std::ceil(time / dt - 0.5 - kRasterEps));
-        }
-
-        /** One gradient's corners, timed from the start of its block. */
-        struct Played
-        {
-            const double* times = nullptr;
-            const double* values = nullptr;
-            size_t count = 0;
-            double offset = 0.0;
-            size_t at = 0;
-
-            double when(size_t i) const
-            {
-                return times[i] + offset;
-            }
-
-            /** Value at @p t, zero outside the corners; @p t must not decrease. */
-            double value(double t)
-            {
-                if (count == 0 || t < when(0) || t > when(count - 1))
-                    return 0.0;
-                while (at + 1 < count && when(at + 1) <= t)
-                    ++at;
-                if (at + 1 >= count)
-                    return values[count - 1];
-                const double span = when(at + 1) - when(at);
-                if (span <= 0.0)
-                    return values[at + 1];
-                return values[at] + (values[at + 1] - values[at]) * (t - when(at)) / span;
-            }
-        };
+        /* Fraction of a bin a band edge may miss a bin by. */
+        constexpr double kBinEps = 1e-9;
 
         /** One band on one axis, as bins. */
         struct Guard
@@ -90,8 +54,8 @@ namespace pulseq
             const ForbiddenBand& band = bands[b];
             double lo_at = band.f_min / out.frequency_step;
             double hi_at = band.f_max / out.frequency_step;
-            int64_t lo = static_cast<int64_t>(std::ceil(lo_at - kRasterEps));
-            int64_t hi = static_cast<int64_t>(std::floor(hi_at + kRasterEps));
+            int64_t lo = static_cast<int64_t>(std::ceil(lo_at - kBinEps));
+            int64_t hi = static_cast<int64_t>(std::floor(hi_at + kBinEps));
             if (lo > hi)
                 lo = hi = std::llround(0.5 * (lo_at + hi_at));
             lo = std::max<int64_t>(lo, 0);
@@ -226,84 +190,21 @@ namespace pulseq
             }
         };
 
-        CornerCache corners(seq, dt);
-        std::vector<double> trapezoid_times[3];
-        const int32_t* events = seq.block_events();
-        const double* durations = seq.block_durations();
-        const int blocks = seq.num_blocks();
-
-        double elapsed = 0.0;
-        for (int index = 0; index < blocks; ++index)
+        /* Read up to where the next window ends, so a delay of minutes is
+         * judged as it is sampled. */
+        PhysicalRaster raster(seq, options.rotation);
+        for (;;)
         {
-            const int32_t* row = events + static_cast<size_t>(index) * BLOCK_WIDTH;
-            const double ends = elapsed + durations[index];
-            const int64_t from = filled;
-            const int64_t to = std::max(from, first_sample_from(ends, dt));
-
-            Played played[3];
-            bool any = false;
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                const int32_t id = row[1 + axis];
-                if (id <= 0)
-                    continue;
-                const Corners& shape = corners[id];
-                /* No ramps and no flat top plays for no time. */
-                if (shape.empty_with_amplitude || shape.values.empty())
-                    continue;
-                Played& p = played[axis];
-                p.values = shape.values.data();
-                p.count = shape.values.size();
-                if (shape.trapezoid)
-                {
-                    shape.at(0.0, trapezoid_times[axis]);
-                    p.times = trapezoid_times[axis].data();
-                }
-                else
-                {
-                    p.times = shape.times.data();
-                    p.offset = shape.delay;
-                }
-                any = true;
-            }
-
-            double turn[3][3];
-            const int32_t rotation = row[BLOCK_ROTATION_COLUMN];
-            double own[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-            if (rotation >= 1 && rotation <= seq.rotation_library().size())
-                rotation_matrix(seq.rotation_library().row(rotation), own);
-            for (int i = 0; i < 3; ++i)
-                for (int j = 0; j < 3; ++j)
-                    turn[i][j] = options.rotation[i][0] * own[0][j] +
-                        options.rotation[i][1] * own[1][j] + options.rotation[i][2] * own[2][j];
-
-            /* A block is written in pieces that end where the next window
-             * does, so a delay of minutes is judged as it is sampled. */
-            for (int64_t n = from; n < to;)
-            {
-                const int64_t piece = std::min(to, std::max(n + 1, next * step + width));
-                grow_to(piece);
-                if (any)
-                {
-                    for (int64_t m = n; m < piece; ++m)
-                    {
-                        const double t = (static_cast<double>(m) + 0.5) * dt - elapsed;
-                        double logical[3];
-                        for (int axis = 0; axis < 3; ++axis)
-                            logical[axis] = played[axis].value(t);
-                        const size_t at = static_cast<size_t>(m - base);
-                        for (int axis = 0; axis < 3; ++axis)
-                        {
-                            buffer[axis][at] = turn[axis][0] * logical[0] +
-                                turn[axis][1] * logical[1] + turn[axis][2] * logical[2];
-                        }
-                    }
-                }
-                filled = piece;
-                n = piece;
-                judge_complete();
-            }
-            elapsed = ends;
+            const int64_t wanted = std::max<int64_t>(1, next * step + width - filled);
+            grow_to(filled + wanted);
+            const size_t at = static_cast<size_t>(filled - base);
+            const int64_t got =
+                raster.read(wanted, &buffer[0][at], &buffer[1][at], &buffer[2][at]);
+            filled += got;
+            grow_to(filled);
+            if (got == 0)
+                break;
+            judge_complete();
         }
 
         if (filled > 0)

@@ -18,14 +18,15 @@ excitation, preparation and readout modules.
 - Pulseq text and binary reading/writing, signatures and event deduplication.
 - Waveform expansion, k-space trajectories, sequence reports and structural
   repetition detection.
-- Timing, gradient amplitude, slew and boundary-continuity checks, and a
-  mechanical-resonance check against forbidden gradient bands.
+- Timing, gradient amplitude, slew and boundary-continuity checks, a
+  mechanical-resonance check against forbidden gradient bands, and a PNS
+  check under the SAFE or the rheobase-chronaxie model.
 - Logical-frame FOV scaling, rotation and translation.
 - Pulse, trajectory and sampling design, with reusable sequence modules.
 
 This is an alpha package, not a complete replacement for every PyPulseq
-feature. PNS and SAR assessment are not provided by the core checks; passing
-the checks does not establish scanner or patient safety.
+feature. SAR assessment is not provided by the core checks; passing the checks
+does not establish scanner or patient safety.
 
 Scanner execution, protocol orchestration and reconstruction integration
 belong to [Pulserver](https://github.com/pulserver/pulserver).
