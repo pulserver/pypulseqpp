@@ -1,10 +1,9 @@
-"""SLR filter designs, root-flipped pulses, and the phases of multiband ones.
+"""SLR filter designs, root-flipped pulses, and multiband phase schedules.
 
-Each filter is held to the slice it selects in a Bloch simulation. Root flipping trades the linear phase of an SLR profile for a lower peak B1
-and keeps the profile's magnitude; that is held against a Bloch simulation
-rather than against the transform that built the pulse. The compiled search
-is held to an exhaustive NumPy one over the same flip patterns, at sample
-counts where the two pad their spectra identically.
+Filters and root-flipped pulses are checked by their profiles in a Bloch
+simulation, not against the transform that built them. The compiled root-flip
+search is compared with an exhaustive NumPy search over the same flip
+patterns, at sample counts where the two pad their spectra identically.
 """
 
 from __future__ import annotations
@@ -80,8 +79,8 @@ def centroid(filter_type):
 
 
 def test_minimum_and_maximum_phase_pulses_load_opposite_ends():
-    """What makes either worth choosing over a linear-phase pulse, whose energy
-    sits in the middle: the echo forms near one end of the pulse."""
+    """A linear-phase pulse centres its energy; minimum and maximum phase move
+    it to opposite ends, which is where the echo forms."""
     assert centroid("ls") == pytest.approx(0.5, abs=1e-3)
     assert centroid("min") > 0.6
     assert centroid("max") < 0.4
@@ -98,11 +97,11 @@ CASES = [(128, 12, "ex", "min"), (256, 8, "se", "ls"), (256, 8, "inv", "min")]
 def test_root_flipping_keeps_the_magnitude_of_the_slice_profile(
     n, tbw, pulse_type, filter_type
 ):
-    """Flipping leaves |beta| exactly as it was on the SLR model's own grid.
-    A Bloch simulation turns about the RF and the off-resonance together each
-    step where that model turns about one and then the other, and two pulses
-    with different phase histories pick up that difference differently where
-    the profile is steepest -- in the transition band, by a few thousandths."""
+    """Flipping leaves |beta| unchanged on the SLR model's grid. The Bloch
+    simulation rotates about RF and off-resonance together each step, where
+    the SLR model rotates about one and then the other; pulses with different
+    phase histories differ by that in the transition band, by a few
+    thousandths, hence ``atol=5e-3``."""
     roots, _, target = search_inputs(n, tbw, pulse_type, filter_type)
     flipped = profile(root_flipped(n, tbw, pulse_type, filter_type), n, tbw)
     plain = profile(unflipped(roots, target, n), n, tbw)
@@ -194,8 +193,8 @@ def test_a_root_flipped_pulse_plays_at_the_amplitude_it_was_designed_at():
 
 
 def test_a_root_flipped_pulse_on_a_fine_raster_keeps_the_coarse_design_profile():
-    """Finding beta's roots costs the cube of its length, so a pulse with more
-    samples than `ROOT_FLIP_SAMPLES` is designed at that many and resampled."""
+    """A pulse longer than ``ROOT_FLIP_SAMPLES`` is designed at that many
+    samples and resampled."""
     coarse_n = _slr.ROOT_FLIP_SAMPLES
     fine_n = 4 * coarse_n
     duration = coarse_n * DWELL

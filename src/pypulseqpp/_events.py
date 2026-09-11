@@ -22,9 +22,9 @@ from pypulseq.utils.tracing import trace_enabled as _pp_trace_enabled
 
 from . import _ext as _cxx
 
-# Only the factories are exported: SLOTTED is built from this list and is
-# documented as "upstream's factories, wrapped". ``as_namespace`` and
-# ``interoperating`` are the machinery underneath and stay module-private.
+# Only the factories are listed, because ``pypulseqpp.SLOTTED`` is built from
+# this list. ``convert``, ``as_namespace`` and ``interoperating`` are imported
+# by name where needed.
 __all__ = [
     "make_adc",
     "make_adiabatic_pulse",
@@ -81,14 +81,10 @@ def _shape_dur(tt: Any) -> float:
     return float(times[-1] + (times[-1] - times[-2]) / 2)
 
 
-#: Fields upstream reads off an event that our slots do not carry under that
-#: name, per event type: how to compute each from the event we do have.
-#:
-#: These are the whole difference between the two representations. A trapezoid
-#: is flat-topped, so its endpoints are zero and we never stored them; an
-#: arbitrary gradient keeps a normalised shape beside an amplitude, so its
-#: area and duration are derived rather than held; and a trigger stores the
-#: numeric channel code the file format uses rather than the name.
+#: Per event type, fields upstream reads that the compiled event does not
+#: store, and how to derive each. Trapezoid endpoints are always zero; an
+#: arbitrary gradient's area and duration follow from its shape; a trigger
+#: stores the file format's numeric channel code rather than the name.
 _COMPLETIONS: dict[str, dict[str, Callable[[Any], Any]]] = {
     "trap": {
         "first": lambda _e: 0.0,
@@ -120,10 +116,8 @@ def _trigger_channel(event: Any) -> str:
     return _TRIGGER_NAMES.get(key, "")
 
 
-#: The readable fields of each event type, discovered once. ``dir()`` on an
-#: instance is a sorted list build plus a per-name filter, and this conversion
-#: runs once per event on every interop call -- millions of times over a large
-#: design.
+#: Readable fields of each event type, cached so that ``dir()`` runs once per
+#: type rather than on every conversion.
 _FIELD_NAMES: dict[type, tuple[str, ...]] = {}
 
 
@@ -261,7 +255,7 @@ def _make_arbitrary_grad(
     system=None,
     oversampling: bool = False,
 ) -> _SimpleNamespace:
-    """Build the namespace fallback for make_arbitrary_grad."""
+    """Upstream-equivalent namespace, for inputs the compiled builder does not take."""
     if system is None:
         system = _pp.Opts.default
     if max_grad is None or max_grad == 0:
@@ -348,8 +342,9 @@ def make_arbitrary_grad(
 ):
     """Create a gradient from amplitudes sampled at raster centres.
 
-    ``first`` and ``last`` specify boundary amplitudes and are extrapolated
-    from the endpoint samples when omitted.
+    Matches upstream's fields and errors. A 1-D array of at least two samples
+    is built and checked in one compiled call unless PyPulseq tracing is on;
+    other inputs take upstream's path and are converted.
 
     Parameters
     ----------
@@ -358,7 +353,8 @@ def make_arbitrary_grad(
     waveform : numpy.ndarray
         Amplitudes at raster centres, Hz/m.
     first, last : float, optional
-        Edge values; extrapolated from the end samples when omitted.
+        Amplitudes at the waveform's outer edges (Hz/m); linearly extrapolated
+        from the two end samples when omitted.
     delay : float
         Seconds before the waveform starts.
     max_grad, max_slew : float, optional
@@ -371,7 +367,6 @@ def make_arbitrary_grad(
     Returns
     -------
     GradEvent
-        The slotted gradient event.
 
     Raises
     ------
@@ -429,7 +424,8 @@ make_soft_delay = _converting(_pp.make_soft_delay)
 make_trapezoid = _converting(_pp.make_trapezoid)
 make_trigger = _converting(_pp.make_trigger)
 
-#: ``_scale_grad(grad, scale)``: a copy of the event with its amplitude
-#: multiplied, done in C++ so a phase-encode loop does not walk fields.
-#: Raises TypeError on anything that is not a slotted gradient.
+#: ``scaled_gradient(grad, scale[, max_grad, max_slew])``: a copy of a compiled
+#: trapezoid or arbitrary gradient with its amplitude multiplied and its shape
+#: registration kept. Given the limits, raises ValueError if the copy exceeds
+#: them. Raises TypeError on anything that is not a compiled gradient.
 scaled_gradient = _cxx._scale_grad

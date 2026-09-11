@@ -1,4 +1,4 @@
-"""What an RF pulse does to the magnetisation, across off-resonance."""
+"""Relaxation-free Bloch simulation of RF pulses."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import pypulseq as _pp
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
 from ._ext import sim as _kernels
 
-#: Simulation raster against the pulse's bandwidth: a wider pulse is
-#: integrated in finer steps, since the rotation per step is what the hard
-#: pulse approximation is asked to hold over.
+#: ``(bandwidth threshold in Hz, raster in s)``: ``sim_rf``'s default ``dt`` is
+#: the first raster whose threshold the bandwidth exceeds, so wider pulses get
+#: finer steps and a small rotation per step.
 _RASTERS = ((2e4, 1e-6), (1e4, 2e-6), (4e3, 5e-6), (0.0, 10e-6))
 
 
@@ -31,18 +31,18 @@ def _about_z(angle):
 def sim_bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
     """Simulate the Bloch equation without relaxation, in hard-pulse steps.
 
-    Each step turns the magnetisation, the right-hand way, about its effective
-    field -- the RF in the transverse plane, the off-resonance along z -- by
-    the angle that field precesses it through in ``dt``.
+    Each step rotates the magnetisation right-handedly about
+    ``(Re b1, Im b1, bz)`` by ``2 pi dt`` times that vector's length.
 
     Parameters
     ----------
     b1_hz : array_like
-        Complex transverse field per step, in Hz: ``(T,)`` for one field every
-        position sees, or ``(P, T)`` for a field of each position's own, as
-        parallel transmit channels summed through their B1 maps give.
+        Complex transverse field per step, in Hz: ``(T,)`` shared by every
+        position, or ``(P, T)`` per position (e.g. pTx channels summed
+        through their B1 maps).
     bz_hz : array_like
         Longitudinal field, in Hz: ``(P, T)``, or ``(P, 1)`` held throughout.
+        Its rows define the positions.
     dt : float
         Step, in s.
     initial : array_like, optional
@@ -63,20 +63,18 @@ def sim_bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
     >>> import numpy as np
     >>> import pypulseqpp as pp
 
-    A hard pulse of 250 Hz held for 1 ms is a 90 degree flip; on resonance it
-    takes ``+z`` onto ``-y``:
+    A 250 Hz hard pulse held for 1 ms is a 90 degree flip about ``+x``:
 
     >>> on_resonance = np.zeros((1, 1))
     >>> pp.sim_bloch(np.full(1000, 250.0 + 0j), on_resonance, 1e-6).round(3) + 0.0
     array([[ 0., -1.,  0.]])
 
-    Twice the amplitude inverts it:
+    Twice the amplitude inverts:
 
     >>> pp.sim_bloch(np.full(1000, 500.0 + 0j), on_resonance, 1e-6).round(3) + 0.0
     array([[ 0.,  0., -1.]])
 
-    ``bz_hz`` carries one row per position, so a whole slice profile comes
-    back at once:
+    One row of ``bz_hz`` per off-resonance:
 
     >>> offsets = np.array([[0.0], [500.0], [-500.0]])
     >>> pp.sim_bloch(np.full(1000, 250.0 + 0j), offsets, 1e-6).round(3) + 0.0
@@ -107,45 +105,45 @@ def sim_rf(
 ):
     """Simulate an RF pulse versus off-resonance without relaxation.
 
-    Uses a hard-pulse approximation. Spatial effects of selection gradients
-    are not integrated; frequency may be converted to position for a constant
+    Follows MATLAB Pulseq's ``simRf``: a hard-pulse approximation with no
+    selection gradient, so frequency maps to position only for a constant
     selection gradient.
 
     Parameters
     ----------
     rf : SimpleNamespace or RfEvent
-        The RF event.
+        Its ``freq_ppm`` and ``phase_ppm`` are converted with the default
+        system's gamma and B0, with a warning.
     rephase_factor : float, optional
-        Free precession after the pulse, as a fraction of its duration. Zero
-        for a refocusing pulse and ``-(shape_dur - center) / shape_dur``
-        otherwise, which is the rephasing a slice-selective excitation is
-        followed by -- without it the phase across the profile is the linear
-        ramp the pulse leaves rather than the one the sequence plays.
+        Free precession after the pulse, as a signed fraction of its
+        duration. Defaults to zero when ``rf.use == "refocusing"`` and to
+        ``-(shape_dur - center) / shape_dur``, the slice-select rephaser,
+        otherwise.
     prephase_factor : float, optional
         The same, before the pulse.
     df : float, optional
-        Spectral resolution, in Hz.
+        In Hz: the axis holds ``round(bandwidth / df)`` points, so their
+        spacing is about ``bandwidth_multiplier * df``.
     bandwidth_multiplier : float, optional
-        Width of the simulated axis, in pulse bandwidths.
+        Width of the frequency axis, in bandwidths. The bandwidth is
+        :func:`calc_rf_bandwidth` at half maximum plus ``|freq_offset|``;
+        the axis is centred on ``freq_offset``.
     dt : float, optional
-        Simulation raster, in seconds. Chosen from the bandwidth when
-        omitted.
+        Simulation raster, in s. Chosen from the bandwidth when omitted.
 
     Returns
     -------
     mz_z : numpy.ndarray
-        ``Mz`` after the pulse, starting from ``+z``: the inversion or
-        saturation profile.
+        ``Mz`` after the pulse, starting from ``+z``.
     mz_xy : numpy.ndarray
-        Complex ``Mxy`` after the pulse, starting from ``+z``: the excitation
-        profile.
+        ``Mx + i My`` after the pulse, starting from ``+z``.
     f : numpy.ndarray
         The frequency axis, in Hz.
     ref_eff : numpy.ndarray
-        Refocusing efficiency, complex: its magnitude is the refocused
-        fraction and its phase the axis of the flip.
+        Complex refocusing efficiency: its magnitude is the refocused fraction
+        and its phase twice the azimuth of the refocusing axis.
     mx_xy, my_xy : numpy.ndarray
-        Complex ``Mxy`` starting from ``+x`` and from ``+y``.
+        ``Mx + i My`` starting from ``+x`` and from ``+y``.
 
     Examples
     --------

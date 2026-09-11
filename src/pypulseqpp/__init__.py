@@ -140,12 +140,11 @@ del _name, _value
 
 
 def _fast_scale_grad(upstream):
-    """`scale_grad` that stays in the slotted form for the common case.
+    """Wrap `scale_grad` so compiled gradients skip namespace conversion.
 
-    The hot one: a phase-encode loop scales the same prewinder once per
-    shot, and the generic decorator would convert the event to a namespace
-    and back on every call. A slotted gradient is scaled in C++, its limits
-    checked there when a system is given; a namespace is upstream's.
+    A compiled trapezoid or arbitrary gradient is scaled in C++, with limits
+    checked there when ``system`` is given. Anything the C++ path rejects with
+    TypeError, including a namespace, goes to upstream's function.
     """
     scaled = _events.scaled_gradient
 
@@ -199,9 +198,9 @@ make_adiabatic_pulse = _make_adiabatic_pulse
 # Ours, over upstream's: the rasters both vendors can play.
 Opts = _Opts
 
-# Pulseq's, where upstream has not ported them. Each goes through the
-# interoperation decorator, because each is written against the namespaces
-# upstream's own helpers build.
+# Pulseq's, where upstream has not ported them. Those taking events go
+# through the interoperation decorator, because each is written against the
+# namespaces upstream's own helpers build; sim_bloch takes only arrays.
 make_hexagon_gradient_area = interoperating(_make_hexagon_gradient_area)
 rotate_3d = interoperating(_rotate_3d)
 sim_rf = interoperating(_sim_rf)
@@ -247,7 +246,7 @@ Sequence = _Sequence
 check_timing = _check_timing
 print_error_report = _print_error_report
 
-#: The events every one of these returns are compiled, not namespaces.
+#: Factories whose returned events are compiled, not namespaces.
 SLOTTED = frozenset(_events.__all__) | {
     "make_extended_trapezoid_area",
     "make_label",

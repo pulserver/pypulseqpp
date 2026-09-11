@@ -63,7 +63,7 @@ from .readout import (
     ZteReadout,
 )
 
-#: Modules whose point is an RF pulse: what tips the magnetisation, and where.
+#: Modules built around one RF pulse and its selection gradients, if any.
 EXCITATION = (
     "FrequencySelectiveExcitation",
     "Inversion",
@@ -90,8 +90,8 @@ PREPARATION = (
 )
 
 #: Modules spanning a whole repetition, from the RF that opens it to the end
-#: of the TR. One class per geometry, because the geometry is what changes
-#: the blocks; direction, echo count and density are arguments.
+#: of the TR. One class per geometry, which fixes the block layout;
+#: direction, echo count and density are arguments.
 READOUT = (
     "BssfpReadout2D",
     "BssfpReadout3D",
@@ -119,20 +119,19 @@ READOUT = (
 #: Base classes, for a family this package does not ship.
 BASES = ("NonCartesianReadout", "OffResonanceSaturation", "RfModule")
 
-#: Complete sequences, one per module, written in the repo's `examples/sequence/`
-#: and mapped in beside this package. Each is reached here by name, imported on
-#: first use, and callable as the sequence it builds.
+#: Complete sequences, one per module of the repo's `examples/sequence/`, which
+#: is installed as the subpackage `sequences.sequence`. Each is reached here by
+#: name, imported on first use, and callable as its ``main``.
 ZOO = tuple(sorted(_importlib.import_module(f"{__name__}.sequence").__all__))
 
 __all__ = sorted({*EXCITATION, *PREPARATION, *READOUT, *BASES, *ZOO, "SequenceModule"})
 
 
 class SequenceScript(_ModuleType):
-    """A zoo module, callable as the sequence it builds.
+    """A zoo module whose call is its ``main``.
 
-    A script *is* its ``main``, so the module carries ``main``'s docstring and
-    signature rather than the file's: :func:`help` and
-    :func:`inspect.signature` on it answer for the call about to be made.
+    The module's ``__doc__`` and ``__signature__`` are ``main``'s, not the
+    file's, so :func:`help` and :func:`inspect.signature` describe the call.
     """
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -140,7 +139,10 @@ class SequenceScript(_ModuleType):
 
 
 def _as_script(module: _ModuleType) -> _ModuleType:
-    """Present ``module`` as the ``main`` it wraps."""
+    """Retype ``module`` in place as a :class:`SequenceScript`.
+
+    Modules without ``main`` are returned unchanged.
+    """
     main = getattr(module, "main", None)
     if main is not None and type(module) is not SequenceScript:
         module.__class__ = SequenceScript

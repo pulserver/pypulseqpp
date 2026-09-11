@@ -1,9 +1,8 @@
-"""pTx pulse design as a script reaches it: shims, tailored 2D pulses and spokes.
+"""pTx pulse design: RF shims, tailored 2D pulses and spokes.
 
-Profiles are checked in a Bloch simulation in which each position sees its own
-field -- the transmit channels summed through their B1 maps -- and its own
-gradient field, so what is held is what the pulses do rather than the model
-they were designed with.
+Profiles are checked in a Bloch simulation, independent of the small-tip
+design model, in which each position sees the transmit channels summed through
+its B1 maps and its own gradient field.
 """
 
 from __future__ import annotations
@@ -145,8 +144,8 @@ def test_one_uniform_channel_excites_the_disc_and_not_beyond():
 
 
 def test_a_tailored_pulse_flattens_the_b1_it_was_designed_for():
-    """Inside the disc, where the target asks for the flip; the plain design
-    carries the map's 60 % hump into the profile."""
+    """Checked inside the disc, where the target asks for the flip. The design
+    without maps carries the map's 60 % hump into the profile."""
     maps = bright_centre(16)
     picks = [(8, 8), (8, 5), (5, 8), (6, 6), (9, 9)]
     positions = in_plane(picks)

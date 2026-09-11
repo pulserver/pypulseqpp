@@ -1,10 +1,8 @@
-"""The compiled small-tip pTx kernels, against the model they state and a Bloch simulation.
+"""Compiled small-tip pTx kernels.
 
-The model is written out in NumPy here, and the kernels are held to it; the
-model itself is held to ``pp.sim_bloch`` at small tip, which has never seen it. The
-solvers are held to what they claim: a reachable target is reached, magnitude
-least squares fits magnitude better than plain least squares, a shim evens the
-field out, and more spokes correct more of a B1 profile.
+The forward model is checked against a NumPy transcription of its sum and
+against ``pp.sim_bloch`` at small tip; the solvers against the property each
+claims.
 """
 
 from __future__ import annotations

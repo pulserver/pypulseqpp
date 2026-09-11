@@ -1,9 +1,8 @@
 """Dynamic pTx pulses in the channel layout of Roos et al., Magn Reson Med 2025.
 
-Every channel sits in one RF event over a shared time base, so what is held
-here is that the layout survives everything a sequence does with a pulse --
-the timing check, writing in either form, reading back here and upstream --
-and that the report reads it as several pulses played together.
+Every channel sits in one RF event, each over the same time base. The layout
+must survive the timing check, text and binary writing, and reading back here
+and upstream; the report must read it as channels played together.
 """
 
 from __future__ import annotations
@@ -33,7 +32,7 @@ def sequence_playing(rf):
 
 
 def test_the_channels_come_back_as_they_went_in():
-    """To a rounding: the compiled event holds magnitude and phase."""
+    """Within rounding: the compiled event stores magnitude and phase."""
     signal = waveforms(4)
     split = pp.split_ptx_pulse(pp.make_ptx_pulse(signal))
     assert np.allclose(split, signal, rtol=1e-12, atol=0.0)
@@ -105,7 +104,8 @@ def test_the_report_sums_channels_played_in_phase():
     """The flip where every channel has unit, in-phase sensitivity."""
     amplitude = 250.0
     in_phase = amplitude * np.ones((2, SAMPLES), dtype=complex)
-    # Each channel integrated on its own time base, forward differences.
+    # Each channel is integrated by forward differences over its own copy of
+    # the time base: SAMPLES - 1 intervals.
     one_channel = amplitude * (SAMPLES - 1) * SYSTEM.rf_raster_time * 360.0
     assert flips_reported(pp.make_ptx_pulse(in_phase, system=SYSTEM)) == pytest.approx(
         [2 * one_channel]

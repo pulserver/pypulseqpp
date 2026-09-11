@@ -20,10 +20,16 @@ _READOUT_GRAD_MARGIN = 0.8
 class _BssfpReadout(SequenceModule):
     """Balanced SSFP repetition with TE fixed at TR/2.
 
-    Selection rephasers are designed here to balance area between RF centres;
-    supply an excitation with rephase=False. The acquisition loop must handle
-    the initial half flip, the first rewind and final ramp-down. Preparation,
-    train and end labels set ONCE to 1, 0 and 2, respectively.
+    Every axis is balanced between consecutive RF centres. The slice
+    rephasers are part of that balance and are built here, so pass an
+    excitation built with ``rephase=False``.
+
+    The module's blocks are excitation, acquisition, rewind. A loop plays each
+    shot as the previous shot's rewind, excitation, acquisition, and writes
+    the transients itself: the half-flip pulse (``rf`` at half amplitude,
+    opposite in phase to the first excitation) then ``wait_prep``;
+    ``wait_rewind`` with ``gz_rew`` in place of the first rewind; and a last
+    rewind block to ramp down.
 
     Attributes
     ----------
@@ -32,31 +38,33 @@ class _BssfpReadout(SequenceModule):
         the loop sets.
     gz : GradEvent
         Its selection gradient, if one was given.
-    gx_rew, gx : GradEvent
-        The read lobe that closes a repetition and the one that opens the next.
-        ``gx`` is prephaser and plateau in a single waveform.
+    gx, gx_rew : GradEvent
+        ``gx`` climbs from zero, prephases and holds the readout plateau to
+        the end of the acquisition block; ``gx_rew`` leaves the plateau and
+        rewinds the read axis.
     gy_pre, gy_rew : TrapEvent
         In-plane encode at its largest step, and the same negated, to be scaled
         per shot.
     gz_pre, gz_rew : TrapEvent
-        The slice rephasers, one each side of the pulse. Absent for a hard
-        pulse.
+        The slice rephasers: ``gz_pre`` in the acquisition block after the
+        pulse, ``gz_rew`` in the rewind block before the next one. Absent for
+        a hard pulse.
     gz_partition, gz_partition_rew : TrapEvent
-        Partition encode at its largest step, and the same negated, each
-        sharing a rephaser's window. 3D only; add one to a rephaser rather than
-        playing it alone.
+        Partition encode at its largest step, and the same negated, sharing
+        the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.
     adc : AdcEvent
         The acquisition window, spanning the readout plateau.
     adc_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``; a bare event when there is one.
     prep_labels, train_labels, end_labels : list of LabelSetEvent
-        ``ONCE`` set to 1, 0 and 2, marking the entry transient, the steady
-        state and the ramp-down.
+        ``ONCE`` set to 1, 0 and 2, for the half-flip block, the block after
+        it and the final rewind.
     wait_prep : DelayEvent
-        What separates the half-flip pulse from the first excitation, so that
-        interval is half a repetition. Absent under ``half_flip_prep=False``.
+        Played after the half-flip block; with the ``wait_rewind`` block it
+        puts the half-flip pulse half a repetition before the first
+        excitation. Absent under ``half_flip_prep=False``.
     wait_rewind : DelayEvent
-        Stands in for the rewind block of the first repetition.
+        The rewind block's duration, for the first repetition.
     tr, te : float
         Repetition and echo time (s); ``te`` is always half of ``tr``.
     bandwidth_hz : float
@@ -75,9 +83,8 @@ class _BssfpReadout(SequenceModule):
     rf : RfEvent
         The excitation.
     gz : GradEvent, optional
-        Its selection gradient, played in the excitation block. Nothing for a
-        hard pulse. Pass an excitation built with ``rephase=False``: the
-        rephasers belong to the balance condition and are built here.
+        Its selection gradient without a rephaser, played in the excitation
+        block. ``None`` for a hard pulse.
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
@@ -86,9 +93,9 @@ class _BssfpReadout(SequenceModule):
         Repetition time (s). ``None`` is as short as possible; a longer one is
         padded evenly either side of the echo, so TE stays at TR/2.
     half_flip_prep : bool, optional
-        Publish ``wait_prep``, which needs half the acquisition window to be at
-        least the excitation block's tail. Turn it off to ramp the train in
-        with dummy repetitions instead.
+        Publish ``wait_prep``. This requires the acquisition block after the
+        echo to be at least as long as the excitation block after the pulse
+        centre. Turn it off to ramp the train in with dummy repetitions.
     oversampling : float, optional
         Read oversampling.
     readout_bandwidth_hz : float, optional
@@ -102,9 +109,8 @@ class _BssfpReadout(SequenceModule):
     Raises
     ------
     ValueError
-        If a count is out of range, the acquisition window is shorter than
-        twice the excitation block's tail, or the requested TR is shorter than
-        the module can achieve.
+        If a size or rate is out of range, the ``half_flip_prep`` condition
+        fails, or the requested TR is shorter than the module can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped bSSFP readouts.
@@ -319,11 +325,11 @@ def _lobe(system: pp.Opts, area: float, duration: float, ramp: float):
 
 
 def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
-    """Shortest window that holds a z trapezoid of ``area`` on fixed ramps.
+    """Shortest window that holds a z trapezoid of ``area`` on ramps of ``ramp``.
 
-    Sized against the largest lobe a shot can ask for -- a rephaser with the
-    outermost partition encode added to it -- because those two are summed into
-    one trapezoid and it is their sum that has to stay inside ``max_grad``.
+    The caller passes a rephaser plus the outermost partition step: the loop
+    adds the two into one trapezoid, and their sum must stay within
+    ``max_grad``.
     """
     return pp.ceil_to_raster(max(2.0 * ramp, ramp + area / system.max_grad), raster)
 
@@ -331,8 +337,9 @@ def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
 class BssfpReadout2D(_BssfpReadout):
     """Slice-selective balanced SSFP, phase-encoded along y.
 
-    fov and matrix accept two values, readout first. Shared parameters and
-    transient requirements are documented on _BssfpReadout.
+    ``fov`` and ``matrix`` take two values, readout first. See
+    :class:`~pypulseqpp.sequences.readout.bssfp._BssfpReadout` for the
+    parameters and the loop the transients need.
     """
 
     _ndim = 2
@@ -341,8 +348,11 @@ class BssfpReadout2D(_BssfpReadout):
 class BssfpReadout3D(_BssfpReadout):
     """Slab-selective balanced SSFP, encoded along y and z.
 
-    fov and matrix accept three values, readout first. Add each scaled
-    partition encode to its corresponding slice rephaser; they share timing.
+    ``fov`` and ``matrix`` take three values, readout first. Add each scaled
+    partition encode to the slice rephaser whose window it shares
+    (``gz_partition`` to ``gz_pre``, ``gz_partition_rew`` to ``gz_rew``), for
+    example with :func:`pypulseqpp.add_gradients`, rather than playing it
+    alone.
     """
 
     _ndim = 3

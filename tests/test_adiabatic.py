@@ -1,9 +1,9 @@
-"""Adiabatic pulses, held to what adiabatic means: an effect that does not follow B1.
+"""Adiabatic pulses.
 
-The hyperbolic-secant and WURST sweeps are upstream's and are held to it
-sample for sample. BIR-4 and GOIA-WURST are held in a Bloch simulation: a
-BIR-4 pulse tips by its flip angle, and a GOIA-WURST pulse inverts its slice
-and nothing else, across a range of transmit fields.
+Hyperbolic-secant and WURST sweeps are compared sample by sample with
+PyPulseq's. BIR-4 and GOIA-WURST are checked in a Bloch simulation across a
+range of transmit fields: BIR-4 tips by its flip angle, GOIA-WURST inverts its
+slice and nothing else.
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ def played(rf, scale=1.0, offsets_hz=(0.0,)):
 
 @pytest.mark.parametrize("pulse_type", ["hypsec", "wurst"])
 def test_upstreams_sweeps_are_upstreams(pulse_type):
-    """Built by upstream's factory and handed back as a compiled event, which
-    holds the samples to a rounding of what upstream's namespace carries."""
+    """Upstream's factory builds them; the compiled event holds the samples to
+    within rounding, hence ``rtol=1e-12`` against upstream."""
     ours = pp.make_adiabatic_pulse(pulse_type, duration=8e-3, system=SYSTEM)
     compiled = _events.make_adiabatic_pulse(pulse_type, duration=8e-3, system=SYSTEM)
     theirs = pypulseq.make_adiabatic_pulse(pulse_type, duration=8e-3, system=SYSTEM)

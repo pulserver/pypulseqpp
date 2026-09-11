@@ -1,12 +1,10 @@
-"""Adiabatic pulses: upstream's two sweeps, with BIR-4 and GOIA-WURST beside them.
+"""Adiabatic pulses: PyPulseq's hyperbolic-secant and WURST, plus BIR-4 and GOIA-WURST.
 
-Hyperbolic-secant and WURST sweeps are PyPulseq's own and are built by it, so
-a script asking for one writes the file it always did. BIR-4 and GOIA-WURST
-follow SigPy's ``sigpy.mri.rf.adiabatic`` (Copyright (c) 2016, Frank Ong and
-The Regents of the University of California; BSD 3-Clause, see
-``LICENSES/SigPy-BSD-3-Clause.txt``), and take their amplitude the way
-upstream's sweeps do: from the adiabaticity asked for where the frequency
-sweep crosses zero.
+Hyperbolic-secant and WURST are built by PyPulseq's own factory, so their
+samples match upstream's. BIR-4 and GOIA-WURST follow SigPy's
+``sigpy.mri.rf.adiabatic`` (Copyright (c) 2016, Frank Ong and The Regents of
+the University of California; BSD 3-Clause, see
+``LICENSES/SigPy-BSD-3-Clause.txt``).
 """
 
 from __future__ import annotations
@@ -51,7 +49,7 @@ def make_adiabatic_pulse(
     gradient_modulation: float = 0.9,
     gradient_order: int = 4,
 ):
-    """Make an adiabatic pulse, swept so that what it does is not what B1 is.
+    """Make an adiabatic pulse: a frequency sweep whose effect does not follow B1.
 
     Four sweeps:
 
@@ -65,9 +63,11 @@ def make_adiabatic_pulse(
       modulated with the sweep, so every position in the slice sees the same
       adiabaticity (Andronesi et al. 2010). Returned with that gradient.
 
-    The first two are PyPulseq's own factory. For every sweep the amplitude
-    is the one that meets ``adiabaticity`` where the frequency sweep crosses
-    zero: ``(gamma B1)^2 = adiabaticity * |d omega / dt|`` there.
+    The first two are built by PyPulseq's factory. For every sweep the
+    amplitude meets ``adiabaticity`` where the frequency sweep crosses zero:
+    ``(gamma B1)^2 = adiabaticity * |d omega / dt|`` there, in rad/s. BIR-4
+    and GOIA-WURST are referenced to zero phase at that crossing, and use a
+    multiple of four samples, zero-padded to ``duration``.
 
     Parameters
     ----------
@@ -83,7 +83,8 @@ def make_adiabatic_pulse(
         dimensionless for ``"bir4"``, where it sets how steep the tanh
         quarters are (10 by default).
     delay : float, optional
-        Delay before the pulse, in s.
+        Delay before the pulse, in s. A ``"goia_wurst"`` pulse starts no
+        earlier than its gradient's ramp ends, so its delay can be longer.
     duration : float, optional
         Pulse duration, in s.
     dwell : float, optional
@@ -113,17 +114,17 @@ def make_adiabatic_pulse(
     kappa : float, optional
         ``"bir4"`` frequency-sweep shape: ``tan(kappa * s) / tan(kappa)``
         over each quarter.
-    gradient_modulation : float, optional
-        ``"goia_wurst"``: how far the gradient dips mid-pulse, in ``[0, 1)``.
-        It falls to ``1 - gradient_modulation`` of its peak.
-    gradient_order : int, optional
-        ``"goia_wurst"``: order of the gradient's modulation.
+    gradient_modulation, gradient_order : float, int, optional
+        ``"goia_wurst"``: the gradient follows ``(1 - gradient_modulation) +
+        gradient_modulation * |cos(pi t / T)|^gradient_order`` of its peak,
+        ``bandwidth / slice_thickness``; ``gradient_modulation`` lies in
+        ``[0, 1)``.
 
     Returns
     -------
-    rf : SimpleNamespace
+    rf : RfEvent
         The pulse.
-    gz, gzr : SimpleNamespace, optional
+    gz, gzr : GradEvent or TrapEvent, optional
         The slice-selection gradient and its rephaser, when ``return_gz``: a
         trapezoid for the first two sweeps, the modulated gradient for
         ``"goia_wurst"``.
@@ -132,8 +133,8 @@ def make_adiabatic_pulse(
     ------
     ValueError
         If ``pulse_type`` is unknown, a BIR-4 pulse is asked for a gradient,
-        a GOIA-WURST pulse is not, or the duration holds fewer than eight RF
-        samples.
+        a GOIA-WURST pulse is not or has no positive ``slice_thickness``, or a
+        BIR-4 or GOIA-WURST duration holds fewer than eight RF samples.
 
     Examples
     --------

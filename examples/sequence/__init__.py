@@ -17,5 +17,4 @@ def __getattr__(name: str):
 
 
 def __dir__() -> list[str]:
-    """Return the sequences this package ships."""
     return sorted(__all__)

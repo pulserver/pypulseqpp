@@ -1,4 +1,4 @@
-"""B1-selective, Bloch-Siegert and recursive SLR pulses, held to what they do in a Bloch simulation."""
+"""B1-selective, Bloch-Siegert and recursive SLR pulses, checked in a Bloch simulation."""
 
 from __future__ import annotations
 
@@ -129,7 +129,8 @@ def train_profile(pulses, offsets_hz):
 
 
 def test_every_pulse_of_a_recursive_train_excites_the_same_magnetisation():
-    """Hyperpolarised spins: each segment reads what the last left, evenly."""
+    """Non-recovering magnetisation, spoiled between pulses: each of ``n``
+    pulses leaves ``1 / sqrt(n)`` of it transverse."""
     pulses = pp.make_recursive_slr_pulses(3, duration=4e-3, system=SYSTEM)
     left = train_profile(pulses, [0.0])[:, 0]
     assert np.allclose(left, 1 / np.sqrt(3), rtol=0.05)
@@ -137,6 +138,7 @@ def test_every_pulse_of_a_recursive_train_excites_the_same_magnetisation():
 
 def test_a_recursive_train_excites_nothing_outside_its_slice():
     pulses = pp.make_recursive_slr_pulses(3, duration=4e-3, system=SYSTEM)
+    # Default time-bandwidth product 4, over the SLR core of duration / 1.75.
     bandwidth = 4.0 / (4e-3 / 1.75)
     assert np.all(train_profile(pulses, [3 * bandwidth, -3 * bandwidth]) < 0.05)
 

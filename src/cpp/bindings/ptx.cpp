@@ -173,6 +173,8 @@ namespace
     };
 
     /// Conjugate gradients on the normal equations, warm-started from ``b``.
+    /// Stops after ``iterations``, once ``|residual| <= tolerance |rhs|``, or
+    /// at non-positive curvature.
     void conjugate_gradient(
         const Normal& normal, const Vector& rhs, Vector& b, int iterations, double tolerance)
     {
@@ -384,6 +386,8 @@ namespace
     };
 
     /// Magnitude least squares by variable exchange, from the phases in ``seed``.
+    /// Stops after ``rounds`` exchanges or when the cost moves by at most
+    /// ``tolerance`` of itself.
     MagnitudeFit magnitude_fit(
         const Columns& a,
         const std::vector<double>& weight,
@@ -602,9 +606,10 @@ void pypulseqpp_bind_ptx(py::module_& module)
         R"doc(Return per-channel waveforms (channels, samples) matching a target under the model.
 
 Minimises sum_s weight[s] |A b - target|^2 + regularization |b|^2 by conjugate
-gradients, ``iterations`` at a time; with ``phase_updates`` > 0 the target's
-phase is then exchanged for the achieved one that many times, each round
-warm-started from the last -- magnitude least squares.
+gradients, ``iterations`` at a time, from ``initial`` (zeros when empty). With
+``phase_updates`` > 0 the target's phase is then exchanged for the achieved
+one that many times, each round warm-started from the last: magnitude least
+squares.
 )doc");
 
     module.def(
@@ -778,9 +783,10 @@ less than ``tolerance`` of itself.
         R"doc(Choose spoke positions greedily and their per-channel weights by magnitude least squares.
 
 Starts from a spoke at the k-space centre; each round adds the candidate whose
-own least-squares fit to the residual is largest, alternately after and before
-the spokes already chosen. Returns (kspace (count, 2), weights (channels,
-count)): each weight is the rotation, in rad, the spoke's sub-pulse carries on
-that channel.
+own least-squares fit to the residual is largest, alternately before and after
+the spokes already chosen. The model is sum_j sum_c weights[c,j] sens[c,s]
+exp(-2 pi i positions[s] . kspace[j]), without the -i of the small-tip model.
+Returns (kspace (count, 2), in play order and the unit of candidates; weights
+(channels, count), in the unit of magnitude: rad when it is a flip angle).
 )doc");
 }

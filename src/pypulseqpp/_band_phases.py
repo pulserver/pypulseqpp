@@ -1,8 +1,7 @@
-"""Per-band phases that keep a multiband pulse's peak amplitude down.
+"""Per-band phase schedules that lower a multiband pulse's peak amplitude.
 
-Bands summed in phase all add up at the pulse's centre, so its peak grows
-with the band count and its power with the square of it. Giving each band a
-phase of its own spreads those peaks apart. Three schedules are here:
+Bands in phase peak together at the pulse's centre, so peak amplitude grows
+with the band count. The schedules:
 
 - ``"quadratic"``: ``3.4 / N`` times the squared distance from the centre
   band, Grissom's closed form.

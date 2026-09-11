@@ -45,8 +45,11 @@ The development extra includes the documentation dependencies. Source pages
 are Markdown; Sphinx renders the API from NumPy-style Python docstrings.
 
 ```bash
-sphinx-build -W --keep-going -b html docs docs/build/html
+bash scripts/build_docs.sh
 ```
+
+It compiles the checkout into `docs/build/site` and runs Sphinx against that
+build, with warnings as errors; extra arguments are passed to `sphinx-build`.
 
 Open `docs/build/html/index.html`. Preserve the NumPy convention and document
 units, coordinate frames, mutation and non-obvious return conventions.

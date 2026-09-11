@@ -1,11 +1,10 @@
-"""K-space paths stated as geometry, for :func:`pypulseqpp.traj_to_grad`.
+"""K-space interleave geometry for :func:`pypulseqpp.traj_to_grad`.
 
-Each returns one base interleave as ``(n, 2)`` coordinates in cycles/m: where
-the path goes, not when. The samples are a polyline dense enough to describe
-the curve, and :func:`pypulseqpp.traj_to_grad` re-parameterises it against the
-gradient and slew limits to find the time. How many rotated copies a scan
-plays, and at which angles, is :func:`pypulseqpp.calc_golden_angles` and
-:func:`pypulseqpp.make_rotation`'s business rather than the path's.
+Each function returns one base interleave as an ``(n, 2)`` polyline in
+cycles/m, describing where the path goes but not when;
+:func:`pypulseqpp.traj_to_grad` assigns the timing under gradient and slew
+limits. The number and angles of rotated copies come from
+:func:`pypulseqpp.calc_golden_angles` and :func:`pypulseqpp.make_rotation`.
 """
 
 from __future__ import annotations
@@ -103,10 +102,9 @@ def calc_spiral_trajectory(
 ):
     """Return one spiral-out interleave, from the centre to ``kmax``.
 
-    The pitch between neighbouring turns is what sets the field of view a
-    set of interleaves supports: ``design_interleaves`` rotated copies of this
-    path sample the disc at the Nyquist rate for ``fov``. It does not say how
-    many copies the caller acquires.
+    The pitch between neighbouring turns is set so that
+    ``design_interleaves`` rotated copies of this path sample the disc at the
+    Nyquist rate for ``fov``. The caller may acquire a different number.
 
     Parameters
     ----------

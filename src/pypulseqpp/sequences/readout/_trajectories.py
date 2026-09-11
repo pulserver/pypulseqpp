@@ -26,10 +26,10 @@ _SPIRAL_DIRECTIONS = ("outward", "inward", "in_out")
 def traj2grad(
     trajectory, system, *, oversampling=8, start_at_zero=True, end_at_zero=True
 ):
-    """Gradient tracing ``trajectory``, shaped ``(n_grad, 3)``.
+    """Gradient tracing ``trajectory`` under the vector gradient and slew limits.
 
-    Reparameterises the path against the vector gradient and slew limits, so
-    the samples handed in describe geometry rather than time.
+    The path's samples describe geometry only; :func:`pypulseqpp.traj_to_grad`
+    assigns the timing.
 
     Parameters
     ----------
@@ -40,13 +40,14 @@ def traj2grad(
     oversampling : int, optional
         Path-resampling factor the solver works at.
     start_at_zero, end_at_zero : bool, optional
-        Ramp up from and back down to zero amplitude. Disable an endpoint when
-        a bridge will run straight into the readout instead.
+        Ramp up from and back down to zero amplitude. Disable an endpoint
+        where a moment bridge meets the readout at non-zero amplitude.
 
     Returns
     -------
     numpy.ndarray
-        Gradient of shape ``(n_grad, 3)`` in Hz/m, on the gradient raster.
+        ``(n_grad, 3)`` on the gradient raster, in Hz/m; zero in the third
+        column for a 2D path.
     """
     trajectory = np.atleast_2d(np.asarray(trajectory, dtype=float))
     gradient, _ = pp.traj_to_grad(
@@ -117,7 +118,7 @@ def _make_adc(system, n_samples, read_duration):
 
 
 def _sample_gradient_trajectory(gradient, raster, adc):
-    """Integrate a rasterized gradient at the ADC sample-center times."""
+    """Return k (1/m) at the ADC sample centres, with k = 0 at the gradient start."""
     gradient = np.asarray(gradient, dtype=float)
     k_edges = np.vstack(
         (np.zeros((1, gradient.shape[1])), np.cumsum(gradient, axis=0) * raster)
@@ -135,10 +136,13 @@ def _sample_gradient_trajectory(gradient, raster, adc):
 
 
 def _moment_bridges(system, area, grad_start, grad_end, axes):
-    """Solve simultaneous bridges under rotation-invariant vector limits.
+    """Build trapezoids of ``area`` (1/m) from ``grad_start`` to ``grad_end`` (Hz/m).
 
-    Derate interior amplitude and slew by sqrt(number of active axes).
-    Endpoints are fixed by the already vector-limited readout.
+    One event per axis with a non-zero area or endpoint; other axes are
+    omitted. With several such axes, each axis's ``max_grad`` and ``max_slew``
+    are divided by ``sqrt(n_active)`` so the vector stays within the limits,
+    except that ``max_grad`` is never lowered below the endpoint amplitudes,
+    which the vector-limited readout already fixes.
     """
     active = [
         index
@@ -175,7 +179,28 @@ def _moment_bridges(system, area, grad_start, grad_end, axes):
 
 
 class NonCartesianGradient:
-    """One canonical non-Cartesian base interleave, independent of its acquisition schedule."""
+    """One canonical non-Cartesian base interleave, independent of its acquisition schedule.
+
+    Prewinders bridge from zero gradient and k = 0 to the readout's start,
+    and rewinders from its end back to zero; they play in blocks of their
+    own, so ``duration`` is the longest prewinder plus ``read_duration`` plus
+    the longest rewinder (s).
+
+    Attributes
+    ----------
+    trajectory : numpy.ndarray
+        ``(n, 2)`` or ``(n, 3)`` path in 1/m: the design polyline, or for
+        :class:`Rosette` the k-space at the ADC samples.
+    bandwidth_hz_px : float
+        ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.
+    design_interleaves : int or None
+        Interleave count the spiral pitch was designed for.
+    recommended_rotations : int or None
+        Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``;
+        set by :class:`Radial` only.
+    kind : str
+        ``"arbitrary"``, ``"full"`` (radial), ``"spiral"`` or ``"rosette"``.
+    """
 
     def __init__(
         self,
@@ -242,10 +267,13 @@ class NonCartesianGradient:
         return tuple(gradient.channel for gradient in self.gradients)
 
     def rotated(self, angle: float) -> NonCartesianGradient:
-        """Return an explicitly rotated planar interleave with unchanged timing.
+        """Return this interleave rotated in its own plane, with unchanged timing.
 
-        Rotate waveform samples and bridges on their shared vertex grid.
-        The returned bundle shares the ADC with the source.
+        The readout waveforms and trajectory turn from the first channel
+        towards the second. Prewinders stay right-aligned and rewinders
+        left-aligned, each set resampled on the union of its vertex times.
+        The ADC object is shared with the source; of the subclass attributes,
+        only ``direction`` and ``density`` are copied.
 
         Parameters
         ----------
@@ -255,12 +283,13 @@ class NonCartesianGradient:
         Returns
         -------
         NonCartesianGradient
-            A new bundle sharing this one's ADC.
+            Same class as ``self``.
 
         Raises
         ------
         ValueError
-            If the interleave is not planar in two channels.
+            If the interleave does not drive exactly two channels, or a rotated
+            bridge's vector amplitude exceeds ``system.max_grad``.
         """
         axes = self.axes
         if len(axes) != 2:
@@ -310,11 +339,12 @@ def _bridge_area(event, axes) -> np.ndarray:
 
 
 def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
-    """Rotate a bridge pair on the union of its vertex times.
+    """Rotate one bridge per channel as a single vector waveform.
 
-    Right-anchor prewinders and left-anchor rewinders. Shorter bridges hold
-    their boundary values outside their extent. Check vector amplitude
-    against the per-axis ceiling to keep all in-plane rotations feasible.
+    Prewinders (``anchor="right"``) end together and rewinders
+    (``anchor="left"``) start together; each bridge holds its end values
+    outside its own extent. Raises ValueError if the rotated vector amplitude
+    exceeds ``system.max_grad``, so every further rotation stays feasible.
     """
     if not events:
         return ()
@@ -358,7 +388,17 @@ def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
 
 
 class Arbitrary(NonCartesianGradient):
-    """Build a canonical 2D or 3D base interleave from a user-provided NumPy path."""
+    """Base interleave from a caller-supplied 2D or 3D k-space path.
+
+    ``trajectory`` is ``(n, 2)`` or ``(n, 3)`` in 1/m, played on ``axes``
+    (default: the first two or three of x, y, z). A path not starting at
+    k = 0 gets prewinders, and one not ending there gets rewinders. The ADC
+    takes ``round(matrix * oversamp)`` samples, rounded down to
+    ``system.adc_samples_divisor``; the readout is stretched to last at least
+    that count over ``bandwidth_hz_px`` (Hz), and the dwell is the longest on
+    the ADC raster that fits the samples in it. ``derate`` applies
+    :func:`pypulseqpp.apply_system_derates` first.
+    """
 
     def __init__(
         self,
@@ -432,7 +472,13 @@ class Arbitrary(NonCartesianGradient):
 
 
 class Radial(NonCartesianGradient):
-    """Full-spoke radial readout with bridged prewinder and rewinder."""
+    """Full radial spoke on ``ro_axis`` with a prewinder and a rewinder.
+
+    The readout is a constant-amplitude plateau from ``-kmax`` to ``+kmax``
+    lasting ``round(matrix * oversamp) / bandwidth_hz_px``, or longer where
+    ``system.max_grad`` requires, ceiled to the gradient raster. The bridges
+    carry area ``-kmax`` from and back to zero gradient.
+    """
 
     def __init__(
         self,
@@ -491,21 +537,20 @@ class Radial(NonCartesianGradient):
 
 
 class Spiral(NonCartesianGradient):
-    """Build one constant-, variable-, or dual-density spiral interleave.
+    """Constant-, variable- or dual-density spiral base interleave.
 
-    ``design_interleaves`` is the nominal number of rotated interleaves used
-    to set the spiral pitch.  Increasing it makes this base interleave more
-    open, with fewer turns between the center and ``kmax``; decreasing it
-    makes the base interleave wind more tightly.  It is a gradient-design
-    parameter, not the number of rotations that the caller must execute.
+    ``design_interleaves`` and the density parameters set the pitch as in
+    :func:`pypulseqpp.calc_spiral_trajectory`; the caller may acquire any
+    number of rotated copies. ``direction`` is ``"outward"`` (centre to edge,
+    with rewinders), ``"inward"`` (edge to centre, with prewinders) or
+    ``"in_out"`` (edge through centre to edge, with both). Each half of an
+    ``"in_out"`` arm is designed for twice the interleave counts, so one arm
+    samples like two outward ones.
 
-    ``density`` controls how that nominal count varies with radius.
-    ``constant`` keeps one pitch, ``variable`` changes it smoothly according
-    to ``variable_density_power``, and ``dual`` joins the inner and outer
-    pitches around ``transition_radius``.  ``direction`` chooses whether the
-    base gradient runs center-to-edge, edge-to-center, or edge-to-center-to-
-    edge.  The caller remains responsible for applying complete-interleave
-    rotations and may acquire a number different from ``design_interleaves``.
+    The dwell is ``1 / bandwidth_hz_px`` (Hz) floored to the ADC raster.
+    Where the time-optimal arm would put adjacent samples more than
+    ``1 / (oversamp * fov)`` apart at that dwell, the arm is slowed rather
+    than the bandwidth raised. The ADC fills the arm with whole samples.
     """
 
     def __init__(
@@ -575,11 +620,9 @@ class Spiral(NonCartesianGradient):
             start_at_zero=True,
             end_at_zero=False,
         )[:, :2]
-        # Sampling more slowly than the time-optimal arm allows is legal only
-        # if the arm is slowed to match. Adjacent samples may be no further
-        # apart than 1 / fov along the path, so at the requested dwell the arm
-        # may traverse k no faster than that -- and where the time-optimal
-        # solve is faster, it is stretched until it is not.
+        # Adjacent samples may be no further apart than 1 / (oversamp * fov),
+        # so at the requested dwell the arm may traverse k no faster than
+        # that; where the time-optimal arm is faster, stretch it.
         speed = float(np.max(np.linalg.norm(grad_out, axis=1)))
         stretch = max(1.0, speed * fov_m * float(oversamp) / float(bandwidth_hz_px))
         grad_out = _stretch_gradient(
@@ -616,13 +659,10 @@ class Spiral(NonCartesianGradient):
             else ()
         )
         read_duration = gradient.shape[0] * system.grad_raster_time
-        # Choose the dwell first, then fit whole samples into the arm. Fixing
-        # the sample count instead and letting the dwell fall out of the arm's
-        # duration makes the requested bandwidth unreachable: an arm is as long
-        # as the slew limit says, so `read_duration / n_adc` is whatever it is.
-        # The request is honoured up to the Nyquist ceiling -- adjacent samples
-        # may be no further apart than 1 / fov along the path, or the sampled
-        # field of view is smaller than the one asked for.
+        # Choose the dwell first, then fit whole samples into the arm: the arm's
+        # duration is set by the limits, so a dwell derived from a fixed sample
+        # count would not honour the requested bandwidth. The dwell is also
+        # capped so adjacent samples stay within 1 / (oversamp * fov).
         max_k_speed = float(np.max(np.linalg.norm(gradient, axis=1)))
         dwell = min(
             1.0 / float(bandwidth_hz_px), 1.0 / (float(oversamp) * fov_m * max_k_speed)
@@ -648,60 +688,54 @@ class Spiral(NonCartesianGradient):
 
 
 class Rosette(NonCartesianGradient):
-    """Build one multi-petal rosette base interleave.
+    """Multi-petal rosette base interleave, starting and ending at k = 0.
+
+    The readout needs no bridges. ``trajectory`` is the k-space at the ADC
+    samples and ``design_trajectory`` the polyline the gradient was solved
+    from; ``echo_spacing_s`` is the realised mean petal duration and
+    ``requested_echo_spacing_s`` the request. The ADC takes the same number
+    of samples in every petal, the total rounded down to
+    ``system.adc_samples_divisor``.
 
     Parameters
     ----------
     system : pypulseq.Opts
-        Gradient, slew, and raster limits used to time-parameterize the path.
-        Tighter limits lengthen every petal but do not change its k-space
-        extent.
+        System limits. Tighter limits lengthen the petals but not their reach.
     fov : float or array-like
-        Isotropic field of view in metres.  Together with ``matrix`` this
-        sets ``kmax = matrix / (2 * fov)`` and the largest permitted ADC
-        k-space step, ``1 / fov``.  At fixed matrix, a smaller FOV pushes the
-        petals farther out and increases gradient demand.
+        Isotropic field of view (m). With ``matrix`` it sets
+        ``kmax = matrix / (2 * fov)``, and it bounds the k-space step between
+        adjacent ADC samples to ``1 / (oversamp * fov)``.
     matrix : int or array-like
-        Isotropic reconstruction matrix.  Resolution is ``fov / matrix``;
-        increasing the matrix pushes every petal farther into k-space.
+        Isotropic matrix size.
     petals : int, optional
-        Number of center-to-center radial lobes within this base interleave.
-        More petals add k-space center crossings, readout duration, and ADC
-        samples.  They are not separately rotated shots.
+        Centre-to-centre lobes within this one interleave, not rotated shots.
     angular_frequency_ratio : float, optional
-        Ratio ``omega_angular / omega_radial`` within the base interleave.
-        Values below one form relatively open petals, one is the circular
-        limiting case, and values above one wind more tightly.  This changes
-        gradient direction and slew demand; it is unrelated to rotations
-        applied to the complete interleave by the caller.
+        Angular over radial frequency: below one the petals are open, one is
+        the circular limit, above one they wind more tightly.
     echo_spacing_s : float, optional
-        Requested average center-to-center petal duration.  ``None`` uses the
-        minimum duration allowed by the gradient system.  A longer value
-        uniformly stretches the waveform and reduces gradient amplitude and
-        slew.  A value below the hardware minimum raises ``ValueError``.
-        Start/end slew ramps can make the first and last individual crossing
-        intervals differ slightly from this average.
+        Mean centre-to-centre petal duration (s); ``None`` is the minimum the
+        limits allow, and a longer value stretches the waveform uniformly.
+        The ramps at each end can make the first and last crossing intervals
+        differ slightly from the mean.
     bandwidth_hz_px : float, optional
-        Requested receiver bandwidth, with the same ``1 / ADC dwell``
-        convention as the other readout classes.  The realized bandwidth is
-        raised when necessary to keep adjacent samples close enough for the
-        requested FOV.
+        Requested ``1 / dwell`` (Hz). The dwell is also bounded by the step
+        limit and floored to the ADC raster, so the realised bandwidth can be
+        higher.
     oversamp : float, optional
-        ADC sampling oversampling factor.  It reduces the permitted k-space
-        step without changing ``kmax`` or the gradient shape.
+        ADC oversampling; tightens the step limit without changing the
+        gradient.
     axes : tuple[str, str], optional
-        Gradient channels receiving the two components of the base path.
-        This changes physical channel assignment, not k-space geometry.
+        Channels for the path's two components.
     solver_oversampling : int, optional
-        Internal MRArbGrad accuracy setting.  It affects numerical timing
-        fidelity, not the intended trajectory or ADC oversampling.
+        Path-resampling factor of the time-optimal solver.
     derate : bool, optional
-        Apply the package gradient/slew derating before design.
+        Apply :func:`pypulseqpp.apply_system_derates` first.
 
-    Notes
-    -----
-    This object owns only one base interleave.  The caller chooses how many
-    rotated copies to acquire and supplies their rotation increments.
+    Raises
+    ------
+    ValueError
+        If ``echo_spacing_s`` is below the minimum the limits allow, or a
+        parameter is out of range.
     """
 
     def __init__(
@@ -776,12 +810,9 @@ class Rosette(NonCartesianGradient):
         dwell_from_fov = 1.0 / (float(oversamp) * fov_m * max_k_speed)
         dwell_from_bandwidth = 1.0 / float(bandwidth_hz_px)
         max_dwell = min(dwell_from_fov, dwell_from_bandwidth)
-        # Choose the dwell first, on the ADC raster, then fit an integral
-        # number of samples into every petal.  Choosing the sample count first
-        # and letting ``_make_adc`` round the dwell down can leave an entire
-        # tail of the final petal unacquired when the gradient and ADC rasters
-        # differ.  The displayed/acquired path must cover the complete petal
-        # set requested by the user, not merely the time-optimal gradient.
+        # Choose the dwell first, on the ADC raster, then fit a whole number of
+        # samples into every petal, so the ADC covers every petal even when the
+        # gradient and ADC rasters differ.
         dwell = (
             math.floor(max_dwell / system.adc_raster_time + 1e-12)
             * system.adc_raster_time
