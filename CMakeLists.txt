@@ -34,6 +34,8 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/fov.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/kspace.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/resonance.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/rfft.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/safety.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/timing.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/waveforms.cpp
@@ -58,8 +60,10 @@ target_include_directories(_ext PRIVATE
     ${MRARBGRAD}
 )
 
-# Deduplication partitions independent work across standard C++ threads.
-target_link_libraries(_ext PRIVATE Threads::Threads)
+# Deduplication partitions independent work across standard C++ threads. The
+# FFT loads MKL at run time when one is installed (src/cpp/pulseq/rfft.hpp),
+# which on older glibc needs libdl.
+target_link_libraries(_ext PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
 
 # Built into the build tree, never beside the sources: the wheel takes the
 # module from the install step, so a binary left in the source tree would be

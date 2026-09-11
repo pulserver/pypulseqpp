@@ -32,6 +32,7 @@
 
 #include "pulseq/binary.hpp"
 #include "pulseq/read.hpp"
+#include "pulseq/resonance.hpp"
 #include "pulseq/safety.hpp"
 #include "pulseq/write.hpp"
 
@@ -1092,6 +1093,67 @@ PYBIND11_MODULE(_ext, module)
         py::arg("grad_raster_time") = 10e-6,
         "Where a gradient does not carry on from the block before it, and "
         "whether the sequence leaves its gradients at zero.");
+
+    module.def(
+        "mech_resonance",
+        [](const Sequence& sequence,
+           const std::vector<std::tuple<int, double, double, double>>& bands,
+           double window, double stride, int oversampling,
+           const std::array<std::array<double, 3>, 3>& rotation,
+           const std::string& mkl_runtime) {
+            std::vector<pulseq::ForbiddenBand> guarded;
+            guarded.reserve(bands.size());
+            for (const auto& band : bands)
+            {
+                pulseq::ForbiddenBand one;
+                one.axis = std::get<0>(band);
+                one.f_min = std::get<1>(band);
+                one.f_max = std::get<2>(band);
+                one.threshold = std::get<3>(band);
+                guarded.push_back(one);
+            }
+            pulseq::ResonanceOptions options;
+            options.window = window;
+            options.stride = stride;
+            options.oversampling = oversampling;
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                    options.rotation[i][j] = rotation[i][j];
+            options.mkl_runtime = mkl_runtime;
+
+            pulseq::ResonanceReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::mech_resonance(sequence, guarded, options);
+            }
+
+            py::list readings;
+            for (const pulseq::BandReading& reading : found.readings)
+            {
+                py::dict entry;
+                entry["band"] = reading.band;
+                entry["axis"] = reading.axis;
+                entry["peak"] = reading.peak;
+                entry["frequency"] = reading.frequency;
+                entry["window"] = reading.window;
+                entry["window_start"] = reading.window_start;
+                entry["violations"] = reading.violations;
+                readings.append(entry);
+            }
+            py::dict out;
+            out["readings"] = readings;
+            out["band_violations"] = found.band_violations;
+            out["windows"] = found.windows;
+            out["window"] = found.window;
+            out["stride"] = found.stride;
+            out["frequency_step"] = found.frequency_step;
+            out["backend"] = found.backend;
+            return out;
+        },
+        py::arg("sequence"), py::arg("bands"), py::arg("window"), py::arg("stride"),
+        py::arg("oversampling"), py::arg("rotation"), py::arg("mkl_runtime") = "",
+        "Windowed physical-axis gradient spectrum against forbidden bands "
+        "(axis, f_min, f_max, threshold in Hz/m); amplitudes in Hz/m.");
 
     module.def(
         "evaluate_labels",

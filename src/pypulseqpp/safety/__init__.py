@@ -1,4 +1,4 @@
-"""Gradient amplitude, slew and inter-block continuity checks.
+"""Gradient amplitude, slew, inter-block continuity and mechanical-resonance checks.
 
 Checks use physical-axis waveforms after applying block rotations.
 These checks do not establish scanner or patient safety.
@@ -9,8 +9,16 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from .. import _ext as _cxx
+from ._resonance import ForbiddenBand, check_mech_resonance, read_forbidden_bands
 
-__all__ = ["check_grad_continuity", "check_max_grad", "check_max_slew"]
+__all__ = [
+    "ForbiddenBand",
+    "check_grad_continuity",
+    "check_max_grad",
+    "check_max_slew",
+    "check_mech_resonance",
+    "read_forbidden_bands",
+]
 
 
 def _limits(seq, system):
