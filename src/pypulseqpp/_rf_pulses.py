@@ -1,8 +1,7 @@
-"""RF pulse factories, each returning events rather than a module.
+"""RF pulse factories returning events.
 
-They follow :func:`pypulseq.make_sinc_pulse`'s shape: the pulse alone by
-default, and ``(rf, gz, gz_reph)`` under ``return_gz=True`` where a selection
-gradient makes sense.
+Slice-selective factories follow :func:`pypulseq.make_sinc_pulse`: the pulse
+alone by default, ``(rf, gz, gz_reph)`` under ``return_gz=True``.
 """
 
 from __future__ import annotations
@@ -103,15 +102,12 @@ def make_slr_pulse(
     cancel_alpha_phase : bool, optional
         Remove the SLR alpha polynomial's phase.
     root_flip : bool, optional
-        Flip the roots of the SLR beta polynomial for the lowest peak B1 the
-        same slice profile allows (Sharma, Lustig and Grissom, 2016). The
-        profile's magnitude is unchanged and its phase is no longer linear, so
-        it suits a refocusing or inversion pulse, and an excitation whose
-        phase is refocused another way. Needs a ``pulse_type`` with a nominal
-        flip, and searches every subset of the passband's roots. The pulse
-        plays at the amplitude it was designed at, scaled by ``flip_angle``
-        over that nominal flip, because its winding phase makes its area no
-        measure of its flip.
+        Flip roots of the SLR beta polynomial to minimise peak B1 for the same
+        profile magnitude (Sharma, Lustig and Grissom, 2016); the profile
+        phase is no longer linear. Needs a ``pulse_type`` with a nominal flip
+        and searches every subset of the passband's roots. The pulse plays at
+        its designed amplitude scaled by ``flip_angle`` over the nominal flip,
+        not by area.
     max_grad, max_slew : float, optional
         Override the system limits for the selection gradient.
     system : pypulseq.Opts, optional
@@ -129,10 +125,11 @@ def make_slr_pulse(
     Raises
     ------
     ValueError
-        If ``center_pos`` is outside ``[0, 1]``, ``return_gz`` is asked for
-        without a positive ``slice_thickness``, or ``root_flip`` is asked of a
-        small-tip pulse, alongside ``cancel_alpha_phase``, or of a passband
-        with more roots than an exhaustive search can visit.
+        If ``duration`` spans fewer than four RF samples, ``center_pos`` is
+        outside ``[0, 1]``, ``return_gz`` is asked for without a positive
+        ``slice_thickness``, or ``root_flip`` is asked of a small-tip pulse,
+        alongside ``cancel_alpha_phase``, or of a passband with more roots
+        than an exhaustive search can visit.
 
     Examples
     --------
@@ -237,7 +234,7 @@ def _play_slr(
     return rf, gz, _events.make_trapezoid(channel="z", area=rephase_area, system=system)
 
 
-#: The name PyPulseq's SigPy-backed factory went by. Same design, no SigPy.
+#: Alias under PyPulseq's name for its SigPy-backed SLR factory; SigPy is not used.
 make_sigpy_pulse = make_slr_pulse
 
 
@@ -251,14 +248,10 @@ def make_sms_pulse(
 ):
     """Modulate one RF pulse into equispaced spectral bands.
 
-    Multiplies the envelope by a sum of complex exponentials, so one designed
-    pulse excites several slices at once. ``sideband_power`` is power relative
-    to the on-resonance band rather than an amplitude multiplier, so the
-    modulation uses its square root; a scalar applies to every off-resonance
-    band, and one value per band gives asymmetric saturation.
-
-    The offset list always contains 0 Hz. For an even band count the otherwise
-    unpaired band goes on the positive-frequency side.
+    The envelope is multiplied by ``sum(weights * exp(2j*pi*offsets*rf.t))``,
+    so band phases are referenced to the start of the shape, not its centre.
+    The offsets always include 0 Hz; for an even band count the unpaired band
+    goes on the positive-frequency side.
 
     Parameters
     ----------
@@ -269,7 +262,9 @@ def make_sms_pulse(
     band_offset : float
         Spacing between adjacent bands (Hz).
     sideband_power : float or sequence of float, optional
-        Power of each off-resonance band relative to the on-resonance band.
+        Power, not amplitude, relative to the on-resonance band; weights take
+        its square root. A scalar applies to every off-resonance band; a
+        sequence gives one value per band, the on-resonance one included.
     phases : {'quadratic', 'wong', 'malik'} or sequence of float, optional
         Per-band phase (rad), lowest frequency first, or a schedule that keeps
         the peak down: Grissom's quadratic one, Wong's optimised table (3 to
@@ -360,8 +355,9 @@ def make_spsp_pulse(
 ):
     """Design a spectral-spatial pulse on an alternating slice gradient.
 
-    Both envelopes use SLR designs. The subpulse count is rounded up to an
-    even number; a rephaser is returned only when the residual area is nonzero.
+    Both envelopes are SLR designs; each spatial subpulse is VERSEd onto its
+    whole trapezoid lobe, ramps included. The pulse is scaled to
+    ``flip_angle`` by area.
 
     Parameters
     ----------
@@ -390,10 +386,10 @@ def make_spsp_pulse(
     rf : RfEvent
         The spectral-spatial pulse.
     gz : GradEvent
-        The alternating selection gradient.
+        The alternating selection gradient, with the same delay as ``rf``.
     gz_reph : TrapEvent or None
-        Its rephaser, or ``None`` when the train needs none: the lobes after
-        the pulse's centre cancel whenever there is an even number of them.
+        A trapezoid of one lobe's area when an odd number of lobes follows
+        the pulse's centre, otherwise ``None``.
 
     Raises
     ------
@@ -587,12 +583,10 @@ def make_2d_selective_pulse(
     flip_angle : float
         Nominal flip angle (rad), reached at the centre of the excited region.
     fov : float
-        Excitation field of view (m), square. Outside it the profile repeats:
-        the trajectory samples excitation k-space at a finite pitch, so a
-        second excited spot appears one ``fov`` away.
+        Excitation field of view (m), square; the profile repeats with period
+        ``fov``.
     matrix : int
-        Excitation grid size, square. It sets how finely the profile is
-        specified, and so how far out the trajectory has to reach.
+        Excitation grid size, square; sets the trajectory's k-space extent.
     selective_size : float or sequence of float, optional
         Diameter (m) of the excited disc, one value or one per axis. Half the
         field of view by default.
@@ -632,9 +626,11 @@ def make_2d_selective_pulse(
         The pulse, sampled on the gradient raster; a pTx pulse when
         ``b1_maps`` is given.
     gradients : tuple of GradEvent
-        One arbitrary gradient per axis, to be played in the pulse's block.
+        One arbitrary gradient per axis with a nonzero waveform, delayed with
+        ``rf``, to be played in the pulse's block.
     rephasers : tuple of TrapEvent
-        Empty tuple: the closed spiral trajectory needs no separate rephaser.
+        A trapezoid for each axis left with net area; empty for the closed
+        spiral trajectory.
 
     Raises
     ------
@@ -831,19 +827,13 @@ def make_half_passages(
     use: str = "preparation",
     system=None,
 ) -> tuple:
-    """Build the adiabatic pair that tips magnetization down and stores it back.
+    """Build the adiabatic half-passage pair that tips magnetization down and back.
 
-    A half passage is one half of a full adiabatic sweep. Run from far
-    off-resonance to on-resonance, it carries magnetization from ``+z`` into
-    the transverse plane; run in reverse, it carries it back. Both are
-    adiabatic, so above a threshold transmit amplitude neither depends on
-    what the amplitude actually is -- which is why a T2 preparation uses them
-    instead of a pair of hard 90s.
-
-    The two are exact mirrors: the second is the first time-reversed and
-    conjugated. That is what makes the phase the sweep accrues on the way down
-    unwind on the way up, so what is stored is the magnetization's *magnitude*
-    and not a phase that varied with transmit field.
+    ``down`` is the first half of a full adiabatic sweep (far off-resonance to
+    on-resonance), taking ``+z`` to the transverse plane independently of B1
+    above the adiabatic threshold. ``up`` is ``down`` time-reversed and
+    conjugated, so the phase accrued on the way down unwinds on the way up.
+    Both play at their designed amplitude.
 
     Parameters
     ----------
@@ -858,15 +848,13 @@ def make_half_passages(
     pulse_type : str, optional
         Sweep family, as :func:`make_adiabatic_pulse` names them.
     use : str, optional
-        What the pulses are for, as Pulseq records it.
+        Pulseq ``use`` tag.
     system : Opts, optional
         System limits.
 
     Returns
     -------
     down, up : SimpleNamespace
-        The half passage that tips down, and the reverse one that stores what
-        is left back on ``z``.
 
     Examples
     --------
@@ -900,9 +888,9 @@ def make_half_passages(
     )
 
 
-#: Core samples a recursive SLR train is designed at before it is resampled
-#: onto the raster: each pulse is an inverse SLR transform over four times
-#: that many samples.
+#: Maximum SLR core samples a recursive train is designed at before it is
+#: resampled onto the raster; each design step transforms over four times as
+#: many.
 RECURSIVE_SAMPLES = 256
 
 
@@ -928,20 +916,20 @@ def make_recursive_slr_pulses(
 ):
     """Design SLR pulses that each excite the same transverse magnetisation.
 
-    For a segmented acquisition of magnetisation that recovers slowly or not
-    at all -- hyperpolarised spins -- each pulse tips a larger share of what
-    the earlier ones left, the last one 90 degrees. With ``use_mz`` each pulse
-    is designed against the longitudinal profile the earlier ones actually
-    left, so the slice profile stays the same from segment to segment too
-    (SigPy's ``dz_recursive_rf``). The pulses are large-tip designs, played at
-    their designed amplitude.
+    For non-recovering (e.g. hyperpolarised) magnetisation: flips grow along
+    the train to 90 degrees at the last pulse. With ``use_mz`` each pulse is
+    designed against the longitudinal profile the earlier ones left, so the
+    slice profile also holds across segments (SigPy's ``dz_recursive_rf``).
+    The pulses are large-tip designs, played at their designed amplitude.
 
     Parameters
     ----------
     n_segments : int
         Pulses in the train.
     duration : float, optional
-        Of each pulse, in s: a windowed SLR core with a taper either side.
+        Of each pulse, in s. The SLR core, to which ``time_bw_product`` and
+        ``refocusing_tbw`` refer, spans about ``duration / 1.75``; a Blackman taper
+        fills the rest.
     spin_echo : bool, optional
         Design for a spin-echo segment, whose refocusing pulse is returned too.
     refocusing_tbw : float, optional

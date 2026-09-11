@@ -234,20 +234,25 @@ def make_pins_pulse(
     freq_ppm: float = 0.0,
     phase_ppm: float = 0.0,
 ):
-    """Design a PINS pulse: every slice ``slice_separation`` apart, at one power.
+    """Design a PINS pulse exciting a slice every ``slice_separation`` along z.
 
     An SLR envelope for ``slice_thickness`` is played as hard subpulses with a
     z blip of area ``1 / slice_separation`` between each, so the profile
-    repeats every ``slice_separation`` however many slices the object holds
-    (Norris et al., Magn Reson Med 66:1234, 2011). The envelope is scaled to
-    ``flip_angle`` by area.
+    repeats every ``slice_separation`` and the power does not depend on the
+    number of slices (Norris et al., Magn Reson Med 66:1234, 2011). The
+    envelope has ``time_bw_product * slice_separation / slice_thickness``
+    subpulses, rounded to an even count, and is scaled to ``flip_angle`` by
+    area. The RF centre is the pulse's midpoint for a linear-phase
+    ``filter_type`` (``'ls'``, ``'pm'``, ``'ms'``) and the largest subpulse's
+    centre otherwise.
 
     Parameters
     ----------
     slice_thickness, slice_separation : float
         In m.
     max_b1 : float, optional
-        Peak B1, in T, which sets how short the subpulses are.
+        Peak B1, in T; each subpulse is the shortest, on the gradient raster,
+        that stays within it.
     pulse_type, filter_type, time_bw_product, passband_ripple, stopband_ripple
         The envelope's SLR design, as in :func:`make_slr_pulse`.
     max_grad, max_slew : float, optional
@@ -257,9 +262,9 @@ def make_pins_pulse(
     -------
     rf : SimpleNamespace
     gz : SimpleNamespace
-        The blip train, an extended trapezoid starting with the pulse.
+        The blip train, an extended trapezoid with the same delay as ``rf``.
     gzr : SimpleNamespace
-        Rephaser: minus the blip area after the pulse's centre.
+        Rephaser of minus the blip area after the RF centre.
 
     Raises
     ------

@@ -57,12 +57,8 @@ def steepest(event) -> float:
 @pytest.mark.parametrize("cycles", [4, 8, 13, 20])
 @pytest.mark.parametrize("mode", ["phase", "partition", "both"])
 def test_the_wave_returns_k_to_exactly_where_it_found_it(cycles, mode):
-    """The event carries no net area, so nothing downstream compensates it.
-
-    This is what lets a scan scale the wave to zero for one readout: the
-    prewinder and the rewinder are the same events either way, because the
-    corkscrew never moved k anywhere it did not put it back.
-    """
+    """Zero net area lets a scan scale the wave to zero for one readout with
+    the same prewinder and rewinder."""
     module = readout(wave=mode, wave_cycles=cycles)
     for channel in ("y", "z"):
         event = getattr(module, f"g{channel}_wave", None)
@@ -76,14 +72,8 @@ def test_the_wave_returns_k_to_exactly_where_it_found_it(cycles, mode):
 
 @pytest.mark.parametrize("mode", ["phase", "partition", "both"])
 def test_the_sequence_leaves_k_where_the_wave_free_readout_would_have(mode):
-    """The same invariant, asked of the sequence rather than of the event.
-
-    How much area a waveform carries depends on how k is integrated under it,
-    and the readout and the integrator have to agree on that or the corkscrew
-    leaves a line somewhere its counters do not say it is. So this asks the
-    question anything downstream asks: where k ended up, against where it would
-    have ended up had the corkscrew never been played.
-    """
+    """The same invariant through ``calculate_kspace``: the readout and the
+    k-space integrator must agree on the area under the waveform."""
     module = readout(wave=mode)
     events = [
         event
@@ -146,8 +136,7 @@ def test_the_two_axes_share_one_amplitude():
 
 
 def test_the_corkscrew_reaches_k_space():
-    """The spread is what a reconstruction undoes, and it is only worth
-    undoing if it is there: several voxels along both encoded axes."""
+    """The k-space excursion exceeds ``1 / FOV`` on both encoded axes."""
     module = readout()
     for channel, extent in (("y", FOV[1]), ("z", FOV[2])):
         waveform = np.asarray(getattr(module, f"g{channel}_wave").waveform)
@@ -222,12 +211,10 @@ def sequence(scales):
 def test_scaling_the_wave_to_zero_leaves_the_repeating_unit_alone():
     """How a calibration line is acquired wave-free.
 
-    Scaling the event keeps the readout's block *definition* -- a waveform is
-    carried by the playout, not by the definition -- so the scan is still one
-    repeating unit and repeats from its first block. Leaving the event out
-    instead is a different block, and the shots before it stop matching the
-    shots after: only the tail repeats, and everything ahead of it is
-    prologue a scan loop would have to carry separately.
+    Scaling keeps the block definition -- the waveform is carried by the
+    playout -- so the scan remains one repeating unit from its first block.
+    Leaving the event out is a different block, and only the tail after it
+    repeats.
     """
     everywhere = sequence([1.0] * 6)._detect_tr()
     scaled_off = sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])._detect_tr()

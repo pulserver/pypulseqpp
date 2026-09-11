@@ -1,6 +1,5 @@
-// The Bloch equation without relaxation, in hard-pulse steps: each step is
-// a rotation about the effective field, and the steps compose as SU(2)
-// elements per position before anything is applied to a magnetisation.
+// Relaxation-free Bloch simulation in hard-pulse steps. Each position's steps
+// compose as SU(2) elements and are converted to one 3x3 rotation at the end.
 #include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -84,9 +83,11 @@ namespace
     }
 
     /**
-     * Net rotation at each position. Step ``k`` turns about
-     * ``2 pi dt (Re b1, Im b1, bz)`` by that vector's length, the right-hand
-     * way; a step with no field is skipped.
+     * Net rotation at each position, written row-major to ``out`` as
+     * ``(positions, 3, 3)``. Step ``k`` turns right-handedly about
+     * ``2 pi dt (Re b1, Im b1, bz)`` by that vector's length; a step with no
+     * field is skipped. ``b1_rows == 1`` shares one b1 row across positions;
+     * ``bz_cols == 1`` holds bz constant over the steps.
      */
     void rotations(const Complex* b1,
                    size_t b1_rows,
@@ -186,8 +187,8 @@ void pypulseqpp_bind_sim(py::module_& module)
         py::arg("threads") = 0,
         R"doc(Return each position's net rotation, (positions, 3, 3), over a field in Hz.
 
-Step k turns about 2 pi dt (Re b1[k], Im b1[k], bz[k]) by that vector's length.
-b1 is (steps,) for one field every position sees or (positions, steps); bz is
-(positions, steps) or (positions, 1).
+Step k turns right-handedly about 2 pi dt (Re b1[k], Im b1[k], bz[k]) by that
+vector's length. b1 is (steps,) shared by every position or (positions, steps);
+bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
 )doc");
 }

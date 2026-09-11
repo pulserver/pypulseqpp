@@ -1,9 +1,5 @@
-"""Trajectories, wave gradients and half passages, as a script reaches them.
-
-Each is held to the geometry or the physics it claims -- where a path starts
-and how far out it reaches, that a corkscrew leaves no net area and stays
-inside the slew limit, that a half-passage pair is a mirror -- rather than to
-its own earlier output.
+"""Trajectory, wave-gradient, half-passage and extended-trapezoid helpers in the
+public namespace, checked against geometry and physics rather than stored output.
 """
 
 from __future__ import annotations
@@ -161,18 +157,18 @@ def test_each_half_passage_lasts_the_duration_asked_for():
 
 
 def test_the_half_passage_that_tips_down_ends_on_resonance():
-    """The sweep runs from far off resonance to on resonance, so the pulse's
-    phase is flattest -- its instantaneous frequency smallest -- at its end."""
+    """The sweep runs from far off resonance to on resonance, so the
+    instantaneous frequency is smallest at the end."""
     down, _ = pp.make_half_passages(4e-3, system=SYSTEM)
     frequency = np.abs(np.diff(np.unwrap(np.angle(np.asarray(down.signal)))))
     assert frequency[-1] < frequency[0]
 
 
-# %% the helper the toolbox does not need
+# %% extended trapezoid of an area
 
 
 def test_an_extended_trapezoid_of_an_area_joins_the_amplitudes_it_is_given():
-    """What the readout modules join a spoiler onto the plateau with."""
+    """The readout modules bridge onto and off their plateaus with it."""
     grad, times, amplitudes = pp.make_extended_trapezoid_area(
         area=500.0, channel="x", grad_start=0.0, grad_end=2e5, system=SYSTEM
     )

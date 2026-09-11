@@ -1,4 +1,4 @@
-"""Adiabatic half passages and three-axis preparation spoilers."""
+"""Three-axis spoilers shared by the preparation modules."""
 
 from __future__ import annotations
 

@@ -24,11 +24,13 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _FseReadout(SequenceModule):
-    """One excitation and a CPMG echo train.
+    """One excitation and a CPMG echo train, to the end of the TR.
 
-    Pulses and selection gradients are supplied as events. The scan loop
-    scales phase encodes and refocusing amplitudes per echo. echo_times lists
-    all echo centres; the sampling order determines the effective TE.
+    Each refocusing pulse sits midway between the RF centre or echo before it
+    and the echo after it. Echoes are ``esp`` apart, except that the first
+    echo is ``esp_first`` after the excitation. Phase encodes, and the
+    refocusing amplitude, are templates the loop may scale per echo; the
+    sampling order sets the effective TE.
 
     Attributes
     ----------
@@ -47,8 +49,10 @@ class _FseReadout(SequenceModule):
         Read prephaser, played once before the train and right-aligned in its
         block.
     gx_bridge_pre, gx_bridge_post : GradEvent
-        The lobes that carry the read axis onto and off the readout plateau,
-        one each side of every acquisition.
+        The lobes that carry the read axis, and the crushers, onto and off the
+        readout plateau, one each side of every acquisition. Each spans its
+        whole block, so the echo timing holds when the loop leaves an encode
+        out.
     gx : GradEvent
         The readout plateau, flat from end to end.
     gy_pre, gz_pre : TrapEvent
@@ -57,6 +61,9 @@ class _FseReadout(SequenceModule):
     gy_rew, gz_rew : TrapEvent
         The encodes negated, unwinding each line before the next refocusing
         pulse.
+    gy_wave, gz_wave : GradEvent
+        The wave corkscrew under the plateau, each self-balanced so scaling one
+        to zero changes nothing else. Only the channels ``wave`` drives.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
@@ -72,19 +79,21 @@ class _FseReadout(SequenceModule):
         Spacing of the first echo (s), equal to ``esp`` unless the excitation
         needed more room.
     echo_times : numpy.ndarray
-        Each echo's time (s) from the excitation isodelay. Which of them is the
-        effective echo time depends on the ordering the loop plays, so the
-        module states them all and names none.
-    etl : int
-        Echoes per repetition.
+        Each echo's time (s) from the excitation isodelay.
     bandwidth_hz : float
         Achieved ADC sampling rate (Hz).
     n_samples : int
         Samples per echo.
+    center_sample : int
+        Index of the sample at the echo; partial echo moves it toward the
+        start.
     delta_kx : float
         Read-axis k-space step (1/m).
     readout_duration : float
         Sampling window (s).
+    wave_amplitude : float
+        Peak wave gradient achieved (T/m), below the requested one where the
+        slew rate binds; zero without ``wave``.
 
     Parameters
     ----------
@@ -99,17 +108,17 @@ class _FseReadout(SequenceModule):
         (``is_slab=True``) has already merged it into ``gz`` and passes
         nothing.
     rf_ref : RfEvent
-        The refocusing pulse, built with ``use="refocusing"``. Pass
-        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`'s ``rf_ref`` for
-        a selective train, or
-        :class:`~pypulseqpp.sequences.NonSelectiveRefocusing`'s for the hard-pulse
-        train that makes single-slab 3D FSE efficient.
+        The refocusing pulse, which must be built with ``use="refocusing"``:
+        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`'s ``rf_ref``
+        for a selective train,
+        :class:`~pypulseqpp.sequences.NonSelectiveRefocusing`'s for a
+        hard-pulse train.
     gz_ref : GradEvent, optional
-        Selection gradient for ``rf_ref``, crushers included -- one gradient,
-        because it is played in the pulse's own block.
-        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing` publishes exactly
-        that as its ``gz``. A non-selective train passes nothing and crushes on
-        the read axis instead.
+        Selection gradient for ``rf_ref`` with its crushers, as one event
+        played in the pulse's block: the ``gz`` of
+        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`. A
+        non-selective train passes nothing and crushes on the read axis
+        through ``spoiling_cycles``.
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
@@ -123,7 +132,8 @@ class _FseReadout(SequenceModule):
     esp_first : float, optional
         Spacing of the first echo (s). ``None`` is the shortest that
         accommodates the excitation, which is ``esp`` whenever the excitation
-        fits in half of one.
+        fits in half of one. Rounded so that ``esp_first - esp`` is a multiple
+        of twice the block raster.
     tr : float, optional
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
@@ -146,11 +156,20 @@ class _FseReadout(SequenceModule):
         Counters emitted on the acquisition block. The loop writes the values.
     trigger : event, optional
         A trigger or digital output armed on the prephaser block.
+    wave : {'phase', 'partition', 'both'}, optional
+        Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
+        on z, or both. 3D only.
+    wave_cycles : int, optional
+        Wave periods across the sampling window.
+    wave_amplitude : float, optional
+        Requested peak wave gradient (T/m). A ceiling: the slew rate may
+        lower it, and ``wave_amplitude`` on the module reports what was built.
 
     Raises
     ------
     ValueError
-        If a count or fraction is out of range, ``rf_ref`` is not marked as a
+        If a count or fraction is out of range, ``wave`` is set on a 2D train,
+        ``gz_reph`` is on the read channel, ``rf_ref`` is not marked as a
         refocusing pulse, or the requested echo spacing or TR is shorter than
         the train can achieve.
     """
@@ -445,7 +464,7 @@ def _span(system: pp.Opts, *events: Any) -> float:
 def _encodes(
     system: pp.Opts, resolutions, sign: float, duration: float | None
 ) -> tuple:
-    """One phase encode per encoded axis after the readout, y first.
+    """Phase encodes on y and z, multiplied by ``sign``.
 
     Always a pair, ``None`` standing in for the partition encode of a 2D train,
     so the caller can unpack it either way.
@@ -492,8 +511,9 @@ class FseReadout2D(_FseReadout):
 class FseReadout3D(_FseReadout):
     """Single-slab CPMG train, phase-encoded along y and partition-encoded along z.
 
-    fov and matrix accept three values, readout first. Supports selective
-    or non-selective refocusing; non-selective pulses use read-axis crushing.
+    ``fov`` and ``matrix`` take three values, readout first. Refocusing may be
+    selective or non-selective; a non-selective train is crushed only by
+    ``spoiling_cycles``, on the read axis.
     """
 
     _ndim = 3

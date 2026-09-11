@@ -1,10 +1,12 @@
-"""NumPy/SciPy SLR design derived from SigPy and Pauly's rf_tools.
+"""SLR pulse design in NumPy/SciPy: slab, gSlider, Hadamard, recursive and B1-selective.
 
 Filter design, the SLR transforms, root flipping and Leja ordering derive from
-SigPy's ``sigpy.mri.rf.slr`` and ``sigpy.util.leja`` (Copyright (c) 2016, Frank
-Ong and The Regents of the University of California; BSD 3-Clause, see
-``LICENSES/SigPy-BSD-3-Clause.txt``). The exhaustive root-flip search is
-compiled in ``pypulseqpp._ext.slr``.
+SigPy's ``sigpy.mri.rf.slr`` and ``sigpy.util.leja``, the B1-selective sweep
+from ``sigpy.mri.rf.b1sel`` (Copyright (c) 2016, Frank Ong and The Regents of
+the University of California; BSD 3-Clause, see
+``LICENSES/SigPy-BSD-3-Clause.txt``), and through SigPy from Pauly's
+``rf_tools``. The exhaustive root-flip search is compiled in
+``pypulseqpp._ext.slr``.
 """
 
 from __future__ import annotations
@@ -93,10 +95,11 @@ def _large_tip(beta: np.ndarray, flip_angle: float, cancel_alpha_phase: bool):
 
 
 def _check_slab(n: int, tbw: float, d1: float, d2: float, subbands: int) -> float:
-    """Return the fractional transition width.
+    """Validate a sub-band design and return its fractional transition width.
 
-    Refuses a slab that overruns ``n`` samples once shifted to ``n // 4``, and
-    sub-bands narrower than the transitions that bound them.
+    Raises ``ValueError`` if the slab, shifted to ``n // 4`` cycles per ``n``
+    samples, would reach DC or Nyquist, or if a sub-band is no wider than a
+    transition.
     """
     _check_design(n, tbw, d1, d2)
     transition = _dinf(d1, d2) / tbw
@@ -213,7 +216,7 @@ def design_gslider(
     """Return a gSlider pulse in radians per sample: ``subslice`` at ``phase``.
 
     Derived from SigPy's ``dz_gslider_b``. Sub-slices are counted from the
-    lowest frequency.
+    lowest frequency; ``phase`` (rad) is relative to the rest of the slab.
     """
     g = int(num_subslices)
     if g < 1 or not 0 <= subslice < g:
@@ -363,14 +366,14 @@ def _beta_to_rf(beta: np.ndarray, cancel_alpha_phase: bool) -> np.ndarray:
     return _alpha_beta_to_rf(alpha, beta)
 
 
-#: What each pulse type tips by, which a root-flipped beta is scaled to.
+#: Flip, in rad, each large-tip ``pulse_type`` is designed for.
 NOMINAL_FLIP = {"ex": np.pi / 2.0, "sat": np.pi / 2.0, "se": np.pi, "inv": np.pi}
 
-#: Flippable roots beyond which the exhaustive search is over a million pulses.
+#: Most flippable roots the exhaustive search accepts (``2**20`` pulses).
 MAX_ROOT_FLIP_CANDIDATES = 20
 
-#: Samples a root-flipped pulse is designed at before it is resampled onto the
-#: raster: finding the roots of beta costs the cube of its length.
+#: Longest root-flipped design: longer pulses are designed at this many
+#: samples and resampled, since root finding costs the cube of the length.
 ROOT_FLIP_SAMPLES = 256
 
 
@@ -414,7 +417,7 @@ def _leja(roots: np.ndarray) -> np.ndarray:
 
 
 def _flipped_pulse(roots, flips, target: float, n: int) -> np.ndarray:
-    """Return the pulse whose beta has ``roots``, ``flips`` flipped, at peak ``target``."""
+    """Return the pulse whose beta has ``roots``, ``flips`` reflected, spectral peak ``target``."""
     roots = np.where(flips, 1.0 / np.conj(roots), roots)
     beta = np.zeros(n, dtype=np.complex128)
     beta[n - roots.size - 1 :] = np.poly(roots)
@@ -428,12 +431,13 @@ def _root_flip(
 ) -> np.ndarray:
     """Return the lowest-peak pulse among every flip of beta's passband roots.
 
-    Flipping a root ``r`` to ``1 / conj(r)`` leaves ``|beta|`` on the unit
-    circle -- the slice profile -- as it was and moves only its phase, so which
-    roots are flipped decides how the pulse's energy spreads in time and
-    nothing about the slice it selects (Sharma, Lustig and Grissom, Magn Reson
-    Med 75:227, 2016). The roots on the unit circle are the stopband's zeros and
-    stay put; the passband's are the ones tried, every subset of them.
+    Reflecting a root ``r`` to ``1 / conj(r)`` scales ``|beta|`` on the unit
+    circle -- the slice profile -- by a constant, which rescaling to the
+    nominal flip removes, and changes only its phase: the flips set how the RF
+    energy spreads in time, not the slice (Sharma, Lustig and Grissom, Magn
+    Reson Med 75:227, 2016). Candidates are the roots off the unit circle (the
+    stopband's zeros lie on it) at passband angles; every subset is tried.
+    Raises ``ValueError`` above ``MAX_ROOT_FLIP_CANDIDATES`` candidates.
     """
     n = beta.size
     target = float(np.sin(NOMINAL_FLIP[pulse_type] / 2.0 + np.arctan(2.0 * d1) / 2.0))
@@ -477,7 +481,13 @@ def design_slr(
     cancel_alpha_phase: bool = False,
     root_flip: bool = False,
 ) -> np.ndarray:
-    """Return a dimensionless SLR RF waveform."""
+    """Return an ``n``-sample SLR waveform, before any flip-angle scaling.
+
+    For ``pulse_type="st"`` this is the beta filter itself; for the large-tip
+    types it is the pulse in radians per sample at ``NOMINAL_FLIP[pulse_type]``.
+    Root-flipped designs longer than ``ROOT_FLIP_SAMPLES`` are designed at that
+    length and resampled. Designs are cached; each call returns a copy.
+    """
     _check_design(n, time_bandwidth_product, passband_ripple, stopband_ripple)
     if root_flip and pulse_type not in NOMINAL_FLIP:
         raise ValueError(
@@ -489,11 +499,9 @@ def design_slr(
             "alpha phase would then change"
         )
 
-    # The waveform is dimensionless: neither the flip angle it will be scaled
-    # to nor the slab it will select reaches this function, so the arguments
-    # that do reach it are the ones an operator changes least. A console
-    # re-running a plugin for a new echo time asks for a pulse it has already
-    # designed.
+    # Neither the flip angle nor the slab reaches the design, so its arguments
+    # rarely change between calls: a plugin re-run for a new echo time asks for
+    # a pulse already designed.
     return _design(
         n,
         float(time_bandwidth_product),
@@ -567,7 +575,8 @@ def design_b1_selective(
     that band of B1 (Grissom, Cao and Does, J Magn Reson 242:189, 2014;
     derived from SigPy's ``sigpy.mri.rf.b1sel``). Split and reflect keeps the
     selectivity at large tip. Both returned arrays hold ``2 * beta.size``
-    samples: the RF is reversed over the first and last quarter.
+    samples: the RF is reversed over the first and last quarter, where the
+    sweep is zero without ``split_and_reflect``.
     """
     n = beta.size
     half = n // 2
@@ -605,15 +614,18 @@ def design_recursive_slr(
 ):
     """Return SLR pulses, in radians per sample, that each leave the same transverse profile.
 
-    The flips grow to 90 degrees at the last segment, each taking a larger
-    share of what the earlier ones left along z; with ``use_mz`` every beta is
-    solved against the longitudinal profile the earlier pulses actually
-    left, so the slice profile holds across segments too. ``relaxation`` is
-    ``exp(-segment_tr / t1)``'s complement, ``1 - exp(-segment_tr / t1)``.
-    Derived from SigPy's ``dz_recursive_rf``.
+    Only Mz is carried between segments, so transverse magnetisation is
+    assumed spoiled. The flips grow to 90 degrees at the last segment; with
+    ``use_mz`` every beta is solved against the longitudinal profile the
+    earlier pulses left, so the slice profile holds across segments too.
+    ``relaxation`` is the recovery between segments, ``1 - exp(-segment_tr /
+    t1)``, and is ignored with ``spin_echo``. Derived from SigPy's
+    ``dz_recursive_rf``.
 
-    Returns ``(pulses, refocusing)``: pulses ``(window * n, n_segments)`` and
-    the refocusing pulse over the same window, or ``None``.
+    Returns ``(pulses, refocusing)``: ``pulses`` has one column per segment,
+    each an ``n``-sample core plus ``round((window - 1) * n)`` samples of
+    Blackman taper split either side; ``refocusing`` is the spin-echo
+    refocusing pulse over the same samples, or ``None``.
     """
     fft = lambda values: _centred(np.fft.fft, values)  # noqa: E731
     ifft = lambda values: _centred(np.fft.ifft, values)  # noqa: E731

@@ -159,8 +159,9 @@ namespace pulseq
 
                 judge(v.findings, shape_dur, "shape_dur", rf_raster);
 
-                // A dynamic pTx pulse repeats one time base per channel, and
-                // each channel is judged as the pulse it is.
+                // A dynamic pTx pulse repeats one time base per channel;
+                // rf_channels() admits only identical copies, so the first
+                // channel's is judged for all.
                 const size_t per_channel = rt.size() / rf_channels(rt);
                 if (per_channel >= 4)
                 {

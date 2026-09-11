@@ -167,7 +167,7 @@ def test_a_stack_adds_a_partition_encode_and_its_rewinder(system, slab, cls, kwa
 
 
 def test_a_projection_readout_has_no_partition_to_encode(system, excitation):
-    """Dropping the argument would leave a 2D acquisition wearing a 3D protocol."""
+    """Ignoring ``fov_z`` and ``matrix_z`` would run a 2D acquisition under a 3D protocol."""
     with pytest.raises(ValueError, match="encodes no partition axis"):
         _readout(
             design.RadialProjectionReadout, system, excitation, fov_z=0.12, matrix_z=32
@@ -372,13 +372,8 @@ def test_a_rewound_shot_ends_where_it_started(system, excitation):
     ],
 )
 def test_every_echo_of_a_train_traverses_the_same_path(system, excitation, cls, kwargs):
-    """An echo train is one trajectory read at several echo times.
-
-    Replaying an arm re-enters k where the last one left it, so a family whose
-    path does not come back has to be brought back between echoes: what the
-    reconstruction grids is one trajectory, and a second echo that reached
-    twice as far would be a different scan, not a later one.
-    """
+    """Replaying an arm re-enters k where the last one left it, so a family
+    whose path does not return to the centre is brought back between echoes."""
     n_echoes = 3
     readout = _readout(cls, system, excitation, n_echoes=n_echoes, **kwargs)
     seq = pp.Sequence(system)
@@ -527,9 +522,8 @@ def test_the_bridges_of_two_axes_obey_the_vector_slew_limit(
 ):
     """Two axes solved separately against the full limit combine past it.
 
-    Per axis nothing is wrong, so no per-axis check reports it -- but the
-    scanner limit is on the vector, and a rotation makes the point visible by
-    mixing the combined slew onto a single axis.
+    No per-axis check sees this; the scanner limit is on the vector, and a
+    rotation mixes the combined slew onto a single axis.
     """
     readout = _readout(
         design.SpiralReadout2D,
@@ -603,13 +597,9 @@ def _first_line(module):
     ids=["radial", "spiral"],
 )
 def test_a_lower_bandwidth_really_lowers_the_bandwidth(system, excitation, cls, kwargs):
-    """The knob has to move something, or it is not a knob.
-
-    A spiral cannot simply sample more slowly along a time-optimal arm --
-    adjacent samples would land further than 1 / fov apart -- so the arm is
-    stretched until the requested dwell is legal. That is the cost, and it is
-    the caller's to accept.
-    """
+    """A spiral cannot sample a time-optimal arm more slowly -- adjacent
+    samples would land further than 1 / fov apart -- so the arm is stretched
+    until the requested dwell is legal."""
     fast = _readout(cls, system, excitation, readout_bandwidth_hz=250e3, **kwargs)
     slow = _readout(cls, system, excitation, readout_bandwidth_hz=62.5e3, **kwargs)
 

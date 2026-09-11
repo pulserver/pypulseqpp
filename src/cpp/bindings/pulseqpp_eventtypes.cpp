@@ -843,7 +843,8 @@ namespace pulseqpp_types
         /** PyPulseq's `eps`: below it a waveform counts as zero. */
         constexpr double upstream_eps = 1e-9;
 
-        /** Raise upstream's ValueError if a scaled peak or slew is over the limit. */
+        /** Set upstream's ValueError and return false if the scaled peak or
+         *  slew exceeds its limit; the peak is checked first. */
         bool within_limits(double peak, double slew, double max_grad, double max_slew)
         {
             char message[96];
@@ -871,10 +872,12 @@ namespace pulseqpp_types
         }
 
         /**
-         * The steepest step of a gradient's normalised shape, per second.
+         * Steepest slope of a gradient's normalised shape, in 1/s; times the
+         * amplitude it is the peak slew.
          *
-         * Taken between consecutive samples, as upstream takes it: the ramps
-         * from zero to `first` and from `last` back are not counted.
+         * Taken between consecutive samples on the event's time grid, as
+         * upstream takes it: the ramps from zero to `first` and from `last`
+         * back are not counted.
          */
         double grad_shape_slew(const GradEvent& g)
         {
@@ -901,10 +904,13 @@ namespace pulseqpp_types
         /**
          * Scale an unpacked gradient while retaining its normalised shape registration.
          *
-         * `_scale_grad(grad, scale[, max_grad, max_slew])`. Given the limits,
-         * the scaled copy is checked against them as upstream's `system`
-         * check does: the peak is the amplitude, the shape being normalised
-         * to it, so only the slew walks the samples.
+         * `_scale_grad(grad, scale[, max_grad, max_slew])`, limits in the
+         * event's units (Hz/m, Hz/m/s). Given the limits, the scaled peak and
+         * slew are checked as upstream's `system` check does, and a violation
+         * raises its ValueError before any copy is made. The peak is the
+         * scaled amplitude, the stored shape having unit peak. A trapezoid's
+         * slew is peak over its shorter ramp, so a nonzero trapezoid with a
+         * zero-length ramp always fails.
          *
          * Clear the compatibility row id, which refers to the unscaled event.
          * METH_FASTCALL avoids allocating an argument tuple on this hot path.

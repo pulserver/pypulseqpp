@@ -31,14 +31,14 @@ _SPOILING_POSITIONS = ("pre", "post")
 class _LineReadout(SequenceModule):
     """Cartesian line readout from the supplied RF event to the end of TR.
 
-    An excitation produces a gradient echo; a refocusing event represents
-    the readout half of a spin echo. Phase-encode templates require per-shot
-    scaling.
+    An excitation gives a gradient echo; a refocusing pulse gives the readout
+    half of a spin echo. Phase encodes are templates at their largest step,
+    for the loop to scale per shot.
 
-    Zero spoiling balances the gradients. Positive spoiling after acquisition
-    selects SSFP-FID; pre-acquisition spoiling selects SSFP-Echo. In the latter
-    case the FID trajectory reported by calculate_kspace need not cross k=0;
-    echo_time still describes the timing interval.
+    Zero spoiling balances every axis. Positive spoiling after the acquisition
+    gives SSFP-FID, before it SSFP-Echo. In the latter case the FID trajectory
+    reported by ``calculate_kspace`` need not cross k = 0; ``echo_time`` is
+    still the timing interval.
 
     Attributes
     ----------
@@ -50,12 +50,16 @@ class _LineReadout(SequenceModule):
         Its rephaser, if one was given, left-aligned in whichever block follows
         the pulse.
     gx_pre : GradEvent
-        Readout prephaser, right-aligned in the prewinder block.
+        Readout prephaser, right-aligned in the prewinder block. Carries the
+        spoiler under ``spoiling_position='pre'``.
     gx : GradEvent
-        Readout lobe.
+        Readout lobe. A spoiler is bridged onto it when there is one echo: the
+        lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or
+        ``gx_spoil`` plays instead.
     gx_spoil : GradEvent
-        The lobe that closes the TR on the readout axis: a pure rewinder when
-        ``spoiling_cycles`` is zero, a bridged spoiler otherwise.
+        Closes the TR on the read axis: rewinds the part of the line after the
+        echo and, under ``spoiling_position='post'``, adds the spoiler.
+        Left-aligned with ``gy_rew``.
     gy_pre, gz_pre : TrapEvent
         Phase encodes at their largest step, to be scaled per shot. ``gz_pre``
         is 3D only.
@@ -65,13 +69,27 @@ class _LineReadout(SequenceModule):
         Rewinder played between echoes of a monopolar train.
     gx_rev : GradEvent
         The negated lobe that reads the even echoes of a bipolar train.
+    gy_wave, gz_wave : GradEvent
+        The wave corkscrew under the flat top, each self-balanced so scaling
+        one to zero changes nothing else. Only the channels ``wave`` drives.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``, in order. Absent when ``labels`` is empty,
         and a bare event rather than a list when there is one.
-    wait_te, wait_tr : DelayEvent
-        Present only when a TE or TR longer than the minimum was asked for.
+    wait_te : DelayEvent
+        Present only when a TE longer than the minimum was asked for and the
+        wait can hold ``gz_reph``; otherwise the prewinder block starts later.
+    wait_tr : DelayEvent
+        Present only when a TR longer than the minimum was asked for.
+    echo_time : float
+        From the RF isodelay to the first echo (s), on the block raster.
+    center_sample : int
+        Index of the sample at the echo; partial echo moves it toward the
+        start.
+    wave_amplitude : float
+        Peak wave gradient achieved (T/m), below the requested one where the
+        slew rate binds; zero without ``wave``.
 
     Parameters
     ----------
@@ -83,12 +101,10 @@ class _LineReadout(SequenceModule):
         A selection gradient played in the same block as ``rf``. Pass an
         excitation's ``gz``, or nothing for a hard pulse.
     gz_reph : GradEvent, optional
-        The rephaser that unwinds ``gz``. Pass a 2D excitation's ``gz_reph``
-        and the readout carries it, left-aligned in the first block after the
-        pulse so it runs straight off the selection lobe: the TE wait when
-        there is one, the prewinder block otherwise. A slab excitation
-        (``is_slab=True``) has already merged it into ``gz`` and passes
-        nothing.
+        The rephaser that unwinds ``gz``, left-aligned in the first block
+        after the pulse: the TE wait when there is one, the prewinder block
+        otherwise. A slab excitation (``is_slab=True``) has already merged it
+        into ``gz`` and passes nothing.
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
@@ -104,9 +120,8 @@ class _LineReadout(SequenceModule):
         Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the
         samples *before* the echo, so it shortens TE.
     oversampling : float, optional
-        Readout oversampling. Densifies the sampling -- ``delta_kx`` shrinks
-        and the sampled field of view grows -- while the k-space width, and so
-        the resolution, is fixed by ``fov`` and ``matrix`` alone.
+        Readout oversampling: ``delta_kx`` shrinks and the sampled field of
+        view grows, while resolution is fixed by ``fov`` and ``matrix``.
     readout_bandwidth_hz : float, optional
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved rate, subject to both ADC and gradient raster constraints.
@@ -125,6 +140,14 @@ class _LineReadout(SequenceModule):
         the same direction (monopolar, the default), or alternate the readout
         sign (bipolar), which is faster but reads even echoes backwards and
         puts any gradient-delay error into a phase difference between them.
+    wave : {'phase', 'partition', 'both'}, optional
+        Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
+        on z, or both. 3D only.
+    wave_cycles : int, optional
+        Wave periods across the sampling window.
+    wave_amplitude : float, optional
+        Requested peak wave gradient (T/m). A ceiling: the slew rate may
+        lower it, and ``wave_amplitude`` on the module reports what was built.
     labels : sequence of str, optional
         Counters emitted on the acquisition block. The loop writes the values.
     trigger : event, optional
@@ -133,8 +156,9 @@ class _LineReadout(SequenceModule):
     Raises
     ------
     ValueError
-        If a count or a fraction is out of range, or the requested TE or TR is
-        shorter than the module can achieve.
+        If a count or a fraction is out of range, ``wave`` is set on a 2D
+        readout, ``gz_reph`` shares a channel with an encoded axis, or the
+        requested TE or TR is shorter than the module can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped line readouts.

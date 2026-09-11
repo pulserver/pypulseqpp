@@ -14,20 +14,14 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: SLR design of the selective pulse, held here rather than left at the
-#: module's default so a script can retune the excitation without touching the
-#: loop. The selection amplitude follows as
-#: ``time_bw_product / (duration * thickness)``, which is also what a slice
-#: offset is converted against.
+#: Duration (s) and time-bandwidth product of the SLR excitation. The
+#: selection amplitude, ``time_bw_product / (duration * thickness)``, also
+#: converts a slice offset into a frequency offset.
 PULSE_DURATION = 3e-3
 TIME_BW_PRODUCT = 4.0
 
-#: Ceilings on the gradient and slew limits, in mT/m and T/m/s. The sequence
-#: is held below the smaller of these and what the scanner reports, so
-#: lowering them here reruns the whole script under gentler gradients -- for
-#: nerve-stimulation headroom, acoustic comfort, eddy currents -- without
-#: touching anything else. They sit above typical hardware, so they cap
-#: nothing until you lower them.
+#: Ceilings on gradient amplitude (mT/m) and slew rate (T/m/s). The sequence
+#: uses the smaller of these and the limits of the system it is given.
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
 
@@ -56,10 +50,10 @@ def main(
     partial_fourier: float = 1.0,
     acceleration: int = 1,
     n_acs: int = 24,
-    # Restore with pp.tile, which repeats the block table: the averages are
-    # written out rather than left to the interpreter's repeat count, so every
-    # acquisition carries the AVG it belongs to and the dummies -- marked ONCE
-    # -- appear in the first average only.
+    # Restore with block-table tiling, which is deferred. The averages are
+    # then written out rather than left to the interpreter's repeat count, so
+    # every acquisition carries its AVG and the dummies, marked ONCE, appear
+    # in the first average only.
     # n_averages: int = 1,
     n_dummy: int = 16,
     rf_spoiling_increment_deg: float = 117.0,
@@ -67,9 +61,8 @@ def main(
 ) -> pp.Sequence:
     """Build an RF-spoiled, multi-slice 2D Cartesian gradient echo.
 
-    Calibration lines precede imaging lines. Partial Fourier truncates phase
-    encoding; partial echo truncates the pre-echo samples. Slices are divided
-    into passes when they do not all fit within the requested TR.
+    The autocalibration lines are acquired first, then the remaining lines.
+    Slices are divided into passes when they do not all fit within one TR.
 
     Parameters
     ----------
@@ -80,12 +73,11 @@ def main(
     write_seq : bool, optional
         Write the sequence to a .seq file.
     seq_filename : str, optional
-        Where to write it.
+        Path of the .seq file.
     system : pypulseqpp.Opts, optional
         System limits.
     fov : float or tuple of float, optional
-        In-plane field of view, in metres; one value for both axes, or
-        ``(fov_x, fov_y)``.
+        In-plane field of view (m), one value or ``(fov_x, fov_y)``.
     n_x : int, optional
         Readout samples.
     n_y : int, optional
@@ -93,47 +85,39 @@ def main(
     n_slices : int, optional
         Number of slices.
     slice_thickness : float, optional
-        Slice thickness, in metres.
+        Slice thickness (m).
     slice_gap : float, optional
-        Gap between adjacent slices, in metres.
+        Gap between adjacent slices (m).
     slice_order : str, optional
-        Order the slices of one pass are excited in, as
-        :func:`pypulseqpp.calc_traversal_order` accepts.
+        Order in which the slices of one pass are excited.
+        Any order :func:`pypulseqpp.calc_traversal_order` accepts.
     flip_angle_deg : float, optional
         Excitation flip angle, in degrees.
     te : float or None, optional
-        Echo time, in seconds. ``None`` is as short as the readout admits.
+        Echo time (s); None is as short as the readout admits.
     tr : float or None, optional
-        Repetition time, in seconds, between successive excitations of one
-        slice. ``None`` is as short as possible, and puts every slice in one
-        pass.
+        Repetition time (s) between excitations of the same slice.
+        ``None`` is as short as possible and puts every slice in one pass.
     readout_bandwidth_hz : float, optional
-        Requested receiver bandwidth, in Hz. What was achieved is on the
-        readout module's ``bandwidth_hz``, and is generally lower.
+        Requested receiver bandwidth (Hz).
+        The achieved one is the readout module's ``bandwidth_hz``.
     partial_echo : float, optional
-        Fraction of the echo acquired, in (0.5, 1]. Truncates the samples
-        before the echo, which shortens the minimum TE.
+        Fraction of the echo acquired, in (0.5, 1].
+        Drops samples before the echo, which shortens the minimum TE.
     partial_fourier : float, optional
-        Fraction of the phase-encode extent acquired, in (0.5, 1]. Truncates
-        the lines before the centre, which shortens the scan.
+        Fraction of the phase-encode extent acquired, in (0.5, 1].
+        Drops lines before the centre of k-space.
     acceleration : int, optional
         Uniform phase-encode undersampling factor.
     n_acs : int, optional
-        Fully sampled autocalibration lines at the centre of k-space,
-        acquired ahead of the rest of the scan.
+        Fully sampled autocalibration lines at the centre of k-space.
     n_dummy : int, optional
-        Non-acquiring repetitions before the first line of each pass,
-        including calibration. These allow the RF-spoiled transient to settle.
+        Repetitions played without acquisition before each pass.
+        They bring the RF-spoiled signal to steady state.
     rf_spoiling_increment_deg : float, optional
-        Quadratic RF spoiling phase increment, in degrees.
+        Quadratic RF spoiling phase increment (degrees).
     spoiling_cycles : float, optional
-        Cycles of dephasing left on the readout axis at the end of each
-        repetition, counted across one voxel.
-
-    Returns
-    -------
-    pypulseqpp.Sequence
-        The sequence.
+        Readout-axis dephasing at the end of each TR, in cycles per voxel.
 
     Examples
     --------
@@ -147,8 +131,7 @@ def main(
     >>> seq.check_timing()[0]
     True
 
-    The prescription is written into the file, so what reads it back does not
-    have to be told the geometry again:
+    The prescription is stored in the definitions:
 
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
     ([32.0, 16.0, 1.0], 'gre_2d')
@@ -156,9 +139,8 @@ def main(
     system = pp.Opts() if system is None else system
     system = pp.cap_system(system, max_grad=MAX_GRAD, max_slew=MAX_SLEW)
 
-    # Designing the repetitions is also what checks that TE, TR and the rest
-    # can be had: a TE shorter than one repetition admits makes the readout
-    # module raise, so there is no second timing path to drift out of step.
+    # Designing the repetitions is also the feasibility check: an unreachable
+    # TE or TR raises there, so there is no second timing path.
     kernel = GREKernel(
         system,
         fov=fov,
@@ -308,9 +290,8 @@ def main(
         value=slice_thickness + slice_gap - kernel.excitation.slice_thickness,
     )
 
-    # Last, because it multiplies the block table. Restore with pp.tile:
-    #
-    #     seq = pp.tile(seq, n_averages, in_place=True)
+    # Averages belong here, last, because repeating the block table
+    # multiplies it; see the n_averages note on the signature.
 
     if test_report:
         print(seq.test_report())
@@ -346,15 +327,15 @@ def GREKernel(
     partial_fourier: float = 1.0,
     acceleration: int = 1,
     n_acs: int = 24,
-    # n_averages: int = 1,  # restore with pp.tile; see main
+    # n_averages: int = 1,  # see main
     n_dummy: int = 16,
     spoiling_cycles: float = 4.0,
 ) -> SimpleNamespace:
     """Design GRE event templates and the sampling plan.
 
-    An infeasible TE raises ValueError. Slices that do not fit in one TR are
-    distributed round-robin into passes; each pass uses a per-slice interval
-    of TR divided by its slice count.
+    Slices that do not fit in one TR are dealt round-robin into passes. Each
+    pass lasts one TR: its slices play back to back at the shortest shot,
+    and the closing delay of the last one (``pads``) takes up the rest.
 
     Parameters
     ----------
@@ -366,11 +347,16 @@ def GREKernel(
     Returns
     -------
     types.SimpleNamespace
-        ``excitation``, ``readout``, ``pads`` (the closing delay per pass
-        size), ``passes`` (slice indices per pass, in excitation order),
-        ``fov``, ``sampled_lines``,
-        ``n_calibration`` (how many of them lead the traversal),
-        ``echo_time``, ``repetition_time``, ``bandwidth_hz`` and ``duration``.
+        ``excitation``, ``readout``, ``pads`` (the last shot's closing delay
+        (s), per pass size), ``passes`` (slice indices per pass, in excitation
+        order), ``fov``, ``sampled_lines``, ``n_calibration`` (how many of
+        them lead the traversal), ``echo_time`` and ``repetition_time`` (s),
+        ``bandwidth_hz`` and ``duration`` (s, the whole scan).
+
+    Raises
+    ------
+    ValueError
+        If the TE is unreachable or the TR is shorter than a pass.
     """
     fov_x, fov_y = (fov, fov) if isinstance(fov, (int, float)) else fov
 
@@ -416,14 +402,11 @@ def GREKernel(
         if group
     ]
 
-    # One readout, at its shortest, whatever a pass holds. What differs
-    # between a pass of 18 slices and one of 17 is then a *duration* and not a
-    # definition: every shot closes with a pure delay, one raster on each
-    # slice and, on the last of a pass, whatever is left of the repetition
-    # time. A pure delay is one definition however long it waits, so the block
-    # stream reads as one shot repeating whatever the slices divide into --
-    # which is what lets the repeating unit be found at the first block rather
-    # than after the odd pass.
+    # One readout at its shortest, whatever a pass holds. Every shot closes
+    # with a pure delay: one raster on each slice and, on the last of a pass,
+    # the rest of the TR. Passes of different sizes then differ only in a
+    # delay's duration, not in block definitions, so the block stream repeats
+    # one shot from the first block.
     raster = system.block_duration_raster
     shot_span = shortest.duration + raster
     cycle = tr if tr is not None else max(len(g) for g in passes) * shot_span
@@ -452,13 +435,8 @@ def GREKernel(
         pp.calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
     )
 
-    # One repetition per acquired line per slice, plus the dummies that bring
-    # each pass to steady state; the readout has already padded itself to the
-    # per-slice TR, so a pass is simply their sum.
-    # Every pass lasts one repetition time by construction, so the scan is
-    # one per line per pass, dummies included.
-    # With averages: n_dummy * pass_time + n_averages * len(sampled_lines) *
-    # pass_time -- they repeat the body and not the dummies.
+    # Every line and every dummy repetition plays each pass once. Averages
+    # would repeat the lines but not the dummies.
     pass_time = sum(len(g) * shot_span + pads[len(g)] for g in passes)
     duration = (n_dummy + len(sampled_lines)) * pass_time
 

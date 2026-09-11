@@ -1,8 +1,8 @@
-"""The compiled Bloch simulation, held to the step-by-step algorithms it replaces.
+"""The compiled Bloch kernel against step-by-step NumPy transcriptions.
 
-``sim_bloch`` is held to a rotation of the magnetisation about each step's
-field, and ``sim_rf`` to the quaternion composition MATLAB Pulseq's ``simRf``
-performs, both written out here in NumPy.
+``sim_bloch`` is compared with a Rodrigues rotation about each step's field,
+and ``sim_rf`` with the quaternion composition MATLAB Pulseq's ``simRf``
+performs.
 """
 
 from __future__ import annotations

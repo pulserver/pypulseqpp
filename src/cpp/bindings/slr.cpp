@@ -1,7 +1,7 @@
 // Shinnar-Le Roux design kernels. The root-flip search follows SigPy's
 // `sigpy.mri.rf.slr.root_flip` (BSD 3-Clause; see
-// LICENSES/SigPy-BSD-3-Clause.txt), and each candidate pulse goes through
-// the inverse transform `pypulseqpp._slr` uses, step for step.
+// LICENSES/SigPy-BSD-3-Clause.txt). Each candidate is built and inverted as
+// `pypulseqpp._slr._flipped_pulse` does, step for step.
 #include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -27,11 +27,10 @@ namespace
 
     constexpr double kPi = 3.14159265358979323846;
 
-    /// Beyond this many flippable roots the search is more pulses than fit a
-    /// 64-bit pattern count with room to spare.
+    /// Most flippable roots accepted; the search tries all 2^count patterns.
     constexpr std::size_t kMaxCandidates = 30;
 
-    /// Radix-2 FFT of one fixed size, with NumPy's sign and scaling.
+    /// Radix-2 FFT of one fixed power-of-two size, with NumPy's sign and scaling.
     class Fft
     {
     public:
@@ -109,7 +108,7 @@ namespace
         std::vector<Complex> twiddle_;
     };
 
-    /// What one thread evaluates candidate pulses in.
+    /// Per-thread scratch; `roots` is rewritten for each pattern tried.
     struct Workspace
     {
         Workspace(std::size_t n, std::size_t padded, const std::vector<Complex>& roots)
@@ -141,8 +140,9 @@ namespace
         }
     }
 
-    /// Peak |rf| of the pulse whose beta has `w.roots` and a peak |beta| of
-    /// `target` over the spectrum.
+    /// Peak |rf|, in rad per sample, of the pulse whose beta has `w.roots`
+    /// scaled to a peak |beta| of `target` over the spectrum. Overwrites the
+    /// other buffers of `w`.
     double pulse_peak(double target, const Fft& fft, Workspace& w)
     {
         const std::size_t n = w.beta.size();
@@ -219,7 +219,8 @@ namespace
         std::uint64_t pattern = 0;
     };
 
-    /// The lowest-peak pattern among `first, first + stride, ...`.
+    /// The lowest-peak pattern among `first, first + stride, ...`; bit j flips
+    /// root `candidates[j]`, and ties keep the lower pattern.
     Best search(const std::vector<Complex>& roots,
                 const std::vector<std::size_t>& candidates,
                 double target,
@@ -346,9 +347,10 @@ void pypulseqpp_bind_slr(py::module_& module)
         py::arg("threads") = 0,
         R"doc(Find which roots of an SLR beta polynomial to flip for the lowest peak RF.
 
-Every subset of the flippable roots is tried: each flipped root r becomes
-1/conj(r), which leaves |beta| on the unit circle -- the slice profile -- as
-it was and changes only the phase, and so how the energy spreads in time.
+Every subset of the flippable roots is tried. Flipping root r to 1/conj(r)
+keeps the shape of |beta| on the unit circle (the slice profile) and changes
+only its phase, and so how the pulse's energy spreads in time. Among equal
+peaks the lowest bit pattern wins, so the result does not depend on threads.
 
 Parameters
 ----------

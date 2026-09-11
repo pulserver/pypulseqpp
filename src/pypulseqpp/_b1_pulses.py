@@ -31,9 +31,10 @@ from ._slr import (
     design_b1_selective,
 )
 
-#: Filter samples per period of the highest frequency a B1-selective sweep
-#: carries: enough for the hard-pulse steps of the tilted-frame design to
-#: stay small, far fewer than the RF raster would take.
+#: Filter samples per period of ``centre + width`` in Hz, the highest frequency
+#: a B1-selective design carries. The filter step is the largest multiple of
+#: the RF dwell that meets it, or the dwell itself if none does: small enough
+#: for the tilted-frame hard-pulse steps, far fewer samples than the raster.
 _SAMPLES_PER_PERIOD = 32
 
 
@@ -53,7 +54,12 @@ def _b1_selective(
     system,
     use,
 ):
-    """Play the B1-selective pulse whose filter ``beta_of(n, d1, d2)`` returns."""
+    """Play the B1-selective pulse whose filter ``beta_of(n, d1, d2)`` returns.
+
+    The filter, scaled by ``flip_angle``, is designed on the coarse step
+    ``_SAMPLES_PER_PERIOD`` sets and its sweep interpolated onto ``dwell``.
+    ``pulse_type`` only maps the ripples; the scale it also returns is unused.
+    """
     system = default_system(system)
     dwell = dwell or system.rf_raster_time
     if not 0 < passband_width < 2 * passband_center:
@@ -124,6 +130,9 @@ def make_b1_selective_pulse(
     passband_center, passband_width : float, optional
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
+        the flip is ``flip_angle``.
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
@@ -132,13 +141,13 @@ def make_b1_selective_pulse(
 
     Returns
     -------
-    SimpleNamespace
+    RfEvent
         The pulse.
 
     Raises
     ------
     ValueError
-        If the passband reaches zero B1.
+        If ``passband_width`` is not positive or the passband reaches zero B1.
     """
     return _b1_selective(
         lambda n, d1, d2: _least_squares(n, time_bw_product, d1, d2),
@@ -190,6 +199,9 @@ def make_b1_gslider_pulse(
     passband_center, passband_width : float, optional
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
+        the flip is ``flip_angle``.
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
@@ -198,14 +210,14 @@ def make_b1_gslider_pulse(
 
     Returns
     -------
-    SimpleNamespace
+    RfEvent
         The pulse.
 
     Raises
     ------
     ValueError
-        If the passband reaches zero B1, or the sub-bands are narrower than
-        their transitions.
+        If ``subslice`` is out of range, the passband reaches zero B1, or the
+        sub-bands are no wider than their transitions.
     """
     g = int(num_subslices)
     if g < 1 or not 0 <= subslice < g:
@@ -256,8 +268,9 @@ def make_b1_hadamard_pulse(
 ):
     """Design a B1-selective pulse whose sub-bands of B1 a Hadamard row signs.
 
-    The B1 counterpart of :func:`make_hadamard_pulse`: sub-bands are counted
-    from the lowest B1, and row 0 is the plain band.
+    The B1 counterpart of :func:`make_hadamard_pulse`: rows are those of
+    ``scipy.linalg.hadamard(order)``, sub-bands are counted from the lowest
+    B1, and row 0 is the plain band.
 
     Parameters
     ----------
@@ -266,6 +279,9 @@ def make_b1_hadamard_pulse(
     passband_center, passband_width : float, optional
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
+        the flip is ``flip_angle``.
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
@@ -274,14 +290,15 @@ def make_b1_hadamard_pulse(
 
     Returns
     -------
-    SimpleNamespace
+    RfEvent
         The pulse.
 
     Raises
     ------
     ValueError
-        If ``order`` is not a power of two, ``row`` is out of range, or the
-        passband reaches zero B1.
+        If ``order`` is not a power of two, ``row`` is out of range, the
+        passband reaches zero B1, or the sub-bands are no wider than their
+        transitions.
     """
     if order < 1 or order & (order - 1):
         raise ValueError(f"order must be a power of two, got {order}")
@@ -323,11 +340,12 @@ def make_bloch_siegert_pulse(
 ):
     """Design an adiabatic Bloch-Siegert encoding pulse.
 
-    Constant amplitude, swept in a U from far off resonance towards it and
-    back, so on-resonant magnetisation is carried along adiabatically and
-    left with a phase proportional to the square of its B1 (Khalighi, Rutt
-    and Kerr, Magn Reson Med 70:829, 2013). Playing the sweep on either side
-    of resonance and differencing the phases maps B1.
+    Constant amplitude, its frequency swept from far off resonance towards
+    it and back, symmetric about the centre. Longitudinal magnetisation stays
+    along z; transverse magnetisation gains a phase proportional to the
+    square of its B1 (Khalighi, Rutt and Kerr, Magn Reson Med 70:829, 2013).
+    Playing the sweep on either side of resonance and differencing the phases
+    maps B1. ``duration`` is rounded to an even number of RF samples.
 
     Parameters
     ----------
@@ -336,15 +354,16 @@ def make_bloch_siegert_pulse(
     duration : float
         In s.
     k : float, optional
-        Sweep shape: ``gamma B1 t / k`` must stay below one over half the
-        pulse, and a larger ``k`` keeps the sweep further from resonance.
+        Sweep shape: ``gamma B1 t / k``, with ``gamma B1`` in rad/s, must stay
+        below one over half the pulse; a larger ``k`` keeps the sweep further
+        from resonance.
     frequency_sign : {1, -1}, optional
         Which side of resonance the sweep runs on; the phase changes sign
         with it.
 
     Returns
     -------
-    SimpleNamespace
+    RfEvent
         The pulse.
 
     Raises

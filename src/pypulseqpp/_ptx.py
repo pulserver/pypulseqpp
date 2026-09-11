@@ -30,28 +30,30 @@ def make_ptx_pulse(
 ):
     """Make a dynamic pTx pulse from one waveform per transmit channel.
 
-    The channels are stored as Roos et al. store them (Magn Reson Med 2025,
-    doi:10.1002/mrm.30601): one after another in a single arbitrary RF event,
-    each over the same time base, so the time shape restarts once per channel.
-    An interpreter that knows the layout splits the pulse back into channels;
-    one that does not still reads a pulse of the right duration.
+    The channels are stored one after another in a single arbitrary RF event
+    over a shared time base, so the time shape restarts once per channel
+    (Roos et al., Magn Reson Med 2025, doi:10.1002/mrm.30601). ``shape_dur``
+    is one channel's duration, so an interpreter unaware of the layout still
+    reads the right pulse length.
 
     Parameters
     ----------
     signal : array_like
         Complex waveforms, ``(num_channels, num_samples)``, in Hz. Played as
-        given: with several channels the flip depends on each channel's B1
-        map, so nothing is scaled to a flip angle.
+        given: nothing is scaled to a flip angle, since with several channels
+        the flip depends on each channel's B1 map.
+    dwell : float, optional
+        Sample spacing, in s; ``system.rf_raster_time`` when zero.
     center : float, optional
-        Centre of the pulse from its start, in s. Defaults to the middle of
+        Centre of the pulse from its start, in s. Defaults to the centre of
         the peak of the channel-summed magnitude.
 
     Other parameters are as in :func:`make_arbitrary_rf`.
 
     Returns
     -------
-    SimpleNamespace
-        The pulse, lasting ``num_samples * dwell``.
+    RfEvent
+        The pulse; ``shape_dur`` is ``num_samples * dwell``.
 
     Raises
     ------
@@ -94,8 +96,8 @@ def make_ptx_pulse(
         phase_ppm=phase_ppm,
         center=float(center),
     )
-    # The factory lays the samples on one time base end to end; each channel
-    # plays over the same one.
+    # The factory gives the flattened samples consecutive times; restart the
+    # time base for each channel.
     rf.t = np.tile(times, channels)
     rf.shape_dur = samples * dwell
     return _events.convert(rf)
@@ -111,7 +113,8 @@ def split_ptx_pulse(rf) -> np.ndarray:
     Raises
     ------
     ValueError
-        If the time shape is not one time base repeated once per channel.
+        If the time shape is not one time base repeated once per channel. The
+        native checks instead treat such a pulse as a single channel.
     """
     times = np.asarray(rf.t, dtype=float)
     signal = np.asarray(rf.signal)
@@ -142,31 +145,32 @@ def calc_rf_shim(
 ) -> np.ndarray:
     """Return per-channel weights whose combined B1 field has magnitude ``target``.
 
-    Magnitude least squares over ``mask``: the combined field's phase is left
-    free, and the fit starts from the channel combination that delivers the
-    most field there.
+    Magnitude least squares over ``mask``: the combined field
+    ``sum_c w[c] * b1_maps[c]`` has free phase. The fit starts from the channel
+    combination that delivers the most field over the mask.
 
     Parameters
     ----------
     b1_maps : array_like
-        Complex B1+ per channel, ``(num_channels, *grid)``, in any common unit.
+        Complex B1+ per channel, ``(num_channels, *grid)``, in any unit shared
+        by all channels.
     mask : array_like of bool, optional
-        Where the magnitude is fitted, shaped like the grid; everywhere any
-        channel reaches by default.
+        Where the magnitude is fitted, shaped like the grid. Defaults to every
+        point where any map is non-zero.
     target : float or array_like, optional
         Magnitude wanted, in the unit of ``b1_maps``: a scalar or one value per
         grid point.
     regularization : float, optional
-        Tikhonov weight on the drive's power.
+        Tikhonov weight on ``sum |w|^2``.
     tolerance : float, optional
         Relative change of the cost at which the fit stops.
     rounds : int, optional
-        Most phase exchanges to make.
+        Maximum number of phase exchanges.
 
     Returns
     -------
     numpy.ndarray
-        ``(num_channels,)`` complex weights, for :func:`make_rf_shim`.
+        ``(num_channels,)`` complex weights, as :func:`make_rf_shim` takes them.
 
     Raises
     ------
@@ -203,7 +207,12 @@ def _selective_waveforms(
     regularization,
     dwell,
 ):
-    """Per-channel waveforms, in Hz, matching ``target`` on the RF-on samples."""
+    """Return ``(num_channels, samples)`` waveforms, in Hz, for a small-tip target.
+
+    ``target`` is the transverse magnetisation wanted at ``coordinates`` (m),
+    in rad; ``kspace`` is the gradient moment still to come after each sample,
+    in cycles/m. Only samples in ``active`` are designed; the rest are zero.
+    """
     from ._ext import ptx
 
     maps = np.asarray(b1_maps, dtype=np.complex128)
@@ -256,10 +265,10 @@ def make_spokes_pulse(
     """Design a spokes pTx pulse: one slice excited at several in-plane k positions.
 
     Each spoke is a small-tip SLR sub-pulse on one lobe of an alternating
-    slice gradient, with in-plane blips between lobes moving it through
-    excitation k-space. The positions are chosen greedily from a grid and each
-    channel's weight on each spoke by magnitude least squares, so the in-plane
-    flip is as uniform as ``b1_maps`` allow (Grissom et al., Magn Reson Med
+    slice gradient; in-plane blips between lobes move it through excitation
+    k-space. Spoke positions are chosen greedily from a grid, and each
+    channel's weight on each spoke by magnitude least squares against a
+    uniform ``flip_angle`` over the mask (Grissom et al., Magn Reson Med
     68:1553, 2012).
 
     Parameters
@@ -268,37 +277,38 @@ def make_spokes_pulse(
         Flip wanted over the mask, in rad, in the small-tip model.
     b1_maps : array_like
         Complex B1+ per channel in the slice, ``(num_channels, nx, ny)``,
-        relative: ones is a channel reaching every point at nominal amplitude.
+        relative: a map of ones reaches every point at nominal amplitude.
     fov : float or (float, float)
         In-plane extent the maps cover, in m, centred on the isocentre.
     slice_thickness : float
         In m.
     n_spokes : int, optional
-        Spokes, the first of them at the k-space centre.
+        Number of spokes, one of them at the k-space centre.
     mask : array_like of bool, optional
         Where the flip is fitted, ``(nx, ny)``; everywhere by default.
     resolution : float, optional
         Finest in-plane scale the spokes may encode, in m: candidate positions
         span ``1 / resolution`` at a pitch of ``1 / fov``. An eighth of the
-        field of view by default.
+        smaller field of view by default.
     time_bw_product : float, optional
         Of each spoke's slice profile.
     regularization : float, optional
         Tikhonov weight on the spoke weights.
     axes : (str, str, str), optional
-        The in-plane gradient channels, then the slice-select one.
+        The two in-plane gradient channels, then the slice-select one.
     delay : float, optional
-        Delay before the pulse and its gradients, in s.
+        Delay before the pulse and its gradients, in s; raised to
+        ``system.rf_dead_time`` and rounded up to the gradient raster.
 
     Returns
     -------
-    rf : SimpleNamespace
+    rf : RfEvent
         A pTx pulse, one waveform per channel (see :func:`make_ptx_pulse`).
-    gradients : tuple of SimpleNamespace
-        The slice lobes and the in-plane blips, for the pulse's block.
-    rephasers : tuple of SimpleNamespace
-        The slice rephaser and the in-plane return to the k-space centre, for
-        the block after.
+    gradients : tuple of GradEvent
+        The slice lobes, then the in-plane blips, for the pulse's block.
+    rephasers : tuple of TrapEvent
+        The in-plane return to the k-space centre, then the slice rephaser,
+        for the block after.
 
     Raises
     ------

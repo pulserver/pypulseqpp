@@ -34,47 +34,47 @@ class T2Preparation(RfModule):
         Adiabatic refocusing pulses, spread evenly through the echo time. Must
         be even; see above.
     half_passage_duration_s : float, optional
-        Duration of each 90 (s).
+        Duration of each half passage (s).
     refocusing_duration_s : float, optional
-        Duration of each 180 (s).
+        Duration of each refocusing pulse (s).
     adiabaticity : int, optional
         Sweep-rate margin over the adiabatic condition, for every pulse.
     dwell_s : float, optional
         RF raster (s).
     spoiling_cycles : float, optional
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-        Zero leaves the module unspoiled, which is only right if something
-        downstream spoils.
+        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``
+        on each axis. Zero omits the spoiler block.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
     labels : sequence of str, optional
-        Counters emitted on the first pulse's block.
+        Counters set to 0 on the first pulse's block.
 
     Attributes
     ----------
     rf_prep : RfEvent
         The half passage that tips down.
     rf_ref : RfEvent
-        The refocusing pulse, published once because every repeat plays the
-        same event.
+        The refocusing pulse; every repeat plays this one event.
     rf_store : RfEvent
         The reverse half passage that stores what is left.
     wait_te : DelayEvent
-        The gap around each refocusing pulse. Absent when the pulses already
-        fill the echo time.
+        The last gap created between the pulses: the one before ``rf_store``
+        unless that gap is zero. The first and inner gaps are separate events
+        of other durations and are not published. Absent when every gap is
+        zero.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         The closing spoiler.
     prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``.
     echo_time : float
-        The preparation echo time achieved (s).
+        The preparation echo time achieved on the block raster (s).
 
     Raises
     ------
     ValueError
-        If ``final_tip`` is not a pole, ``n_refocus`` is not a positive even
-        number, a size is out of range, or the echo time is shorter than the
-        pulses themselves.
+        If ``final_tip`` is not ``'up'`` or ``'down'``, ``n_refocus`` is not a
+        positive even number, a size is out of range, or the echo time is
+        shorter than the pulses themselves.
 
     Examples
     --------
@@ -200,8 +200,9 @@ class T2Preparation(RfModule):
 class T1T2Preparation(T2Preparation):
     """T2 preparation with storage on -z to initiate T1 recovery.
 
-    Accepts T2Preparation parameters except final_tip, which is fixed.
-    The acquisition loop supplies the recovery interval.
+    Accepts the :class:`T2Preparation` parameters except ``final_tip``, which
+    is fixed to ``'down'``; passing it raises ``ValueError``. The acquisition
+    loop supplies the recovery interval.
 
     Examples
     --------

@@ -69,8 +69,11 @@ for installation and checks. Build the local Markdown/Sphinx documentation with:
 
 ```bash
 pip install -e '.[doc]'
-make -C docs html
+bash scripts/build_docs.sh
 ```
+
+The script compiles the checkout into `docs/build/site` and generates the pages
+from that build.
 
 Open `docs/build/html/index.html`. The API reference is populated; the user
 guide, developer guide and examples sections are scaffolds.

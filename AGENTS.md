@@ -57,7 +57,7 @@ script rewrites files when called without `--check`.
 For documentation changes, also run:
 
 ```bash
-sphinx-build -W --keep-going -b html docs docs/build/html
+bash scripts/build_docs.sh
 ```
 
 The development extra includes documentation dependencies. Do not add a new
