@@ -174,8 +174,17 @@ individual range and state contracts.
 
 ## Examples and tests
 
-Example modules are callable through their `main` functions. The CLI derives
-flags from signatures and help text from NumPy-style Parameters sections.
+Each example module defines one `SequenceApp` subclass and exposes
+`main = <App>.main`, which builds and designs it; the module is callable as
+that `main`. `init_sequence` designs, `loop` plays the scan by calling
+`kernel` once per repetition, and `design()` wraps `loop` with a fresh
+sequence and `finalize`. Prescans listed by `prescans()` are written
+by `write()` as separate files linked through `NextSequence`, so each file
+stays one repeating unit. Settings a user does not prescribe are class
+attributes a subclass overrides; `MAX_GRAD` and `MAX_SLEW` have no default.
+Module-level helpers may stay in the script, but nothing may be imported from
+`examples/`. The CLI derives flags from `main`'s signature, which is
+`init_sequence`'s, and help text from its NumPy-style Parameters section.
 
 Editable package mappings can expose repository files that are not shipped.
 Before importing modules discovered by walking a package path, check their

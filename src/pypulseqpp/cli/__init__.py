@@ -231,6 +231,13 @@ def run(
     if "test_report" in signature.parameters:
         kwargs["test_report"] = args.report
 
+    # An application writes its own chain of linked files.
+    write_to = getattr(main, "write_to", None)
+    if write_to is not None:
+        for path in write_to(args.output, offline=not args.binary, **kwargs):
+            print(f"Wrote sequence: {path}")
+        return 0
+
     seq = main(**kwargs)
     write_sequence(seq, args.output, offline=not args.binary)
     print(f"Wrote sequence: {args.output}")

@@ -550,3 +550,22 @@ def test_a_train_with_no_phase_encode_keeps_its_echo_spacing(system, slice_, sel
         seq.add_block(fse.gx_bridge_post)
     assert seq.duration()[0] == pytest.approx(fse.duration, abs=1e-12)
     assert seq.check_timing()[0]
+
+
+def test_a_train_whose_encode_window_is_the_shortest_encode_still_builds():
+    """A short readout solves the encode window to the encode's own minimum."""
+    system = pp.Opts()
+    slab = design.SpatialSelectiveExcitation(system, 90.0, 0.128, is_slab=True)
+    refocusing = design.SpatialSelectiveRefocusing(system, 0.128)
+    fse = design.FseReadout3D(
+        system,
+        slab.rf,
+        slab.gz,
+        rf_ref=refocusing.rf_ref,
+        gz_ref=refocusing.gz,
+        fov=(0.22, 0.22, 0.128),
+        matrix=(32, 16, 8),
+        etl=4,
+    )
+
+    assert fse.seq.check_timing()[0]

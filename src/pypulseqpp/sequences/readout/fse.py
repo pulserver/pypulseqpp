@@ -467,15 +467,17 @@ def _encodes(
     """Phase encodes on y and z, multiplied by ``sign``.
 
     Always a pair, ``None`` standing in for the partition encode of a 2D train,
-    so the caller can unpack it either way.
+    so the caller can unpack it either way. A ``duration`` no longer than the
+    shortest encode keeps the shortest encode, which already fills it.
     """
-    encodes = [
-        pp.scale_grad(
-            pp.make_phase_encoding(axis, resolution, system=system, duration=duration),
-            sign,
-        )
-        for axis, resolution in zip("yz", resolutions, strict=False)
-    ]
+    encodes = []
+    for axis, resolution in zip("yz", resolutions, strict=False):
+        encode = pp.make_phase_encoding(axis, resolution, system=system)
+        if duration is not None and duration > pp.calc_duration(encode) + 1e-12:
+            encode = pp.make_phase_encoding(
+                axis, resolution, system=system, duration=duration
+            )
+        encodes.append(pp.scale_grad(encode, sign))
     encodes.append(None)
     return tuple(encodes[:2])
 

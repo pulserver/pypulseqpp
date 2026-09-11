@@ -9,6 +9,27 @@ once, then exposes the resulting events for a sequence's scan loop. Modules
 remain plain Pulseq building blocks: the loop chooses the views, scales the
 encoding events, and adds the blocks.
 
+## Complete sequences
+
+A {class}`SequenceApp` is a whole sequence. Constructing it designs the events
+and the sampling order from the prescription its `init_sequence` accepts.
+{meth}`~SequenceApp.design` then runs its `loop`, the scan loop, which plays
+one `kernel` call per repetition. Settings that are not prescribed are class
+attributes, so a subclass that overrides one is the same sequence under
+another setting. Each zoo script reached as `sequences.<name>` defines one,
+and its `main` builds and designs it. An application that plays prescans
+ahead of its scan, such as a calibration or a navigator, lists them in
+{meth}`~SequenceApp.prescans`; {meth}`~SequenceApp.write` then writes one file
+per sequence, each naming the next as its `NextSequence`.
+
+```{eval-rst}
+.. autosummary::
+   :toctree: ../generated
+   :nosignatures:
+
+   SequenceApp
+```
+
 ## Base classes
 
 ```{eval-rst}
