@@ -643,9 +643,12 @@ namespace pulseq
      * A scan is a handful of things played over and over with different
      * numbers in them, and the stream of block definition ids is where that
      * shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase encode
-     * is doing. This is the period of that stream and where it starts, so the
-     * blocks before `start` are the prologue -- dummy shots, preparation --
-     * and everything from there on is the scan repeating.
+     * is doing. The scan is the longest stretch ending at the last block that
+     * repeats at least twice, and this is its smallest period and where it
+     * starts; the blocks before `start` are the prologue. An outer loop whose
+     * iterations each carry their own preparation -- a slice with its dummy
+     * shots -- is therefore one repetition, not a prologue followed by the
+     * lines of the last slice.
      *
      * A `size` of zero means no repetition was found, which is the honest
      * answer for a sequence that plays each position once.

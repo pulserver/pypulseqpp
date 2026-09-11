@@ -811,35 +811,36 @@ namespace pulseq
         if (blocks < 2)
             return repetition_;
 
-        /* The last block's definition is played once per repetition, so the
-         * gaps between the places it appears are the only periods worth
-         * trying -- smallest first, which is the fundamental one. Fifty is
-         * far more than a real scan needs and stops a sequence whose last
-         * block is also its commonest from being walked to death. */
-        constexpr int kCandidates = 50;
-        const int32_t last = instance_def_[static_cast<size_t>(blocks) - 1];
-
-        int tried = 0;
-        for (int before = blocks - 2; before >= 0 && tried < kCandidates; --before)
+        /* The scan is the longest stretch ending at the last block that
+         * repeats at least twice, and its smallest period; what precedes it
+         * is the prologue. A stream and its reverse have the same periods, so
+         * the prefix function of the reversed stream gives the smallest
+         * period of every such stretch in one pass: a stretch of m blocks has
+         * period m - border[m - 1]. */
+        const auto reversed = [this, blocks](int i) {
+            return instance_def_[static_cast<size_t>(blocks - 1 - i)];
+        };
+        std::vector<int> border(static_cast<size_t>(blocks), 0);
+        for (int i = 1; i < blocks; ++i)
         {
-            if (instance_def_[static_cast<size_t>(before)] != last)
-                continue;
-            ++tried;
+            int k = border[static_cast<size_t>(i) - 1];
+            while (k > 0 && reversed(i) != reversed(k))
+                k = border[static_cast<size_t>(k) - 1];
+            if (reversed(i) == reversed(k))
+                ++k;
+            border[static_cast<size_t>(i)] = k;
+        }
 
-            const int period = blocks - 1 - before;
-            if (period * 2 > blocks)
-                break; // no room for the two repeats it would take to say so
-
-            /* How far back the period holds. Everything before that is the
-             * prologue: dummy shots, preparation, a noise scan. */
-            const Repetition holds = locate_repetition(period);
-            if (holds.size != 0)
+        for (int length = blocks; length >= 2; --length)
+        {
+            const int period = length - border[static_cast<size_t>(length) - 1];
+            if (2 * period <= length)
             {
-                repetition_ = holds;
+                repetition_.size = period;
+                repetition_.start = blocks - length;
                 return repetition_;
             }
         }
-
         return repetition_;
     }
 

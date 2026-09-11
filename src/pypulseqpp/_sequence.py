@@ -687,8 +687,12 @@ class Sequence:
 
         Notes
         -----
-        Records ``TRsize`` in sequence definitions. Structural edits invalidate
-        the native detection cache.
+        The repetition is the smallest period of the longest stretch, ending
+        at the last block, that repeats at least twice; a slice acquired with
+        its own preparation and dummy shots is one repetition. Records
+        ``TRsize`` in sequence definitions; a recorded size that the blocks
+        still repeat with is taken instead. Structural edits invalidate the
+        native detection cache.
         """
         recorded = self.get_definition("TRsize")
         if recorded != "":

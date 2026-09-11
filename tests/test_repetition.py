@@ -276,3 +276,38 @@ def test_the_repeat_survives_a_rotation(gradient_echo):
     ).apply_to_sequence(sequence)
 
     assert turned._detect_tr() == sequence._detect_tr()
+
+
+@pytest.mark.parametrize("dummies", [0, 2])
+def test_a_slice_acquisition_with_its_preparation_is_one_repetition(dummies):
+    """A 2D balanced acquisition: per slice a half-flip preparation, dummy
+    shots and four lines. The lines alone repeat too, but only inside the last
+    slice; the slice is the longest stretch that repeats, so it is the TR."""
+    system = pp.Opts(rf_ringdown_time=20e-6, rf_dead_time=100e-6, adc_dead_time=10e-6)
+    half = pp.make_block_pulse(math.pi / 8, duration=0.5e-3, system=system)
+    flip = pp.make_block_pulse(math.pi / 4, duration=0.5e-3, system=system)
+    readout = pp.make_trapezoid("x", area=1000, duration=1.5e-3, system=system)
+    adc = pp.make_adc(64, duration=0.8e-3, delay=readout.rise_time, system=system)
+    sequence = pp.Sequence(system)
+    for _ in range(3):
+        sequence.add_block(half)
+        for line in range(dummies + 4):
+            sequence.add_block(flip, readout, *([adc] if line >= dummies else []))
+
+    assert sequence._detect_tr() == (1 + dummies + 4, 1)
+
+
+def test_a_prologue_before_the_slice_loop_stays_a_prologue():
+    """Blocks played once before the outer loop are not folded into it."""
+    system = pp.Opts()
+    half = pp.make_block_pulse(math.pi / 8, duration=0.5e-3, system=system)
+    flip = pp.make_block_pulse(math.pi / 4, duration=0.5e-3, system=system)
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_block_pulse(math.pi, duration=2e-3, system=system))
+    sequence.add_block(pp.make_delay(10e-3))
+    for _ in range(3):
+        sequence.add_block(half)
+        for _ in range(4):
+            sequence.add_block(flip)
+
+    assert sequence._detect_tr() == (5, 3)
