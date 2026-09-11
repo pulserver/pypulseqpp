@@ -11,9 +11,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import NamedTuple
 
-import numpy as np
-
 from .. import _ext as _cxx
+from ._physical import _gamma, _prescription
 
 
 class ForbiddenBand(NamedTuple):
@@ -156,16 +155,6 @@ def _axis_index(axis) -> int:
         ) from None
 
 
-def _gamma(seq, system) -> float:
-    for chosen in (system, getattr(seq, "system", None)):
-        gamma = getattr(chosen, "gamma", None)
-        if gamma:
-            return float(gamma)
-    from .. import Opts
-
-    return float(Opts().gamma)
-
-
 def check_mech_resonance(
     seq,
     bands,
@@ -238,10 +227,7 @@ def check_mech_resonance(
     if int(frequency_oversampling) < 1:
         raise ValueError("frequency_oversampling must be at least 1")
 
-    turn = np.eye(3) if rotation is None else np.asarray(rotation, dtype=float)
-    if turn.shape != (3, 3) or not np.allclose(turn @ turn.T, np.eye(3), atol=1e-6):
-        raise ValueError("rotation must be a 3x3 orthonormal matrix")
-
+    turn = _prescription(rotation)
     to_hz = 1e-3 * _gamma(seq, system)
     thresholds = [
         band.tolerance if band.tolerance > 0.0 else min_threshold for band in bands

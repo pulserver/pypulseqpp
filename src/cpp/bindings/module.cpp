@@ -31,6 +31,7 @@
 #include "slr.h"
 
 #include "pulseq/binary.hpp"
+#include "pulseq/pns.hpp"
 #include "pulseq/read.hpp"
 #include "pulseq/resonance.hpp"
 #include "pulseq/safety.hpp"
@@ -1154,6 +1155,91 @@ PYBIND11_MODULE(_ext, module)
         py::arg("oversampling"), py::arg("rotation"), py::arg("mkl_runtime") = "",
         "Windowed physical-axis gradient spectrum against forbidden bands "
         "(axis, f_min, f_max, threshold in Hz/m); amplitudes in Hz/m.");
+
+    module.def(
+        "pns",
+        [](const Sequence& sequence, const std::string& kind,
+           const std::vector<std::array<double, 8>>& safe,
+           const std::array<double, 3>& chronaxie,
+           const std::array<std::array<double, 3>, 3>& rotation, double gamma,
+           bool keep_trace) {
+            pulseq::PnsModel model;
+            if (kind == "safe")
+            {
+                if (safe.size() != 3)
+                    throw std::invalid_argument("a SAFE model has one coefficient set per axis");
+                model.kind = pulseq::PnsModel::Kind::Safe;
+                for (size_t axis = 0; axis < 3; ++axis)
+                {
+                    const std::array<double, 8>& c = safe[axis];
+                    pulseq::SafeAxis& into = model.safe[axis];
+                    for (int stage = 0; stage < 3; ++stage)
+                    {
+                        into.a[stage] = c[static_cast<size_t>(stage)];
+                        into.tau_ms[stage] = c[static_cast<size_t>(3 + stage)];
+                    }
+                    into.stim_limit = c[6];
+                    into.g_scale = c[7];
+                }
+            }
+            else if (kind == "chronaxie")
+            {
+                model.kind = pulseq::PnsModel::Kind::Chronaxie;
+                model.chronaxie = chronaxie[0];
+                model.rheobase = chronaxie[1];
+                model.alpha = chronaxie[2];
+            }
+            else
+            {
+                throw std::invalid_argument("kind is 'safe' or 'chronaxie'");
+            }
+            pulseq::PnsOptions options;
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                    options.rotation[i][j] = rotation[i][j];
+            options.gamma = gamma;
+            options.keep_trace = keep_trace;
+
+            pulseq::PnsReport found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::pns(sequence, model, options);
+            }
+
+            const auto peak = [](const pulseq::PnsPeak& p) {
+                py::dict out;
+                out["value"] = p.value;
+                out["time"] = p.time;
+                out["block"] = p.block;
+                return out;
+            };
+            const auto array = [](const std::vector<double>& values) {
+                return py::array_t<double>(
+                    static_cast<py::ssize_t>(values.size()), values.data());
+            };
+            py::dict out;
+            out["norm"] = peak(found.norm);
+            py::list axes;
+            for (const pulseq::PnsPeak& p : found.axes)
+                axes.append(peak(p));
+            out["axes"] = axes;
+            out["samples"] = found.samples;
+            out["raster"] = found.raster;
+            if (keep_trace)
+            {
+                out["trace_norm"] = array(found.trace_norm);
+                py::list traces;
+                for (const std::vector<double>& trace : found.trace_axes)
+                    traces.append(array(trace));
+                out["trace_axes"] = traces;
+            }
+            return out;
+        },
+        py::arg("sequence"), py::arg("kind"), py::arg("safe"), py::arg("chronaxie"),
+        py::arg("rotation"), py::arg("gamma"), py::arg("keep_trace") = false,
+        "Nerve response to the physical-axis slew, as a fraction of threshold: "
+        "SAFE (a1..a3, tau1..tau3 in ms, stim_limit, g_scale per axis) or "
+        "chronaxie (chronaxie s, rheobase T/m/s, alpha).");
 
     module.def(
         "evaluate_labels",

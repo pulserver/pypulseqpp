@@ -20,9 +20,15 @@ from a vendor table through {func}`read_forbidden_bands`. The transform is
 MKL's when the optional `mkl` extra is installed, and the compiled-in pocketfft
 otherwise.
 
-These checks estimate what the gradients ask of the hardware. They are not a
-complete scanner or patient-safety assessment, and they do not evaluate SAR or
-PNS.
+{func}`check_pns` runs a nerve model over the slew of each physical axis and
+compares the root-sum-square response with its threshold. The model is either
+SAFE, as upstream PyPulseq computes it, from a description shaped like
+upstream's `safe_example_hw()` or a Siemens `.asc` file read by
+{func}`read_safe_model`; or a rheobase-chronaxie {class}`ChronaxieModel`.
+
+These checks estimate what the gradients ask of the hardware and of the
+subject. They are not a complete scanner or patient-safety assessment, and they
+do not evaluate SAR.
 
 ```{eval-rst}
 .. autosummary::
@@ -35,4 +41,7 @@ PNS.
    check_mech_resonance
    read_forbidden_bands
    ForbiddenBand
+   check_pns
+   read_safe_model
+   ChronaxieModel
 ```
