@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -270,8 +271,7 @@ namespace pulseq
 
     } // namespace
 
-    std::vector<SarWindow> vop_sar(
-        const Sequence& seq, const SarModel& model, int size, int start)
+    SarReport vop_sar(const Sequence& seq, const SarModel& model, int size, int start)
     {
         const size_t nc = static_cast<size_t>(model.channels);
         const size_t count = nc ? model.vops.size() / (nc * nc) : 0;
@@ -304,8 +304,9 @@ namespace pulseq
         std::map<std::pair<ShapeKey, int>, Deposit> known;
         std::map<ShapeKey, Resampled> resampled;
 
-        std::vector<SarWindow> out;
-        out.reserve(bounds.size());
+        SarReport out;
+        out.windows.reserve(bounds.size());
+        double worst = -1.0;
         std::vector<double> energy(count);
         for (const auto& bound : bounds)
         {
@@ -363,10 +364,29 @@ namespace pulseq
                         window.local = sar;
                         window.vop = static_cast<int>(k);
                     }
+                    if (!model.reference.empty())
+                    {
+                        const double against = model.reference[k];
+                        const double ratio = against > 0.0
+                            ? sar / against
+                            : (sar > 0.0 ? std::numeric_limits<double>::infinity() : 0.0);
+                        if (window.ratio_vop < 0 || ratio > window.ratio)
+                        {
+                            window.ratio = ratio;
+                            window.ratio_vop = static_cast<int>(k);
+                        }
+                    }
                 }
                 window.global = global / window.duration;
+                if (window.local > worst)
+                {
+                    worst = window.local;
+                    out.worst.resize(count);
+                    for (size_t k = 0; k < count; ++k)
+                        out.worst[k] = energy[k] / window.duration;
+                }
             }
-            out.push_back(window);
+            out.windows.push_back(window);
         }
         return out;
     }

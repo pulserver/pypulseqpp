@@ -255,3 +255,89 @@ def test_the_example_global_sar_is_below_its_worst_local_sar(system):
     )
 
     assert 0 < report.worst_global.sar < report.worst_local.sar
+
+
+# -- comparing with a reference ------------------------------------------------------
+
+
+def cp_fid(system, tr=10e-3):
+    """The CP-mode reference: one 1 ms 180 degree hard pulse per repetition."""
+    rf = pp.make_block_pulse(math.pi, duration=1e-3, system=system)
+    seq = pp.Sequence(system)
+    seq.add_block(rf)
+    seq.add_block(pp.make_delay(tr - pp.calc_duration(rf)))
+    return seq
+
+
+def test_a_sequence_compared_with_itself_scales_by_one(system, model):
+    fid = cp_fid(system)
+
+    _, report = safety.check_sar(fid, model, drive_per_hz=1.0, reference=fid)
+
+    assert report.reference.sar_ratio == pytest.approx(1.0)
+    assert report.reference.energy_ratio == pytest.approx(1.0)
+    assert report.reference.global_sar_ratio == pytest.approx(1.0)
+
+
+def test_a_cp_only_sequence_scales_by_its_rf_energy_whatever_the_vops(system, model):
+    cp = np.exp(0.5j * np.pi * np.arange(CHANNELS))
+    body = pp.make_sinc_pulse(math.pi / 3, duration=2e-3, system=system)
+    seq = pp.Sequence(system)
+    for _ in range(3):
+        seq.add_block(body)
+        seq.add_block(pp.make_delay(6e-3))
+    fid = cp_fid(system)
+
+    _, report = safety.check_sar(
+        seq, model, drive_per_hz=1.0, default_shim=cp, reference=fid
+    )
+
+    energy = seq.calc_rf_power(block_range=(1, 2))[3] / fid.calc_rf_power()[3]
+    assert report.reference.energy_ratio == pytest.approx(energy, rel=1e-9)
+    assert report.reference.global_energy_ratio == pytest.approx(energy, rel=1e-9)
+    # Every VOP sees the same increase.
+    assert report.windows.reference_ratio == pytest.approx(
+        np.full(3, report.reference.sar_ratio), rel=1e-9
+    )
+
+
+def test_the_largest_per_vop_increase_decides_not_the_ratio_of_maxima(system):
+    # One VOP sees channel 0 alone; the other all channels in phase, which CP
+    # heats four times as much.
+    alone = np.zeros((2, 2), dtype=complex)
+    alone[0, 0] = 1.0
+    two = VopModel(np.stack([alone, np.ones((2, 2), dtype=complex)]))
+    fid = cp_fid(system)
+    targeted = pp.Sequence(system)
+    rf = pp.make_block_pulse(math.pi, duration=1e-3, system=system)
+    targeted.add_block(rf, pp.make_rf_shim([1.0, 0.0]))
+    targeted.add_block(pp.make_delay(10e-3 - pp.calc_duration(rf)))
+
+    _, reference = safety.check_sar(fid, two, drive_per_hz=1.0)
+    _, report = safety.check_sar(targeted, two, drive_per_hz=1.0, reference=fid)
+
+    assert report.reference.sar_ratio == pytest.approx(1.0)
+    assert report.reference.vop == 0
+    assert report.worst_local.sar / reference.worst_local.sar == pytest.approx(0.25)
+
+
+def test_a_report_can_stand_for_its_sequence(system, model):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+    _, earlier = safety.check_sar(fid, model, drive_per_hz=1.0)
+
+    _, from_sequence = safety.check_sar(seq, model, drive_per_hz=1.0, reference=fid)
+    _, from_report = safety.check_sar(seq, model, drive_per_hz=1.0, reference=earlier)
+
+    assert from_report.reference == from_sequence.reference
+
+
+def test_the_ratios_do_not_depend_on_the_drive_calibration(system, model):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+
+    _, once = safety.check_sar(seq, model, drive_per_hz=1.0, reference=fid)
+    _, thrice = safety.check_sar(seq, model, drive_per_hz=3.0, reference=fid)
+
+    assert thrice.reference.sar_ratio == pytest.approx(once.reference.sar_ratio)
+    assert thrice.reference.energy_ratio == pytest.approx(once.reference.energy_ratio)

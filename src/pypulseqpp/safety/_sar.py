@@ -174,6 +174,56 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     )
 
 
+def _evaluate(seq, model, drive, shim, reference=None):
+    size, start = seq._detect_tr() if seq.num_blocks else (0, 0)
+    found = _cxx.vop_sar(
+        seq._native,
+        vops=np.ascontiguousarray(model.vops),
+        global_matrix=None
+        if model.global_matrix is None
+        else np.ascontiguousarray(model.global_matrix),
+        drive=np.ascontiguousarray(drive),
+        default_shim=np.ascontiguousarray(shim),
+        size=size,
+        start=start,
+        reference=None if reference is None else np.ascontiguousarray(reference),
+    )
+    return size, start, found
+
+
+def _reference_of(reference, model, drive, shim) -> SimpleNamespace:
+    """Return the per-VOP SAR, global SAR and duration a sequence is compared with."""
+    if hasattr(reference, "worst_local"):
+        worst = reference.worst_local
+        if worst is None:
+            raise ValueError("the reference report has no window to compare with")
+        window = worst.window
+        global_sar = reference.windows.global_sar
+        against = SimpleNamespace(
+            per_vop=np.asarray(worst.per_vop, dtype=float),
+            global_sar=None if global_sar is None else float(global_sar[window]),
+            duration=float(reference.windows.duration[window]),
+        )
+    else:
+        _, _, found = _evaluate(reference, model, drive, shim)
+        if not found["first"].size:
+            raise ValueError("the reference sequence plays nothing to compare with")
+        window = int(np.argmax(found["local"]))
+        against = SimpleNamespace(
+            per_vop=np.asarray(found["worst"], dtype=float),
+            global_sar=float(found["global"][window])
+            if model.global_matrix is not None
+            else None,
+            duration=float(found["duration"][window]),
+        )
+    if against.per_vop.shape != (model.vops.shape[0],):
+        raise ValueError(
+            f"the reference holds {against.per_vop.size} VOPs, and the model "
+            f"{model.vops.shape[0]}"
+        )
+    return against
+
+
 def check_sar(
     seq,
     model: VopModel,
@@ -182,6 +232,7 @@ def check_sar(
     local_limit: float = 10.0,
     global_limit: float = 3.2,
     default_shim=None,
+    reference=None,
 ) -> tuple[bool, SimpleNamespace]:
     """Return whether no repetition exceeds the local and global SAR limits.
 
@@ -200,6 +251,11 @@ def check_sar(
     default_shim : array_like, optional
         Channel weights of a single-channel pulse played without an RF shim;
         all ones by default.
+    reference : Sequence or report, optional
+        What to compare with, in the same model and calibration: a sequence,
+        such as a CP-mode FID, evaluated here with the same drive and default
+        shim; or the report of an earlier call. Its worst window's per-VOP SAR,
+        global SAR and duration are the reference.
 
     Returns
     -------
@@ -209,9 +265,19 @@ def check_sar(
     report : SimpleNamespace
         The limits; ``tr_size`` and ``tr_start`` (blocks); ``windows``, arrays
         ``first``, ``last`` (1-based blocks), ``duration`` (s), ``local_sar``,
-        ``vop`` and ``global_sar`` (W/kg); and ``worst_local`` and
-        ``worst_global``, each the ``sar``, ``window`` and its ``first`` and
-        ``last`` block (``worst_local`` also its ``vop``), or None.
+        ``vop`` and ``global_sar`` (W/kg), and with a reference
+        ``reference_ratio``; ``worst_local`` and ``worst_global``, each the
+        ``sar``, ``window`` and its ``first`` and ``last`` block, or None
+        (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of every
+        VOP in that window); and ``reference``, or None without one.
+
+        ``reference`` carries ``sar_ratio``, the largest over windows and VOPs
+        of a VOP's SAR over the reference's for the same VOP, with its ``vop``
+        and ``window``; ``energy_ratio``, the largest of that ratio times the
+        window's duration over the reference's, with its ``energy_window``;
+        and ``global_sar_ratio`` and ``global_energy_ratio`` alike for the
+        global matrix, or None. Every window counts, prologue and tail
+        included.
 
     Notes
     -----
@@ -223,6 +289,12 @@ def check_sar(
     microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform
     on every channel for a single-channel pulse), and ``s`` its block's RF shim,
     ``default_shim`` or ones.
+
+    The scale of ``drive_per_hz`` and of the VOPs cancels in the reference
+    ratios; relative channel gains do not. With a reference lasting its
+    minimum TR, ``energy_ratio`` scales that minimum TR to this sequence's
+    repetition, at the energy each repetition deposits. For a sequence played
+    only in the default shim, every VOP's ratio is the ratio of RF energy.
     """
     model = _validated(model)
     channels = model.vops.shape[1]
@@ -235,17 +307,11 @@ def check_sar(
     if shim.size != channels:
         raise ValueError(f"default_shim weighs {shim.size} channels, not {channels}")
 
-    size, start = seq._detect_tr() if seq.num_blocks else (0, 0)
-    found = _cxx.vop_sar(
-        seq._native,
-        vops=np.ascontiguousarray(model.vops),
-        global_matrix=None
-        if model.global_matrix is None
-        else np.ascontiguousarray(model.global_matrix),
-        drive=np.ascontiguousarray(drive),
-        default_shim=np.ascontiguousarray(shim),
-        size=size,
-        start=start,
+    against = (
+        None if reference is None else _reference_of(reference, model, drive, shim)
+    )
+    size, start, found = _evaluate(
+        seq, model, drive, shim, None if against is None else against.per_vop
     )
     windows = SimpleNamespace(
         first=found["first"],
@@ -254,9 +320,10 @@ def check_sar(
         local_sar=found["local"],
         vop=found["vop"],
         global_sar=found["global"] if model.global_matrix is not None else None,
+        reference_ratio=None if against is None else found["ratio"],
     )
 
-    worst_local = worst_global = None
+    worst_local = worst_global = compared = None
     if windows.first.size:
         k = int(np.argmax(windows.local_sar))
         worst_local = SimpleNamespace(
@@ -265,6 +332,7 @@ def check_sar(
             window=k,
             first=int(windows.first[k]),
             last=int(windows.last[k]),
+            per_vop=np.asarray(found["worst"], dtype=float),
         )
         if windows.global_sar is not None:
             k = int(np.argmax(windows.global_sar))
@@ -274,6 +342,8 @@ def check_sar(
                 first=int(windows.first[k]),
                 last=int(windows.last[k]),
             )
+        if against is not None:
+            compared = _compared(windows, found["ratio_vop"], against)
 
     report = SimpleNamespace(
         local_limit=local_limit,
@@ -283,8 +353,30 @@ def check_sar(
         windows=windows,
         worst_local=worst_local,
         worst_global=worst_global,
+        reference=compared,
     )
     is_ok = (worst_local is None or worst_local.sar <= local_limit) and (
         worst_global is None or worst_global.sar <= global_limit
     )
     return is_ok, report
+
+
+def _compared(windows, ratio_vop, against) -> SimpleNamespace:
+    ratio = windows.reference_ratio
+    k = int(np.argmax(ratio))
+    energy = ratio * windows.duration / against.duration
+    j = int(np.argmax(energy))
+    global_sar_ratio = global_energy_ratio = None
+    if windows.global_sar is not None and against.global_sar:
+        whole = windows.global_sar / against.global_sar
+        global_sar_ratio = float(whole.max())
+        global_energy_ratio = float((whole * windows.duration / against.duration).max())
+    return SimpleNamespace(
+        sar_ratio=float(ratio[k]),
+        vop=int(ratio_vop[k]),
+        window=k,
+        energy_ratio=float(energy[j]),
+        energy_window=j,
+        global_sar_ratio=global_sar_ratio,
+        global_energy_ratio=global_energy_ratio,
+    )

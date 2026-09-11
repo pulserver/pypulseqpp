@@ -50,6 +50,8 @@ namespace pulseq
         std::vector<std::complex<double>> default_shim;
         /** Resampling step, as for rf_power. */
         double dt = 1e-6;
+        /** Per-VOP SAR each window is compared with; empty for none. */
+        std::vector<double> reference;
     };
 
     /** One averaging window: a prologue, one repetition, a tail, or everything. */
@@ -62,6 +64,20 @@ namespace pulseq
         double local = 0.0;
         int vop = -1;
         double global = 0.0;
+        /**
+         * Largest over VOPs of this window's SAR over the reference's for that
+         * VOP, and which VOP; infinite where a VOP the reference leaves cold
+         * is heated.
+         */
+        double ratio = 0.0;
+        int ratio_vop = -1;
+    };
+
+    struct SarReport
+    {
+        std::vector<SarWindow> windows;
+        /** Per-VOP SAR of the window with the largest local SAR. */
+        std::vector<double> worst;
     };
 
     /**
@@ -79,8 +95,7 @@ namespace pulseq
      * @throws std::invalid_argument  When a pulse or shim has a channel count
      *                                other than the model's, or than one.
      */
-    std::vector<SarWindow> vop_sar(
-        const Sequence& seq, const SarModel& model, int size, int start);
+    SarReport vop_sar(const Sequence& seq, const SarModel& model, int size, int start);
 
 } // namespace pulseq
 
