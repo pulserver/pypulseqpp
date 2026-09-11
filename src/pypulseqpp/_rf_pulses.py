@@ -564,6 +564,10 @@ def make_2d_selective_pulse(
     target: np.ndarray | None = None,
     n_interleaves: int | None = None,
     axes: Sequence[str] = ("x", "y"),
+    b1_maps=None,
+    off_resonance=None,
+    magnitude_only: bool = False,
+    regularization: float = 0.0,
     system=None,
     use: str = "excitation",
     freq_offset: float = 0.0,
@@ -597,6 +601,21 @@ def make_2d_selective_pulse(
         Nyquist. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
     axes : sequence of str, optional
         The two gradient channels the trajectory runs on.
+    b1_maps : array_like, optional
+        Complex B1+ per transmit channel, ``(num_channels, matrix, matrix)``,
+        relative to nominal. When given, the pulse is designed in the
+        spatial domain against them (Grissom et al., Magn Reson Med 56:620,
+        2006) and returned as a pTx pulse, one waveform per channel, whose
+        small-tip flip is ``flip_angle`` times the target; a single channel
+        is a pulse tailored to that channel's B1.
+    off_resonance : array_like, optional
+        Off-resonance map, ``(matrix, matrix)``, in Hz, for the spatial-domain
+        design.
+    magnitude_only : bool, optional
+        Fit only the target's magnitude in the spatial-domain design, leaving
+        its phase free (magnitude least squares).
+    regularization : float, optional
+        Tikhonov weight on the waveforms' power in the spatial-domain design.
     system : pypulseq.Opts, optional
         System limits.
     use : str, optional
@@ -607,7 +626,8 @@ def make_2d_selective_pulse(
     Returns
     -------
     rf : RfEvent
-        The pulse, sampled on the gradient raster.
+        The pulse, sampled on the gradient raster; a pTx pulse when
+        ``b1_maps`` is given.
     gradients : tuple of GradEvent
         One arbitrary gradient per axis, to be played in the pulse's block.
     rephasers : tuple of TrapEvent
@@ -697,19 +717,42 @@ def make_2d_selective_pulse(
     # which is what puts the final phase in the right place.
     kspace = -np.cumsum((gradient * system.gamma)[::-1], axis=0)[::-1] * dwell
     desired, coordinates = _selective_target(shape, extent, selective_size, target)
-    weights = _small_tip_weights(desired, coordinates, kspace)
-    weights *= np.r_[np.linalg.norm(np.diff(kspace, axis=0), axis=1), 0.0]
-    weights[~np.concatenate(active)] = 0.0
+    if b1_maps is None:
+        weights = _small_tip_weights(desired, coordinates, kspace)
+        weights *= np.r_[np.linalg.norm(np.diff(kspace, axis=0), axis=1), 0.0]
+        weights[~np.concatenate(active)] = 0.0
+        rf = _events.make_arbitrary_rf(
+            signal=weights,
+            flip_angle=flip_angle,
+            dwell=dwell,
+            freq_offset=freq_offset,
+            phase_offset=phase_offset,
+            system=system,
+            use=use,
+        )
+    else:
+        from ._ptx import _selective_waveforms, make_ptx_pulse
 
-    rf = _events.make_arbitrary_rf(
-        signal=weights,
-        flip_angle=flip_angle,
-        dwell=dwell,
-        freq_offset=freq_offset,
-        phase_offset=phase_offset,
-        system=system,
-        use=use,
-    )
+        waveforms = _selective_waveforms(
+            flip_angle * desired,
+            coordinates,
+            kspace,
+            np.concatenate(active),
+            b1_maps,
+            shape,
+            off_resonance,
+            magnitude_only,
+            regularization,
+            dwell,
+        )
+        rf = make_ptx_pulse(
+            waveforms,
+            dwell=dwell,
+            freq_offset=freq_offset,
+            phase_offset=phase_offset,
+            system=system,
+            use=use,
+        )
     gradients = []
     rephasers = []
     for index, axis in enumerate(axes):

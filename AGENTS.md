@@ -29,7 +29,7 @@ separately from the MIT core.
 | Path | Purpose |
 |---|---|
 | `src/cpp/pulseq/` | Python-independent C++17 storage, codecs, I/O and analysis |
-| `src/cpp/bindings/` | CPython/pybind11 bindings for `pypulseqpp._ext`, including `arbgrad`, `sampling` and `slr` |
+| `src/cpp/bindings/` | CPython/pybind11 bindings for `pypulseqpp._ext`, including `arbgrad`, `sampling`, `slr` and `ptx` |
 | `external/MRArbGrad/` | Vendored gradient solver submodule; see `external/NOTICE.md` |
 | `src/pypulseqpp/` | Python facade, event conversion, sequence operations and design |
 | `src/pypulseqpp/sequences/` | Reusable excitation, preparation and readout modules |

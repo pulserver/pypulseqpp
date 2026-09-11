@@ -26,6 +26,7 @@
 #include "pulseqpp_eventtypes.h"
 #include "arbgrad.h"
 #include "sampling.h"
+#include "ptx.h"
 #include "slr.h"
 
 #include "pulseq/binary.hpp"
@@ -352,6 +353,12 @@ PYBIND11_MODULE(_ext, module)
     slr.attr("__name__") = "pypulseqpp._ext.slr";
     py::module_::import("sys").attr("modules")["pypulseqpp._ext.slr"] = slr;
     pypulseqpp_bind_slr(slr);
+
+    // Small-tip parallel-transmit design: spatial-domain, shimming, spokes.
+    py::module_ ptx = module.def_submodule("ptx");
+    ptx.attr("__name__") = "pypulseqpp._ext.ptx";
+    py::module_::import("sys").attr("modules")["pypulseqpp._ext.ptx"] = ptx;
+    pypulseqpp_bind_ptx(ptx);
 
     // The events a block is made of, as compiled objects rather than
     // dictionaries. See pulseqpp_eventtypes.h.
