@@ -36,7 +36,12 @@ by the job they perform.
 : Composable excitation, preparation, and readout modules.
 
 {doc}`safety`
-: Sequence-level gradient amplitude, slew-rate, and continuity checks.
+: Sequence-level gradient amplitude, slew-rate, continuity, mechanical-resonance
+  and peripheral nerve stimulation checks.
+
+{doc}`plotting`
+: The SeqEyes view, the publication diagram, and k-space and RF-profile
+  figures.
 
 {doc}`cli`
 : Running a sequence function from the shell and writing its output for a file
@@ -55,5 +60,6 @@ sampling
 timing
 modules
 safety
+plotting
 cli
 ```

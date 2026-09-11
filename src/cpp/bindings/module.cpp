@@ -445,6 +445,11 @@ PYBIND11_MODULE(_ext, module)
              py::arg("adc"), py::arg("block"))
         .def("block_duration_raster", &Sequence::block_duration_raster,
              "The raster a block's duration is a whole number of, in seconds.")
+        .def("grad_raster_time", &Sequence::grad_raster_time,
+             "The gradient raster, in seconds.")
+        .def("rf_raster_time", &Sequence::rf_raster_time, "The RF raster, in seconds.")
+        .def("adc_raster_time", &Sequence::adc_raster_time,
+             "The ADC dwell raster, in seconds.")
         .def("publish_rasters", &Sequence::publish_rasters,
              "Record the raster times in `[DEFINITIONS]`.")
 

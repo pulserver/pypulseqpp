@@ -8,7 +8,7 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import _ext
-from pypulseqpp._paper_plot import select_trs
+from pypulseqpp.plot._paper import select_trs
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

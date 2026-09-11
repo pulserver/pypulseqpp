@@ -12,7 +12,6 @@ import numpy as np
 import pypulseq as _upstream
 
 from . import _ext as _cxx
-from . import _plot
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
@@ -24,6 +23,7 @@ from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
 from ._waveforms import waveforms as _waveforms
 from ._waveforms import waveforms_and_times as _waveforms_and_times
+from .plot import _seqeyes as _plot
 
 __all__ = ["Sequence"]
 
@@ -35,6 +35,32 @@ _SIGNATURE = re.compile(r"^Hash (\w+)$", re.MULTILINE)
 #: duration rather than an event, so a count reported per column pads it back
 #: on and a caller's column indices are upstream's.
 _UPSTREAM_BLOCK_WIDTH = 7
+
+#: Upstream's pure-Python storage: its libraries, caches, name maps and block
+#: counter, all of which the compiled core holds instead.
+_UPSTREAM_STORAGE = frozenset(
+    {
+        "adc_id_to_name_map",
+        "adc_library",
+        "block_cache",
+        "block_trace",
+        "delay_library",
+        "extension_numeric_idx",
+        "extension_string_idx",
+        "extensions_library",
+        "grad_id_to_name_map",
+        "grad_library",
+        "label_inc_library",
+        "label_set_library",
+        "next_free_block_ID",
+        "rf_id_to_name_map",
+        "rf_library",
+        "shape_library",
+        "soft_delay_hints",
+        "soft_delay_library",
+        "trigger_library",
+    }
+)
 
 
 class _BlockDurations(MutableMapping):
@@ -122,6 +148,43 @@ class Sequence:
     def __exit__(self, _exc_type, _exc_value, _traceback) -> bool:
         self.clear_caches()
         return False
+
+    def __getattr__(self, name: str):
+        if name in _UPSTREAM_STORAGE:
+            raise AttributeError(
+                f"pypulseqpp.Sequence has no {name!r}: upstream keeps its libraries "
+                "and caches as Python objects, and here they are compiled storage, "
+                "read through get_block, block_events, block_durations and "
+                "definitions"
+            )
+        raise AttributeError(
+            f"{type(self).__name__!r} object has no attribute {name!r}"
+        )
+
+    # -- rasters -------------------------------------------------------
+    #
+    # The rasters the sequence was designed on, as its definitions record
+    # them: set from the system at construction, or read from a file.
+
+    @property
+    def grad_raster_time(self) -> float:
+        """Gradient raster in seconds."""
+        return self._native.grad_raster_time()
+
+    @property
+    def rf_raster_time(self) -> float:
+        """RF raster in seconds."""
+        return self._native.rf_raster_time()
+
+    @property
+    def adc_raster_time(self) -> float:
+        """ADC dwell raster in seconds."""
+        return self._native.adc_raster_time()
+
+    @property
+    def block_duration_raster(self) -> float:
+        """Raster a block duration is a whole number of, in seconds."""
+        return self._native.block_duration_raster()
 
     # -- what has been worked out about the sequence -------------------
     #
@@ -1221,7 +1284,7 @@ class Sequence:
         are expanded, so the cost does not grow with the length of the scan. A
         sequence without a repetition is drawn whole.
         """
-        from ._paper_plot import paper_plot
+        from .plot._paper import paper_plot
 
         return paper_plot(
             self,

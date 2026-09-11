@@ -8,9 +8,9 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from . import _ext as _cxx
-from . import _plot
-from ._waveforms import waveforms_and_times
+from .. import _ext as _cxx
+from .._waveforms import waveforms_and_times
+from . import _seqeyes as _plot
 
 #: Diagram rows, top to bottom.
 _ROWS = ("RF", "Gz", "Gy", "Gx", "ADC")
