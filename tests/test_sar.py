@@ -7,7 +7,7 @@ import pytest
 from scipy.io import savemat
 
 import pypulseqpp as pp
-from pypulseqpp import safety
+from pypulseqpp import _ext, safety
 from pypulseqpp.safety import VopModel
 
 CHANNELS = 4
@@ -142,22 +142,30 @@ def test_the_worst_repetition_decides(system, model):
     assert report.worst_local.sar == pytest.approx(report.windows.local_sar.max())
 
 
-def test_a_prologue_is_a_window_of_its_own(system, model):
+def test_the_blocks_before_the_first_repetition_are_a_window_of_their_own(
+    system, model
+):
+    """The windows follow the repetition they are given; here it starts at
+    block 3, so blocks 1 and 2 are a window of their own."""
+    body = pp.make_sinc_pulse(math.pi / 6, duration=1e-3, system=system)
     seq = pp.Sequence(system)
     seq.add_block(pp.make_block_pulse(math.pi, duration=1e-3, system=system))
     seq.add_block(pp.make_delay(20e-3))
-    body = pp.make_sinc_pulse(math.pi / 6, duration=1e-3, system=system)
-    readout = pp.make_trapezoid("x", area=1000, duration=1e-3, system=system)
     for _ in range(4):
         seq.add_block(body)
-        seq.add_block(readout)
         seq.add_block(pp.make_delay(5e-3))
 
-    _, report = safety.check_sar(seq, model, drive_per_hz=1.0)
+    found = _ext.vop_sar(
+        seq._native,
+        vops=np.ascontiguousarray(model.vops),
+        drive=np.ones(CHANNELS),
+        default_shim=np.ones(CHANNELS, dtype=complex),
+        size=2,
+        start=2,
+    )
 
-    assert report.tr_start > 1
-    assert report.windows.first[0] == 1
-    assert report.windows.last[0] == report.tr_start - 1
+    assert found["first"].tolist() == [1, 3, 5, 7, 9]
+    assert found["last"].tolist() == [2, 4, 6, 8, 10]
 
 
 def test_a_sequence_that_does_not_repeat_is_one_window(system, model):
