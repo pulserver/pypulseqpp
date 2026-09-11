@@ -403,3 +403,25 @@ def test_a_preparation_opens_a_slot_for_the_counter_it_was_given(system, factory
     module = factory(system, ("REP",))
     assert module.prep_labels.label == "REP"
     assert module.prep_labels in module.blocks[0]
+
+
+def _delay_blocks(module):
+    """Durations of the module's blocks that play nothing but a delay."""
+    blocks = (module.seq.get_block(i) for i in range(1, len(module.seq) + 1))
+    return [
+        block.block_duration
+        for block in blocks
+        if all(getattr(block, name) is None for name in ("rf", "gx", "gy", "gz", "adc"))
+    ]
+
+
+def test_each_t2_preparation_gap_is_published_under_its_own_name(system):
+    prep = design.T2Preparation(system, 50e-3, n_refocus=4)
+    played = [prep.wait_first, *[prep.wait_inner] * 3, prep.wait_last]
+    assert _delay_blocks(prep) == pytest.approx([pp.calc_duration(w) for w in played])
+
+
+def test_both_diffusion_preparation_gaps_are_published(system):
+    prep = design.DiffusionPreparation(system, 500.0)
+    played = [prep.wait_first, prep.wait_last]
+    assert _delay_blocks(prep) == pytest.approx([pp.calc_duration(w) for w in played])

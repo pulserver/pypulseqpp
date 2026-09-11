@@ -111,6 +111,18 @@ def test_rotating_an_interleave_turns_its_path_and_nothing_else(system, angle):
     assert turned.adc is base.adc
 
 
+def test_a_rotated_rosette_keeps_its_petals_and_turns_its_design_path(system):
+    base = trajectories.Rosette(system, FOV, 64, petals=5)
+    turned = base.rotated(0.4)
+
+    rotation = np.array([[np.cos(0.4), -np.sin(0.4)], [np.sin(0.4), np.cos(0.4)]])
+    assert turned.petals == base.petals
+    assert turned.echo_spacing_s == pytest.approx(base.echo_spacing_s)
+    assert np.allclose(
+        turned.design_trajectory, base.design_trajectory @ rotation.T, atol=1e-9
+    )
+
+
 def test_a_three_axis_interleave_has_no_plane_to_turn_in(system):
     path = pp.calc_spiral_trajectory(FOV, 64, 8)
     volume = np.column_stack([path, np.linspace(-10.0, 10.0, path.shape[0])])
