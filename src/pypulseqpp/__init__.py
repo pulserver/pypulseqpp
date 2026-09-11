@@ -144,20 +144,31 @@ def _fast_scale_grad(upstream):
 
     The hot one: a phase-encode loop scales the same prewinder once per
     shot, and the generic decorator would convert the event to a namespace
-    and back on every call. A slotted gradient with no system to re-check
-    against is scaled in place of that; anything else is upstream's.
+    and back on every call. A slotted gradient is scaled in C++, its limits
+    checked there when a system is given; a namespace is upstream's.
     """
     scaled = _events.scaled_gradient
 
     @_functools.wraps(upstream)
     def scale_grad(grad, scale, system=None):
-        if system is None:
-            try:
+        try:
+            if system is None:
                 return scaled(grad, scale)
-            except TypeError:
-                pass
+            return scaled(grad, scale, system.max_grad, system.max_slew)
+        except TypeError:
+            pass
         return upstream(grad, scale, system=system)
 
+    # Not the generic decorator's note, which describes the path this skips.
+    scale_grad.__doc__ = _events._noted(
+        upstream.__wrapped__.__doc__,
+        "    A trapezoid or gradient event built here is scaled in C++: the copy\n"
+        "    has its amplitude multiplied, and an arbitrary waveform's\n"
+        "    normalised samples are not touched. Given ``system``, the scaled\n"
+        "    peak and slew are checked against ``system.max_grad`` and\n"
+        "    ``system.max_slew`` in the same call. A PyPulseq namespace goes\n"
+        "    through PyPulseq's own function and comes back as an event.\n",
+    )
     return scale_grad
 
 

@@ -10,6 +10,8 @@
 
 #include "pulseqpp_eventtypes.h"
 
+#include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <new>
 
@@ -838,27 +840,114 @@ namespace pulseqpp_types
                 reinterpret_cast<Holder<T>*>(made)->compat_shape_ids = Py_NewRef(ids);
         }
 
+        /** PyPulseq's `eps`: below it a waveform counts as zero. */
+        constexpr double upstream_eps = 1e-9;
+
+        /** Raise upstream's ValueError if a scaled peak or slew is over the limit. */
+        bool within_limits(double peak, double slew, double max_grad, double max_slew)
+        {
+            char message[96];
+            if (peak > max_grad)
+            {
+                std::snprintf(
+                    message,
+                    sizeof message,
+                    "scale_grad: maximum amplitude exceeded %g %%",
+                    100.0 * peak / max_grad);
+                PyErr_SetString(PyExc_ValueError, message);
+                return false;
+            }
+            if (slew > max_slew)
+            {
+                std::snprintf(
+                    message,
+                    sizeof message,
+                    "scale_grad: maximum slew rate exceeded %g %%",
+                    100.0 * slew / max_slew);
+                PyErr_SetString(PyExc_ValueError, message);
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * The steepest step of a gradient's normalised shape, per second.
+         *
+         * Taken between consecutive samples, as upstream takes it: the ramps
+         * from zero to `first` and from `last` back are not counted.
+         */
+        double grad_shape_slew(const GradEvent& g)
+        {
+            const int count = grad_count(g);
+            const int held = static_cast<int>(g.tt.size());
+            double steepest = 0.0;
+            for (int i = 1; i < count; ++i)
+            {
+                double step;
+                if (g.tt_grid == 1)
+                    step = g.tt_raster;
+                else if (g.tt_grid == 2)
+                    step = 0.5 * g.tt_raster;
+                else if (i < held)
+                    step = g.tt[static_cast<size_t>(i)] - g.tt[static_cast<size_t>(i) - 1];
+                else
+                    break;
+                const double rise = std::fabs(grad_shape_at(g, i) - grad_shape_at(g, i - 1));
+                steepest = std::max(steepest, rise / step);
+            }
+            return steepest;
+        }
+
         /**
          * Scale an unpacked gradient while retaining its normalised shape registration.
+         *
+         * `_scale_grad(grad, scale[, max_grad, max_slew])`. Given the limits,
+         * the scaled copy is checked against them as upstream's `system`
+         * check does: the peak is the amplitude, the shape being normalised
+         * to it, so only the slew walks the samples.
          *
          * Clear the compatibility row id, which refers to the unscaled event.
          * METH_FASTCALL avoids allocating an argument tuple on this hot path.
          */
         PyObject* scale_grad_fast(PyObject*, PyObject* const* args, Py_ssize_t nargs)
         {
-            if (nargs != 2)
+            if (nargs != 2 && nargs != 4)
             {
-                PyErr_SetString(PyExc_TypeError, "_scale_grad(grad, scale) takes two arguments");
+                PyErr_SetString(
+                    PyExc_TypeError,
+                    "_scale_grad(grad, scale[, max_grad, max_slew]) takes two or four arguments");
                 return nullptr;
             }
             const double scale = PyFloat_AsDouble(args[1]);
             if (scale == -1.0 && PyErr_Occurred())
                 return nullptr;
+            const bool checked = nargs == 4;
+            double max_grad = 0.0, max_slew = 0.0;
+            if (checked)
+            {
+                max_grad = PyFloat_AsDouble(args[2]);
+                if (max_grad == -1.0 && PyErr_Occurred())
+                    return nullptr;
+                max_slew = PyFloat_AsDouble(args[3]);
+                if (max_slew == -1.0 && PyErr_Occurred())
+                    return nullptr;
+            }
 
             PyObject* source = args[0];
             PyTypeObject* kind = Py_TYPE(source);
             if (kind == &TrapType)
             {
+                if (checked)
+                {
+                    const TrapEvent& in = unwrap<TrapEvent>(source);
+                    const double peak = std::fabs(in.amplitude * scale);
+                    const double ramp = std::min(in.rise_time, in.fall_time);
+                    const double slew = std::fabs(in.amplitude) > upstream_eps
+                        ? (ramp > 0.0 ? peak / ramp : HUGE_VAL)
+                        : 0.0;
+                    if (!within_limits(peak, slew, max_grad, max_slew))
+                        return nullptr;
+                }
                 PyObject* made = generic_new<TrapEvent>(&TrapType, nullptr, nullptr);
                 if (!made)
                     return nullptr;
@@ -870,6 +959,14 @@ namespace pulseqpp_types
             }
             if (kind == &GradType)
             {
+                if (checked)
+                {
+                    const GradEvent& in = unwrap<GradEvent>(source);
+                    const double peak = std::fabs(in.amplitude * scale);
+                    const double slew = peak > upstream_eps ? peak * grad_shape_slew(in) : 0.0;
+                    if (!within_limits(peak, slew, max_grad, max_slew))
+                        return nullptr;
+                }
                 PyObject* made = generic_new<GradEvent>(&GradType, nullptr, nullptr);
                 if (!made)
                     return nullptr;
@@ -893,7 +990,7 @@ namespace pulseqpp_types
             "_scale_grad",
             reinterpret_cast<PyCFunction>(reinterpret_cast<void*>(scale_grad_fast)),
             METH_FASTCALL,
-            PyDoc_STR("_scale_grad(grad, scale) -> scaled copy")};
+            PyDoc_STR("_scale_grad(grad, scale[, max_grad, max_slew]) -> scaled copy")};
 
     } // namespace
 

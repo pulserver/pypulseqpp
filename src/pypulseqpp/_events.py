@@ -9,6 +9,7 @@ Event setters do not revalidate hardware limits.
 from __future__ import annotations
 
 import functools
+import re
 from collections.abc import Callable
 from contextlib import suppress as _suppress
 from types import SimpleNamespace as _SimpleNamespace
@@ -204,15 +205,31 @@ def interoperating(function: Callable[..., Any]) -> Callable[..., Any]:
         lowered_kwargs = {key: _lowered(value) for key, value in kwargs.items()}
         return _raised(function(*lowered_args, **lowered_kwargs))
 
-    wrapper.__doc__ = (
-        f"{function.__doc__ or ''}\n\n"
-        "    Notes\n"
-        "    -----\n"
-        "    This is PyPulseq's function. Events go in as the namespaces it\n"
-        "    expects and come back with their fields in slots. See\n"
-        "    the event interoperation layer.\n"
-    )
+    # Our own bodies go through here too, because they build with upstream's
+    # helpers; their docstrings are ours and already say what they return.
+    if function.__module__.partition(".")[0] == "pypulseq":
+        wrapper.__doc__ = _noted(
+            function.__doc__,
+            "    This is PyPulseq's function. Events go in as the namespaces it\n"
+            "    expects and come back with their fields in slots.\n",
+        )
     return wrapper
+
+
+#: A numpydoc ``Notes`` heading, at whatever indentation the docstring has.
+_NOTES = re.compile(r"^[ \t]*Notes\n[ \t]*-+\n", re.MULTILINE)
+
+
+def _noted(doc: str | None, note: str) -> str:
+    """Put ``note`` first in a docstring's Notes section, opening one if none.
+
+    A second Notes heading would render as a second section.
+    """
+    doc = doc or ""
+    heading = _NOTES.search(doc)
+    if heading is None:
+        return f"{doc.rstrip()}\n\n    Notes\n    -----\n{note}"
+    return f"{doc[: heading.end()]}{note}\n{doc[heading.end() :]}"
 
 
 def _converting(factory: Callable[..., Any]) -> Callable[..., Any]:
@@ -225,12 +242,10 @@ def _converting(factory: Callable[..., Any]) -> Callable[..., Any]:
             return tuple(convert(one) for one in made)
         return convert(made)
 
-    wrapper.__doc__ = (
-        f"{factory.__doc__ or ''}\n\n"
-        "    Notes\n"
-        "    -----\n"
+    wrapper.__doc__ = _noted(
+        factory.__doc__,
         "    This is PyPulseq's factory; the event it builds is returned with\n"
-        "    its fields in slots. See the event interoperation layer.\n"
+        "    its fields in slots.\n",
     )
     return wrapper
 

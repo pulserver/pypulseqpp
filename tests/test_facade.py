@@ -1,6 +1,8 @@
 """PyPulseq namespace compatibility and compiled-event interoperability."""
 
+import inspect
 import math
+import re
 
 import numpy as np
 import pypulseq as upstream
@@ -79,6 +81,98 @@ def test_scaling_a_gradient_stays_in_the_compiled_form():
 
     assert isinstance(scaled, _ext.TrapEvent)
     assert scaled.amplitude == pytest.approx(gx.amplitude * 0.5)
+
+
+def _gradients(system):
+    """One of each gradient form, each within `system` at scale one."""
+    peak = system.max_grad
+    return {
+        "trapezoid": pp.make_trapezoid("x", area=100, system=system),
+        "arbitrary": pp.make_arbitrary_grad(
+            "x", 0.1 * peak * np.sin(20 * np.pi * np.linspace(0, 1, 200)), system=system
+        ),
+        "extended": pp.make_extended_trapezoid(
+            "x",
+            times=[0, 1e-4, 3e-4, 4e-4],
+            amplitudes=[0, 0.3 * peak, 0.3 * peak, 0],
+            system=system,
+        ),
+    }
+
+
+@pytest.mark.parametrize("kind", ["trapezoid", "arbitrary", "extended"])
+@pytest.mark.parametrize("scale", [-0.5, 1.0, 2.0, -2.0, 5.0])
+def test_scaling_against_a_system_refuses_what_upstream_refuses(kind, scale):
+    """The native check, called directly: `pp.scale_grad` would fall back to
+    upstream on a TypeError and hide a broken one."""
+    system = pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    ours = _gradients(system)[kind]
+    limits = (system.max_grad, system.max_slew)
+
+    try:
+        expected = upstream.scale_grad(pp.as_namespace(ours), scale, system=system)
+    except ValueError as refusal:
+        limit = "slew rate" if "slew" in str(refusal) else "amplitude"
+        with pytest.raises(ValueError, match=f"maximum {limit} exceeded"):
+            _ext._scale_grad(ours, scale, *limits)
+        return
+
+    scaled = _ext._scale_grad(ours, scale, *limits)
+    assert type(scaled) is type(ours)
+    assert scaled.area == pytest.approx(expected.area)
+
+
+def test_scaling_against_a_system_checks_peak_and_slew_apart():
+    system = pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    # Ramps at the slew limit, a plateau far below the peak.
+    ramped = _gradients(system)["trapezoid"]
+
+    with pytest.raises(ValueError, match="maximum slew rate exceeded"):
+        pp.scale_grad(ramped, 1.5, system=system)
+    with pytest.raises(ValueError, match="maximum amplitude exceeded"):
+        pp.scale_grad(ramped, system.max_grad / ramped.amplitude * 1.01, system=system)
+
+
+def test_scaling_a_namespace_is_upstreams_scaling():
+    gx = upstream.make_trapezoid("x", area=1000, duration=1e-3)
+
+    scaled = pp.scale_grad(gx, 0.5)
+
+    assert scaled.area == pytest.approx(upstream.scale_grad(gx, 0.5).area)
+
+
+_NOTES = re.compile(r"^[ \t]*Notes\n[ \t]*-+\n", re.MULTILINE)
+
+
+def _documented():
+    for name in pp.__all__:
+        value = getattr(pp, name)
+        if callable(value) and value.__doc__:
+            yield name, value
+
+
+def test_only_upstreams_own_code_is_documented_as_upstreams():
+    ours = [
+        name
+        for name, value in _documented()
+        if "This is PyPulseq's" in value.__doc__
+        and inspect.unwrap(value).__module__.startswith("pypulseqpp")
+    ]
+
+    assert ours == []
+
+
+def test_scale_grad_documents_the_path_it_takes():
+    assert "C++" in pp.scale_grad.__doc__
+    assert "This is PyPulseq's" not in pp.scale_grad.__doc__
+
+
+def test_no_docstring_has_two_notes_sections():
+    doubled = [
+        name for name, value in _documented() if len(_NOTES.findall(value.__doc__)) > 1
+    ]
+
+    assert doubled == []
 
 
 @pytest.mark.parametrize(
