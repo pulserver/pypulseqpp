@@ -33,6 +33,10 @@ dependencies = ["numpy>=1.24", "pypulseq>=1.5", "scipy>=1.10"]
 # as its own GPL-licensed package, so an install that never draws -- a
 # headless host, a scanner -- carries none of it.
 plot = ["pypulseqpp-seqeyes>=0.3.3,<0.4"]
+# The FFT the mechanical-resonance check loads at run time; without it the
+# check uses the pocketfft compiled into the extension. Intel publishes no
+# wheel for ARM.
+mkl = ["mkl; platform_machine == 'x86_64' or platform_machine == 'AMD64'"]
 doc = [
   "sphinx>=7.0",
   "sphinx-book-theme>=1.1",
