@@ -177,3 +177,12 @@ def test_an_extended_trapezoid_of_an_area_joins_the_amplitudes_it_is_given():
     assert amplitudes[-1] == pytest.approx(2e5)
     assert area == pytest.approx(500.0, rel=1e-6)
     assert grad.first == 0.0
+
+
+def test_the_played_wave_never_exceeds_the_gradient_limit():
+    # A steep slew limit leaves max_grad as the cap that binds; the balancing
+    # offset lifts the cosine's peak above the sinusoid amplitude.
+    system = pp.Opts(max_grad=20, grad_unit="mT/m", max_slew=10000, slew_unit="T/m/s")
+    sine, cosine = pp.make_wave_gradients(3e-3, 4, 1.0, system=system)
+    for event in (sine, cosine):
+        assert np.abs(np.asarray(event.waveform)).max() <= system.max_grad * (1 + 1e-9)

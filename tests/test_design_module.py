@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import inspect
 import warnings
 
 import numpy as np
 import pytest
 
 import pypulseqpp as pp
-from pypulseqpp.sequences import SequenceModule
+from pypulseqpp.sequences import LineReadout3D, SequenceModule
 
 
 @pytest.fixture
@@ -261,3 +262,9 @@ def test_publication_reaches_every_init_module_in_the_chain(system):
     assert module.adc.num_samples == 64  # the base's frame
     assert getattr(module.rf, "type", None) == "rf"
     assert module.gread is module.gspecific
+
+
+def test_a_module_reports_the_arguments_of_its_init_module():
+    reported = inspect.signature(LineReadout3D)
+    taken = inspect.signature(LineReadout3D.init_module)
+    assert list(reported.parameters) == list(taken.parameters)[1:]

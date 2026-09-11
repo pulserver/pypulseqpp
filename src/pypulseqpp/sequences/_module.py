@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["SequenceModule"]
 
+import inspect
 import sys
 import warnings
 from abc import ABC, abstractmethod
@@ -58,6 +59,13 @@ class SequenceModule(ABC):
     Only calculate_kspace, check_timing, test_report and waveforms_and_times
     are forwarded to seq.
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # The constructor forwards its arguments to init_module, so these are
+        # what help(), inspect.signature and the API pages report.
+        parameters = list(inspect.signature(cls.init_module).parameters.values())
+        cls.__signature__ = inspect.Signature(parameters[1:])
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._seq = None

@@ -57,11 +57,10 @@ class T2Preparation(RfModule):
         The refocusing pulse; every repeat plays this one event.
     rf_store : RfEvent
         The reverse half passage that stores what is left.
-    wait_te : DelayEvent
-        The last gap created between the pulses: the one before ``rf_store``
-        unless that gap is zero. The first and inner gaps are separate events
-        of other durations and are not published. Absent when every gap is
-        zero.
+    wait_first, wait_inner, wait_last : DelayEvent
+        The gaps before the first refocusing pulse, between refocusing
+        pulses, and before ``rf_store``. Each is absent when its gap is
+        zero, and ``wait_inner`` when there is one refocusing pulse.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         The closing spoiler.
     prep_labels : LabelSetEvent or list of LabelSetEvent
@@ -172,17 +171,19 @@ class T2Preparation(RfModule):
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
         ]
 
+        wait_first = pp.make_delay(first_gap) if first_gap else None
+        wait_inner = pp.make_delay(inner_gap) if inner_gap else None
+        wait_last = pp.make_delay(last_gap) if last_gap else None
+
         self.seq = pp.Sequence(system)
         self.seq.add_block(rf_prep, *prep_labels)
         for index in range(n_refocus):
-            gap = first_gap if index == 0 else inner_gap
-            if gap:
-                wait_te = pp.make_delay(gap)
-                self.seq.add_block(wait_te)
+            _wait = wait_first if index == 0 else wait_inner
+            if _wait is not None:
+                self.seq.add_block(_wait)
             self.seq.add_block(rf_ref)
-        if last_gap:
-            wait_te = pp.make_delay(last_gap)
-            self.seq.add_block(wait_te)
+        if wait_last is not None:
+            self.seq.add_block(wait_last)
 
         # Read off the sequence rather than re-summed from the parts: the
         # blocks have been rounded onto the block raster by now, and the echo

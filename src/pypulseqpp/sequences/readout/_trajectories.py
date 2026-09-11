@@ -272,8 +272,8 @@ class NonCartesianGradient:
         The readout waveforms and trajectory turn from the first channel
         towards the second. Prewinders stay right-aligned and rewinders
         left-aligned, each set resampled on the union of its vertex times.
-        The ADC object is shared with the source; of the subclass attributes,
-        only ``direction`` and ``density`` are copied.
+        The ADC object is shared with the source. Subclass attributes are
+        copied, and ``design_trajectory`` turns with the path.
 
         Parameters
         ----------
@@ -326,16 +326,14 @@ class NonCartesianGradient:
             ),
             kind=self.kind,
         )
-        for name in ("direction", "density"):
-            if hasattr(self, name):
-                setattr(turned, name, getattr(self, name))
+        for name, value in vars(self).items():
+            if name not in vars(turned):
+                setattr(turned, name, value)
+        if "design_trajectory" in vars(self):
+            turned.design_trajectory = (
+                np.asarray(self.design_trajectory)[:, :2] @ turn.T
+            )
         return turned
-
-
-def _bridge_area(event, axes) -> np.ndarray:
-    moment = np.zeros(len(axes))
-    moment[axes.index(event.channel)] = float(np.trapezoid(event.waveform, event.tt))
-    return moment
 
 
 def _rotated_bridge_pair(events, axes, turn, system, *, anchor):

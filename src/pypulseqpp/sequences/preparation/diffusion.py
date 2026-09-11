@@ -57,9 +57,9 @@ class DiffusionPreparation(RfModule):
     g_diff : TrapEvent
         The diffusion lobe, published once because both sides play the same
         event. Scale it per b-value, rotate it per direction.
-    wait_te : DelayEvent
-        The gap either side of the refocusing pulse, when the separation
-        leaves one.
+    wait_first, wait_last : DelayEvent
+        The gaps before and after the refocusing pulse, each absent when the
+        timing leaves none.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         The closing spoiler.
     prep_labels : LabelSetEvent or list of LabelSetEvent
@@ -185,12 +185,12 @@ class DiffusionPreparation(RfModule):
         self.seq.add_block(rf_prep, *prep_labels)
         self.seq.add_block(g_diff)
         if first_gap:
-            wait_te = pp.make_delay(first_gap)
-            self.seq.add_block(wait_te)
+            wait_first = pp.make_delay(first_gap)
+            self.seq.add_block(wait_first)
         self.seq.add_block(rf_ref)
         if second_gap:
-            wait_te = pp.make_delay(second_gap)
-            self.seq.add_block(wait_te)
+            wait_last = pp.make_delay(second_gap)
+            self.seq.add_block(wait_last)
         self.seq.add_block(g_diff)
         self.seq.add_block(rf_store)
         if spoiling_cycles:

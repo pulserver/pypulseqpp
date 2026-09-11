@@ -302,8 +302,9 @@ def make_wave_gradients(
         Sinusoid periods across the flat top.
     amplitude : float
         Requested sinusoid amplitude (T/m). An upper bound: the amplitude
-        built is lowered as needed to respect ``system.max_slew`` and
-        ``system.max_grad``.
+        built is lowered as needed to keep the played waveforms within
+        ``system.max_slew`` and ``system.max_grad``. The balancing offset
+        can lift a played peak a few percent above the amplitude.
     sine_channel, cosine_channel : {"x", "y", "z"} or None, optional
         Channels for the sine and the cosine; ``None`` omits that one.
     delay : float, optional
@@ -385,8 +386,13 @@ def make_wave_gradients(
         / raster
         for shape in shapes.values()
     )
+    # The balancing offset lifts a shape's tallest sample a few percent above
+    # one, so max_grad bounds the played peak rather than the amplitude.
+    tallest = max(float(np.abs(shape).max()) for shape in shapes.values())
     peak = min(
-        float(amplitude) * system.gamma, system.max_slew / steepest, system.max_grad
+        float(amplitude) * system.gamma,
+        system.max_slew / steepest,
+        system.max_grad / tallest,
     )
 
     events = tuple(
