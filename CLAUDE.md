@@ -15,9 +15,9 @@ output. Not every upstream feature is implemented; do not document an absent
 method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
-repetition detection, timing, gradient, mechanical-resonance and PNS checks,
+repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
 waveform and k-space analysis, FOV transforms, RF/gradient design, sampling,
-and reusable sequence modules. RF-power analysis and tiling are deferred.
+and reusable sequence modules. Tiling is deferred.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.

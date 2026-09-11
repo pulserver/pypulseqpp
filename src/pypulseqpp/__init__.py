@@ -24,6 +24,7 @@ from ._b1_pulses import make_b1_selective_pulse as _make_b1_selective_pulse
 from ._b1_pulses import make_bloch_siegert_pulse as _make_bloch_siegert_pulse
 from ._block_to_events import block_to_events as _block_to_events
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
+from ._calc_rf_power import calc_rf_power
 from ._check_timing import check_timing as _check_timing
 from ._check_timing import print_error_report as _print_error_report
 from ._epi import calc_epi_order
