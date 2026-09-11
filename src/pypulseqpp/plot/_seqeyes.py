@@ -104,8 +104,8 @@ def blocks_for(
     block_range : sequence of int, optional
         The first and last block, 1-based and inclusive.
     tr_range : sequence of int, optional
-        The first and last repetition, 1-based and inclusive, counted from the
-        first full one.
+        The first and last repetition, 1-based and inclusive; a sequence that
+        does not repeat is one repetition.
 
     Returns
     -------
@@ -115,8 +115,8 @@ def blocks_for(
     Raises
     ------
     ValueError
-        If more than one range is given, a range is backwards or outside the
-        sequence, or ``tr_range`` is asked of a sequence that does not repeat.
+        If more than one range is given, or a range is backwards or outside
+        the sequence.
     """
     given = [r for r in (time_range, block_range, tr_range) if r is not None]
     if len(given) > 1:
@@ -152,10 +152,6 @@ def blocks_for(
         return first, last
 
     size, start = seq._detect_tr()
-    if size == 0:
-        raise ValueError(
-            "the sequence does not repeat, so it has no repetition to count"
-        )
     repeats = (count - start + 1) // size
     first, last = int(low), repeats if math.isinf(high) else int(high)
     if not 1 <= first <= last <= repeats:

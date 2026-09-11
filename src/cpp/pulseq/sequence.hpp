@@ -643,15 +643,14 @@ namespace pulseq
      * A scan is a handful of things played over and over with different
      * numbers in them, and the stream of block definition ids is where that
      * shows: a gradient echo reads 1 2 3 4 1 2 3 4 whatever its phase encode
-     * is doing. The scan is the longest stretch ending at the last block that
-     * repeats at least twice, and this is its smallest period and where it
-     * starts; the blocks before `start` are the prologue. An outer loop whose
-     * iterations each carry their own preparation -- a slice with its dummy
-     * shots -- is therefore one repetition, not a prologue followed by the
-     * lines of the last slice.
-     *
-     * A `size` of zero means no repetition was found, which is the honest
-     * answer for a sequence that plays each position once.
+     * is doing. The repetition is the shortest period of that stream from its
+     * first block that every block repeats, as pulserver's period detection
+     * finds it; failing that, the shortest period dividing the table over
+     * which blocks match in duration and in which channels they play; and
+     * failing both, the whole table. An outer loop whose iterations carry
+     * their own preparation -- a slice with its dummy shots -- is one
+     * repetition, and a block played once makes the whole sequence one.
+     * `start` is always 0; a `size` of zero means there are no blocks.
      */
     struct Repetition
     {
@@ -1139,12 +1138,9 @@ namespace pulseq
         Repetition repetition();
 
         /**
-         * Where a repeating unit of @p size starts, if it repeats at all.
-         *
-         * For a caller who already knows the period -- a file that records
-         * it, a protocol that fixes it -- and wants to know how much of the
-         * sequence is prologue. Returns a size of zero if the stream does not
-         * in fact repeat with that period.
+         * A known period, verified: @p size, if it is shorter than the
+         * sequence, divides it, and every block repeats the one @p size
+         * before it; otherwise a size of zero. `start` is 0.
          */
         Repetition locate_repetition(int size) const;
         int register_shape(int num_uncompressed, const double* samples, int count);

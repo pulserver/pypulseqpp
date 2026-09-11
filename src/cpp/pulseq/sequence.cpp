@@ -7,6 +7,9 @@
 #include "pulseq/shape.hpp"
 #include "pulseq/sequence.hpp"
 
+#include <array>
+#include <cmath>
+#include <map>
 #include <numeric>
 
 namespace pulseq
@@ -778,24 +781,52 @@ namespace pulseq
         changed();
     }
 
+    namespace
+    {
+
+        /** Whether @p keys repeats with @p period, which divides its length. */
+        bool period_holds(const std::vector<int32_t>& keys, int period)
+        {
+            const int blocks = static_cast<int>(keys.size());
+            if (period <= 0 || period > blocks || blocks % period != 0)
+                return false;
+            for (int i = period; i < blocks; ++i)
+                if (keys[static_cast<size_t>(i)] != keys[static_cast<size_t>(i % period)])
+                    return false;
+            return true;
+        }
+
+        /** Whether every block is the block a period before it; a partial last copy counts. */
+        bool repeats_with(const std::vector<int32_t>& keys, int period)
+        {
+            for (size_t i = static_cast<size_t>(period); i < keys.size(); ++i)
+                if (keys[i] != keys[i % static_cast<size_t>(period)])
+                    return false;
+            return true;
+        }
+
+        /** The shortest period whose first copy is followed by a second, or the length. */
+        int first_repeat(const std::vector<int32_t>& keys)
+        {
+            const int blocks = static_cast<int>(keys.size());
+            for (int period = 1; period <= blocks / 2; ++period)
+            {
+                bool match = true;
+                for (int i = 0; i < period && match; ++i)
+                    match = keys[static_cast<size_t>(i)] == keys[static_cast<size_t>(i + period)];
+                if (match)
+                    return period;
+            }
+            return blocks;
+        }
+
+    } // namespace
+
     Repetition Sequence::locate_repetition(int size) const
     {
         Repetition found;
-        const int blocks = static_cast<int>(instance_def_.size());
-        if (size < 1 || size * 2 > blocks)
-            return found;
-
-        int start = blocks - size;
-        while (start > 0 &&
-               instance_def_[static_cast<size_t>(start) - 1] ==
-                   instance_def_[static_cast<size_t>(start) - 1 + size])
-            --start;
-
-        if (blocks - start >= 2 * size)
-        {
+        if (size < static_cast<int>(instance_def_.size()) && period_holds(instance_def_, size))
             found.size = size;
-            found.start = start;
-        }
         return found;
     }
 
@@ -809,38 +840,48 @@ namespace pulseq
 
         const int blocks = static_cast<int>(instance_def_.size());
         if (blocks < 2)
-            return repetition_;
-
-        /* The scan is the longest stretch ending at the last block that
-         * repeats at least twice, and its smallest period; what precedes it
-         * is the prologue. A stream and its reverse have the same periods, so
-         * the prefix function of the reversed stream gives the smallest
-         * period of every such stretch in one pass: a stretch of m blocks has
-         * period m - border[m - 1]. */
-        const auto reversed = [this, blocks](int i) {
-            return instance_def_[static_cast<size_t>(blocks - 1 - i)];
-        };
-        std::vector<int> border(static_cast<size_t>(blocks), 0);
-        for (int i = 1; i < blocks; ++i)
         {
-            int k = border[static_cast<size_t>(i) - 1];
-            while (k > 0 && reversed(i) != reversed(k))
-                k = border[static_cast<size_t>(k) - 1];
-            if (reversed(i) == reversed(k))
-                ++k;
-            border[static_cast<size_t>(i)] = k;
+            repetition_.size = blocks;
+            return repetition_;
         }
 
-        for (int length = blocks; length >= 2; --length)
+        /* The shortest period of the definition stream from its first block,
+         * as long as every block repeats the one a period before it. */
+        const int period = first_repeat(instance_def_);
+        if (period < blocks && repeats_with(instance_def_, period))
         {
-            const int period = length - border[static_cast<size_t>(length) - 1];
-            if (2 * period <= length)
+            repetition_.size = period;
+            return repetition_;
+        }
+
+        /* Shots whose events differ in shape but not in timing -- a pulse
+         * per shot -- repeat by their structure: duration, and which of RF,
+         * Gx, Gy, Gz and ADC they play. A pure delay is any pure delay. */
+        std::map<std::array<int64_t, 2>, int32_t> seen;
+        std::vector<int32_t> structure(static_cast<size_t>(blocks));
+        for (int i = 0; i < blocks; ++i)
+        {
+            const int32_t* row = blocks_->data() + static_cast<size_t>(i) * BLOCK_WIDTH;
+            int64_t plays = 0;
+            for (int column = 0; column < 5; ++column)
+                plays |= static_cast<int64_t>(row[column] > 0) << column;
+            const int64_t duration =
+                plays ? std::llround(durations_->data()[i] * 1e9) : -1;
+            const auto found = seen.emplace(
+                std::array<int64_t, 2>{duration, plays}, static_cast<int32_t>(seen.size()));
+            structure[static_cast<size_t>(i)] = found.first->second;
+        }
+        for (int candidate = 1; candidate <= blocks / 2; ++candidate)
+        {
+            if (period_holds(structure, candidate))
             {
-                repetition_.size = period;
-                repetition_.start = blocks - length;
+                repetition_.size = candidate;
                 return repetition_;
             }
         }
+
+        // Nothing repeats, so the whole sequence is its one repetition.
+        repetition_.size = blocks;
         return repetition_;
     }
 

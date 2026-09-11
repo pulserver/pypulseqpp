@@ -680,19 +680,22 @@ class Sequence:
         Returns
         -------
         size : int
-            Blocks per repetition, or zero if no repetition is detected.
+            Blocks per repetition; the whole sequence when it does not
+            repeat, and zero when it has no blocks.
         start : int
-            1-based start of the first full repetition; earlier blocks form
-            the prologue.
+            1-based start of the first repetition, always 1.
 
         Notes
         -----
-        The repetition is the smallest period of the longest stretch, ending
-        at the last block, that repeats at least twice; a slice acquired with
-        its own preparation and dummy shots is one repetition. Records
-        ``TRsize`` in sequence definitions; a recorded size that the blocks
-        still repeat with is taken instead. Structural edits invalidate the
-        native detection cache.
+        The repetition is the shortest period of the block-definition stream
+        from the first block that every block repeats, or failing that the
+        shortest period by block structure, or the whole sequence: a slice
+        acquired with its own preparation and dummy shots is one repetition,
+        and a block played once makes the whole sequence one. ``start`` is 1.
+        Records ``TRsize`` in sequence definitions; a recorded size shorter
+        than the sequence that divides it and that the blocks repeat with is
+        taken instead, so a longer hyper-TR can be declared. Structural edits
+        invalidate the native detection cache.
         """
         recorded = self.get_definition("TRsize")
         if recorded != "":
@@ -1192,9 +1195,8 @@ class Sequence:
             The first and last block to draw, 1-based and inclusive.
         tr_range : sequence of int, optional
             The first and last repetition to draw, 1-based and inclusive.
-            A repetition is the period of the block definition stream, and
-            the first is the first full one, so a prologue -- dummy shots, a
-            preparation, a noise scan -- is not counted.
+            A repetition is the period of the block definition stream from
+            the first block; a sequence that does not repeat is one.
 
         Returns
         -------
@@ -1207,8 +1209,8 @@ class Sequence:
         ModuleNotFoundError
             If SeqEyes is not installed.
         ValueError
-            If more than one range is given, a range is outside the sequence,
-            or ``tr_range`` is asked of a sequence that does not repeat.
+            If more than one range is given or a range is outside the
+            sequence.
         """
         whole = tuple(time_range) == (0, np.inf)
         return _plot.plot(
@@ -1262,9 +1264,8 @@ class Sequence:
             on light-grey baselines. ``rf_color`` also draws the ADC;
             ``rf_plot`` is ``"abs"``, ``"real"`` or ``"imag"``.
         tr : int, optional
-            1-based repetition to draw, counted from the first full one. By
-            default, the one in which a physical axis reaches its largest
-            magnitude.
+            1-based repetition to draw. By default, the one in which a
+            physical axis reaches its largest magnitude.
         max_underlays : int, default 16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
@@ -1279,14 +1280,14 @@ class Sequence:
             ``diagram``, the :class:`mrsd.Diagram`, whose ``annotate`` and
             ``interval`` add labels; ``tr``, the repetition drawn solid, and
             ``underlays``, those drawn underneath, 1-based (``None`` and
-            empty without a repetition).
+            empty for a ``time_range``).
 
         Notes
         -----
         Repetitions are detected from the block definitions. Choosing them is
         one compiled pass over the block table, and only the repetitions drawn
         are expanded, so the cost does not grow with the length of the scan. A
-        sequence without a repetition is drawn whole.
+        sequence that does not repeat is one repetition, drawn whole.
         """
         from .plot._paper import paper_plot
 

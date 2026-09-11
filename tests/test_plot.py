@@ -52,17 +52,17 @@ def _read(text, tmp_path):
 # -- which blocks a range names ---------------------------------------------
 
 
-def test_a_repetition_is_counted_from_the_first_full_one(gradient_echo):
-    sequence = gradient_echo(prologue=2)
+def test_a_repetition_is_counted_from_the_first_block(gradient_echo):
+    sequence = gradient_echo(prologue=0)
 
-    assert sequence._detect_tr() == (3, 3)
-    assert _plot.blocks_for(sequence, tr_range=(2, 3)) == (6, 11)
+    assert sequence._detect_tr() == (3, 1)
+    assert _plot.blocks_for(sequence, tr_range=(2, 3)) == (4, 9)
 
 
 def test_an_open_repetition_range_runs_to_the_last_repetition(gradient_echo):
-    sequence = gradient_echo(lines=8, prologue=2)
+    sequence = gradient_echo(lines=8, prologue=0)
 
-    assert _plot.blocks_for(sequence, tr_range=(7, math.inf)) == (21, 26)
+    assert _plot.blocks_for(sequence, tr_range=(7, math.inf)) == (19, 24)
 
 
 def test_a_block_range_is_taken_as_given(gradient_echo):
@@ -108,13 +108,12 @@ def test_a_range_outside_the_sequence_is_refused(gradient_echo, asked):
         _plot.blocks_for(gradient_echo(), **asked)
 
 
-def test_a_sequence_that_does_not_repeat_has_no_repetition_to_count():
+def test_a_sequence_that_does_not_repeat_is_one_repetition():
     sequence = pp.Sequence(pp.Opts())
     for k in range(4):
         sequence.add_block(pp.make_trapezoid("x", area=100, duration=1e-3 * (k + 1)))
 
-    with pytest.raises(ValueError, match="does not repeat"):
-        _plot.blocks_for(sequence, tr_range=(1, 1))
+    assert _plot.blocks_for(sequence, tr_range=(1, 1)) == (1, 4)
 
 
 # -- what is written ----------------------------------------------------------
@@ -164,7 +163,7 @@ def test_an_excerpt_from_the_first_block_needs_no_lead(gradient_echo, tmp_path):
 
 def test_an_excerpt_carries_only_the_events_its_blocks_play(gradient_echo, tmp_path):
     """A phase encode is a row per line, so the scan's library grows with it."""
-    sequence = gradient_echo(lines=64, prologue=2)
+    sequence = gradient_echo(lines=64, prologue=0)
     size, start = sequence._detect_tr()
 
     excerpt = _read(
@@ -239,15 +238,15 @@ def test_an_option_upstream_does_not_have_is_refused(gradient_echo):
 def test_repetitions_are_drawn_whole_and_titled_with_where_they_play(
     gradient_echo, launched
 ):
-    sequence = gradient_echo(prologue=2)
+    sequence = gradient_echo(prologue=0)
 
     sequence.plot(tr_range=(2, 2))
 
     arguments, _ = launched[0]
     assert "--time-range" not in arguments
     title = arguments[arguments.index("--name") + 1]
-    start = sequence._native.block_durations()[:5].sum()
-    assert title == f"seq_plot: blocks 6 to 8 of 26, from {start:g} s"
+    start = sequence._native.block_durations()[:3].sum()
+    assert title == f"seq_plot: blocks 4 to 6 of 24, from {start:g} s"
 
 
 def test_a_time_range_is_drawn_on_the_excerpts_clock_in_whole_milliseconds(

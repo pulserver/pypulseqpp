@@ -55,18 +55,18 @@ def test_a_phase_encode_does_not_make_a_shot_different(gradient_echo):
     assert len(sequence) == 96
 
 
-def test_the_blocks_before_the_scan_starts_are_not_part_of_it(gradient_echo):
-    """Dummy shots and preparation are the prologue, not the repeat."""
+def test_blocks_played_once_before_the_loop_make_the_whole_sequence_one(
+    gradient_echo,
+):
+    """A preparation is its own subsequence or part of a hyper-TR; within one
+    table there is no prologue."""
     sequence = gradient_echo(lines=8, prologue=3)
 
-    size, start = sequence._detect_tr()
-
-    assert size == 3
-    assert start == 4
+    assert sequence._detect_tr() == (27, 1)
 
 
-def test_a_sequence_that_plays_each_position_once_does_not_repeat(gradient_echo):
-    assert gradient_echo(lines=1)._detect_tr() == (0, 1)
+def test_a_sequence_in_which_nothing_repeats_is_one_repetition(gradient_echo):
+    assert gradient_echo(lines=1)._detect_tr() == (3, 1)
 
 
 def test_a_sequence_with_nothing_in_it_does_not_repeat():
@@ -109,26 +109,30 @@ def test_adding_a_block_makes_the_answer_stale(gradient_echo):
 
     sequence.add_block(pp.make_delay(5e-3))
 
-    # The new block ends the sequence, so the shot no longer runs to the end.
-    assert sequence._native.repetition() != (3, 0)
+    # Played once, at the end: nothing repeats up to it, so the whole
+    # sequence is one repetition.
+    assert sequence._native.repetition() == (25, 0)
 
 
 def test_collapsing_duplicates_makes_the_answer_stale():
     """The repeat only becomes visible once equal shapes are one definition.
 
-    Six equal pulses built one at a time are six definitions until
-    deduplication collapses them, so before it there is no repeat to find and
-    after it there is. A remembered answer would still say there is none.
+    Three equal pulses built one at a time are three definitions until
+    deduplication collapses them. Five blocks do not divide into pulse and
+    wait, so by structure nothing repeats either: before deduplication the
+    whole sequence is one repetition, and after it a pulse and its wait are,
+    the last copy cut short. A remembered answer would still say the former.
     """
     sequence = pp.Sequence(pp.Opts())
-    for _ in range(6):
+    for pulse in range(3):
         # A fresh pulse each time: equal, but registered as its own shapes.
         sequence.add_block(
             pp.make_block_pulse(math.pi / 6, duration=1e-3, use="excitation")
         )
-        sequence.add_block(pp.make_delay(2e-3))
+        if pulse < 2:
+            sequence.add_block(pp.make_delay(2e-3))
 
-    assert sequence._native.repetition() == (0, 0)
+    assert sequence._native.repetition() == (5, 0)
 
     sequence.remove_duplicates(in_place=True)
 
@@ -151,11 +155,46 @@ def test_collapsing_duplicates_twice_does_the_pass_once():
 
 
 def test_a_repeating_unit_can_be_located_when_its_size_is_known(gradient_echo):
-    """For a caller that already knows the period."""
-    sequence = gradient_echo(lines=8, prologue=3)
+    """For a caller that already knows the period: it has to divide the table
+    and be repeated by it, and be shorter than the table."""
+    sequence = gradient_echo(lines=8)
 
-    assert sequence._native.locate_repetition(3) == (3, 3)
+    assert sequence._native.locate_repetition(3) == (3, 0)
+    assert sequence._native.locate_repetition(6) == (6, 0)
     assert sequence._native.locate_repetition(4) == (0, 0)
+    assert sequence._native.locate_repetition(24) == (0, 0)
+
+
+def test_a_declared_hyper_tr_the_blocks_repeat_with_is_taken(gradient_echo):
+    sequence = gradient_echo(lines=8)
+    sequence.set_definition("TRsize", 6)
+
+    assert sequence._detect_tr() == (6, 1)
+
+
+def test_a_declared_tr_the_blocks_contradict_is_ignored(gradient_echo):
+    sequence = gradient_echo(lines=8)
+    sequence.set_definition("TRsize", 4)
+
+    assert sequence._detect_tr() == (3, 1)
+
+
+def test_shots_that_differ_only_in_their_waveforms_repeat_by_structure():
+    """A pulse of its own per shot: no definition recurs, but every shot plays
+    the same channels for the same time."""
+    system = pp.Opts()
+    read = pp.make_trapezoid("x", area=1000, duration=2e-3, system=system)
+    sequence = pp.Sequence(system)
+    for shot in range(4):
+        sequence.add_block(
+            pp.make_sinc_pulse(
+                math.pi / 6, duration=1e-3, time_bw_product=2 + shot, system=system
+            )
+        )
+        sequence.add_block(read)
+
+    assert sequence._native.num_rf_definitions() == 4
+    assert sequence._detect_tr() == (2, 1)
 
 
 def test_finding_the_repeat_of_a_long_scan_is_one_pass(gradient_echo):
@@ -297,8 +336,8 @@ def test_a_slice_acquisition_with_its_preparation_is_one_repetition(dummies):
     assert sequence._detect_tr() == (1 + dummies + 4, 1)
 
 
-def test_a_prologue_before_the_slice_loop_stays_a_prologue():
-    """Blocks played once before the outer loop are not folded into it."""
+def test_a_preparation_before_the_slice_loop_makes_the_whole_sequence_one():
+    """Blocks played once before the outer loop leave no period to find."""
     system = pp.Opts()
     half = pp.make_block_pulse(math.pi / 8, duration=0.5e-3, system=system)
     flip = pp.make_block_pulse(math.pi / 4, duration=0.5e-3, system=system)
@@ -310,4 +349,4 @@ def test_a_prologue_before_the_slice_loop_stays_a_prologue():
         for _ in range(4):
             sequence.add_block(flip)
 
-    assert sequence._detect_tr() == (5, 3)
+    assert sequence._detect_tr() == (17, 1)
