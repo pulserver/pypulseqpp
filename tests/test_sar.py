@@ -161,7 +161,7 @@ def test_the_blocks_before_the_first_repetition_are_a_window_of_their_own(
         drive=np.ones(CHANNELS),
         default_shim=np.ones(CHANNELS, dtype=complex),
         size=2,
-        start=2,
+        start=3,
     )
 
     assert found["first"].tolist() == [1, 3, 5, 7, 9]
