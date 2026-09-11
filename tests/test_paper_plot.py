@@ -40,7 +40,7 @@ def encoded(system, repeats, strongest=None):
     adc = pp.make_adc(128, duration=2e-3, delay=readout.rise_time, system=system)
     spoiler = pp.make_trapezoid("z", area=800, duration=1e-3, system=system)
     # One encode shape, scaled per view, so every repetition has the same
-    # definitions and the first full one starts at block 1.
+    # definitions.
     encode = pp.make_trapezoid("y", area=900, duration=1e-3, system=system)
     seq = pp.Sequence(system)
     for index in range(repeats):
@@ -168,7 +168,8 @@ def test_a_sequence_that_does_not_repeat_is_drawn_whole(system):
 
     drawn = seq.paper_plot()
 
-    assert drawn.tr is None
+    # The whole sequence is its one repetition, with nothing underneath.
+    assert drawn.tr == 1
     assert drawn.underlays == []
 
 

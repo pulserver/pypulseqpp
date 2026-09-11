@@ -213,8 +213,8 @@ def test_scaling_the_wave_to_zero_leaves_the_repeating_unit_alone():
 
     Scaling keeps the block definition -- the waveform is carried by the
     playout -- so the scan remains one repeating unit from its first block.
-    Leaving the event out is a different block, and only the tail after it
-    repeats.
+    Leaving the event out is a different block, and the scan no longer
+    repeats: it is one repetition of all its blocks.
     """
     everywhere = sequence([1.0] * 6)._detect_tr()
     scaled_off = sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])._detect_tr()
@@ -222,7 +222,7 @@ def test_scaling_the_wave_to_zero_leaves_the_repeating_unit_alone():
 
     assert everywhere == (4, 1)
     assert scaled_off == everywhere
-    assert left_out[1] > everywhere[1]
+    assert left_out == (24, 1)
 
 
 def test_a_wave_scaled_to_zero_encodes_nothing():

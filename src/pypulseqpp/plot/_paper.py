@@ -27,9 +27,9 @@ def select_trs(seq, tr=None, max_underlays=16):
     Returns
     -------
     size : int
-        Blocks per repetition; 0 when the sequence does not repeat.
+        Blocks per repetition; the whole sequence when it does not repeat.
     start : int
-        1-based block where the first full repetition starts.
+        1-based block where the first repetition starts.
     main : int or None
         1-based repetition drawn solid: ``tr`` if given, otherwise the one in
         which any physical axis reaches its largest magnitude.
