@@ -57,6 +57,8 @@ from ._opts import (
 )
 from ._opts import Opts as _Opts
 from ._ordering import calc_traversal_order
+from ._ptx import make_ptx_pulse as _make_ptx_pulse
+from ._ptx import split_ptx_pulse
 from ._rf_pulses import make_2d_selective_pulse as _make_2d_selective_pulse
 from ._rf_pulses import make_half_passages as _make_half_passages
 from ._rf_pulses import make_slr_pulse as _make_slr_pulse
@@ -205,6 +207,7 @@ make_sms_pulse = interoperating(_make_sms_pulse)
 make_gslider_pulse = interoperating(_make_gslider_pulse)
 make_hadamard_pulse = interoperating(_make_hadamard_pulse)
 make_pins_pulse = interoperating(_make_pins_pulse)
+make_ptx_pulse = interoperating(_make_ptx_pulse)
 make_spsp_pulse = interoperating(_make_spsp_pulse)
 make_wave_gradients = interoperating(_make_wave_gradients)
 

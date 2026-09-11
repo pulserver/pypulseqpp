@@ -3,6 +3,7 @@
  * @brief Storage and block operations for pulseq::Sequence; see sequence.hpp.
  */
 
+#include "pulseq/channels.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/sequence.hpp"
 
@@ -887,11 +888,16 @@ namespace pulseq
             }
 
             /* The flip angle is the envelope integrated over its own times,
-             * in turns; the magnitude of that, in degrees. */
+             * channel by channel for a dynamic pTx pulse, in turns; the
+             * magnitude of that, in degrees. */
             double real = 0.0;
             double imaginary = 0.0;
+            const size_t per_channel =
+                std::max<size_t>(1, std::min(magnitude.size(), t.size()) / rf_channels(t));
             for (size_t i = 0; i + 1 < magnitude.size() && i + 1 < t.size(); ++i)
             {
+                if ((i + 1) % per_channel == 0)
+                    continue;
                 const double turns =
                     6.283185307179586476925286766559 * (i < phase.size() ? phase[i] : 0.0);
                 const double weight = row[0] * magnitude[i] * (t[i + 1] - t[i]);
