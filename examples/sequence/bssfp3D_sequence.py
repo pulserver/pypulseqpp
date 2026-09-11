@@ -127,7 +127,10 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.repetition_time = self.ro.duration
 
         # Half a TR from the centre of the half flip to that of the first full
-        # flip, to the block raster.
+        # flip, to the block raster. The wait is the duration of the half flip's
+        # own block: as a pure delay block it would share a definition with
+        # every repetition's closing wait, and the scan would read as repeating
+        # from that wait rather than from an excitation.
         lead = pp.calc_duration(self.half.rf) - self.half.center + self.exc.center
         pad = pp.round_to_raster(
             self.repetition_time / 2 - lead, system.block_duration_raster
@@ -137,7 +140,7 @@ class Bssfp3DApp(sequences.SequenceApp):
                 f"half the TR, {self.repetition_time * 500:.3f} ms, is shorter than "
                 f"the {lead * 1e3:.3f} ms between the centres of two pulses"
             )
-        self.preparation_wait = pp.make_delay(pad) if pad > 0 else None
+        self.preparation_wait = pp.make_delay(pp.calc_duration(self.half.rf) + pad)
 
         self.pairs, self.n_calibration = pp.calc_sampled_pairs(
             (n_y, n_z),
@@ -157,9 +160,7 @@ class Bssfp3DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play the half-flip preparation, the dummies, then every pair."""
         self.half.rf.phase_offset = 0.0
-        self.seq.add_block(self.half.rf, *self.labels(ONCE=1))
-        if self.preparation_wait is not None:
-            self.seq.add_block(self.preparation_wait)
+        self.seq.add_block(self.half.rf, self.preparation_wait, *self.labels(ONCE=1))
         views = [None] * self.n_dummy + list(self.pairs)
         for k, view in enumerate(views):
             calibrating = k - self.n_dummy < self.n_calibration

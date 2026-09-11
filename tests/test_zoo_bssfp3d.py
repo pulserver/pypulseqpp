@@ -48,6 +48,18 @@ def test_the_half_flip_leads_the_first_pulse_by_half_a_repetition():
     assert np.diff(centres[1:]) == pytest.approx(sequence.repetition_time)
 
 
+@pytest.mark.parametrize("tr", [None, 6e-3], ids=["shortest", "padded"])
+def test_the_scan_repeats_one_repetition_from_the_first_full_flip(tr):
+    sequence = app(tr=tr, n_dummy=10)
+    seq = sequence.design()
+    blocks = 4 + (getattr(sequence.ro, "wait_tr", None) is not None)
+
+    size, start = seq._detect_tr()
+
+    assert (size, start) == (blocks, 2)
+    assert seq.get_block(start).rf is not None
+
+
 def test_every_repetition_returns_its_gradient_moments_to_zero():
     waves, excitations = app(acceleration=2).design().waveforms_and_times()[:2]
     edges = np.asarray(excitations)[0]
