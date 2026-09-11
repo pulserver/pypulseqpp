@@ -25,6 +25,9 @@ namespace pulseq
         {
             double amplitude = 0.0;
             double slew = 0.0;
+            /** Signed extremes, with zero among them. */
+            double low = 0.0;
+            double high = 0.0;
             bool known = false;
         };
 
@@ -107,6 +110,8 @@ namespace pulseq
                 for (size_t i = 0; i < drawn.count; ++i)
                 {
                     found.amplitude = std::max(found.amplitude, std::fabs(drawn.values[i]));
+                    found.low = std::min(found.low, drawn.values[i]);
+                    found.high = std::max(found.high, drawn.values[i]);
                     if (i == 0)
                         continue;
                     const double span = drawn.times[i] - drawn.times[i - 1];
@@ -154,6 +159,27 @@ namespace pulseq
                     for (int axis = 0; axis < 3; ++axis)
                         here[axis] = sloped(axis, edges_[i], at[static_cast<size_t>(axis)]);
                     take(here, vector, axes);
+                }
+            }
+
+            /** The lowest and highest each axis reaches in the block at @p row. */
+            void extremes(const int32_t* row, double low[3], double high[3])
+            {
+                if (!gather(row))
+                    return;
+                size_t at[3] = {0, 0, 0};
+                for (size_t i = 0; i < edges_.size(); ++i)
+                {
+                    double here[3];
+                    for (int axis = 0; axis < 3; ++axis)
+                        here[axis] = drawn(axis, edges_[i], at[static_cast<size_t>(axis)]);
+                    if (turned_)
+                        rotate(matrix_, here);
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        low[axis] = std::min(low[axis], here[axis]);
+                        high[axis] = std::max(high[axis], here[axis]);
+                    }
                 }
             }
 
@@ -471,6 +497,44 @@ namespace pulseq
         weigh_every_block(
             seq, out, profile, &BlockProfile::slew,
             [&profile](int32_t id) { return profile.alone(id).slew; });
+        return out;
+    }
+
+    std::vector<double> block_extremes(const Sequence& seq)
+    {
+        const int blocks = seq.num_blocks();
+        std::vector<double> out(static_cast<size_t>(blocks) * 6, 0.0);
+        BlockProfile profile(seq, seq.grad_raster_time());
+        const int32_t* events = seq.block_events();
+
+        for (int index = 0; index < blocks; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index) * BLOCK_WIDTH;
+            double low[3] = {0.0, 0.0, 0.0};
+            double high[3] = {0.0, 0.0, 0.0};
+            const int32_t rotation = row[BLOCK_ROTATION_COLUMN];
+            if (rotation >= 1 && rotation <= seq.rotation_library().size())
+            {
+                profile.extremes(row, low, high);
+            }
+            else
+            {
+                /* Played as written, each axis plays its own gradient, whose
+                 * extremes belong to the event and are worked out once. */
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const Reach& alone = profile.alone(row[1 + axis]);
+                    low[axis] = alone.low;
+                    high[axis] = alone.high;
+                }
+            }
+            double* into = out.data() + static_cast<size_t>(index) * 6;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                into[2 * axis] = low[axis];
+                into[2 * axis + 1] = high[axis];
+            }
+        }
         return out;
     }
 

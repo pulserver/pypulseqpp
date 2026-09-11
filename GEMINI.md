@@ -22,7 +22,8 @@ and reusable sequence modules. RF-power analysis and tiling are deferred.
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
 
-Runtime dependencies are NumPy, SciPy and PyPulseq. The native extension links
+Runtime dependencies are NumPy, SciPy, PyPulseq and mrsd, which draws
+`paper_plot` and needs nothing PyPulseq does not. The native extension links
 the standard library and threads. The optional GPL viewer is distributed
 separately from the MIT core.
 

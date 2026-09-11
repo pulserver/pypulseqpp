@@ -1161,6 +1161,84 @@ class Sequence:
             show_guides=show_guides,
         )
 
+    def paper_plot(
+        self,
+        time_range=(0, np.inf),
+        line_width: float = 1.2,
+        axes_color="0.9",
+        rf_color="black",
+        gx_color="black",
+        gy_color="black",
+        gz_color="black",
+        rf_plot: str = "abs",
+        *,
+        tr=None,
+        max_underlays: int = 16,
+        underlay_color="0.8",
+        ax=None,
+    ) -> SimpleNamespace:
+        """Draw a publication-style diagram of one repetition, with mrsd.
+
+        Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn
+        from the waveform the sequence plays and scaled to its row: the three
+        gradient rows share one scale. The other repetitions are drawn
+        underneath in ``underlay_color``, which shows what changes from one to
+        the next, and a TR interval is marked below.
+
+        Parameters
+        ----------
+        time_range : sequence of float, default (0, inf)
+            Upstream's window, in seconds. Given, the blocks it touches are
+            drawn alone, without repetitions underneath.
+        line_width, axes_color, rf_color, gx_color, gy_color, gz_color, rf_plot
+            Upstream's styling parameters, with mrsd's defaults: black events
+            on light-grey baselines. ``rf_color`` also draws the ADC;
+            ``rf_plot`` is ``"abs"``, ``"real"`` or ``"imag"``.
+        tr : int, optional
+            1-based repetition to draw, counted from the first full one. By
+            default, the one in which a physical axis reaches its largest
+            magnitude.
+        max_underlays : int, default 16
+            At most this many repetitions, evenly spaced, are drawn underneath,
+            together with those in which each axis reaches its most negative and
+            most positive value; 0 draws none.
+        underlay_color : color, default "0.8"
+        ax : matplotlib.axes.Axes, optional
+            Axes to draw in; a new figure by default.
+
+        Returns
+        -------
+        SimpleNamespace
+            ``diagram``, the :class:`mrsd.Diagram`, whose ``annotate`` and
+            ``interval`` add labels; ``tr``, the repetition drawn solid, and
+            ``underlays``, those drawn underneath, 1-based (``None`` and
+            empty without a repetition).
+
+        Notes
+        -----
+        Repetitions are detected from the block definitions. Choosing them is
+        one compiled pass over the block table, and only the repetitions drawn
+        are expanded, so the cost does not grow with the length of the scan. A
+        sequence without a repetition is drawn whole.
+        """
+        from ._paper_plot import paper_plot
+
+        return paper_plot(
+            self,
+            time_range=time_range,
+            line_width=line_width,
+            axes_color=axes_color,
+            rf_color=rf_color,
+            gx_color=gx_color,
+            gy_color=gy_color,
+            gz_color=gz_color,
+            rf_plot=rf_plot,
+            tr=tr,
+            max_underlays=max_underlays,
+            underlay_color=underlay_color,
+            ax=ax,
+        )
+
     # -- the scanner ---------------------------------------------------
 
     #: Upstream scanner installation, using this sequence's write method.

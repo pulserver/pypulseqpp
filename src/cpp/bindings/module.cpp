@@ -1034,6 +1034,23 @@ PYBIND11_MODULE(_ext, module)
         "axis on its own, and the vector magnitude.");
 
     module.def(
+        "block_extremes",
+        [](const Sequence& sequence) {
+            std::vector<double> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::block_extremes(sequence);
+            }
+            const py::ssize_t blocks = static_cast<py::ssize_t>(found.size() / 6);
+            py::array_t<double> out({blocks, static_cast<py::ssize_t>(3), static_cast<py::ssize_t>(2)});
+            std::copy(found.begin(), found.end(), out.mutable_data());
+            return out;
+        },
+        py::arg("sequence"),
+        "Per block, the lowest and highest value each physical axis plays, in "
+        "Hz/m: blocks x 3 x (low, high).");
+
+    module.def(
         "max_slew",
         [peak_as_dict, axes_as_list](
             const Sequence& sequence, double max_slew, double grad_raster_time) {

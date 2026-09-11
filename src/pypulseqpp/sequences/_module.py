@@ -15,6 +15,7 @@ from typing import Any
 SEQUENCE_VIEWS = (
     "calculate_kspace",
     "check_timing",
+    "paper_plot",
     "test_report",
     "waveforms_and_times",
 )

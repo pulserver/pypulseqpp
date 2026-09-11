@@ -26,7 +26,9 @@ classifiers = [
 
 # PyPulseq is the API this package replaces, and the facade re-exports its
 # namespace alongside native sequence storage and additional design factories.
-dependencies = ["numpy>=1.24", "pypulseq>=1.5", "scipy>=1.10"]
+# mrsd draws Sequence.paper_plot's diagram; it needs nothing pypulseq does not
+# already bring.
+dependencies = ["mrsd>=1.0", "numpy>=1.24", "pypulseq>=1.5", "scipy>=1.10"]
 
 [project.optional-dependencies]
 # The viewer `Sequence.plot` draws in: SeqEyes, built in viewer/ and published
