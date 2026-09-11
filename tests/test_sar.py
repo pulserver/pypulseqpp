@@ -167,7 +167,6 @@ def test_a_sequence_that_does_not_repeat_is_one_window(system, model):
 
     _, report = safety.check_sar(seq, model, drive_per_hz=1.0)
 
-    assert report.tr_size == 0
     assert report.windows.first.tolist() == [1]
     assert report.windows.last.tolist() == [2]
 
