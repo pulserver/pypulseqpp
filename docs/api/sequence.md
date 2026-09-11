@@ -8,6 +8,8 @@
 scanner limits for one Pulseq sequence. It supplies PyPulseq-compatible
 authoring methods and performs reading, writing, waveform expansion, k-space
 calculation, structural inspection, and timing checks over the compiled core.
+{meth}`Sequence.paper_plot` draws one repetition as a publication-style diagram,
+with the others underneath.
 
 {class}`Opts` describes the scanner limits on gradient, slew, RF, and ADC
 rasters. {func}`apply_system_derates` and {func}`cap_system` return adjusted

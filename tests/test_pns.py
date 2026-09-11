@@ -44,10 +44,10 @@ def encoded(system):
     n = 300
     wave = 1e5 * np.sin(np.pi * (np.arange(n) + 0.5) / n) ** 2
     shaped = pp.make_arbitrary_grad("z", wave, first=0.0, last=0.0, system=system)
+    encode = pp.make_trapezoid("y", area=1000, duration=1e-3, system=system)
     blocks = []
     for index in range(6):
-        area = -1000 + 400 * index
-        blocks.append([pp.make_trapezoid("y", area=area, duration=1e-3, system=system)])
+        blocks.append([pp.scale_grad(encode, (-1000 + 400 * index) / 1000)])
         blocks.append([readout])
         blocks.append([shaped])
         blocks.append([pp.make_delay(2e-3)])

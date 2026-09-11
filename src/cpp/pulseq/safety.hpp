@@ -112,6 +112,15 @@ namespace pulseq
      */
     ContinuityReport continuity(const Sequence& seq, const GradientLimits& limits);
 
+    /**
+     * The most negative and most positive value each physical axis plays in
+     * each block, in Hz/m, after the block's rotation.
+     *
+     * Row-major, blocks x 3 axes x {low, high}. An axis counts zero among its
+     * values, so a block that plays nothing on it reads {0, 0}.
+     */
+    std::vector<double> block_extremes(const Sequence& seq);
+
 } // namespace pulseq
 
 #endif /* PULSEQ_SAFETY_HPP */
