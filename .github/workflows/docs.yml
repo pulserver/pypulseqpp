@@ -1,0 +1,120 @@
+name: Docs
+
+# Builds the documentation and publishes it to GitHub Pages, which serves the
+# gh-pages branch. The site holds one directory per version: main publishes
+# `latest`, a release tag publishes `vX.Y.Z` and copies it to `stable`, and the
+# root redirects to whichever of the two a reader should see. Pull requests
+# build without publishing, so a documentation warning fails review rather than
+# the site.
+#
+# The branch is the site's archive. GitHub Pages can be deployed from an
+# artifact instead, but a deployment replaces the whole site, so publishing one
+# version would drop the others.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Every publish commits to the same branch, so main, the tags and a manual run
+# share one group and wait for each other rather than racing to push. A pull
+# request publishes nothing and gets a group of its own.
+concurrency:
+  group: docs-${{ github.event.pull_request.number || 'publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the publish step pushes the built site to gh-pages
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
+          fetch-depth: 0 # setuptools_scm reads the tags
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Name this version
+        id: version
+        # A release is built as `stable`, the URL a reader should land on, and
+        # archived under its tag as well; the canonical link in both copies
+        # points at `stable`, so a search result leads to the current release
+        # rather than to whichever version was indexed first.
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "dir=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "canonical=stable" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=latest" >> "$GITHUB_OUTPUT"
+            echo "canonical=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install
+        # Into the CMake build directory build_docs.sh uses, so the build it
+        # makes for Sphinx reuses these objects rather than compiling twice.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -Cbuild-dir="$PWD/docs/build/cmake" '.[doc]'
+
+      - name: Build
+        env:
+          PYPULSEQPP_DOCS_VERSION: ${{ steps.version.outputs.canonical }}
+        run: bash scripts/build_docs.sh
+
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        env:
+          DIR: ${{ steps.version.outputs.dir }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          site="$RUNNER_TEMP/pages"
+          remote="https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY"
+          # The branch does not exist before the first publish.
+          if ! git clone --depth 1 --branch gh-pages "$remote" "$site"; then
+            git init -b gh-pages "$site"
+            git -C "$site" remote add origin "$remote"
+          fi
+
+          # Only this version's directory is replaced; the others stay as the
+          # release that built them left them.
+          rm -rf "${site:?}/$DIR"
+          cp -r docs/build/html "$site/$DIR"
+
+          # `stable` is the newest release, so a patch tagged after a later
+          # release archives itself without taking `stable` backwards.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            newest=$(ls "$site" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            if [ "$newest" = "$DIR" ]; then
+              rm -rf "$site/stable"
+              cp -r "$site/$DIR" "$site/stable"
+            else
+              echo "$newest is newer than $DIR; leaving stable alone."
+            fi
+          fi
+
+          # The root goes to the current release, or to main's pages until
+          # there is one.
+          target=latest
+          [ -d "$site/stable" ] && target=stable
+          printf '<!doctype html>\n<meta http-equiv="refresh" content="0; url=%s/">\n' \
+            "$target" > "$site/index.html"
+          # Pages runs the branch through Jekyll unless told not to, and Jekyll
+          # drops the _static and _sources directories Sphinx writes.
+          touch "$site/.nojekyll"
+
+          git -C "$site" add -A
+          git -C "$site" -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Documentation for $DIR from $GITHUB_SHA" \
+            || { echo "No documentation change to publish."; exit 0; }
+          git -C "$site" push origin gh-pages
