@@ -47,7 +47,7 @@ Do not edit vendored submodule contents as part of core maintenance.
 
 ```bash
 git submodule update --init --recursive
-pip install -e '.[dev]'
+pip install -e '.[dev]' -r tests/requirements.txt
 bash scripts/format_and_lint.sh --check
 pytest -q
 ```
