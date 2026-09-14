@@ -80,7 +80,17 @@ the reusable workflow it calls for the build. On PyPI, `pypulseqpp` trusts
 
 `docs.yml` publishes the built documentation to the `gh-pages` branch, which
 GitHub Pages serves from its root. The site holds one directory per version:
-main publishes `latest`, a release tag publishes `vX.Y.Z`, and the root
-redirects to `latest`. Each run replaces only its own directory, so earlier
-releases keep the pages they were published with. `docs/conf.py` reads the
-directory name from `PYPULSEQPP_DOCS_VERSION` to stamp the canonical URL.
+
+- `latest` is main, republished on every push to it.
+- `stable` is the newest release, so it is where the root redirects and where
+  `docs/conf.py` points the canonical link of every released page.
+- `vX.Y.Z` archives each release as it was published.
+
+Each run replaces only the directories it publishes, so a release keeps the
+pages it shipped with. A tag older than the newest release archives itself
+without taking `stable` backwards. `docs/conf.py` reads the canonical
+directory from `PYPULSEQPP_DOCS_VERSION`.
+
+Pages can be deployed from a build artifact rather than a branch, but a
+deployment replaces the whole site, which leaves nowhere for the other
+versions to live.
