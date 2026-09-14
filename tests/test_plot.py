@@ -348,7 +348,8 @@ def test_seqeyes_draws_the_repetitions_asked_for(gradient_echo, tmp_path, monkey
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     monkeypatch.chdir(tmp_path)
 
-    viewer = gradient_echo(lines=64).plot(tr_range=(10, 12), save=True, plot_now=False)
+    sequence = gradient_echo(lines=64, prologue=0)
+    viewer = sequence.plot(tr_range=(10, 12), save=True, plot_now=False)
     viewer.close()
 
     assert (tmp_path / "seq_plot_seq.png").stat().st_size > 0
