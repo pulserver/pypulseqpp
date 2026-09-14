@@ -12,7 +12,6 @@ import numpy as np
 import pypulseq as _upstream
 
 from . import _ext as _cxx
-from . import _plot
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
@@ -24,6 +23,7 @@ from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
 from ._waveforms import waveforms as _waveforms
 from ._waveforms import waveforms_and_times as _waveforms_and_times
+from .plot import _seqeyes as _plot
 
 __all__ = ["Sequence"]
 
@@ -35,6 +35,32 @@ _SIGNATURE = re.compile(r"^Hash (\w+)$", re.MULTILINE)
 #: duration rather than an event, so a count reported per column pads it back
 #: on and a caller's column indices are upstream's.
 _UPSTREAM_BLOCK_WIDTH = 7
+
+#: Upstream's pure-Python storage: its libraries, caches, name maps and block
+#: counter, all of which the compiled core holds instead.
+_UPSTREAM_STORAGE = frozenset(
+    {
+        "adc_id_to_name_map",
+        "adc_library",
+        "block_cache",
+        "block_trace",
+        "delay_library",
+        "extension_numeric_idx",
+        "extension_string_idx",
+        "extensions_library",
+        "grad_id_to_name_map",
+        "grad_library",
+        "label_inc_library",
+        "label_set_library",
+        "next_free_block_ID",
+        "rf_id_to_name_map",
+        "rf_library",
+        "shape_library",
+        "soft_delay_hints",
+        "soft_delay_library",
+        "trigger_library",
+    }
+)
 
 
 class _BlockDurations(MutableMapping):
@@ -122,6 +148,43 @@ class Sequence:
     def __exit__(self, _exc_type, _exc_value, _traceback) -> bool:
         self.clear_caches()
         return False
+
+    def __getattr__(self, name: str):
+        if name in _UPSTREAM_STORAGE:
+            raise AttributeError(
+                f"pypulseqpp.Sequence has no {name!r}: upstream keeps its libraries "
+                "and caches as Python objects, and here they are compiled storage, "
+                "read through get_block, block_events, block_durations and "
+                "definitions"
+            )
+        raise AttributeError(
+            f"{type(self).__name__!r} object has no attribute {name!r}"
+        )
+
+    # -- rasters -------------------------------------------------------
+    #
+    # The rasters the sequence was designed on, as its definitions record
+    # them: set from the system at construction, or read from a file.
+
+    @property
+    def grad_raster_time(self) -> float:
+        """Gradient raster in seconds."""
+        return self._native.grad_raster_time()
+
+    @property
+    def rf_raster_time(self) -> float:
+        """RF raster in seconds."""
+        return self._native.rf_raster_time()
+
+    @property
+    def adc_raster_time(self) -> float:
+        """ADC dwell raster in seconds."""
+        return self._native.adc_raster_time()
+
+    @property
+    def block_duration_raster(self) -> float:
+        """Raster a block duration is a whole number of, in seconds."""
+        return self._native.block_duration_raster()
 
     # -- what has been worked out about the sequence -------------------
     #
@@ -601,6 +664,59 @@ class Sequence:
 
     # -- what the sequence is ------------------------------------------
 
+    def calc_rf_power(
+        self, block_range=None, window_duration: float | None = None
+    ) -> tuple[float, float, float, float]:
+        """Return the RF's mean power, peak power, RMS amplitude and energy.
+
+        As MATLAB Pulseq's ``calcRfPower``.
+
+        Parameters
+        ----------
+        block_range : sequence of int, optional
+            First and last block, 1-based and inclusive; all by default.
+        window_duration : float, optional
+            Seconds. Energy, mean power and rms are then the largest over runs
+            of whole blocks no longer than this, each divided by it.
+
+        Returns
+        -------
+        mean_pwr : float
+            Hz^2.
+        peak_pwr : float
+            Hz^2.
+        rf_rms : float
+            Hz.
+        total_energy : float
+            Hz^2 s.
+
+        Notes
+        -----
+        Each pulse is read as :func:`pypulseqpp.calc_rf_power` reads it, a
+        dynamic pTx pulse as the root-sum-square of its channels. The values
+        are relative: divide ``rf_rms`` by gamma for tesla and the powers by
+        gamma squared. :func:`pypulseqpp.safety.check_sar` gives SAR.
+        """
+        if self.num_blocks == 0:
+            return 0.0, 0.0, 0.0, 0.0
+        first, last = (
+            (1, self.num_blocks)
+            if block_range is None
+            else _plot.blocks_for(self, block_range=block_range)
+        )
+        found = _cxx.rf_power(
+            self._native,
+            first,
+            last,
+            window=0.0 if window_duration is None else float(window_duration),
+        )
+        return (
+            found["mean_power"],
+            found["peak_power"],
+            found["rms"],
+            found["energy"],
+        )
+
     def test_report(self) -> str:
         """Return a formatted sequence timing, encoding and gradient report."""
         return _report_text(_report_data(self))
@@ -617,15 +733,22 @@ class Sequence:
         Returns
         -------
         size : int
-            Blocks per repetition, or zero if no repetition is detected.
+            Blocks per repetition; the whole sequence when it does not
+            repeat, and zero when it has no blocks.
         start : int
-            1-based start of the first full repetition; earlier blocks form
-            the prologue.
+            1-based start of the first repetition, always 1.
 
         Notes
         -----
-        Records ``TRsize`` in sequence definitions. Structural edits invalidate
-        the native detection cache.
+        The repetition is the shortest period of the block-definition stream
+        from the first block that every block repeats, or failing that the
+        shortest period by block structure, or the whole sequence: a slice
+        acquired with its own preparation and dummy shots is one repetition,
+        and a block played once makes the whole sequence one. ``start`` is 1.
+        Records ``TRsize`` in sequence definitions; a recorded size shorter
+        than the sequence that divides it and that the blocks repeat with is
+        taken instead, so a longer hyper-TR can be declared. Structural edits
+        invalidate the native detection cache.
         """
         recorded = self.get_definition("TRsize")
         if recorded != "":
@@ -1125,9 +1248,8 @@ class Sequence:
             The first and last block to draw, 1-based and inclusive.
         tr_range : sequence of int, optional
             The first and last repetition to draw, 1-based and inclusive.
-            A repetition is the period of the block definition stream, and
-            the first is the first full one, so a prologue -- dummy shots, a
-            preparation, a noise scan -- is not counted.
+            A repetition is the period of the block definition stream from
+            the first block; a sequence that does not repeat is one.
 
         Returns
         -------
@@ -1140,8 +1262,8 @@ class Sequence:
         ModuleNotFoundError
             If SeqEyes is not installed.
         ValueError
-            If more than one range is given, a range is outside the sequence,
-            or ``tr_range`` is asked of a sequence that does not repeat.
+            If more than one range is given or a range is outside the
+            sequence.
         """
         whole = tuple(time_range) == (0, np.inf)
         return _plot.plot(
@@ -1195,9 +1317,8 @@ class Sequence:
             on light-grey baselines. ``rf_color`` also draws the ADC;
             ``rf_plot`` is ``"abs"``, ``"real"`` or ``"imag"``.
         tr : int, optional
-            1-based repetition to draw, counted from the first full one. By
-            default, the one in which a physical axis reaches its largest
-            magnitude.
+            1-based repetition to draw. By default, the one in which a
+            physical axis reaches its largest magnitude.
         max_underlays : int, default 16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
@@ -1212,16 +1333,16 @@ class Sequence:
             ``diagram``, the :class:`mrsd.Diagram`, whose ``annotate`` and
             ``interval`` add labels; ``tr``, the repetition drawn solid, and
             ``underlays``, those drawn underneath, 1-based (``None`` and
-            empty without a repetition).
+            empty for a ``time_range``).
 
         Notes
         -----
         Repetitions are detected from the block definitions. Choosing them is
         one compiled pass over the block table, and only the repetitions drawn
         are expanded, so the cost does not grow with the length of the scan. A
-        sequence without a repetition is drawn whole.
+        sequence that does not repeat is one repetition, drawn whole.
         """
-        from ._paper_plot import paper_plot
+        from .plot._paper import paper_plot
 
         return paper_plot(
             self,

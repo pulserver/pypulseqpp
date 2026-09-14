@@ -1,0 +1,12 @@
+# The toolbox that defines the file format: a transcription of MATLAB Pulseq,
+# used for byte-parity fixtures and never imported by the package. The tests
+# that need it skip without it, and `tests/seq/` carries its reference corpus,
+# so the reader is tested either way.
+#
+# It lives here rather than in the `dev` extra because it is not on PyPI and
+# has to be named by URL. PyPI refuses to accept a distribution whose metadata
+# carries a direct reference, in an extra or anywhere else, so an extra holding
+# this one could never be published.
+#
+#   pip install -e '.[dev]' -r tests/requirements.txt
+pypulseq_matlab_like @ git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like

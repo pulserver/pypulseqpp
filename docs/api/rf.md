@@ -46,6 +46,7 @@ and design metadata. Add the returned events to {class}`Sequence` blocks.
 
    calc_rf_bandwidth
    calc_rf_center
+   calc_rf_power
    sim_bloch
    sim_rf
 ```

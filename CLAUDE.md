@@ -15,9 +15,9 @@ output. Not every upstream feature is implemented; do not document an absent
 method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
-repetition detection, timing, gradient, mechanical-resonance and PNS checks,
+repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
 waveform and k-space analysis, FOV transforms, RF/gradient design, sampling,
-and reusable sequence modules. RF-power analysis and tiling are deferred.
+and reusable sequence modules. Tiling is deferred.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
@@ -37,6 +37,7 @@ separately from the MIT core.
 | `src/pypulseqpp/` | Python facade, event conversion, sequence operations and design |
 | `src/pypulseqpp/sequences/` | Reusable excitation, preparation and readout modules |
 | `src/pypulseqpp/cli/` | Signature-driven command-line parsing and sequence writing |
+| `src/pypulseqpp/plot/` | Figures: SeqEyes view, publication diagram, k-space and RF profiles |
 | `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
 | `tests/` | API, numerical, format-parity and invariant tests |
 | `docs/` | Markdown/Sphinx documentation and generated API reference |
@@ -48,7 +49,7 @@ Do not edit vendored submodule contents as part of core maintenance.
 
 ```bash
 git submodule update --init --recursive
-pip install -e '.[dev]'
+pip install -e '.[dev]' -r tests/requirements.txt
 bash scripts/format_and_lint.sh --check
 pytest -q
 ```

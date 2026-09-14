@@ -56,16 +56,14 @@ dev = [
   "ruff==0.16.6",
   "pre-commit>=4",
   "build",
-  # The toolbox that defines the file format: a transcription of MATLAB
-  # Pulseq. Used for byte-parity fixtures and never imported by the package.
-  # Not on PyPI, so it comes from git; the tests that need it skip without it,
-  # and `tests/seq/` carries its reference corpus so the reader is tested
-  # either way.
-  "pypulseq_matlab_like @ git+https://github.com/m-a-x-i-m-z/pypulseq-matlab-like",
+  # The reference toolbox this is tested against is named by URL, and PyPI
+  # rejects a distribution whose metadata carries a direct reference even in
+  # an extra, so it is in tests/requirements.txt rather than here.
 ]
 
 [project.urls]
 Homepage = "https://github.com/pulserver/pypulseqpp"
+Documentation = "https://pulserver.github.io/pypulseqpp/"
 Issues = "https://github.com/pulserver/pypulseqpp/issues"
 Source = "https://github.com/pulserver/pypulseqpp"
 

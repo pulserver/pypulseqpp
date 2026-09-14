@@ -20,13 +20,12 @@ excitation, preparation and readout modules.
   repetition detection.
 - Timing, gradient amplitude, slew and boundary-continuity checks, a
   mechanical-resonance check against forbidden gradient bands, and a PNS
-  check under the SAFE or the rheobase-chronaxie model.
+  check under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.
 - Logical-frame FOV scaling, rotation and translation.
 - Pulse, trajectory and sampling design, with reusable sequence modules.
 
 This is an alpha package, not a complete replacement for every PyPulseq
-feature. SAR assessment is not provided by the core checks; passing the checks
-does not establish scanner or patient safety.
+feature. Passing the checks does not establish scanner or patient safety.
 
 Scanner execution, protocol orchestration and reconstruction integration
 belong to [Pulserver](https://github.com/pulserver/pulserver).

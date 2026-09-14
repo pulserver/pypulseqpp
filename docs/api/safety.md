@@ -26,9 +26,16 @@ SAFE, as upstream PyPulseq computes it, from a description shaped like
 upstream's `safe_example_hw()` or a Siemens `.asc` file read by
 {func}`read_safe_model`; or a rheobase-chronaxie {class}`ChronaxieModel`.
 
-These checks estimate what the gradients ask of the hardware and of the
-subject. They are not a complete scanner or patient-safety assessment, and they
-do not evaluate SAR.
+{func}`check_sar` averages SAR from virtual observation points over each real
+repetition, and compares the worst repetition's largest VOP SAR with a local
+limit and, given a global matrix, its global SAR with a global limit. VOPs come
+as a {class}`VopModel`, read from a `.mat` or `.npz` file by {func}`read_vops`,
+or from {func}`example_vops`, a synthetic model for demonstration only. RF power
+in Pulseq's Hz units is {func}`pypulseqpp.calc_rf_power` for one pulse and
+`Sequence.calc_rf_power` for a sequence.
+
+These checks estimate what the gradients and RF ask of the hardware and of the
+subject. They are not a complete scanner or patient-safety assessment.
 
 ```{eval-rst}
 .. autosummary::
@@ -44,4 +51,8 @@ do not evaluate SAR.
    check_pns
    read_safe_model
    ChronaxieModel
+   check_sar
+   read_vops
+   example_vops
+   VopModel
 ```
