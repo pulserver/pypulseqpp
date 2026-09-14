@@ -50,8 +50,6 @@ class SequenceApp(ABC):
         Gradient (mT/m) and slew (T/m/s) ceilings the sequence is held under,
         together with what ``system`` reports. Every concrete application sets
         both; there is no default.
-    NAME : str
-        Written as the ``Name`` definition and the default file name.
     system : pypulseqpp.Opts
         The limits the sequence was designed under.
     seq : pypulseqpp.Sequence
@@ -60,6 +58,7 @@ class SequenceApp(ABC):
 
     MAX_GRAD: float
     MAX_SLEW: float
+    #: Written as the ``Name`` definition and the default file name.
     NAME: str = "sequence"
 
     def __init__(self, system: pp.Opts | None = None, **protocol: Any) -> None:

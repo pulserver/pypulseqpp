@@ -99,11 +99,22 @@ class Sequence:
 
     Parameters
     ----------
-    system : pypulseq.Opts, optional
+    system : Opts, optional
         System limits and rasters. Defaults to the shared system; rasters
         are recorded in the native sequence.
     use_block_cache : bool, default True
         Compatibility flag, retained but not used to cache decoded blocks.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> seq = pp.Sequence(pp.Opts())
+    >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+    1
+    >>> seq.add_block(pp.make_delay(1e-3))
+    2
+    >>> seq.num_blocks, round(seq.duration()[0], 6)
+    (2, 0.003)
     """
 
     def __init__(self, system=None, use_block_cache: bool = True) -> None:
@@ -234,11 +245,32 @@ class Sequence:
         The block lasts as long as the longest thing in it, rounded up onto
         the block duration raster, which is what a caller passing a bare
         delay is asking for directly.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> gx = pp.make_trapezoid("x", area=1000, duration=2e-3)
+        >>> seq.add_block(gx, pp.make_delay(5e-3))
+        1
+        >>> seq.block_durations[1]
+        0.005
         """
         return self._native.add_block_events(*events)
 
     def set_block(self, index: int, *events) -> None:
-        """Write ``events`` over the block at ``index``, 1-based."""
+        """Write ``events`` over the block at ``index``, 1-based.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> seq.set_block(1, pp.make_delay(1e-3))
+        >>> seq.get_block(1).gx is None, seq.block_durations[1]
+        (True, 0.001)
+        """
         self._native.set_block_events(index, *events)
 
     def get_block(self, index: int) -> SimpleNamespace:
@@ -255,6 +287,16 @@ class Sequence:
         The returned block can be passed to add_block or set_block, including
         its stored duration. Editing decoded events does not edit the stored
         block; use set_block to replace it.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        1
+        >>> block = seq.get_block(1)
+        >>> int(block.adc.num_samples), block.gx, block.block_duration
+        (64, None, 0.0032)
         """
         return SimpleNamespace(**self._native.decode_block(index))
 
@@ -292,10 +334,22 @@ class Sequence:
             Total duration in seconds.
         num_blocks : int
             How many blocks there are.
-        event_count : np.ndarray
+        event_count : NDArray[np.float64]
             How many blocks carry an event in each column of the block
             table, in upstream's column order: delay, RF, the three
             gradient axes, ADC, extension.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> seq.duration()
+        (0.0042..., 2, array([0., 1., 0., 0., 0., 1., 0.]))
         """
         native = self._native
         counts = np.zeros(_UPSTREAM_BLOCK_WIDTH)
@@ -327,8 +381,19 @@ class Sequence:
 
         Returns
         -------
-        int or None
+        int | None
             The block playing then, or None if ``t`` is past the end.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_delay(2e-3))
+        1
+        >>> seq.add_block(pp.make_delay(1e-3))
+        2
+        >>> seq.find_block_by_time(2.5e-3), seq.find_block_by_time(1.0)
+        (2, None)
         """
         durations = self._native.block_durations()
         index = int(np.searchsorted(np.cumsum(durations), t, side="right"))
@@ -352,12 +417,23 @@ class Sequence:
         -------
         is_ok : bool
             True when nothing was found.
-        error_report : list of SimpleNamespace
+        error_report : list[SimpleNamespace]
             One entry per problem, in block order.
 
         Notes
         -----
         May record TotalDuration. Does not check all scanner safety constraints.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> seq.check_timing()
+        (True, [])
+        >>> seq.get_definition("TotalDuration")
+        [0.002]
         """
         is_ok, error_report = _check_timing(self)
         if not is_ok and print_errors:
@@ -367,11 +443,29 @@ class Sequence:
     # -- definitions ---------------------------------------------------
 
     def set_definition(self, key: str, value) -> None:
-        """Record ``key`` in `[DEFINITIONS]`."""
+        """Record ``key`` in `[DEFINITIONS]`.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence()
+        >>> seq.set_definition("FOV", [0.25, 0.25, 0.005])
+        >>> seq.definitions
+        {'FOV': [0.25, 0.25, 0.005]}
+        """
         self._native.set_definition(key, value)
 
     def get_definition(self, key: str):
-        """Return what ``key`` says, or ``''`` if it is not defined."""
+        """Return what ``key`` says, or ``''`` if it is not defined.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence()
+        >>> seq.set_definition("FOV", [0.25, 0.25, 0.005])
+        >>> seq.get_definition("FOV"), seq.get_definition("Name")
+        ([0.25, 0.25, 0.005], '')
+        """
         return self._native.definitions().get(key, "")
 
     @property
@@ -380,7 +474,18 @@ class Sequence:
         return self._native.definitions()
 
     def copy_definitions(self, other_seq: Sequence) -> None:
-        """Take every definition ``other_seq`` carries."""
+        """Take every definition ``other_seq`` carries.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> source = pp.Sequence()
+        >>> source.set_definition("Name", "gre")
+        >>> seq = pp.Sequence()
+        >>> seq.copy_definitions(source)
+        >>> seq.get_definition("Name")
+        'gre'
+        """
         for key, value in other_seq.definitions.items():
             self.set_definition(key, value)
 
@@ -423,6 +528,13 @@ class Sequence:
         -------
         int
             Its number, counting from 1 in the order names were first seen.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence()
+        >>> [seq.get_or_create_trid_id(name) for name in ("prep", "imaging", "prep")]
+        [1, 2, 1]
         """
         label_name = str(label_name)
         if not label_name:
@@ -432,7 +544,19 @@ class Sequence:
         return self._trid_names.index(label_name) + 1
 
     def add_trid(self, label_name: str) -> None:
-        """Append a block setting TRID to the number ``label_name`` is known by."""
+        """Append a block setting TRID to the number ``label_name`` is known by.
+
+        Nothing is appended when the system's ``flag_trid`` is False.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_trid("imaging")
+        >>> label = seq.get_block(1).label[0]
+        >>> label.label, label.value
+        ('TRID', 1)
+        """
         if not getattr(self.system, "flag_trid", True):
             return
         from ._make_label import make_label
@@ -469,6 +593,16 @@ class Sequence:
 
         Silencing the phase encoding is ``mod_grad_axis('y', 0.0)``;
         inverting the readout is ``mod_grad_axis('x', -1.0)``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> seq.mod_grad_axis("x", 0.5)
+        >>> seq.get_block(1).gx.area
+        500.0
         """
         if axis not in ("x", "y", "z"):
             raise ValueError(
@@ -477,7 +611,18 @@ class Sequence:
         self._native.scale_gradient_axis("xyz".index(axis), float(modifier))
 
     def flip_grad_axis(self, axis: str) -> None:
-        """Invert every gradient played on ``axis``."""
+        """Invert every gradient played on ``axis``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> seq.flip_grad_axis("x")
+        >>> seq.get_block(1).gx.area
+        -1000.0
+        """
         self.mod_grad_axis(axis, modifier=-1)
 
     @property
@@ -496,7 +641,7 @@ class Sequence:
 
         Parameters
         ----------
-        init : dict, optional
+        init : dict[str, int], optional
             What a label is before the walk begins. A label named here is
             reported whether or not the blocks touch it, which is what makes
             evaluating a sequence a piece at a time work.
@@ -504,14 +649,14 @@ class Sequence:
             Where to record a value: at the end, at every block, at every
             block that acquires, or at every block that sets or increments
             one.
-        time_range : list of float, optional
+        time_range : Sequence[float], optional
             Two times in seconds; only the blocks they touch are walked.
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             Two 1-based block indices. Not with ``time_range``.
 
         Returns
         -------
-        dict
+        dict[str, int | np.int32 | NDArray[np.int32]]
             Label names mapped to their recorded values. Values are arrays if
             any label has more than one recorded value; otherwise they are
             scalars, with zero for an empty record.
@@ -520,6 +665,18 @@ class Sequence:
         -----
         Labels retain their values until set or incremented. For a partial range,
         ``init`` supplies the incoming state; preceding blocks are not evaluated.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> adc = pp.make_adc(num_samples=64, duration=3.2e-3)
+        >>> for line in range(3):
+        ...     _ = seq.add_block(pp.make_label("LIN", "SET", line), adc)
+        >>> int(seq.evaluate_labels()["LIN"])
+        2
+        >>> seq.evaluate_labels(evolution="adc")["LIN"]
+        array([0, 1, 2], dtype=int32)
         """
         first, last = self._range_for(time_range, block_range)
         found = _cxx.evaluate_labels(
@@ -573,6 +730,21 @@ class Sequence:
         the five RF uses those five values cannot carry.
 
         See :func:`pypulseqpp._waveforms.waveforms_and_times`.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> wave_data, tfp_excitation, tfp_refocusing, t_adc, fp_adc = seq.waveforms_and_times()
+        >>> tfp_excitation[0], t_adc.shape
+        (array([0.0005]), (64,))
+        >>> seq.waveforms_and_times(compat=False).rf.use
+        ('undefined',)
         """
         return _waveforms_and_times(
             self, append_RF, time_range, block_range, compat=compat
@@ -582,11 +754,32 @@ class Sequence:
         """Return gradient corners as time (s) over amplitude (Hz/m), per axis.
 
         ``append_RF=True`` appends a complex RF channel in Hz.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", flat_area=1000, flat_time=3.2e-3))
+        1
+        >>> gx, gy, gz = seq.waveforms()
+        >>> gx.shape, gy.shape
+        ((2, 4), (2, 0))
         """
         return _waveforms(self, append_RF, time_range, block_range)
 
     def adc_times(self, time_range=None):
-        """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad)."""
+        """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        1
+        >>> t_adc, fp_adc = seq.adc_times()
+        >>> t_adc.shape, fp_adc.shape
+        ((64,), (1, 2))
+        """
         return _adc_times(self, time_range)
 
     def rf_times(self, time_range=None, *, compat: bool = True):
@@ -594,6 +787,17 @@ class Sequence:
 
         ``compat`` gives upstream's four values, which describe two of
         Pulseq's seven RF uses; False gives all seven.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> t_excitation, fp_excitation, t_refocusing, fp_refocusing = seq.rf_times()
+        >>> t_excitation, t_refocusing.size
+        (array([0.0005]), 0)
         """
         return _rf_times(self, time_range, compat=compat)
 
@@ -606,23 +810,36 @@ class Sequence:
 
         Parameters
         ----------
-        trajectory_delay : float or sequence of float, default 0
+        trajectory_delay : float | ArrayLike, default 0
             Per-axis timing correction (s); positive values advance the gradient.
-        gradient_offset : float or sequence of float, default 0
+        gradient_offset : float | ArrayLike, default 0
             A background gradient per axis, in Hz/m.
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             Two 1-based block indices; only those blocks are followed.
 
         Returns
         -------
-        k_traj_adc : np.ndarray
+        k_traj_adc : NDArray[np.float64]
             3-by-n: where each ADC sample sits in k-space, in 1/m.
-        k_traj : np.ndarray
+        k_traj : NDArray[np.float64]
             Full trajectory in 1/m, sampled through ramps and at event times.
-        t_excitation : np.ndarray
-        t_refocusing : np.ndarray
-        t_adc : np.ndarray
+        t_excitation : NDArray[np.float64]
+        t_refocusing : NDArray[np.float64]
+        t_adc : NDArray[np.float64]
             RF-centre and ADC times in seconds relative to the selected range.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> k_traj_adc, k_traj, t_excitation, t_refocusing, t_adc = seq.calculate_kspace()
+        >>> k_traj_adc.shape, t_excitation
+        ((3, 64), array([0.0005]))
         """
         return _calculate_kspace(self, trajectory_delay, gradient_offset, block_range)
 
@@ -657,6 +874,16 @@ class Sequence:
         Positive trajectory_delay advances the gradients. A scalar delay or
         offset applies to all axes. Inactive axes with no offset return None.
         Time and block ranges are mutually exclusive.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", flat_area=1000, flat_time=3.2e-3))
+        1
+        >>> gx, gy, gz = seq.get_gradients()
+        >>> round(float(gx(2e-3))), gy
+        (312500, None)
         """
         return _get_gradients(
             self, trajectory_delay, gradient_offset, time_range, block_range
@@ -673,7 +900,7 @@ class Sequence:
 
         Parameters
         ----------
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             First and last block, 1-based and inclusive; all by default.
         window_duration : float, optional
             Seconds. Energy, mean power and rms are then the largest over runs
@@ -696,6 +923,17 @@ class Sequence:
         dynamic pTx pulse as the root-sum-square of its channels. The values
         are relative: divide ``rf_rms`` by gamma for tesla and the powers by
         gamma squared. :func:`pypulseqpp.safety.check_sar` gives SAR.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> mean_pwr, peak_pwr, rf_rms, total_energy = seq.calc_rf_power()
+        >>> round(peak_pwr), round(total_energy, 3)
+        (62500, 62.5)
         """
         if self.num_blocks == 0:
             return 0.0, 0.0, 0.0, 0.0
@@ -718,11 +956,43 @@ class Sequence:
         )
 
     def test_report(self) -> str:
-        """Return a formatted sequence timing, encoding and gradient report."""
+        """Return a formatted sequence timing, encoding and gradient report.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> print(seq.test_report())
+        Number of blocks: 2
+        Number of events:
+        RF:      1
+        ...
+        Event timing check passed successfully
+        ...
+        """
         return _report_text(_report_data(self))
 
     def test_report_dict(self) -> dict:
-        """Return timing, encoding and gradient statistics; see report_data."""
+        """Return timing, encoding and gradient statistics; see report_data.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> report = seq.test_report_dict()
+        >>> report["num_blocks"], report["flip_angles_deg"], report["timing_ok"]
+        (2, ..., True)
+        """
         return _report_data(self)
 
     # -- the repeating unit --------------------------------------------
@@ -794,6 +1064,16 @@ class Sequence:
         -----
         Finding the soft delays is a compiled pass over the block table:
         nothing else in a block is decoded to answer whether it heads one.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_delay(1e-3), pp.make_soft_delay("TE", numID=0))
+        1
+        >>> seq.apply_soft_delay(TE=5e-3)
+        >>> seq.block_durations[1]
+        0.005
         """
         report = self._native.apply_soft_delays(kwargs)
         raster = self.system.block_duration_raster
@@ -848,13 +1128,23 @@ class Sequence:
 
         Returns
         -------
-        defaults : dict
+        defaults : dict[str, float]
             The default value for each soft delay, by its hint.
-        error_report : list of str
+        error_report : list[str]
             One line per disagreement found; empty when they all agree.
-        limits : list
+        limits : list[dict | None]
             Per numeric id, the default, the hint, the block it came from,
             and the range of values that keep the block duration positive.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_delay(1e-3), pp.make_soft_delay("TE", numID=0))
+        1
+        >>> defaults, error_report, limits = seq.get_default_soft_delay_values()
+        >>> defaults, error_report
+        ({'TE': 0.001}, [])
         """
         error_report: list[str] = []
         state: list[dict | None] = []
@@ -951,7 +1241,7 @@ class Sequence:
         -------
         rf_id : int
             The row it was stored as.
-        shape_ids : list of int
+        shape_ids : list[int]
             Its magnitude, phase and time shapes; the time shape is 0 when
             the pulse sits on the RF raster.
         """
@@ -963,7 +1253,7 @@ class Sequence:
 
         Returns
         -------
-        int or tuple
+        int | tuple[int, list[int]]
             A trapezoid's row id on its own; an arbitrary waveform's row id
             with its waveform and time shape ids, the way the toolboxes
             report them.
@@ -1031,7 +1321,7 @@ class Sequence:
 
         Parameters
         ----------
-        name : str or Path
+        name : str | os.PathLike[str]
             Where to write it.
         create_signature : bool, default True
             Sign the file, so a reader can tell it has not been edited.
@@ -1045,10 +1335,22 @@ class Sequence:
 
         Returns
         -------
-        str or None
+        str | None
             The signature written, or None if the file is unsigned. It is
             the signature of what was written, so with ``remove_duplicates``
             it belongs to the collapsed copy rather than to this sequence.
+
+        Examples
+        --------
+        >>> import pathlib, tempfile
+        >>> import pypulseqpp as pp
+        >>> folder = tempfile.mkdtemp()
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> signature = seq.write(pathlib.Path(folder) / "gre.seq")
+        >>> len(signature), seq.signature_type, seq.signature_file
+        (32, 'md5', 'text')
         """
         if check_timing:
             is_ok, error_report = self.check_timing()
@@ -1071,7 +1373,7 @@ class Sequence:
 
         Parameters
         ----------
-        name : str or Path
+        name : str | os.PathLike[str]
             Where to write it.
         create_signature : bool, default True
             Append the signature section: an MD5 of everything above it, so a
@@ -1079,8 +1381,20 @@ class Sequence:
 
         Returns
         -------
-        str or None
+        str | None
             The signature written, or None when none was asked for.
+
+        Examples
+        --------
+        >>> import pathlib, tempfile
+        >>> import pypulseqpp as pp
+        >>> folder = tempfile.mkdtemp()
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> signature = seq.write_binary(pathlib.Path(folder) / "gre.bseq")
+        >>> len(signature), seq.signature_file
+        (32, 'bin')
         """
         written = _cxx.write_binary(self._native, create_signature)
         Path(name).write_bytes(written)
@@ -1094,6 +1408,18 @@ class Sequence:
         ``gamma`` is in Hz/T and ``field`` in T; together they convert ppm
         offsets to absolute offsets. Soft delays are omitted with a warning.
         Rotation and RF-shim extensions raise RuntimeError.
+
+        Examples
+        --------
+        >>> import pathlib, tempfile
+        >>> import pypulseqpp as pp
+        >>> path = pathlib.Path(tempfile.mkdtemp()) / "gre.seq"
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> _ = seq.write_v141(path)
+        >>> path.read_text().splitlines()[3:6]
+        ['[VERSION]', 'major 1', 'minor 4']
         """
         written = _cxx.write_text_v141(self._native, create_signature, gamma, field)
         Path(name).write_bytes(written)
@@ -1135,7 +1461,7 @@ class Sequence:
 
         Parameters
         ----------
-        file_path : str or Path
+        file_path : str | os.PathLike[str]
             The file to read.
         detect_rf_use : bool, default False
             Work out what each unlabelled pulse is for, from what it does.
@@ -1146,6 +1472,20 @@ class Sequence:
             Collapse identical library rows after reading.
         verify : bool, default False
             Check the file against the signature it carries.
+
+        Examples
+        --------
+        >>> import pathlib, tempfile
+        >>> import pypulseqpp as pp
+        >>> path = pathlib.Path(tempfile.mkdtemp()) / "gre.seq"
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> _ = seq.write(path)
+        >>> loaded = pp.Sequence()
+        >>> loaded.read(path, verify=True)
+        >>> loaded.num_blocks, loaded.grad_raster_time
+        (1, 2e-05)
         """
         contents = Path(file_path).read_bytes()
         binary = _cxx.is_binary(contents)
@@ -1239,14 +1579,14 @@ class Sequence:
             draws units, labels and block edges its own way, from its own
             settings; one given a value other than its default is reported
             and ignored.
-        time_range : sequence of float, default (0, inf)
+        time_range : Sequence[float], default (0, inf)
             The seconds to draw, measured from the start of the scan.
         plot_now : bool, default True
             Wait for the window to be closed before returning. When False,
             the window is left open and the returned viewer is live.
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             The first and last block to draw, 1-based and inclusive.
-        tr_range : sequence of int, optional
+        tr_range : Sequence[int], optional
             The first and last repetition to draw, 1-based and inclusive.
             A repetition is the period of the block definition stream from
             the first block; a sequence that does not repeat is one.
@@ -1264,6 +1604,15 @@ class Sequence:
         ValueError
             If more than one range is given or a range is outside the
             sequence.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> viewer = seq.plot(block_range=(1, 1), plot_now=False)  # doctest: +SKIP
+        >>> viewer.close()  # doctest: +SKIP
         """
         whole = tuple(time_range) == (0, np.inf)
         return _plot.plot(
@@ -1309,7 +1658,7 @@ class Sequence:
 
         Parameters
         ----------
-        time_range : sequence of float, default (0, inf)
+        time_range : Sequence[float], default (0, inf)
             Upstream's window, in seconds. Given, the blocks it touches are
             drawn alone, without repetitions underneath.
         line_width, axes_color, rf_color, gx_color, gy_color, gz_color, rf_plot
@@ -1323,7 +1672,8 @@ class Sequence:
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
             most positive value; 0 draws none.
-        underlay_color : color, default "0.8"
+        underlay_color : str | tuple[float, ...], default "0.8"
+            A Matplotlib colour.
         ax : matplotlib.axes.Axes, optional
             Axes to draw in; a new figure by default.
 
@@ -1341,6 +1691,19 @@ class Sequence:
         one compiled pass over the block table, and only the repetitions drawn
         are expanded, so the cost does not grow with the length of the scan. A
         sequence that does not repeat is one repetition, drawn whole.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        2
+        >>> drawn = seq.paper_plot()  # doctest: +SKIP
+        >>> drawn.tr, drawn.underlays  # doctest: +SKIP
+        (1, [])
         """
         from .plot._paper import paper_plot
 
@@ -1380,6 +1743,19 @@ class Sequence:
         -------
         Sequence
             The collapsed sequence: this one, or the copy.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> for _ in range(2):
+        ...     _ = seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        >>> print(seq.remove_duplicates())
+        Sequence:
+        blocks: 2
+        rf_library: 0
+        grad_library: 1
+        ...
         """
         target = self if in_place else self._copy()
         target._native.remove_duplicates()

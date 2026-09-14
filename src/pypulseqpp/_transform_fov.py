@@ -75,15 +75,15 @@ class TransformFOV:
 
     Parameters
     ----------
-    rotation : array_like or Rotation, optional
+    rotation : ArrayLike | Rotation, optional
         Prescription orientation as a 3-by-3 matrix or SciPy rotation.
         Composed after the rotation already attached to each block.
-    translation : sequence of float, optional
+    translation : Sequence[float], optional
         Three offsets in logical coordinates, in metres.
-    scale : sequence of float, optional
+    scale : Sequence[float], optional
         Gradient amplitude multipliers along the three logical axes.
         A factor of zero disables encoding on that axis.
-    transform : array_like, optional
+    transform : ArrayLike, optional
         4-by-4 homogeneous matrix, mutually exclusive with ``rotation`` and
         ``translation``. Its translation is in the output frame and is
         converted to logical coordinates using the transpose of its rotation.
@@ -94,10 +94,10 @@ class TransformFOV:
 
     Attributes
     ----------
-    block_k_origin : tuple of float
+    block_k_origin : tuple[float, float, float]
         Logical k-space position entering the next processed range, in 1/m.
         Reset at excitation and inverted at refocusing, at the RF centre.
-    swept_k : tuple of float
+    swept_k : tuple[float, float, float]
         Cumulative logical gradient area, in 1/m, without RF resets.
         RF and ADC shift phases share this reference.
 
@@ -106,6 +106,16 @@ class TransformFOV:
     A nonzero translation updates both state vectors. Reuse them only for consecutive
     ranges; initialise them to the state entering the first selected block.
     Block ranges do not automatically integrate preceding blocks.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> seq = pp.Sequence(pp.Opts())
+    >>> seq.add_block(pp.make_trapezoid("y", area=500, duration=2e-3))
+    1
+    >>> halved = pp.TransformFOV(scale=(1, 0.5, 1)).apply_to_sequence(seq)
+    >>> halved.get_block(1).gy.amplitude == 0.5 * seq.get_block(1).gy.amplitude
+    True
     """
 
     def __init__(
@@ -177,9 +187,9 @@ class TransformFOV:
         ----------
         seq : Sequence
             Sequence to transform.
-        time_range : sequence of float, optional
+        time_range : Sequence[float], optional
             Start and end times in seconds; selects all blocks they touch.
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             Inclusive, 1-based block range; mutually exclusive with ``time_range``.
             Translation starts from this object's stored state, not from a scan
             of preceding blocks.
@@ -191,6 +201,18 @@ class TransformFOV:
         -------
         Sequence
             Transformed sequence; ``seq`` itself when ``in_place=True``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> shift = pp.TransformFOV(translation=(0.01, 0, 0))
+        >>> shift.apply_to_sequence(seq, in_place=True) is seq
+        True
+        >>> round(shift.swept_k[0], 6)
+        1000.0
         """
         target = seq if in_place else seq._copy()
         first, last = target._range_for(time_range, block_range)
@@ -239,14 +261,25 @@ class TransformFOV:
         ----------
         seq : Sequence
             Sequence to sample.
-        block_range : sequence of int, optional
+        block_range : Sequence[int], optional
             Inclusive, 1-based range; defaults to the whole sequence.
 
         Returns
         -------
-        list of (int, numpy.ndarray)
+        list[tuple[int, NDArray[np.float64]]]
             Block index and a ``(3, n_samples)`` trajectory for each ADC block.
             Blocks without ADC samples are omitted.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> readout = pp.make_trapezoid("x", flat_area=1000, flat_time=3.2e-3)
+        >>> adc = pp.make_adc(num_samples=8, duration=3.2e-3, delay=readout.rise_time)
+        >>> seq.add_block(readout, adc)
+        1
+        >>> [(block, k.shape) for block, k in pp.TransformFOV(scale=(1, 1, 1)).trajectories(seq)]
+        [(1, (3, 8))]
         """
         first, last = seq._range_for(None, block_range)
         origins = _cxx.block_k_origins(
