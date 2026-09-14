@@ -1,0 +1,13 @@
+[
+  {
+    "name": "v0.0.1 (stable)",
+    "version": "v0.0.1",
+    "url": "https://pulserver.github.io/pypulseqpp/stable/",
+    "preferred": true
+  },
+  {
+    "name": "latest",
+    "version": "latest",
+    "url": "https://pulserver.github.io/pypulseqpp/latest/"
+  }
+]
