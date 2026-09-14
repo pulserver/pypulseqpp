@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: NonSelectiveRefocusing
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~NonSelectiveRefocusing.init_module
-      ~NonSelectiveRefocusing.publish
-      ~NonSelectiveRefocusing.register
-      ~NonSelectiveRefocusing.sim_rf
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~NonSelectiveRefocusing.init_module
+   ~NonSelectiveRefocusing.publish
+   ~NonSelectiveRefocusing.register
+   ~NonSelectiveRefocusing.sim_rf
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~NonSelectiveRefocusing.blocks
+   ~NonSelectiveRefocusing.duration
+   ~NonSelectiveRefocusing.seq

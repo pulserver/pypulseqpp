@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: SpiralProjectionReadout
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~SpiralProjectionReadout.arm
-      ~SpiralProjectionReadout.init_module
-      ~SpiralProjectionReadout.publish
-      ~SpiralProjectionReadout.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpiralProjectionReadout.arm
+   ~SpiralProjectionReadout.init_module
+   ~SpiralProjectionReadout.publish
+   ~SpiralProjectionReadout.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpiralProjectionReadout.blocks
+   ~SpiralProjectionReadout.duration
+   ~SpiralProjectionReadout.seq

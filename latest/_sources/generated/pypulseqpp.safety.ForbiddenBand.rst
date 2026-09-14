@@ -4,18 +4,28 @@
 .. currentmodule:: pypulseqpp.safety
 
 .. autoclass:: ForbiddenBand
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~ForbiddenBand.count
-      ~ForbiddenBand.index
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~ForbiddenBand.count
+   ~ForbiddenBand.index
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~ForbiddenBand.axis
+   ~ForbiddenBand.f_max
+   ~ForbiddenBand.f_min
+   ~ForbiddenBand.tolerance

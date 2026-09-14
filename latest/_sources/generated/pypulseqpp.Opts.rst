@@ -4,18 +4,25 @@
 .. currentmodule:: pypulseqpp
 
 .. autoclass:: Opts
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~Opts.reset_default
-      ~Opts.set_as_default
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Opts.reset_default
+   ~Opts.set_as_default
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Opts.default

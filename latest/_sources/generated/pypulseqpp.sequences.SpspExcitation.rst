@@ -4,21 +4,30 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: SpspExcitation
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~SpspExcitation.init_module
-      ~SpspExcitation.publish
-      ~SpspExcitation.register
-      ~SpspExcitation.shift
-      ~SpspExcitation.sim_rf
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpspExcitation.init_module
+   ~SpspExcitation.publish
+   ~SpspExcitation.register
+   ~SpspExcitation.shift
+   ~SpspExcitation.sim_rf
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpspExcitation.blocks
+   ~SpspExcitation.duration
+   ~SpspExcitation.seq

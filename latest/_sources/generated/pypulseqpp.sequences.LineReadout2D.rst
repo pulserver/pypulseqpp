@@ -4,19 +4,28 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: LineReadout2D
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~LineReadout2D.init_module
-      ~LineReadout2D.publish
-      ~LineReadout2D.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~LineReadout2D.init_module
+   ~LineReadout2D.publish
+   ~LineReadout2D.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~LineReadout2D.blocks
+   ~LineReadout2D.duration
+   ~LineReadout2D.seq

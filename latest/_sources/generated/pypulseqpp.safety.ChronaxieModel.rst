@@ -4,18 +4,27 @@
 .. currentmodule:: pypulseqpp.safety
 
 .. autoclass:: ChronaxieModel
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~ChronaxieModel.count
-      ~ChronaxieModel.index
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~ChronaxieModel.count
+   ~ChronaxieModel.index
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~ChronaxieModel.alpha
+   ~ChronaxieModel.chronaxie
+   ~ChronaxieModel.rheobase

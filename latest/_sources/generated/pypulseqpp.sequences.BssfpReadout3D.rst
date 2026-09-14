@@ -4,19 +4,28 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: BssfpReadout3D
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~BssfpReadout3D.init_module
-      ~BssfpReadout3D.publish
-      ~BssfpReadout3D.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~BssfpReadout3D.init_module
+   ~BssfpReadout3D.publish
+   ~BssfpReadout3D.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~BssfpReadout3D.blocks
+   ~BssfpReadout3D.duration
+   ~BssfpReadout3D.seq

@@ -4,19 +4,28 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: PropellerReadout2D
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~PropellerReadout2D.init_module
-      ~PropellerReadout2D.publish
-      ~PropellerReadout2D.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~PropellerReadout2D.init_module
+   ~PropellerReadout2D.publish
+   ~PropellerReadout2D.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~PropellerReadout2D.blocks
+   ~PropellerReadout2D.duration
+   ~PropellerReadout2D.seq

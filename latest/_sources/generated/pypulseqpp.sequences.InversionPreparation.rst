@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: InversionPreparation
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~InversionPreparation.init_module
-      ~InversionPreparation.publish
-      ~InversionPreparation.register
-      ~InversionPreparation.sim_rf
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~InversionPreparation.init_module
+   ~InversionPreparation.publish
+   ~InversionPreparation.register
+   ~InversionPreparation.sim_rf
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~InversionPreparation.blocks
+   ~InversionPreparation.duration
+   ~InversionPreparation.seq

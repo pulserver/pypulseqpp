@@ -4,19 +4,28 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: SequenceModule
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~SequenceModule.init_module
-      ~SequenceModule.publish
-      ~SequenceModule.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SequenceModule.init_module
+   ~SequenceModule.publish
+   ~SequenceModule.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SequenceModule.blocks
+   ~SequenceModule.duration
+   ~SequenceModule.seq

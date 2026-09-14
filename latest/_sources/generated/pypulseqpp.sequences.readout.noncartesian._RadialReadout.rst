@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences.readout.noncartesian
 
 .. autoclass:: _RadialReadout
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~_RadialReadout.arm
-      ~_RadialReadout.init_module
-      ~_RadialReadout.publish
-      ~_RadialReadout.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~_RadialReadout.arm
+   ~_RadialReadout.init_module
+   ~_RadialReadout.publish
+   ~_RadialReadout.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~_RadialReadout.blocks
+   ~_RadialReadout.duration
+   ~_RadialReadout.seq

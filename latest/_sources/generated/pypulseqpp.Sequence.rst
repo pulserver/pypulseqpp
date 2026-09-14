@@ -4,67 +4,118 @@
 .. currentmodule:: pypulseqpp
 
 .. autoclass:: Sequence
-   :members:
-   :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
+Blocks
+------
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~Sequence.adc_times
-      ~Sequence.add_block
-      ~Sequence.add_trid
-      ~Sequence.apply_soft_delay
-      ~Sequence.calc_rf_power
-      ~Sequence.calculate_kspace
-      ~Sequence.calculate_kspacePP
-      ~Sequence.check_timing
-      ~Sequence.clear_block_cache
-      ~Sequence.clear_caches
-      ~Sequence.clear_event_cache
-      ~Sequence.copy_definitions
-      ~Sequence.duration
-      ~Sequence.evaluate_labels
-      ~Sequence.find_block_by_time
-      ~Sequence.flip_grad_axis
-      ~Sequence.get_block
-      ~Sequence.get_default_soft_delay_values
-      ~Sequence.get_definition
-      ~Sequence.get_extension_type_ID
-      ~Sequence.get_extension_type_string
-      ~Sequence.get_gradients
-      ~Sequence.get_or_create_trid_id
-      ~Sequence.get_raw_block_content_IDs
-      ~Sequence.install
-      ~Sequence.mod_grad_axis
-      ~Sequence.paper_plot
-      ~Sequence.plot
-      ~Sequence.read
-      ~Sequence.read_binary
-      ~Sequence.register_adc_event
-      ~Sequence.register_control_event
-      ~Sequence.register_grad_event
-      ~Sequence.register_label_event
-      ~Sequence.register_rf_event
-      ~Sequence.register_rf_shim_event
-      ~Sequence.register_rotation_event
-      ~Sequence.register_soft_delay_event
-      ~Sequence.remove_duplicates
-      ~Sequence.rf_times
-      ~Sequence.set_block
-      ~Sequence.set_definition
-      ~Sequence.set_extension_string_ID
-      ~Sequence.test_report
-      ~Sequence.test_report_dict
-      ~Sequence.waveforms
-      ~Sequence.waveforms_and_times
-      ~Sequence.write
-      ~Sequence.write_binary
-      ~Sequence.write_file
-      ~Sequence.write_v141
-   
-   
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.add_block
+   ~Sequence.set_block
+   ~Sequence.get_block
+   ~Sequence.find_block_by_time
+   ~Sequence.remove_duplicates
+
+Definitions and labels
+----------------------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.set_definition
+   ~Sequence.get_definition
+   ~Sequence.copy_definitions
+   ~Sequence.evaluate_labels
+   ~Sequence.add_trid
+   ~Sequence.get_or_create_trid_id
+
+Soft delays
+-----------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.apply_soft_delay
+   ~Sequence.get_default_soft_delay_values
+
+Reading and writing
+-------------------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.read
+   ~Sequence.write
+   ~Sequence.write_binary
+   ~Sequence.write_v141
+
+Waveforms and k-space
+---------------------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.waveforms
+   ~Sequence.waveforms_and_times
+   ~Sequence.get_gradients
+   ~Sequence.calculate_kspace
+   ~Sequence.adc_times
+   ~Sequence.rf_times
+   ~Sequence.duration
+
+Checks and reports
+------------------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.check_timing
+   ~Sequence.test_report
+   ~Sequence.test_report_dict
+   ~Sequence.calc_rf_power
+
+Gradient edits
+--------------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.flip_grad_axis
+   ~Sequence.mod_grad_axis
+
+Plotting
+--------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.plot
+   ~Sequence.paper_plot
+
+Properties
+----------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.num_blocks
+   ~Sequence.block_events
+   ~Sequence.block_durations
+   ~Sequence.definitions
+   ~Sequence.grad_raster_time
+   ~Sequence.rf_raster_time
+   ~Sequence.adc_raster_time
+   ~Sequence.block_duration_raster
+   ~Sequence.version_major
+   ~Sequence.version_minor
+   ~Sequence.version_revision

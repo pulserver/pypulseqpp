@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: SmsExcitation
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~SmsExcitation.init_module
-      ~SmsExcitation.publish
-      ~SmsExcitation.register
-      ~SmsExcitation.sim_rf
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SmsExcitation.init_module
+   ~SmsExcitation.publish
+   ~SmsExcitation.register
+   ~SmsExcitation.sim_rf
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SmsExcitation.blocks
+   ~SmsExcitation.duration
+   ~SmsExcitation.seq

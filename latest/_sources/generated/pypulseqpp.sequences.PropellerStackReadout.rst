@@ -4,19 +4,28 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: PropellerStackReadout
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~PropellerStackReadout.init_module
-      ~PropellerStackReadout.publish
-      ~PropellerStackReadout.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~PropellerStackReadout.init_module
+   ~PropellerStackReadout.publish
+   ~PropellerStackReadout.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~PropellerStackReadout.blocks
+   ~PropellerStackReadout.duration
+   ~PropellerStackReadout.seq

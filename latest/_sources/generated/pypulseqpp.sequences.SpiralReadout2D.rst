@@ -4,20 +4,29 @@
 .. currentmodule:: pypulseqpp.sequences
 
 .. autoclass:: SpiralReadout2D
-   :members:
    :show-inheritance:
 
-   
-   
-   
-   .. rubric:: Methods
 
-   .. autosummary::
-      :nosignatures:
-   
-      ~SpiralReadout2D.arm
-      ~SpiralReadout2D.init_module
-      ~SpiralReadout2D.publish
-      ~SpiralReadout2D.register
-   
-   
+
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpiralReadout2D.arm
+   ~SpiralReadout2D.init_module
+   ~SpiralReadout2D.publish
+   ~SpiralReadout2D.register
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SpiralReadout2D.blocks
+   ~SpiralReadout2D.duration
+   ~SpiralReadout2D.seq
