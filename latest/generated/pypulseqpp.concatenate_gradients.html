@@ -211,7 +211,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.Sequence.html">Sequence</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a></li>
@@ -219,6 +219,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.default_system.html">default_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
@@ -238,6 +239,9 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.enable_trace.html">enable_trace</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.disable_trace.html">disable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.interoperating.html">interoperating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.convert.html">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -249,6 +253,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_wave_gradients.html">make_wave_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.add_gradients.html">add_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_ramp.html">calc_ramp</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">concatenate_gradients</a></li>
@@ -264,11 +269,24 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_half_passages.html">make_half_passages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_recursive_slr_pulses.html">make_recursive_slr_pulses</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_gslider_pulse.html">make_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_hadamard_pulse.html">make_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_pins_pulse.html">make_pins_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_b1_selective_pulse.html">make_b1_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_b1_gslider_pulse.html">make_b1_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_b1_hadamard_pulse.html">make_b1_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_bloch_siegert_pulse.html">make_bloch_siegert_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_ptx_pulse.html">make_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.split_ptx_pulse.html">split_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_rf_shim.html">calc_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_spokes_pulse.html">make_spokes_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
@@ -277,32 +295,10 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_radial_trajectory.html">calc_radial_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_spiral_trajectory.html">calc_spiral_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_rosette_trajectory.html">calc_rosette_trajectory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_random_mask.html">make_random_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_linear_order.html">make_linear_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_centric_order.html">make_centric_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_radial_order.html">make_radial_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -314,6 +310,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.sequences.RfModule.html">RfModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>

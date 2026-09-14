@@ -1,25 +1,20 @@
 # Sequence and system
 
+`pypulseqpp`: the container a sequence is written into, the scanner limits it is
+designed under, and the transforms and reports applied to it.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
 ```
 
-{class}`Sequence` holds the event libraries, block table, definitions, and
-scanner limits for one Pulseq sequence. It supplies PyPulseq-compatible
-authoring methods and performs reading, writing, waveform expansion, k-space
-calculation, structural inspection, and timing checks over the compiled core.
-{meth}`Sequence.paper_plot` draws one repetition as a publication-style diagram,
-with the others underneath.
-
-{class}`Opts` describes the scanner limits on gradient, slew, RF, and ADC
-rasters. {func}`apply_system_derates` and {func}`cap_system` return adjusted
-copies, leaving the limits supplied by the caller unchanged.
-
-{class}`TransformFOV` applies logical-frame translation, rotation, and gradient
-amplitude scaling to the events a sequence plays. Amplitude scaling changes
-FOV size inversely.
-
 ## Sequence container
+
+{class}`Sequence` holds the event libraries, block table, definitions and
+scanner limits of one Pulseq sequence. It authors, reads and writes the
+sequence, expands its waveforms and k-space, inspects its structure and checks
+its timing over the compiled core. {class}`TransformFOV` translates, rotates
+and scales the logical frame of the events a sequence plays; scaling the
+gradient amplitude scales the FOV inversely.
 
 ```{eval-rst}
 .. autosummary::
@@ -31,6 +26,10 @@ FOV size inversely.
 ```
 
 ## Scanner limits
+
+{class}`Opts` holds the gradient, slew, RF and ADC limits and rasters.
+{func}`apply_system_derates` and {func}`cap_system` return adjusted copies and
+leave the caller's limits unchanged.
 
 ```{eval-rst}
 .. autosummary::
@@ -55,5 +54,6 @@ FOV size inversely.
    :toctree: ../generated
    :nosignatures:
 
+   check_timing
    print_error_report
 ```

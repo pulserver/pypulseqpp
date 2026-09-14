@@ -211,7 +211,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.Sequence.html">Sequence</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html">TransformFOV</a></li>
@@ -219,6 +219,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.default_system.html">default_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.check_timing.html">check_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
@@ -238,6 +239,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.enable_trace.html">enable_trace</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.disable_trace.html">disable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.interoperating.html">interoperating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.convert.html">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -249,6 +253,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_wave_gradients.html">make_wave_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.add_gradients.html">add_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_ramp.html">calc_ramp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.concatenate_gradients.html">concatenate_gradients</a></li>
@@ -264,11 +269,24 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_half_passages.html">make_half_passages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_recursive_slr_pulses.html">make_recursive_slr_pulses</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_gslider_pulse.html">make_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_hadamard_pulse.html">make_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_pins_pulse.html">make_pins_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_b1_selective_pulse.html">make_b1_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_b1_gslider_pulse.html">make_b1_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_b1_hadamard_pulse.html">make_b1_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_bloch_siegert_pulse.html">make_bloch_siegert_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_ptx_pulse.html">make_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.split_ptx_pulse.html">split_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html">calc_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html">make_spokes_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
@@ -277,32 +295,10 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_radial_trajectory.html">calc_radial_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_spiral_trajectory.html">calc_spiral_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_rosette_trajectory.html">calc_rosette_trajectory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_random_mask.html">make_random_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_linear_order.html">make_linear_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_centric_order.html">make_centric_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_radial_order.html">make_radial_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -314,6 +310,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.html">RfModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>
@@ -622,6 +619,9 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulse-factories">Pulse factories</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#slr-and-multidimensional-design">SLR and multidimensional design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#slice-encoding">Slice encoding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b1-selection">B1 selection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-transmit">Parallel transmit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-and-simulation">Analysis and simulation</a></li>
 </ul>
             </nav>
@@ -636,13 +636,13 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="rf-pulse-design">
 <h1>RF pulse design<a class="headerlink" href="#rf-pulse-design" title="Link to this heading">#</a></h1>
-<p>The basic RF factories construct hard, arbitrary, Gaussian, sinc, and
-adiabatic pulses. The design functions add SLR, simultaneous-multislice,
-spectral-spatial, and two-dimensional selective pulses. Depending on the
-factory and options, results include an RF event, accompanying gradients,
-and design metadata. Add the returned events to <a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a> blocks.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: RF pulses, from basic factories to designed pulses, and their
+analysis. Design functions return an RF event and, depending on their options,
+the gradients it plays under and design metadata.</p>
 <section id="pulse-factories">
 <h2>Pulse factories<a class="headerlink" href="#pulse-factories" title="Link to this heading">#</a></h2>
+<p>Hard, arbitrary, Gaussian, sinc and adiabatic pulses, and the adiabatic
+half-passage pair.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse" title="pypulseqpp.make_adiabatic_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_adiabatic_pulse</span></code></a></p></td>
@@ -657,7 +657,10 @@ and design metadata. Add the returned events to <a class="reference internal" hr
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_gauss_pulse.html#pypulseqpp.make_gauss_pulse" title="pypulseqpp.make_gauss_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gauss_pulse</span></code></a></p></td>
 <td><p>Create a [optionally slice selective] Gauss pulse.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sinc_pulse.html#pypulseqpp.make_sinc_pulse" title="pypulseqpp.make_sinc_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_half_passages.html#pypulseqpp.make_half_passages" title="pypulseqpp.make_half_passages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_half_passages</span></code></a></p></td>
+<td><p>Build the adiabatic half-passage pair that tips magnetization down and back.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sinc_pulse.html#pypulseqpp.make_sinc_pulse" title="pypulseqpp.make_sinc_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></p></td>
 <td><p>Creates a radio-frequency sinc pulse event and optionally accompanying slice select and slice select rephasing trapezoidal gradient events.</p></td>
 </tr>
 </tbody>
@@ -671,14 +674,81 @@ and design metadata. Add the returned events to <a class="reference internal" hr
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_slr_pulse</span></code></a></p></td>
 <td><p>Design an RF pulse using the Shinnar-Le Roux algorithm.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sms_pulse.html#pypulseqpp.make_sms_pulse" title="pypulseqpp.make_sms_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sms_pulse</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_recursive_slr_pulses.html#pypulseqpp.make_recursive_slr_pulses" title="pypulseqpp.make_recursive_slr_pulses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_recursive_slr_pulses</span></code></a></p></td>
+<td><p>Design SLR pulses that each excite the same transverse magnetisation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sms_pulse.html#pypulseqpp.make_sms_pulse" title="pypulseqpp.make_sms_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sms_pulse</span></code></a></p></td>
 <td><p>Modulate one RF pulse into equispaced spectral bands.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_spsp_pulse.html#pypulseqpp.make_spsp_pulse" title="pypulseqpp.make_spsp_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_spsp_pulse</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_spsp_pulse.html#pypulseqpp.make_spsp_pulse" title="pypulseqpp.make_spsp_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_spsp_pulse</span></code></a></p></td>
 <td><p>Design a spectral-spatial pulse on an alternating slice gradient.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_2d_selective_pulse.html#pypulseqpp.make_2d_selective_pulse" title="pypulseqpp.make_2d_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_2d_selective_pulse</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_2d_selective_pulse.html#pypulseqpp.make_2d_selective_pulse" title="pypulseqpp.make_2d_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_2d_selective_pulse</span></code></a></p></td>
 <td><p>Design a small-tip 2D-selective pulse on a spiral excitation trajectory.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="slice-encoding">
+<h2>Slice encoding<a class="headerlink" href="#slice-encoding" title="Link to this heading">#</a></h2>
+<p>Slab pulses whose sub-slices are encoded across repeated acquisitions, by
+gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_gslider_pulse.html#pypulseqpp.make_gslider_pulse" title="pypulseqpp.make_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gslider_pulse</span></code></a></p></td>
+<td><p>Design a gSlider slab pulse whose <code class="docutils literal notranslate"><span class="pre">subslice</span></code> carries <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_hadamard_pulse.html#pypulseqpp.make_hadamard_pulse" title="pypulseqpp.make_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_hadamard_pulse</span></code></a></p></td>
+<td><p>Design a slab pulse whose sub-bands are signed by row <code class="docutils literal notranslate"><span class="pre">row</span></code> of a Hadamard matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_pins_pulse.html#pypulseqpp.make_pins_pulse" title="pypulseqpp.make_pins_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_pins_pulse</span></code></a></p></td>
+<td><p>Design a PINS pulse exciting a slice every <code class="docutils literal notranslate"><span class="pre">slice_separation</span></code> along z.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="b1-selection">
+<h2>B1 selection<a class="headerlink" href="#b1-selection" title="Link to this heading">#</a></h2>
+<p>Pulses selective in the transmit field’s amplitude rather than in position, and
+the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_selective_pulse.html#pypulseqpp.make_b1_selective_pulse" title="pypulseqpp.make_b1_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_selective_pulse</span></code></a></p></td>
+<td><p>Design a pulse that excites only where B1 lies in a band.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_gslider_pulse.html#pypulseqpp.make_b1_gslider_pulse" title="pypulseqpp.make_b1_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_gslider_pulse</span></code></a></p></td>
+<td><p>Design a B1-selective gSlider pulse: one sub-band of B1 at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_hadamard_pulse.html#pypulseqpp.make_b1_hadamard_pulse" title="pypulseqpp.make_b1_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_hadamard_pulse</span></code></a></p></td>
+<td><p>Design a B1-selective pulse whose sub-bands of B1 a Hadamard row signs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_bloch_siegert_pulse.html#pypulseqpp.make_bloch_siegert_pulse" title="pypulseqpp.make_bloch_siegert_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_bloch_siegert_pulse</span></code></a></p></td>
+<td><p>Design an adiabatic Bloch-Siegert encoding pulse.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="parallel-transmit">
+<h2>Parallel transmit<a class="headerlink" href="#parallel-transmit" title="Link to this heading">#</a></h2>
+<p>A dynamic pTx pulse holds every transmit channel’s waveform in one RF event.
+<a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html#pypulseqpp.calc_rf_shim" title="pypulseqpp.calc_rf_shim"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_shim()</span></code></a> computes static channel weights and
+<a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html#pypulseqpp.make_spokes_pulse" title="pypulseqpp.make_spokes_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_spokes_pulse()</span></code></a> designs spokes.</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_ptx_pulse.html#pypulseqpp.make_ptx_pulse" title="pypulseqpp.make_ptx_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_ptx_pulse</span></code></a></p></td>
+<td><p>Make a dynamic pTx pulse from one waveform per transmit channel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.split_ptx_pulse.html#pypulseqpp.split_ptx_pulse" title="pypulseqpp.split_ptx_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_ptx_pulse</span></code></a></p></td>
+<td><p>Return a pulse's waveforms, one row per transmit channel, in Hz.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html#pypulseqpp.calc_rf_shim" title="pypulseqpp.calc_rf_shim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_shim</span></code></a></p></td>
+<td><p>Return per-channel weights whose combined B1 field has magnitude <code class="docutils literal notranslate"><span class="pre">target</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html#pypulseqpp.make_spokes_pulse" title="pypulseqpp.make_spokes_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_spokes_pulse</span></code></a></p></td>
+<td><p>Design a spokes pTx pulse: one slice excited at several in-plane k positions.</p></td>
 </tr>
 </tbody>
 </table>
@@ -758,6 +828,9 @@ and design metadata. Add the returned events to <a class="reference internal" hr
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulse-factories">Pulse factories</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#slr-and-multidimensional-design">SLR and multidimensional design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#slice-encoding">Slice encoding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b1-selection">B1 selection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-transmit">Parallel transmit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-and-simulation">Analysis and simulation</a></li>
 </ul>
   </nav></div>

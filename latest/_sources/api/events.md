@@ -1,13 +1,13 @@
 # Events and blocks
 
+`pypulseqpp`: the events a block plays besides RF and gradients, and the
+operations on blocks and events. Every factory returns a compact event that
+{meth}`Sequence.add_block` accepts; RF and gradient factories have their own
+pages.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
 ```
-
-Factories return compact event objects accepted directly by
-{meth}`Sequence.add_block`. Control events occupy the sequence timeline or
-carry instructions interpreted alongside it; RF and gradient factories are
-listed on their own pages.
 
 ## Acquisition and control events
 
@@ -49,4 +49,21 @@ listed on their own pages.
    get_supported_labels
    enable_trace
    disable_trace
+```
+
+## Interoperability with PyPulseq
+
+Upstream PyPulseq functions take and return plain namespaces.
+{func}`interoperating` wraps such a function so that it accepts and returns
+compiled events; {func}`convert` and {func}`as_namespace` convert one event
+each way.
+
+```{eval-rst}
+.. autosummary::
+   :toctree: ../generated
+   :nosignatures:
+
+   interoperating
+   convert
+   as_namespace
 ```

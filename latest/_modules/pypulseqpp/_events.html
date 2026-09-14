@@ -206,7 +206,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.html">Sequence</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a></li>
@@ -214,6 +214,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.default_system.html">default_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
@@ -233,6 +234,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.enable_trace.html">enable_trace</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.disable_trace.html">disable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.interoperating.html">interoperating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.convert.html">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -244,6 +248,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_wave_gradients.html">make_wave_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.add_gradients.html">add_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_ramp.html">calc_ramp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.concatenate_gradients.html">concatenate_gradients</a></li>
@@ -259,11 +264,24 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_half_passages.html">make_half_passages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_recursive_slr_pulses.html">make_recursive_slr_pulses</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_gslider_pulse.html">make_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_hadamard_pulse.html">make_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_pins_pulse.html">make_pins_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_b1_selective_pulse.html">make_b1_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_b1_gslider_pulse.html">make_b1_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_b1_hadamard_pulse.html">make_b1_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_bloch_siegert_pulse.html">make_bloch_siegert_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_ptx_pulse.html">make_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.split_ptx_pulse.html">split_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_shim.html">calc_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_spokes_pulse.html">make_spokes_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
@@ -272,32 +290,10 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_radial_trajectory.html">calc_radial_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_spiral_trajectory.html">calc_spiral_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_rosette_trajectory.html">calc_rosette_trajectory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_random_mask.html">make_random_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_linear_order.html">make_linear_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_centric_order.html">make_centric_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_radial_order.html">make_radial_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -309,6 +305,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.sequences.RfModule.html">RfModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>
@@ -613,13 +610,16 @@
 <span class="p">}</span>
 
 
+<div class="viewcode-block" id="convert">
+<a class="viewcode-back" href="../../generated/pypulseqpp.convert.html#pypulseqpp.convert">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Convert a PyPulseq event to a compiled event; return other objects unchanged."""</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">Event</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">event</span>
     <span class="n">convert_one</span> <span class="o">=</span> <span class="n">_CONVERTERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">event</span> <span class="k">if</span> <span class="n">convert_one</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">convert_one</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">event</span> <span class="k">if</span> <span class="n">convert_one</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">convert_one</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_shape_dur</span><span class="p">(</span><span class="n">tt</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -676,6 +676,8 @@
 <span class="n">_FIELD_NAMES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
 
+<div class="viewcode-block" id="as_namespace">
+<a class="viewcode-back" href="../../generated/pypulseqpp.as_namespace.html#pypulseqpp.as_namespace">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">as_namespace</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Convert a compiled event to a PyPulseq-compatible SimpleNamespace.</span>
 
@@ -716,7 +718,8 @@
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"shape_IDs"</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">made</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">made</span>
+    <span class="k">return</span> <span class="n">made</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_lowered</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -741,6 +744,8 @@
     <span class="k">return</span> <span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="interoperating">
+<a class="viewcode-back" href="../../generated/pypulseqpp.interoperating.html#pypulseqpp.interoperating">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interoperating</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Wrap a callable with recursive event conversion.</span>
 
@@ -762,7 +767,8 @@
             <span class="s2">"    This is PyPulseq's function. Events go in as the namespaces it</span><span class="se">\n</span><span class="s2">"</span>
             <span class="s2">"    expects and come back with their fields in slots.</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+
 
 
 <span class="c1">#: A numpydoc ``Notes`` heading, at whatever indentation the docstring has.</span>

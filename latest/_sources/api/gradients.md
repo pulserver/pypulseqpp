@@ -1,14 +1,15 @@
 # Gradient waveform design
 
+`pypulseqpp`: gradient events on one logical axis, and the operations on them.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
 ```
 
-Gradient factories produce trapezoidal, extended, or arbitrary events on one
-logical axis. The operations below concatenate, superpose, split, scale, or
-rotate those events; their individual contracts specify how timing changes.
-
 ## Gradient factories
+
+Trapezoidal, extended-trapezoid and arbitrary events, and the wave-CAIPI
+corkscrew played under a readout's flat top.
 
 ```{eval-rst}
 .. autosummary::
@@ -23,9 +24,13 @@ rotate those events; their individual contracts specify how timing changes.
    make_phase_blip
    make_phase_encoding
    make_trapezoid
+   make_wave_gradients
 ```
 
 ## Gradient operations
+
+Concatenate, superpose, split, scale or rotate events; each contract states
+how timing changes.
 
 ```{eval-rst}
 .. autosummary::

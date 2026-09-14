@@ -206,7 +206,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.html">Sequence</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a></li>
@@ -214,6 +214,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.default_system.html">default_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
@@ -233,6 +234,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.enable_trace.html">enable_trace</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.disable_trace.html">disable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.interoperating.html">interoperating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.convert.html">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -244,6 +248,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_wave_gradients.html">make_wave_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.add_gradients.html">add_gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_ramp.html">calc_ramp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.concatenate_gradients.html">concatenate_gradients</a></li>
@@ -259,11 +264,24 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_half_passages.html">make_half_passages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_recursive_slr_pulses.html">make_recursive_slr_pulses</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_gslider_pulse.html">make_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_hadamard_pulse.html">make_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_pins_pulse.html">make_pins_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_b1_selective_pulse.html">make_b1_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_b1_gslider_pulse.html">make_b1_gslider_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_b1_hadamard_pulse.html">make_b1_hadamard_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_bloch_siegert_pulse.html">make_bloch_siegert_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_ptx_pulse.html">make_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.split_ptx_pulse.html">split_ptx_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_shim.html">calc_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_spokes_pulse.html">make_spokes_pulse</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
@@ -272,32 +290,10 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_radial_trajectory.html">calc_radial_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_spiral_trajectory.html">calc_spiral_trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rosette_trajectory.html">calc_rosette_trajectory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_random_mask.html">make_random_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_linear_order.html">make_linear_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_centric_order.html">make_centric_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_radial_order.html">make_radial_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -309,6 +305,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RfModule.html">RfModule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>
@@ -1003,6 +1000,9 @@
 <span class="sd">        One per name in ``labels``; a bare event when there is one.</span>
 <span class="sd">    wait_te, wait_tr : DelayEvent</span>
 <span class="sd">        Present only when a TE or TR longer than the minimum was asked for.</span>
+<span class="sd">    wait_pre, wait_rew : DelayEvent</span>
+<span class="sd">        Pads setting the span of the prewinder and rewinder blocks, which can</span>
+<span class="sd">        outlast their gradients. Absent when that block is not played.</span>
 <span class="sd">    trajectory : NonCartesianGradient</span>
 <span class="sd">        The designed interleave, for its ``trajectory`` array and timings.</span>
 <span class="sd">    echo_spacing : float</span>
@@ -1148,8 +1148,8 @@
         <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
         <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"gradients"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
         <span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="s2">"left"</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-        <span class="n">_pre_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">pre_span</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">_rew_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">rew_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">rew_span</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">wait_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">pre_span</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">wait_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">rew_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">rew_span</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># Replaying an arm re-enters k where the last one left it, so an echo</span>
         <span class="c1"># train has to come back to the head of the arm between echoes: the</span>
@@ -1173,14 +1173,14 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">wait_te</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">_pre_floor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wait_pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span>
                     <span class="o">*</span><span class="p">(()</span> <span class="k">if</span> <span class="n">wait_te</span> <span class="k">else</span> <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)),</span>
                     <span class="o">*</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">),</span>
-                    <span class="n">_pre_floor</span><span class="p">,</span>
+                    <span class="n">wait_pre</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">i_echo</span><span class="p">:</span>
@@ -1203,13 +1203,13 @@
                     <span class="o">*</span><span class="n">adc_labels</span><span class="p">,</span>
                     <span class="o">*</span><span class="p">([</span><span class="n">echo_labels</span><span class="p">[</span><span class="n">i_echo</span><span class="p">]]</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[]),</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="n">_rew_floor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wait_rew</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span>
                     <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_spoil</span><span class="p">),</span>
-                    <span class="n">_rew_floor</span><span class="p">,</span>
+                    <span class="n">wait_rew</span><span class="p">,</span>
                 <span class="p">)</span>
 
         <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">arms</span><span class="p">)</span>

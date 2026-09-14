@@ -18,6 +18,7 @@
       ~SpspExcitation.init_module
       ~SpspExcitation.publish
       ~SpspExcitation.register
+      ~SpspExcitation.shift
       ~SpspExcitation.sim_rf
    
    
