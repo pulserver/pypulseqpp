@@ -219,6 +219,12 @@ Preserve NumPy-style Python docstrings. Write concise technical prose for
 developers and MR scientists. Document units, frames, composition order,
 state, side effects and non-obvious return conventions where useful.
 
+Write parameter, return and attribute types as Python 3.10 type expressions,
+not prose: `float | ArrayLike`, `NDArray[np.float64]`, `Sequence[int]`,
+`tuple[float, float, float]`, `str | os.PathLike[str]`, keeping numpydoc's
+`, optional` and `, default X` suffixes. Every documented public function,
+class and method carries a brief `Examples` section whose doctest runs.
+
 Do not restate names, annotations, obvious attributes or implementation steps.
 Private helpers need no filler docstrings. Package/module docstrings describe
 purpose briefly; architectural constraints belong here or in dedicated docs.

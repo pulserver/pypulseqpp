@@ -31,6 +31,15 @@ class Opts(_pp.Opts):
     Importing pypulseqpp installs these defaults for PyPulseq factories.
     Constructing Opts alone does not change the shared default; use
     set_as_default or reset_default.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    >>> system.max_grad
+    1703040.0
+    >>> system.grad_raster_time, system.rf_raster_time
+    (2e-05, 2e-06)
     """
 
     def __init__(
@@ -84,12 +93,23 @@ Opts.reset_default()
 
 
 def default_system(system: _pp.Opts | None) -> _pp.Opts:
-    """``system``, or the shared default when it is ``None``."""
+    """``system``, or the shared default when it is ``None``.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.default_system(None) is pp.Opts.default
+    True
+    >>> system = pp.Opts()
+    >>> pp.default_system(system) is system
+    True
+    """
     return _pp.Opts.default if system is None else system
 
 
-#: The fraction of the hardware limits a designed waveform may reach.
+#: Fraction of the gradient amplitude limit a designed waveform may reach.
 MAX_GRAD_DERATE = 0.9
+#: Fraction of the slew-rate limit a designed waveform may reach.
 MAX_SLEW_DERATE = 0.9
 
 
@@ -105,14 +125,14 @@ def apply_system_derates(
 
     Parameters
     ----------
-    opts : pypulseq.Opts
+    opts : Opts
         System limits. Not modified.
     grad_derate, slew_derate : float, optional
         Fraction of the base ``max_grad`` / ``max_slew`` to allow.
 
     Returns
     -------
-    pypulseq.Opts
+    Opts
         The derated copy.
 
     See Also
@@ -157,7 +177,7 @@ def cap_system(
 
     Parameters
     ----------
-    opts : pypulseq.Opts
+    opts : Opts
         System limits. Not modified.
     max_grad : float, optional
         Amplitude ceiling, in ``grad_unit``.
@@ -168,7 +188,7 @@ def cap_system(
 
     Returns
     -------
-    pypulseq.Opts
+    Opts
         The capped copy.
 
     Examples
