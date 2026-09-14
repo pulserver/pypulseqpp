@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import urllib.error
+import urllib.request
 
 project = "pypulseqpp"
 copyright = "2026, pypulseqpp contributors"  # noqa: A001
@@ -37,11 +39,40 @@ napoleon_use_admonition_for_references = True
 pygments_style = "sphinx"
 highlight_language = "python"
 
-intersphinx_mapping = {
+intersphinx_timeout = 5
+
+_INTERSPHINX = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
 }
+
+
+def _has_inventory(base: str) -> bool:
+    """Whether this project's object inventory can be fetched right now.
+
+    Sphinx reports an inventory it cannot reach as a warning carrying no type,
+    which `suppress_warnings` therefore cannot name and which the build's `-W`
+    turns into a failure. Leaving such a project out of the mapping costs the
+    cross-references into it, which render as their own text, and keeps an
+    outage elsewhere from failing this build.
+    """
+    url = base.rstrip("/") + "/objects.inv"
+    try:
+        # The body is never read: this asks whether the inventory is served,
+        # and intersphinx fetches it in full when it is.
+        with urllib.request.urlopen(url, timeout=intersphinx_timeout):
+            return True
+    except (urllib.error.URLError, OSError, ValueError):
+        return False
+
+
+intersphinx_mapping = {}
+for _project, _entry in _INTERSPHINX.items():
+    if _has_inventory(_entry[0]):
+        intersphinx_mapping[_project] = _entry
+    else:
+        print(f"conf.py: {_entry[0]} is unreachable; building without its links")
 
 DOCS_VERSION = os.environ.get("PYPULSEQPP_DOCS_VERSION", "latest")
 PAGES_URL = "https://pulserver.github.io/pypulseqpp"
