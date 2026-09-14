@@ -71,6 +71,17 @@ jobs:
           PYPULSEQPP_DOCS_VERSION: ${{ steps.version.outputs.canonical }}
         run: bash scripts/build_docs.sh
 
+      - name: Check that the site is only the site
+        # Sphinx caches parsed documents in the output directory unless given
+        # `-d`, and the cache is far larger than the pages. Publishing commits
+        # whatever is there to a branch that is never pruned, so a build that
+        # leaves it behind has to fail here rather than on main.
+        run: |
+          if [ -e docs/build/html/.doctrees ]; then
+            echo "::error::The doctree cache is inside the built site and would be published." >&2
+            exit 1
+          fi
+
       - name: Publish
         if: github.event_name != 'pull_request'
         env:

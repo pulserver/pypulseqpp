@@ -17,6 +17,9 @@ cd "$(dirname "$0")/.."
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 site="$PWD/docs/build/site"
 out="$PWD/docs/build/html"
+# Sphinx caches parsed documents inside the output directory unless told
+# otherwise, which would make the build cache part of the published site.
+doctrees="$PWD/docs/build/doctrees"
 
 if ! "$PYTHON_BIN" -c "import sphinx, myst_parser, sphinx_book_theme, sphinx_copybutton, linkify_it" 2>/dev/null; then
     echo "build_docs.sh: the documentation tools are missing; install them with pip install '.[doc]'" >&2
@@ -49,5 +52,5 @@ else:
 
 "$PYTHON_BIN" -S -c "$bootstrap" "$site" "$packages" check
 "$PYTHON_BIN" -S -c "$bootstrap" "$site" "$packages" build \
-    -W --keep-going -b html docs "$out" "$@"
+    -W --keep-going -d "$doctrees" -b html docs "$out" "$@"
 echo "Built $out/index.html"
