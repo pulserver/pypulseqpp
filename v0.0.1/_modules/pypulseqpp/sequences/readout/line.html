@@ -1,0 +1,1146 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pypulseqpp.sequences.readout.line &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pypulseqpp/sequences/readout/line';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/_modules/pypulseqpp/sequences/readout/line.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pypulseqpp documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../../index.html">
+                    pypulseqpp
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.html">Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.Opts.html">Opts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.default_system.html">default_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_adc.html">make_adc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_delay.html">make_delay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_digital_output_pulse.html">make_digital_output_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_label.html">make_label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_rf_shim.html">make_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_rotation.html">make_rotation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_soft_delay.html">make_soft_delay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_trigger.html">make_trigger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.align.html">align</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.block_to_events.html">block_to_events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_duration.html">calc_duration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.rotate.html">rotate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.enable_trace.html">enable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.disable_trace.html">disable_trace</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_extended_trapezoid_area.html">make_extended_trapezoid_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_hexagon_gradient_area.html">make_hexagon_gradient_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.add_gradients.html">add_gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_ramp.html">calc_ramp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.concatenate_gradients.html">concatenate_gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.points_to_waveform.html">points_to_waveform</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.rotate_3d.html">rotate_3d</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.scale_grad.html">scale_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.split_gradient.html">split_gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.split_gradient_at.html">split_gradient_at</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_adiabatic_pulse.html">make_adiabatic_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sim_bloch.html">sim_bloch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sim_rf.html">sim_rf</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_random_mask.html">make_random_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_linear_order.html">make_linear_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_centric_order.html">make_centric_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_radial_order.html">make_radial_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.round_to_raster.html">round_to_raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.ceil_to_raster.html">ceil_to_raster</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RfModule.html">RfModule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.NonCartesianReadout.html">NonCartesianReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.NonSelectiveExcitation.html">NonSelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.NonSelectiveRefocusing.html">NonSelectiveRefocusing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.Inversion.html">Inversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpatialSelectiveExcitation.html">SpatialSelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpatialSelectiveRefocusing.html">SpatialSelectiveRefocusing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpatialSelective2DExcitation.html">SpatialSelective2DExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.FrequencySelectiveExcitation.html">FrequencySelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpspExcitation.html">SpspExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SmsExcitation.html">SmsExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.MultibandExcitation.html">MultibandExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.BlochSiegertPreparation.html">BlochSiegertPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.DiffusionPreparation.html">DiffusionPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.FatSaturation.html">FatSaturation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.IhMtPreparation.html">IhMtPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.InversionPreparation.html">InversionPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.MtPreparation.html">MtPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.T1T2Preparation.html">T1T2Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.T2Preparation.html">T2Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.LineReadout2D.html">LineReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.LineReadout3D.html">LineReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.EpiReadout2D.html">EpiReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.EpiReadout3D.html">EpiReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.FseReadout2D.html">FseReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.FseReadout3D.html">FseReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.BssfpReadout2D.html">BssfpReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.BssfpReadout3D.html">BssfpReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.PropellerReadout2D.html">PropellerReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.PropellerStackReadout.html">PropellerStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RadialReadout2D.html">RadialReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RadialStackReadout.html">RadialStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RadialProjectionReadout.html">RadialProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpiralReadout2D.html">SpiralReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpiralStackReadout.html">SpiralStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpiralProjectionReadout.html">SpiralProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.SpiralNavigator.html">SpiralNavigator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RosetteReadout2D.html">RosetteReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RosetteStackReadout.html">RosetteStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.RosetteProjectionReadout.html">RosetteProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.ZteReadout.html">ZteReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.line._LineReadout.html">_LineReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.epi._EpiReadout.html">_EpiReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.fse._FseReadout.html">_FseReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.bssfp._BssfpReadout.html">_BssfpReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.propeller._PropellerReadout.html">_PropellerReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.noncartesian._RadialReadout.html">_RadialReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.noncartesian._SpiralReadout.html">_SpiralReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.sequences.readout.noncartesian._RosetteReadout.html">_RosetteReadout</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_mech_resonance.html">check_mech_resonance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.read_forbidden_bands.html">read_forbidden_bands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.ForbiddenBand.html">ForbiddenBand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_pns.html">check_pns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.read_safe_model.html">read_safe_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.ChronaxieModel.html">ChronaxieModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.check_sar.html">check_sar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.read_vops.html">read_vops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.example_vops.html">example_vops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.safety.VopModel.html">VopModel</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/plotting.html">Plotting</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.plot.plot.html">plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.plot.paper_plot.html">paper_plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.plot.plot_kspace.html">plot_kspace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.plot.plot_rf.html">plot_rf</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/cli.html">Command-line helpers</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cli.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cli.write_sequence.html">write_sequence</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../misc/contributors.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../misc/license.html">License</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2F_modules/pypulseqpp/sequences/readout/line.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pypulseqpp.sequences.readout.line</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Cartesian line readouts: one frequency-encoded line per repetition."""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LineReadout2D"</span><span class="p">,</span> <span class="s2">"LineReadout3D"</span><span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AXES</span><span class="p">,</span>
+    <span class="n">as_tuple</span><span class="p">,</span>
+    <span class="n">left_align_rephaser</span><span class="p">,</span>
+    <span class="n">present</span><span class="p">,</span>
+    <span class="n">solve_delay</span><span class="p">,</span>
+    <span class="n">solve_rephasing</span><span class="p">,</span>
+    <span class="n">wave_channels</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: Fraction of ``max_grad`` the readout lobe may reach, leaving the rest for</span>
+<span class="c1">#: the phase encodes riding alongside it.</span>
+<span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+<span class="n">_SPOILING_POSITIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"pre"</span><span class="p">,</span> <span class="s2">"post"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="_LineReadout">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.readout.line._LineReadout.html#pypulseqpp.sequences._LineReadout">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">_LineReadout</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cartesian line readout from the supplied RF event to the end of TR.</span>
+
+<span class="sd">    An excitation gives a gradient echo; a refocusing pulse gives the readout</span>
+<span class="sd">    half of a spin echo. Phase encodes are templates at their largest step,</span>
+<span class="sd">    for the loop to scale per shot.</span>
+
+<span class="sd">    Zero spoiling balances every axis. Positive spoiling after the acquisition</span>
+<span class="sd">    gives SSFP-FID, before it SSFP-Echo. In the latter case the FID trajectory</span>
+<span class="sd">    reported by ``calculate_kspace`` need not cross k = 0; ``echo_time`` is</span>
+<span class="sd">    still the timing interval.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rf : RfEvent</span>
+<span class="sd">        The pulse the module was given.</span>
+<span class="sd">    gz : GradEvent</span>
+<span class="sd">        Its selection gradient, if one was given.</span>
+<span class="sd">    gz_reph : GradEvent</span>
+<span class="sd">        Its rephaser, if one was given, left-aligned in whichever block follows</span>
+<span class="sd">        the pulse.</span>
+<span class="sd">    gx_pre : GradEvent</span>
+<span class="sd">        Readout prephaser, right-aligned in the prewinder block. Carries the</span>
+<span class="sd">        spoiler under ``spoiling_position='pre'``.</span>
+<span class="sd">    gx : GradEvent</span>
+<span class="sd">        Readout lobe. A spoiler is bridged onto it when there is one echo: the</span>
+<span class="sd">        lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or</span>
+<span class="sd">        ``gx_spoil`` plays instead.</span>
+<span class="sd">    gx_spoil : GradEvent</span>
+<span class="sd">        Closes the TR on the read axis: rewinds the part of the line after the</span>
+<span class="sd">        echo and, under ``spoiling_position='post'``, adds the spoiler.</span>
+<span class="sd">        Left-aligned with ``gy_rew``.</span>
+<span class="sd">    gy_pre, gz_pre : TrapEvent</span>
+<span class="sd">        Phase encodes at their largest step, to be scaled per shot. ``gz_pre``</span>
+<span class="sd">        is 3D only.</span>
+<span class="sd">    gy_rew, gz_rew : TrapEvent</span>
+<span class="sd">        The negated encodes that unwind them, for a balanced TR.</span>
+<span class="sd">    gx_flyback : TrapEvent</span>
+<span class="sd">        Rewinder played between echoes of a monopolar train.</span>
+<span class="sd">    gx_rev : GradEvent</span>
+<span class="sd">        The negated lobe that reads the even echoes of a bipolar train.</span>
+<span class="sd">    gy_wave, gz_wave : GradEvent</span>
+<span class="sd">        The wave corkscrew under the flat top, each self-balanced so scaling</span>
+<span class="sd">        one to zero changes nothing else. Only the channels ``wave`` drives.</span>
+<span class="sd">    adc : AdcEvent</span>
+<span class="sd">        The acquisition window, shared by every echo.</span>
+<span class="sd">    adc_labels : LabelSetEvent or list of LabelSetEvent</span>
+<span class="sd">        One per name in ``labels``, in order. Absent when ``labels`` is empty,</span>
+<span class="sd">        and a bare event rather than a list when there is one.</span>
+<span class="sd">    wait_te : DelayEvent</span>
+<span class="sd">        Present only when a TE longer than the minimum was asked for and the</span>
+<span class="sd">        wait can hold ``gz_reph``; otherwise the prewinder block starts later.</span>
+<span class="sd">    wait_tr : DelayEvent</span>
+<span class="sd">        Present only when a TR longer than the minimum was asked for.</span>
+<span class="sd">    echo_time : float</span>
+<span class="sd">        From the RF isodelay to the first echo (s), on the block raster.</span>
+<span class="sd">    center_sample : int</span>
+<span class="sd">        Index of the sample at the echo; partial echo moves it toward the</span>
+<span class="sd">        start.</span>
+<span class="sd">    wave_amplitude : float</span>
+<span class="sd">        Peak wave gradient achieved (T/m), below the requested one where the</span>
+<span class="sd">        slew rate binds; zero without ``wave``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseq.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    rf : RfEvent</span>
+<span class="sd">        The pulse that opens the repetition.</span>
+<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">        A selection gradient played in the same block as ``rf``. Pass an</span>
+<span class="sd">        excitation's ``gz``, or nothing for a hard pulse.</span>
+<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">        The rephaser that unwinds ``gz``, left-aligned in the first block</span>
+<span class="sd">        after the pulse: the TE wait when there is one, the prewinder block</span>
+<span class="sd">        otherwise. A slab excitation (``is_slab=True``) has already merged it</span>
+<span class="sd">        into ``gz`` and passes nothing.</span>
+<span class="sd">    fov : float or sequence of float</span>
+<span class="sd">        Field of view (m), per encoded axis, readout first.</span>
+<span class="sd">    matrix : int or sequence of int</span>
+<span class="sd">        Matrix size per encoded axis, used to set gradient areas. The scan</span>
+<span class="sd">        loop controls the number and order of acquired lines.</span>
+<span class="sd">    te : float, optional</span>
+<span class="sd">        Echo time (s), from the RF isodelay to the first echo. ``None`` is as</span>
+<span class="sd">        short as possible.</span>
+<span class="sd">    tr : float, optional</span>
+<span class="sd">        Repetition time (s), over the whole module. ``None`` is as short as</span>
+<span class="sd">        possible.</span>
+<span class="sd">    partial_echo : float, optional</span>
+<span class="sd">        Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the</span>
+<span class="sd">        samples *before* the echo, so it shortens TE.</span>
+<span class="sd">    oversampling : float, optional</span>
+<span class="sd">        Readout oversampling: ``delta_kx`` shrinks and the sampled field of</span>
+<span class="sd">        view grows, while resolution is fixed by ``fov`` and ``matrix``.</span>
+<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
+<span class="sd">        achieved rate, subject to both ADC and gradient raster constraints.</span>
+<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">        Residual dephasing left at the end of the TR, in cycles across</span>
+<span class="sd">        ``voxel_size_m``. Zero is balanced.</span>
+<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">        Length the spoiling is counted over (m). Defaults to the readout</span>
+<span class="sd">        resolution.</span>
+<span class="sd">    spoiling_position : {'post', 'pre'}, optional</span>
+<span class="sd">        Which side of the acquisition the dephasing lobe sits on.</span>
+<span class="sd">    n_echoes : int, optional</span>
+<span class="sd">        Echoes per repetition.</span>
+<span class="sd">    flyback : bool, optional</span>
+<span class="sd">        With more than one echo: rewind between echoes so every one is read in</span>
+<span class="sd">        the same direction (monopolar, the default), or alternate the readout</span>
+<span class="sd">        sign (bipolar), which is faster but reads even echoes backwards and</span>
+<span class="sd">        puts any gradient-delay error into a phase difference between them.</span>
+<span class="sd">    wave : {'phase', 'partition', 'both'}, optional</span>
+<span class="sd">        Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine</span>
+<span class="sd">        on z, or both. 3D only.</span>
+<span class="sd">    wave_cycles : int, optional</span>
+<span class="sd">        Wave periods across the sampling window.</span>
+<span class="sd">    wave_amplitude : float, optional</span>
+<span class="sd">        Requested peak wave gradient (T/m). A ceiling: the slew rate may</span>
+<span class="sd">        lower it, and ``wave_amplitude`` on the module reports what was built.</span>
+<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">        Counters emitted on the acquisition block. The loop writes the values.</span>
+<span class="sd">    trigger : event, optional</span>
+<span class="sd">        A trigger or digital output armed on the prewinder block.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a count or a fraction is out of range, ``wave`` is set on a 2D</span>
+<span class="sd">        readout, ``gz_reph`` shares a channel with an encoded axis, or the</span>
+<span class="sd">        requested TE or TR is shorter than the module can achieve.</span>
+<span class="sd">    """</span>
+
+    <span class="c1">#: 2 or 3. The only thing that separates the two shipped line readouts.</span>
+    <span class="n">_ndim</span> <span class="o">=</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="_LineReadout.init_module">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.readout.line._LineReadout.html#pypulseqpp.sequences._LineReadout.init_module">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_module</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span>
+        <span class="n">rf</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">gz</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gz_reph</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">fov</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">matrix</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">te</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">partial_echo</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">oversampling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">readout_bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">250e3</span><span class="p">,</span>
+        <span class="n">spoiling_cycles</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">voxel_size_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">spoiling_position</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"post"</span><span class="p">,</span>
+        <span class="n">n_echoes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">flyback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">wave</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wave_cycles</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="n">wave_amplitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8e-3</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">trigger</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndim</span>
+        <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"wave encoding spreads a voxel along the two encoded axes "</span>
+                <span class="s2">"transverse to the readout, and a 2D readout has only one of "</span>
+                <span class="s2">"them: the other is the slice"</span>
+            <span class="p">)</span>
+        <span class="n">n_echoes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"n_echoes must be &gt;= 1"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spoiling_position</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SPOILING_POSITIONS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"spoiling_position must be one of </span><span class="si">{</span><span class="n">_SPOILING_POSITIONS</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">spoiling_position</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">spoiling_cycles</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"spoiling_cycles must be &gt;= 0"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">oversampling</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"oversampling must be &gt;= 1"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.5</span> <span class="o">&lt;</span> <span class="n">partial_echo</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"partial_echo must be in (0.5, 1]"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">readout_bandwidth_hz</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"readout_bandwidth_hz must be positive"</span><span class="p">)</span>
+        <span class="n">fov</span> <span class="o">=</span> <span class="n">as_tuple</span><span class="p">(</span><span class="n">fov</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="s2">"fov"</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">as_tuple</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="s2">"matrix"</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">fov</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"every matrix size must be &gt;= 2 and every fov positive"</span><span class="p">)</span>
+
+        <span class="c1"># Sampling. Partial echo drops samples from before the echo, so the</span>
+        <span class="c1"># full count sets where k starts and the acquired count sets the ADC.</span>
+        <span class="n">delta_kx</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">oversampling</span> <span class="o">*</span> <span class="n">fov</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">n_full</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">oversampling</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">n_post</span> <span class="o">=</span> <span class="n">n_full</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_post</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">partial_echo</span> <span class="o">*</span> <span class="n">n_full</span><span class="p">))</span>
+        <span class="n">n_pre</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">-</span> <span class="n">n_post</span>
+        <span class="n">readout_area</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">*</span> <span class="n">delta_kx</span>
+        <span class="n">dwell</span><span class="p">,</span> <span class="n">readout_duration</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_adc_timing</span><span class="p">(</span>
+            <span class="n">n_samples</span><span class="p">,</span>
+            <span class="mf">1.0</span> <span class="o">/</span> <span class="n">readout_bandwidth_hz</span><span class="p">,</span>
+            <span class="n">grad_raster_time</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span>
+            <span class="n">adc_raster_time</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">,</span>
+            <span class="n">min_readout_duration</span><span class="o">=</span><span class="n">readout_area</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">voxel_size_m</span> <span class="o">=</span> <span class="n">fov</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
+        <span class="n">spoil_area</span> <span class="o">=</span> <span class="n">spoiling_cycles</span> <span class="o">/</span> <span class="n">voxel_size_m</span>
+
+        <span class="c1"># The readout lobe, and the two lobes that bracket it.</span>
+        <span class="n">gx</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+            <span class="n">flat_area</span><span class="o">=</span><span class="n">readout_area</span><span class="p">,</span>
+            <span class="n">flat_time</span><span class="o">=</span><span class="n">readout_duration</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">amplitude</span><span class="p">,</span> <span class="n">rise_time</span><span class="p">,</span> <span class="n">fall_time</span> <span class="o">=</span> <span class="n">gx</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">gx</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span> <span class="n">gx</span><span class="o">.</span><span class="n">fall_time</span>
+        <span class="n">pre_area</span> <span class="o">=</span> <span class="o">-</span><span class="n">n_pre</span> <span class="o">*</span> <span class="n">delta_kx</span>
+        <span class="n">post_area</span> <span class="o">=</span> <span class="o">-</span><span class="n">n_post</span> <span class="o">*</span> <span class="n">delta_kx</span>
+
+        <span class="c1"># A bridge replaces a ramp the readout lobe then does not play, which</span>
+        <span class="c1"># is only coherent when that lobe is the one the spoiler joins: an</span>
+        <span class="c1"># echo train reuses one lobe -- and one ADC delay -- per echo, so</span>
+        <span class="c1"># every ramp must stay and the spoiler keeps its own.</span>
+        <span class="n">bridged</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">spoil_area</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n_echoes</span> <span class="o">==</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span> <span class="ow">and</span> <span class="n">bridged</span><span class="p">:</span>
+            <span class="c1"># Bridged into the readout lobe: the prewinder climbs to the</span>
+            <span class="c1"># plateau itself, so its area *is* the k the flat top starts at and</span>
+            <span class="c1"># the lobe keeps a ramp only on the far side.</span>
+            <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
+                <span class="n">area</span><span class="o">=</span><span class="n">pre_area</span> <span class="o">-</span> <span class="n">spoil_area</span><span class="p">,</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+                <span class="n">grad_start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">grad_end</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">flat_top_start</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The lobe's own rise happens before the first sample and winds</span>
+            <span class="c1"># half a ramp of k while it does. Uncompensated, that offsets the</span>
+            <span class="c1"># whole line -- which a reconstruction sees as a first-order phase</span>
+            <span class="c1"># rather than as an error, so nothing downstream would report it.</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">pre_area</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">rise_time</span> <span class="o">*</span> <span class="n">amplitude</span>
+            <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span> <span class="ow">and</span> <span class="n">spoil_area</span><span class="p">:</span>
+                <span class="n">area</span> <span class="o">-=</span> <span class="n">spoil_area</span>
+            <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+            <span class="n">flat_top_start</span> <span class="o">=</span> <span class="n">rise_time</span>
+
+        <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span> <span class="ow">and</span> <span class="n">bridged</span><span class="p">:</span>
+            <span class="n">gx_spoil</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
+                <span class="n">area</span><span class="o">=</span><span class="n">post_area</span> <span class="o">+</span> <span class="n">spoil_area</span><span class="p">,</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+                <span class="n">grad_start</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="n">grad_end</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">post_area</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">fall_time</span> <span class="o">*</span> <span class="n">amplitude</span>
+            <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span> <span class="ow">and</span> <span class="n">spoil_area</span><span class="p">:</span>
+                <span class="n">area</span> <span class="o">+=</span> <span class="n">spoil_area</span>
+            <span class="n">gx_spoil</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+
+        <span class="c1"># A bridge already supplies the ramp on the side it joins.</span>
+        <span class="k">if</span> <span class="n">bridged</span><span class="p">:</span>
+            <span class="n">gx</span> <span class="o">=</span> <span class="n">_reshape_readout</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span><span class="p">,</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span>
+            <span class="p">)</span>
+
+        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
+            <span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="n">flat_top_start</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+        <span class="p">)</span>
+
+        <span class="c1"># The corkscrew rides under the same flat top the samples are taken</span>
+        <span class="c1"># on, and both encoded axes are free there: the phase encodes are</span>
+        <span class="c1"># spent in the prewinder. Each event is self-balanced, so a scan that</span>
+        <span class="c1"># scales one to zero for a calibration line changes nothing else about</span>
+        <span class="c1"># the readout.</span>
+        <span class="n">gy_wave</span> <span class="o">=</span> <span class="n">gz_wave</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">wave_peak</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sine</span><span class="p">,</span> <span class="n">cosine</span> <span class="o">=</span> <span class="n">wave_channels</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+            <span class="n">gy_wave</span><span class="p">,</span> <span class="n">gz_wave</span><span class="p">,</span> <span class="n">wave_peak</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_wave_gradients</span><span class="p">(</span>
+                <span class="n">readout_duration</span><span class="p">,</span>
+                <span class="n">wave_cycles</span><span class="p">,</span>
+                <span class="n">wave_amplitude</span><span class="p">,</span>
+                <span class="n">sine_channel</span><span class="o">=</span><span class="n">sine</span><span class="p">,</span>
+                <span class="n">cosine_channel</span><span class="o">=</span><span class="n">cosine</span><span class="p">,</span>
+                <span class="n">delay</span><span class="o">=</span><span class="n">flat_top_start</span><span class="p">,</span>
+                <span class="n">return_amplitude</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Phase encoding, at its largest step: resolution alone fixes it, since</span>
+        <span class="c1"># field of view and matrix cancel.</span>
+        <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">gy_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gy_pre</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+            <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># Monopolar spends a rewinder between echoes so every one is read in</span>
+        <span class="c1"># the same direction; bipolar spends nothing and reads alternate echoes</span>
+        <span class="c1"># backwards.</span>
+        <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">flyback</span><span class="p">:</span>
+            <span class="n">gx_flyback</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="n">_area</span><span class="p">(</span><span class="n">gx</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flyback</span><span class="p">:</span>
+            <span class="n">gx_rev</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># The prewinder block already carries one gradient per encoded axis, so</span>
+        <span class="c1"># a rephaser sharing one of those channels has nowhere to sit.</span>
+        <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">left_align_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="n">AXES</span><span class="p">[:</span><span class="n">ndim</span><span class="p">],</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="n">_prewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span><span class="p">]</span> <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">[</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="n">gz_rew</span><span class="p">])</span>
+            <span class="n">_rewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="n">gz_rew</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">[</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">])</span>
+            <span class="n">_rewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">]</span>
+
+        <span class="n">adc_labels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">()</span>
+        <span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+
+        <span class="c1"># `add_block` rounds a block up onto the block raster, so a span taken</span>
+        <span class="c1"># from `calc_duration` alone is a raster short of where the block ends.</span>
+        <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">te_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">rf_center</span> <span class="o">+</span> <span class="n">flat_top_start</span> <span class="o">+</span> <span class="n">n_pre</span> <span class="o">*</span> <span class="n">dwell</span>
+        <span class="n">wait_span</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">echo_time</span> <span class="o">=</span> <span class="n">solve_rephasing</span><span class="p">(</span>
+            <span class="n">te</span><span class="p">,</span>
+            <span class="n">te_base</span><span class="p">,</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">_prewinder</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">)),</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Align only now that the span is settled, since the delay alignment</span>
+        <span class="c1"># writes is part of the event the caller receives. The delay sets the</span>
+        <span class="c1"># span everything is right-aligned against and is then dropped: the</span>
+        <span class="c1"># aligned gradients already end there, so they hold the block open.</span>
+        <span class="n">_prewinder</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trigger</span><span class="p">,</span> <span class="o">*</span><span class="n">_prewinder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">[</span><span class="n">trigger</span><span class="p">],</span> <span class="n">right</span><span class="o">=</span><span class="n">_prewinder</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_prewinder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="n">_prewinder</span><span class="p">)</span>
+        <span class="n">_prewinder</span> <span class="o">=</span> <span class="n">_prewinder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">_prewinder</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">_prewinder</span>
+
+        <span class="k">if</span> <span class="n">wait_span</span><span class="p">:</span>
+            <span class="n">wait_te</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait_span</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="n">gz_reph</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">)</span>
+
+        <span class="n">_pre_block</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="o">*</span><span class="n">_prewinder</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="n">wait_span</span> <span class="k">else</span> <span class="n">gz_reph</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">_pre_block</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">flyback</span> <span class="ow">and</span> <span class="n">i_echo</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_flyback</span><span class="p">)</span>
+            <span class="n">lobe</span> <span class="o">=</span> <span class="n">gx</span> <span class="k">if</span> <span class="p">(</span><span class="n">flyback</span> <span class="ow">or</span> <span class="n">i_echo</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">gx_rev</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
+                <span class="n">lobe</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gy_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">_rewinder</span><span class="p">)</span>
+
+        <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tr_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tr_delay</span><span class="p">:</span>
+            <span class="n">wait_tr</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">tr_delay</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_tr</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">echo_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">rf_center</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">dwell</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center_sample</span> <span class="o">=</span> <span class="n">n_pre</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_kx</span> <span class="o">=</span> <span class="n">delta_kx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readout_duration</span> <span class="o">=</span> <span class="n">readout_duration</span>
+        <span class="c1"># What the corkscrew reached, which is the requested amplitude only</span>
+        <span class="c1"># where the slew rate left room for it.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wave_amplitude</span> <span class="o">=</span> <span class="n">wave_peak</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_area</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"trap"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">area</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">waveform</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">tt</span><span class="p">)))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reshape_readout</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">bridged_start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">bridged_end</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Drop whichever ramp a bridged spoiler has already provided."""</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="n">gx</span><span class="o">.</span><span class="n">amplitude</span>
+    <span class="n">spans</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mf">0.0</span> <span class="k">if</span> <span class="n">bridged_start</span> <span class="k">else</span> <span class="n">gx</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span>
+        <span class="n">gx</span><span class="o">.</span><span class="n">flat_time</span><span class="p">,</span>
+        <span class="mf">0.0</span> <span class="k">if</span> <span class="n">bridged_end</span> <span class="k">else</span> <span class="n">gx</span><span class="o">.</span><span class="n">fall_time</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">amplitudes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">amplitude</span> <span class="k">if</span> <span class="n">bridged_start</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">amplitude</span><span class="p">,</span>
+        <span class="n">amplitude</span><span class="p">,</span>
+        <span class="n">amplitude</span> <span class="k">if</span> <span class="n">bridged_end</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">*</span><span class="n">spans</span><span class="p">])</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span> <span class="k">if</span> <span class="n">span</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+        <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)[</span><span class="n">keep</span><span class="p">],</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="LineReadout2D">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.LineReadout2D.html#pypulseqpp.sequences.LineReadout2D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LineReadout2D</span><span class="p">(</span><span class="n">_LineReadout</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One Cartesian line, frequency-encoded along x and phase-encoded along y.</span>
+
+<span class="sd">    ``fov`` and ``matrix`` take two values here, readout first. See</span>
+<span class="sd">    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the timing, spoiling and echo-train arguments.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp.sequences as design</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts()</span>
+<span class="sd">    &gt;&gt;&gt; excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)</span>
+<span class="sd">    &gt;&gt;&gt; readout = design.LineReadout2D(</span>
+<span class="sd">    ...     system, excitation.rf, excitation.gz, excitation.gz_reph,</span>
+<span class="sd">    ...     fov=0.22, matrix=128,</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; int(readout.adc.num_samples)</span>
+<span class="sd">    128</span>
+
+<span class="sd">    &gt;&gt;&gt; readout.blocks[1] == (readout.gx_pre, readout.gy_pre, readout.gz_reph)</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+
+    <span class="n">_ndim</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+
+<div class="viewcode-block" id="LineReadout3D">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.LineReadout3D.html#pypulseqpp.sequences.LineReadout3D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LineReadout3D</span><span class="p">(</span><span class="n">_LineReadout</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One Cartesian line of a 3D slab, phase-encoded along y and z.</span>
+
+<span class="sd">    ``fov`` and ``matrix`` take three values, readout first. See</span>
+<span class="sd">    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the shared arguments.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp.sequences as design</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts()</span>
+<span class="sd">    &gt;&gt;&gt; slab = design.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)</span>
+<span class="sd">    &gt;&gt;&gt; readout = design.LineReadout3D(</span>
+<span class="sd">    ...     system, slab.rf, slab.gz,</span>
+<span class="sd">    ...     fov=(0.22, 0.22, 0.12), matrix=(128, 128, 64),</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; readout.gy_pre.channel, readout.gz_pre.channel</span>
+<span class="sd">    ('y', 'z')</span>
+<span class="sd">    """</span>
+
+    <span class="n">_ndim</span> <span class="o">=</span> <span class="mi">3</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
