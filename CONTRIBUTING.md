@@ -59,5 +59,28 @@ remain scaffolds; API pages live in `docs/api/`.
 
 ## Releasing
 
-Versions come from git tags via `setuptools_scm`. Push a tag matching
-`v[0-9]+.[0-9]+.[0-9]+` and the release workflow builds, signs and publishes it.
+The two packages are released from tags of their own, and PyPI trusts the
+workflow the tag starts rather than an API token.
+
+`pypulseqpp` versions come from git tags via `setuptools_scm`. Push a tag
+matching `v[0-9]+.[0-9]+.[0-9]+` and `tags-release.yml` builds the wheels and
+the source distribution, publishes them to PyPI and signs a GitHub release.
+
+`pypulseqpp-seqeyes` carries the version of the SeqEyes release its submodule
+is pinned to, written in `viewer/pyproject.toml`. Push `viewer-v<that version>`
+and `viewer-release.yml` publishes it. Release it before a `pypulseqpp` version
+that raises the `plot` extra's floor, so the requirement resolves.
+
+Trusted publishing matches the workflow the *publishing job* is written in, not
+the reusable workflow it calls for the build. On PyPI, `pypulseqpp` trusts
+`tags-release.yml` in the `pypi` environment and `pypulseqpp-seqeyes` trusts
+`viewer-release.yml` in `pypi-viewer`.
+
+## Documentation site
+
+`docs.yml` publishes the built documentation to the `gh-pages` branch, which
+GitHub Pages serves from its root. The site holds one directory per version:
+main publishes `latest`, a release tag publishes `vX.Y.Z`, and the root
+redirects to `latest`. Each run replaces only its own directory, so earlier
+releases keep the pages they were published with. `docs/conf.py` reads the
+directory name from `PYPULSEQPP_DOCS_VERSION` to stamp the canonical URL.

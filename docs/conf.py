@@ -49,6 +49,9 @@ PAGES_URL = "https://pulserver.github.io/pypulseqpp"
 html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": "https://github.com/pulserver/pypulseqpp",
+    # Where the pages live in the repository: the edit button links to the
+    # source file under it, and defaults to the repository root without this.
+    "path_to_docs": "docs",
     "use_repository_button": True,
     "use_issues_button": True,
     "use_edit_page_button": True,

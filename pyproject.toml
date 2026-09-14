@@ -66,6 +66,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/pulserver/pypulseqpp"
+Documentation = "https://pulserver.github.io/pypulseqpp/latest/"
 Issues = "https://github.com/pulserver/pypulseqpp/issues"
 Source = "https://github.com/pulserver/pypulseqpp"
 
