@@ -69,6 +69,7 @@ jobs:
       - name: Build
         env:
           PYPULSEQPP_DOCS_VERSION: ${{ steps.version.outputs.canonical }}
+          PYPULSEQPP_DOCS_RELEASE: ${{ steps.version.outputs.dir }}
         run: bash scripts/build_docs.sh
 
       - name: Check that the site is only the site
@@ -96,32 +97,10 @@ jobs:
             git -C "$site" remote add origin "$remote"
           fi
 
-          # Only this version's directory is replaced; the others stay as the
-          # release that built them left them.
-          rm -rf "${site:?}/$DIR"
-          cp -r docs/build/html "$site/$DIR"
-
-          # `stable` is the newest release, so a patch tagged after a later
-          # release archives itself without taking `stable` backwards.
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            newest=$(ls "$site" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
-            if [ "$newest" = "$DIR" ]; then
-              rm -rf "$site/stable"
-              cp -r "$site/$DIR" "$site/stable"
-            else
-              echo "$newest is newer than $DIR; leaving stable alone."
-            fi
-          fi
-
-          # The root goes to the current release, or to main's pages until
-          # there is one.
-          target=latest
-          [ -d "$site/stable" ] && target=stable
-          printf '<!doctype html>\n<meta http-equiv="refresh" content="0; url=%s/">\n' \
-            "$target" > "$site/index.html"
-          # Pages runs the branch through Jekyll unless told not to, and Jekyll
-          # drops the _static and _sources directories Sphinx writes.
-          touch "$site/.nojekyll"
+          # Only this version's directory is replaced; a release refreshes
+          # stable only when it is the newest, and the root and the switcher's
+          # list are rewritten from what the site then holds.
+          python scripts/publish_docs.py docs/build/html "$DIR" "$site"
 
           git -C "$site" add -A
           git -C "$site" -c user.name='github-actions[bot]' \
