@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import functools as _functools
 import inspect as _inspect
-from importlib.metadata import PackageNotFoundError
+from importlib.metadata import PackageNotFoundError as _PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 
 import pypulseq as _pypulseq
@@ -72,7 +72,7 @@ from ._transform_fov import TransformFOV as _TransformFOV
 
 try:
     __version__ = _distribution_version(__name__)
-except PackageNotFoundError:  # a source tree that was never installed
+except _PackageNotFoundError:  # a source tree that was never installed
     __version__ = "0.0.0.dev0"
 
 #: Upstream names that are not re-exported: the shape codec and the unit
@@ -90,12 +90,20 @@ _UNWRAPPED = {"SigpyPulseOpts"}
 #: a rounding fix, neither of which describes a sequence;
 #: ``make_sigpy_pulse`` is upstream's spelling of :func:`make_slr_pulse` and
 #: ``SigpyPulseOpts`` its argument bundle, which has nothing here to
-#: configure.
-_UNADVERTISED = {"SigpyPulseOpts", "eps", "make_sigpy_pulse", "round_half_up"}
+#: configure; ``calc_SAR`` is upstream's placeholder that raises a
+#: deprecation error.
+_UNADVERTISED = {
+    "SigpyPulseOpts",
+    "calc_SAR",
+    "eps",
+    "make_sigpy_pulse",
+    "round_half_up",
+}
 
 #: Upstream names that are modules rather than vocabulary: ``np``, ``math``,
 #: ``importlib``, and the submodules upstream's own ``__init__`` happens to
-#: touch. Filled in by the loop below, and kept out of ``__all__``.
+#: touch. Filled in by the loop below, and kept out of ``__all__`` unless the
+#: name is rebound here to a function, as ``check_timing`` is.
 _UPSTREAM_MODULES: set[str] = set()
 
 for _name in dir(_pypulseq):
@@ -237,7 +245,7 @@ __all__ = sorted(
         for name in globals()
         if not name.startswith("_")
         and name != "annotations"
-        and name not in _UPSTREAM_MODULES
+        and not (name in _UPSTREAM_MODULES and _inspect.ismodule(globals()[name]))
         and name not in _UNADVERTISED
     }
     | {"__version__"}

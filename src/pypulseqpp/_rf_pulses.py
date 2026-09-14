@@ -922,6 +922,8 @@ def make_recursive_slr_pulses(
     slice profile also holds across segments (SigPy's ``dz_recursive_rf``).
     The pulses are large-tip designs, played at their designed amplitude.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     n_segments : int
@@ -942,8 +944,6 @@ def make_recursive_slr_pulses(
     return_gz : bool, optional
         Return each pulse with its selection gradient and rephaser, as
         :func:`make_slr_pulse` does.
-
-    Other parameters are as in :func:`make_slr_pulse`.
 
     Returns
     -------

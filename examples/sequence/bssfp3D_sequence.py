@@ -15,11 +15,10 @@ class Bssfp3DApp(sequences.SequenceApp):
     """Balanced SSFP, 3D Cartesian: a hard pulse and a balanced line readout per TR.
 
     Every repetition returns all three gradient moments to zero, and the RF
-    and ADC phases alternate by π. A first repetition played at half the flip
-    prepares the steady state, and ``n_dummy`` unacquired repetitions follow
-    before the calibration pairs lead the scan. Every repetition, the first
-    included, plays the same blocks, so the scan is periodic from its first
-    block.
+    and ADC phases alternate by π. ``n_dummy`` unacquired repetitions let the
+    magnetisation approach its steady state before the calibration pairs lead
+    the scan. Every repetition plays the same blocks, so the scan is periodic
+    from its first block.
 
     Examples
     --------
@@ -100,7 +99,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         n_acs_z : int, optional
             Calibration extent along z, in partitions.
         n_dummy : int, optional
-            Unacquired repetitions after the half-flip repetition.
+            Unacquired repetitions ahead of the first acquisition.
         n_gain_calibration_readouts : int, optional
             Written as the ``NumGainCalibrationReadouts`` definition.
         """
@@ -124,7 +123,6 @@ class Bssfp3DApp(sequences.SequenceApp):
             spoiling_cycles=0.0,
         )
         self.repetition_time = self.ro.duration
-        self.nominal = self.exc.rf.amplitude
 
         self.pairs, self.n_calibration = calc_sampled_pairs(
             (n_y, n_z),
@@ -135,29 +133,20 @@ class Bssfp3DApp(sequences.SequenceApp):
             elliptical=elliptical,
             order="calibration_first",
         )
-        self.duration = (1 + n_dummy + len(self.pairs)) * self.repetition_time
+        self.duration = (n_dummy + len(self.pairs)) * self.repetition_time
 
     def loop(self) -> None:
-        """Play the half-flip repetition, the dummies, then every pair."""
-        views = [None] * (1 + self.n_dummy) + list(self.pairs)
+        """Play the dummies, then every pair, alternating the phase."""
+        views = [None] * self.n_dummy + list(self.pairs)
         for k, view in enumerate(views):
-            calibrating = k - 1 - self.n_dummy < self.n_calibration
-            flip_scale = 0.5 if k == 0 else 1.0
-            self.kernel(view, np.pi * (k % 2), calibrating, flip_scale)
+            calibrating = k - self.n_dummy < self.n_calibration
+            self.kernel(view, np.pi * (k % 2), calibrating)
 
     def kernel(
-        self,
-        view: tuple[int, int] | None,
-        phase: float,
-        calibrating: bool = False,
-        flip_scale: float = 1.0,
+        self, view: tuple[int, int] | None, phase: float, calibrating: bool = False
     ) -> None:
-        """One balanced repetition at ``(line, partition)``; ``view=None`` is a dummy.
-
-        ``flip_scale`` scales the pulse's flip for this repetition only.
-        """
+        """One balanced repetition at ``(line, partition)``; ``view=None`` is a dummy."""
         rf, ro, seq = self.exc.rf, self.ro, self.seq
-        rf.amplitude = self.nominal * flip_scale
         n_y, n_z = self.matrix[1:]
         rf.phase_offset = phase
         ro.adc.phase_offset = phase

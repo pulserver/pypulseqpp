@@ -1,4 +1,4 @@
-"""Balanced SSFP 3D: phase cycling, its half-flip repetition and zero moments per TR."""
+"""Balanced SSFP 3D: phase cycling, a detectable repetition and zero moments per TR."""
 
 import numpy as np
 import pytest
@@ -26,19 +26,16 @@ def pulses(seq):
     return rows
 
 
-def test_the_phase_alternates_after_an_opposite_half_flip():
+def test_the_rf_and_adc_phase_alternate_every_repetition_at_one_flip():
     rows = pulses(app().design())
     phases = [float(np.mod(phase, 2 * np.pi)) for phase, _, _ in rows]
 
-    assert phases[0] == pytest.approx(0.0)
-    assert phases[1:] == pytest.approx(
-        [np.pi * ((k + 1) % 2) for k in range(len(rows) - 1)]
-    )
-    assert rows[0][1] == pytest.approx(rows[1][1] / 2, rel=1e-3)
+    assert phases == pytest.approx([np.pi * (k % 2) for k in range(len(rows))])
+    assert [peak for _, peak, _ in rows] == pytest.approx([rows[0][1]] * len(rows))
     assert all(adc == pytest.approx(phase) for phase, _, adc in rows if adc is not None)
 
 
-def test_the_half_flip_leads_the_train_by_one_repetition():
+def test_every_excitation_is_one_repetition_after_the_last():
     sequence = app()
     centres = np.asarray(sequence.design().rf_times()[0])
 

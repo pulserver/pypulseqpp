@@ -1,51 +1,20 @@
-# API Reference
+# API reference
 
-PyPulseq++ exposes the vocabulary used to design a Pulseq sequence from one
-top-level namespace. RF pulse design and gradient waveform design have their
-own pages; sequence construction and reusable modules are grouped
-by the job they perform.
-
-{doc}`sequence`
-: The sequence container, scanner limits, field-of-view transformations, file
-  I/O, timing checks, waveforms, k-space, and reports.
-
-{doc}`events`
-: ADC, delay, trigger, label, rotation, and RF-shim events, together with
-  operations on blocks and events.
-
-{doc}`gradients`
-: Gradient factories and operations, from trapezoids and phase encodes to
-  arbitrary waveforms.
-
-{doc}`rf`
-: RF pulse factories, SLR and multidimensional pulse design, bandwidth
-  calculation, and Bloch simulation.
-
-{doc}`trajectories`
-: Designing radial, spiral and rosette k-space paths and turning them into
-  playable gradients.
-
-{doc}`timing`
-: Quantizing ADC dwell, readout duration, and other times to scanner rasters.
-
-{doc}`modules`
-: Composable excitation, preparation, and readout modules.
-
-{doc}`safety`
-: Sequence-level gradient amplitude, slew-rate, continuity, mechanical-resonance,
-  peripheral nerve stimulation and SAR checks.
-
-{doc}`plotting`
-: The SeqEyes view, the publication diagram, and k-space and RF-profile
-  figures.
-
-{doc}`cli`
-: Running a sequence function from the shell and writing its output for a file
-  or scanner.
+| Page | Contents |
+| --- | --- |
+| {doc}`sequence` | `pypulseqpp`: the sequence container, scanner limits, field-of-view transforms and timing reports |
+| {doc}`events` | `pypulseqpp`: ADC, delay, trigger, label, rotation and RF-shim events, block and event operations, interoperability with PyPulseq |
+| {doc}`gradients` | `pypulseqpp`: gradient factories, from trapezoids and phase encodes to arbitrary and wave-CAIPI waveforms, and operations on them |
+| {doc}`rf` | `pypulseqpp`: RF pulse factories, SLR, slice-encoding, B1-selective, multidimensional and parallel-transmit design, analysis and Bloch simulation |
+| {doc}`trajectories` | `pypulseqpp`: radial, spiral and rosette k-space paths, and the gradients that play them |
+| {doc}`timing` | `pypulseqpp`: legal ADC timing, and times quantized to the scanner's rasters |
+| {doc}`modules` | `pypulseqpp.sequences`: excitation, preparation and readout modules, and the complete sequences built from them |
+| {doc}`safety` | `pypulseqpp.safety`: gradient, mechanical-resonance, nerve-stimulation and SAR checks |
+| {doc}`plotting` | `pypulseqpp.plot`: the SeqEyes view, the publication diagram, and k-space and RF-profile figures |
+| {doc}`cli` | `pypulseqpp.cli`: running a sequence from the shell and writing its file |
 
 ```{toctree}
 :hidden:
-:maxdepth: 1
 
 sequence
 events

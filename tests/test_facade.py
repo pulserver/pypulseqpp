@@ -251,6 +251,13 @@ def test_what_upstream_imported_is_reachable_but_not_vocabulary(name):
     assert name not in pp.__all__
 
 
+@pytest.mark.parametrize("name", ["block_to_events", "check_timing"], ids=str)
+def test_an_upstream_module_name_rebound_to_a_function_is_advertised(name):
+    """Upstream names these as modules; here they are the functions a script calls."""
+    assert callable(getattr(pp, name))
+    assert name in pp.__all__
+
+
 def test_what_is_advertised_is_what_a_sequence_is_written_in():
     for name in pp.__all__:
         assert hasattr(pp, name), name

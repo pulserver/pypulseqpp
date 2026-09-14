@@ -1,26 +1,21 @@
 # Sequence modules
 
+`pypulseqpp.sequences`: modules that solve the timing and gradients of a group
+of blocks once and expose the events for a scan loop, and the complete
+sequences built from them.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
 ```
 
-A {class}`SequenceModule` solves the timing and gradients of a group of blocks
-once, then exposes the resulting events for a sequence's scan loop. Modules
-remain plain Pulseq building blocks: the loop chooses the views, scales the
-encoding events, and adds the blocks.
-
 ## Complete sequences
 
-A {class}`SequenceApp` is a whole sequence. Constructing it designs the events
-and the sampling order from the prescription its `init_sequence` accepts.
-{meth}`~SequenceApp.design` then runs its `loop`, the scan loop, which plays
-one `kernel` call per repetition. Settings that are not prescribed are class
-attributes, so a subclass that overrides one is the same sequence under
-another setting. Each zoo script reached as `sequences.<name>` defines one,
-and its `main` builds and designs it. An application that plays prescans
-ahead of its scan, such as a calibration or a navigator, lists them in
-{meth}`~SequenceApp.prescans`; {meth}`~SequenceApp.write` then writes one file
-per sequence, each naming the next as its `NextSequence`.
+A {class}`SequenceApp` designs its events and sampling order from the
+prescription its `init_sequence` takes; {meth}`~SequenceApp.design` runs its
+scan `loop`, one `kernel` call per repetition. Prescans listed by
+{meth}`~SequenceApp.prescans` are written by {meth}`~SequenceApp.write` as
+files linked through `NextSequence`. Each zoo script reached as
+`sequences.<name>` defines one.
 
 ```{eval-rst}
 .. autosummary::
@@ -31,6 +26,9 @@ per sequence, each naming the next as its `NextSequence`.
 ```
 
 ## Base classes
+
+Modules stay plain Pulseq building blocks: the scan loop chooses the views,
+scales the encoding events and adds the blocks.
 
 ```{eval-rst}
 .. autosummary::
@@ -120,9 +118,9 @@ per sequence, each naming the next as its `NextSequence`.
 
 ## Shared readout contracts
 
-The 2D, stack and projection variants inherit their constructor contracts
-from the implementation classes below. These are reference pages for shared
-parameters and event attributes; instantiate the named variants above.
+The 2D, stack and projection variants inherit their constructor contracts from
+these implementation classes: reference pages for shared parameters and event
+attributes. Instantiate the named variants above.
 
 ```{eval-rst}
 .. autosummary::

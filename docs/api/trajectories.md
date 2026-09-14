@@ -1,13 +1,12 @@
 # Trajectory design
 
+`pypulseqpp`: k-space paths in cycles per metre, and the gradients that play
+them. {func}`traj_to_grad` re-parameterizes a path within the scanner's
+gradient and slew limits and returns the gradient and slew waveforms.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
 ```
-
-The trajectory functions design a k-space path in cycles per metre: a radial
-spoke, a spiral interleave or a rosette. {func}`traj_to_grad` re-parameterizes
-a path within the scanner's gradient and slew limits and returns the gradient
-and slew waveforms that play it.
 
 ```{eval-rst}
 .. autosummary::
