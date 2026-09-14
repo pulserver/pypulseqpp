@@ -1,0 +1,926 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pypulseqpp.sequences._module &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pypulseqpp/sequences/_module';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/_modules/pypulseqpp/sequences/_module.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pypulseqpp documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../index.html">
+                    pypulseqpp
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.Sequence.html">Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.Opts.html">Opts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.default_system.html">default_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.apply_system_derates.html">apply_system_derates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_adc.html">make_adc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_delay.html">make_delay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_digital_output_pulse.html">make_digital_output_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_label.html">make_label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_rf_shim.html">make_rf_shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_rotation.html">make_rotation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_soft_delay.html">make_soft_delay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_trigger.html">make_trigger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.align.html">align</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.block_to_events.html">block_to_events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_duration.html">calc_duration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.rotate.html">rotate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.get_supported_labels.html">get_supported_labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.enable_trace.html">enable_trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.disable_trace.html">disable_trace</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_extended_trapezoid_area.html">make_extended_trapezoid_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_hexagon_gradient_area.html">make_hexagon_gradient_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_phase_blip.html">make_phase_blip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_phase_encoding.html">make_phase_encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_trapezoid.html">make_trapezoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.add_gradients.html">add_gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_ramp.html">calc_ramp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.concatenate_gradients.html">concatenate_gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.points_to_waveform.html">points_to_waveform</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.rotate_3d.html">rotate_3d</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.scale_grad.html">scale_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.split_gradient.html">split_gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.split_gradient_at.html">split_gradient_at</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_adiabatic_pulse.html">make_adiabatic_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_arbitrary_rf.html">make_arbitrary_rf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_block_pulse.html">make_block_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_gauss_pulse.html">make_gauss_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_sinc_pulse.html">make_sinc_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_sms_pulse.html">make_sms_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_spsp_pulse.html">make_spsp_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_2d_selective_pulse.html">make_2d_selective_pulse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_rf_bandwidth.html">calc_rf_bandwidth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_rf_center.html">calc_rf_center</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_rf_power.html">calc_rf_power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sim_bloch.html">sim_bloch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sim_rf.html">sim_rf</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_golden_angles.html">calc_golden_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_tiny_golden_angles.html">calc_tiny_golden_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_raga_angles.html">calc_raga_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_uniform_angles.html">calc_uniform_angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_projection_shell.html">calc_projection_shell</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_uniform_mask.html">make_uniform_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_random_mask.html">make_random_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_poisson_disc_mask.html">make_poisson_disc_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_caipirinha_mask.html">make_caipirinha_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_sampled_lines.html">calc_sampled_lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_calibration_lines.html">calc_calibration_lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_sampled_pairs.html">calc_sampled_pairs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_linear_order.html">make_linear_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_centric_order.html">make_centric_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_radial_order.html">make_radial_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_radial_adaptive_order.html">make_radial_adaptive_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_shuffling_order.html">make_shuffling_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_traversal_order.html">calc_traversal_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_epi_order.html">calc_epi_order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_phase_cycling_schedule.html">make_phase_cycling_schedule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_rf_spoiling_schedule.html">make_rf_spoiling_schedule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.make_traps_schedule.html">make_traps_schedule</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.round_to_raster.html">round_to_raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.ceil_to_raster.html">ceil_to_raster</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SequenceModule.html">SequenceModule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RfModule.html">RfModule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.OffResonanceSaturation.html">OffResonanceSaturation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.NonCartesianReadout.html">NonCartesianReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.NonSelectiveExcitation.html">NonSelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.NonSelectiveRefocusing.html">NonSelectiveRefocusing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.Inversion.html">Inversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpatialSelectiveExcitation.html">SpatialSelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpatialSelectiveRefocusing.html">SpatialSelectiveRefocusing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpatialSelective2DExcitation.html">SpatialSelective2DExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.FrequencySelectiveExcitation.html">FrequencySelectiveExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpspExcitation.html">SpspExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SmsExcitation.html">SmsExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.MultibandExcitation.html">MultibandExcitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.BlochSiegertPreparation.html">BlochSiegertPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.DiffusionPreparation.html">DiffusionPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.FatSaturation.html">FatSaturation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.IhMtPreparation.html">IhMtPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.InversionPreparation.html">InversionPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.MtPreparation.html">MtPreparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.T1T2Preparation.html">T1T2Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.T2Preparation.html">T2Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.LineReadout2D.html">LineReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.LineReadout3D.html">LineReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.EpiReadout2D.html">EpiReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.EpiReadout3D.html">EpiReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.FseReadout2D.html">FseReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.FseReadout3D.html">FseReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.BssfpReadout2D.html">BssfpReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.BssfpReadout3D.html">BssfpReadout3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.PropellerReadout2D.html">PropellerReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.PropellerStackReadout.html">PropellerStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RadialReadout2D.html">RadialReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RadialStackReadout.html">RadialStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RadialProjectionReadout.html">RadialProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpiralReadout2D.html">SpiralReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpiralStackReadout.html">SpiralStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpiralProjectionReadout.html">SpiralProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.SpiralNavigator.html">SpiralNavigator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RosetteReadout2D.html">RosetteReadout2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RosetteStackReadout.html">RosetteStackReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.RosetteProjectionReadout.html">RosetteProjectionReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.ZteReadout.html">ZteReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.line._LineReadout.html">_LineReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.epi._EpiReadout.html">_EpiReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.fse._FseReadout.html">_FseReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.bssfp._BssfpReadout.html">_BssfpReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.propeller._PropellerReadout.html">_PropellerReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.noncartesian._RadialReadout.html">_RadialReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.noncartesian._SpiralReadout.html">_SpiralReadout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.sequences.readout.noncartesian._RosetteReadout.html">_RosetteReadout</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_mech_resonance.html">check_mech_resonance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.read_forbidden_bands.html">read_forbidden_bands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.ForbiddenBand.html">ForbiddenBand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_pns.html">check_pns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.read_safe_model.html">read_safe_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.ChronaxieModel.html">ChronaxieModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.check_sar.html">check_sar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.read_vops.html">read_vops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.example_vops.html">example_vops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.safety.VopModel.html">VopModel</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/plotting.html">Plotting</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.plot.plot.html">plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.plot.paper_plot.html">paper_plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.plot.plot_kspace.html">plot_kspace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.plot.plot_rf.html">plot_rf</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.cli.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/pypulseqpp.cli.write_sequence.html">write_sequence</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/license.html">License</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2F_modules/pypulseqpp/sequences/_module.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pypulseqpp.sequences._module</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The base class every reusable sequence module is built on."""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceModule"</span><span class="p">]</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="c1">#: Analyses forwarded to the module's stored sequence.</span>
+<span class="n">SEQUENCE_VIEWS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"calculate_kspace"</span><span class="p">,</span>
+    <span class="s2">"check_timing"</span><span class="p">,</span>
+    <span class="s2">"paper_plot"</span><span class="p">,</span>
+    <span class="s2">"test_report"</span><span class="p">,</span>
+    <span class="s2">"waveforms_and_times"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unique</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Distinct objects in ``events``, by identity, in first-seen order."""</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">event</span><span class="p">),</span> <span class="n">event</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">seen</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="SequenceModule">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SequenceModule</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A reusable block layout with named, mutable event templates.</span>
+
+<span class="sd">    Subclasses assign self.seq and add blocks in init_module. Played events</span>
+<span class="sd">    are published from constructor locals onto events and the module itself.</span>
+<span class="sd">    Repeated references are deduplicated by identity: one distinct object</span>
+<span class="sd">    becomes a scalar event, several become a list in first-seen order.</span>
+<span class="sd">    Explicit register calls preserve the supplied structure, including</span>
+<span class="sd">    one-element lists.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args, **kwargs</span>
+<span class="sd">        Forwarded to init_module.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    events : types.SimpleNamespace</span>
+<span class="sd">        Published events. Use this namespace when a name conflicts with a</span>
+<span class="sd">        module attribute; publication warns about conflicts.</span>
+<span class="sd">    center : float</span>
+<span class="sd">        Timing reference in seconds from the module start, set by the</span>
+<span class="sd">        subclass: typically an RF centre or an echo.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    blocks retains the original event objects for replay. Mutating those</span>
+<span class="sd">    objects does not rewrite the stored sequence used for analysis.</span>
+<span class="sd">    Only calculate_kspace, check_timing, test_report and waveforms_and_times</span>
+<span class="sd">    are forwarded to seq.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># The constructor forwards its arguments to init_module, so these are</span>
+        <span class="c1"># what help(), inspect.signature and the API pages report.</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_module</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">__signature__</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Signature</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_played</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_named</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mirrored</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_module</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SequenceModule.init_module">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule.init_module">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Build the module: the part a subclass writes.</span>
+
+<span class="sd">        Assign ``self.seq``, add blocks to it, and set :attr:`center` if the</span>
+<span class="sd">        module is timed against something other than its own start. Events are</span>
+<span class="sd">        published automatically; nothing has to be returned.</span>
+<span class="sd">        """</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Construction</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Stored sequence for the module's construction-time block layout.</span>
+
+<span class="sd">        Assigning a Sequence enables block recording. Later event-template</span>
+<span class="sd">        changes affect replay through blocks, not this stored sequence.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seq</span>
+
+    <span class="nd">@seq</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a module's seq must be a pypulseqpp.Sequence, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">_recording_sequence_class</span><span class="p">()</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="n">_module</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seq</span> <span class="o">=</span> <span class="n">sequence</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_init_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Retain all active init_module frames for this instance.</span>
+
+<span class="sd">        Final locals from both subclass and base constructors are needed for</span>
+<span class="sd">        event publication. Release the retained frames during finalisation.</span>
+<span class="sd">        """</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="s2">"__code__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">init</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="s2">"init_module"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">klass</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__mro__</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">}</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_code</span> <span class="ow">in</span> <span class="n">targets</span> <span class="ow">and</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"self"</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_back</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span> <span class="o">=</span> <span class="n">frames</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.init_module never assigned self.seq"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.init_module added no blocks to self.seq"</span><span class="p">)</span>
+
+        <span class="c1"># Innermost frame first, so that where a subclass and its base both</span>
+        <span class="c1"># bind a name, the subclass's meaning is the one published.</span>
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span> <span class="ow">or</span> <span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_publish_locals</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the constructor and its locals are free to go</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> published no events: nothing it added to self.seq was named by a local "</span>
+                <span class="sa">f</span><span class="s2">"variable of </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.init_module. Call self.publish() from wherever the events "</span>
+                <span class="s2">"were built, or name them with self.register(name=event)."</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish_locals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">namespace</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"_"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
+            <span class="n">played</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_played</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">played</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_named</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_event</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">played</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SequenceModule.publish">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule.publish">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">named</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Publish played events from the caller's locals and register keyword aliases.</span>
+
+<span class="sd">        Use in construction helpers whose locals are not captured automatically.</span>
+<span class="sd">        Keyword aliases take precedence over automatic names.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_locals</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">f_locals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="o">**</span><span class="n">named</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequenceModule.register">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule.register">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">events</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Publish named events without requiring prior block registration.</span>
+
+<span class="sd">        Preserve the supplied container structure and override automatic</span>
+<span class="sd">        publication for these names.</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_publish</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_named</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">played</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Publish ``played`` under ``name``, collapsed to one object if it is one."""</span>
+        <span class="n">unique</span> <span class="o">=</span> <span class="n">_unique</span><span class="p">(</span><span class="n">played</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">unique</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">unique</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Mirror an event on the module and events, warning on name conflicts."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn_if_shadowed</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mirrored</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warn_if_shadowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mirrored</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># published before: this is a re-publication, not a clash</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SEQUENCE_VIEWS</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> publishes an event called </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, which is also a "</span>
+                <span class="sa">f</span><span class="s2">"module attribute; reach it as .events.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Reading the result</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Resolve selected sequence analyses and otherwise-unresolved event names."""</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"_"</span><span class="p">):</span>
+            <span class="c1"># Never route dunder or private lookups: copy, pickle and inspect</span>
+            <span class="c1"># probe for those, and answering would answer for the module.</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SEQUENCE_VIEWS</span><span class="p">:</span>
+            <span class="n">sequence</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_seq"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sequence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">events</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"events"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> module has no attribute or event </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">))</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">SEQUENCE_VIEWS</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return block tuples in play order, retaining the original event objects.</span>
+
+<span class="sd">        The list is a copy; event mutations are shared with published templates.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Length of the module (s).</span>
+
+<span class="sd">        Summed from the blocks, unless the module derived its timing</span>
+<span class="sd">        analytically and assigned the answer.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@duration</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Construct lazily to avoid importing Sequence during package initialisation.</span>
+<span class="n">_RECORDING_SEQUENCE</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_recording_sequence_class</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Return a Sequence subclass that records event identities and block tuples."""</span>
+    <span class="k">global</span> <span class="n">_RECORDING_SEQUENCE</span>
+    <span class="k">if</span> <span class="n">_RECORDING_SEQUENCE</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+
+        <span class="k">class</span><span class="w"> </span><span class="nc">_ModuleSequence</span><span class="p">(</span><span class="n">Sequence</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">add_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">events</span><span class="p">):</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module</span>
+                <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">_init_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">module</span><span class="o">.</span><span class="n">_find_init_frame</span><span class="p">()</span>
+                <span class="n">module</span><span class="o">.</span><span class="n">_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+                    <span class="n">module</span><span class="o">.</span><span class="n">_played</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">event</span><span class="p">),</span> <span class="n">event</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">events</span><span class="p">)</span>
+
+        <span class="n">_RECORDING_SEQUENCE</span> <span class="o">=</span> <span class="n">_ModuleSequence</span>
+    <span class="k">return</span> <span class="n">_RECORDING_SEQUENCE</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
