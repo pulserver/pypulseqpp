@@ -6,9 +6,14 @@
 git clone --recurse-submodules https://github.com/pulserver/pypulseqpp.git
 cd pypulseqpp
 python -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -e '.[dev]' -r tests/requirements.txt
 pre-commit install
 ```
+
+`tests/requirements.txt` holds the reference toolbox the file-format tests are
+checked against. It is named by URL rather than published to PyPI, and a
+distribution whose metadata carries a direct reference cannot be uploaded, so
+it cannot live in an extra. The tests that need it skip without it.
 
 ## Before you open a pull request
 
