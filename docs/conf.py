@@ -79,6 +79,12 @@ def setup(_app):
 DOCS_VERSION = os.environ.get("PYPULSEQPP_DOCS_VERSION", "latest")
 PAGES_URL = "https://pulserver.github.io/pypulseqpp"
 
+#: Which published version this build is: ``latest`` for main, the tag for a
+#: release. The switcher marks it and warns on a page older than the newest
+#: release; ``DOCS_VERSION`` is the canonical name instead, ``stable`` for a
+#: release, which is what the page links point at.
+DOCS_RELEASE = os.environ.get("PYPULSEQPP_DOCS_RELEASE", "latest")
+
 html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": "https://github.com/pulserver/pypulseqpp",
@@ -89,6 +95,28 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "home_page_in_toc": True,
+    # The list every published version is in, written beside the versions by
+    # scripts/publish_docs.py. The page fetches it when it loads, so a build
+    # served from anywhere else leaves the switcher out. The theme's check of
+    # the list at build time is off: the list exists only once a version has
+    # been published.
+    "switcher": {
+        "json_url": f"{PAGES_URL}/versions.json",
+        "version_match": DOCS_RELEASE,
+    },
+    "check_switcher": False,
+    "show_version_warning_banner": True,
+}
+
+#: The theme's own sidebar, with the version switcher under the title.
+html_sidebars = {
+    "**": [
+        "navbar-logo.html",
+        "icon-links.html",
+        "version-switcher.html",
+        "search-button-field.html",
+        "sbt-sidebar-nav.html",
+    ]
 }
 html_baseurl = f"{PAGES_URL}/{DOCS_VERSION}/"
 html_title = "pypulseqpp documentation"
