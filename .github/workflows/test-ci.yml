@@ -48,6 +48,46 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: pulserver/pypulseqpp
 
+  plot:
+    # The one test that needs SeqEyes installed. The viewer's own workflow
+    # builds a wheel to run it, but that workflow is filtered to `viewer/**`
+    # and so never runs on a change to the code the test is about; this job
+    # installs the published viewer instead, which is what a user gets from
+    # `pip install 'pypulseqpp[plot]'`.
+    name: plot
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
+          fetch-depth: 0 # setuptools_scm reads the tags
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # PySide6's Qt draws with the system's display libraries, which every
+      # desktop has and the runner image does not all of. These are what
+      # drawing offscreen needs; viewer/README.md lists them too.
+      - name: System libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libx11-6 libdbus-1-3 \
+            libfontconfig1 libfreetype6 libglib2.0-0 libxkbcommon0
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install '.[dev,plot]' -r tests/requirements.txt
+
+      # -ra so a skip is visible: the test this job exists for skips itself
+      # when SeqEyes is missing, which would otherwise read as a pass.
+      - name: Test
+        run: python -m pytest tests/test_plot.py -ra
+
   sanitize:
     name: sanitizers
     runs-on: ubuntu-latest
