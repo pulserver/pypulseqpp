@@ -1,5 +1,7 @@
 """The 2D and 3D EPI zoo entries: linked prescans, encoding labels and prescription."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -88,7 +90,7 @@ def test_the_chain_is_written_in_play_order_each_file_naming_the_next(
     app = app()
     paths = app.write(tmp_path / "scan.seq")
 
-    assert [p.rsplit("/", 1)[-1] for p in paths] == [name for name, _ in files]
+    assert [Path(p).name for p in paths] == [name for name, _ in files]
     for i, path in enumerate(paths):
         seq = pp.Sequence(system=app.system)
         seq.read(path)

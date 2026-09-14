@@ -3,6 +3,7 @@
 import subprocess
 import sys
 from itertools import pairwise
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -416,7 +417,7 @@ def test_a_prescan_is_written_first_and_names_the_main_sequence_next(tmp_path):
     first.read(paths[0])
     main.read(paths[1])
 
-    assert [p.rsplit("/", 1)[-1] for p in paths] == ["scan.seq", "scan_main.seq"]
+    assert [Path(p).name for p in paths] == ["scan.seq", "scan_main.seq"]
     assert first.definitions["NextSequence"] == "scan_main.seq"
     assert "NextSequence" not in main.definitions
     assert len(first.block_events) < len(main.block_events)
