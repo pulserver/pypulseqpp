@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
+import logging
 import os
-import urllib.error
-import urllib.request
 
 project = "pypulseqpp"
 copyright = "2026, pypulseqpp contributors"  # noqa: A001
@@ -39,40 +38,43 @@ napoleon_use_admonition_for_references = True
 pygments_style = "sphinx"
 highlight_language = "python"
 
-intersphinx_timeout = 5
+intersphinx_timeout = 10
 
-_INTERSPHINX = {
+intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
 }
 
 
-def _has_inventory(base: str) -> bool:
-    """Whether this project's object inventory can be fetched right now.
+class _InventoryOutageFilter(logging.Filter):
+    """Drop the warning intersphinx logs when it cannot fetch an inventory.
 
-    Sphinx reports an inventory it cannot reach as a warning carrying no type,
-    which `suppress_warnings` therefore cannot name and which the build's `-W`
-    turns into a failure. Leaving such a project out of the mapping costs the
-    cross-references into it, which render as their own text, and keeps an
-    outage elsewhere from failing this build.
+    The message carries no warning type, so `suppress_warnings` has no name to
+    match it by, and the build runs under `-W`: an outage at somebody else's
+    documentation host would fail this build. Cross-references into a project
+    whose inventory is missing render as their own text instead.
+
+    Deciding reachability here rather than in the mapping matters: a check of
+    our own is a second fetch with its own headers and timeout, and a project
+    it judges unreachable but intersphinx could have read loses every link
+    into it silently.
     """
-    url = base.rstrip("/") + "/objects.inv"
-    try:
-        # The body is never read: this asks whether the inventory is served,
-        # and intersphinx fetches it in full when it is.
-        with urllib.request.urlopen(url, timeout=intersphinx_timeout):
-            return True
-    except (urllib.error.URLError, OSError, ValueError):
-        return False
+
+    _MESSAGE = "failed to reach any of the inventories"
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return self._MESSAGE not in record.getMessage()
 
 
-intersphinx_mapping = {}
-for _project, _entry in _INTERSPHINX.items():
-    if _has_inventory(_entry[0]):
-        intersphinx_mapping[_project] = _entry
-    else:
-        print(f"conf.py: {_entry[0]} is unreachable; building without its links")
+def setup(_app):
+    """Install the filter ahead of Sphinx's own, which count the warning."""
+    handlers = logging.getLogger("sphinx").handlers
+    if not handlers:
+        print("conf.py: no Sphinx log handler; an inventory outage will fail the build")
+    for handler in handlers:
+        handler.filters.insert(0, _InventoryOutageFilter())
+
 
 DOCS_VERSION = os.environ.get("PYPULSEQPP_DOCS_VERSION", "latest")
 PAGES_URL = "https://pulserver.github.io/pypulseqpp"
