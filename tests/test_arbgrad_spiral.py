@@ -6,8 +6,9 @@ import numpy as np
 import pypulseq as pp
 import pytest
 
-from pypulseqpp import Sequence, calc_golden_angles, make_rotation
+from pypulseqpp import Sequence, make_rotation
 from pypulseqpp import _arbgrad as arbgrad
+from pypulseqpp._angles import calc_golden_angles
 
 try:
     from scipy.spatial.transform import Rotation

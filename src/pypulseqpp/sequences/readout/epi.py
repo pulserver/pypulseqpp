@@ -10,6 +10,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._epi import calc_epi_order
 from .._module import SequenceModule
 from ._common import (
     as_tuple,
@@ -111,15 +112,15 @@ class _EpiReadout(SequenceModule):
     order : array_like, optional
         ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
         row per line. Supplying one silences the generator arguments below; the
-        default asks :func:`~pypulseqpp.calc_epi_order` for a train.
+        default asks ``calc_epi_order`` for a train.
     etl : int, optional
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
     scheme : {'linear', 'caipi', 'zigzag'}, optional
         Which built-in ordering to generate. See
-        :func:`~pypulseqpp.calc_epi_order`.
+        ``calc_epi_order``.
     acceleration, segments, partition_acceleration, caipi_shift, extent
-        Passed to :func:`~pypulseqpp.calc_epi_order`.
+        Passed to ``calc_epi_order``.
     te : float, optional
         Excitation isodelay to the **first** echo (s). ``None`` is as short as
         possible; every other echo follows at ``esp`` intervals, and
@@ -206,7 +207,7 @@ class _EpiReadout(SequenceModule):
         if order is None:
             if etl is None:
                 etl = -(-int(n[1]) // (int(acceleration) * int(segments)))
-            order = pp.calc_epi_order(
+            order = calc_epi_order(
                 etl,
                 scheme=scheme,
                 acceleration=acceleration,

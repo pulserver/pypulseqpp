@@ -36,6 +36,8 @@ def make_ptx_pulse(
     is one channel's duration, so an interpreter unaware of the layout still
     reads the right pulse length.
 
+    Parameters not listed below are as in :func:`make_arbitrary_rf`.
+
     Parameters
     ----------
     signal : array_like
@@ -47,8 +49,6 @@ def make_ptx_pulse(
     center : float, optional
         Centre of the pulse from its start, in s. Defaults to the centre of
         the peak of the channel-summed magnitude.
-
-    Other parameters are as in :func:`make_arbitrary_rf`.
 
     Returns
     -------

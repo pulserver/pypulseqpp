@@ -11,6 +11,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._angles import calc_golden_angles, calc_uniform_angles
 from .epi import _EpiReadout
 
 _SCHEMES = ("uniform", "golden")
@@ -110,9 +111,9 @@ class _PropellerReadout(_EpiReadout):
             if n_blades < 1:
                 raise ValueError("n_blades must be positive")
             blade_angles = (
-                np.asarray(pp.calc_uniform_angles(n_blades, span=np.pi))
+                np.asarray(calc_uniform_angles(n_blades, span=np.pi))
                 if scheme == "uniform"
-                else np.asarray(pp.calc_golden_angles(n_blades))
+                else np.asarray(calc_golden_angles(n_blades))
             )
         else:
             if n_blades is not None:

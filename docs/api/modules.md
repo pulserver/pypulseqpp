@@ -1,15 +1,34 @@
 # Sequence modules
 
+`pypulseqpp.sequences`: modules that solve the timing and gradients of a group
+of blocks once and expose the events for a scan loop, and the complete
+sequences built from them.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
 ```
 
-A {class}`SequenceModule` solves the timing and gradients of a group of blocks
-once, then exposes the resulting events for a sequence's scan loop. Modules
-remain plain Pulseq building blocks: the loop chooses the views, scales the
-encoding events, and adds the blocks.
+## Complete sequences
+
+A {class}`SequenceApp` designs its events and sampling order from the
+prescription its `init_sequence` takes; {meth}`~SequenceApp.design` runs its
+scan `loop`, one `kernel` call per repetition. Prescans listed by
+{meth}`~SequenceApp.prescans` are written by {meth}`~SequenceApp.write` as
+files linked through `NextSequence`. Each zoo script reached as
+`sequences.<name>` defines one.
+
+```{eval-rst}
+.. autosummary::
+   :toctree: ../generated
+   :nosignatures:
+
+   SequenceApp
+```
 
 ## Base classes
+
+Modules stay plain Pulseq building blocks: the scan loop chooses the views,
+scales the encoding events and adds the blocks.
 
 ```{eval-rst}
 .. autosummary::
@@ -99,9 +118,9 @@ encoding events, and adds the blocks.
 
 ## Shared readout contracts
 
-The 2D, stack and projection variants inherit their constructor contracts
-from the implementation classes below. These are reference pages for shared
-parameters and event attributes; instantiate the named variants above.
+The 2D, stack and projection variants inherit their constructor contracts from
+these implementation classes: reference pages for shared parameters and event
+attributes. Instantiate the named variants above.
 
 ```{eval-rst}
 .. autosummary::

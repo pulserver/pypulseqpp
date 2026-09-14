@@ -83,26 +83,26 @@ def calc_epi_order(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> pp.calc_epi_order(4, acceleration=2)[:, 0]
+    >>> calc_epi_order(4, acceleration=2)[:, 0]
     array([0, 2, 4, 6])
 
     Segmenting widens the blip without moving the lattice, so two shots of
     three cover what one shot of six did:
 
-    >>> pp.calc_epi_order(3, acceleration=2, segments=2)[:, 0]
+    >>> calc_epi_order(3, acceleration=2, segments=2)[:, 0]
     array([0, 4, 8])
 
     A CAIPI shell climbs the partitions and wraps, which is what makes the
     partition blips take only two values:
 
-    >>> order = pp.calc_epi_order(6, scheme="caipi", partition_acceleration=3)
+    >>> order = calc_epi_order(6, scheme="caipi", partition_acceleration=3)
     >>> order[:, 1]
     array([0, 1, 2, 0, 1, 2])
 
     A zigzag turns inside its segment, and the return pass is offset by half a
     blip so it samples between the outward one:
 
-    >>> pp.calc_epi_order(9, scheme="zigzag", acceleration=4, extent=12)[:, 0]
+    >>> calc_epi_order(9, scheme="zigzag", acceleration=4, extent=12)[:, 0]
     array([ 0,  4,  8, 12, 10,  6,  2,  0,  4])
 
     See Also

@@ -115,7 +115,10 @@ class SpspExcitation(RfModule):
     """Spectral-spatial excitation using SLR subpulses on an alternating gradient.
 
     The spectral time-bandwidth product and bandwidth set total duration.
-    Subpulse count controls spectral repetition spacing.
+    Subpulse count controls spectral repetition spacing. The subpulses play
+    under alternating gradient lobes, so a slice offset is a phase that
+    follows the gradient's area rather than a frequency: move the slice with
+    :meth:`shift`.
 
     Parameters
     ----------
@@ -213,6 +216,22 @@ class SpspExcitation(RfModule):
         if gz_reph is not None:
             gz_reph.channel = axis
 
+        # The selection gradient's area at each RF sample, from the pulse's
+        # centre, taken before a slab's rephaser is merged into the lobes.
+        samples = rf.delay + np.asarray(rf.t)
+        corners = gz.delay + np.asarray(gz.tt)
+        grid = np.union1d(corners, samples)
+        amplitude = np.interp(
+            grid, corners, np.asarray(gz.waveform), left=0.0, right=0.0
+        )
+        area = np.concatenate(
+            [[0.0], np.cumsum(np.diff(grid) * (amplitude[1:] + amplitude[:-1]) / 2)]
+        )
+        self._area = np.interp(samples, grid, area) - np.interp(
+            rf.delay + rf.center, grid, area
+        )
+        self._signal = np.array(rf.signal, dtype=complex)
+
         rephase = rephase and gz_reph is not None
 
         self.seq = pp.Sequence(system)
@@ -231,3 +250,16 @@ class SpspExcitation(RfModule):
         self.center = rf_reference(rf)
         self.spectral_bandwidth_hz = spectral_bandwidth_hz
         self.n_subpulses = n_subpulses
+
+    def shift(self, position: float, phase: float = 0.0):
+        """Move the selected slice to ``position`` (m) and return the pulse.
+
+        The designed waveform is modulated by ``2π position (K(t) - K(t_c))``,
+        with ``K`` the selection gradient's area since the pulse began and
+        ``t_c`` its centre, and ``phase`` becomes the phase at the centre.
+        Under a constant gradient this is ``freq_offset = G position`` with the
+        centre's phase compensated. The module's ``rf`` is changed in place.
+        """
+        self.rf.signal = self._signal * np.exp(2j * np.pi * position * self._area)
+        self.rf.phase_offset = phase
+        return self.rf

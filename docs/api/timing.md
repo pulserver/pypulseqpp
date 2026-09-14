@@ -1,12 +1,11 @@
 # Timing utilities
 
+`pypulseqpp`: legal ADC timing, and times quantized to the scanner's rasters.
+Pulseq events land on the RF, gradient, ADC or block raster.
+
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
 ```
-
-Pulseq events must land on the scanner's RF, gradient, ADC, or block raster.
-These helpers choose legal ADC sampling and readout timing or quantize a time
-to the requested raster.
 
 ```{eval-rst}
 .. autosummary::

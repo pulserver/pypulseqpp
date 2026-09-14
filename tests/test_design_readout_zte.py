@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp._angles import calc_projection_shell
 
 FOV = 0.24
 MATRIX = 96
@@ -333,14 +334,14 @@ def test_the_shots_put_even_azimuth_on_every_polar_ring(system, hard):
 
 
 def test_a_supplied_ordering_is_used_as_it_stands(system, hard):
-    directions, _ = pp.calc_projection_shell(20, scheme="meridian")
+    directions, _ = calc_projection_shell(20, scheme="meridian")
     zte = readout(system, hard, n_views=None, directions=directions)
     assert zte.directions == pytest.approx(directions)
     assert not hasattr(zte.events, "shot_rotations")
 
 
 def test_a_supplied_ordering_silences_the_generator_arguments(system, hard):
-    directions, _ = pp.calc_projection_shell(20, scheme="meridian")
+    directions, _ = calc_projection_shell(20, scheme="meridian")
     zte = readout(system, hard, n_views=7, n_shots=5, directions=directions)
     assert zte.directions == pytest.approx(directions)
     assert not hasattr(zte.events, "shot_rotations")

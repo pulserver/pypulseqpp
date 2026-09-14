@@ -14,8 +14,13 @@ method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
 repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
-waveform and k-space analysis, FOV transforms, RF/gradient design, sampling,
-and reusable sequence modules. Tiling is deferred.
+waveform and k-space analysis, FOV transforms, RF/gradient design and
+reusable sequence modules. Tiling is deferred.
+
+Sampling, view-ordering, angle and schedule helpers live in private modules
+(`_masks`, `_sampling`, `_ordering`, `_epi`, `_angles`, `_schedules`) and are
+withheld from the public namespace until the sequence zoo settles which of them
+it needs. Code that uses one imports it from its private module.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
@@ -174,8 +179,17 @@ individual range and state contracts.
 
 ## Examples and tests
 
-Example modules are callable through their `main` functions. The CLI derives
-flags from signatures and help text from NumPy-style Parameters sections.
+Each example module defines one `SequenceApp` subclass and exposes
+`main = <App>.main`, which builds and designs it; the module is callable as
+that `main`. `init_sequence` designs, `loop` plays the scan by calling
+`kernel` once per repetition, and `design()` wraps `loop` with a fresh
+sequence and `finalize`. Prescans listed by `prescans()` are written
+by `write()` as separate files linked through `NextSequence`, so each file
+stays one repeating unit. Settings a user does not prescribe are class
+attributes a subclass overrides; `MAX_GRAD` and `MAX_SLEW` have no default.
+Module-level helpers may stay in the script, but nothing may be imported from
+`examples/`. The CLI derives flags from `main`'s signature, which is
+`init_sequence`'s, and help text from its NumPy-style Parameters section.
 
 Editable package mappings can expose repository files that are not shipped.
 Before importing modules discovered by walking a package path, check their

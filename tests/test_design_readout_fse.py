@@ -7,6 +7,7 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp._schedules import make_traps_schedule
 
 FOV = (0.22, 0.22, 0.16)
 MATRIX = (128, 128, 64)
@@ -450,7 +451,7 @@ def test_a_scan_loop_reproduces_the_timing_the_module_reports(system, slab, hard
 def test_a_scan_loop_can_vary_the_refocusing_flip(system, slice_, selective):
     fse = readout2d(system, slice_, selective)
     nominal = fse.rf_ref.amplitude
-    schedule = pp.make_traps_schedule(fse.etl, np.deg2rad(120.0), variable=True)
+    schedule = make_traps_schedule(fse.etl, np.deg2rad(120.0), variable=True)
     try:
         seq = pp.Sequence(system)
         for flip in schedule:
@@ -550,3 +551,22 @@ def test_a_train_with_no_phase_encode_keeps_its_echo_spacing(system, slice_, sel
         seq.add_block(fse.gx_bridge_post)
     assert seq.duration()[0] == pytest.approx(fse.duration, abs=1e-12)
     assert seq.check_timing()[0]
+
+
+def test_a_train_whose_encode_window_is_the_shortest_encode_still_builds():
+    """A short readout solves the encode window to the encode's own minimum."""
+    system = pp.Opts()
+    slab = design.SpatialSelectiveExcitation(system, 90.0, 0.128, is_slab=True)
+    refocusing = design.SpatialSelectiveRefocusing(system, 0.128)
+    fse = design.FseReadout3D(
+        system,
+        slab.rf,
+        slab.gz,
+        rf_ref=refocusing.rf_ref,
+        gz_ref=refocusing.gz,
+        fov=(0.22, 0.22, 0.128),
+        matrix=(32, 16, 8),
+        etl=4,
+    )
+
+    assert fse.seq.check_timing()[0]

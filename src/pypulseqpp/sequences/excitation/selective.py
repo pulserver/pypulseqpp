@@ -55,6 +55,9 @@ class SpatialSelectiveExcitation(RfModule):
         The selection gradient; under ``is_slab`` the rephaser is part of it.
     gz_reph : TrapEvent
         The rephaser. Only when not ``is_slab`` and ``rephase``.
+    selection_amplitude : float
+        Plateau amplitude of the selection lobe (Hz/m), which a slice offset
+        is converted against: ``freq_offset = selection_amplitude * position``.
 
     Raises
     ------
@@ -120,6 +123,7 @@ class SpatialSelectiveExcitation(RfModule):
         # product, so it is what a reconstruction should be told. Taken before
         # a slab's rephaser is concatenated onto the lobe.
         self.slice_thickness = float(pp.calc_rf_bandwidth(rf) / abs(gz.amplitude))
+        self.selection_amplitude = float(gz.amplitude)
 
         self.seq = pp.Sequence(system)
 
@@ -177,6 +181,9 @@ class SpatialSelectiveRefocusing(RfModule):
         The refocusing pulse, delayed onto the plateau between the crushers.
     gz : GradEvent
         Crusher, selection plateau and crusher, as one gradient.
+    selection_amplitude : float
+        Plateau amplitude of the selection lobe (Hz/m), which a slice offset
+        is converted against; ``gz.amplitude`` is the crushers' peak.
 
     Raises
     ------
@@ -234,6 +241,7 @@ class SpatialSelectiveRefocusing(RfModule):
             system=system,
         )
         gz.channel = axis
+        self.selection_amplitude = float(gz.amplitude)
 
         if spoiling_cycles:
             # Each crusher is solved to arrive at, or leave from, the plateau,

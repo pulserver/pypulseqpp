@@ -123,6 +123,8 @@ def make_b1_selective_pulse(
     of the RF, so the selection is along B1 rather than along space (Grissom,
     Cao and Does, J Magn Reson 242:189, 2014). No gradient is played.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     amplitude : float
@@ -136,8 +138,6 @@ def make_b1_selective_pulse(
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
-
-    Other parameters are as in :func:`make_slr_pulse`.
 
     Returns
     -------
@@ -192,6 +192,8 @@ def make_b1_gslider_pulse(
     into ``num_subslices`` sub-bands of B1, counted from the lowest, and
     ``subslice`` is excited at ``subslice_phase`` relative to the rest.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     amplitude : float
@@ -205,8 +207,6 @@ def make_b1_gslider_pulse(
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
-
-    Other parameters are as in :func:`make_slr_pulse`.
 
     Returns
     -------
@@ -272,6 +272,8 @@ def make_b1_hadamard_pulse(
     ``scipy.linalg.hadamard(order)``, sub-bands are counted from the lowest
     B1, and row 0 is the plain band.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     amplitude : float
@@ -285,8 +287,6 @@ def make_b1_hadamard_pulse(
     split_and_reflect : bool, optional
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
-
-    Other parameters are as in :func:`make_slr_pulse`.
 
     Returns
     -------

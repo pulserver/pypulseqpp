@@ -47,6 +47,8 @@ def make_gslider_pulse(
     79:141, 2018). The SLR design is exact for ``flip_angle``, so the pulse
     plays at its designed amplitude rather than being scaled by area.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     subslice : int
@@ -57,12 +59,11 @@ def make_gslider_pulse(
     slice_thickness : float, optional
         Whole slab, in m; required when ``return_gz``.
 
-    Other parameters are as in :func:`make_slr_pulse`.
-
     Returns
     -------
-    rf, or (rf, gz, gzr)
-        The pulse, with its selection gradient and rephaser under ``return_gz``.
+    RfEvent or tuple
+        The pulse; under ``return_gz``, ``(rf, gz, gzr)``: the pulse, its
+        selection gradient and its rephaser.
 
     Raises
     ------
@@ -130,6 +131,8 @@ def make_hadamard_pulse(
     et al., J Comput Assist Tomogr 12:1026, 1988). The SLR design is exact for
     ``flip_angle``, so the pulse plays at its designed amplitude.
 
+    Parameters not listed below are as in :func:`make_slr_pulse`.
+
     Parameters
     ----------
     order : int
@@ -140,12 +143,11 @@ def make_hadamard_pulse(
     slice_thickness : float, optional
         Whole slab, in m; required when ``return_gz``.
 
-    Other parameters are as in :func:`make_slr_pulse`.
-
     Returns
     -------
-    rf, or (rf, gz, gzr)
-        The pulse, with its selection gradient and rephaser under ``return_gz``.
+    RfEvent or tuple
+        The pulse; under ``return_gz``, ``(rf, gz, gzr)``: the pulse, its
+        selection gradient and its rephaser.
 
     Raises
     ------
