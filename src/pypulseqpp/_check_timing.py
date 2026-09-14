@@ -50,7 +50,7 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     -------
     is_ok : bool
         True when nothing was found.
-    error_report : list of SimpleNamespace
+    error_report : list[SimpleNamespace]
         One entry per problem, in block order, with anything about the
         sequence as a whole last and carrying block 0. Each carries ``block``,
         ``event``, ``field`` and ``error_type``, plus the values that kind of
@@ -65,6 +65,16 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     -----
     Records TotalDuration when absent or invalidated by a sequence edit.
     An existing duration loaded from a file is checked, not overwritten.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> seq = pp.Sequence(pp.Opts(adc_dead_time=1e-4))
+    >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+    1
+    >>> is_ok, error_report = pp.check_timing(seq)
+    >>> is_ok, [error.error_type for error in error_report]
+    (False, ['BLOCK_DURATION_MISMATCH', 'ADC_DEAD_TIME', 'POST_ADC_DEAD_TIME'])
     """
     system = seq.system
     if system is None:
@@ -187,7 +197,7 @@ def print_error_report(
     seq : Sequence
         The sequence the report is about. Accepted so the signature is the
         toolbox's; nothing here reads it.
-    error_report : list of SimpleNamespace
+    error_report : list[SimpleNamespace]
         What :func:`check_timing` returned.
     full_report : bool, default False
         Print every problem rather than the first ``max_errors``.
@@ -195,6 +205,18 @@ def print_error_report(
         How many to print before summarising the rest.
     colored : bool, default True
         Wrap each message in an ANSI colour.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> seq = pp.Sequence(pp.Opts(adc_dead_time=1e-4))
+    >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+    1
+    >>> pp.print_error_report(seq, pp.check_timing(seq)[1], max_errors=2, colored=False)
+    Block 1:
+    - block.duration: Inconsistency between the stored block duration (3200.00 us) and the content of the block (3300.00 us)
+    - adc.delay: ADC delay is smaller than ADC dead time (0.00 us < 100 us)
+    --- 1 more errors in blocks 1 to 1 hidden ---
     """
     if full_report:
         max_errors = len(error_report)
