@@ -8,6 +8,9 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._angles import calc_golden_angles, calc_uniform_angles
+from pypulseqpp._ordering import calc_traversal_order
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The spoke-angle schemes ``angle_scheme`` selects from.
 ANGLE_SCHEMES = ("golden", "uniform")
@@ -23,8 +26,8 @@ def spoke_angles(n_spokes: int, scheme: str) -> np.ndarray:
     if scheme not in ANGLE_SCHEMES:
         raise ValueError(f"scheme must be one of {ANGLE_SCHEMES}, got {scheme!r}")
     if scheme == "golden":
-        return np.asarray(pp.calc_golden_angles(n_spokes))
-    return np.asarray(pp.calc_uniform_angles(n_spokes, span=np.pi))
+        return np.asarray(calc_golden_angles(n_spokes))
+    return np.asarray(calc_uniform_angles(n_spokes, span=np.pi))
 
 
 class GreRadial2DApp(sequences.SequenceApp):
@@ -92,7 +95,7 @@ class GreRadial2DApp(sequences.SequenceApp):
             Gap between adjacent slices, in metres.
         slice_order : str, optional
             Order the slices of one pass are excited in, as
-            :func:`pypulseqpp.calc_traversal_order` accepts.
+            ``calc_traversal_order`` accepts.
         flip_angle_deg : float, optional
             Excitation flip angle, in degrees.
         te : float or None, optional
@@ -170,7 +173,7 @@ class GreRadial2DApp(sequences.SequenceApp):
         n_passes = -(-n_slices // per_pass)
         groups = [list(range(start, n_slices, n_passes)) for start in range(n_passes)]
         self.passes = [
-            [group[i] for i in pp.calc_traversal_order(len(group), slice_order)]
+            [group[i] for i in calc_traversal_order(len(group), slice_order)]
             for group in groups
         ]
         # Each slice of a pass closes with the wait that makes its shot tr / size.
@@ -204,7 +207,7 @@ class GreRadial2DApp(sequences.SequenceApp):
         """Play each pass: its dummies, then every spoke at each of its slices."""
         spokes = [None] * self.n_dummy + list(range(len(self.angles)))
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 len(spokes) * self.matrix[2], increment=self.spoiling_increment
             )
         )

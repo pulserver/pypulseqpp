@@ -8,6 +8,8 @@ from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp._angles import calc_golden_angles
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 from pypulseqpp.sequences.readout import _trajectories as trajectories
 
 FOV = 0.22
@@ -221,7 +223,7 @@ def test_the_default_lays_out_one_interleave_for_the_loop_to_turn(system, excita
     assert not isinstance(readout.gx, list)
 
     seq = pp.Sequence(system)
-    angles = pp.calc_golden_angles(4)
+    angles = calc_golden_angles(4)
     for angle in angles:
         turn = pp.make_rotation(Rotation.from_euler("z", float(angle)))
         seq.add_block(readout.rf, readout.gz)
@@ -477,8 +479,8 @@ def test_a_stack_of_spirals_is_a_plain_pypulseq_loop(system, slab, tmp_path):
         labels=("LIN", "PAR"),
     )
     arms, partitions = 6, 8
-    angles = pp.calc_golden_angles(arms)
-    phases = pp.make_rf_spoiling_schedule(arms * partitions)
+    angles = calc_golden_angles(arms)
+    phases = make_rf_spoiling_schedule(arms * partitions)
     lin_label, par_label = readout.adc_labels
 
     seq = pp.Sequence(system)

@@ -8,16 +8,18 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_sampled_pairs
 
 
 class Bssfp3DApp(sequences.SequenceApp):
     """Balanced SSFP, 3D Cartesian: a hard pulse and a balanced line readout per TR.
 
     Every repetition returns all three gradient moments to zero, and the RF
-    and ADC phases alternate by π. A half-flip pulse of the opposite phase,
-    half a TR before the first full flip, prepares the steady state;
-    ``n_dummy`` unacquired repetitions follow, then the calibration pairs lead
-    the scan.
+    and ADC phases alternate by π. A first repetition played at half the flip
+    prepares the steady state, and ``n_dummy`` unacquired repetitions follow
+    before the calibration pairs lead the scan. Every repetition, the first
+    included, plays the same blocks, so the scan is periodic from its first
+    block.
 
     Examples
     --------
@@ -98,7 +100,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         n_acs_z : int, optional
             Calibration extent along z, in partitions.
         n_dummy : int, optional
-            Unacquired repetitions after the half-flip preparation.
+            Unacquired repetitions after the half-flip repetition.
         n_gain_calibration_readouts : int, optional
             Written as the ``NumGainCalibrationReadouts`` definition.
         """
@@ -112,9 +114,6 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.exc = sequences.NonSelectiveExcitation(
             system, flip_angle_deg, self.PULSE_DURATION
         )
-        self.half = sequences.NonSelectiveExcitation(
-            system, flip_angle_deg / 2, self.PULSE_DURATION
-        )
         self.ro = sequences.LineReadout3D(
             system,
             self.exc.rf,
@@ -125,24 +124,9 @@ class Bssfp3DApp(sequences.SequenceApp):
             spoiling_cycles=0.0,
         )
         self.repetition_time = self.ro.duration
+        self.nominal = self.exc.rf.amplitude
 
-        # Half a TR from the centre of the half flip to that of the first full
-        # flip, to the block raster. The wait is the duration of the half flip's
-        # own block: as a pure delay block it would share a definition with
-        # every repetition's closing wait, and the scan would read as repeating
-        # from that wait rather than from an excitation.
-        lead = pp.calc_duration(self.half.rf) - self.half.center + self.exc.center
-        pad = pp.round_to_raster(
-            self.repetition_time / 2 - lead, system.block_duration_raster
-        )
-        if pad < 0:
-            raise ValueError(
-                f"half the TR, {self.repetition_time * 500:.3f} ms, is shorter than "
-                f"the {lead * 1e3:.3f} ms between the centres of two pulses"
-            )
-        self.preparation_wait = pp.make_delay(pp.calc_duration(self.half.rf) + pad)
-
-        self.pairs, self.n_calibration = pp.calc_sampled_pairs(
+        self.pairs, self.n_calibration = calc_sampled_pairs(
             (n_y, n_z),
             (acceleration, acceleration_z),
             (n_acs, n_acs_z),
@@ -151,28 +135,29 @@ class Bssfp3DApp(sequences.SequenceApp):
             elliptical=elliptical,
             order="calibration_first",
         )
-        self.duration = (
-            pp.calc_duration(self.half.rf)
-            + pad
-            + (n_dummy + len(self.pairs)) * self.repetition_time
-        )
+        self.duration = (1 + n_dummy + len(self.pairs)) * self.repetition_time
 
     def loop(self) -> None:
-        """Play the half-flip preparation, the dummies, then every pair."""
-        self.half.rf.phase_offset = 0.0
-        self.seq.add_block(self.half.rf, self.preparation_wait, *self.labels(ONCE=1))
-        views = [None] * self.n_dummy + list(self.pairs)
+        """Play the half-flip repetition, the dummies, then every pair."""
+        views = [None] * (1 + self.n_dummy) + list(self.pairs)
         for k, view in enumerate(views):
-            calibrating = k - self.n_dummy < self.n_calibration
-            # The first full flip is opposite in phase to the half flip, and the
-            # rest alternate.
-            self.kernel(view, np.pi * ((k + 1) % 2), calibrating)
+            calibrating = k - 1 - self.n_dummy < self.n_calibration
+            flip_scale = 0.5 if k == 0 else 1.0
+            self.kernel(view, np.pi * (k % 2), calibrating, flip_scale)
 
     def kernel(
-        self, view: tuple[int, int] | None, phase: float, calibrating: bool = False
+        self,
+        view: tuple[int, int] | None,
+        phase: float,
+        calibrating: bool = False,
+        flip_scale: float = 1.0,
     ) -> None:
-        """One balanced repetition at ``(line, partition)``; ``view=None`` is a dummy."""
+        """One balanced repetition at ``(line, partition)``; ``view=None`` is a dummy.
+
+        ``flip_scale`` scales the pulse's flip for this repetition only.
+        """
         rf, ro, seq = self.exc.rf, self.ro, self.seq
+        rf.amplitude = self.nominal * flip_scale
         n_y, n_z = self.matrix[1:]
         rf.phase_offset = phase
         ro.adc.phase_offset = phase

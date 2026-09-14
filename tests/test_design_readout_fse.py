@@ -7,6 +7,7 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp._schedules import make_traps_schedule
 
 FOV = (0.22, 0.22, 0.16)
 MATRIX = (128, 128, 64)
@@ -450,7 +451,7 @@ def test_a_scan_loop_reproduces_the_timing_the_module_reports(system, slab, hard
 def test_a_scan_loop_can_vary_the_refocusing_flip(system, slice_, selective):
     fse = readout2d(system, slice_, selective)
     nominal = fse.rf_ref.amplitude
-    schedule = pp.make_traps_schedule(fse.etl, np.deg2rad(120.0), variable=True)
+    schedule = make_traps_schedule(fse.etl, np.deg2rad(120.0), variable=True)
     try:
         seq = pp.Sequence(system)
         for flip in schedule:

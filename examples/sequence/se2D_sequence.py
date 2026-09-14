@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_calibration_lines, calc_sampled_lines
+from pypulseqpp._ordering import calc_traversal_order
 
 
 class Se2DApp(sequences.SequenceApp):
@@ -74,7 +76,7 @@ class Se2DApp(sequences.SequenceApp):
             Gap between adjacent slices, in metres.
         slice_order : str, optional
             Order the slices of one pass are excited in, as
-            :func:`pypulseqpp.calc_traversal_order` accepts.
+            ``calc_traversal_order`` accepts.
         te : float or None, optional
             Echo time, in seconds, excitation centre to echo, with the
             refocusing pulse at its midpoint. ``None`` is as short as possible.
@@ -168,7 +170,7 @@ class Se2DApp(sequences.SequenceApp):
         n_passes = -(-n_slices // per_pass)
         groups = [list(range(start, n_slices, n_passes)) for start in range(n_passes)]
         self.passes = [
-            [group[i] for i in pp.calc_traversal_order(len(group), slice_order)]
+            [group[i] for i in calc_traversal_order(len(group), slice_order)]
             for group in groups
         ]
         cycle = tr if tr is not None else max(map(len, self.passes)) * shot
@@ -185,7 +187,7 @@ class Se2DApp(sequences.SequenceApp):
         pass_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(pass_time.values())
 
-        self.lines = pp.calc_sampled_lines(
+        self.lines = calc_sampled_lines(
             n_y,
             acceleration,
             n_acs,
@@ -193,7 +195,7 @@ class Se2DApp(sequences.SequenceApp):
             partial_fourier=partial_fourier,
         )
         self.calibration = set(
-            pp.calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
+            calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
         )
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_gap

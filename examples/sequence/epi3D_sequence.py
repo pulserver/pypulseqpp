@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_calibration_lines
+from pypulseqpp._ordering import calc_traversal_order
 
 #: What a shot of each kind of :meth:`Epi3DApp.kernel` plays.
 KINDS = ("calibration", "navigator", "reference", "dummy", "image")
@@ -128,7 +130,7 @@ class Epi3DApp(sequences.SequenceApp):
             navigator.
         partition_order : str, optional
             Order the shells are encoded in, as
-            :func:`pypulseqpp.calc_traversal_order` accepts.
+            ``calc_traversal_order`` accepts.
         n_dummy : int, optional
             Shots played without acquiring before the first acquired one.
         n_gain_calibration_readouts : int, optional
@@ -177,7 +179,7 @@ class Epi3DApp(sequences.SequenceApp):
         first_shell = n_shells - max(1, round(partial_fourier_z * n_shells))
         kept = list(range(first_shell, n_shells))
         self.shells = [
-            kept[i] for i in pp.calc_traversal_order(len(kept), partition_order)
+            kept[i] for i in calc_traversal_order(len(kept), partition_order)
         ]
 
         train = {
@@ -226,8 +228,8 @@ class Epi3DApp(sequences.SequenceApp):
             or partial_fourier < 1.0
             or partial_fourier_z < 1.0
         )
-        acs_y = pp.calc_calibration_lines(n_y, n_acs)
-        acs_z = pp.calc_calibration_lines(n_z, n_acs_z)
+        acs_y = calc_calibration_lines(n_y, n_acs)
+        acs_z = calc_calibration_lines(n_z, n_acs_z)
         # Partitions outer, lines inner.
         self.acs = [(y, z) for z in acs_z for y in acs_y] if undersampled else []
         self.gre = None

@@ -80,7 +80,7 @@ def calc_traversal_order(
 
     Examples
     --------
-    >>> from pypulseqpp import calc_traversal_order
+    >>> from pypulseqpp._ordering import calc_traversal_order
     >>> calc_traversal_order(6, "interleaved").tolist()
     [0, 2, 4, 1, 3, 5]
     >>> calc_traversal_order(5, "center_out").tolist()

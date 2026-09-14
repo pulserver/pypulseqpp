@@ -1,4 +1,4 @@
-"""Balanced SSFP 3D: phase cycling, its half-flip preparation and zero moments per TR."""
+"""Balanced SSFP 3D: phase cycling, its half-flip repetition and zero moments per TR."""
 
 import numpy as np
 import pytest
@@ -38,25 +38,22 @@ def test_the_phase_alternates_after_an_opposite_half_flip():
     assert all(adc == pytest.approx(phase) for phase, _, adc in rows if adc is not None)
 
 
-def test_the_half_flip_leads_the_first_pulse_by_half_a_repetition():
+def test_the_half_flip_leads_the_train_by_one_repetition():
     sequence = app()
     centres = np.asarray(sequence.design().rf_times()[0])
 
-    assert centres[1] - centres[0] == pytest.approx(
-        sequence.repetition_time / 2, abs=pp.Opts().block_duration_raster
-    )
-    assert np.diff(centres[1:]) == pytest.approx(sequence.repetition_time)
+    assert np.diff(centres) == pytest.approx(sequence.repetition_time)
 
 
 @pytest.mark.parametrize("tr", [None, 6e-3], ids=["shortest", "padded"])
-def test_the_scan_repeats_one_repetition_from_the_first_full_flip(tr):
+def test_the_scan_is_one_repetition_played_over_from_its_first_block(tr):
     sequence = app(tr=tr, n_dummy=10)
     seq = sequence.design()
     blocks = 4 + (getattr(sequence.ro, "wait_tr", None) is not None)
 
     size, start = seq._detect_tr()
 
-    assert (size, start) == (blocks, 2)
+    assert (size, start) == (blocks, 1)
     assert seq.get_block(start).rf is not None
 
 

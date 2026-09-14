@@ -7,6 +7,7 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 FOV = (0.22, 0.22, 0.12)
 MATRIX = (128, 128, 64)
@@ -340,7 +341,7 @@ def test_a_whole_3d_scan_is_a_plain_pypulseq_loop(system, slab, tmp_path):
         labels=("LIN", "PAR"),
     )
     lines, partitions = 8, 4
-    phases = pp.make_rf_spoiling_schedule(lines * partitions)
+    phases = make_rf_spoiling_schedule(lines * partitions)
     lin_label, par_label = readout.adc_labels
 
     seq = pp.Sequence(system)

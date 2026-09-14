@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._angles import calc_golden_angles
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 def stack_angles(
@@ -186,9 +188,9 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
             )
 
         if angular_increment_deg is None:
-            angles = np.asarray(pp.calc_golden_angles(n_arms, full_circle=True))
+            angles = np.asarray(calc_golden_angles(n_arms, full_circle=True))
             self.angular_increment = float(
-                np.diff(pp.calc_golden_angles(2, full_circle=True))[0]
+                np.diff(calc_golden_angles(2, full_circle=True))[0]
             )
         else:
             self.angular_increment = np.deg2rad(float(angular_increment_deg))
@@ -258,7 +260,7 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
         etl, n_z = self.etl, self.matrix[2]
         n_shots = self.n_dummy + n_z * self.n_arms // etl
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 n_shots * etl, increment=self.spoiling_increment
             ).reshape(n_shots, etl)
         )

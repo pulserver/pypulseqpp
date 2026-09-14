@@ -7,6 +7,23 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import _ext as cxx
+from pypulseqpp._angles import (
+    calc_golden_angles,
+    calc_raga_angles,
+    calc_tiny_golden_angles,
+    calc_uniform_angles,
+)
+from pypulseqpp._masks import (
+    make_centric_order,
+    make_linear_order,
+    make_poisson_disc_mask,
+    make_radial_adaptive_order,
+    make_radial_order,
+    make_random_mask,
+    make_shuffling_order,
+)
+from pypulseqpp._ordering import calc_traversal_order
+from pypulseqpp._sampling import make_uniform_mask
 
 
 @pytest.fixture
@@ -247,7 +264,7 @@ def test_traj_to_grad_keeps_upstreams_parameter_names_first():
 
 
 def test_the_uniform_mask_samples_every_rth_line_plus_a_centre():
-    mask = pp.make_uniform_mask(64, 2, calibration=8)
+    mask = make_uniform_mask(64, 2, calibration=8)
     assert int(mask.sum()) == 36
     assert mask[np.arange(0, 64, 2)].all()
     assert mask[28:36].all()
@@ -255,8 +272,8 @@ def test_the_uniform_mask_samples_every_rth_line_plus_a_centre():
 
 def test_the_uniform_mask_is_the_only_mode_a_single_axis_accepts():
     """The other three need two phase-encode axes to spread points over."""
-    assert pp.make_uniform_mask(64, 2).ndim == 1
-    for two_dimensional in (pp.make_random_mask, pp.make_poisson_disc_mask):
+    assert make_uniform_mask(64, 2).ndim == 1
+    for two_dimensional in (make_random_mask, make_poisson_disc_mask):
         with pytest.raises((ValueError, IndexError, TypeError)):
             two_dimensional(64, 2.0)
 
@@ -270,17 +287,17 @@ def test_every_traversal_order_visits_each_view_once():
         "outside_in",
         "random",
     ):
-        visited = pp.calc_traversal_order(16, order)
+        visited = calc_traversal_order(16, order)
         assert sorted(visited.tolist()) == list(range(16)), order
 
 
 def test_centre_out_starts_at_the_centre():
-    assert pp.calc_traversal_order(6, "center_out")[0] in (2, 3)
+    assert calc_traversal_order(6, "center_out")[0] in (2, 3)
 
 
 def test_golden_angles_never_repeat_and_tiny_ones_step_less_far():
-    golden = pp.calc_golden_angles(64)
-    tiny = pp.calc_tiny_golden_angles(64, index=4)
+    golden = calc_golden_angles(64)
+    tiny = calc_tiny_golden_angles(64, index=4)
 
     assert len(np.unique(np.round(golden, 9))) == 64
 
@@ -291,7 +308,7 @@ def test_golden_angles_never_repeat_and_tiny_ones_step_less_far():
 
 
 def test_raga_angles_come_from_a_finite_equidistant_support():
-    angles = pp.calc_raga_angles(200, approximation_order=8)
+    angles = calc_raga_angles(200, approximation_order=8)
     support = np.unique(np.round(angles, 9))
     assert len(support) < 200
     spacing = np.diff(np.sort(support))
@@ -299,7 +316,7 @@ def test_raga_angles_come_from_a_finite_equidistant_support():
 
 
 def test_uniform_angles_span_the_half_circle():
-    angles = pp.calc_uniform_angles(4)
+    angles = calc_uniform_angles(4)
     np.testing.assert_allclose(np.rad2deg(angles), [0.0, 90.0, 180.0, 270.0])
 
 
@@ -308,11 +325,11 @@ def test_an_ordering_covers_the_coordinates_it_was_given_exactly_once():
         np.meshgrid(np.arange(8), np.arange(4), indexing="ij"), -1
     ).reshape(-1, 2)
     for order in (
-        pp.make_linear_order,
-        pp.make_centric_order,
-        pp.make_radial_order,
-        pp.make_radial_adaptive_order,
-        pp.make_shuffling_order,
+        make_linear_order,
+        make_centric_order,
+        make_radial_order,
+        make_radial_adaptive_order,
+        make_shuffling_order,
     ):
         shots = order(coords, 4)
         flat = [index for shot in shots for index in shot]

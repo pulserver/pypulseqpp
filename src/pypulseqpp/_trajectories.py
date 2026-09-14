@@ -4,7 +4,7 @@ Each function returns one base interleave as an ``(n, 2)`` polyline in
 cycles/m, describing where the path goes but not when;
 :func:`pypulseqpp.traj_to_grad` assigns the timing under gradient and slew
 limits. The number and angles of rotated copies come from
-:func:`pypulseqpp.calc_golden_angles` and :func:`pypulseqpp.make_rotation`.
+``calc_golden_angles`` and :func:`pypulseqpp.make_rotation`.
 """
 
 from __future__ import annotations

@@ -44,7 +44,7 @@ def make_rf_spoiling_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp import make_rf_spoiling_schedule
+    >>> from pypulseqpp._schedules import make_rf_spoiling_schedule
     >>> np.rad2deg(make_rf_spoiling_schedule(4)).round(1)
     array([  0.,   0., 117., 351.])
 
@@ -85,7 +85,7 @@ def make_phase_cycling_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp import make_phase_cycling_schedule
+    >>> from pypulseqpp._schedules import make_phase_cycling_schedule
     >>> np.rad2deg(make_phase_cycling_schedule(5))
     array([  0., 180.,   0., 180.,   0.])
     >>> np.rad2deg(make_phase_cycling_schedule(4, (0.0, np.pi / 2)))
@@ -132,7 +132,7 @@ def make_traps_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp import make_traps_schedule
+    >>> from pypulseqpp._schedules import make_traps_schedule
     >>> flips = make_traps_schedule(8, np.deg2rad(120))
     >>> np.rad2deg(flips)[[0, -1]].round(1)
     array([153. , 120.2])

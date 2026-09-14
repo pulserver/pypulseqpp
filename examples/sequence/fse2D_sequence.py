@@ -8,6 +8,12 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import (
+    calc_calibration_lines,
+    calc_sampled_lines,
+    make_linear_order,
+)
+from pypulseqpp._ordering import calc_traversal_order
 
 
 class Fse2DApp(sequences.SequenceApp):
@@ -74,7 +80,7 @@ class Fse2DApp(sequences.SequenceApp):
             Gap between adjacent slices, in metres.
         slice_order : str, optional
             Order the slices of one pass are excited in, as
-            :func:`pypulseqpp.calc_traversal_order` accepts.
+            ``calc_traversal_order`` accepts.
         etl : int, optional
             Echo train length: lines per excitation.
         te : float or None, optional
@@ -154,7 +160,7 @@ class Fse2DApp(sequences.SequenceApp):
         n_passes = -(-n_slices // per_pass)
         groups = [list(range(start, n_slices, n_passes)) for start in range(n_passes)]
         self.passes = [
-            [group[i] for i in pp.calc_traversal_order(len(group), slice_order)]
+            [group[i] for i in calc_traversal_order(len(group), slice_order)]
             for group in groups
         ]
         cycle = tr if tr is not None else max(map(len, self.passes)) * shot
@@ -171,17 +177,17 @@ class Fse2DApp(sequences.SequenceApp):
         pass_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(pass_time.values())
 
-        lines = pp.calc_sampled_lines(
+        lines = calc_sampled_lines(
             n_y, acceleration, n_acs, partial_fourier=partial_fourier
         )
         self.trains = [
             [None if i is None else lines[i] for i in train]
-            for train in pp.make_linear_order(
+            for train in make_linear_order(
                 lines, etl, center=(n_y / 2,), center_echo=self.n_center, pad=True
             )
         ]
         self.calibration = set(
-            pp.calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
+            calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
         )
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_gap

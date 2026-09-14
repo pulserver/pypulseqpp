@@ -8,6 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_sampled_pairs
 
 
 class Se3DApp(sequences.SequenceApp):
@@ -178,7 +179,7 @@ class Se3DApp(sequences.SequenceApp):
                 length += pad
         self.repetition_time = length
 
-        self.views, self.n_calibration = pp.calc_sampled_pairs(
+        self.views, self.n_calibration = calc_sampled_pairs(
             (n_y, n_z),
             (acceleration, acceleration_z),
             (n_acs, n_acs_z),

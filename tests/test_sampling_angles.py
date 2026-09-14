@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pypulseqpp import calc_golden_angles, calc_uniform_angles
+from pypulseqpp._angles import calc_golden_angles, calc_uniform_angles
 
 
 def test_default_golden_is_the_pi_periodic_radial_angle():

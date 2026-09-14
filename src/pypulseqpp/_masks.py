@@ -81,17 +81,17 @@ def calc_sampled_lines(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> pp.calc_sampled_lines(8, 2, 0)
+    >>> calc_sampled_lines(8, 2, 0)
     [0, 2, 4, 6]
 
     The calibration block first, then what is left of the ascending traversal:
 
-    >>> pp.calc_sampled_lines(8, 2, 4, order='calibration_first')
+    >>> calc_sampled_lines(8, 2, 4, order='calibration_first')
     [2, 3, 4, 5, 0, 6]
 
     Three quarters of the extent, counted from the far edge:
 
-    >>> pp.calc_sampled_lines(8, 1, 0, partial_fourier=0.75)
+    >>> calc_sampled_lines(8, 1, 0, partial_fourier=0.75)
     [2, 3, 4, 5, 6, 7]
     """
     if order not in ("ascending", "calibration_first"):
@@ -138,7 +138,7 @@ def calc_calibration_lines(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> pp.calc_calibration_lines(8, 4)
+    >>> calc_calibration_lines(8, 4)
     [2, 3, 4, 5]
     """
     first = n - round(_checked_partial_fourier(partial_fourier) * n)
@@ -208,7 +208,7 @@ def calc_sampled_pairs(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> pairs, n_cal = pp.calc_sampled_pairs((4, 4), (2, 2), (2, 2))
+    >>> pairs, n_cal = calc_sampled_pairs((4, 4), (2, 2), (2, 2))
     >>> n_cal
     4
     >>> pairs[:n_cal]
@@ -217,8 +217,8 @@ def calc_sampled_pairs(
     The corners are outside the inscribed ellipse, so they are not sampled
     unless the full rectangle is asked for:
 
-    >>> disk, _ = pp.calc_sampled_pairs((8, 8), (1, 1), (0, 0))
-    >>> full, _ = pp.calc_sampled_pairs((8, 8), (1, 1), (0, 0), elliptical=False)
+    >>> disk, _ = calc_sampled_pairs((8, 8), (1, 1), (0, 0))
+    >>> full, _ = calc_sampled_pairs((8, 8), (1, 1), (0, 0), elliptical=False)
     >>> (0, 0) in disk, (0, 0) in full
     (False, True)
     """
@@ -395,7 +395,7 @@ def make_linear_order(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> shots = pp.make_linear_order([[0, 0], [1, 0], [0, 1], [1, 1]], 2)
+    >>> shots = make_linear_order([[0, 0], [1, 0], [0, 1], [1, 1]], 2)
     >>> sorted(i for shot in shots for i in shot)
     [0, 1, 2, 3]
     """
@@ -468,7 +468,7 @@ def make_centric_order(
     >>> import pypulseqpp as pp
     >>> ky, kz = np.meshgrid(np.arange(-2, 3), np.arange(-2, 3))
     >>> coords = np.column_stack([ky.ravel(), kz.ravel()])
-    >>> shots = pp.make_centric_order(coords, 5)
+    >>> shots = make_centric_order(coords, 5)
     >>> all(len(s) <= 5 for s in shots)
     True
 
@@ -535,7 +535,7 @@ def make_radial_order(
     >>> import pypulseqpp as pp
     >>> ky, kz = np.meshgrid(np.arange(-2, 3), np.arange(-2, 3))
     >>> coords = np.column_stack([ky.ravel(), kz.ravel()])
-    >>> shots = pp.make_radial_order(coords, 5)
+    >>> shots = make_radial_order(coords, 5)
     >>> all(len(s) <= 5 for s in shots)
     True
 
@@ -605,7 +605,7 @@ def make_radial_adaptive_order(
     >>> import pypulseqpp as pp
     >>> ky, kz = np.meshgrid(np.arange(-3, 4), np.arange(-3, 4))
     >>> coords = np.column_stack([ky.ravel(), kz.ravel()])
-    >>> shots = pp.make_radial_adaptive_order(coords, 7)
+    >>> shots = make_radial_adaptive_order(coords, 7)
     >>> len(shots)
     7
     >>> sum(len(shot) for shot in shots) == len(coords)
@@ -673,8 +673,8 @@ def make_shuffling_order(
     >>> import pypulseqpp as pp
     >>> ky, kz = np.meshgrid(np.arange(8), np.arange(8))
     >>> coords = np.column_stack([ky.ravel(), kz.ravel()])
-    >>> a = pp.make_shuffling_order(coords, 8, seed=0)
-    >>> b = pp.make_shuffling_order(coords, 8, seed=0)
+    >>> a = make_shuffling_order(coords, 8, seed=0)
+    >>> b = make_shuffling_order(coords, 8, seed=0)
     >>> a == b
     True
     """
@@ -733,7 +733,7 @@ def make_random_mask(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> mask = pp.make_random_mask((32, 32), 4.0, calib=(8, 8), seed=0)
+    >>> mask = make_random_mask((32, 32), 4.0, calib=(8, 8), seed=0)
     >>> mask.shape
     (32, 32)
 
@@ -795,7 +795,7 @@ def make_caipirinha_mask(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> mask = pp.make_caipirinha_mask((8, 8), 2, 2, delta=1)
+    >>> mask = make_caipirinha_mask((8, 8), 2, 2, delta=1)
     >>> int(mask.sum())
     16
 
@@ -858,7 +858,7 @@ def make_poisson_disc_mask(
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> mask = pp.make_poisson_disc_mask((48, 48), 4.0, calib=(8, 8), seed=1)
+    >>> mask = make_poisson_disc_mask((48, 48), 4.0, calib=(8, 8), seed=1)
     >>> mask.shape
     (48, 48)
 

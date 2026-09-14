@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_calibration_lines
+from pypulseqpp._ordering import calc_traversal_order
 
 #: What a shot of each kind of :meth:`Epi2DApp.kernel` plays.
 KINDS = ("calibration", "navigator", "reference", "dummy", "image")
@@ -126,7 +128,7 @@ class Epi2DApp(sequences.SequenceApp):
             slice's navigator.
         slice_order : str, optional
             Order the slices are acquired in, as
-            :func:`pypulseqpp.calc_traversal_order` accepts.
+            ``calc_traversal_order`` accepts.
         n_dummy : int, optional
             Shots played without acquiring, per slice, before the first
             acquired one.
@@ -160,7 +162,7 @@ class Epi2DApp(sequences.SequenceApp):
         self.slab_thickness = n_slices * slice_step - slice_gap
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * slice_step
         self.calibration_slices = [
-            int(s) for s in pp.calc_traversal_order(n_slices, slice_order)
+            int(s) for s in calc_traversal_order(n_slices, slice_order)
         ]
 
         single = sequences.SpatialSelectiveExcitation(
@@ -234,9 +236,7 @@ class Epi2DApp(sequences.SequenceApp):
                 sms_group_center(g, n_slices, n_bands, slice_step)
                 for g in range(n_groups)
             ]
-            self.slices = [
-                int(g) for g in pp.calc_traversal_order(n_groups, slice_order)
-            ]
+            self.slices = [int(g) for g in calc_traversal_order(n_groups, slice_order)]
         else:
             self.epi = sequences.EpiReadout2D(
                 system,
@@ -264,9 +264,7 @@ class Epi2DApp(sequences.SequenceApp):
         # A gradient echo keeps EPI distortion out of the coil maps. An
         # accelerated scan calibrates from it, and a multiband scan always does.
         self.acs = (
-            pp.calc_calibration_lines(n_y, n_acs)
-            if self.sms or acceleration > 1
-            else []
+            calc_calibration_lines(n_y, n_acs) if self.sms or acceleration > 1 else []
         )
         self.gre = None
         if self.acs:

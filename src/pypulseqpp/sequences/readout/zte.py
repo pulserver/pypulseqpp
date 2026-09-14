@@ -12,6 +12,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._angles import calc_projection_shell
 from .._module import SequenceModule
 from ._common import AXES, solve_delay
 
@@ -84,7 +85,7 @@ class ZteReadout(SequenceModule):
     directions : array_like, optional
         ``(n_views, 3)`` unit spoke directions, in the order the shell walks
         them. Supplying one silences the four generator arguments below; the
-        default asks :func:`~pypulseqpp.calc_projection_shell` for a
+        default asks ``calc_projection_shell`` for a
         shell. An ordering whose steps vary is accepted, but every turn is
         given the widest one's slot, so the repetition pays for the worst step
         throughout.
@@ -99,7 +100,7 @@ class ZteReadout(SequenceModule):
         two spacings against each other; see ``step_rad``.
     scheme : {'spiral', 'meridian'}, optional
         Shape of the shell. See
-        :func:`~pypulseqpp.calc_projection_shell`.
+        ``calc_projection_shell``.
     oversampling : float, optional
         Radial oversampling: a finer ``delta_k`` along the same spoke.
     readout_bandwidth_hz : float, optional
@@ -175,7 +176,7 @@ class ZteReadout(SequenceModule):
             n_views = (
                 max(3, -(-total // int(n_shots))) if n_views is None else int(n_views)
             )
-            directions, shot_rotations = pp.calc_projection_shell(
+            directions, shot_rotations = calc_projection_shell(
                 n_views, n_shots, scheme=scheme
             )
         directions = _unit(directions)

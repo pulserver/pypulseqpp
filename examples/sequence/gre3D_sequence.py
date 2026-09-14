@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_sampled_pairs
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 class Gre3DApp(sequences.SequenceApp):
@@ -166,7 +168,7 @@ class Gre3DApp(sequences.SequenceApp):
             if g is not None
         ]
 
-        self.pairs, self.n_calibration = pp.calc_sampled_pairs(
+        self.pairs, self.n_calibration = calc_sampled_pairs(
             (n_y, n_z),
             (acceleration, acceleration_z),
             (n_acs, n_acs_z),
@@ -184,7 +186,7 @@ class Gre3DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play the dummies, the wave-free reference pairs, then every pair."""
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 self.n_dummy + len(self.reference) + len(self.pairs),
                 increment=self.spoiling_increment,
             )

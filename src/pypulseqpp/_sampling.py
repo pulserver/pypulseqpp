@@ -34,13 +34,13 @@ def make_uniform_mask(shape, acceleration, calibration=0) -> np.ndarray:
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> mask = pp.make_uniform_mask(64, 2, calibration=8)
+    >>> mask = make_uniform_mask(64, 2, calibration=8)
     >>> int(mask.sum())
     36
 
     Two accelerated axes multiply:
 
-    >>> mask = pp.make_uniform_mask((64, 32), (2, 2))
+    >>> mask = make_uniform_mask((64, 32), (2, 2))
     >>> mask.shape, int(mask.sum())
     ((64, 32), 512)
 

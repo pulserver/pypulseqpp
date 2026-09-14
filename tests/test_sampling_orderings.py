@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pypulseqpp import (
+from pypulseqpp._masks import (
     make_centric_order,
     make_linear_order,
     make_radial_adaptive_order,

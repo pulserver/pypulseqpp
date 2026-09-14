@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._angles import calc_golden_angles, calc_uniform_angles
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The in-plane angle schemes ``angle_scheme`` selects from.
 ANGLE_SCHEMES = ("golden", "uniform")
@@ -23,8 +25,8 @@ def spoke_angles(n_spokes: int, scheme: str) -> np.ndarray:
     if scheme not in ANGLE_SCHEMES:
         raise ValueError(f"scheme must be one of {ANGLE_SCHEMES}, got {scheme!r}")
     if scheme == "golden":
-        return np.asarray(pp.calc_golden_angles(n_spokes))
-    return np.asarray(pp.calc_uniform_angles(n_spokes, span=np.pi))
+        return np.asarray(calc_golden_angles(n_spokes))
+    return np.asarray(calc_uniform_angles(n_spokes, span=np.pi))
 
 
 def _at(events, index: int):
@@ -192,7 +194,7 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         """Play the dummies, then every partition of each spoke in turn."""
         n_z = self.matrix[2]
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 self.n_dummy + len(self.angles) * n_z,
                 increment=self.spoiling_increment,
             )

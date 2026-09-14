@@ -8,6 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import calc_calibration_lines, calc_sampled_lines
 
 
 class Bssfp2DApp(sequences.SequenceApp):
@@ -125,7 +126,7 @@ class Bssfp2DApp(sequences.SequenceApp):
         )
         self.nominal = self.ro.rf.amplitude
 
-        self.lines = pp.calc_sampled_lines(
+        self.lines = calc_sampled_lines(
             n_y,
             acceleration,
             n_acs,
@@ -133,7 +134,7 @@ class Bssfp2DApp(sequences.SequenceApp):
             partial_fourier=partial_fourier,
         )
         n_calibration = len(
-            pp.calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
+            calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
         )
         # SEG splits the calibration block that leads the train from the rest.
         self.segment = {}

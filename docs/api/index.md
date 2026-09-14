@@ -2,7 +2,7 @@
 
 PyPulseq++ exposes the vocabulary used to design a Pulseq sequence from one
 top-level namespace. RF pulse design and gradient waveform design have their
-own pages; sequence construction, sampling, and reusable modules are grouped
+own pages; sequence construction and reusable modules are grouped
 by the job they perform.
 
 {doc}`sequence`
@@ -22,12 +22,8 @@ by the job they perform.
   calculation, and Bloch simulation.
 
 {doc}`trajectories`
-: Turning k-space paths into playable gradients and choosing radial and
-  projection angles.
-
-{doc}`sampling`
-: Cartesian undersampling masks, echo-train ordering, EPI traversal, and RF
-  schedules.
+: Designing radial, spiral and rosette k-space paths and turning them into
+  playable gradients.
 
 {doc}`timing`
 : Quantizing ADC dwell, readout duration, and other times to scanner rasters.
@@ -56,7 +52,6 @@ events
 gradients
 rf
 trajectories
-sampling
 timing
 modules
 safety

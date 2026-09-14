@@ -1,5 +1,6 @@
 """PyPulseq namespace compatibility and compiled-event interoperability."""
 
+import importlib
 import inspect
 import math
 import re
@@ -254,6 +255,22 @@ def test_what_is_advertised_is_what_a_sequence_is_written_in():
     for name in pp.__all__:
         assert hasattr(pp, name), name
     assert {"make_trapezoid", "make_adc", "Sequence", "Opts"} <= set(pp.__all__)
+
+
+@pytest.mark.parametrize(
+    ("module", "name"),
+    [
+        (module, name)
+        for module, names in pp._PRIVATE_SAMPLING.items()
+        for name in names
+    ],
+    ids=lambda value: value,
+)
+def test_a_sampling_helper_is_held_back_but_kept_in_its_private_module(module, name):
+    with pytest.raises(AttributeError, match="held back from the public interface"):
+        getattr(pp, name)
+    assert name not in pp.__all__
+    assert callable(getattr(importlib.import_module(f"pypulseqpp.{module}"), name))
 
 
 def test_calc_duration_agrees_with_upstream():

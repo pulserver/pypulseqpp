@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pypulseqpp import (
+from pypulseqpp._masks import (
     calc_calibration_lines,
     calc_sampled_lines,
     calc_sampled_pairs,

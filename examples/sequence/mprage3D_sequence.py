@@ -8,6 +8,16 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._masks import (
+    calc_sampled_pairs,
+    make_centric_order,
+    make_linear_order,
+    make_poisson_disc_mask,
+    make_radial_adaptive_order,
+    make_radial_order,
+    make_shuffling_order,
+)
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The view orderings ``ordering`` selects from, each a pypulseqpp echo-train
 #: ordering of the same name.
@@ -33,11 +43,15 @@ def order_views(
         raise ValueError(f"ordering must be one of {ORDERINGS}, got {ordering!r}")
     coords = (np.asarray(views, dtype=float) - np.divide(grid, 2)) / np.asarray(grid)
     if ordering == "shuffling":
-        trains = pp.make_shuffling_order(coords, etl, seed=seed, pad=True)
+        trains = make_shuffling_order(coords, etl, seed=seed, pad=True)
     elif ordering == "radial":
-        trains = pp.make_radial_order(coords, etl, center=(0.0, 0.0), pad=True)
+        trains = make_radial_order(coords, etl, center=(0.0, 0.0), pad=True)
     else:
-        make = getattr(pp, f"make_{ordering}_order")
+        make = {
+            "linear": make_linear_order,
+            "centric": make_centric_order,
+            "radial_adaptive": make_radial_adaptive_order,
+        }[ordering]
         trains = make(coords, etl, center=(0.0, 0.0), center_echo=n_center, pad=True)
     return [[None if i is None else views[i] for i in train] for train in trains]
 
@@ -228,7 +242,7 @@ class Mprage3DApp(sequences.SequenceApp):
         # rectangle; shuffling draws a variable-density Poisson-disc set, which
         # needs acceleration to thin, so at R = 1 it takes the full grid.
         if ordering == "shuffling" and acceleration * acceleration_z > 1:
-            mask = pp.make_poisson_disc_mask(
+            mask = make_poisson_disc_mask(
                 (n_y, n_z),
                 float(acceleration * acceleration_z),
                 calib=(n_acs, n_acs_z),
@@ -238,7 +252,7 @@ class Mprage3DApp(sequences.SequenceApp):
         elif ordering == "shuffling":
             views = [(y, z) for z in range(n_z) for y in range(n_y)]
         else:
-            views, _ = pp.calc_sampled_pairs(
+            views, _ = calc_sampled_pairs(
                 (n_y, n_z),
                 (acceleration, acceleration_z),
                 (n_acs, n_acs_z),
@@ -324,7 +338,7 @@ class Mprage3DApp(sequences.SequenceApp):
         ]
         n_shots = self.n_dummy + len(calibration) + len(self.segments)
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 n_shots * vps, increment=self.spoiling_increment
             ).reshape(n_shots, vps)
         )

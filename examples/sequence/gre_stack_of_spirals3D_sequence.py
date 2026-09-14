@@ -8,6 +8,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._angles import calc_golden_angles, calc_uniform_angles
+from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The in-plane angle schemes ``angle_scheme`` selects from.
 ANGLE_SCHEMES = ("golden", "uniform")
@@ -22,8 +24,8 @@ def arm_angles(n_arms: int, scheme: str) -> np.ndarray:
     if scheme not in ANGLE_SCHEMES:
         raise ValueError(f"scheme must be one of {ANGLE_SCHEMES}, got {scheme!r}")
     if scheme == "golden":
-        return np.asarray(pp.calc_golden_angles(n_arms, full_circle=True))
-    return np.asarray(pp.calc_uniform_angles(n_arms))
+        return np.asarray(calc_golden_angles(n_arms, full_circle=True))
+    return np.asarray(calc_uniform_angles(n_arms))
 
 
 def _at(events, index: int):
@@ -196,7 +198,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         """Play the dummies, then every partition of each interleave in turn."""
         n_z = self.matrix[2]
         phases = iter(
-            pp.make_rf_spoiling_schedule(
+            make_rf_spoiling_schedule(
                 self.n_dummy + len(self.angles) * n_z,
                 increment=self.spoiling_increment,
             )

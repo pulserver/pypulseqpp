@@ -16,8 +16,13 @@ method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
 repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
-waveform and k-space analysis, FOV transforms, RF/gradient design, sampling,
-and reusable sequence modules. Tiling is deferred.
+waveform and k-space analysis, FOV transforms, RF/gradient design and
+reusable sequence modules. Tiling is deferred.
+
+Sampling, view-ordering, angle and schedule helpers live in private modules
+(`_masks`, `_sampling`, `_ordering`, `_epi`, `_angles`, `_schedules`) and are
+withheld from the public namespace until the sequence zoo settles which of them
+it needs. Code that uses one imports it from its private module.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
