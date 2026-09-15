@@ -280,7 +280,7 @@ def make_pins_pulse(
         system's.
     max_slew : float, optional
         Slew limit for the blips and the rephaser, in place of the system's.
-    system : pypulseq.Opts, optional
+    system : Opts, optional
         System limits.
     use : str, optional
         Pulseq ``use`` tag.

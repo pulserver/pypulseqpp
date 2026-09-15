@@ -427,7 +427,7 @@ class NonCartesianReadout(_ArmedReadout):
         End-of-TR spoiler, when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
         The acquisition window.
-    adc_labels : LabelSetEvent or list of LabelSetEvent
+    adc_labels : LabelEvent | list[LabelEvent]
         One per name in ``labels``; a bare event when there is one.
     wait_te, wait_tr : DelayEvent
         Present only when a TE or TR longer than the minimum was asked for.
@@ -441,7 +441,7 @@ class NonCartesianReadout(_ArmedReadout):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.
@@ -476,12 +476,12 @@ class NonCartesianReadout(_ArmedReadout):
     explicit : bool, optional
         Write out one interleave per entry of ``angles`` instead of one base
         interleave.
-    angles : array-like, optional
+    angles : ArrayLike, optional
         In-plane rotations (rad). Required when ``explicit``, refused
         otherwise.
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters emitted on the acquisition block.
-    trigger : event, optional
+    trigger : TriggerEvent, optional
         A trigger or digital output armed on the block that opens the readout.
 
     Examples

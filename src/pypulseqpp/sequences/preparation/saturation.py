@@ -24,7 +24,7 @@ class OffResonanceSaturation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     rf_prep : RfEvent
         The pulse to play.
@@ -36,7 +36,7 @@ class OffResonanceSaturation(RfModule):
         rather than a saturation needs.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters emitted on the first pulse's block.
 
     Attributes
@@ -45,7 +45,7 @@ class OffResonanceSaturation(RfModule):
         The pulse, published once however many times it is played.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         The closing spoiler, when there is one.
-    prep_labels : LabelSetEvent or list of LabelSetEvent
+    prep_labels : LabelEvent | list[LabelEvent]
         One per name in ``labels``.
 
     Raises
@@ -130,7 +130,7 @@ class MtPreparation(OffResonanceSaturation):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     flip_angle_deg : float, optional
         Nominal flip angle (degrees). Far above 90: the point is deposited
@@ -149,7 +149,7 @@ class MtPreparation(OffResonanceSaturation):
         Zero omits the spoiler.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters emitted on the first pulse's block.
 
     Attributes
@@ -203,7 +203,7 @@ class IhMtPreparation(OffResonanceSaturation):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     flip_angle_deg : float, optional
         Flip angle (degrees) of the single-offset arm this one is matched
@@ -221,14 +221,14 @@ class IhMtPreparation(OffResonanceSaturation):
         Zero omits the spoiler.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters emitted on the first pulse's block.
 
     Attributes
     ----------
     rf_prep : RfEvent
         The dual-band pulse.
-    band_offsets_hz : numpy.ndarray
+    band_offsets_hz : NDArray[np.float64]
         Where the two bands actually landed (Hz), for a spectral check.
 
     Raises
@@ -286,7 +286,7 @@ class BlochSiegertPreparation(OffResonanceSaturation):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     freq_offset_hz : float, optional
         Offset from water (Hz); flip its sign for the second acquisition.
@@ -307,7 +307,7 @@ class BlochSiegertPreparation(OffResonanceSaturation):
         Zero, the default here, omits the spoiler, for the reason above.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters emitted on the pulse's block.
 
     Attributes
