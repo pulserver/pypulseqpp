@@ -1068,10 +1068,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_warnings</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._calc_rf_bandwidth</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_rf_bandwidth</span> <span class="k">as</span> <span class="n">_calc_rf_bandwidth</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._ext</span><span class="w"> </span><span class="kn">import</span> <span class="n">sim</span> <span class="k">as</span> <span class="n">_kernels</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Opts</span> <span class="k">as</span> <span class="n">_Opts</span>
 
 <span class="c1">#: ``(bandwidth threshold in Hz, raster in s)``: ``sim_rf``'s default ``dt`` is</span>
 <span class="c1">#: the first raster whose threshold the bandwidth exceeds, so wider pulses get</span>
@@ -1251,7 +1251,7 @@
             <span class="s2">"default system"</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">system</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">_Opts</span><span class="o">.</span><span class="n">default</span>
         <span class="n">freq_offset</span> <span class="o">+=</span> <span class="n">freq_ppm</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span>
         <span class="n">phase_offset</span> <span class="o">+=</span> <span class="n">phase_ppm</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span>
 

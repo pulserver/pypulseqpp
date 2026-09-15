@@ -1069,8 +1069,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">_SimpleNamespace</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_rf_bandwidth</span> <span class="k">as</span> <span class="n">_upstream</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Opts</span> <span class="k">as</span> <span class="n">_Opts</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_full_freq_offset</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -1083,7 +1084,7 @@
             <span class="s2">"B0 of the default system"</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">system</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">_Opts</span><span class="o">.</span><span class="n">default</span>
         <span class="n">offset</span> <span class="o">+=</span> <span class="n">ppm</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span>
     <span class="k">return</span> <span class="n">offset</span>
 
@@ -1211,7 +1212,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    sim_rf : the simulated profile, valid at any flip angle.</span>
 <span class="sd">    """</span>
-    <span class="n">step</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="o">.</span><span class="n">default</span><span class="o">.</span><span class="n">rf_raster_time</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">dt</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">_Opts</span><span class="o">.</span><span class="n">default</span><span class="o">.</span><span class="n">rf_raster_time</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">dt</span>
     <span class="n">offset</span> <span class="o">=</span> <span class="n">_full_freq_offset</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
     <span class="n">measured</span> <span class="o">=</span> <span class="n">_with_zero_edges</span><span class="p">(</span><span class="n">_at_baseband</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span> <span class="k">if</span> <span class="n">offset</span> <span class="k">else</span> <span class="n">rf</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
 

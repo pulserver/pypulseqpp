@@ -1094,7 +1094,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    *grads : GradEvent or TrapEvent or None</span>
 <span class="sd">        Gradients on the **same** channel, in play order. ``None`` is skipped.</span>
-<span class="sd">    system : pypulseq.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, optional</span>
 <span class="sd">        System limits.</span>
 
 <span class="sd">    Returns</span>
@@ -1167,7 +1167,7 @@
 <span class="sd">    resolution : float</span>
 <span class="sd">        Target resolution along ``channel`` (m) -- ``fov / matrix`` for an</span>
 <span class="sd">        in-plane encode, the partition spacing for a 3D slab encode.</span>
-<span class="sd">    system : pypulseq.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, optional</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    duration : float, optional</span>
 <span class="sd">        Force a duration (s); the default is the shortest feasible.</span>
@@ -1228,7 +1228,7 @@
 <span class="sd">        Field of view along ``channel`` (m).</span>
 <span class="sd">    steps : float, optional</span>
 <span class="sd">        Cells to traverse; non-zero, may be negative.</span>
-<span class="sd">    system : pypulseq.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, optional</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    duration : float, optional</span>
 <span class="sd">        Force a duration (s); the default is the shortest feasible.</span>
@@ -1292,7 +1292,7 @@
 <span class="sd">        Amplitudes to begin and end at (Hz/m).</span>
 <span class="sd">    convert_to_arbitrary : bool, optional</span>
 <span class="sd">        Return the gradient as an arbitrary waveform.</span>
-<span class="sd">    system : pypulseq.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, optional</span>
 <span class="sd">        System limits.</span>
 
 <span class="sd">    Returns</span>
