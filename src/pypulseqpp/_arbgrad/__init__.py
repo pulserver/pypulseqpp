@@ -170,10 +170,21 @@ def rosette(
 
     Parameters
     ----------
-    fov, n_pix, slew_limit, grad_limit, dt
-        See :func:`spiral`.
-    om1, om2 : float, optional
-        Rosette shape parameters (petal count/shape).
+    fov : float
+        Field of view, meters.
+    n_pix : int
+        Matrix size (pixels).
+    slew_limit : float
+        Slew-rate limit, Hz/pix/s.
+    grad_limit : float
+        Gradient-amplitude limit, Hz/pix.
+    dt : float
+        Gradient raster time, seconds.
+    om1 : float, optional
+        First rosette frequency, which with ``om2`` sets the petal count and
+        shape.
+    om2 : float, optional
+        Second rosette frequency.
     t_max : float, optional
         Trajectory parameter upper bound.
     """

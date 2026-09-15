@@ -117,10 +117,25 @@ class _EpiReadout(SequenceModule):
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
     scheme : {'linear', 'caipi', 'zigzag'}, optional
-        Which built-in ordering to generate. See
-        ``calc_epi_order``.
-    acceleration, segments, partition_acceleration, caipi_shift, extent
-        Passed to ``calc_epi_order``.
+        Which built-in ordering to generate. ``'linear'`` steps by
+        ``segments * acceleration`` every line and never leaves its
+        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;
+        ``'zigzag'`` walks up and down a phase-encode segment instead of
+        across the whole matrix.
+    acceleration : int, optional
+        Phase-encode undersampling, ``Ry``: lines the blip skips.
+    segments : int, optional
+        Shots the train is interleaved across, ``S``. The blip becomes
+        ``S * Ry``, which shortens the train without changing the lattice
+        sampled.
+    partition_acceleration : int, optional
+        Partition undersampling ``Rz``, the height of the CAIPI cycle.
+        ``'caipi'`` only.
+    caipi_shift : int, optional
+        Partitions the pattern climbs per acquired line. ``'caipi'`` only.
+    extent : int, optional
+        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused
+        by the others.
     te : float, optional
         Excitation isodelay to the **first** echo (s). ``None`` is as short as
         possible; every other echo follows at ``esp`` intervals, and

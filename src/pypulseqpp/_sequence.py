@@ -105,6 +105,45 @@ class Sequence:
     use_block_cache : bool, default True
         Compatibility flag, retained but not used to cache decoded blocks.
 
+    Attributes
+    ----------
+    system : Opts | None
+        The limits the sequence was constructed with.
+    num_blocks : int
+        Number of blocks; equivalent to ``len(seq)``.
+    block_durations : MutableMapping[int, float]
+        Duration of each block in seconds, keyed by 1-based block index.
+        Assigning an entry changes the stored block duration.
+    block_events : dict[int, NDArray[np.int32]]
+        Event IDs of each block, keyed by 1-based block index: delay, RF,
+        gx, gy, gz, ADC and extension. The delay column is zero for Pulseq
+        1.5. Reading it allocates a dictionary for all blocks.
+    definitions : dict[str, Any]
+        Everything `[DEFINITIONS]` will carry.
+    grad_raster_time : float
+        Gradient raster in seconds.
+    rf_raster_time : float
+        RF raster in seconds.
+    adc_raster_time : float
+        ADC dwell raster in seconds.
+    block_duration_raster : float
+        Raster a block duration is a whole number of, in seconds.
+    version_major : int
+        Major version of the Pulseq format the sequence is held as. A file
+        older than 1.5 is converted as it is read, so this is what the
+        sequence is rather than what its file declared.
+    version_minor : int
+        Minor version of the format the sequence is held as.
+    version_revision : int
+        Revision of the format the sequence is held as.
+    signature_type : str | None
+        Hash algorithm of the signature carried by the last file written, or
+        by the last binary file read: ``'md5'``, or None when it had none.
+    signature_file : str | None
+        Format that file was written in, ``'text'`` or ``'bin'``.
+    signature_value : str | None
+        The signature itself.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -261,6 +300,13 @@ class Sequence:
     def set_block(self, index: int, *events) -> None:
         """Write ``events`` over the block at ``index``, 1-based.
 
+        Parameters
+        ----------
+        index : int
+            The block to replace, 1-based.
+        *events
+            What the block plays from now on, as for `add_block`.
+
         Examples
         --------
         >>> import pypulseqpp as pp
@@ -275,6 +321,11 @@ class Sequence:
 
     def get_block(self, index: int) -> SimpleNamespace:
         """Decode a block by its 1-based index.
+
+        Parameters
+        ----------
+        index : int
+            The block to decode, 1-based.
 
         Returns
         -------
@@ -445,6 +496,13 @@ class Sequence:
     def set_definition(self, key: str, value) -> None:
         """Record ``key`` in `[DEFINITIONS]`.
 
+        Parameters
+        ----------
+        key : str
+            The definition's name.
+        value : str | float | Sequence[float]
+            What it says; a value already recorded under ``key`` is replaced.
+
         Examples
         --------
         >>> import pypulseqpp as pp
@@ -457,6 +515,16 @@ class Sequence:
 
     def get_definition(self, key: str):
         """Return what ``key`` says, or ``''`` if it is not defined.
+
+        Parameters
+        ----------
+        key : str
+            The definition's name.
+
+        Returns
+        -------
+        str | float | list[float]
+            The recorded value, or ``''`` when ``key`` is not defined.
 
         Examples
         --------
@@ -475,6 +543,12 @@ class Sequence:
 
     def copy_definitions(self, other_seq: Sequence) -> None:
         """Take every definition ``other_seq`` carries.
+
+        Parameters
+        ----------
+        other_seq : Sequence
+            The sequence to copy from. A definition both carry takes its
+            value.
 
         Examples
         --------
@@ -548,6 +622,11 @@ class Sequence:
 
         Nothing is appended when the system's ``flag_trid`` is False.
 
+        Parameters
+        ----------
+        label_name : str
+            What this repetition is called; see `get_or_create_trid_id`.
+
         Examples
         --------
         >>> import pypulseqpp as pp
@@ -612,6 +691,13 @@ class Sequence:
 
     def flip_grad_axis(self, axis: str) -> None:
         """Invert every gradient played on ``axis``.
+
+        Equivalent to ``mod_grad_axis(axis, -1)``.
+
+        Parameters
+        ----------
+        axis : {'x', 'y', 'z'}
+            Which axis to act on.
 
         Examples
         --------
@@ -725,11 +811,33 @@ class Sequence:
     ):
         """Return the gradient waveforms, the RF moments and the ADC sampling.
 
-        ``compat`` gives upstream's five values, which is what a drop-in
-        caller unpacks; False gives everything the pass worked out, including
-        the five RF uses those five values cannot carry.
+        Parameters
+        ----------
+        append_RF : bool, default False
+            Also return the RF envelope, as a fourth waveform channel.
+        time_range : Sequence[float], optional
+            Two times in seconds; only the blocks they touch are expanded.
+        block_range : Sequence[int], optional
+            Two 1-based block indices. Not with ``time_range``.
+        compat : bool, default True
+            Return upstream's five values, which is what a drop-in caller
+            unpacks. False returns everything the pass worked out, including
+            the five RF uses those five values cannot carry.
 
-        See :func:`pypulseqpp._waveforms.waveforms_and_times`.
+        Returns
+        -------
+        tuple | WaveformsAndTimes
+            With ``compat``: ``(wave_data, tfp_excitation, tfp_refocusing,
+            t_adc, fp_adc)``. Otherwise a named result whose ``waveforms``,
+            ``rf`` and ``adc`` carry every RF use tag, per-sample ADC phases
+            and the 1-based block each pulse and sample belongs to.
+
+        Notes
+        -----
+        Gradient channels are ``(2, n)`` arrays of time (s) and amplitude
+        (Hz/m); the optional RF channel is complex with amplitude in Hz. Block
+        rotations are applied. A time range keeps times measured from the
+        start of the scan; a block range restarts them at its first block.
 
         Examples
         --------
@@ -753,7 +861,21 @@ class Sequence:
     def waveforms(self, append_RF: bool = False, time_range=None, block_range=None):
         """Return gradient corners as time (s) over amplitude (Hz/m), per axis.
 
-        ``append_RF=True`` appends a complex RF channel in Hz.
+        Parameters
+        ----------
+        append_RF : bool, default False
+            Also return the RF envelope, as a fourth, complex channel in Hz.
+        time_range : Sequence[float], optional
+            Two times in seconds; only the blocks they touch are expanded.
+        block_range : Sequence[int], optional
+            Two 1-based block indices. Not with ``time_range``.
+
+        Returns
+        -------
+        list[NDArray]
+            One ``(2, n)`` array of time over amplitude per axis, empty where
+            an axis plays nothing, then the RF channel when asked for; the
+            first value `waveforms_and_times` returns.
 
         Examples
         --------
@@ -770,6 +892,19 @@ class Sequence:
     def adc_times(self, time_range=None):
         """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).
 
+        Parameters
+        ----------
+        time_range : Sequence[float], optional
+            Two times in seconds; only the blocks they touch are expanded.
+
+        Returns
+        -------
+        t_adc : NDArray[np.float64]
+            When every sample is taken, in seconds from the start of the scan.
+        fp_adc : NDArray[np.float64]
+            ``(n, 2)``, one row per ADC window rather than per sample:
+            frequency (Hz) and phase (rad) offsets, without ppm corrections.
+
         Examples
         --------
         >>> import pypulseqpp as pp
@@ -785,8 +920,22 @@ class Sequence:
     def rf_times(self, time_range=None, *, compat: bool = True):
         """Return when the pulses act, and at what frequency and phase.
 
-        ``compat`` gives upstream's four values, which describe two of
-        Pulseq's seven RF uses; False gives all seven.
+        Parameters
+        ----------
+        time_range : Sequence[float], optional
+            Two times in seconds; only the blocks they touch are expanded.
+        compat : bool, default True
+            Return upstream's four values, which describe two of Pulseq's
+            seven RF uses. False returns a named result covering all seven.
+
+        Returns
+        -------
+        tuple | RfTimes
+            With ``compat``: ``(t_excitation, fp_excitation, t_refocusing,
+            fp_refocusing)``. A pulse whose row records no use is counted as
+            an excitation, as upstream counts it. Otherwise a named result
+            carrying ``t``, ``freq_offset``, ``phase_offset``, ``use`` and
+            ``block`` for every pulse.
 
         Examples
         --------
@@ -824,9 +973,12 @@ class Sequence:
         k_traj : NDArray[np.float64]
             Full trajectory in 1/m, sampled through ramps and at event times.
         t_excitation : NDArray[np.float64]
+            Centre of each excitation pulse, in seconds from the start of the
+            selected range.
         t_refocusing : NDArray[np.float64]
+            Centre of each refocusing pulse, in seconds from the same origin.
         t_adc : NDArray[np.float64]
-            RF-centre and ADC times in seconds relative to the selected range.
+            Time of each ADC sample, in seconds from the same origin.
 
         Examples
         --------
@@ -871,9 +1023,29 @@ class Sequence:
     ):
         """Return physical-axis gradient splines in Hz/m over seconds.
 
-        Positive trajectory_delay advances the gradients. A scalar delay or
-        offset applies to all axes. Inactive axes with no offset return None.
-        Time and block ranges are mutually exclusive.
+        Parameters
+        ----------
+        trajectory_delay : float | Sequence[float], default 0
+            Timing correction in seconds, one value for all axes or one per
+            axis; positive values advance the gradients.
+        gradient_offset : float | Sequence[float], default 0
+            A background gradient in Hz/m, one value for all axes or one per
+            axis.
+        time_range : Sequence[float], optional
+            Two times in seconds; only the blocks they touch are expanded.
+        block_range : Sequence[int], optional
+            Two 1-based block indices. Not with ``time_range``.
+
+        Returns
+        -------
+        list[scipy.interpolate.PPoly | None]
+            One spline per axis, None where an axis plays nothing and has no
+            offset.
+
+        Warns
+        -----
+        UserWarning
+            When ``trajectory_delay`` exceeds 100 us on any axis.
 
         Examples
         --------
@@ -958,6 +1130,16 @@ class Sequence:
     def test_report(self) -> str:
         """Return a formatted sequence timing, encoding and gradient report.
 
+        Returns
+        -------
+        str
+            The statistics `test_report_dict` returns, one per line, with the
+            timing check's findings.
+
+        Notes
+        -----
+        Runs `check_timing`, which may record TotalDuration.
+
         Examples
         --------
         >>> import numpy as np
@@ -978,7 +1160,23 @@ class Sequence:
         return _report_text(_report_data(self))
 
     def test_report_dict(self) -> dict:
-        """Return timing, encoding and gradient statistics; see report_data.
+        """Return timing, encoding and gradient statistics.
+
+        Returns
+        -------
+        dict[str, Any]
+            ``num_blocks``, ``event_count`` and ``libraries``; ``duration``,
+            ``TE`` and ``TR`` in seconds; ``flip_angles_deg``;
+            ``unique_k_positions``; ``max_gradient`` and ``max_slew_rate``,
+            each per axis and as a vector magnitude, in the file's units and
+            in the scanner's; and ``timing_ok`` with ``timing_error_report``.
+            A sequence whose encoding visits more than one position also
+            carries ``dimensions``, ``spatial_resolution_mm``,
+            ``repetitions`` and ``is_cartesian``.
+
+        Notes
+        -----
+        Runs `check_timing`, which may record TotalDuration.
 
         Examples
         --------
@@ -1403,11 +1601,34 @@ class Sequence:
     def write_v141(
         self, name, create_signature: bool = True, gamma=42576000.0, field=1.5
     ) -> str | None:
-        """Write Pulseq 1.4.1 text, returning its MD5 signature or None.
+        """Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.
 
-        ``gamma`` is in Hz/T and ``field`` in T; together they convert ppm
-        offsets to absolute offsets. Soft delays are omitted with a warning.
-        Rotation and RF-shim extensions raise RuntimeError.
+        Parameters
+        ----------
+        name : str | os.PathLike[str]
+            Where to write it.
+        create_signature : bool, default True
+            Sign the file, so a reader can tell it has not been edited.
+        gamma : float, default 42576000.0
+            Gyromagnetic ratio in Hz/T.
+        field : float, default 1.5
+            Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1
+            has no column for, to absolute offsets.
+
+        Returns
+        -------
+        str | None
+            The MD5 signature written, or None if the file is unsigned.
+
+        Raises
+        ------
+        RuntimeError
+            If the sequence carries rotation or RF-shim extensions.
+
+        Warns
+        -----
+        UserWarning
+            When soft delays are omitted.
 
         Examples
         --------
@@ -1574,16 +1795,29 @@ class Sequence:
 
         Parameters
         ----------
-        label, show_blocks, save, time_disp, grad_disp, clear, overlay, stacked, show_guides
-            Upstream's, accepted so a script written for it runs. SeqEyes
-            draws units, labels and block edges its own way, from its own
-            settings; one given a value other than its default is reported
-            and ignored.
+        label : str, default ''
+            Upstream's ADC label display. Ignored.
+        show_blocks : bool, default False
+            Upstream's block-boundary grid. Ignored.
+        save : bool, default False
+            Upstream's figure saving. Ignored.
         time_range : Sequence[float], default (0, inf)
             The seconds to draw, measured from the start of the scan.
+        time_disp : {'s', 'ms', 'us'}, default 's'
+            Upstream's time unit. Ignored.
+        grad_disp : {'kHz/m', 'mT/m'}, default 'kHz/m'
+            Upstream's gradient unit. Ignored.
         plot_now : bool, default True
             Wait for the window to be closed before returning. When False,
             the window is left open and the returned viewer is live.
+        clear : bool, default True
+            Upstream's figure clearing. Ignored.
+        overlay : object, optional
+            Upstream's plot to overlay. Ignored.
+        stacked : bool, default False
+            Upstream's single stacked figure. Ignored.
+        show_guides : bool, default False
+            Upstream's cursor guides. Ignored.
         block_range : Sequence[int], optional
             The first and last block to draw, 1-based and inclusive.
         tr_range : Sequence[int], optional
@@ -1604,6 +1838,17 @@ class Sequence:
         ValueError
             If more than one range is given or a range is outside the
             sequence.
+
+        Warns
+        -----
+        UserWarning
+            When an ignored parameter is given a value other than its default.
+
+        Notes
+        -----
+        The ignored parameters are upstream's, accepted so a script written
+        for it runs: SeqEyes draws units, labels and block edges its own way,
+        from its own settings.
 
         Examples
         --------
@@ -1661,10 +1906,20 @@ class Sequence:
         time_range : Sequence[float], default (0, inf)
             Upstream's window, in seconds. Given, the blocks it touches are
             drawn alone, without repetitions underneath.
-        line_width, axes_color, rf_color, gx_color, gy_color, gz_color, rf_plot
-            Upstream's styling parameters, with mrsd's defaults: black events
-            on light-grey baselines. ``rf_color`` also draws the ADC;
-            ``rf_plot`` is ``"abs"``, ``"real"`` or ``"imag"``.
+        line_width : float, default 1.2
+            Width of every drawn line, in points.
+        axes_color : str | tuple[float, ...], default "0.9"
+            A Matplotlib colour for the baselines.
+        rf_color : str | tuple[float, ...], default "black"
+            A Matplotlib colour for the RF and ADC rows.
+        gx_color : str | tuple[float, ...], default "black"
+            A Matplotlib colour for the x gradient row.
+        gy_color : str | tuple[float, ...], default "black"
+            A Matplotlib colour for the y gradient row.
+        gz_color : str | tuple[float, ...], default "black"
+            A Matplotlib colour for the z gradient row.
+        rf_plot : {'abs', 'real', 'imag'}, default 'abs'
+            Which part of the RF waveform to draw.
         tr : int, optional
             1-based repetition to draw. By default, the one in which a
             physical axis reaches its largest magnitude.

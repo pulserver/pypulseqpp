@@ -99,22 +99,3 @@ Plotting
 
    ~Sequence.plot
    ~Sequence.paper_plot
-
-Properties
-----------
-
-.. autosummary::
-   :toctree:
-   :nosignatures:
-
-   ~Sequence.num_blocks
-   ~Sequence.block_events
-   ~Sequence.block_durations
-   ~Sequence.definitions
-   ~Sequence.grad_raster_time
-   ~Sequence.rf_raster_time
-   ~Sequence.adc_raster_time
-   ~Sequence.block_duration_raster
-   ~Sequence.version_major
-   ~Sequence.version_minor
-   ~Sequence.version_revision

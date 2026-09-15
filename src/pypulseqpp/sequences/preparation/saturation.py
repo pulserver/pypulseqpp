@@ -144,8 +144,13 @@ class MtPreparation(OffResonanceSaturation):
         of the bound pool is saturated.
     n_pulses : int, optional
         Pulses in the train.
-    spoiling_cycles, voxel_size_m, labels
-        As :class:`OffResonanceSaturation`.
+    spoiling_cycles : float, optional
+        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
+        Zero omits the spoiler.
+    voxel_size_m : float, optional
+        Length the dephasing is counted over (m).
+    labels : sequence of str, optional
+        Counters emitted on the first pulse's block.
 
     Attributes
     ----------
@@ -211,8 +216,13 @@ class IhMtPreparation(OffResonanceSaturation):
         Time-bandwidth product of each band.
     n_pulses : int, optional
         Pulses in the train.
-    spoiling_cycles, voxel_size_m, labels
-        As :class:`OffResonanceSaturation`.
+    spoiling_cycles : float, optional
+        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
+        Zero omits the spoiler.
+    voxel_size_m : float, optional
+        Length the dephasing is counted over (m).
+    labels : sequence of str, optional
+        Counters emitted on the first pulse's block.
 
     Attributes
     ----------
@@ -290,9 +300,15 @@ class BlochSiegertPreparation(OffResonanceSaturation):
         Width of each shoulder, as a fraction of the duration.
     dwell_s : float, optional
         RF raster (s).
-    n_pulses, spoiling_cycles, voxel_size_m, labels
-        As :class:`OffResonanceSaturation`. ``spoiling_cycles`` defaults to
-        zero here, for the reason above.
+    n_pulses : int, optional
+        Pulses in the train.
+    spoiling_cycles : float, optional
+        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
+        Zero, the default here, omits the spoiler, for the reason above.
+    voxel_size_m : float, optional
+        Length the dephasing is counted over (m).
+    labels : sequence of str, optional
+        Counters emitted on the pulse's block.
 
     Attributes
     ----------

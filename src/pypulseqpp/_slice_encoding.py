@@ -250,19 +250,49 @@ def make_pins_pulse(
 
     Parameters
     ----------
-    slice_thickness, slice_separation : float
-        In m.
+    flip_angle : float
+        Nominal flip angle (rad).
+    slice_thickness : float
+        Thickness of each slice (m).
+    slice_separation : float
+        Distance between slice centres (m); must exceed ``slice_thickness``.
+    time_bw_product : float, optional
+        Time-bandwidth product of the envelope.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+        Small-tip, excitation, spin-echo, inversion or saturation envelope.
+    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, optional
+        FIR design method of the envelope.
+    passband_ripple : float, optional
+        Ripple allowed in the passband.
+    stopband_ripple : float, optional
+        Ripple allowed in the stopband.
     max_b1 : float, optional
         Peak B1, in T; each subpulse is the shortest, on the gradient raster,
         that stays within it.
-    pulse_type, filter_type, time_bw_product, passband_ripple, stopband_ripple
-        The envelope's SLR design, as in :func:`make_slr_pulse`.
-    max_grad, max_slew : float, optional
-        Limits for the blips and the rephaser, in place of the system's.
+    delay : float, optional
+        Delay before the pulse (s).
+    freq_offset : float, optional
+        Frequency offset (Hz).
+    phase_offset : float, optional
+        Phase offset (rad).
+    max_grad : float, optional
+        Gradient limit for the blips and the rephaser, in place of the
+        system's.
+    max_slew : float, optional
+        Slew limit for the blips and the rephaser, in place of the system's.
+    system : pypulseq.Opts, optional
+        System limits.
+    use : str, optional
+        Pulseq ``use`` tag.
+    freq_ppm : float, optional
+        Field-strength-relative frequency offset.
+    phase_ppm : float, optional
+        Field-strength-relative phase offset.
 
     Returns
     -------
     rf : SimpleNamespace
+        The subpulse train.
     gz : SimpleNamespace
         The blip train, an extended trapezoid with the same delay as ``rf``.
     gzr : SimpleNamespace
