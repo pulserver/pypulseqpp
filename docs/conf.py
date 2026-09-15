@@ -34,6 +34,9 @@ autodoc_preserve_defaults = True
 
 napoleon_numpy_docstring = True
 napoleon_use_admonition_for_references = True
+# An Attributes section renders as a field list, as Parameters does, rather
+# than as one attribute directive per entry.
+napoleon_custom_sections = [("Attributes", "params_style")]
 
 pygments_style = "sphinx"
 highlight_language = "python"
