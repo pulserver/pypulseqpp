@@ -1168,11 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp"><code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp.system"><code class="docutils literal notranslate"><span class="pre">SequenceApp.system</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp.seq"><code class="docutils literal notranslate"><span class="pre">SequenceApp.seq</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp"><code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1193,7 +1189,7 @@
 <p>A complete sequence: its events and sampling, and the loop that plays them.</p>
 <p>Constructing an application designs it: <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> receives the
 prescription and builds the events and the sampling order. Nothing is
-played until <a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">design()</span></code></a>, which starts a new <a class="reference internal" href="#pypulseqpp.sequences.SequenceApp.seq" title="pypulseqpp.sequences.SequenceApp.seq"><code class="xref py py-attr docutils literal notranslate"><span class="pre">seq</span></code></a>, runs
+played until <a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">design()</span></code></a>, which starts a new <code class="xref py py-attr docutils literal notranslate"><span class="pre">seq</span></code>, runs
 <a class="reference internal" href="pypulseqpp.sequences.SequenceApp.loop.html#pypulseqpp.sequences.SequenceApp.loop" title="pypulseqpp.sequences.SequenceApp.loop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop()</span></code></a> – the scan loop, calling <a class="reference internal" href="pypulseqpp.sequences.SequenceApp.kernel.html#pypulseqpp.sequences.SequenceApp.kernel" title="pypulseqpp.sequences.SequenceApp.kernel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kernel()</span></code></a> once per
 repetition – and then <a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html#pypulseqpp.sequences.SequenceApp.finalize" title="pypulseqpp.sequences.SequenceApp.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a>. Calling the application plays
 one kernel call, so a single repetition or a chunk of the scan is written
@@ -1205,41 +1201,17 @@ setting:</p>
     <span class="n">MAX_SLEW</span> <span class="o">=</span> <span class="mf">120.0</span>
 </pre></div>
 </div>
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">MAX_GRAD,</span> <span class="pre">MAX_SLEW</span></span></dt>
-<dd><p>Gradient (mT/m) and slew (T/m/s) ceilings the sequence is held under,
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MAX_GRAD, MAX_SLEW</strong> (<em>float</em>) – Gradient (mT/m) and slew (T/m/s) ceilings the sequence is held under,
 together with what <code class="docutils literal notranslate"><span class="pre">system</span></code> reports. Every concrete application sets
-both; there is no default.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+both; there is no default.</p></li>
+<li><p><strong>system</strong> (<em>pypulseqpp.Opts</em>) – The limits the sequence was designed under.</p></li>
+<li><p><strong>seq</strong> (<em>pypulseqpp.Sequence</em>) – What has been played so far.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SequenceApp.system">
-<span class="sig-name descname"><span class="pre">system</span></span><a class="headerlink" href="#pypulseqpp.sequences.SequenceApp.system" title="Link to this definition">#</a></dt>
-<dd><p>The limits the sequence was designed under.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts">pypulseqpp.Opts</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SequenceApp.seq">
-<span class="sig-name descname"><span class="pre">seq</span></span><a class="headerlink" href="#pypulseqpp.sequences.SequenceApp.seq" title="Link to this definition">#</a></dt>
-<dd><p>What has been played so far.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <p class="rubric">Methods</p>
@@ -1345,11 +1317,7 @@ both; there is no default.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp"><code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp.system"><code class="docutils literal notranslate"><span class="pre">SequenceApp.system</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp.seq"><code class="docutils literal notranslate"><span class="pre">SequenceApp.seq</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceApp"><code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code></a></li>
 </ul>
   </nav></div>
 

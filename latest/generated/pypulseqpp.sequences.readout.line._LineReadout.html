@@ -1168,24 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout"><code class="docutils literal notranslate"><span class="pre">_LineReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.rf"><code class="docutils literal notranslate"><span class="pre">_LineReadout.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gz"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gz_reph"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_pre"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_pre</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_spoil"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_spoil</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_flyback"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_flyback</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_rev"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_rev</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.adc"><code class="docutils literal notranslate"><span class="pre">_LineReadout.adc</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.adc_labels"><code class="docutils literal notranslate"><span class="pre">_LineReadout.adc_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_te"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wait_te</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_tr"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wait_tr</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.echo_time"><code class="docutils literal notranslate"><span class="pre">_LineReadout.echo_time</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.center_sample"><code class="docutils literal notranslate"><span class="pre">_LineReadout.center_sample</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wave_amplitude"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wave_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout"><code class="docutils literal notranslate"><span class="pre">_LineReadout</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1211,219 +1194,43 @@ for the loop to scale per shot.</p>
 gives SSFP-FID, before it SSFP-Echo. In the latter case the FID trajectory
 reported by <code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code> need not cross k = 0; <code class="docutils literal notranslate"><span class="pre">echo_time</span></code> is
 still the timing interval.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.rf">
-<span class="sig-name descname"><span class="pre">rf</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.rf" title="Link to this definition">#</a></dt>
-<dd><p>The pulse the module was given.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gz" title="Link to this definition">#</a></dt>
-<dd><p>Its selection gradient, if one was given.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gz_reph">
-<span class="sig-name descname"><span class="pre">gz_reph</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gz_reph" title="Link to this definition">#</a></dt>
-<dd><p>Its rephaser, if one was given, left-aligned in whichever block follows
-the pulse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gx_pre">
-<span class="sig-name descname"><span class="pre">gx_pre</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_pre" title="Link to this definition">#</a></dt>
-<dd><p>Readout prephaser, right-aligned in the prewinder block. Carries the
-spoiler under <code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gx">
-<span class="sig-name descname"><span class="pre">gx</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gx" title="Link to this definition">#</a></dt>
-<dd><p>Readout lobe. A spoiler is bridged onto it when there is one echo: the
-lobe then lacks the ramp on the spoiler’s side, which <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code> or
-<code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> plays instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gx_spoil">
-<span class="sig-name descname"><span class="pre">gx_spoil</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_spoil" title="Link to this definition">#</a></dt>
-<dd><p>Closes the TR on the read axis: rewinds the part of the line after the
-echo and, under <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.
-Left-aligned with <code class="docutils literal notranslate"><span class="pre">gy_rew</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gy_pre,</span> <span class="pre">gz_pre</span></span></dt>
-<dd><p>Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
-is 3D only.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gy_rew,</span> <span class="pre">gz_rew</span></span></dt>
-<dd><p>The negated encodes that unwind them, for a balanced TR.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gx_flyback">
-<span class="sig-name descname"><span class="pre">gx_flyback</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_flyback" title="Link to this definition">#</a></dt>
-<dd><p>Rewinder played between echoes of a monopolar train.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.gx_rev">
-<span class="sig-name descname"><span class="pre">gx_rev</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_rev" title="Link to this definition">#</a></dt>
-<dd><p>The negated lobe that reads the even echoes of a bipolar train.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gy_wave,</span> <span class="pre">gz_wave</span></span></dt>
-<dd><p>The wave corkscrew under the flat top, each self-balanced so scaling
-one to zero changes nothing else. Only the channels <code class="docutils literal notranslate"><span class="pre">wave</span></code> drives.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.adc">
-<span class="sig-name descname"><span class="pre">adc</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.adc" title="Link to this definition">#</a></dt>
-<dd><p>The acquisition window, shared by every echo.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>AdcEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.adc_labels">
-<span class="sig-name descname"><span class="pre">adc_labels</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.adc_labels" title="Link to this definition">#</a></dt>
-<dd><p>One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>, in order. Absent when <code class="docutils literal notranslate"><span class="pre">labels</span></code> is empty,
-and a bare event rather than a list when there is one.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>LabelSetEvent or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of LabelSetEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.wait_te">
-<span class="sig-name descname"><span class="pre">wait_te</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_te" title="Link to this definition">#</a></dt>
-<dd><p>Present only when a TE longer than the minimum was asked for and the
-wait can hold <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code>; otherwise the prewinder block starts later.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DelayEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.wait_tr">
-<span class="sig-name descname"><span class="pre">wait_tr</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_tr" title="Link to this definition">#</a></dt>
-<dd><p>Present only when a TR longer than the minimum was asked for.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DelayEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.echo_time">
-<span class="sig-name descname"><span class="pre">echo_time</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.echo_time" title="Link to this definition">#</a></dt>
-<dd><p>From the RF isodelay to the first echo (s), on the block raster.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.center_sample">
-<span class="sig-name descname"><span class="pre">center_sample</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.center_sample" title="Link to this definition">#</a></dt>
-<dd><p>Index of the sample at the echo; partial echo moves it toward the
-start.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.line._LineReadout.wave_amplitude">
-<span class="sig-name descname"><span class="pre">wave_amplitude</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.line._LineReadout.wave_amplitude" title="Link to this definition">#</a></dt>
-<dd><p>Peak wave gradient achieved (T/m), below the requested one where the
-slew rate binds; zero without <code class="docutils literal notranslate"><span class="pre">wave</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse the module was given.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
+<li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given, left-aligned in whichever block follows
+the pulse.</p></li>
+<li><p><strong>gx_pre</strong> (<em>GradEvent</em>) – Readout prephaser, right-aligned in the prewinder block. Carries the
+spoiler under <code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>.</p></li>
+<li><p><strong>gx</strong> (<em>GradEvent</em>) – Readout lobe. A spoiler is bridged onto it when there is one echo: the
+lobe then lacks the ramp on the spoiler’s side, which <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code> or
+<code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> plays instead.</p></li>
+<li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Closes the TR on the read axis: rewinds the part of the line after the
+echo and, under <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.
+Left-aligned with <code class="docutils literal notranslate"><span class="pre">gy_rew</span></code>.</p></li>
+<li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
+is 3D only.</p></li>
+<li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The negated encodes that unwind them, for a balanced TR.</p></li>
+<li><p><strong>gx_flyback</strong> (<em>TrapEvent</em>) – Rewinder played between echoes of a monopolar train.</p></li>
+<li><p><strong>gx_rev</strong> (<em>GradEvent</em>) – The negated lobe that reads the even echoes of a bipolar train.</p></li>
+<li><p><strong>gy_wave, gz_wave</strong> (<em>GradEvent</em>) – The wave corkscrew under the flat top, each self-balanced so scaling
+one to zero changes nothing else. Only the channels <code class="docutils literal notranslate"><span class="pre">wave</span></code> drives.</p></li>
+<li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, shared by every echo.</p></li>
+<li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>, in order. Absent when <code class="docutils literal notranslate"><span class="pre">labels</span></code> is empty,
+and a bare event rather than a list when there is one.</p></li>
+<li><p><strong>wait_te</strong> (<em>DelayEvent</em>) – Present only when a TE longer than the minimum was asked for and the
+wait can hold <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code>; otherwise the prewinder block starts later.</p></li>
+<li><p><strong>wait_tr</strong> (<em>DelayEvent</em>) – Present only when a TR longer than the minimum was asked for.</p></li>
+<li><p><strong>echo_time</strong> (<em>float</em>) – From the RF isodelay to the first echo (s), on the block raster.</p></li>
+<li><p><strong>center_sample</strong> (<em>int</em>) – Index of the sample at the echo; partial echo moves it toward the
+start.</p></li>
+<li><p><strong>wave_amplitude</strong> (<em>float</em>) – Peak wave gradient achieved (T/m), below the requested one where the
+slew rate binds; zero without <code class="docutils literal notranslate"><span class="pre">wave</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>system</strong> (<em>pypulseq.Opts</em>) – System limits.</p></li>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse that opens the repetition.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em><em>, </em><em>optional</em>) – A selection gradient played in the same block as <code class="docutils literal notranslate"><span class="pre">rf</span></code>. Pass an
@@ -1464,8 +1271,8 @@ lower it, and <code class="docutils literal notranslate"><span class="pre">wave_
 <li><p><strong>trigger</strong> (<em>event</em><em>, </em><em>optional</em>) – A trigger or digital output armed on the prewinder block.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count or a fraction is out of range, <code class="docutils literal notranslate"><span class="pre">wave</span></code> is set on a 2D
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count or a fraction is out of range, <code class="docutils literal notranslate"><span class="pre">wave</span></code> is set on a 2D
     readout, <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code> shares a channel with an encoded axis, or the
     requested TE or TR is shorter than the module can achieve.</p>
 </dd>
@@ -1551,24 +1358,7 @@ lower it, and <code class="docutils literal notranslate"><span class="pre">wave_
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout"><code class="docutils literal notranslate"><span class="pre">_LineReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.rf"><code class="docutils literal notranslate"><span class="pre">_LineReadout.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gz"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gz_reph"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_pre"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_pre</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_spoil"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_spoil</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_flyback"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_flyback</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.gx_rev"><code class="docutils literal notranslate"><span class="pre">_LineReadout.gx_rev</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.adc"><code class="docutils literal notranslate"><span class="pre">_LineReadout.adc</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.adc_labels"><code class="docutils literal notranslate"><span class="pre">_LineReadout.adc_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_te"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wait_te</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wait_tr"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wait_tr</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.echo_time"><code class="docutils literal notranslate"><span class="pre">_LineReadout.echo_time</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.center_sample"><code class="docutils literal notranslate"><span class="pre">_LineReadout.center_sample</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout.wave_amplitude"><code class="docutils literal notranslate"><span class="pre">_LineReadout.wave_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.line._LineReadout"><code class="docutils literal notranslate"><span class="pre">_LineReadout</span></code></a></li>
 </ul>
   </nav></div>
 

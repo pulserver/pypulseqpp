@@ -1168,11 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule"><code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule.events"><code class="docutils literal notranslate"><span class="pre">SequenceModule.events</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule.center"><code class="docutils literal notranslate"><span class="pre">SequenceModule.center</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule"><code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1204,31 +1200,15 @@ one-element lists.</p>
 <li><p><strong>**kwargs</strong> – Forwarded to init_module.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SequenceModule.events">
-<span class="sig-name descname"><span class="pre">events</span></span><a class="headerlink" href="#pypulseqpp.sequences.SequenceModule.events" title="Link to this definition">#</a></dt>
-<dd><p>Published events. Use this namespace when a name conflicts with a
-module attribute; publication warns about conflicts.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="(in Python v3.14)">types.SimpleNamespace</a></p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>events</strong> (<em>types.SimpleNamespace</em>) – Published events. Use this namespace when a name conflicts with a
+module attribute; publication warns about conflicts.</p></li>
+<li><p><strong>center</strong> (<em>float</em>) – Timing reference in seconds from the module start, set by the
+subclass: typically an RF centre or an echo.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SequenceModule.center">
-<span class="sig-name descname"><span class="pre">center</span></span><a class="headerlink" href="#pypulseqpp.sequences.SequenceModule.center" title="Link to this definition">#</a></dt>
-<dd><p>Timing reference in seconds from the module start, set by the
-subclass: typically an RF centre or an echo.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 <p class="rubric">Notes</p>
 <p>blocks retains the original event objects for replay. Mutating those
 objects does not rewrite the stored sequence used for analysis.
@@ -1315,11 +1295,7 @@ are forwarded to seq.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule"><code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule.events"><code class="docutils literal notranslate"><span class="pre">SequenceModule.events</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule.center"><code class="docutils literal notranslate"><span class="pre">SequenceModule.center</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SequenceModule"><code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></li>
 </ul>
   </nav></div>
 

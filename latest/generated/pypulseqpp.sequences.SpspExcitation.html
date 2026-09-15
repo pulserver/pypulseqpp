@@ -1168,12 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation"><code class="docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.gz_reph</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation"><code class="docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1215,41 +1210,13 @@ total duration.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Pulseq RF-use tag, used by trajectory integration.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpspExcitation.rf">
-<span class="sig-name descname"><span class="pre">rf</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation.rf" title="Link to this definition">#</a></dt>
-<dd><p>The pulse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – The alternating selection gradient.</p></li>
+<li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – Its rephaser, only when needed, rephase=True and is_slab=False.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpspExcitation.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation.gz" title="Link to this definition">#</a></dt>
-<dd><p>The alternating selection gradient.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpspExcitation.gz_reph">
-<span class="sig-name descname"><span class="pre">gz_reph</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation.gz_reph" title="Link to this definition">#</a></dt>
-<dd><p>Its rephaser, only when needed, rephase=True and is_slab=False.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a size is not positive, <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not a gradient channel, or the
     requested selectivity exceeds a gradient limit.</p>
@@ -1357,12 +1324,7 @@ total duration.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation"><code class="docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SpspExcitation.gz_reph</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpspExcitation"><code class="docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a></li>
 </ul>
   </nav></div>
 

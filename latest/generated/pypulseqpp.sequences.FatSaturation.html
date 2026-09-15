@@ -1168,15 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.rf_prep"><code class="docutils literal notranslate"><span class="pre">FatSaturation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.gz"><code class="docutils literal notranslate"><span class="pre">FatSaturation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.prep_labels"><code class="docutils literal notranslate"><span class="pre">FatSaturation.prep_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.reset_labels"><code class="docutils literal notranslate"><span class="pre">FatSaturation.reset_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.freq_offset_ppm"><code class="docutils literal notranslate"><span class="pre">FatSaturation.freq_offset_ppm</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.freq_offset_hz"><code class="docutils literal notranslate"><span class="pre">FatSaturation.freq_offset_hz</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1225,87 +1217,19 @@ it into new waveforms. Only <code class="docutils literal notranslate"><span cla
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Length the dephasing is counted over (m).</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.rf_prep">
-<span class="sig-name descname"><span class="pre">rf_prep</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.rf_prep" title="Link to this definition">#</a></dt>
-<dd><p>The saturation pulse, as placed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse, as placed.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient. Only when <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> was given, and named
+for the logical axis whatever <code class="docutils literal notranslate"><span class="pre">axis</span></code> was.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
+<li><p><strong>prep_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>, set on the first block.</p></li>
+<li><p><strong>reset_labels</strong> (<em>list of LabelSetEvent</em>) – The same two cleared, on the last.</p></li>
+<li><p><strong>freq_offset_ppm</strong> (<em>float</em>) – The fat offset the pulse carries (ppm).</p></li>
+<li><p><strong>freq_offset_hz</strong> (<em>float</em>) – What that comes to at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz), for reference; the pulse
+itself is field-independent.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.gz" title="Link to this definition">#</a></dt>
-<dd><p>Its selection gradient. Only when <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> was given, and named
-for the logical axis whatever <code class="docutils literal notranslate"><span class="pre">axis</span></code> was.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gx_spoil,</span> <span class="pre">gy_spoil,</span> <span class="pre">gz_spoil</span></span></dt>
-<dd><p>Closing spoiler on all three axes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.prep_labels">
-<span class="sig-name descname"><span class="pre">prep_labels</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.prep_labels" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>, set on the first block.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of LabelSetEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.reset_labels">
-<span class="sig-name descname"><span class="pre">reset_labels</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.reset_labels" title="Link to this definition">#</a></dt>
-<dd><p>The same two cleared, on the last.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of LabelSetEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.freq_offset_ppm">
-<span class="sig-name descname"><span class="pre">freq_offset_ppm</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.freq_offset_ppm" title="Link to this definition">#</a></dt>
-<dd><p>The fat offset the pulse carries (ppm).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.freq_offset_hz">
-<span class="sig-name descname"><span class="pre">freq_offset_hz</span></span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.freq_offset_hz" title="Link to this definition">#</a></dt>
-<dd><p>What that comes to at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz), for reference; the pulse
-itself is field-independent.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a bandwidth, thickness or voxel size is not positive, <code class="docutils literal notranslate"><span class="pre">axis</span></code> is
     not a gradient channel, the spoiler was asked for zero cycles, or a
@@ -1408,15 +1332,7 @@ itself is field-independent.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.rf_prep"><code class="docutils literal notranslate"><span class="pre">FatSaturation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.gz"><code class="docutils literal notranslate"><span class="pre">FatSaturation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.prep_labels"><code class="docutils literal notranslate"><span class="pre">FatSaturation.prep_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.reset_labels"><code class="docutils literal notranslate"><span class="pre">FatSaturation.reset_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.freq_offset_ppm"><code class="docutils literal notranslate"><span class="pre">FatSaturation.freq_offset_ppm</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation.freq_offset_hz"><code class="docutils literal notranslate"><span class="pre">FatSaturation.freq_offset_hz</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
 </ul>
   </nav></div>
 

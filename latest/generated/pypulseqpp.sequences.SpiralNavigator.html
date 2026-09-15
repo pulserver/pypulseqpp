@@ -1168,13 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.excitation"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.excitation</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.readout"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.readout</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.rotations"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.rotations</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.plane_duration"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.plane_duration</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1213,51 +1207,15 @@ and the pose estimate to come back before the next navigator.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Spoiler moment at the end of each plane, in cycles across the slab.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpiralNavigator.excitation">
-<span class="sig-name descname"><span class="pre">excitation</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpiralNavigator.excitation" title="Link to this definition">#</a></dt>
-<dd><p>The pulse every plane is opened by.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation">SpatialSelectiveExcitation</a></p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>excitation</strong> (<em>SpatialSelectiveExcitation</em>) – The pulse every plane is opened by.</p></li>
+<li><p><strong>readout</strong> (<em>SpiralReadout2D</em>) – The designed interleave every plane plays.</p></li>
+<li><p><strong>rotations</strong> (<em>dict</em>) – The rotation carried by each plane’s blocks, keyed by plane name.</p></li>
+<li><p><strong>plane_duration</strong> (<em>float</em>) – Length of one plane (s).</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpiralNavigator.readout">
-<span class="sig-name descname"><span class="pre">readout</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpiralNavigator.readout" title="Link to this definition">#</a></dt>
-<dd><p>The designed interleave every plane plays.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D">SpiralReadout2D</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpiralNavigator.rotations">
-<span class="sig-name descname"><span class="pre">rotations</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpiralNavigator.rotations" title="Link to this definition">#</a></dt>
-<dd><p>The rotation carried by each plane’s blocks, keyed by plane name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpiralNavigator.plane_duration">
-<span class="sig-name descname"><span class="pre">plane_duration</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpiralNavigator.plane_duration" title="Link to this definition">#</a></dt>
-<dd><p>Length of one plane (s).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 <p class="rubric">Examples</p>
 <p>The three planes are one designed arm under three rotations, so the module
 holds one waveform however many planes it plays:</p>
@@ -1356,13 +1314,7 @@ holds one waveform however many planes it plays:</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.excitation"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.excitation</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.readout"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.readout</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.rotations"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.rotations</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator.plane_duration"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator.plane_duration</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpiralNavigator"><code class="docutils literal notranslate"><span class="pre">SpiralNavigator</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -1168,17 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.rf"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz_reph"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz_spoil"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz_spoil</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.adc"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.adc</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.adc_labels"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.adc_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.trajectory"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.trajectory</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.echo_spacing"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.echo_spacing</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1200,165 +1190,29 @@
 <p>Nonzero k-space endpoints require prewinder or rewinder blocks. A
 subclass supplies a NonCartesianGradient; the acquisition loop controls
 per-shot orientation.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.rf">
-<span class="sig-name descname"><span class="pre">rf</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.rf" title="Link to this definition">#</a></dt>
-<dd><p>The pulse the module was given.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.gz" title="Link to this definition">#</a></dt>
-<dd><p>Its selection gradient, if one was given.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.gz_reph">
-<span class="sig-name descname"><span class="pre">gz_reph</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.gz_reph" title="Link to this definition">#</a></dt>
-<dd><p>Its rephaser, if one was given, left-aligned in whichever block follows
-the pulse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gx,</span> <span class="pre">gy</span></span></dt>
-<dd><p>The interleave. Lists of one entry per angle when <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gx_pre,</span> <span class="pre">gy_pre</span></span></dt>
-<dd><p>Bridges reaching the start of the path, when it is not k = 0.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gx_rew,</span> <span class="pre">gy_rew</span></span></dt>
-<dd><p>Bridges returning to k = 0, when the path does not end there.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gz_pre,</span> <span class="pre">gz_rew</span></span></dt>
-<dd><p>Partition encode and its rewinder. Stacks only.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.gz_spoil">
-<span class="sig-name descname"><span class="pre">gz_spoil</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.gz_spoil" title="Link to this definition">#</a></dt>
-<dd><p>End-of-TR spoiler, when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.adc">
-<span class="sig-name descname"><span class="pre">adc</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.adc" title="Link to this definition">#</a></dt>
-<dd><p>The acquisition window.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>AdcEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.adc_labels">
-<span class="sig-name descname"><span class="pre">adc_labels</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.adc_labels" title="Link to this definition">#</a></dt>
-<dd><p>One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>; a bare event when there is one.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>LabelEvent | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a>[LabelEvent]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">wait_te,</span> <span class="pre">wait_tr</span></span></dt>
-<dd><p>Present only when a TE or TR longer than the minimum was asked for.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DelayEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">wait_pre,</span> <span class="pre">wait_rew</span></span></dt>
-<dd><p>Pads setting the span of the prewinder and rewinder blocks, which can
-outlast their gradients. Absent when that block is not played.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DelayEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.trajectory">
-<span class="sig-name descname"><span class="pre">trajectory</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.trajectory" title="Link to this definition">#</a></dt>
-<dd><p>The designed interleave, for its <code class="docutils literal notranslate"><span class="pre">trajectory</span></code> array and timings.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NonCartesianGradient</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianReadout.echo_spacing">
-<span class="sig-name descname"><span class="pre">echo_spacing</span></span><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianReadout.echo_spacing" title="Link to this definition">#</a></dt>
-<dd><p>Time between consecutive echoes (s), zero for a single-echo readout.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse the module was given.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
+<li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given, left-aligned in whichever block follows
+the pulse.</p></li>
+<li><p><strong>gx, gy</strong> (<em>GradEvent</em>) – The interleave. Lists of one entry per angle when <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p></li>
+<li><p><strong>gx_pre, gy_pre</strong> (<em>GradEvent</em>) – Bridges reaching the start of the path, when it is not k = 0.</p></li>
+<li><p><strong>gx_rew, gy_rew</strong> (<em>GradEvent</em>) – Bridges returning to k = 0, when the path does not end there.</p></li>
+<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Partition encode and its rewinder. Stacks only.</p></li>
+<li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – End-of-TR spoiler, when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
+<li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window.</p></li>
+<li><p><strong>adc_labels</strong> (<em>LabelEvent | list[LabelEvent]</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>; a bare event when there is one.</p></li>
+<li><p><strong>wait_te, wait_tr</strong> (<em>DelayEvent</em>) – Present only when a TE or TR longer than the minimum was asked for.</p></li>
+<li><p><strong>wait_pre, wait_rew</strong> (<em>DelayEvent</em>) – Pads setting the span of the prewinder and rewinder blocks, which can
+outlast their gradients. Absent when that block is not played.</p></li>
+<li><p><strong>trajectory</strong> (<em>NonCartesianGradient</em>) – The designed interleave, for its <code class="docutils literal notranslate"><span class="pre">trajectory</span></code> array and timings.</p></li>
+<li><p><strong>echo_spacing</strong> (<em>float</em>) – Time between consecutive echoes (s), zero for a single-echo readout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits.</p></li>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse that opens the repetition.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em><em>, </em><em>optional</em>) – A selection gradient played in the same block as <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
@@ -1485,17 +1339,7 @@ otherwise.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.rf"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz_reph"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.gz_spoil"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.gz_spoil</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.adc"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.adc</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.adc_labels"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.adc_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.trajectory"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.trajectory</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout.echo_spacing"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout.echo_spacing</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianReadout"><code class="docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a></li>
 </ul>
   </nav></div>
 

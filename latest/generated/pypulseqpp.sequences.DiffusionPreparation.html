@@ -1168,16 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_prep"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_ref"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_ref</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_store"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_store</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.g_diff"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.g_diff</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.prep_labels"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.prep_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.b_value"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.b_value</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.max_b_value"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.max_b_value</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1216,109 +1207,21 @@ everything else is reached by scaling down.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Counters emitted on the first pulse’s block.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.rf_prep">
-<span class="sig-name descname"><span class="pre">rf_prep</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.rf_prep" title="Link to this definition">#</a></dt>
-<dd><p>The 90 that tips down.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The 90 that tips down.</p></li>
+<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The 180 between the lobes.</p></li>
+<li><p><strong>rf_store</strong> (<em>RfEvent</em>) – The 90 that stores what is left.</p></li>
+<li><p><strong>g_diff</strong> (<em>TrapEvent</em>) – The diffusion lobe, published once because both sides play the same
+event. Scale it per b-value, rotate it per direction.</p></li>
+<li><p><strong>wait_first, wait_last</strong> (<em>DelayEvent</em>) – The gaps before and after the refocusing pulse, each absent when the
+timing leaves none.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – The closing spoiler.</p></li>
+<li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
+<li><p><strong>b_value</strong> (<em>float</em>) – The design b-value achieved (s/mm^2).</p></li>
+<li><p><strong>max_b_value</strong> (<em>float</em>) – What this timing could reach at full gradient amplitude (s/mm^2).</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.rf_ref">
-<span class="sig-name descname"><span class="pre">rf_ref</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.rf_ref" title="Link to this definition">#</a></dt>
-<dd><p>The 180 between the lobes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.rf_store">
-<span class="sig-name descname"><span class="pre">rf_store</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.rf_store" title="Link to this definition">#</a></dt>
-<dd><p>The 90 that stores what is left.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.g_diff">
-<span class="sig-name descname"><span class="pre">g_diff</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.g_diff" title="Link to this definition">#</a></dt>
-<dd><p>The diffusion lobe, published once because both sides play the same
-event. Scale it per b-value, rotate it per direction.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">wait_first,</span> <span class="pre">wait_last</span></span></dt>
-<dd><p>The gaps before and after the refocusing pulse, each absent when the
-timing leaves none.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DelayEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">gx_spoil,</span> <span class="pre">gy_spoil,</span> <span class="pre">gz_spoil</span></span></dt>
-<dd><p>The closing spoiler.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.prep_labels">
-<span class="sig-name descname"><span class="pre">prep_labels</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.prep_labels" title="Link to this definition">#</a></dt>
-<dd><p>One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>LabelSetEvent or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of LabelSetEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.b_value">
-<span class="sig-name descname"><span class="pre">b_value</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.b_value" title="Link to this definition">#</a></dt>
-<dd><p>The design b-value achieved (s/mm^2).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.DiffusionPreparation.max_b_value">
-<span class="sig-name descname"><span class="pre">max_b_value</span></span><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation.max_b_value" title="Link to this definition">#</a></dt>
-<dd><p>What this timing could reach at full gradient amplitude (s/mm^2).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a duration is out of order, the separation cannot hold the
     refocusing pulse, or the b-value exceeds what the system can reach –
@@ -1423,16 +1326,7 @@ timing leaves none.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_prep"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_ref"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_ref</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.rf_store"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.rf_store</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.g_diff"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.g_diff</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.prep_labels"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.prep_labels</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.b_value"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.b_value</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation.max_b_value"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation.max_b_value</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.DiffusionPreparation"><code class="docutils literal notranslate"><span class="pre">DiffusionPreparation</span></code></a></li>
 </ul>
   </nav></div>
 

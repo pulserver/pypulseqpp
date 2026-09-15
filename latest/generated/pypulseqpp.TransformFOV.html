@@ -1168,11 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV"><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV.block_k_origin"><code class="docutils literal notranslate"><span class="pre">TransformFOV.block_k_origin</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV.swept_k"><code class="docutils literal notranslate"><span class="pre">TransformFOV.swept_k</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV"><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1206,31 +1202,15 @@ converted to logical coordinates using the transpose of its rotation.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>optional</em>) – Stored for compatibility; not used to validate transformed events.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.TransformFOV.block_k_origin">
-<span class="sig-name descname"><span class="pre">block_k_origin</span></span><a class="headerlink" href="#pypulseqpp.TransformFOV.block_k_origin" title="Link to this definition">#</a></dt>
-<dd><p>Logical k-space position entering the next processed range, in 1/m.
-Reset at excitation and inverted at refocusing, at the RF centre.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>]</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>block_k_origin</strong> (<em>tuple[float, float, float]</em>) – Logical k-space position entering the next processed range, in 1/m.
+Reset at excitation and inverted at refocusing, at the RF centre.</p></li>
+<li><p><strong>swept_k</strong> (<em>tuple[float, float, float]</em>) – Cumulative logical gradient area, in 1/m, without RF resets.
+RF and ADC shift phases share this reference.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.TransformFOV.swept_k">
-<span class="sig-name descname"><span class="pre">swept_k</span></span><a class="headerlink" href="#pypulseqpp.TransformFOV.swept_k" title="Link to this definition">#</a></dt>
-<dd><p>Cumulative logical gradient area, in 1/m, without RF resets.
-RF and ADC shift phases share this reference.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>]</p>
-</dd>
-</dl>
-</dd></dl>
-
 <p class="rubric">Notes</p>
 <p>A nonzero translation updates both state vectors. Reuse them only for consecutive
 ranges; initialise them to the state entering the first selected block.
@@ -1311,11 +1291,7 @@ Block ranges do not automatically integrate preceding blocks.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV"><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV.block_k_origin"><code class="docutils literal notranslate"><span class="pre">TransformFOV.block_k_origin</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV.swept_k"><code class="docutils literal notranslate"><span class="pre">TransformFOV.swept_k</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.TransformFOV"><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></li>
 </ul>
   </nav></div>
 

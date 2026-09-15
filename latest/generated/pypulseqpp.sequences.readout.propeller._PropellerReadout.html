@@ -1168,13 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_angles"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_angles</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_start"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_start</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_width"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_width</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.n_blades"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.n_blades</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1196,64 +1190,20 @@
 <p>Each blade is blade_width phase-encode lines wide and spans the readout
 matrix. Scale gy_pre by blade_start and apply the blade’s rotation to
 its encoding gradients. Slice and partition axes remain along z.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_angles">
-<span class="sig-name descname"><span class="pre">blade_angles</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_angles" title="Link to this definition">#</a></dt>
-<dd><p>In-plane angles (rad), one per blade. Turn about <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_start">
-<span class="sig-name descname"><span class="pre">blade_start</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_start" title="Link to this definition">#</a></dt>
-<dd><p>What to scale <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code> by to put the blade astride <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">0</span></code>. It does
-not vary: a blade is centred by construction, so only the angle moves.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_width">
-<span class="sig-name descname"><span class="pre">blade_width</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_width" title="Link to this definition">#</a></dt>
-<dd><p>Phase-encode lines in one blade.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.readout.propeller._PropellerReadout.n_blades">
-<span class="sig-name descname"><span class="pre">n_blades</span></span><a class="headerlink" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.n_blades" title="Link to this definition">#</a></dt>
-<dd><p>Blades in the set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">Everything</span> <span class="pre">else</span> <span class="pre">--</span> <span class="pre">``gx``,</span> <span class="pre">``gy_blips``,</span> <span class="pre">``adc``,</span> <span class="pre">``esp``</span> <span class="pre">and</span> <span class="pre">the</span> <span class="pre">rest</span> <span class="pre">--</span></span></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">is</span> <span class="pre">:class:`~pypulseqpp.sequences.EpiReadout2D`'s,</span> <span class="pre">the</span> <span class="pre">blade</span> <span class="pre">being</span> <span class="pre">an</span> <span class="pre">EPI</span> <span class="pre">train.</span></span></dt>
-<dd></dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>blade_angles</strong> (<em>numpy.ndarray</em>) – In-plane angles (rad), one per blade. Turn about <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p></li>
+<li><p><strong>blade_start</strong> (<em>float</em>) – What to scale <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code> by to put the blade astride <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">0</span></code>. It does
+not vary: a blade is centred by construction, so only the angle moves.</p></li>
+<li><p><strong>blade_width</strong> (<em>int</em>) – Phase-encode lines in one blade.</p></li>
+<li><p><strong>n_blades</strong> (<em>int</em>) – Blades in the set.</p></li>
+<li><p><strong>Everything else – ``gx``, ``gy_blips``, ``adc``, ``esp`` and the rest –</strong></p></li>
+<li><p><strong>is :class:`~pypulseqpp.sequences.EpiReadout2D`’s, the blade being an EPI train.</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>system</strong> (<em>pypulseq.Opts</em>) – System limits.</p></li>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse that opens the repetition.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em><em>, </em><em>optional</em>) – A selection gradient played in the same block as <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
@@ -1276,8 +1226,8 @@ only, where they are required.</p></li>
 only, where they are required.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count is out of range, <code class="docutils literal notranslate"><span class="pre">scheme</span></code> is unknown, or <code class="docutils literal notranslate"><span class="pre">angles</span></code> is
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count is out of range, <code class="docutils literal notranslate"><span class="pre">scheme</span></code> is unknown, or <code class="docutils literal notranslate"><span class="pre">angles</span></code> is
     given alongside a count it would contradict.</p>
 </dd>
 </dl>
@@ -1362,13 +1312,7 @@ only, where they are required.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_angles"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_angles</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_start"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_start</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.blade_width"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.blade_width</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout.n_blades"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout.n_blades</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.readout.propeller._PropellerReadout"><code class="docutils literal notranslate"><span class="pre">_PropellerReadout</span></code></a></li>
 </ul>
   </nav></div>
 

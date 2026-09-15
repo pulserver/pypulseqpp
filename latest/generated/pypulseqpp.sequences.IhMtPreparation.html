@@ -1168,11 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation.rf_prep"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation.band_offsets_hz"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation.band_offsets_hz</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1210,30 +1206,12 @@ Zero omits the spoiler.</p></li>
 <li><p><strong>labels</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – Counters emitted on the first pulse’s block.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.IhMtPreparation.rf_prep">
-<span class="sig-name descname"><span class="pre">rf_prep</span></span><a class="headerlink" href="#pypulseqpp.sequences.IhMtPreparation.rf_prep" title="Link to this definition">#</a></dt>
-<dd><p>The dual-band pulse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The dual-band pulse.</p></li>
+<li><p><strong>band_offsets_hz</strong> (<em>NDArray[np.float64]</em>) – Where the two bands actually landed (Hz), for a spectral check.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.IhMtPreparation.band_offsets_hz">
-<span class="sig-name descname"><span class="pre">band_offsets_hz</span></span><a class="headerlink" href="#pypulseqpp.sequences.IhMtPreparation.band_offsets_hz" title="Link to this definition">#</a></dt>
-<dd><p>Where the two bands actually landed (Hz), for a spectral check.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray[np.float64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">freq_offset_hz</span></code> is not positive or a duration is not positive.</p>
 </dd>
@@ -1330,11 +1308,7 @@ Zero omits the spoiler.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation.rf_prep"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation.rf_prep</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation.band_offsets_hz"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation.band_offsets_hz</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.IhMtPreparation"><code class="docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></li>
 </ul>
   </nav></div>
 

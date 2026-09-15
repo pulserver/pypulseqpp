@@ -1168,12 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.rf_ref"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.rf_ref</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.gz"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.selection_amplitude"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.selection_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1213,42 +1208,14 @@ refocusing pulse.</p></li>
 <li><p><strong>stopband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Ripple allowed in each band of the slice profile.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveRefocusing.rf_ref">
-<span class="sig-name descname"><span class="pre">rf_ref</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.rf_ref" title="Link to this definition">#</a></dt>
-<dd><p>The refocusing pulse, delayed onto the plateau between the crushers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The refocusing pulse, delayed onto the plateau between the crushers.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – Crusher, selection plateau and crusher, as one gradient.</p></li>
+<li><p><strong>selection_amplitude</strong> (<em>float</em>) – Plateau amplitude of the selection lobe (Hz/m), which a slice offset
+is converted against; <code class="docutils literal notranslate"><span class="pre">gz.amplitude</span></code> is the crushers’ peak.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveRefocusing.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.gz" title="Link to this definition">#</a></dt>
-<dd><p>Crusher, selection plateau and crusher, as one gradient.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveRefocusing.selection_amplitude">
-<span class="sig-name descname"><span class="pre">selection_amplitude</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.selection_amplitude" title="Link to this definition">#</a></dt>
-<dd><p>Plateau amplitude of the selection lobe (Hz/m), which a slice offset
-is converted against; <code class="docutils literal notranslate"><span class="pre">gz.amplitude</span></code> is the crushers’ peak.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a thickness, duration or voxel size is not positive, <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not
     a gradient channel, or <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is negative.</p>
@@ -1346,12 +1313,7 @@ is converted against; <code class="docutils literal notranslate"><span class="pr
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.rf_ref"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.rf_ref</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.gz"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing.selection_amplitude"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing.selection_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a></li>
 </ul>
   </nav></div>
 

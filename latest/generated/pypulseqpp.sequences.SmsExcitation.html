@@ -1168,15 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation"><code class="docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.band_offsets_hz"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.band_offsets_hz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.band_positions_m"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.band_positions_m</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.peak_ratio"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.peak_ratio</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation"><code class="docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1214,74 +1206,16 @@ every band in phase, which is the worst case for peak B1.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Pulseq RF-use tag, used by trajectory integration.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.rf">
-<span class="sig-name descname"><span class="pre">rf</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.rf" title="Link to this definition">#</a></dt>
-<dd><p>The modulated pulse.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The modulated pulse.</p></li>
+<li><p><strong>gz</strong> (<em>TrapEvent</em>) – The selection gradient.</p></li>
+<li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – Its rephaser, only when <code class="docutils literal notranslate"><span class="pre">rephase=True</span></code>.</p></li>
+<li><p><strong>band_offsets_hz</strong> (<em>numpy.ndarray</em>) – Band frequency offsets (Hz), symmetric about zero.</p></li>
+<li><p><strong>band_positions_m</strong> (<em>numpy.ndarray</em>) – Slice centre positions (m).</p></li>
+<li><p><strong>peak_ratio</strong> (<em>float</em>) – Peak B1 relative to the single-band pulse the bands were made from.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.gz" title="Link to this definition">#</a></dt>
-<dd><p>The selection gradient.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.gz_reph">
-<span class="sig-name descname"><span class="pre">gz_reph</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.gz_reph" title="Link to this definition">#</a></dt>
-<dd><p>Its rephaser, only when <code class="docutils literal notranslate"><span class="pre">rephase=True</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.band_offsets_hz">
-<span class="sig-name descname"><span class="pre">band_offsets_hz</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.band_offsets_hz" title="Link to this definition">#</a></dt>
-<dd><p>Band frequency offsets (Hz), symmetric about zero.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.band_positions_m">
-<span class="sig-name descname"><span class="pre">band_positions_m</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.band_positions_m" title="Link to this definition">#</a></dt>
-<dd><p>Slice centre positions (m).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SmsExcitation.peak_ratio">
-<span class="sig-name descname"><span class="pre">peak_ratio</span></span><a class="headerlink" href="#pypulseqpp.sequences.SmsExcitation.peak_ratio" title="Link to this definition">#</a></dt>
-<dd><p>Peak B1 relative to the single-band pulse the bands were made from.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a size is not positive, <code class="docutils literal notranslate"><span class="pre">n_bands</span></code> is below one, or <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not
     a gradient channel.</p>
@@ -1389,15 +1323,7 @@ every band in phase, which is the worst case for peak B1.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation"><code class="docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.band_offsets_hz"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.band_offsets_hz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.band_positions_m"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.band_positions_m</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation.peak_ratio"><code class="docutils literal notranslate"><span class="pre">SmsExcitation.peak_ratio</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SmsExcitation"><code class="docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a></li>
 </ul>
   </nav></div>
 

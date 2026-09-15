@@ -1168,13 +1168,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.selection_amplitude"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.selection_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -1215,53 +1209,15 @@ refocusing pulse.</p></li>
 <li><p><strong>stopband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Ripple allowed in each band of the slice profile.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveExcitation.rf">
-<span class="sig-name descname"><span class="pre">rf</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.rf" title="Link to this definition">#</a></dt>
-<dd><p>The pulse. Its <code class="docutils literal notranslate"><span class="pre">delay</span></code> already places it on the gradient’s flat top.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>RfEvent</p>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse. Its <code class="docutils literal notranslate"><span class="pre">delay</span></code> already places it on the gradient’s flat top.</p></li>
+<li><p><strong>gz</strong> (<em>TrapEvent or GradEvent</em>) – The selection gradient; under <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> the rephaser is part of it.</p></li>
+<li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – The rephaser. Only when not <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> and <code class="docutils literal notranslate"><span class="pre">rephase</span></code>.</p></li>
+<li><p><strong>selection_amplitude</strong> (<em>float</em>) – Plateau amplitude of the selection lobe (Hz/m), which a slice offset
+is converted against: <code class="docutils literal notranslate"><span class="pre">freq_offset</span> <span class="pre">=</span> <span class="pre">selection_amplitude</span> <span class="pre">*</span> <span class="pre">position</span></code>.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveExcitation.gz">
-<span class="sig-name descname"><span class="pre">gz</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz" title="Link to this definition">#</a></dt>
-<dd><p>The selection gradient; under <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> the rephaser is part of it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent or GradEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveExcitation.gz_reph">
-<span class="sig-name descname"><span class="pre">gz_reph</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz_reph" title="Link to this definition">#</a></dt>
-<dd><p>The rephaser. Only when not <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> and <code class="docutils literal notranslate"><span class="pre">rephase</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TrapEvent</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSelectiveExcitation.selection_amplitude">
-<span class="sig-name descname"><span class="pre">selection_amplitude</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.selection_amplitude" title="Link to this definition">#</a></dt>
-<dd><p>Plateau amplitude of the selection lobe (Hz/m), which a slice offset
-is converted against: <code class="docutils literal notranslate"><span class="pre">freq_offset</span> <span class="pre">=</span> <span class="pre">selection_amplitude</span> <span class="pre">*</span> <span class="pre">position</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> or <code class="docutils literal notranslate"><span class="pre">duration_s</span></code> is not positive, or <code class="docutils literal notranslate"><span class="pre">axis</span></code> is
     not a gradient channel.</p>
@@ -1364,13 +1320,7 @@ is converted against: <code class="docutils literal notranslate"><span class="pr
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.rf"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.rf</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.gz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.gz_reph"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.gz_reph</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation.selection_amplitude"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation.selection_amplitude</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a></li>
 </ul>
   </nav></div>
 
