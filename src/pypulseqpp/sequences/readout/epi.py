@@ -645,8 +645,7 @@ def _area(event: Any) -> float:
 class EpiReadout2D(_EpiReadout):
     """A single- or multi-shot EPI train, frequency-encoded along x.
 
-    ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`~pypulseqpp.sequences.readout.epi._EpiReadout` for the ordering, timing and spoiling arguments.
+    ``fov`` and ``matrix`` take two values, readout first.
 
     Examples
     --------

@@ -64,8 +64,8 @@ def test_hard_pulse_flip_angle_is_the_envelope_integral(system):
     assert flip_deg == pytest.approx(90.0, rel=1e-2)
 
 
-def test_inversion_is_adiabatic_and_carries_no_gradient(system):
-    inversion = design.Inversion(system, duration_s=8e-3)
+def test_an_uncrushed_inversion_is_adiabatic_and_carries_no_gradient(system):
+    inversion = design.InversionPreparation(system, duration_s=8e-3, spoiling_cycles=0)
     assert len(inversion.blocks) == 1
     assert inversion.rf_prep.use == "inversion"
     assert inversion.duration == pytest.approx(8e-3)

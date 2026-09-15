@@ -402,8 +402,9 @@ class RadialProjectionReadout(_RadialReadout):
 class NonCartesianReadout(_ArmedReadout):
     """A solved interleave with moment bridges and a repetition-time budget.
 
-    Nonzero k-space endpoints require prewinder or rewinder blocks. A
-    subclass supplies a NonCartesianGradient; the acquisition loop controls
+    Nonzero k-space endpoints require prewinder or rewinder blocks.
+    ``trajectory`` is any two-channel :class:`NonCartesianGradient`; the
+    spiral and rosette readouts design theirs. The acquisition loop controls
     per-shot orientation.
 
     Attributes
@@ -491,12 +492,14 @@ class NonCartesianReadout(_ArmedReadout):
     >>> import pypulseqpp as pp
     >>> system = pp.Opts()
     >>> excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
-    >>> readout = design.SpiralReadout2D(
+    >>> kmax = 64 / (2 * 0.22)
+    >>> spoke = np.column_stack([np.linspace(-kmax, kmax, 64), np.zeros(64)])
+    >>> readout = design.NonCartesianReadout(
     ...     system, excitation.rf, excitation.gz, excitation.gz_reph,
-    ...     fov=0.22, matrix=64, design_interleaves=8,
+    ...     trajectory=design.Arbitrary(system, spoke, matrix=64),
     ... )
-    >>> isinstance(readout, design.NonCartesianReadout)
-    True
+    >>> int(readout.adc.num_samples)
+    64
     """
 
     _phase_axis: str | None = None
@@ -735,11 +738,6 @@ class _SpiralReadout(NonCartesianReadout):
         Geometric path samples supplied to the solver, not ADC samples.
     derate : bool, optional
         Apply the package's system derates before solving.
-
-    See Also
-    --------
-    NonCartesianReadout : Shared RF, timing, spoiling and orientation parameters.
-
     """
 
     def init_module(
@@ -846,11 +844,6 @@ class _RosetteReadout(NonCartesianReadout):
         Requested ADC sampling rate (Hz), not bandwidth per pixel.
     derate : bool, optional
         Apply the package's system derates before solving.
-
-    See Also
-    --------
-    NonCartesianReadout : Shared RF, timing, spoiling and orientation parameters.
-
     """
 
     def init_module(

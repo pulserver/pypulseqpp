@@ -12,7 +12,7 @@ _AXES = ("x", "y", "z")
 
 
 class InversionPreparation(RfModule):
-    """Non-selective adiabatic inversion followed by an optional crusher.
+    """Non-selective adiabatic inversion, followed by an optional crusher.
 
     The acquisition loop supplies the inversion-time delay.
 
@@ -21,9 +21,11 @@ class InversionPreparation(RfModule):
     system : pypulseq.Opts
         System limits.
     duration_s : float, optional
-        Inversion pulse duration (s).
+        Inversion pulse duration (s). Adiabaticity is a condition on sweeping
+        slowly enough, so this is not free to shorten.
     spoiling_cycles : float, optional
-        Cycles of dephasing the crusher winds across ``voxel_size_m``.
+        Cycles of dephasing the crusher winds across ``voxel_size_m``. Zero
+        omits the crusher.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m) — the smallest voxel
         dimension, since that is the one that has to be spoiled.
@@ -33,6 +35,8 @@ class InversionPreparation(RfModule):
         Adiabatic sweep family.
     bandwidth_hz : float, optional
         Frequency width of the sweep (Hz).
+    adiabaticity : int, optional
+        Sweep-rate margin over the adiabatic condition.
     labels : sequence of str, optional
         Counters emitted on the inversion block. An inversion is where a shot
         begins, so it is the natural place to say which shot this is; the loop
@@ -43,7 +47,7 @@ class InversionPreparation(RfModule):
     rf_prep : RfEvent
         The inversion pulse.
     gz_spoil : GradEvent
-        The crusher.
+        The crusher, when ``spoiling_cycles`` is nonzero.
     prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``, in order. Absent when ``labels`` is
         empty, and a bare event rather than a list when there is one.
@@ -61,6 +65,9 @@ class InversionPreparation(RfModule):
     >>> prep = design.InversionPreparation(pp.Opts(), duration_s=8e-3)
     >>> len(prep.blocks)
     2
+
+    >>> len(design.InversionPreparation(pp.Opts(), spoiling_cycles=0).blocks)
+    1
     """
 
     def init_module(
@@ -73,6 +80,7 @@ class InversionPreparation(RfModule):
         axis: str = "z",
         pulse_type: str = "hypsec",
         bandwidth_hz: float = 40e3,
+        adiabaticity: int = 4,
         labels: tuple[str, ...] | None = None,
     ) -> None:
         if voxel_size_m <= 0:
@@ -86,11 +94,9 @@ class InversionPreparation(RfModule):
             pulse_type=pulse_type,
             duration=duration_s,
             bandwidth=bandwidth_hz,
+            adiabaticity=adiabaticity,
             use="inversion",
             system=system,
-        )
-        gz_spoil, _, _ = pp.make_crusher(
-            spoiling_cycles, voxel_size_m, axis, system=system
         )
         # A slot per label, so the loop has somewhere to put one. An iteration
         # can leave it out or say something different with it, but it cannot
@@ -101,6 +107,10 @@ class InversionPreparation(RfModule):
 
         self.seq = pp.Sequence(system)
         self.seq.add_block(rf_prep, *prep_labels)
-        self.seq.add_block(gz_spoil)
+        if spoiling_cycles:
+            gz_spoil, _, _ = pp.make_crusher(
+                spoiling_cycles, voxel_size_m, axis, system=system
+            )
+            self.seq.add_block(gz_spoil)
 
         self.center = rf_reference(rf_prep)

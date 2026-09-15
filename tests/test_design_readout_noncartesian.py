@@ -650,3 +650,20 @@ def test_oversampling_a_spiral_samples_the_same_arm_more_densely(system, excitat
         oversampling=2.0,
     )
     assert dense.n_samples > plain.n_samples
+
+
+@pytest.mark.parametrize("family", ["arbitrary", "spiral", "rosette"])
+def test_the_generic_readout_plays_any_public_planar_interleave(system, family):
+    kmax = 64 / (2 * 0.22)
+    spoke = np.column_stack([np.linspace(-kmax, kmax, 64), np.zeros(64)])
+    trajectory = {
+        "arbitrary": lambda: design.Arbitrary(system, spoke, matrix=64),
+        "spiral": lambda: design.Spiral(system, 0.22, 64, 8),
+        "rosette": lambda: design.Rosette(system, 0.22, 64),
+    }[family]()
+    excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+    readout = design.NonCartesianReadout(
+        system, excitation.rf, excitation.gz, excitation.gz_reph, trajectory=trajectory
+    )
+    assert readout.trajectory is trajectory
+    assert readout.adc.num_samples == trajectory.n_samples

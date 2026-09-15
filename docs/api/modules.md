@@ -1,34 +1,19 @@
 # Sequence modules
 
 `pypulseqpp.sequences`: modules that solve the timing and gradients of a group
-of blocks once and expose the events for a scan loop, and the complete
-sequences built from them.
+of blocks once and expose the events for a scan loop, and the non-Cartesian
+interleaves the readouts play.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
 ```
 
-## Complete sequences
-
-A {class}`SequenceApp` designs its events and sampling order from the
-prescription its `init_sequence` takes; {meth}`~SequenceApp.design` runs its
-scan `loop`, one `kernel` call per repetition. Prescans listed by
-{meth}`~SequenceApp.prescans` are written by {meth}`~SequenceApp.write` as
-files linked through `NextSequence`. Each zoo script reached as
-`sequences.<name>` defines one.
-
-```{eval-rst}
-.. autosummary::
-   :toctree: ../generated
-   :nosignatures:
-
-   SequenceApp
-```
-
 ## Base classes
 
 Modules stay plain Pulseq building blocks: the scan loop chooses the views,
-scales the encoding events and adds the blocks.
+scales the encoding events and adds the blocks. A {class}`SequenceModule` lays
+its blocks out in `init_module`; an {class}`RfModule` is one built around a
+pulse, which {meth}`~RfModule.sim_rf` simulates.
 
 ```{eval-rst}
 .. autosummary::
@@ -37,8 +22,6 @@ scales the encoding events and adds the blocks.
 
    SequenceModule
    RfModule
-   OffResonanceSaturation
-   NonCartesianReadout
 ```
 
 ## Excitation and refocusing
@@ -50,7 +33,6 @@ scales the encoding events and adds the blocks.
 
    NonSelectiveExcitation
    NonSelectiveRefocusing
-   Inversion
    SpatialSelectiveExcitation
    SpatialSelectiveRefocusing
    SpatialSelective2DExcitation
@@ -67,12 +49,13 @@ scales the encoding events and adds the blocks.
    :toctree: ../generated
    :nosignatures:
 
+   InversionPreparation
    BlochSiegertPreparation
    DiffusionPreparation
    FatSaturation
    IhMtPreparation
-   InversionPreparation
    MtPreparation
+   OffResonanceSaturation
    T1T2Preparation
    T2Preparation
 ```
@@ -98,11 +81,16 @@ scales the encoding events and adds the blocks.
 
 ## Non-Cartesian readouts
 
+{class}`NonCartesianReadout` plays any interleave from
+{ref}`non-cartesian-interleaves` as a whole repetition.
+The spiral and rosette readouts design theirs from the prescription.
+
 ```{eval-rst}
 .. autosummary::
    :toctree: ../generated
    :nosignatures:
 
+   NonCartesianReadout
    RadialReadout2D
    RadialStackReadout
    RadialProjectionReadout
@@ -116,23 +104,20 @@ scales the encoding events and adds the blocks.
    ZteReadout
 ```
 
-## Shared readout contracts
+(non-cartesian-interleaves)=
 
-The 2D, stack and projection variants inherit their constructor contracts from
-these implementation classes: reference pages for shared parameters and event
-attributes. Instantiate the named variants above.
+## Non-Cartesian interleaves
+
+One base interleave each, with its ADC and the moment bridges to and from
+k = 0. The scan loop rotates it per shot.
 
 ```{eval-rst}
 .. autosummary::
    :toctree: ../generated
    :nosignatures:
 
-   ~readout.line._LineReadout
-   ~readout.epi._EpiReadout
-   ~readout.fse._FseReadout
-   ~readout.bssfp._BssfpReadout
-   ~readout.propeller._PropellerReadout
-   ~readout.noncartesian._RadialReadout
-   ~readout.noncartesian._SpiralReadout
-   ~readout.noncartesian._RosetteReadout
+   NonCartesianGradient
+   Arbitrary
+   Spiral
+   Rosette
 ```
