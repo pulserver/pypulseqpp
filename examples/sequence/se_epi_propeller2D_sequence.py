@@ -1,4 +1,4 @@
-"""2D PROPELLER spin echo, multi-slice."""
+"""2D PROPELLER spin echo with EPI blades, multi-slice."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pypulseqpp import cli, sequences
 from pypulseqpp._ordering import calc_traversal_order
 
 
-class SePropeller2DApp(sequences.SequenceApp):
+class SeEpiPropeller2DApp(sequences.SequenceApp):
     """Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.
 
     A slice-selective excitation and one refocusing pulse with crushers put
@@ -26,14 +26,14 @@ class SePropeller2DApp(sequences.SequenceApp):
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.se_propeller2D_sequence(
+    >>> seq = sequences.se_epi_propeller2D_sequence(
     ...     n_x=32, blade_width=8, n_blades=4, te=None, tr=None
     ... )
     >>> seq.check_timing()[0]
     True
     """
 
-    NAME = "se_propeller_2d"
+    NAME = "se_epi_propeller_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
     #: SLR design shared by the excitation and the refocusing pulse.
@@ -279,7 +279,9 @@ class SePropeller2DApp(sequences.SequenceApp):
             self.seq.set_definition(key=key, value=value)
 
 
-main = SePropeller2DApp.main
+main = SeEpiPropeller2DApp.main
 
 if __name__ == "__main__":
-    raise SystemExit(cli.run(main, sys.argv[1:], default_output="se_propeller_2d.seq"))
+    raise SystemExit(
+        cli.run(main, sys.argv[1:], default_output="se_epi_propeller_2d.seq")
+    )

@@ -1,6 +1,7 @@
-"""The 2D non-Cartesian zoo entries: radial, spiral and PROPELLER."""
+"""The 2D non-Cartesian zoo entries: radial, spiral and PROPELLER, gradient and spin echo."""
 
 import importlib
+import math
 from itertools import pairwise
 
 import numpy as np
@@ -11,9 +12,13 @@ from pypulseqpp import cli
 
 #: A prescription small enough to build in a moment, per zoo entry.
 SMALL = {
-    "gre_radial2D_sequence": {"n_x": 32, "n_spokes": 8, "n_dummy": 0},
-    "gre_spiral2D_sequence": {"n_x": 32, "n_arms": 4, "n_dummy": 0},
-    "se_propeller2D_sequence": {
+    "gre_radial2D_sequence": {"n": 32, "tr": None},
+    "gre_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
+    "gre_propeller2D_sequence": {"n": 32, "blade_width": 8, "tr": None},
+    "se_radial2D_sequence": {"n": 32, "tr": None},
+    "se_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
+    "se_propeller2D_sequence": {"n": 32, "blade_width": 8, "te": None, "tr": None},
+    "se_epi_propeller2D_sequence": {
         "n_x": 32,
         "blade_width": 8,
         "n_blades": 4,
@@ -22,30 +27,51 @@ SMALL = {
     },
 }
 
+RADIAL = ["gre_radial2D_sequence", "se_radial2D_sequence"]
+SPIRAL = ["gre_spiral2D_sequence", "se_spiral2D_sequence"]
+PROPELLER = ["gre_propeller2D_sequence", "se_propeller2D_sequence"]
+#: One tilt per excitation, played in order.
+TILTED = RADIAL + SPIRAL + PROPELLER
+SPIN_ECHO = ["se_radial2D_sequence", "se_spiral2D_sequence", "se_propeller2D_sequence"]
+
 #: Every definition each entry writes.
 DEFINITIONS = {
-    "gre_radial2D_sequence": {"NumSpokes", "AngleScheme", "kSpaceCenterSample"},
-    "gre_spiral2D_sequence": {"NumArms", "AngleScheme", "kSpaceCenterSample"},
-    "se_propeller2D_sequence": {"BladeWidth", "NumBlades"},
+    **dict.fromkeys(
+        RADIAL, frozenset({"NumSpokes", "kSpaceCenterSample", "SlicePositions"})
+    ),
+    **dict.fromkeys(
+        SPIRAL, frozenset({"NumArms", "kSpaceCenterSample", "SlicePositions"})
+    ),
+    **dict.fromkeys(
+        PROPELLER, frozenset({"BladeWidth", "NumBlades", "kSpaceCenterLine"})
+    ),
+    "se_epi_propeller2D_sequence": {
+        "BladeWidth",
+        "NumBlades",
+        "NumGainCalibrationReadouts",
+    },
 }
-COMMON = {
-    "FOV",
-    "Matrix",
-    "Name",
-    "TE",
-    "TR",
-    "Trajectory",
-    "NumGainCalibrationReadouts",
-}
+COMMON = {"FOV", "Matrix", "Name", "TE", "TR", "Trajectory"}
 
 
 def module(name):
     return importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
 
 
-def app(name, **kwargs):
+def app_class(name):
     mod = module(name)
-    cls = next(v for k, v in vars(mod).items() if k.endswith("App"))
+    return next(
+        value
+        for key, value in vars(mod).items()
+        if key.endswith("App") and getattr(value, "__module__", None) == mod.__name__
+    )
+
+
+def app(name, dummies=None, **kwargs):
+    """The entry's application, with ``dummies`` non-acquiring repetitions if given."""
+    cls = app_class(name)
+    if dummies is not None:
+        cls = type(cls.__name__, (cls,), {"N_DUMMY": dummies})
     return cls(pp.Opts(), **{**SMALL[name], **kwargs})
 
 
@@ -76,11 +102,11 @@ def in_plane(block):
     return block.gx is not None or block.gy is not None
 
 
-def plane_waveform(block):
-    """``gx + i gy`` of a block's arbitrary in-plane gradients."""
-    gx = np.asarray(block.gx.waveform, dtype=float)
-    gy = np.zeros_like(gx) if block.gy is None else np.asarray(block.gy.waveform)
-    return gx + 1j * gy
+def tilts(built):
+    """The tilt index of every excitation, dummies first, for one slice."""
+    views = getattr(built, "views", None)
+    played = [b for b, _ in views] if views else list(range(len(built.angles)))
+    return [0] * built.N_DUMMY + played
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -98,42 +124,32 @@ def test_every_definition_is_written(name):
     assert COMMON | DEFINITIONS[name] <= set(seq.definitions)
 
 
-# -- radial and spiral -----------------------------------------------------
+# -- the tilts ---------------------------------------------------------------
 
 
+@pytest.mark.parametrize("ry", [1, 2, 3])
 @pytest.mark.parametrize(
-    ("name", "count"),
-    [("gre_radial2D_sequence", "n_spokes"), ("gre_spiral2D_sequence", "n_arms")],
-)
-def test_each_acquisition_carries_its_shot_and_slice_in_play_order(name, count):
-    shots = 5
-    built = app(name, **{count: shots}, n_slices=3, n_dummy=2, tr=None)
-    lin, slc = adc_labels(built.design(), "LIN", "SLC")
-
-    expected = [(i, s) for group in built.passes for i in range(shots) for s in group]
-    assert list(zip(lin, slc, strict=True)) == expected
-
-
-@pytest.mark.parametrize(
-    ("name", "scheme"),
+    ("name", "nyquist", "span"),
     [
-        ("gre_radial2D_sequence", "golden"),
-        ("gre_radial2D_sequence", "uniform"),
-        ("gre_spiral2D_sequence", "golden"),
-        ("gre_spiral2D_sequence", "uniform"),
+        *((name, math.ceil(np.pi / 2 * 32), np.pi) for name in RADIAL),
+        *((name, 4, 2 * np.pi) for name in SPIRAL),
+        *((name, math.ceil(np.pi * 32 / 16), np.pi) for name in PROPELLER),
     ],
 )
-def test_every_in_plane_block_of_a_shot_is_turned_by_its_angle(name, scheme):
-    built = app(name, angle_scheme=scheme, n_dummy=2)
-    seq = built.design()
+def test_ry_plays_every_ryth_tilt_of_the_nyquist_set_in_order(name, nyquist, span, ry):
+    built = app(name, ry=ry)
 
-    # Blocks between two excitations belong to one shot; the dummies play the
-    # first shot's orientation.
-    schedule = [0] * built.n_dummy + list(range(len(built.angles)))
-    shots = iter(schedule)
+    assert built.angles == pytest.approx(span * np.arange(0, nyquist, ry) / nyquist)
+
+
+@pytest.mark.parametrize("name", TILTED)
+def test_every_in_plane_block_of_a_shot_is_turned_by_its_tilt(name):
+    built = app(name, dummies=2)
+    shots = iter(tilts(built))
+
     played, intended = [], []
-    for block in blocks(seq):
-        if block.rf is not None:
+    for block in blocks(built.design()):
+        if block.rf is not None and block.rf.use == "excitation":
             angle = built.angles[next(shots)]
         elif in_plane(block):
             played.append(rotation_angle(block))
@@ -143,59 +159,46 @@ def test_every_in_plane_block_of_a_shot_is_turned_by_its_angle(name, scheme):
     assert same_angles(played, intended)
 
 
-@pytest.mark.parametrize("name", ["gre_radial2D_sequence", "gre_spiral2D_sequence"])
-def test_an_explicit_shot_is_the_first_one_turned_by_its_angle(name):
-    built = app(name, use_rotation_ext=False, angle_scheme="golden")
-    readouts = [b for b in blocks(built.design()) if b.adc is not None]
+@pytest.mark.parametrize("name", [*SPIN_ECHO, "se_epi_propeller2D_sequence"])
+def test_the_refocusing_pulse_is_not_turned(name):
+    seq = module(name).main(**SMALL[name])
 
-    assert all(b.rotation is None for b in readouts)
-    first = plane_waveform(readouts[0])
-    turned = [np.angle(np.vdot(first, plane_waveform(b))) for b in readouts]
-    assert same_angles(turned, built.angles - built.angles[0])
+    assert all(b.rotation is None for b in blocks(seq) if b.rf is not None)
 
 
-def test_each_echo_of_a_spiral_train_is_labelled_by_the_readout():
-    built = app("gre_spiral2D_sequence", n_echoes=3)
-    lin, eco = adc_labels(built.design(), "LIN", "ECO")
-
-    assert list(eco) == [0, 1, 2] * len(built.angles)
-    assert list(lin) == [i for i in range(len(built.angles)) for _ in range(3)]
+# -- labels ------------------------------------------------------------------
 
 
-def test_every_slice_of_a_pass_is_excited_at_the_repetition_time_asked_for():
-    spokes, tr = 4, 12e-3
-    built = app("gre_radial2D_sequence", n_spokes=spokes, n_slices=3, tr=tr)
-    excited = np.asarray(built.design().rf_times()[0])
+@pytest.mark.parametrize("name", RADIAL + SPIRAL)
+def test_each_acquisition_carries_its_shot_and_slice_in_play_order(name):
+    built = app(name, dummies=2, n_slices=3)
+    lin, slc = adc_labels(built.design(), "LIN", "SLC")
 
-    assert len(built.passes) > 1
-    at = 0
-    for group in built.passes:
-        spacing = np.diff(excited[at : at + len(group) * spokes][:: len(group)])
-        assert spacing == pytest.approx(tr, abs=1e-9)
-        at += len(group) * spokes
-
-
-@pytest.mark.parametrize(
-    ("name", "prescription"),
-    [
-        ("gre_radial2D_sequence", {"te": 1e-6}),
-        ("gre_radial2D_sequence", {"tr": 1e-4}),
-        ("gre_spiral2D_sequence", {"te": 1e-6}),
-        ("gre_spiral2D_sequence", {"tr": 1e-4}),
-        ("se_propeller2D_sequence", {"te": 1e-3}),
-        ("se_propeller2D_sequence", {"tr": 1e-3}),
-    ],
-)
-def test_an_infeasible_prescription_is_refused(name, prescription):
-    with pytest.raises(ValueError, match="shorter than"):
-        module(name).main(**{**SMALL[name], **prescription})
+    expected = [
+        (i, s)
+        for packet in built.packets
+        for i in range(len(built.angles))
+        for s in packet
+    ]
+    assert list(zip(lin, slc, strict=True)) == expected
 
 
-# -- PROPELLER -------------------------------------------------------------
+@pytest.mark.parametrize("name", PROPELLER)
+def test_each_blade_line_carries_its_line_blade_and_slice_in_play_order(name):
+    built = app(name, dummies=2, n_slices=3)
+    lin, seg, slc = adc_labels(built.design(), "LIN", "SEG", "SLC")
+
+    expected = [
+        (line, blade, s)
+        for packet in built.packets
+        for blade, line in built.views
+        for s in packet
+    ]
+    assert list(zip(lin, seg, slc, strict=True)) == expected
 
 
-def test_each_line_of_a_blade_carries_its_line_blade_and_slice():
-    built = app("se_propeller2D_sequence", n_slices=2, n_dummy=1)
+def test_each_line_of_an_epi_blade_carries_its_line_blade_and_slice():
+    built = app("se_epi_propeller2D_sequence", n_slices=2, n_dummy=1)
     lin, slc, seg = adc_labels(built.design(), "LIN", "SLC", "SEG")
 
     width = built.blade.etl
@@ -210,8 +213,8 @@ def test_each_line_of_a_blade_carries_its_line_blade_and_slice():
 
 
 @pytest.mark.parametrize("scheme", ["uniform", "golden"])
-def test_every_encoding_block_of_a_blade_is_turned_by_its_angle(scheme):
-    built = app("se_propeller2D_sequence", angle_scheme=scheme, n_dummy=1)
+def test_every_encoding_block_of_an_epi_blade_is_turned_by_its_angle(scheme):
+    built = app("se_epi_propeller2D_sequence", angle_scheme=scheme, n_dummy=1)
     angles = built.blade.blade_angles
 
     shots = iter([0] * built.n_dummy + list(range(len(angles))))
@@ -227,13 +230,72 @@ def test_every_encoding_block_of_a_blade_is_turned_by_its_angle(scheme):
     assert same_angles(played, intended)
 
 
-def test_the_refocusing_pulse_is_not_turned():
-    seq = module("se_propeller2D_sequence").main(**SMALL["se_propeller2D_sequence"])
-
-    assert all(b.rotation is None for b in blocks(seq) if b.rf is not None)
+# -- timing ------------------------------------------------------------------
 
 
-# -- every shot ------------------------------------------------------------
+def played(seq):
+    """RF ``(centre time, use)`` and echo-sample times, in play order."""
+    center = int(np.atleast_1d(seq.definitions["kSpaceCenterSample"])[0])
+    t, pulses, echoes = 0.0, [], []
+    for block in blocks(seq):
+        if block.rf is not None:
+            pulses.append((t + block.rf.delay + block.rf.center, block.rf.use))
+        if block.adc is not None:
+            echoes.append(t + block.adc.delay + center * block.adc.dwell)
+        t += block.block_duration
+    return pulses, echoes
+
+
+@pytest.mark.parametrize("offset", [4e-3, 4.013e-3], ids=["on raster", "off raster"])
+@pytest.mark.parametrize("name", SPIN_ECHO)
+def test_a_spin_echo_samples_its_centre_where_the_180_refocuses(name, offset):
+    """The 180 sits midway even for a TE off the raster, which is rounded up."""
+    requested = app(name).echo_time + offset
+    built = app(name, te=requested)
+    seq = built.design()
+    pulses, echoes = played(seq)
+    (excitation, _), (refocusing, use) = pulses[:2]
+    written = np.atleast_1d(seq.definitions["TE"])[0]
+    raster = built.system.block_duration_raster
+
+    assert use == "refocusing"
+    assert echoes[0] - excitation == pytest.approx(written, abs=1e-9)
+    assert refocusing - excitation == pytest.approx(written / 2, abs=1e-9)
+    assert requested - 1e-9 <= written <= requested + 2 * raster
+
+
+@pytest.mark.parametrize(
+    ("name", "prescription"),
+    [
+        *((name, {"te": 1e-6}) for name in RADIAL[:1] + SPIRAL[:1] + PROPELLER[:1]),
+        *((name, {"tr": 1e-4}) for name in RADIAL[:1] + SPIRAL[:1] + PROPELLER[:1]),
+        *((name, {"te": 1e-3}) for name in SPIN_ECHO),
+        *((name, {"tr": 1e-3}) for name in SPIN_ECHO),
+        ("se_epi_propeller2D_sequence", {"te": 1e-3}),
+        ("se_epi_propeller2D_sequence", {"tr": 1e-3}),
+    ],
+)
+def test_an_infeasible_prescription_is_refused(name, prescription):
+    with pytest.raises(ValueError, match="shorter than"):
+        module(name).main(**{**SMALL[name], **prescription})
+
+
+@pytest.mark.parametrize("name", TILTED)
+def test_every_slice_is_excited_at_the_repetition_time_asked_for(name):
+    tr = 3 * app(name).repetition_time
+    built = app(name, dummies=0, n_slices=5, tr=tr)
+    excited = np.asarray(built.design().rf_times()[0])
+    shots = len(tilts(built))
+
+    assert len(built.packets) > 1
+    at = 0
+    for packet in built.packets:
+        spacing = np.diff(excited[at : at + len(packet) * shots][:: len(packet)])
+        assert spacing == pytest.approx(tr, abs=1e-9)
+        at += len(packet) * shots
+
+
+# -- every shot ----------------------------------------------------------------
 
 
 def area(event):
@@ -242,18 +304,10 @@ def area(event):
     return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
 
 
-@pytest.mark.parametrize(
-    ("name", "prescription"),
-    [
-        ("gre_radial2D_sequence", {"n_dummy": 1}),
-        ("gre_spiral2D_sequence", {"n_dummy": 1, "n_echoes": 2}),
-        ("se_propeller2D_sequence", {"n_dummy": 1}),
-        ("se_propeller2D_sequence", {"blade_width": 7}),
-    ],
-)
-def test_every_shot_closes_its_in_plane_gradient_moment(name, prescription):
+@pytest.mark.parametrize("name", [*TILTED, "se_epi_propeller2D_sequence"])
+def test_every_shot_closes_its_in_plane_gradient_moment(name):
     """A residual moment would turn with the shot and differ from one to the next."""
-    built = app(name, **prescription)
+    built = app(name, n_dummy=1) if "epi" in name else app(name, dummies=1)
     seq = built.design()
     delta_k = 1.0 / built.fov
 
@@ -270,8 +324,10 @@ def test_every_shot_closes_its_in_plane_gradient_moment(name, prescription):
 
     moments = [[moment(axis, a, b) for axis in (0, 1)] for a, b in pairwise(edges)]
 
-    shots = len(built.angles) if hasattr(built, "angles") else built.blade.n_blades
-    assert len(moments) == built.n_dummy + shots
+    if "epi" in name:
+        assert len(moments) == built.n_dummy + built.blade.n_blades
+    else:
+        assert len(moments) == len(tilts(built))
     assert np.abs(moments).max() < 1e-3 * delta_k
 
 
@@ -291,34 +347,71 @@ def layout(block):
     ("name", "prescription"),
     [
         ("gre_radial2D_sequence", {"te": None}),
-        ("gre_radial2D_sequence", {"te": 2.6e-3}),
         ("gre_radial2D_sequence", {"te": 5e-3, "slice_thickness": 20e-3}),
-        ("gre_radial2D_sequence", {"use_rotation_ext": False}),
         ("gre_spiral2D_sequence", {"te": None}),
-        ("gre_spiral2D_sequence", {"te": 6e-3, "n_echoes": 3}),
-        ("gre_spiral2D_sequence", {"use_rotation_ext": False, "n_echoes": 2}),
+        ("gre_spiral2D_sequence", {"te": 6e-3}),
+        ("gre_spiral2D_sequence", {"density": "dual", "periphery_undersampling": 3}),
+        ("se_radial2D_sequence", {"te": None}),
+        ("se_spiral2D_sequence", {"te": None}),
     ],
 )
 def test_a_shot_plays_the_block_layout_its_readout_solved(name, prescription):
-    """Same blocks, durations and gradient areas as the module's first arm."""
-    built = app(name, tr=None, **prescription)
+    """Same blocks, durations and gradient areas as the readout module's."""
+    built = app(name, dummies=0, **prescription)
     seq = built.design()
-    n = len(built.ro.arm(0))
+    solved = [
+        layout(built.ro.seq.get_block(i)) for i in range(2, len(built.ro.blocks) + 1)
+    ]
+    first = 2 if name.startswith("gre") else 4 + (built.wait_half_te is not None)
 
-    played = [layout(seq.get_block(i)) for i in range(1, n + 1)]
-    solved = [layout(built.ro.seq.get_block(i)) for i in range(1, n + 1)]
-    assert played == solved
+    played_layout = [
+        layout(seq.get_block(i)) for i in range(first, first + len(solved))
+    ]
+    assert played_layout == solved
 
 
-# -- the command line ------------------------------------------------------
+# -- spiral density ------------------------------------------------------------
+
+
+@pytest.mark.parametrize("name", SPIRAL)
+@pytest.mark.parametrize("density", ["variable", "dual"])
+def test_a_sparser_periphery_shortens_the_interleave(name, density):
+    constant = app(name).ro.trajectory.read_duration
+    sparse = app(name, density=density, periphery_undersampling=3).ro
+
+    assert sparse.trajectory.read_duration < constant
+
+
+@pytest.mark.parametrize("name", SPIRAL)
+@pytest.mark.parametrize(
+    "prescription", [{"density": "logarithmic"}, {"periphery_undersampling": 0.5}]
+)
+def test_an_unknown_density_or_a_denser_periphery_is_refused(name, prescription):
+    with pytest.raises(ValueError):
+        app(name, **prescription)
+
+
+@pytest.mark.parametrize("name", PROPELLER)
+@pytest.mark.parametrize("blade_width", [0, 33])
+def test_a_blade_wider_than_the_matrix_is_refused(name, blade_width):
+    with pytest.raises(ValueError, match="blade_width"):
+        app(name, blade_width=blade_width)
+
+
+# -- the command line ----------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [
-        ("gre_radial2D_sequence", "--n-spokes", "Spokes to play."),
-        ("gre_spiral2D_sequence", "--n-echoes", "Arms read per excitation"),
-        ("se_propeller2D_sequence", "--blade-width", "Phase-encode lines per blade."),
+        ("gre_radial2D_sequence", "--readout-oversampling", "Readout oversampling"),
+        ("gre_spiral2D_sequence", "--n-shots", "Interleaves that sample the centre"),
+        ("se_propeller2D_sequence", "--blade-width", "Phase-encode lines per blade"),
+        (
+            "se_epi_propeller2D_sequence",
+            "--blade-width",
+            "Phase-encode lines per blade",
+        ),
     ],
 )
 def test_a_flag_is_named_and_described_by_the_function_it_runs(

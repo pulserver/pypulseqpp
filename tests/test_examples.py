@@ -13,15 +13,8 @@ from pypulseqpp import cli, sequences
 
 #: A prescription small enough to build in a moment, per zoo entry.
 SMALL = {
-    "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0, "n_dummy": 0},
-    "gre3D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_z": 8,
-        "n_acs": 0,
-        "n_acs_z": 0,
-        "n_dummy": 0,
-    },
+    "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0},
+    "gre3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "n_acs": 0, "n_acs_z": 0},
     "gre_multiecho2D_sequence": {
         "n_x": 32,
         "n_y": 16,
@@ -38,12 +31,20 @@ SMALL = {
         "n_acs_z": 0,
         "n_dummy": 0,
     },
-    "gre_stack_of_stars3D_sequence": {"n_x": 32, "n_z": 4, "n_spokes": 5, "n_dummy": 0},
-    "gre_stack_of_spirals3D_sequence": {"n_x": 32, "n_z": 4, "n_arms": 4, "n_dummy": 0},
+    "gre_stack_of_stars3D_sequence": {"n": 32, "n_z": 4},
+    "gre_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4},
+    "gre_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8},
+    "se_stack_of_stars3D_sequence": {"n": 32, "n_z": 4, "tr": None},
+    "se_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4, "tr": None},
+    "se_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8, "tr": None},
     "zte3D_sequence": {"n_x": 32, "n_views": 24, "n_shots": 2, "n_dummy": 0},
-    "gre_radial2D_sequence": {"n_x": 32, "n_spokes": 8, "n_dummy": 0},
-    "gre_spiral2D_sequence": {"n_x": 32, "n_arms": 4, "n_dummy": 0},
-    "se_propeller2D_sequence": {
+    "gre_radial2D_sequence": {"n": 32, "tr": None},
+    "gre_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
+    "gre_propeller2D_sequence": {"n": 32, "blade_width": 8, "tr": None},
+    "se_radial2D_sequence": {"n": 32, "tr": None},
+    "se_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
+    "se_propeller2D_sequence": {"n": 32, "blade_width": 8, "te": None, "tr": None},
+    "se_epi_propeller2D_sequence": {
         "n_x": 32,
         "blade_width": 8,
         "n_blades": 4,
@@ -153,10 +154,10 @@ def gre(**kwargs):
     return sequences.gre2D_sequence(**{**SMALL["gre2D_sequence"], **kwargs})
 
 
-def gre_app(**kwargs):
-    return sequences.gre2D_sequence.Gre2DApp(
-        pp.Opts(), **{**SMALL["gre2D_sequence"], **kwargs}
-    )
+def gre_app(dummies=0, **kwargs):
+    """The 2D gradient echo with ``dummies`` non-acquiring repetitions per packet."""
+    app = type("Gre2D", (sequences.gre2D_sequence.Gre2DApp,), {"N_DUMMY": dummies})
+    return app(pp.Opts(), **{**SMALL["gre2D_sequence"], **kwargs})
 
 
 def test_every_line_is_one_repetition_of_the_same_blocks():
@@ -166,7 +167,7 @@ def test_every_line_is_one_repetition_of_the_same_blocks():
 
 
 def test_the_prescription_asked_for_is_the_one_written_down():
-    seq = gre(n_x=64, n_y=32, n_slices=3, slice_thickness=4e-3, fov=0.2)
+    seq = gre(n_x=64, n_y=32, n_slices=3, slice_thickness=4e-3, fov_x=0.2, fov_y=0.2)
 
     assert seq.definitions["Matrix"] == [64.0, 32.0, 3.0]
     assert seq.definitions["FOV"] == pytest.approx([0.2, 0.2, 12e-3])
@@ -174,27 +175,33 @@ def test_the_prescription_asked_for_is_the_one_written_down():
     assert len(seq.definitions["SlicePositions"]) == 3
 
 
-def test_the_slices_of_a_pass_are_not_neighbours():
-    """A TR too short for every slice deals them into passes, spread out."""
+def test_the_slices_of_a_packet_are_not_neighbours():
+    """A TR too short for every slice deals them into packets, spread out."""
     app = gre_app(n_slices=8, tr=40e-3)
 
-    assert len(app.passes) > 1
-    for group in app.passes:
-        # Every slice of one pass is a whole pass count away from the next, so
-        # no two neighbours in the slab are excited in the same pass.
-        assert all(b - a >= len(app.passes) for a, b in pairwise(sorted(group)))
+    assert len(app.packets) > 1
+    for packet in app.packets:
+        # Every slice of one packet is a whole packet count away from the next,
+        # so no two neighbours in the slab are excited in the same packet.
+        assert all(b - a >= len(app.packets) for a, b in pairwise(sorted(packet)))
+
+
+def test_the_even_slices_of_a_packet_are_excited_before_the_odd_ones():
+    app = gre_app(n_slices=10, tr=None)
+
+    assert app.packets == [[0, 2, 4, 6, 8, 1, 3, 5, 7, 9]]
 
 
 @pytest.mark.parametrize(
     ("n_x", "n_slices"),
     [(64, 120), (256, 120), (256, 30), (256, 7)],
-    ids=["even passes", "odd pass", "even", "one pass"],
+    ids=["even packets", "odd packet", "even", "one packet"],
 )
 def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
     n_x, n_slices
 ):
-    """A pass that holds one slice more is a longer wait, not a different shot."""
-    seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs=8)
+    """A packet that holds one slice more is a longer wait, not a different shot."""
+    seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs=8, readout_oversampling=1.0)
 
     _size, start = seq._detect_tr()
 
@@ -202,19 +209,19 @@ def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
 
 
 def test_every_slice_is_excited_at_the_repetition_time_asked_for():
-    """Including the odd pass, which holds a slice more and waits less."""
+    """Including the odd packet, which holds a slice more and waits less."""
     lines, tr = 8, 0.25
-    app = gre_app(n_x=256, n_y=lines, n_slices=120, tr=tr)
+    app = gre_app(n_x=256, n_y=lines, n_slices=120, tr=tr, readout_oversampling=1.0)
     excited = np.asarray(app.design().rf_times()[0])
 
-    assert len({len(group) for group in app.passes}) == 2  # the case worth asking
+    assert len({len(packet) for packet in app.packets}) == 2  # the case worth asking
 
     at = 0
-    for group in app.passes:
+    for packet in app.packets:
         # A slice's repetition time is the gap between its own excitations.
-        spacing = np.diff(excited[at : at + len(group) * lines][:: len(group)])
+        spacing = np.diff(excited[at : at + len(packet) * lines][:: len(packet)])
         assert spacing == pytest.approx(tr, abs=1e-9)
-        at += len(group) * lines
+        at += len(packet) * lines
 
 
 def test_the_repetition_time_written_is_the_spacing_of_one_slices_excitations():
@@ -226,11 +233,11 @@ def test_the_repetition_time_written_is_the_spacing_of_one_slices_excitations():
     assert excited[3] - excited[0] == pytest.approx(0.05)
 
 
-def test_a_repetition_that_holds_whole_shots_takes_that_many_slices_a_pass():
+def test_a_repetition_that_holds_whole_shots_takes_that_many_slices_a_packet():
     shot = gre_app().ro.duration + pp.Opts().block_duration_raster
     app = gre_app(n_slices=4, tr=2 * shot)
 
-    assert [len(group) for group in app.passes] == [2, 2]
+    assert [len(packet) for packet in app.packets] == [2, 2]
 
 
 def test_a_shorter_echo_than_the_readout_admits_is_refused():
@@ -239,24 +246,73 @@ def test_a_shorter_echo_than_the_readout_admits_is_refused():
 
 
 def test_undersampling_acquires_fewer_lines_than_it_encodes():
-    full = gre(n_y=32, acceleration=1)
-    half = gre(n_y=32, acceleration=2)
+    full = gre(n_y=32, ry=1)
+    half = gre(n_y=32, ry=2)
 
     assert len(half.block_events) < len(full.block_events)
 
 
+@pytest.mark.parametrize("n_y", [32, 33])
+@pytest.mark.parametrize("ry", [2, 3, 4, 5])
+def test_undersampling_always_acquires_the_centre_line(n_y, ry):
+    app = gre_app(n_y=n_y, ry=ry, n_acs=0)
+
+    assert n_y // 2 in app.lines
+    assert all((line - n_y // 2) % ry == 0 for line in app.lines)
+
+
+def test_partial_fourier_drops_lines_before_the_centre_only():
+    app = gre_app(n_y=32, partial_fourier_y=0.75)
+
+    assert app.lines == list(range(8, 32))
+
+
+@pytest.mark.parametrize("name", ["partial_fourier_x", "partial_fourier_y"])
+@pytest.mark.parametrize("fraction", [0.7, 1.01])
+def test_a_partial_fourier_fraction_outside_its_range_is_refused(name, fraction):
+    with pytest.raises(ValueError, match=name):
+        gre_app(**{name: fraction})
+
+
+def test_every_slice_is_rf_spoiled_by_its_own_excitation_count():
+    """Consecutive excitations of one slice step their phase by a growing 117 degrees."""
+    seq = gre_app(n_slices=3, n_y=8, tr=None).design()
+    phases = {}
+    for index in range(1, len(seq.block_events) + 1):
+        rf = getattr(seq.get_block(index), "rf", None)
+        if rf is not None:
+            # The slice offset's phase ramp is not part of the spoiling.
+            spoiling = rf.phase_offset + 2 * np.pi * rf.freq_offset * rf.center
+            phases.setdefault(round(rf.freq_offset, 3), []).append(spoiling)
+
+    assert len(phases) == 3
+    for slice_phases in phases.values():
+        steps = np.diff(np.diff(slice_phases))
+        wrapped = np.angle(np.exp(1j * (steps - np.deg2rad(117.0))))
+        assert wrapped == pytest.approx(0.0, abs=1e-9)
+
+
 def test_the_calibration_block_leads_the_scan():
     """A reconstruction calibrates while the rest of the scan is arriving."""
-    app = gre_app(n_y=32, acceleration=2, n_acs=8)
+    app = gre_app(n_y=32, ry=2, n_acs=8)
 
     assert list(app.lines[:8]) == sorted(app.calibration)
 
 
+def test_a_fully_sampled_scan_has_no_calibration_block():
+    app = gre_app(n_y=32, ry=1, n_acs=8)
+
+    assert app.calibration == set()
+    assert app.lines == list(range(32))
+
+
 def test_each_acquisition_carries_the_line_and_slice_it_encodes():
-    app = gre_app(n_y=16, n_slices=3, acceleration=2, n_acs=4, n_dummy=2)
+    app = gre_app(dummies=2, n_y=16, n_slices=3, ry=2, n_acs=4)
     lin, slc, ima, seg = adc_labels(app.design(), "LIN", "SLC", "IMA", "SEG")
 
-    expected = [(line, s) for group in app.passes for line in app.lines for s in group]
+    expected = [
+        (line, s) for packet in app.packets for line in app.lines for s in packet
+    ]
     assert list(zip(lin, slc, strict=True)) == expected
     assert list(ima) == [int(line in app.calibration) for line, _ in expected]
     assert list(seg) == [1 - int(line in app.calibration) for line, _ in expected]
@@ -460,8 +516,6 @@ def test_the_command_line_writes_what_the_call_builds(tmp_path):
             "16",
             "--n-acs",
             "0",
-            "--n-dummy",
-            "0",
         ],
     )
 
@@ -472,7 +526,7 @@ def test_the_command_line_writes_what_the_call_builds(tmp_path):
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [
-        ("gre2D_sequence", "--flip-angle-deg", "Excitation flip angle, in degrees."),
+        ("gre2D_sequence", "--flip-angle-deg", "Excitation flip angle (degrees)."),
         ("fse3D_sequence", "--etl", "Echo train length: views per excitation."),
     ],
 )
@@ -528,8 +582,6 @@ def test_running_the_module_as_a_script_writes_a_sequence(tmp_path):
             "--n-y",
             "16",
             "--n-acs",
-            "0",
-            "--n-dummy",
             "0",
         ],
         capture_output=True,

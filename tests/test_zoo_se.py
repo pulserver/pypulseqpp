@@ -82,23 +82,23 @@ def test_a_small_prescription_builds_and_passes_its_timing_check(name):
 
 
 def test_each_spin_echo_acquisition_carries_its_line_and_slice_in_play_order():
-    se = app("se2D_sequence", n_slices=4, tr=40e-3, acceleration=2, n_acs=4, n_dummy=1)
+    se = app("se2D_sequence", n_slices=4, tr=40e-3, ry=2, n_acs=4)
     lin, slc, ima, seg = adc_labels(se.design(), "LIN", "SLC", "IMA", "SEG")
 
-    assert len(se.passes) == 2
-    expected = [(line, s) for group in se.passes for line in se.lines for s in group]
+    assert len(se.packets) == 2
+    expected = [(line, s) for packet in se.packets for line in se.lines for s in packet]
     assert list(zip(lin, slc, strict=True)) == expected
     assert list(ima) == [int(line in se.calibration) for line, _ in expected]
     assert list(seg) == [1 - int(line in se.calibration) for line, _ in expected]
 
 
-def test_the_slices_of_a_spin_echo_pass_are_not_neighbours_and_keep_the_tr():
+def test_the_slices_of_a_spin_echo_packet_are_not_neighbours_and_keep_the_tr():
     se = app("se2D_sequence", n_slices=6, tr=40e-3)
     seq = se.design()
 
-    assert len(se.passes) > 1
-    for group in se.passes:
-        assert all(b - a >= len(se.passes) for a, b in pairwise(sorted(group)))
+    assert len(se.packets) > 1
+    for packet in se.packets:
+        assert all(b - a >= len(se.packets) for a, b in pairwise(sorted(packet)))
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(40e-3)
 
 
@@ -111,7 +111,8 @@ def test_every_refocusing_pulse_selects_the_slice_its_excitation_does(name):
     ``amplitude`` reports.
     """
     thickness = 4e-3
-    sequence = app(name, n_slices=3, slice_thickness=thickness, slice_gap=1e-3)
+    spacing = "slice_spacing" if name == "se2D_sequence" else "slice_gap"
+    sequence = app(name, n_slices=3, slice_thickness=thickness, **{spacing: 1e-3})
     pulses, _ = played(sequence.design())
     excitation = sequence.exc.selection_amplitude
     refocusing = sequence.ref.selection_amplitude
@@ -162,15 +163,36 @@ def test_a_spin_echo_shorter_than_it_can_play_is_refused(name, prescription, mat
 
 
 def test_each_3d_acquisition_carries_its_view_calibration_rectangle_first():
-    se = app("se3D_sequence", acceleration=2, n_acs=4, n_acs_z=2, n_dummy=2, tr=50e-3)
+    se = app("se3D_sequence", ry=2, n_acs=4, n_acs_z=2, tr=50e-3)
     seq = se.design()
     lin, par, ima, seg = adc_labels(seq, "LIN", "PAR", "IMA", "SEG")
-    calibrating = [int(i < se.n_calibration) for i in range(len(se.views))]
+    calibrating = [int(view in se.calibration) for view in se.views]
 
-    assert list(zip(lin, par, strict=True)) == [tuple(v) for v in se.views]
+    assert se.views[: len(se.calibration)] == sorted(se.calibration)
+    assert list(zip(lin, par, strict=True)) == se.views
     assert list(ima) == calibrating
     assert list(seg) == [1 - c for c in calibrating]
-    assert len(played(seq)[0]) == 2 * (2 + len(se.views))
+    assert len(played(seq)[0]) == 2 * len(se.views)
+
+
+@pytest.mark.parametrize("excitation", ["slab", "nonselective", "spsp"])
+@pytest.mark.parametrize("name", ["se2D_sequence", "se3D_sequence"])
+def test_the_180_sits_midway_for_a_te_off_the_raster(name, excitation):
+    """The TE is rounded up onto the raster rather than the 180 moved off midway."""
+    kind = {} if name == "se2D_sequence" else {"excitation": excitation}
+    requested = app(name, **kind).echo_time + 4.013e-3
+    built = app(name, **kind, te=requested)
+    seq = built.design()
+    pulses, echoes = played(seq)
+    (excitation_time, _, _), (refocusing_time, use, _) = pulses[:2]
+    written = np.atleast_1d(seq.definitions["TE"])[0]
+
+    assert seq.check_timing()[0]
+    assert use == "refocusing"
+    assert echoes[0] - excitation_time == pytest.approx(written, abs=1e-9)
+    assert refocusing_time - excitation_time == pytest.approx(written / 2, abs=1e-9)
+    raster = built.system.block_duration_raster
+    assert requested - 1e-9 <= written <= requested + 2 * raster
 
 
 # -- 2D fast spin echo -------------------------------------------------------
@@ -225,8 +247,8 @@ def test_a_repetition_shorter_than_the_train_is_refused():
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [
-        ("se2D_sequence", "--partial-echo", "Fraction of the echo acquired"),
-        ("se3D_sequence", "--n-z", "Partition-encode steps."),
+        ("se2D_sequence", "--partial-fourier-x", "Fraction of the echo acquired"),
+        ("se3D_sequence", "--n-z", "Matrix size along the readout"),
         ("fse2D_sequence", "--etl", "Echo train length: lines per excitation."),
     ],
 )
