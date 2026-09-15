@@ -1,4 +1,4 @@
-"""RF-spoiled 3D stack-of-stars gradient echo."""
+"""RF-spoiled 3D stack-of-blades (PROPELLER) gradient echo."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pypulseqpp._schedules import make_rf_spoiling_schedule
 EXCITATIONS = ("nonselective", "slab", "spsp")
 
 #: How far each partition turns its tilts, as a fraction of the half turn a
-#: spoke covers: not at all, by the golden ratio ``1 / phi``, or by the tiny
+#: blade covers: not at all, by the golden ratio ``1 / phi``, or by the tiny
 #: golden angle ``1 / (phi + 1)``.
 PARTITION_SHIFTS = {
     "none": 0.0,
@@ -76,15 +76,16 @@ def sampled_partitions(
     return calibration, lattice
 
 
-class GreStackOfStars3DApp(sequences.SequenceApp):
-    """RF-spoiled 3D stack of stars: radial spokes in-plane, Cartesian partitions along z.
+class GreStackOfBlades3DApp(sequences.SequenceApp):
+    """RF-spoiled 3D stack of blades: PROPELLER blades in-plane, Cartesian partitions along z.
 
-    One spoke waveform serves every shot: its angle is a rotation extension
-    and its partition an amplitude on the encode pair. The Nyquist set is
-    ``ceil(pi / 2 * n)`` spokes spread evenly over half a turn; every
-    ``ry``-th of them is played, in order, each at every acquired partition
-    before the next. Acquisitions carry the spoke as ``LIN`` and the partition
-    as ``PAR``.
+    A blade is ``blade_width`` Cartesian lines centred on k = 0, turned about z
+    by a rotation extension; its partition is an amplitude on the encode pair.
+    The Nyquist set is ``ceil(pi * n / (2 * blade_width))`` blades spread
+    evenly over half a turn; every ``ry``-th of them is played, in order, each
+    line of a blade at every acquired partition before the next line.
+    Acquisitions carry the line as ``LIN``, the blade as ``SEG`` and the
+    partition as ``PAR``.
 
     Under partition undersampling the central ``n_acs_z`` partitions are
     acquired in full at every tilt, ahead of the rest, and marked ``IMA``.
@@ -92,12 +93,12 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.gre_stack_of_stars3D_sequence(n=32, n_z=4)
+    >>> seq = sequences.gre_stack_of_blades3D_sequence(n=32, n_z=4, blade_width=8)
     >>> seq.check_timing()[0]
     True
     """
 
-    NAME = "gre_stack_of_stars_3d"
+    NAME = "gre_stack_of_blades_3d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
     #: SLR design of the slab-selective pulse.
@@ -108,8 +109,10 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
     #: Fat methylene shift from water (ppm), converted against ``system.B0``
     #: when the spectral-spatial pulse is built.
     FAT_SHIFT_PPM = -3.4
-    #: Non-acquiring repetitions, at the first spoke's angle and the centre
-    #: partition, before the scan.
+    #: Readout oversampling factor.
+    READOUT_OVERSAMPLING = 2.0
+    #: Non-acquiring repetitions, at the first blade's centre line and the
+    #: centre partition, before the scan.
     N_DUMMY = 32
     #: Quadratic RF spoiling phase increment (degrees).
     RF_SPOILING_INCREMENT_DEG = 117.0
@@ -134,16 +137,16 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         excitation: str = "slab",
         partition_angle_shift: str = "none",
         n_acs_z: int = 16,
-        readout_oversampling: float = 2.0,
+        blade_width: int = 16,
     ) -> None:
-        """Design the excitation, the spoke, the spoke angles and the partitions.
+        """Design the excitation, the readout, the blade angles and the partitions.
 
         Parameters
         ----------
         fov : float, optional
             Isotropic in-plane field of view (m).
         n : int, optional
-            In-plane matrix size; a spoke reads it edge to edge.
+            In-plane matrix size.
         fov_z : float, optional
             Field of view along the partitions (m). The slab excited is
             ``fov_z`` thick.
@@ -152,15 +155,14 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         flip_angle_deg : float, optional
             Excitation flip angle (degrees).
         te : float | None, optional
-            Echo time to the spoke's centre crossing (s). ``None`` is as short
-            as possible.
+            Echo time (s). ``None`` is as short as the readout admits.
         tr : float | None, optional
             Repetition time (s), one per excitation. ``None`` is as short as
             possible.
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one spoke in every ``ry`` of the Nyquist set
+            Angular undersampling: one blade in every ``ry`` of the Nyquist set
             is played.
         rz : int, optional
             Partition undersampling: one partition in every ``rz`` is
@@ -171,20 +173,21 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
         partition_angle_shift : {'none', 'golden', 'tiny_golden'}, optional
-            How far each partition turns the spokes past the previous one, as
+            How far each partition turns the blades past the previous one, as
             :data:`PARTITION_SHIFTS` names the fractions of a half turn.
         n_acs_z : int, optional
             Fully sampled calibration partitions at the centre, acquired at
             every tilt ahead of the rest when ``rz > 1``.
-        readout_oversampling : float, optional
-            Readout oversampling factor, at least one.
+        blade_width : int, optional
+            Phase-encode lines per blade, at most ``n``.
 
         Raises
         ------
         ValueError
             If ``excitation`` or ``partition_angle_shift`` is unknown, an
-            undersampling factor is below one, ``partial_fourier_z`` is outside
-            ``[0.75, 1]``, or the TE or TR is shorter than the readout takes.
+            undersampling factor is below one, ``blade_width`` is outside
+            ``[1, n]``, ``partial_fourier_z`` is outside ``[0.75, 1]``, or the
+            TE or TR is shorter than the readout takes.
         """
         if excitation not in EXCITATIONS:
             raise ValueError(
@@ -197,6 +200,8 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
             )
         if ry < 1 or rz < 1:
             raise ValueError(f"ry and rz must be at least 1, got {ry} and {rz}")
+        if not 1 <= blade_width <= n:
+            raise ValueError(f"blade_width must lie in [1, {n}], got {blade_width}")
         if not 0.75 <= partial_fourier_z <= 1.0:
             raise ValueError(
                 f"partial_fourier_z must lie in [0.75, 1], got {partial_fourier_z}"
@@ -205,26 +210,30 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         system = self.system
         self.fov, self.matrix = fov, (n, n, n_z)
         self.fov_z = fov_z
+        self.blade_width = blade_width
         self.excitation = excitation
         self.partition_angle_shift = partition_angle_shift
         self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
         self.gz = getattr(self.exc, "gz", None)
-        self.ro = sequences.RadialStackReadout(
+        self.ro = sequences.LineReadout3D(
             system,
             self.exc.rf,
             self.gz,
-            fov=fov,
-            matrix=n,
-            fov_z=fov_z,
-            matrix_z=n_z,
+            fov=(fov, fov, fov_z),
+            matrix=self.matrix,
             te=te,
-            oversampling=readout_oversampling,
+            oversampling=self.READOUT_OVERSAMPLING,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=self.SPOILING_CYCLES,
+        )
+        # The in-plane axes turn with the blade, so a spoiler on them would
+        # point a different way from one blade to the next: it plays on z.
+        self.gz_spoil, _, _ = pp.make_crusher(
+            self.SPOILING_CYCLES, fov_z / n_z, "z", system=system
         )
 
-        # A full spoke covers half a turn, which the Nyquist set divides evenly.
-        n_nyquist = math.ceil(np.pi / 2 * n)
+        # A blade turned by half a turn is the same blade, which the Nyquist
+        # set divides evenly.
+        n_nyquist = math.ceil(np.pi * n / (2 * blade_width))
         self.span = np.pi
         self.angles = self.span * np.arange(0, n_nyquist, ry) / n_nyquist
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
@@ -233,38 +242,42 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         self.partitions = sorted([*calibration, *lattice])
         # The calibration partitions lead, at every tilt, then the rest.
         self.views = [
-            (spoke, z)
+            (blade, line, z)
             for partitions in (calibration, lattice)
-            for spoke in range(len(self.angles))
+            for blade in range(len(self.angles))
+            for line in range(blade_width)
             for z in partitions
         ]
         self._rotations: dict[float, object] = {}
 
         raster = system.block_duration_raster
+        shot = self.ro.duration + pp.ceil_to_raster(
+            pp.calc_duration(self.gz_spoil), raster
+        )
         self.wait_tr = None
-        self.repetition_time = self.ro.duration
+        self.repetition_time = shot
         if tr is not None:
-            if tr < self.ro.duration - 1e-9:
+            if tr < shot - 1e-9:
                 raise ValueError(
                     f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
-                    f"{self.ro.duration * 1e3:.3f} ms one repetition takes"
+                    f"{shot * 1e3:.3f} ms one repetition takes"
                 )
-            pad = pp.round_to_raster(tr - self.ro.duration, raster)
+            pad = pp.round_to_raster(tr - shot, raster)
             if pad > 0:
                 self.wait_tr = pp.make_delay(pad)
                 self.repetition_time += pad
         self.duration = (self.N_DUMMY + len(self.views)) * self.repetition_time
 
-    def rotation(self, spoke: int, partition: int):
-        """Return the rotation extension turning ``spoke`` at ``partition``."""
-        angle = float((self.angles[spoke] + partition * self.shift) % self.span)
+    def rotation(self, blade: int, partition: int):
+        """Return the rotation extension turning ``blade`` at ``partition``."""
+        angle = float((self.angles[blade] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
             self._rotations[key] = pp.make_rotation(angle)
         return self._rotations[key]
 
     def loop(self) -> None:
-        """Play the dummies, then every acquired partition of each spoke in turn."""
+        """Play the dummies, then every acquired partition of each blade line in turn."""
         views = [None] * self.N_DUMMY + self.views
         phases = make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
@@ -272,48 +285,56 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
         for view, phase in zip(views, phases, strict=True):
             self.kernel(view, phase)
 
-    def kernel(self, view: tuple[int, int] | None, phase: float) -> None:
-        """One excitation, one spoke at one partition; ``None`` plays a dummy.
+    def kernel(self, view: tuple[int, int, int] | None, phase: float) -> None:
+        """One excitation at ``(blade, line, partition)``; ``None`` plays a dummy.
 
-        The readout's blocks after the pulse are played as it laid them out,
-        with the partition encode scaled and every block that drives an
-        in-plane gradient turned to the shot's angle.
+        Every block that drives an in-plane gradient carries the shot's
+        rotation, which turns about z and leaves the partition encode alone.
         """
         ro, seq = self.ro, self.seq
-        n_z = self.matrix[2]
+        n, n_z = self.matrix[1:]
         self.exc.rf.phase_offset = phase
         ro.adc.phase_offset = phase
 
         if view is None:
-            spoke, partition = 0, n_z // 2
+            blade, line, partition = 0, self.blade_width // 2, n_z // 2
             labels = self.labels(ONCE=1)
         else:
-            spoke, partition = view
+            blade, line, partition = view
             labels = self.labels(
-                LIN=spoke, PAR=partition, IMA=partition in self.calibration, ONCE=0
+                LIN=line,
+                SEG=blade,
+                PAR=partition,
+                IMA=partition in self.calibration,
+                ONCE=0,
             )
+        ky = (line - self.blade_width // 2) / (n / 2)
         kz = (partition - n_z // 2) / (n_z / 2)
-        encoded = {
-            id(ro.gz_pre): pp.scale_grad(ro.gz_pre, kz),
-            id(ro.gz_rew): pp.scale_grad(ro.gz_rew, kz),
-        }
-        rotation = self.rotation(spoke, partition)
+        rotation = self.rotation(blade, partition)
 
         seq.add_block(self.exc.rf, *([] if self.gz is None else [self.gz]), *labels)
-        for block in ro.blocks[1:]:
-            events = [
-                encoded.get(id(event), event)
-                for event in block
-                if view is not None or event is not ro.adc
-            ]
-            if any(getattr(event, "channel", None) in ("x", "y") for event in events):
-                events.append(rotation)
-            seq.add_block(*events)
+        wait_te = getattr(ro, "wait_te", None)
+        if wait_te is not None:
+            seq.add_block(wait_te)
+        seq.add_block(
+            ro.gx_pre,
+            pp.scale_grad(ro.gy_pre, ky),
+            pp.scale_grad(ro.gz_pre, kz),
+            rotation,
+        )
+        seq.add_block(ro.gx, *([] if view is None else [ro.adc]), rotation)
+        seq.add_block(
+            ro.gx_spoil,
+            pp.scale_grad(ro.gy_rew, ky),
+            pp.scale_grad(ro.gz_rew, kz),
+            rotation,
+        )
+        seq.add_block(self.gz_spoil)
         if self.wait_tr is not None:
             seq.add_block(self.wait_tr)
 
     def finalize(self) -> None:
-        """Write the prescription, the trajectory and its angles as definitions."""
+        """Write the prescription, the blade set and the timing as definitions."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         n_z = self.matrix[2]
@@ -323,10 +344,12 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
             "Name": self.NAME,
             "TE": self.ro.echo_time,
             "TR": self.repetition_time,
-            "Trajectory": "stack_of_stars",
+            "Trajectory": "stack_of_blades",
             "Excitation": self.excitation,
-            "NumSpokes": len(self.angles),
+            "BladeWidth": self.blade_width,
+            "NumBlades": len(self.angles),
             "PartitionAngleShift": self.partition_angle_shift,
+            "kSpaceCenterLine": self.blade_width // 2,
             "kSpaceCenterPartition": n_z // 2,
             "kSpaceCenterSample": self.ro.center_sample,
             "SliceThickness": self.fov_z,
@@ -335,9 +358,9 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
             self.seq.set_definition(key=key, value=value)
 
 
-main = GreStackOfStars3DApp.main
+main = GreStackOfBlades3DApp.main
 
 if __name__ == "__main__":
     raise SystemExit(
-        cli.run(main, sys.argv[1:], default_output="gre_stack_of_stars_3d.seq")
+        cli.run(main, sys.argv[1:], default_output="gre_stack_of_blades_3d.seq")
     )

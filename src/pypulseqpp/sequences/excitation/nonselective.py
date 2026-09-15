@@ -18,7 +18,7 @@ class NonSelectiveExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float, optional
         Nominal flip angle (degrees).
@@ -79,7 +79,7 @@ class NonSelectiveRefocusing(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float, optional
         Nominal flip angle (degrees).

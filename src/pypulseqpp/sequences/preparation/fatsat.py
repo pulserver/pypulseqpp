@@ -32,7 +32,7 @@ class FatSaturation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     freq_offset_ppm : float, optional
         Fat offset from water (ppm). Carried on the pulse as a ppm offset

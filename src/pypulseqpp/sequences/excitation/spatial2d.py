@@ -20,7 +20,7 @@ class SpatialSelective2DExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         Nominal flip angle (degrees), reached at the centre of the disc.

@@ -35,7 +35,7 @@ def traj2grad(
     ----------
     trajectory : numpy.ndarray
         K-space path, ``(n, 2)`` or ``(n, 3)``, in 1/m.
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     oversampling : int, optional
         Path-resampling factor the solver works at.
@@ -818,7 +818,7 @@ class Rosette(NonCartesianGradient):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits. Tighter limits lengthen the petals but not their reach.
     fov : float or array-like
         Isotropic field of view (m). With ``matrix`` it sets

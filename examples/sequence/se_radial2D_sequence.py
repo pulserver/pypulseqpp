@@ -1,4 +1,4 @@
-"""2D PROPELLER spin echo, multi-slice."""
+"""2D radial spin echo, multi-slice."""
 
 from __future__ import annotations
 
@@ -11,40 +11,37 @@ import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
 
-class SePropeller2DApp(sequences.SequenceApp):
-    """Multi-slice 2D PROPELLER spin echo: one blade line per excitation.
+class SeRadial2DApp(sequences.SequenceApp):
+    """Multi-slice 2D radial spin echo: one full spoke per excitation.
 
     A slice-selective SLR 90, one slice-selective SLR 180 between crushers
-    half a TE later, and one frequency-encoded line at the echo. A blade is
-    ``blade_width`` lines centred on k = 0, turned by a rotation extension;
-    blades are chosen as :mod:`gre_propeller2D_sequence` chooses them, and the
-    slices dealt into packets as :mod:`gre2D_sequence` deals them. Every
-    acquisition carries its line as ``LIN``, its blade as ``SEG`` and its
-    slice as ``SLC``.
+    half a TE later, and one spoke through the centre of k-space at the echo,
+    turned per shot by a rotation extension. The spokes are chosen as
+    :mod:`gre_radial2D_sequence` chooses them, and the slices dealt into
+    packets as :mod:`gre2D_sequence` deals them. Every acquisition carries its
+    spoke as ``LIN`` and its slice as ``SLC``.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.se_propeller2D_sequence(n=32, blade_width=8, te=None, tr=None)
+    >>> seq = sequences.se_radial2D_sequence(n=32, tr=None)
     >>> seq.check_timing()[0]
     True
     """
 
-    NAME = "se_propeller_2d"
+    NAME = "se_radial_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
     #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Readout oversampling factor.
-    READOUT_OVERSAMPLING = 2.0
-    #: Non-acquiring repetitions, at the first blade's angle, before each packet.
+    #: Non-acquiring repetitions, at the first spoke's angle, before each packet.
     N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
     #: across one voxel.
     CRUSHER_CYCLES = 4.0
     #: Dephasing left on the slice axis at the end of each repetition, in
-    #: cycles across the slice.
+    #: cycles across one voxel.
     SPOILING_CYCLES = 4.0
 
     def init_sequence(
@@ -54,21 +51,21 @@ class SePropeller2DApp(sequences.SequenceApp):
         n_slices: int = 1,
         slice_thickness: float = 5e-3,
         slice_spacing: float = 0.0,
-        te: float | None = 15e-3,
+        te: float | None = None,
         tr: float | None = 500e-3,
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
-        blade_width: int = 16,
+        readout_oversampling: float = 2.0,
     ) -> None:
-        """Design the pulses, the readout, the slice packets and the blade angles.
+        """Design the pulses, the spoke, the slice packets and the spoke angles.
 
         Parameters
         ----------
         fov : float, optional
             Isotropic in-plane field of view (m).
         n : int, optional
-            In-plane matrix size.
+            In-plane matrix size; a spoke reads it edge to edge.
         n_slices : int, optional
             Number of slices.
         slice_thickness : float, optional
@@ -76,8 +73,9 @@ class SePropeller2DApp(sequences.SequenceApp):
         slice_spacing : float, optional
             Gap between adjacent slices (m); zero is contiguous.
         te : float | None, optional
-            Echo time (s), excitation centre to echo, with the refocusing
-            pulse at its midpoint. ``None`` is as short as possible.
+            Echo time (s), excitation centre to the spoke's centre crossing,
+            with the refocusing pulse at its midpoint. ``None`` is as short as
+            possible.
         tr : float | None, optional
             Repetition time between successive excitations of one slice (s).
             ``None`` is as short as possible, and puts every slice in one
@@ -85,25 +83,22 @@ class SePropeller2DApp(sequences.SequenceApp):
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one blade in every ``ry`` of the Nyquist set
+            Angular undersampling: one spoke in every ``ry`` of the Nyquist set
             is played.
-        blade_width : int, optional
-            Phase-encode lines per blade, at most ``n``.
+        readout_oversampling : float, optional
+            Readout oversampling factor, at least one.
 
         Raises
         ------
         ValueError
-            If ``ry`` is below one, ``blade_width`` is outside ``[1, n]``, or
-            the TE or TR is shorter than the pulses and the readout take.
+            If ``ry`` is below one, or the TE or TR is shorter than the pulses
+            and the readout take.
         """
         if ry < 1:
             raise ValueError(f"ry must be at least 1, got {ry}")
-        if not 1 <= blade_width <= n:
-            raise ValueError(f"blade_width must lie in [1, {n}], got {blade_width}")
 
         system = self.system
         self.fov, self.matrix = fov, (n, n, n_slices)
-        self.blade_width = blade_width
         self.exc = sequences.SpatialSelectiveExcitation(
             system,
             90.0,
@@ -121,11 +116,6 @@ class SePropeller2DApp(sequences.SequenceApp):
             spoiling_cycles=self.CRUSHER_CYCLES,
         )
         self.ref_phase = float(self.ref.rf_ref.phase_offset)
-        # The in-plane axes turn with the blade, so a spoiler on them would
-        # point a different way from one blade to the next: it plays on z.
-        self.gz_spoil, _, _ = pp.make_crusher(
-            self.SPOILING_CYCLES, slice_thickness, "z", system=system
-        )
 
         # TE is solved in two halves about the 180. The readout owns the second,
         # from the 180's centre to the echo; a delay before the 180 sets the
@@ -133,15 +123,16 @@ class SePropeller2DApp(sequences.SequenceApp):
         half_floor = self.exc.duration - self.exc.center + self.ref.center
 
         def readout(half_te: float | None):
-            return sequences.LineReadout2D(
+            return sequences.RadialReadout2D(
                 system,
                 self.ref.rf_ref,
                 self.ref.gz,
-                fov=(fov, fov),
-                matrix=(n, n),
+                fov=fov,
+                matrix=n,
                 te=half_te,
-                oversampling=self.READOUT_OVERSAMPLING,
+                oversampling=readout_oversampling,
                 readout_bandwidth_hz=readout_bandwidth_hz,
+                spoiling_cycles=self.SPOILING_CYCLES,
             )
 
         te_min = 2 * max(readout(None).echo_time, half_floor)
@@ -160,17 +151,15 @@ class SePropeller2DApp(sequences.SequenceApp):
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
         self.echo_time = 2 * (half_floor + wait)
 
-        # A blade turned by half a turn is the same blade, which the Nyquist
-        # set divides evenly.
-        n_nyquist = math.ceil(np.pi * n / (2 * blade_width))
+        # A full spoke covers half a turn, which the Nyquist set divides evenly.
+        n_nyquist = math.ceil(np.pi / 2 * n)
         self.angles = np.pi * np.arange(0, n_nyquist, ry) / n_nyquist
         self.rotations = [pp.make_rotation(float(angle)) for angle in self.angles]
 
         # Slices one TR cannot hold are dealt round-robin into packets, even
         # slices of a packet first. Every shot closes with a pure delay: one
         # raster, and on the last slice of a packet whatever is left of the TR.
-        spoil = pp.ceil_to_raster(pp.calc_duration(self.gz_spoil), self.raster)
-        shot = self.exc.duration + wait + self.ro.duration + spoil + self.raster
+        shot = self.exc.duration + wait + self.ro.duration + self.raster
         per_packet = n_slices if tr is None else max(1, int(tr / shot + 1e-9))
         n_packets = -(-n_slices // per_packet)
         packets = [range(start, n_slices, n_packets) for start in range(n_packets)]
@@ -188,11 +177,6 @@ class SePropeller2DApp(sequences.SequenceApp):
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
 
-        self.views = [
-            (blade, line)
-            for blade in range(len(self.angles))
-            for line in range(blade_width)
-        ]
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_spacing
         )
@@ -202,21 +186,22 @@ class SePropeller2DApp(sequences.SequenceApp):
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
 
     def loop(self) -> None:
-        """Play each packet: its dummies, then every blade line at each of its slices."""
-        views = [None] * self.N_DUMMY + self.views
+        """Play each packet: its dummies, then every spoke at each of its slices."""
+        spokes = [None] * self.N_DUMMY + list(range(len(self.angles)))
         for packet in self.packets:
-            for view in views:
+            for spoke in spokes:
                 for i, s in enumerate(packet):
                     last = i == len(packet) - 1
                     self.kernel(
-                        s, view, self.pads[len(packet)] if last else self.raster
+                        s, spoke, self.pads[len(packet)] if last else self.raster
                     )
 
-    def kernel(self, s: int, view: tuple[int, int] | None, pad: float) -> None:
-        """One spin echo of slice ``s`` at ``(blade, line)``; ``None`` plays a dummy.
+    def kernel(self, s: int, spoke: int | None, pad: float) -> None:
+        """One spin echo of slice ``s`` reading ``spoke``; ``None`` plays a dummy.
 
-        A dummy plays the first blade's centre line without its ADC. Every
-        block that drives an in-plane gradient carries the blade's rotation.
+        The readout's blocks, from the refocusing pulse on, are played as it
+        laid them out, each turned to the spoke's angle where it drives an
+        in-plane gradient.
         """
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
         position = self.positions[s]
@@ -229,31 +214,26 @@ class SePropeller2DApp(sequences.SequenceApp):
             self.ref_phase - 2 * np.pi * ref.rf_ref.freq_offset * ref.rf_ref.center
         )
 
-        if view is None:
-            blade, ky = 0, 0.0
-            labels = self.labels(SLC=s, ONCE=1)
+        acquire = spoke is not None
+        if acquire:
+            labels = self.labels(SLC=s, LIN=spoke, ONCE=0)
         else:
-            blade, line = view
-            ky = (line - self.blade_width // 2) / (self.matrix[1] / 2)
-            labels = self.labels(SLC=s, SEG=blade, LIN=line, ONCE=0)
-        rotation = self.rotations[blade]
+            labels = self.labels(SLC=s, ONCE=1)
+        rotation = self.rotations[spoke if acquire else 0]
 
         seq.add_block(exc.rf, exc.gz, *labels)
         seq.add_block(exc.gz_reph)
         if self.wait_half_te is not None:
             seq.add_block(self.wait_half_te)
-        seq.add_block(ref.rf_ref, ref.gz)
-        wait_te = getattr(ro, "wait_te", None)
-        if wait_te is not None:
-            seq.add_block(wait_te)
-        seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), rotation)
-        seq.add_block(ro.gx, *([] if view is None else [ro.adc]), rotation)
-        seq.add_block(ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), rotation)
-        seq.add_block(self.gz_spoil)
+        for block in ro.blocks:
+            events = [event for event in block if acquire or event is not ro.adc]
+            if any(getattr(event, "channel", None) in ("x", "y") for event in events):
+                events.append(rotation)
+            seq.add_block(*events)
         seq.add_block(pp.make_delay(pad))
 
     def finalize(self) -> None:
-        """Write the prescription, the blade set and the timing as definitions."""
+        """Write the prescription, the spoke set and the timing as definitions."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         definitions = {
@@ -262,10 +242,8 @@ class SePropeller2DApp(sequences.SequenceApp):
             "Name": self.NAME,
             "TE": self.echo_time,
             "TR": self.repetition_time,
-            "Trajectory": "propeller",
-            "BladeWidth": self.blade_width,
-            "NumBlades": len(self.angles),
-            "kSpaceCenterLine": self.blade_width // 2,
+            "Trajectory": "radial",
+            "NumSpokes": len(self.angles),
             "kSpaceCenterSample": self.ro.center_sample,
             "SlicePositions": self.positions.tolist(),
             "SliceThickness": self.exc.slice_thickness,
@@ -275,7 +253,7 @@ class SePropeller2DApp(sequences.SequenceApp):
             self.seq.set_definition(key=key, value=value)
 
 
-main = SePropeller2DApp.main
+main = SeRadial2DApp.main
 
 if __name__ == "__main__":
-    raise SystemExit(cli.run(main, sys.argv[1:], default_output="se_propeller_2d.seq"))
+    raise SystemExit(cli.run(main, sys.argv[1:], default_output="se_radial_2d.seq"))

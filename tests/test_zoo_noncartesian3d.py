@@ -1,6 +1,7 @@
-"""3D non-Cartesian zoo entries: stack of stars, stack of spirals and ZTE."""
+"""3D non-Cartesian zoo entries: stacks of stars, spirals and blades, and ZTE."""
 
 import importlib
+from itertools import pairwise
 
 import numpy as np
 import pytest
@@ -10,24 +11,54 @@ from pypulseqpp import cli
 
 #: A prescription small enough to build in a moment, per entry.
 SMALL = {
-    "gre_stack_of_stars3D_sequence": {"n_x": 32, "n_z": 4, "n_spokes": 5, "n_dummy": 0},
-    "gre_stack_of_spirals3D_sequence": {"n_x": 32, "n_z": 4, "n_arms": 4, "n_dummy": 0},
+    "gre_stack_of_stars3D_sequence": {"n": 32, "n_z": 4},
+    "gre_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4},
+    "gre_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8},
+    "se_stack_of_stars3D_sequence": {"n": 32, "n_z": 4, "tr": None},
+    "se_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4, "tr": None},
+    "se_stack_of_blades3D_sequence": {
+        "n": 32,
+        "n_z": 4,
+        "blade_width": 8,
+        "tr": None,
+    },
     "zte3D_sequence": {"n_x": 32, "n_views": 24, "n_shots": 2, "n_dummy": 0},
 }
-STACKS = ("gre_stack_of_stars3D_sequence", "gre_stack_of_spirals3D_sequence")
-APPS = {
-    "gre_stack_of_stars3D_sequence": "GreStackOfStars3DApp",
-    "gre_stack_of_spirals3D_sequence": "GreStackOfSpirals3DApp",
-    "zte3D_sequence": "Zte3DApp",
-}
+GRE = [
+    "gre_stack_of_stars3D_sequence",
+    "gre_stack_of_spirals3D_sequence",
+    "gre_stack_of_blades3D_sequence",
+]
+SPIN_ECHO = [
+    "se_stack_of_stars3D_sequence",
+    "se_stack_of_spirals3D_sequence",
+    "se_stack_of_blades3D_sequence",
+]
+STACKS = GRE + SPIN_ECHO
+#: Stacks whose readout plays one arm per excitation, rather than a blade line.
+ARMED = [name for name in STACKS if "blades" not in name]
+BLADES = [name for name in STACKS if "blades" in name]
 
 
 def module(name):
     return importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
 
 
-def app(name, **kwargs):
-    return getattr(module(name), APPS[name])(pp.Opts(), **{**SMALL[name], **kwargs})
+def app_class(name):
+    mod = module(name)
+    return next(
+        value
+        for key, value in vars(mod).items()
+        if key.endswith("App") and getattr(value, "__module__", None) == mod.__name__
+    )
+
+
+def app(name, dummies=None, **kwargs):
+    """The entry's application, with ``dummies`` non-acquiring repetitions if given."""
+    cls = app_class(name)
+    if dummies is not None:
+        cls = type(cls.__name__, (cls,), {"N_DUMMY": dummies})
+    return cls(pp.Opts(), **{**SMALL[name], **kwargs})
 
 
 def adc_labels(seq, *names):
@@ -36,10 +67,17 @@ def adc_labels(seq, *names):
     return [np.atleast_1d(found.get(name, 0)) for name in names]
 
 
+def blocks(seq):
+    return [seq.get_block(index) for index in range(1, len(seq.block_events) + 1)]
+
+
 def acquisitions(seq):
     """Every block that acquires, in play order."""
-    blocks = (seq.get_block(index) for index in range(1, len(seq) + 1))
-    return [block for block in blocks if block.adc is not None]
+    return [block for block in blocks(seq) if block.adc is not None]
+
+
+def excitations(seq):
+    return [b for b in blocks(seq) if b.rf is not None and b.rf.use == "excitation"]
 
 
 def z_angle(quaternion):
@@ -61,15 +99,20 @@ def matrix_of(quaternion):
     )
 
 
-def in_plane(block):
-    """The played x/y waveform of a block as one complex array."""
-    x = np.asarray(block.gx.waveform) if block.gx is not None else 0.0
-    y = np.asarray(block.gy.waveform) if block.gy is not None else 0.0
-    return x + 1j * y
+def area(event):
+    if event.type == "trap":
+        return float(event.area)
+    return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
 
 
-def wrapped(angles):
-    return np.angle(np.exp(1j * np.asarray(angles)))
+def shot_views(built):
+    """``(tilt, partition)`` of every excitation, dummies first."""
+    n_z = built.matrix[2]
+    if "blades" in built.NAME:
+        played = [(blade, z) for blade, _, z in built.views]
+    else:
+        played = list(built.views)
+    return [(0, n_z // 2)] * built.N_DUMMY + played
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -78,60 +121,241 @@ def test_a_small_prescription_builds_a_sequence_that_passes_its_timing_check(nam
 
     is_ok, errors = seq.check_timing()
     assert is_ok, errors
-    assert seq.definitions["Name"] == getattr(module(name), APPS[name]).NAME
+    assert seq.definitions["Name"] == app_class(name).NAME
+
+
+@pytest.mark.parametrize("excitation", ["slab", "nonselective", "spsp"])
+@pytest.mark.parametrize("name", STACKS)
+def test_every_excitation_builds_a_stack_that_passes_its_timing_check(name, excitation):
+    seq = module(name).main(**SMALL[name], excitation=excitation)
+
+    assert seq.check_timing()[0]
+    assert seq.definitions["Excitation"] == excitation
 
 
 @pytest.mark.parametrize("name", STACKS)
+def test_every_stack_definition_is_written(name):
+    seq = module(name).main(**SMALL[name])
+
+    assert {
+        "FOV",
+        "Matrix",
+        "TE",
+        "TR",
+        "Trajectory",
+        "PartitionAngleShift",
+        "kSpaceCenterPartition",
+        "kSpaceCenterSample",
+    } <= set(seq.definitions)
+
+
+# -- what is sampled -----------------------------------------------------------
+
+
+@pytest.mark.parametrize("ry", [1, 2, 3])
+@pytest.mark.parametrize(
+    ("name", "nyquist", "span"),
+    [
+        *((n, int(np.ceil(np.pi / 2 * 32)), np.pi) for n in STACKS if "stars" in n),
+        *((n, 4, 2 * np.pi) for n in STACKS if "spirals" in n),
+        *((n, int(np.ceil(np.pi * 32 / 16)), np.pi) for n in BLADES),
+    ],
+)
+def test_ry_plays_every_ryth_tilt_of_the_nyquist_set_in_order(name, nyquist, span, ry):
+    built = app(name, ry=ry)
+
+    assert built.angles == pytest.approx(span * np.arange(0, nyquist, ry) / nyquist)
+
+
+@pytest.mark.parametrize("name", STACKS)
+def test_rz_and_partial_fourier_keep_the_centre_partition_and_drop_the_early_ones(
+    name,
+):
+    built = app(name, n_z=8, rz=2, partial_fourier_z=0.75, n_acs_z=0)
+
+    assert built.partitions == [2, 4, 6]
+
+
+@pytest.mark.parametrize("name", STACKS)
+def test_the_calibration_partitions_lead_at_every_tilt_and_are_marked_ima(name):
+    stack = app(name, dummies=0, n_z=16, rz=4, n_acs_z=4)
+    par, ima = adc_labels(stack.design(), "PAR", "IMA")
+    leading = [view for view in stack.views if view[-1] in stack.calibration]
+
+    assert stack.calibration == {6, 7, 8, 9}
+    assert stack.partitions == [0, 4, 6, 7, 8, 9, 12]
+    assert stack.views[: len(leading)] == leading
+    assert list(par) == [view[-1] for view in stack.views]
+    assert list(ima) == [int(p in stack.calibration) for p in par]
+
+
+@pytest.mark.parametrize("name", STACKS)
+def test_a_fully_sampled_stack_has_no_calibration_partitions(name):
+    stack = app(name, rz=1, n_acs_z=4)
+
+    assert stack.calibration == set()
+    assert stack.partitions == list(range(stack.matrix[2]))
+
+
+@pytest.mark.parametrize("name", ARMED)
 def test_every_partition_of_a_stack_arm_is_acquired_before_the_next_arm(name):
-    stack = app(name, n_dummy=3)
+    stack = app(name, dummies=3, rz=2)
     seq = stack.design()
     lin, par, once = adc_labels(seq, "LIN", "PAR", "ONCE")
-    n_z = stack.matrix[2]
 
-    expected = [(arm, p) for arm in range(len(stack.angles)) for p in range(n_z)]
+    expected = list(stack.views)
     assert list(zip(lin, par, strict=True)) == expected
     assert set(once) == {0}
-    assert len(seq.rf_times()[0]) == 3 + len(expected)
+    assert len(excitations(seq)) == 3 + len(expected)
+
+
+@pytest.mark.parametrize("name", BLADES)
+def test_every_partition_of_a_blade_line_is_acquired_before_the_next_line(name):
+    stack = app(name, dummies=3, rz=2)
+    seq = stack.design()
+    lin, seg, par = adc_labels(seq, "LIN", "SEG", "PAR")
+
+    expected = [(line, blade, z) for blade, line, z in stack.views]
+    assert list(zip(lin, seg, par, strict=True)) == expected
+    assert len(excitations(seq)) == 3 + len(expected)
+
+
+@pytest.mark.parametrize("shift", ["none", "golden", "tiny_golden"])
+@pytest.mark.parametrize("name", STACKS)
+def test_every_in_plane_block_is_turned_to_its_tilt_and_partition_angle(name, shift):
+    stack = app(name, dummies=1, partition_angle_shift=shift)
+    fraction = module(name).PARTITION_SHIFTS[shift]
+    views = iter(shot_views(stack))
+
+    played, intended = [], []
+    for block in blocks(stack.design()):
+        if block.rf is not None and block.rf.use == "excitation":
+            tilt, partition = next(views)
+            angle = stack.angles[tilt] + partition * fraction * stack.span
+        elif block.gx is not None or block.gy is not None:
+            played.append(z_angle(block.rotation.quaternion))
+            intended.append(angle)
+
+    assert next(views, None) is None
+    turns = 2 * np.pi / stack.span
+    assert np.exp(1j * turns * np.asarray(played)) == pytest.approx(
+        np.exp(1j * turns * np.asarray(intended)), abs=1e-9
+    )
+
+
+@pytest.mark.parametrize("name", GRE)
+def test_every_partition_is_encoded_at_the_step_its_label_names(name):
+    """The z area played between the excitation and the samples is the partition's."""
+    stack = app(name, n_z=8)
+    seq = stack.design()
+    n_z = stack.matrix[2]
+    delta_kz = 1.0 / stack.fov_z
+
+    encoded, area_since = [], None
+    for block in blocks(seq):
+        if block.rf is not None:
+            area_since = 0.0
+            continue
+        if block.gz is not None and area_since is not None:
+            area_since += area(block.gz)
+        if block.adc is not None:
+            encoded.append(area_since)
+            area_since = None
+    (par,) = adc_labels(seq, "PAR")
+
+    assert encoded == pytest.approx((par - n_z // 2) * delta_kz, abs=1e-6 * delta_kz)
+
+
+@pytest.mark.parametrize("name", STACKS)
+def test_every_shot_closes_its_in_plane_gradient_moment(name):
+    """A residual moment would turn with the shot and differ from one to the next."""
+    stack = app(name, dummies=1)
+    seq = stack.design()
+    delta_k = 1.0 / stack.fov
+
+    waveforms = seq.waveforms()
+    starts, t = [], 0.0
+    for block in blocks(seq):
+        if block.rf is not None and block.rf.use == "excitation":
+            starts.append(t)
+        t += block.block_duration
+    edges = [*starts, seq.duration()[0]]
+
+    def moment(axis, start, stop):
+        t, g = (np.asarray(v, dtype=float) for v in waveforms[axis][:2])
+        grid = np.unique(np.concatenate([t[(t > start) & (t < stop)], [start, stop]]))
+        return np.trapezoid(np.interp(grid, t, g, left=0.0, right=0.0), grid)
+
+    moments = [[moment(axis, a, b) for axis in (0, 1)] for a, b in pairwise(edges)]
+
+    assert np.abs(moments).max() < 1e-3 * delta_k
+
+
+# -- timing ----------------------------------------------------------------------
+
+
+def played(seq):
+    """RF centre times and the first echo-sample time, in play order."""
+    center = int(np.atleast_1d(seq.definitions["kSpaceCenterSample"])[0])
+    t, pulses = 0.0, []
+    for block in blocks(seq):
+        if block.rf is not None:
+            pulses.append((t + block.rf.delay + block.rf.center, block.rf.use))
+        if block.adc is not None:
+            return pulses, t + block.adc.delay + center * block.adc.dwell
+        t += block.block_duration
+    raise AssertionError("no acquisition")
+
+
+@pytest.mark.parametrize("excitation", ["slab", "nonselective", "spsp"])
+@pytest.mark.parametrize("name", SPIN_ECHO)
+def test_a_spin_echo_samples_its_centre_where_the_180_refocuses(name, excitation):
+    """The 180 sits midway even for a TE off the raster, which is rounded up."""
+    requested = app(name, excitation=excitation).echo_time + 4.013e-3
+    built = app(name, excitation=excitation, te=requested)
+    seq = built.design()
+    pulses, echo = played(seq)
+    (excitation_time, _), (refocusing_time, use) = pulses[:2]
+    written = np.atleast_1d(seq.definitions["TE"])[0]
+    raster = built.system.block_duration_raster
+
+    assert use == "refocusing"
+    assert echo - excitation_time == pytest.approx(written, abs=1e-9)
+    assert refocusing_time - excitation_time == pytest.approx(written / 2, abs=1e-9)
+    assert requested - 1e-9 <= written <= requested + 2 * raster
 
 
 @pytest.mark.parametrize(
-    "use_rotation_ext", [True, False], ids=["extension", "waveform"]
+    ("name", "prescription"),
+    [
+        *((name, {"te": 1e-6}) for name in GRE),
+        *((name, {"tr": 1e-4}) for name in GRE),
+        *((name, {"te": 1e-3}) for name in SPIN_ECHO),
+        *((name, {"tr": 1e-3}) for name in SPIN_ECHO),
+    ],
+)
+def test_an_echo_or_repetition_shorter_than_the_shot_is_refused(name, prescription):
+    with pytest.raises(ValueError, match="shorter than"):
+        module(name).main(**{**SMALL[name], **prescription})
+
+
+@pytest.mark.parametrize(
+    "prescription",
+    [
+        {"excitation": "adiabatic"},
+        {"partition_angle_shift": "random"},
+        {"rz": 0},
+        {"partial_fourier_z": 0.5},
+    ],
+    ids=str,
 )
 @pytest.mark.parametrize("name", STACKS)
-def test_every_stack_acquisition_is_turned_to_its_arm_and_partition_angle(
-    name, use_rotation_ext
-):
-    offset = 10.0
-    stack = app(
-        name, partition_angle_offset_deg=offset, use_rotation_ext=use_rotation_ext
-    )
-    n_z = stack.matrix[2]
-    expected = [
-        stack.angles[arm] + np.deg2rad(offset) * p
-        for arm in range(len(stack.angles))
-        for p in range(n_z)
-    ]
-
-    played = acquisitions(stack.design())
-    if use_rotation_ext:
-        angles = [z_angle(block.rotation.quaternion) for block in played]
-    else:
-        # The waveform turned from the unrotated arm is the angle played.
-        base = in_plane(acquisitions(app(name).design())[0])
-        base = base / np.exp(1j * stack.angles[0])
-        angles = [np.angle(np.sum(in_plane(b) * np.conj(base))) for b in played]
-        assert all(block.rotation is None for block in played)
-
-    assert wrapped(np.subtract(angles, expected)) == pytest.approx(0.0, abs=1e-6)
+def test_an_unknown_choice_or_an_out_of_range_factor_is_refused(name, prescription):
+    with pytest.raises(ValueError):
+        app(name, **prescription)
 
 
-def test_a_stack_without_a_partition_offset_turns_every_partition_alike():
-    stack = app("gre_stack_of_stars3D_sequence")
-    played = acquisitions(stack.design())
-    angles = np.reshape([z_angle(b.rotation.quaternion) for b in played], (-1, 4))
-
-    assert wrapped(angles - stack.angles[:, None]) == pytest.approx(0.0, abs=1e-6)
-    assert len(stack.rotations) == len(stack.angles)
+# -- ZTE ---------------------------------------------------------------------------
 
 
 def test_every_zte_view_of_every_shot_is_acquired_once_in_order():
@@ -159,19 +383,12 @@ def test_every_zte_acquisition_is_turned_by_its_shot_rotation():
     assert matrix_of(first) == pytest.approx(zte.zte.shot_rotations[0], abs=1e-9)
 
 
-@pytest.mark.parametrize(
-    ("name", "infeasible"),
-    [
-        ("gre_stack_of_stars3D_sequence", {"te": 1e-6}),
-        ("gre_stack_of_spirals3D_sequence", {"tr": 1e-4}),
-        ("gre_stack_of_stars3D_sequence", {"angle_scheme": "random"}),
-        ("zte3D_sequence", {"pulse_duration": 1e-3}),
-    ],
-    ids=["stars te", "spirals tr", "stars angles", "zte pulse"],
-)
-def test_an_infeasible_prescription_is_refused(name, infeasible):
+def test_a_zte_pulse_too_long_for_its_dead_time_is_refused():
     with pytest.raises(ValueError):
-        module(name).main(**{**SMALL[name], **infeasible})
+        module("zte3D_sequence").main(**SMALL["zte3D_sequence"], pulse_duration=1e-3)
+
+
+# -- the command line ----------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -179,14 +396,11 @@ def test_an_infeasible_prescription_is_refused(name, infeasible):
     [
         (
             "gre_stack_of_stars3D_sequence",
-            "--partition-angle-offset-deg",
-            "Angle added per partition step, in degrees.",
+            "--partition-angle-shift",
+            "How far each partition turns",
         ),
-        (
-            "gre_stack_of_spirals3D_sequence",
-            "--n-arms",
-            "Interleaves per partition, which is also the designed pitch.",
-        ),
+        ("se_stack_of_spirals3D_sequence", "--n-shots", "Interleaves that sample"),
+        ("gre_stack_of_blades3D_sequence", "--blade-width", "Phase-encode lines"),
         ("zte3D_sequence", "--n-views", "Views per shell."),
     ],
 )

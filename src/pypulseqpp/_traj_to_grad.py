@@ -35,7 +35,7 @@ def traj_to_grad(
         Gradient raster (s). Defaults to the system's.
     time_optimal : bool, optional
         Re-parameterise the path within the limits rather than differentiate it.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits; supplies ``max_grad``, ``max_slew`` and the raster.
     oversampling : int, optional
         Path-resampling factor the solver works at.

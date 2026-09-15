@@ -110,7 +110,7 @@ class _RadialReadout(_ArmedReadout):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.

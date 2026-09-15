@@ -1,4 +1,4 @@
-"""RF-spoiled 2D spiral gradient echo, multi-slice."""
+"""2D spiral spin echo, multi-slice."""
 
 from __future__ import annotations
 
@@ -8,41 +8,41 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The spiral densities ``density`` selects from.
 DENSITIES = ("constant", "variable", "dual")
 
 
-class GreSpiral2DApp(sequences.SequenceApp):
-    """RF-spoiled, multi-slice 2D spiral gradient echo: one interleave per repetition.
+class SeSpiral2DApp(sequences.SequenceApp):
+    """Multi-slice 2D spiral spin echo: one interleave per excitation.
 
-    One solved outward interleave is turned per shot by a rotation extension.
-    ``n_shots`` interleaves, spread evenly over a full turn, sample the centre
-    of k-space at Nyquist; every ``ry``-th of them is played, in order. Slices
-    are dealt into packets, and ordered within one, as :mod:`gre2D_sequence`
-    deals them. Every acquisition carries its interleave as ``LIN`` and its
-    slice as ``SLC``.
+    A slice-selective SLR 90, one slice-selective SLR 180 between crushers
+    half a TE later, and one outward interleave starting at the echo, turned
+    per shot by a rotation extension. The interleaves are designed and chosen
+    as :mod:`gre_spiral2D_sequence` designs and chooses them, and the slices
+    dealt into packets as :mod:`gre2D_sequence` deals them. Every acquisition
+    carries its interleave as ``LIN`` and its slice as ``SLC``.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.gre_spiral2D_sequence(n=32, n_shots=4, tr=None)
+    >>> seq = sequences.se_spiral2D_sequence(n=32, n_shots=4, tr=None)
     >>> seq.check_timing()[0]
     True
     """
 
-    NAME = "gre_spiral_2d"
+    NAME = "se_spiral_2d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: SLR design of the selective pulse.
+    #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
     #: Non-acquiring repetitions, at the first interleave's angle, before each
     #: packet.
-    N_DUMMY = 16
-    #: Quadratic RF spoiling phase increment (degrees), counted per slice.
-    RF_SPOILING_INCREMENT_DEG = 117.0
+    N_DUMMY = 0
+    #: Dephasing each crusher beside the refocusing pulse winds, in cycles
+    #: across one voxel.
+    CRUSHER_CYCLES = 4.0
     #: Dephasing left on the slice axis at the end of each repetition, in
     #: cycles across one voxel.
     SPOILING_CYCLES = 4.0
@@ -58,9 +58,8 @@ class GreSpiral2DApp(sequences.SequenceApp):
         n_slices: int = 1,
         slice_thickness: float = 5e-3,
         slice_spacing: float = 0.0,
-        flip_angle_deg: float = 12.0,
         te: float | None = None,
-        tr: float | None = 20e-3,
+        tr: float | None = 500e-3,
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
@@ -69,7 +68,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         periphery_undersampling: float = 2.0,
         transition_speed: float = 12.0,
     ) -> None:
-        """Design the pulse, the interleave, the slice packets and the angles.
+        """Design the pulses, the interleave, the slice packets and the angles.
 
         Parameters
         ----------
@@ -83,11 +82,10 @@ class GreSpiral2DApp(sequences.SequenceApp):
             Slice thickness (m).
         slice_spacing : float, optional
             Gap between adjacent slices (m); zero is contiguous.
-        flip_angle_deg : float, optional
-            Excitation flip angle (degrees).
         te : float | None, optional
-            Echo time to the start of the outward path (s). ``None`` is as
-            short as possible.
+            Echo time (s), excitation centre to the start of the outward path,
+            with the refocusing pulse at its midpoint. ``None`` is as short as
+            possible.
         tr : float | None, optional
             Repetition time between successive excitations of one slice (s).
             ``None`` is as short as possible, and puts every slice in one
@@ -112,7 +110,8 @@ class GreSpiral2DApp(sequences.SequenceApp):
         ------
         ValueError
             If ``density`` is unknown, ``ry`` or ``periphery_undersampling`` is
-            below one, or the TR cannot hold one slice.
+            below one, or the TE or TR is shorter than the pulses and the
+            readout take.
         """
         if density not in DENSITIES:
             raise ValueError(f"density must be one of {DENSITIES}, got {density!r}")
@@ -127,11 +126,22 @@ class GreSpiral2DApp(sequences.SequenceApp):
         self.fov, self.matrix = fov, (n, n, n_slices)
         self.exc = sequences.SpatialSelectiveExcitation(
             system,
-            flip_angle_deg,
+            90.0,
             slice_thickness,
             duration_s=self.PULSE_DURATION,
             time_bw_product=self.TIME_BW_PRODUCT,
         )
+        # A nonselective 180 would invert every slice of the packet whichever
+        # one it refocuses, so the refocusing pulse selects the slice too.
+        self.ref = sequences.SpatialSelectiveRefocusing(
+            system,
+            slice_thickness,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            spoiling_cycles=self.CRUSHER_CYCLES,
+        )
+        self.ref_phase = float(self.ref.rf_ref.phase_offset)
+
         # The centre is designed for n_shots interleaves and the periphery for
         # proportionally more, which is what spreads an interleave's turns there.
         shaped = {}
@@ -143,20 +153,43 @@ class GreSpiral2DApp(sequences.SequenceApp):
                 "transition_radius": self.TRANSITION_RADIUS,
                 "transition_speed": transition_speed,
             }
-        self.ro = sequences.SpiralReadout2D(
-            system,
-            self.exc.rf,
-            self.exc.gz,
-            self.exc.gz_reph,
-            fov=fov,
-            matrix=n,
-            design_interleaves=n_shots,
-            density=density,
-            te=te,
-            readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=self.SPOILING_CYCLES,
-            **shaped,
-        )
+
+        # TE is solved in two halves about the 180. The readout owns the second,
+        # from the 180's centre to the echo; a delay before the 180 sets the
+        # first, which is never shorter than the excitation's blocks allow.
+        half_floor = self.exc.duration - self.exc.center + self.ref.center
+
+        def readout(half_te: float | None):
+            return sequences.SpiralReadout2D(
+                system,
+                self.ref.rf_ref,
+                self.ref.gz,
+                fov=fov,
+                matrix=n,
+                design_interleaves=n_shots,
+                density=density,
+                te=half_te,
+                readout_bandwidth_hz=readout_bandwidth_hz,
+                spoiling_cycles=self.SPOILING_CYCLES,
+                **shaped,
+            )
+
+        te_min = 2 * max(readout(None).echo_time, half_floor)
+        if te is not None and te < te_min - 1e-9:
+            raise ValueError(
+                f"TE {te * 1e3:.2f} ms is shorter than the {te_min * 1e3:.2f} ms "
+                "the excitation and the readout admit"
+            )
+        # The 180 must sit midway, so both halves are solved on the block raster:
+        # the excitation half waits a whole number of rasters, and the readout
+        # is asked for the same span.
+        self.raster = system.block_duration_raster
+        target = (te_min if te is None else te) / 2 - half_floor
+        wait = pp.ceil_to_raster(max(target, 0.0) - 1e-9, self.raster)
+        self.ro = readout(half_floor + wait)
+        self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
+        self.echo_time = 2 * (half_floor + wait)
+
         # An interleave covers a full turn, which the n_shots divide evenly.
         self.angles = 2 * np.pi * np.arange(0, n_shots, ry) / n_shots
         self.rotations = [pp.make_rotation(float(angle)) for angle in self.angles]
@@ -164,8 +197,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         # Slices one TR cannot hold are dealt round-robin into packets, even
         # slices of a packet first. Every shot closes with a pure delay: one
         # raster, and on the last slice of a packet whatever is left of the TR.
-        self.raster = system.block_duration_raster
-        shot = self.ro.duration + self.raster
+        shot = self.exc.duration + wait + self.ro.duration + self.raster
         per_packet = n_slices if tr is None else max(1, int(tr / shot + 1e-9))
         n_packets = -(-n_slices // per_packet)
         packets = [range(start, n_slices, n_packets) for start in range(n_packets)]
@@ -177,8 +209,8 @@ class GreSpiral2DApp(sequences.SequenceApp):
         }
         if min(self.pads.values()) < self.raster:
             raise ValueError(
-                f"the requested TR of {cycle * 1e3:.3f} ms is shorter than the "
-                f"{shot * 1e3:.3f} ms one slice takes"
+                f"TR {cycle * 1e3:.1f} ms is shorter than one repetition takes "
+                f"({shot * 1e3:.1f} ms)"
             )
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
@@ -194,27 +226,29 @@ class GreSpiral2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each packet: its dummies, then every interleave at each of its slices."""
         arms = [None] * self.N_DUMMY + list(range(len(self.angles)))
-        phases = make_rf_spoiling_schedule(
-            len(arms), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
-        )
         for packet in self.packets:
-            for arm, phase in zip(arms, phases, strict=True):
+            for arm in arms:
                 for i, s in enumerate(packet):
                     last = i == len(packet) - 1
-                    pad = self.pads[len(packet)] if last else self.raster
-                    self.kernel(s, arm, phase, pad)
+                    self.kernel(s, arm, self.pads[len(packet)] if last else self.raster)
 
-    def kernel(self, s: int, arm: int | None, phase: float, pad: float) -> None:
-        """One excitation of slice ``s`` reading ``arm``; ``None`` plays a dummy.
+    def kernel(self, s: int, arm: int | None, pad: float) -> None:
+        """One spin echo of slice ``s`` reading ``arm``; ``None`` plays a dummy.
 
-        The readout's blocks after the pulse are played as it laid them out,
-        each turned to the interleave's angle where it drives an in-plane
-        gradient.
+        The readout's blocks, from the refocusing pulse on, are played as it
+        laid them out, each turned to the interleave's angle where it drives
+        an in-plane gradient.
         """
-        exc, ro, seq = self.exc, self.ro, self.seq
-        exc.rf.freq_offset = exc.selection_amplitude * self.positions[s]
-        exc.rf.phase_offset = phase - 2 * np.pi * exc.rf.freq_offset * exc.rf.center
-        ro.adc.phase_offset = phase
+        exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
+        position = self.positions[s]
+        # Each pulse selects at its own plateau; a crushed refocusing
+        # gradient's amplitude is its crusher peak.
+        exc.rf.freq_offset = exc.selection_amplitude * position
+        exc.rf.phase_offset = -2 * np.pi * exc.rf.freq_offset * exc.rf.center
+        ref.rf_ref.freq_offset = ref.selection_amplitude * position
+        ref.rf_ref.phase_offset = (
+            self.ref_phase - 2 * np.pi * ref.rf_ref.freq_offset * ref.rf_ref.center
+        )
 
         acquire = arm is not None
         if acquire:
@@ -224,7 +258,10 @@ class GreSpiral2DApp(sequences.SequenceApp):
         rotation = self.rotations[arm if acquire else 0]
 
         seq.add_block(exc.rf, exc.gz, *labels)
-        for block in ro.blocks[1:]:
+        seq.add_block(exc.gz_reph)
+        if self.wait_half_te is not None:
+            seq.add_block(self.wait_half_te)
+        for block in ro.blocks:
             events = [event for event in block if acquire or event is not ro.adc]
             if any(getattr(event, "channel", None) in ("x", "y") for event in events):
                 events.append(rotation)
@@ -239,7 +276,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
             "FOV": [self.fov, self.fov, self.slab_thickness],
             "Matrix": list(self.matrix),
             "Name": self.NAME,
-            "TE": self.ro.echo_time,
+            "TE": self.echo_time,
             "TR": self.repetition_time,
             "Trajectory": "spiral",
             "NumArms": len(self.angles),
@@ -252,7 +289,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
             self.seq.set_definition(key=key, value=value)
 
 
-main = GreSpiral2DApp.main
+main = SeSpiral2DApp.main
 
 if __name__ == "__main__":
-    raise SystemExit(cli.run(main, sys.argv[1:], default_output="gre_spiral_2d.seq"))
+    raise SystemExit(cli.run(main, sys.argv[1:], default_output="se_spiral_2d.seq"))

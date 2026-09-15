@@ -21,7 +21,7 @@ class SmsExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         Nominal flip angle (degrees), per band.
@@ -147,7 +147,7 @@ class MultibandExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         On-resonance flip angle (degrees).

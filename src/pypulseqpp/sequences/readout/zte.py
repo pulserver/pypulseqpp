@@ -74,7 +74,7 @@ class ZteReadout(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
         A non-selective pulse, short enough that its bandwidth spans the spoke.

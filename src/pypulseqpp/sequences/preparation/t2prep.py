@@ -23,7 +23,7 @@ class T2Preparation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     echo_time_s : float
         Preparation echo time (s), first pulse centre to last.

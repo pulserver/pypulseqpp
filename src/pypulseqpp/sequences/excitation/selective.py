@@ -22,7 +22,7 @@ class SpatialSelectiveExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         Nominal flip angle (degrees).
@@ -150,7 +150,7 @@ class SpatialSelectiveRefocusing(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     thickness_m : float
         Slice thickness (m).

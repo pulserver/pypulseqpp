@@ -93,7 +93,7 @@ class _LineReadout(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.

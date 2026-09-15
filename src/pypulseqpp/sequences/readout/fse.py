@@ -97,7 +97,7 @@ class _FseReadout(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
         The excitation that opens the repetition.

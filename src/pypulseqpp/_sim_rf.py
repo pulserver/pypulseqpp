@@ -7,10 +7,10 @@ __all__ = ["sim_bloch", "sim_rf"]
 import warnings as _warnings
 
 import numpy as _np
-import pypulseq as _pp
 
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
 from ._ext import sim as _kernels
+from ._opts import Opts as _Opts
 
 #: ``(bandwidth threshold in Hz, raster in s)``: ``sim_rf``'s default ``dt`` is
 #: the first raster whose threshold the bandwidth exceeds, so wider pulses get
@@ -185,7 +185,7 @@ def sim_rf(
             "default system",
             stacklevel=2,
         )
-        system = _pp.Opts.default
+        system = _Opts.default
         freq_offset += freq_ppm * 1e-6 * system.gamma * system.B0
         phase_offset += phase_ppm * 1e-6 * system.gamma * system.B0
 

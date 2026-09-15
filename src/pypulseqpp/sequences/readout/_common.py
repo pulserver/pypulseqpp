@@ -51,7 +51,7 @@ def solve_delay(
         What the module achieves with no wait (s).
     name : str
         What to call the time in the error, e.g. ``"TE"``.
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits, read for the block duration raster.
 
     Returns
@@ -132,7 +132,7 @@ def solve_rephasing(
         Prewinder block duration with no rephaser in it (s).
     reph_span : float
         Rephaser duration (s), zero when there is none.
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits, read for the block duration raster.
 
     Returns

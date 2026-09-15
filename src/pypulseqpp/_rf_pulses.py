@@ -110,7 +110,7 @@ def make_slr_pulse(
         not by area.
     max_grad, max_slew : float, optional
         Override the system limits for the selection gradient.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
     use : str, optional
         Pulseq ``use`` tag.
@@ -376,7 +376,7 @@ def make_spsp_pulse(
         duration as ``spectral_time_bandwidth_product / spectral_bandwidth``.
     n_subpulses : int, optional
         Number of subpulses (>= 4, rounded up to even).
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
     use : str, optional
         Pulseq ``use`` tag.
@@ -613,7 +613,7 @@ def make_2d_selective_pulse(
         its phase free (magnitude least squares).
     regularization : float, optional
         Tikhonov weight on the waveforms' power in the spatial-domain design.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
     use : str, optional
         Pulseq ``use`` tag.

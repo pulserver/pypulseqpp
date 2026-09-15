@@ -37,7 +37,7 @@ class SpiralNavigator(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     fov : float, optional
         In-plane field of view (m). Wide enough to contain the head.
