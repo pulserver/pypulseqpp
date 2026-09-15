@@ -1,5 +1,6 @@
 """The API reference lists every public Sequence member or deliberately leaves it out."""
 
+import inspect
 import re
 from pathlib import Path
 
@@ -37,17 +38,16 @@ HIDDEN = {
 }
 
 
-#: The `Attributes` section of the class docstring: its entry names, up to the
-#: next section heading.
-_ATTRIBUTES = re.compile(
-    r"^ {4}Attributes\n {4}-+\n(.*?)^ {4}\w+\n {4}-+\n", re.M | re.S
-)
+#: The `Attributes` section of the class docstring, up to the next section
+#: heading. Matched against the cleaned docstring: Python 3.13 strips the common
+#: indentation when it compiles one, and earlier versions keep it.
+_ATTRIBUTES = re.compile(r"^Attributes\n-+\n(.*?)^\w+\n-+\n", re.M | re.S)
 
 
 def _documented_attributes() -> list[str]:
-    section = _ATTRIBUTES.search(pp.Sequence.__doc__)
+    section = _ATTRIBUTES.search(inspect.cleandoc(pp.Sequence.__doc__))
     assert section, "Sequence's docstring has no Attributes section"
-    return re.findall(r"^ {4}(\w+) : ", section.group(1), re.M)
+    return re.findall(r"^(\w+) : ", section.group(1), re.M)
 
 
 def test_every_public_sequence_member_is_categorised_or_deliberately_hidden():
