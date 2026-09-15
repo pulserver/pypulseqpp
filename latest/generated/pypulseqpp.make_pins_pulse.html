@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1211,22 +1198,31 @@ centre otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>slice_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – In m.</p></li>
-<li><p><strong>slice_separation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – In m.</p></li>
+<li><p><strong>flip_angle</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Nominal flip angle (rad).</p></li>
+<li><p><strong>slice_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Thickness of each slice (m).</p></li>
+<li><p><strong>slice_separation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Distance between slice centres (m); must exceed <code class="docutils literal notranslate"><span class="pre">slice_thickness</span></code>.</p></li>
+<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Time-bandwidth product of the envelope.</p></li>
+<li><p><strong>pulse_type</strong> (<em>{'st'</em><em>, </em><em>'ex'</em><em>, </em><em>'se'</em><em>, </em><em>'inv'</em><em>, </em><em>'sat'}</em><em>, </em><em>optional</em>) – Small-tip, excitation, spin-echo, inversion or saturation envelope.</p></li>
+<li><p><strong>filter_type</strong> (<em>{'ls'</em><em>, </em><em>'pm'</em><em>, </em><em>'min'</em><em>, </em><em>'max'</em><em>, </em><em>'ms'}</em><em>, </em><em>optional</em>) – FIR design method of the envelope.</p></li>
+<li><p><strong>passband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Ripple allowed in the passband.</p></li>
+<li><p><strong>stopband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Ripple allowed in the stopband.</p></li>
 <li><p><strong>max_b1</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Peak B1, in T; each subpulse is the shortest, on the gradient raster,
 that stays within it.</p></li>
-<li><p><strong>pulse_type</strong> – The envelope’s SLR design, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p></li>
-<li><p><strong>filter_type</strong> – The envelope’s SLR design, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p></li>
-<li><p><strong>time_bw_product</strong> – The envelope’s SLR design, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p></li>
-<li><p><strong>passband_ripple</strong> – The envelope’s SLR design, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p></li>
-<li><p><strong>stopband_ripple</strong> – The envelope’s SLR design, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p></li>
-<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Limits for the blips and the rephaser, in place of the system’s.</p></li>
-<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Limits for the blips and the rephaser, in place of the system’s.</p></li>
+<li><p><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Delay before the pulse (s).</p></li>
+<li><p><strong>freq_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Frequency offset (Hz).</p></li>
+<li><p><strong>phase_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Phase offset (rad).</p></li>
+<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Gradient limit for the blips and the rephaser, in place of the
+system’s.</p></li>
+<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Slew limit for the blips and the rephaser, in place of the system’s.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>optional</em>) – System limits.</p></li>
+<li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Pulseq <code class="docutils literal notranslate"><span class="pre">use</span></code> tag.</p></li>
+<li><p><strong>freq_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Field-strength-relative frequency offset.</p></li>
+<li><p><strong>phase_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Field-strength-relative phase offset.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>rf</strong> (<em>SimpleNamespace</em>)</p></li>
+<li><p><strong>rf</strong> (<em>SimpleNamespace</em>) – The subpulse train.</p></li>
 <li><p><strong>gz</strong> (<em>SimpleNamespace</em>) – The blip train, an extended trapezoid with the same delay as <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
 <li><p><strong>gzr</strong> (<em>SimpleNamespace</em>) – Rephaser of minus the blip area after the RF centre.</p></li>
 </ul>

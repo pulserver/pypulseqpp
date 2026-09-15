@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1198,7 +1185,24 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.test_report_dict">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">test_report_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.test_report_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.test_report_dict" title="Link to this definition">#</a></dt>
-<dd><p>Return timing, encoding and gradient statistics; see report_data.</p>
+<dd><p>Return timing, encoding and gradient statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">num_blocks</span></code>, <code class="docutils literal notranslate"><span class="pre">event_count</span></code> and <code class="docutils literal notranslate"><span class="pre">libraries</span></code>; <code class="docutils literal notranslate"><span class="pre">duration</span></code>,
+<code class="docutils literal notranslate"><span class="pre">TE</span></code> and <code class="docutils literal notranslate"><span class="pre">TR</span></code> in seconds; <code class="docutils literal notranslate"><span class="pre">flip_angles_deg</span></code>;
+<code class="docutils literal notranslate"><span class="pre">unique_k_positions</span></code>; <code class="docutils literal notranslate"><span class="pre">max_gradient</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew_rate</span></code>,
+each per axis and as a vector magnitude, in the file’s units and
+in the scanner’s; and <code class="docutils literal notranslate"><span class="pre">timing_ok</span></code> with <code class="docutils literal notranslate"><span class="pre">timing_error_report</span></code>.
+A sequence whose encoding visits more than one position also
+carries <code class="docutils literal notranslate"><span class="pre">dimensions</span></code>, <code class="docutils literal notranslate"><span class="pre">spatial_resolution_mm</span></code>,
+<code class="docutils literal notranslate"><span class="pre">repetitions</span></code> and <code class="docutils literal notranslate"><span class="pre">is_cartesian</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Runs <cite>check_timing</cite>, which may record TotalDuration.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>

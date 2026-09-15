@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1207,14 +1194,14 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<em>pypulseq.Opts</em>) – System limits.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits.</p></li>
 <li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The pulse to play.</p></li>
 <li><p><strong>n_pulses</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Times to play it.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Cycles of dephasing the closing spoiler winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
 Zero omits the spoiler, which is what a pulse whose effect is a phase
 rather than a saturation needs.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Counters emitted on the first pulse’s block.</p></li>
+<li><p><strong>labels</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – Counters emitted on the first pulse’s block.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1246,7 +1233,7 @@ rather than a saturation needs.</p></li>
 <dd><p>One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>LabelSetEvent or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of LabelSetEvent</p>
+<dd class="field-odd"><p>LabelEvent | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a>[LabelEvent]</p>
 </dd>
 </dl>
 </dd></dl>

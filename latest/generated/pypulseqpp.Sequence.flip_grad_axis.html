@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1199,6 +1186,12 @@
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.flip_grad_axis">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">flip_grad_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.flip_grad_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.flip_grad_axis" title="Link to this definition">#</a></dt>
 <dd><p>Invert every gradient played on <code class="docutils literal notranslate"><span class="pre">axis</span></code>.</p>
+<p>Equivalent to <code class="docutils literal notranslate"><span class="pre">mod_grad_axis(axis,</span> <span class="pre">-1)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>{'x'</em><em>, </em><em>'y'</em><em>, </em><em>'z'}</em>) – Which axis to act on.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">())</span>

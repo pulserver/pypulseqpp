@@ -267,17 +267,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -297,8 +286,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1160,7 +1147,7 @@
 <span class="sd">        Its rephaser, if one was given.</span>
 <span class="sd">    gx_pre : TrapEvent</span>
 <span class="sd">        Read prewinder, half a line lobe against the first line's polarity.</span>
-<span class="sd">    gx : list of GradEvent</span>
+<span class="sd">    gx : list[GradEvent]</span>
 <span class="sd">        One read lobe per line: alternating polarity for a blipped train, the</span>
 <span class="sd">        same lobe every time for a flyback one.</span>
 <span class="sd">    gx_flyback : TrapEvent</span>
@@ -1181,15 +1168,15 @@
 <span class="sd">        The lobe that closes the read axis, bridged off the last line.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition window, shared by every line.</span>
-<span class="sd">    shot_labels : tuple of LabelEvent</span>
+<span class="sd">    shot_labels : tuple[LabelEvent, ...]</span>
 <span class="sd">        ``SET`` counters on the prewinder block, one per name in ``labels``.</span>
 <span class="sd">        The loop writes the shot's origin into them. Always a tuple, however</span>
 <span class="sd">        many names there are, because the loop splats it.</span>
-<span class="sd">    line_labels : tuple of tuple of LabelEvent</span>
+<span class="sd">    line_labels : tuple[tuple[LabelEvent, ...], ...]</span>
 <span class="sd">        Per line, the ``INC`` counters that step from the previous line to this</span>
 <span class="sd">        one -- the ordering, expressed as labels. Empty for the first line,</span>
 <span class="sd">        which the ``SET`` already placed.</span>
-<span class="sd">    order : numpy.ndarray</span>
+<span class="sd">    order : NDArray[np.int64]</span>
 <span class="sd">        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.</span>
 <span class="sd">    wait_te : DelayEvent</span>
 <span class="sd">        Present only when a TE longer than the minimum was asked for.</span>
@@ -1199,7 +1186,7 @@
 <span class="sd">        Lines per repetition.</span>
 <span class="sd">    esp : float</span>
 <span class="sd">        Echo spacing (s).</span>
-<span class="sd">    echo_times : numpy.ndarray</span>
+<span class="sd">    echo_times : NDArray[np.float64]</span>
 <span class="sd">        Each line's echo time (s) from the excitation isodelay.</span>
 <span class="sd">    echo_time : float</span>
 <span class="sd">        The first line's, which is what ``te`` sets.</span>
@@ -1214,7 +1201,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    system : pypulseq.Opts</span>
+<span class="sd">    system : Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse that opens the repetition. A refocusing pulse builds the</span>
@@ -1223,11 +1210,11 @@
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
 <span class="sd">    gz_reph : GradEvent, optional</span>
 <span class="sd">        The rephaser that unwinds ``gz``.</span>
-<span class="sd">    fov : float or sequence of float</span>
+<span class="sd">    fov : float | Sequence[float]</span>
 <span class="sd">        Field of view (m), per encoded axis, readout first.</span>
-<span class="sd">    matrix : int or sequence of int</span>
+<span class="sd">    matrix : int | Sequence[int]</span>
 <span class="sd">        Matrix size, per encoded axis.</span>
-<span class="sd">    order : array_like, optional</span>
+<span class="sd">    order : ArrayLike, optional</span>
 <span class="sd">        ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one</span>
 <span class="sd">        row per line. Supplying one silences the generator arguments below; the</span>
 <span class="sd">        default asks ``calc_epi_order`` for a train.</span>
@@ -1235,10 +1222,25 @@
 <span class="sd">        Lines per repetition. Defaults to what one shot of the requested</span>
 <span class="sd">        scheme needs to cross the phase-encode matrix.</span>
 <span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, optional</span>
-<span class="sd">        Which built-in ordering to generate. See</span>
-<span class="sd">        ``calc_epi_order``.</span>
-<span class="sd">    acceleration, segments, partition_acceleration, caipi_shift, extent</span>
-<span class="sd">        Passed to ``calc_epi_order``.</span>
+<span class="sd">        Which built-in ordering to generate. ``'linear'`` steps by</span>
+<span class="sd">        ``segments * acceleration`` every line and never leaves its</span>
+<span class="sd">        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;</span>
+<span class="sd">        ``'zigzag'`` walks up and down a phase-encode segment instead of</span>
+<span class="sd">        across the whole matrix.</span>
+<span class="sd">    acceleration : int, optional</span>
+<span class="sd">        Phase-encode undersampling, ``Ry``: lines the blip skips.</span>
+<span class="sd">    segments : int, optional</span>
+<span class="sd">        Shots the train is interleaved across, ``S``. The blip becomes</span>
+<span class="sd">        ``S * Ry``, which shortens the train without changing the lattice</span>
+<span class="sd">        sampled.</span>
+<span class="sd">    partition_acceleration : int, optional</span>
+<span class="sd">        Partition undersampling ``Rz``, the height of the CAIPI cycle.</span>
+<span class="sd">        ``'caipi'`` only.</span>
+<span class="sd">    caipi_shift : int, optional</span>
+<span class="sd">        Partitions the pattern climbs per acquired line. ``'caipi'`` only.</span>
+<span class="sd">    extent : int, optional</span>
+<span class="sd">        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused</span>
+<span class="sd">        by the others.</span>
 <span class="sd">    te : float, optional</span>
 <span class="sd">        Excitation isodelay to the **first** echo (s). ``None`` is as short as</span>
 <span class="sd">        possible; every other echo follows at ``esp`` intervals, and</span>
@@ -1264,10 +1266,10 @@
 <span class="sd">    voxel_size_m : float, optional</span>
 <span class="sd">        Length the spoiling is counted over (m). The read resolution by</span>
 <span class="sd">        default.</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : Sequence[str], optional</span>
 <span class="sd">        Counters for the encoded axes, phase encode first. Two names for a 3D</span>
 <span class="sd">        train, one for 2D.</span>
-<span class="sd">    trigger : event, optional</span>
+<span class="sd">    trigger : TriggerEvent, optional</span>
 <span class="sd">        A trigger or digital output armed on the prewinder block.</span>
 
 <span class="sd">    Raises</span>

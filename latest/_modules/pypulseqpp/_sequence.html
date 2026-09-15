@@ -267,17 +267,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -297,8 +286,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1223,6 +1210,45 @@
 <span class="sd">    use_block_cache : bool, default True</span>
 <span class="sd">        Compatibility flag, retained but not used to cache decoded blocks.</span>
 
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : Opts | None</span>
+<span class="sd">        The limits the sequence was constructed with.</span>
+<span class="sd">    num_blocks : int</span>
+<span class="sd">        Number of blocks; equivalent to ``len(seq)``.</span>
+<span class="sd">    block_durations : MutableMapping[int, float]</span>
+<span class="sd">        Duration of each block in seconds, keyed by 1-based block index.</span>
+<span class="sd">        Assigning an entry changes the stored block duration.</span>
+<span class="sd">    block_events : dict[int, NDArray[np.int32]]</span>
+<span class="sd">        Event IDs of each block, keyed by 1-based block index: delay, RF,</span>
+<span class="sd">        gx, gy, gz, ADC and extension. The delay column is zero for Pulseq</span>
+<span class="sd">        1.5. Reading it allocates a dictionary for all blocks.</span>
+<span class="sd">    definitions : dict[str, Any]</span>
+<span class="sd">        Everything `[DEFINITIONS]` will carry.</span>
+<span class="sd">    grad_raster_time : float</span>
+<span class="sd">        Gradient raster in seconds.</span>
+<span class="sd">    rf_raster_time : float</span>
+<span class="sd">        RF raster in seconds.</span>
+<span class="sd">    adc_raster_time : float</span>
+<span class="sd">        ADC dwell raster in seconds.</span>
+<span class="sd">    block_duration_raster : float</span>
+<span class="sd">        Raster a block duration is a whole number of, in seconds.</span>
+<span class="sd">    version_major : int</span>
+<span class="sd">        Major version of the Pulseq format the sequence is held as. A file</span>
+<span class="sd">        older than 1.5 is converted as it is read, so this is what the</span>
+<span class="sd">        sequence is rather than what its file declared.</span>
+<span class="sd">    version_minor : int</span>
+<span class="sd">        Minor version of the format the sequence is held as.</span>
+<span class="sd">    version_revision : int</span>
+<span class="sd">        Revision of the format the sequence is held as.</span>
+<span class="sd">    signature_type : str | None</span>
+<span class="sd">        Hash algorithm of the signature carried by the last file written, or</span>
+<span class="sd">        by the last binary file read: ``'md5'``, or None when it had none.</span>
+<span class="sd">    signature_file : str | None</span>
+<span class="sd">        Format that file was written in, ``'text'`` or ``'bin'``.</span>
+<span class="sd">    signature_value : str | None</span>
+<span class="sd">        The signature itself.</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -1384,6 +1410,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">set_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">events</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Write ``events`` over the block at ``index``, 1-based.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The block to replace, 1-based.</span>
+<span class="sd">        *events</span>
+<span class="sd">            What the block plays from now on, as for `add_block`.</span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -1401,6 +1434,11 @@
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.get_block.html#pypulseqpp.Sequence.get_block">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Decode a block by its 1-based index.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The block to decode, 1-based.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1583,6 +1621,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">set_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Record ``key`` in `[DEFINITIONS]`.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The definition's name.</span>
+<span class="sd">        value : str | float | Sequence[float]</span>
+<span class="sd">            What it says; a value already recorded under ``key`` is replaced.</span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -1598,6 +1643,16 @@
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return what ``key`` says, or ``''`` if it is not defined.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The definition's name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str | float | list[float]</span>
+<span class="sd">            The recorded value, or ``''`` when ``key`` is not defined.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1619,6 +1674,12 @@
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.copy_definitions.html#pypulseqpp.Sequence.copy_definitions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_seq</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Take every definition ``other_seq`` carries.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other_seq : Sequence</span>
+<span class="sd">            The sequence to copy from. A definition both carry takes its</span>
+<span class="sd">            value.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1698,6 +1759,11 @@
 
 <span class="sd">        Nothing is appended when the system's ``flag_trid`` is False.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label_name : str</span>
+<span class="sd">            What this repetition is called; see `get_or_create_trid_id`.</span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -1768,6 +1834,13 @@
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.flip_grad_axis.html#pypulseqpp.Sequence.flip_grad_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flip_grad_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Invert every gradient played on ``axis``.</span>
+
+<span class="sd">        Equivalent to ``mod_grad_axis(axis, -1)``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : {'x', 'y', 'z'}</span>
+<span class="sd">            Which axis to act on.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1887,11 +1960,33 @@
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return the gradient waveforms, the RF moments and the ADC sampling.</span>
 
-<span class="sd">        ``compat`` gives upstream's five values, which is what a drop-in</span>
-<span class="sd">        caller unpacks; False gives everything the pass worked out, including</span>
-<span class="sd">        the five RF uses those five values cannot carry.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        append_RF : bool, default False</span>
+<span class="sd">            Also return the RF envelope, as a fourth waveform channel.</span>
+<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
+<span class="sd">        block_range : Sequence[int], optional</span>
+<span class="sd">            Two 1-based block indices. Not with ``time_range``.</span>
+<span class="sd">        compat : bool, default True</span>
+<span class="sd">            Return upstream's five values, which is what a drop-in caller</span>
+<span class="sd">            unpacks. False returns everything the pass worked out, including</span>
+<span class="sd">            the five RF uses those five values cannot carry.</span>
 
-<span class="sd">        See :func:`pypulseqpp._waveforms.waveforms_and_times`.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple | WaveformsAndTimes</span>
+<span class="sd">            With ``compat``: ``(wave_data, tfp_excitation, tfp_refocusing,</span>
+<span class="sd">            t_adc, fp_adc)``. Otherwise a named result whose ``waveforms``,</span>
+<span class="sd">            ``rf`` and ``adc`` carry every RF use tag, per-sample ADC phases</span>
+<span class="sd">            and the 1-based block each pulse and sample belongs to.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Gradient channels are ``(2, n)`` arrays of time (s) and amplitude</span>
+<span class="sd">        (Hz/m); the optional RF channel is complex with amplitude in Hz. Block</span>
+<span class="sd">        rotations are applied. A time range keeps times measured from the</span>
+<span class="sd">        start of the scan; a block range restarts them at its first block.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1918,7 +2013,21 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">append_RF</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return gradient corners as time (s) over amplitude (Hz/m), per axis.</span>
 
-<span class="sd">        ``append_RF=True`` appends a complex RF channel in Hz.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        append_RF : bool, default False</span>
+<span class="sd">            Also return the RF envelope, as a fourth, complex channel in Hz.</span>
+<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
+<span class="sd">        block_range : Sequence[int], optional</span>
+<span class="sd">            Two 1-based block indices. Not with ``time_range``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list[NDArray]</span>
+<span class="sd">            One ``(2, n)`` array of time over amplitude per axis, empty where</span>
+<span class="sd">            an axis plays nothing, then the RF channel when asked for; the</span>
+<span class="sd">            first value `waveforms_and_times` returns.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1938,6 +2047,19 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">adc_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        t_adc : NDArray[np.float64]</span>
+<span class="sd">            When every sample is taken, in seconds from the start of the scan.</span>
+<span class="sd">        fp_adc : NDArray[np.float64]</span>
+<span class="sd">            ``(n, 2)``, one row per ADC window rather than per sample:</span>
+<span class="sd">            frequency (Hz) and phase (rad) offsets, without ppm corrections.</span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -1956,8 +2078,22 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">rf_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return when the pulses act, and at what frequency and phase.</span>
 
-<span class="sd">        ``compat`` gives upstream's four values, which describe two of</span>
-<span class="sd">        Pulseq's seven RF uses; False gives all seven.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
+<span class="sd">        compat : bool, default True</span>
+<span class="sd">            Return upstream's four values, which describe two of Pulseq's</span>
+<span class="sd">            seven RF uses. False returns a named result covering all seven.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple | RfTimes</span>
+<span class="sd">            With ``compat``: ``(t_excitation, fp_excitation, t_refocusing,</span>
+<span class="sd">            fp_refocusing)``. A pulse whose row records no use is counted as</span>
+<span class="sd">            an excitation, as upstream counts it. Otherwise a named result</span>
+<span class="sd">            carrying ``t``, ``freq_offset``, ``phase_offset``, ``use`` and</span>
+<span class="sd">            ``block`` for every pulse.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1998,9 +2134,12 @@
 <span class="sd">        k_traj : NDArray[np.float64]</span>
 <span class="sd">            Full trajectory in 1/m, sampled through ramps and at event times.</span>
 <span class="sd">        t_excitation : NDArray[np.float64]</span>
+<span class="sd">            Centre of each excitation pulse, in seconds from the start of the</span>
+<span class="sd">            selected range.</span>
 <span class="sd">        t_refocusing : NDArray[np.float64]</span>
+<span class="sd">            Centre of each refocusing pulse, in seconds from the same origin.</span>
 <span class="sd">        t_adc : NDArray[np.float64]</span>
-<span class="sd">            RF-centre and ADC times in seconds relative to the selected range.</span>
+<span class="sd">            Time of each ADC sample, in seconds from the same origin.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2048,9 +2187,29 @@
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return physical-axis gradient splines in Hz/m over seconds.</span>
 
-<span class="sd">        Positive trajectory_delay advances the gradients. A scalar delay or</span>
-<span class="sd">        offset applies to all axes. Inactive axes with no offset return None.</span>
-<span class="sd">        Time and block ranges are mutually exclusive.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trajectory_delay : float | Sequence[float], default 0</span>
+<span class="sd">            Timing correction in seconds, one value for all axes or one per</span>
+<span class="sd">            axis; positive values advance the gradients.</span>
+<span class="sd">        gradient_offset : float | Sequence[float], default 0</span>
+<span class="sd">            A background gradient in Hz/m, one value for all axes or one per</span>
+<span class="sd">            axis.</span>
+<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
+<span class="sd">        block_range : Sequence[int], optional</span>
+<span class="sd">            Two 1-based block indices. Not with ``time_range``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list[scipy.interpolate.PPoly | None]</span>
+<span class="sd">            One spline per axis, None where an axis plays nothing and has no</span>
+<span class="sd">            offset.</span>
+
+<span class="sd">        Warns</span>
+<span class="sd">        -----</span>
+<span class="sd">        UserWarning</span>
+<span class="sd">            When ``trajectory_delay`` exceeds 100 us on any axis.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2141,6 +2300,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">test_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return a formatted sequence timing, encoding and gradient report.</span>
 
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The statistics `test_report_dict` returns, one per line, with the</span>
+<span class="sd">            timing check's findings.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Runs `check_timing`, which may record TotalDuration.</span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -2164,7 +2333,23 @@
 <div class="viewcode-block" id="Sequence.test_report_dict">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.test_report_dict.html#pypulseqpp.Sequence.test_report_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">test_report_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return timing, encoding and gradient statistics; see report_data.</span>
+<span class="w">        </span><span class="sd">"""Return timing, encoding and gradient statistics.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, Any]</span>
+<span class="sd">            ``num_blocks``, ``event_count`` and ``libraries``; ``duration``,</span>
+<span class="sd">            ``TE`` and ``TR`` in seconds; ``flip_angles_deg``;</span>
+<span class="sd">            ``unique_k_positions``; ``max_gradient`` and ``max_slew_rate``,</span>
+<span class="sd">            each per axis and as a vector magnitude, in the file's units and</span>
+<span class="sd">            in the scanner's; and ``timing_ok`` with ``timing_error_report``.</span>
+<span class="sd">            A sequence whose encoding visits more than one position also</span>
+<span class="sd">            carries ``dimensions``, ``spatial_resolution_mm``,</span>
+<span class="sd">            ``repetitions`` and ``is_cartesian``.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Runs `check_timing`, which may record TotalDuration.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2604,11 +2789,34 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">write_v141</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">42576000.0</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="mf">1.5</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, returning its MD5 signature or None.</span>
+<span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.</span>
 
-<span class="sd">        ``gamma`` is in Hz/T and ``field`` in T; together they convert ppm</span>
-<span class="sd">        offsets to absolute offsets. Soft delays are omitted with a warning.</span>
-<span class="sd">        Rotation and RF-shim extensions raise RuntimeError.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str | os.PathLike[str]</span>
+<span class="sd">            Where to write it.</span>
+<span class="sd">        create_signature : bool, default True</span>
+<span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
+<span class="sd">        gamma : float, default 42576000.0</span>
+<span class="sd">            Gyromagnetic ratio in Hz/T.</span>
+<span class="sd">        field : float, default 1.5</span>
+<span class="sd">            Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1</span>
+<span class="sd">            has no column for, to absolute offsets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str | None</span>
+<span class="sd">            The MD5 signature written, or None if the file is unsigned.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the sequence carries rotation or RF-shim extensions.</span>
+
+<span class="sd">        Warns</span>
+<span class="sd">        -----</span>
+<span class="sd">        UserWarning</span>
+<span class="sd">            When soft delays are omitted.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2781,16 +2989,29 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        label, show_blocks, save, time_disp, grad_disp, clear, overlay, stacked, show_guides</span>
-<span class="sd">            Upstream's, accepted so a script written for it runs. SeqEyes</span>
-<span class="sd">            draws units, labels and block edges its own way, from its own</span>
-<span class="sd">            settings; one given a value other than its default is reported</span>
-<span class="sd">            and ignored.</span>
+<span class="sd">        label : str, default ''</span>
+<span class="sd">            Upstream's ADC label display. Ignored.</span>
+<span class="sd">        show_blocks : bool, default False</span>
+<span class="sd">            Upstream's block-boundary grid. Ignored.</span>
+<span class="sd">        save : bool, default False</span>
+<span class="sd">            Upstream's figure saving. Ignored.</span>
 <span class="sd">        time_range : Sequence[float], default (0, inf)</span>
 <span class="sd">            The seconds to draw, measured from the start of the scan.</span>
+<span class="sd">        time_disp : {'s', 'ms', 'us'}, default 's'</span>
+<span class="sd">            Upstream's time unit. Ignored.</span>
+<span class="sd">        grad_disp : {'kHz/m', 'mT/m'}, default 'kHz/m'</span>
+<span class="sd">            Upstream's gradient unit. Ignored.</span>
 <span class="sd">        plot_now : bool, default True</span>
 <span class="sd">            Wait for the window to be closed before returning. When False,</span>
 <span class="sd">            the window is left open and the returned viewer is live.</span>
+<span class="sd">        clear : bool, default True</span>
+<span class="sd">            Upstream's figure clearing. Ignored.</span>
+<span class="sd">        overlay : object, optional</span>
+<span class="sd">            Upstream's plot to overlay. Ignored.</span>
+<span class="sd">        stacked : bool, default False</span>
+<span class="sd">            Upstream's single stacked figure. Ignored.</span>
+<span class="sd">        show_guides : bool, default False</span>
+<span class="sd">            Upstream's cursor guides. Ignored.</span>
 <span class="sd">        block_range : Sequence[int], optional</span>
 <span class="sd">            The first and last block to draw, 1-based and inclusive.</span>
 <span class="sd">        tr_range : Sequence[int], optional</span>
@@ -2811,6 +3032,17 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            If more than one range is given or a range is outside the</span>
 <span class="sd">            sequence.</span>
+
+<span class="sd">        Warns</span>
+<span class="sd">        -----</span>
+<span class="sd">        UserWarning</span>
+<span class="sd">            When an ignored parameter is given a value other than its default.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The ignored parameters are upstream's, accepted so a script written</span>
+<span class="sd">        for it runs: SeqEyes draws units, labels and block edges its own way,</span>
+<span class="sd">        from its own settings.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2871,10 +3103,20 @@
 <span class="sd">        time_range : Sequence[float], default (0, inf)</span>
 <span class="sd">            Upstream's window, in seconds. Given, the blocks it touches are</span>
 <span class="sd">            drawn alone, without repetitions underneath.</span>
-<span class="sd">        line_width, axes_color, rf_color, gx_color, gy_color, gz_color, rf_plot</span>
-<span class="sd">            Upstream's styling parameters, with mrsd's defaults: black events</span>
-<span class="sd">            on light-grey baselines. ``rf_color`` also draws the ADC;</span>
-<span class="sd">            ``rf_plot`` is ``"abs"``, ``"real"`` or ``"imag"``.</span>
+<span class="sd">        line_width : float, default 1.2</span>
+<span class="sd">            Width of every drawn line, in points.</span>
+<span class="sd">        axes_color : str | tuple[float, ...], default "0.9"</span>
+<span class="sd">            A Matplotlib colour for the baselines.</span>
+<span class="sd">        rf_color : str | tuple[float, ...], default "black"</span>
+<span class="sd">            A Matplotlib colour for the RF and ADC rows.</span>
+<span class="sd">        gx_color : str | tuple[float, ...], default "black"</span>
+<span class="sd">            A Matplotlib colour for the x gradient row.</span>
+<span class="sd">        gy_color : str | tuple[float, ...], default "black"</span>
+<span class="sd">            A Matplotlib colour for the y gradient row.</span>
+<span class="sd">        gz_color : str | tuple[float, ...], default "black"</span>
+<span class="sd">            A Matplotlib colour for the z gradient row.</span>
+<span class="sd">        rf_plot : {'abs', 'real', 'imag'}, default 'abs'</span>
+<span class="sd">            Which part of the RF waveform to draw.</span>
 <span class="sd">        tr : int, optional</span>
 <span class="sd">            1-based repetition to draw. By default, the one in which a</span>
 <span class="sd">            physical axis reaches its largest magnitude.</span>

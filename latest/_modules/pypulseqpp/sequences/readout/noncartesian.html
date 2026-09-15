@@ -267,17 +267,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../generated/pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -297,8 +286,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1560,7 +1547,7 @@
 <span class="sd">        End-of-TR spoiler, when ``spoiling_cycles`` is nonzero.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition window.</span>
-<span class="sd">    adc_labels : LabelSetEvent or list of LabelSetEvent</span>
+<span class="sd">    adc_labels : LabelEvent | list[LabelEvent]</span>
 <span class="sd">        One per name in ``labels``; a bare event when there is one.</span>
 <span class="sd">    wait_te, wait_tr : DelayEvent</span>
 <span class="sd">        Present only when a TE or TR longer than the minimum was asked for.</span>
@@ -1574,15 +1561,48 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    system : Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    rf : RfEvent</span>
+<span class="sd">        The pulse that opens the repetition.</span>
+<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">        A selection gradient played in the same block as ``rf``.</span>
+<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">        The rephaser that unwinds ``gz``, carried left-aligned in the first</span>
+<span class="sd">        block after the pulse. Only an axis the loop's rotation leaves alone</span>
+<span class="sd">        can carry one.</span>
 <span class="sd">    trajectory : NonCartesianGradient</span>
 <span class="sd">        Solved gradient interleave with ADC sampling and moment bridges.</span>
-
-<span class="sd">    Other Parameters</span>
-<span class="sd">    ----------------</span>
-<span class="sd">    system, rf, gz, gz_reph, fov_z, matrix_z, te, tr</span>
-<span class="sd">        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.</span>
-<span class="sd">    spoiling_cycles, voxel_size_m, spoiling_axis, n_echoes, explicit, angles, labels, trigger</span>
-<span class="sd">        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.</span>
+<span class="sd">    fov_z : float, optional</span>
+<span class="sd">        Partition field of view (m). Stacks only.</span>
+<span class="sd">    matrix_z : int, optional</span>
+<span class="sd">        Partition count. Stacks only.</span>
+<span class="sd">    te : float, optional</span>
+<span class="sd">        Echo time (s) from the RF isodelay to the path's nearest k = 0</span>
+<span class="sd">        crossing. ``None`` is as short as possible.</span>
+<span class="sd">    tr : float, optional</span>
+<span class="sd">        Repetition time (s). ``None`` is as short as possible.</span>
+<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">        Dephasing left at the end of the TR, in cycles across</span>
+<span class="sd">        ``voxel_size_m``. Zero leaves the path rewound.</span>
+<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">        Length the spoiling is counted over (m); the trajectory's resolution</span>
+<span class="sd">        by default.</span>
+<span class="sd">    spoiling_axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">        Axis the spoiler is played on.</span>
+<span class="sd">    n_echoes : int, optional</span>
+<span class="sd">        Path traversals per repetition, separated by ``echo_spacing``, each</span>
+<span class="sd">        with its own ``ECO`` label and joined by rewinders and prewinders.</span>
+<span class="sd">    explicit : bool, optional</span>
+<span class="sd">        Write out one interleave per entry of ``angles`` instead of one base</span>
+<span class="sd">        interleave.</span>
+<span class="sd">    angles : ArrayLike, optional</span>
+<span class="sd">        In-plane rotations (rad). Required when ``explicit``, refused</span>
+<span class="sd">        otherwise.</span>
+<span class="sd">    labels : Sequence[str], optional</span>
+<span class="sd">        Counters emitted on the acquisition block.</span>
+<span class="sd">    trigger : TriggerEvent, optional</span>
+<span class="sd">        A trigger or digital output armed on the block that opens the readout.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

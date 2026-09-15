@@ -2,7 +2,7 @@
 
 | Page | Contents |
 | --- | --- |
-| {doc}`sequence` | `pypulseqpp`: the sequence container, scanner limits, field-of-view transforms and timing reports |
+| {doc}`sequence` | `pypulseqpp`: the sequence container, scanner limits and field-of-view transforms |
 | {doc}`events` | `pypulseqpp`: ADC, delay, trigger, label, rotation and RF-shim events, block and event operations, interoperability with PyPulseq |
 | {doc}`gradients` | `pypulseqpp`: gradient factories, from trapezoids and phase encodes to arbitrary and wave-CAIPI waveforms, and operations on them |
 | {doc}`rf` | `pypulseqpp`: RF pulse factories, SLR, slice-encoding, B1-selective, multidimensional and parallel-transmit design, analysis and Bloch simulation |

@@ -58,7 +58,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.Sequence.paper_plot.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Sequence.num_blocks" href="pypulseqpp.Sequence.num_blocks.html" />
+    <link rel="next" title="TransformFOV" href="pypulseqpp.TransformFOV.html" />
     <link rel="prev" title="Sequence.plot" href="pypulseqpp.Sequence.plot.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4 current active"><a class="current reference internal" href="#">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1209,27 +1196,13 @@ the next, and a TR interval is marked below.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>time_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><a class="reference internal" href="pypulseqpp.Opts.default.html#pypulseqpp.Opts.default" title="pypulseqpp.Opts.default"><em>default</em></a><em> (</em><em>0</em><em>, </em><em>inf</em><em>)</em>) – Upstream’s window, in seconds. Given, the blocks it touches are
 drawn alone, without repetitions underneath.</p></li>
-<li><p><strong>line_width</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>axes_color</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>rf_color</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>gx_color</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>gy_color</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>gz_color</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
-<li><p><strong>rf_plot</strong> – Upstream’s styling parameters, with mrsd’s defaults: black events
-on light-grey baselines. <code class="docutils literal notranslate"><span class="pre">rf_color</span></code> also draws the ADC;
-<code class="docutils literal notranslate"><span class="pre">rf_plot</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;abs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;imag&quot;</span></code>.</p></li>
+<li><p><strong>line_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default 1.2</em>) – Width of every drawn line, in points.</p></li>
+<li><p><strong>axes_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default &quot;0.9&quot;</em>) – A Matplotlib colour for the baselines.</p></li>
+<li><p><strong>rf_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default &quot;black&quot;</em>) – A Matplotlib colour for the RF and ADC rows.</p></li>
+<li><p><strong>gx_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default &quot;black&quot;</em>) – A Matplotlib colour for the x gradient row.</p></li>
+<li><p><strong>gy_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default &quot;black&quot;</em>) – A Matplotlib colour for the y gradient row.</p></li>
+<li><p><strong>gz_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default &quot;black&quot;</em>) – A Matplotlib colour for the z gradient row.</p></li>
+<li><p><strong>rf_plot</strong> (<em>{'abs'</em><em>, </em><em>'real'</em><em>, </em><em>'imag'}</em><em>, </em><em>default 'abs'</em>) – Which part of the RF waveform to draw.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – 1-based repetition to draw. By default, the one in which a
 physical axis reaches its largest magnitude.</p></li>
 <li><p><strong>max_underlays</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default 16</em>) – At most this many repetitions, evenly spaced, are drawn underneath,
@@ -1292,11 +1265,11 @@ sequence that does not repeat is one repetition, drawn whole.</p>
       </div>
     </a>
     <a class="right-next"
-       href="pypulseqpp.Sequence.num_blocks.html"
+       href="pypulseqpp.TransformFOV.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Sequence.num_blocks</p>
+        <p class="prev-next-title">TransformFOV</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

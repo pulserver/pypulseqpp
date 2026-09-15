@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1184,7 +1171,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-container">Sequence container</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-of-view-transforms">Field-of-view transforms</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanner-limits">Scanner limits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-reports">Timing reports</a></li>
 </ul>
             </nav>
         </div>
@@ -1199,7 +1185,7 @@
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-and-system">
 <h1>Sequence and system<a class="headerlink" href="#sequence-and-system" title="Link to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: the container a sequence is written into, the scanner limits it is
-designed under, and the transforms and reports applied to it.</p>
+designed under, and the transforms applied to it.</p>
 <section id="sequence-container">
 <h2>Sequence container<a class="headerlink" href="#sequence-container" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a> holds the event libraries, block table, definitions and
@@ -1258,20 +1244,6 @@ leave the caller’s limits unchanged.</p>
 </table>
 </div>
 </section>
-<section id="timing-reports">
-<h2>Timing reports<a class="headerlink" href="#timing-reports" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.check_timing.html#pypulseqpp.check_timing" title="pypulseqpp.check_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_timing</span></code></a></p></td>
-<td><p>Check timing, gradient continuity and the stored total duration.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.print_error_report.html#pypulseqpp.print_error_report" title="pypulseqpp.print_error_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_error_report</span></code></a></p></td>
-<td><p>Print <code class="docutils literal notranslate"><span class="pre">error_report</span></code> grouped by block.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
 </section>
 
 
@@ -1324,7 +1296,6 @@ leave the caller’s limits unchanged.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-container">Sequence container</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-of-view-transforms">Field-of-view transforms</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanner-limits">Scanner limits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-reports">Timing reports</a></li>
 </ul>
   </nav></div>
 

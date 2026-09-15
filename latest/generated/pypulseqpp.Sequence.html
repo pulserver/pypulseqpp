@@ -272,17 +272,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -302,8 +291,6 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1181,7 +1168,24 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.system"><code class="docutils literal notranslate"><span class="pre">Sequence.system</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.num_blocks"><code class="docutils literal notranslate"><span class="pre">Sequence.num_blocks</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_durations"><code class="docutils literal notranslate"><span class="pre">Sequence.block_durations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_events"><code class="docutils literal notranslate"><span class="pre">Sequence.block_events</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.definitions"><code class="docutils literal notranslate"><span class="pre">Sequence.definitions</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.grad_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.grad_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.rf_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.rf_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.adc_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.adc_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_duration_raster"><code class="docutils literal notranslate"><span class="pre">Sequence.block_duration_raster</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_major"><code class="docutils literal notranslate"><span class="pre">Sequence.version_major</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_minor"><code class="docutils literal notranslate"><span class="pre">Sequence.version_minor</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_revision"><code class="docutils literal notranslate"><span class="pre">Sequence.version_revision</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_type"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_file"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_file</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_value"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_value</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks">Blocks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-and-labels">Definitions and labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-delays">Soft delays</a></li>
@@ -1190,7 +1194,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-reports">Checks and reports</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-edits">Gradient edits</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#properties">Properties</a></li>
 </ul>
             </nav>
         </div>
@@ -1217,6 +1220,177 @@ are recorded in the native sequence.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.system">
+<span class="sig-name descname"><span class="pre">system</span></span><a class="headerlink" href="#pypulseqpp.Sequence.system" title="Link to this definition">#</a></dt>
+<dd><p>The limits the sequence was constructed with.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts">Opts</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.num_blocks">
+<span class="sig-name descname"><span class="pre">num_blocks</span></span><a class="headerlink" href="#pypulseqpp.Sequence.num_blocks" title="Link to this definition">#</a></dt>
+<dd><p>Number of blocks; equivalent to <code class="docutils literal notranslate"><span class="pre">len(seq)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.block_durations">
+<span class="sig-name descname"><span class="pre">block_durations</span></span><a class="headerlink" href="#pypulseqpp.Sequence.block_durations" title="Link to this definition">#</a></dt>
+<dd><p>Duration of each block in seconds, keyed by 1-based block index.
+Assigning an entry changes the stored block duration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MutableMapping[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.block_events">
+<span class="sig-name descname"><span class="pre">block_events</span></span><a class="headerlink" href="#pypulseqpp.Sequence.block_events" title="Link to this definition">#</a></dt>
+<dd><p>Event IDs of each block, keyed by 1-based block index: delay, RF,
+gx, gy, gz, ADC and extension. The delay column is zero for Pulseq
+1.5. Reading it allocates a dictionary for all blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a>, NDArray[np.int32]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.definitions">
+<span class="sig-name descname"><span class="pre">definitions</span></span><a class="headerlink" href="#pypulseqpp.Sequence.definitions" title="Link to this definition">#</a></dt>
+<dd><p>Everything <cite>[DEFINITIONS]</cite> will carry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.grad_raster_time">
+<span class="sig-name descname"><span class="pre">grad_raster_time</span></span><a class="headerlink" href="#pypulseqpp.Sequence.grad_raster_time" title="Link to this definition">#</a></dt>
+<dd><p>Gradient raster in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.rf_raster_time">
+<span class="sig-name descname"><span class="pre">rf_raster_time</span></span><a class="headerlink" href="#pypulseqpp.Sequence.rf_raster_time" title="Link to this definition">#</a></dt>
+<dd><p>RF raster in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.adc_raster_time">
+<span class="sig-name descname"><span class="pre">adc_raster_time</span></span><a class="headerlink" href="#pypulseqpp.Sequence.adc_raster_time" title="Link to this definition">#</a></dt>
+<dd><p>ADC dwell raster in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.block_duration_raster">
+<span class="sig-name descname"><span class="pre">block_duration_raster</span></span><a class="headerlink" href="#pypulseqpp.Sequence.block_duration_raster" title="Link to this definition">#</a></dt>
+<dd><p>Raster a block duration is a whole number of, in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.version_major">
+<span class="sig-name descname"><span class="pre">version_major</span></span><a class="headerlink" href="#pypulseqpp.Sequence.version_major" title="Link to this definition">#</a></dt>
+<dd><p>Major version of the Pulseq format the sequence is held as. A file
+older than 1.5 is converted as it is read, so this is what the
+sequence is rather than what its file declared.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.version_minor">
+<span class="sig-name descname"><span class="pre">version_minor</span></span><a class="headerlink" href="#pypulseqpp.Sequence.version_minor" title="Link to this definition">#</a></dt>
+<dd><p>Minor version of the format the sequence is held as.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.version_revision">
+<span class="sig-name descname"><span class="pre">version_revision</span></span><a class="headerlink" href="#pypulseqpp.Sequence.version_revision" title="Link to this definition">#</a></dt>
+<dd><p>Revision of the format the sequence is held as.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.signature_type">
+<span class="sig-name descname"><span class="pre">signature_type</span></span><a class="headerlink" href="#pypulseqpp.Sequence.signature_type" title="Link to this definition">#</a></dt>
+<dd><p>Hash algorithm of the signature carried by the last file written, or
+by the last binary file read: <code class="docutils literal notranslate"><span class="pre">'md5'</span></code>, or None when it had none.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.signature_file">
+<span class="sig-name descname"><span class="pre">signature_file</span></span><a class="headerlink" href="#pypulseqpp.Sequence.signature_file" title="Link to this definition">#</a></dt>
+<dd><p>Format that file was written in, <code class="docutils literal notranslate"><span class="pre">'text'</span></code> or <code class="docutils literal notranslate"><span class="pre">'bin'</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.signature_value">
+<span class="sig-name descname"><span class="pre">signature_value</span></span><a class="headerlink" href="#pypulseqpp.Sequence.signature_value" title="Link to this definition">#</a></dt>
+<dd><p>The signature itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">())</span>
@@ -1307,7 +1481,7 @@ are recorded in the native sequence.</p></li>
 <td><p>Write Pulseq binary, with float32 shape samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.write_v141.html#pypulseqpp.Sequence.write_v141" title="pypulseqpp.Sequence.write_v141"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_v141</span></code></a></p></td>
-<td><p>Write Pulseq 1.4.1 text, returning its MD5 signature or None.</p></td>
+<td><p>Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1353,7 +1527,7 @@ are recorded in the native sequence.</p></li>
 <td><p>Return a formatted sequence timing, encoding and gradient report.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.test_report_dict.html#pypulseqpp.Sequence.test_report_dict" title="pypulseqpp.Sequence.test_report_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_report_dict</span></code></a></p></td>
-<td><p>Return timing, encoding and gradient statistics; see report_data.</p></td>
+<td><p>Return timing, encoding and gradient statistics.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.calc_rf_power.html#pypulseqpp.Sequence.calc_rf_power" title="pypulseqpp.Sequence.calc_rf_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_power</span></code></a></p></td>
 <td><p>Return the RF's mean power, peak power, RMS amplitude and energy.</p></td>
@@ -1385,47 +1559,6 @@ are recorded in the native sequence.</p></li>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paper_plot</span></code></a></p></td>
 <td><p>Draw a publication-style diagram of one repetition, with mrsd.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="properties">
-<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.num_blocks.html#pypulseqpp.Sequence.num_blocks" title="pypulseqpp.Sequence.num_blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_blocks</span></code></a></p></td>
-<td><p>Number of blocks; equivalent to <code class="docutils literal notranslate"><span class="pre">len(seq)</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.block_events.html#pypulseqpp.Sequence.block_events" title="pypulseqpp.Sequence.block_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_events</span></code></a></p></td>
-<td><p>Return event IDs keyed by 1-based block index.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.block_durations.html#pypulseqpp.Sequence.block_durations" title="pypulseqpp.Sequence.block_durations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_durations</span></code></a></p></td>
-<td><p>Mutable duration mapping in seconds, keyed by 1-based block index.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.definitions.html#pypulseqpp.Sequence.definitions" title="pypulseqpp.Sequence.definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definitions</span></code></a></p></td>
-<td><p>Everything <cite>[DEFINITIONS]</cite> will carry.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.grad_raster_time.html#pypulseqpp.Sequence.grad_raster_time" title="pypulseqpp.Sequence.grad_raster_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grad_raster_time</span></code></a></p></td>
-<td><p>Gradient raster in seconds.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_raster_time.html#pypulseqpp.Sequence.rf_raster_time" title="pypulseqpp.Sequence.rf_raster_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_raster_time</span></code></a></p></td>
-<td><p>RF raster in seconds.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_raster_time.html#pypulseqpp.Sequence.adc_raster_time" title="pypulseqpp.Sequence.adc_raster_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_raster_time</span></code></a></p></td>
-<td><p>ADC dwell raster in seconds.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.block_duration_raster.html#pypulseqpp.Sequence.block_duration_raster" title="pypulseqpp.Sequence.block_duration_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_duration_raster</span></code></a></p></td>
-<td><p>Raster a block duration is a whole number of, in seconds.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.version_major.html#pypulseqpp.Sequence.version_major" title="pypulseqpp.Sequence.version_major"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_major</span></code></a></p></td>
-<td><p>The major version of the Pulseq format this sequence is held as.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.version_minor.html#pypulseqpp.Sequence.version_minor" title="pypulseqpp.Sequence.version_minor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_minor</span></code></a></p></td>
-<td><p>Its minor version.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.version_revision.html#pypulseqpp.Sequence.version_revision" title="pypulseqpp.Sequence.version_revision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_revision</span></code></a></p></td>
-<td><p>Its revision.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1480,7 +1613,24 @@ are recorded in the native sequence.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.system"><code class="docutils literal notranslate"><span class="pre">Sequence.system</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.num_blocks"><code class="docutils literal notranslate"><span class="pre">Sequence.num_blocks</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_durations"><code class="docutils literal notranslate"><span class="pre">Sequence.block_durations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_events"><code class="docutils literal notranslate"><span class="pre">Sequence.block_events</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.definitions"><code class="docutils literal notranslate"><span class="pre">Sequence.definitions</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.grad_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.grad_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.rf_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.rf_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.adc_raster_time"><code class="docutils literal notranslate"><span class="pre">Sequence.adc_raster_time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.block_duration_raster"><code class="docutils literal notranslate"><span class="pre">Sequence.block_duration_raster</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_major"><code class="docutils literal notranslate"><span class="pre">Sequence.version_major</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_minor"><code class="docutils literal notranslate"><span class="pre">Sequence.version_minor</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.version_revision"><code class="docutils literal notranslate"><span class="pre">Sequence.version_revision</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_type"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_file"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_file</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.signature_value"><code class="docutils literal notranslate"><span class="pre">Sequence.signature_value</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks">Blocks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-and-labels">Definitions and labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-delays">Soft delays</a></li>
@@ -1489,7 +1639,6 @@ are recorded in the native sequence.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-reports">Checks and reports</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-edits">Gradient edits</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#properties">Properties</a></li>
 </ul>
   </nav></div>
 

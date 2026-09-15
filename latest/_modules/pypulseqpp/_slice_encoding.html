@@ -267,17 +267,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.mod_grad_axis.html">Sequence.mod_grad_axis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.plot.html">Sequence.plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.paper_plot.html">Sequence.paper_plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.num_blocks.html">Sequence.num_blocks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_events.html">Sequence.block_events</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_durations.html">Sequence.block_durations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.definitions.html">Sequence.definitions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.grad_raster_time.html">Sequence.grad_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.rf_raster_time.html">Sequence.rf_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.adc_raster_time.html">Sequence.adc_raster_time</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.block_duration_raster.html">Sequence.block_duration_raster</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_major.html">Sequence.version_major</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_minor.html">Sequence.version_minor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.version_revision.html">Sequence.version_revision</a></li>
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html">TransformFOV</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -297,8 +286,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.cap_system.html">cap_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.MAX_GRAD_DERATE.html">MAX_GRAD_DERATE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.MAX_SLEW_DERATE.html">MAX_SLEW_DERATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.check_timing.html">check_timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.print_error_report.html">print_error_report</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../api/events.html">Events and blocks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1374,19 +1361,49 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    slice_thickness, slice_separation : float</span>
-<span class="sd">        In m.</span>
+<span class="sd">    flip_angle : float</span>
+<span class="sd">        Nominal flip angle (rad).</span>
+<span class="sd">    slice_thickness : float</span>
+<span class="sd">        Thickness of each slice (m).</span>
+<span class="sd">    slice_separation : float</span>
+<span class="sd">        Distance between slice centres (m); must exceed ``slice_thickness``.</span>
+<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">        Time-bandwidth product of the envelope.</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">        Small-tip, excitation, spin-echo, inversion or saturation envelope.</span>
+<span class="sd">    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, optional</span>
+<span class="sd">        FIR design method of the envelope.</span>
+<span class="sd">    passband_ripple : float, optional</span>
+<span class="sd">        Ripple allowed in the passband.</span>
+<span class="sd">    stopband_ripple : float, optional</span>
+<span class="sd">        Ripple allowed in the stopband.</span>
 <span class="sd">    max_b1 : float, optional</span>
 <span class="sd">        Peak B1, in T; each subpulse is the shortest, on the gradient raster,</span>
 <span class="sd">        that stays within it.</span>
-<span class="sd">    pulse_type, filter_type, time_bw_product, passband_ripple, stopband_ripple</span>
-<span class="sd">        The envelope's SLR design, as in :func:`make_slr_pulse`.</span>
-<span class="sd">    max_grad, max_slew : float, optional</span>
-<span class="sd">        Limits for the blips and the rephaser, in place of the system's.</span>
+<span class="sd">    delay : float, optional</span>
+<span class="sd">        Delay before the pulse (s).</span>
+<span class="sd">    freq_offset : float, optional</span>
+<span class="sd">        Frequency offset (Hz).</span>
+<span class="sd">    phase_offset : float, optional</span>
+<span class="sd">        Phase offset (rad).</span>
+<span class="sd">    max_grad : float, optional</span>
+<span class="sd">        Gradient limit for the blips and the rephaser, in place of the</span>
+<span class="sd">        system's.</span>
+<span class="sd">    max_slew : float, optional</span>
+<span class="sd">        Slew limit for the blips and the rephaser, in place of the system's.</span>
+<span class="sd">    system : Opts, optional</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    use : str, optional</span>
+<span class="sd">        Pulseq ``use`` tag.</span>
+<span class="sd">    freq_ppm : float, optional</span>
+<span class="sd">        Field-strength-relative frequency offset.</span>
+<span class="sd">    phase_ppm : float, optional</span>
+<span class="sd">        Field-strength-relative phase offset.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    rf : SimpleNamespace</span>
+<span class="sd">        The subpulse train.</span>
 <span class="sd">    gz : SimpleNamespace</span>
 <span class="sd">        The blip train, an extended trapezoid with the same delay as ``rf``.</span>
 <span class="sd">    gzr : SimpleNamespace</span>
