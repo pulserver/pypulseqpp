@@ -37,10 +37,40 @@ HIDDEN = {
 }
 
 
+#: The `Attributes` section of the class docstring: its entry names, up to the
+#: next section heading.
+_ATTRIBUTES = re.compile(
+    r"^ {4}Attributes\n {4}-+\n(.*?)^ {4}\w+\n {4}-+\n", re.M | re.S
+)
+
+
+def _documented_attributes() -> list[str]:
+    section = _ATTRIBUTES.search(pp.Sequence.__doc__)
+    assert section, "Sequence's docstring has no Attributes section"
+    return re.findall(r"^ {4}(\w+) : ", section.group(1), re.M)
+
+
 def test_every_public_sequence_member_is_categorised_or_deliberately_hidden():
+    """Methods are pages of their own; properties and attributes are the class's."""
     listed = re.findall(r"~Sequence\.(\w+)", TEMPLATE.read_text())
-    public = {name for name in dir(pp.Sequence) if not name.startswith("_")}
+    attributes = _documented_attributes()
+    public = {
+        name
+        for name in dir(pp.Sequence) + list(vars(pp.Sequence()))
+        if not name.startswith("_")
+    }
 
     assert len(listed) == len(set(listed)), "a member is listed twice"
-    assert not set(listed) & HIDDEN
-    assert set(listed) | HIDDEN == public
+    assert len(attributes) == len(set(attributes)), "an attribute is listed twice"
+    assert not set(listed) & set(attributes)
+    assert not (set(listed) | set(attributes)) & HIDDEN
+    assert set(listed) | set(attributes) | HIDDEN == public
+
+
+def test_no_property_has_a_page_of_its_own():
+    listed = re.findall(r"~Sequence\.(\w+)", TEMPLATE.read_text())
+    properties = {
+        name for name, value in vars(pp.Sequence).items() if isinstance(value, property)
+    }
+
+    assert not set(listed) & properties
