@@ -9,7 +9,9 @@ import numpy as np
 import pytest
 
 import pypulseqpp as pp
+from pypulseqpp import sequences as design
 from pypulseqpp.sequences import LineReadout3D, SequenceModule
+from pypulseqpp.sequences._module import _doc_sections, _entry_key, _section_entries
 
 
 @pytest.fixture
@@ -268,3 +270,50 @@ def test_a_module_reports_the_arguments_of_its_init_module():
     reported = inspect.signature(LineReadout3D)
     taken = inspect.signature(LineReadout3D.init_module)
     assert list(reported.parameters) == list(taken.parameters)[1:]
+
+
+def _documented_parameters(cls) -> set[str]:
+    _, sections = _doc_sections(cls.__doc__)
+    return {
+        name.strip()
+        for entry in _section_entries(sections.get("Parameters", ""))
+        for name in _entry_key(entry).split(",")
+    }
+
+
+def test_forwarded_keywords_are_reported_less_those_the_subclass_passes():
+    spiral = inspect.signature(design.SpiralReadout2D).parameters
+    assert {"te", "tr", "fov_z", "labels"} <= set(spiral)
+    assert "trajectory" not in spiral
+    assert all(p.kind is not p.VAR_KEYWORD for p in spiral.values())
+    assert "rf_prep" not in inspect.signature(design.MtPreparation).parameters
+    assert "final_tip" not in inspect.signature(design.T1T2Preparation).parameters
+
+
+def test_every_shipped_module_documents_exactly_the_parameters_it_takes():
+    modules = [
+        getattr(design, name)
+        for name in design.__all__
+        if name not in design.ZOO and name not in design.BASES
+    ]
+    modules = [
+        m for m in modules if isinstance(m, type) and issubclass(m, SequenceModule)
+    ]
+    assert len(modules) > 30
+    for module in modules:
+        taken = {
+            name
+            for name, p in inspect.signature(module).parameters.items()
+            if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+        }
+        assert _documented_parameters(module) == taken, module.__name__
+
+
+def test_a_variant_carries_its_family_contract_but_only_its_own_examples():
+    two, three = design.LineReadout2D.__doc__, design.LineReadout3D.__doc__
+    assert _documented_parameters(design.LineReadout2D) == _documented_parameters(
+        design.LineReadout3D
+    )
+    assert "Zero spoiling balances every axis." in two
+    assert "design.LineReadout3D(" not in two
+    assert "design.LineReadout2D(" not in three

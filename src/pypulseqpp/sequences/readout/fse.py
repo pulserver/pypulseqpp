@@ -485,8 +485,7 @@ def _encodes(
 class FseReadout2D(_FseReadout):
     """A slice-selective CPMG train, frequency-encoded along x.
 
-    ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`~pypulseqpp.sequences.readout.fse._FseReadout` for the timing, crushing and encoding arguments.
+    ``fov`` and ``matrix`` take two values, readout first.
 
     Examples
     --------

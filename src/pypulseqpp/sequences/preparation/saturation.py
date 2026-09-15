@@ -29,7 +29,7 @@ class OffResonanceSaturation(RfModule):
     rf_prep : RfEvent
         The pulse to play.
     n_pulses : int, optional
-        Times to play it.
+        Pulses in the train.
     spoiling_cycles : float, optional
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
         Zero omits the spoiler, which is what a pulse whose effect is a phase
@@ -142,19 +142,6 @@ class MtPreparation(OffResonanceSaturation):
     time_bw_product : float, optional
         Time-bandwidth product, which with ``duration_s`` sets how wide a band
         of the bound pool is saturated.
-    n_pulses : int, optional
-        Pulses in the train.
-    spoiling_cycles : float, optional
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-        Zero omits the spoiler.
-    voxel_size_m : float, optional
-        Length the dephasing is counted over (m).
-    labels : Sequence[str], optional
-        Counters emitted on the first pulse's block.
-
-    Attributes
-    ----------
-    As :class:`OffResonanceSaturation`.
 
     Raises
     ------
@@ -214,15 +201,6 @@ class IhMtPreparation(OffResonanceSaturation):
         Pulse duration (s).
     time_bw_product : float, optional
         Time-bandwidth product of each band.
-    n_pulses : int, optional
-        Pulses in the train.
-    spoiling_cycles : float, optional
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-        Zero omits the spoiler.
-    voxel_size_m : float, optional
-        Length the dephasing is counted over (m).
-    labels : Sequence[str], optional
-        Counters emitted on the first pulse's block.
 
     Attributes
     ----------
@@ -300,15 +278,9 @@ class BlochSiegertPreparation(OffResonanceSaturation):
         Width of each shoulder, as a fraction of the duration.
     dwell_s : float, optional
         RF raster (s).
-    n_pulses : int, optional
-        Pulses in the train.
     spoiling_cycles : float, optional
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
         Zero, the default here, omits the spoiler, for the reason above.
-    voxel_size_m : float, optional
-        Length the dephasing is counted over (m).
-    labels : Sequence[str], optional
-        Counters emitted on the pulse's block.
 
     Attributes
     ----------

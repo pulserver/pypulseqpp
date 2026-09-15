@@ -36,9 +36,6 @@ class _PropellerReadout(_EpiReadout):
     n_blades : int
         Blades in the set.
 
-    Everything else -- ``gx``, ``gy_blips``, ``adc``, ``esp`` and the rest --
-    is :class:`~pypulseqpp.sequences.EpiReadout2D`'s, the blade being an EPI train.
-
     Parameters
     ----------
     system : pypulseq.Opts

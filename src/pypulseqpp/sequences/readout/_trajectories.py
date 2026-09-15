@@ -184,22 +184,53 @@ class NonCartesianGradient:
     Prewinders bridge from zero gradient and k = 0 to the readout's start,
     and rewinders from its end back to zero; they play in blocks of their
     own, so ``duration`` is the longest prewinder plus ``read_duration`` plus
-    the longest rewinder (s).
+    the longest rewinder (s). The subclasses design an interleave; this class
+    wraps events designed elsewhere.
+
+    Parameters
+    ----------
+    system : Opts
+        System limits the events were designed under.
+    gradients : Sequence[GradEvent]
+        The readout waveform, one event per channel it drives.
+    adc : AdcEvent
+        The acquisition window under ``gradients``.
+    trajectory : ArrayLike
+        ``(n, 2)`` or ``(n, 3)`` k-space path (1/m).
+    design_interleaves : int, optional
+        Interleave count the path's pitch was designed for.
+    recommended_rotations : int, optional
+        Rotated copies that sample the path's disc at Nyquist.
+    prewinders, rewinders : Sequence[GradEvent], optional
+        Bridges from k = 0 to the path's start and from its end back to k = 0,
+        one event per channel.
+    kind : str, optional
+        Name of the interleave family.
 
     Attributes
     ----------
-    trajectory : numpy.ndarray
+    trajectory : NDArray[np.float64]
         ``(n, 2)`` or ``(n, 3)`` path in 1/m: the design polyline, or for
         :class:`Rosette` the k-space at the ADC samples.
     bandwidth_hz_px : float
         ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.
-    design_interleaves : int or None
+    design_interleaves : int | None
         Interleave count the spiral pitch was designed for.
-    recommended_rotations : int or None
-        Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``;
-        set by :class:`Radial` only.
+    recommended_rotations : int | None
+        Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``,
+        for a radial spoke; ``None`` otherwise.
     kind : str
         ``"arbitrary"``, ``"full"`` (radial), ``"spiral"`` or ``"rosette"``.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> spiral = design.Spiral(pp.Opts(), 0.22, 64, 8)
+    >>> turned = spiral.rotated(np.pi / 2)
+    >>> turned.duration == spiral.duration, type(turned).__name__
+    (True, 'Spiral')
     """
 
     def __init__(
@@ -240,10 +271,12 @@ class NonCartesianGradient:
 
     @property
     def has_prewinder(self):
+        """Whether a bridge leads from k = 0 to the start of the path."""
         return bool(self.prewinders)
 
     @property
     def has_rewinder(self):
+        """Whether a bridge leads from the end of the path back to k = 0."""
         return bool(self.rewinders)
 
     @property
@@ -388,14 +421,52 @@ def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
 class Arbitrary(NonCartesianGradient):
     """Base interleave from a caller-supplied 2D or 3D k-space path.
 
-    ``trajectory`` is ``(n, 2)`` or ``(n, 3)`` in 1/m, played on ``axes``
-    (default: the first two or three of x, y, z). A path not starting at
-    k = 0 gets prewinders, and one not ending there gets rewinders. The ADC
-    takes ``round(matrix * oversamp)`` samples, rounded down to
-    ``system.adc_samples_divisor``; the readout is stretched to last at least
-    that count over ``bandwidth_hz_px`` (Hz), and the dwell is the longest on
-    the ADC raster that fits the samples in it. ``derate`` applies
-    :func:`pypulseqpp.apply_system_derates` first.
+    A path not starting at k = 0 gets prewinders, and one not ending there
+    gets rewinders. The readout is stretched to last at least its sample count
+    over ``bandwidth_hz_px``, and the dwell is the longest on the ADC raster
+    that fits the samples in it.
+
+    Parameters
+    ----------
+    system : Opts
+        System limits.
+    trajectory : ArrayLike
+        ``(n, 2)`` or ``(n, 3)`` k-space path (1/m), with ``n >= 4``. Its
+        samples set the geometry; the solver sets the timing.
+    matrix : int
+        Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,
+        rounded down to ``system.adc_samples_divisor``.
+    bandwidth_hz_px : float, optional
+        Requested ``1 / dwell`` (Hz).
+    oversamp : float, optional
+        ADC oversampling, at least one.
+    axes : Sequence[str], optional
+        Channel per path component; the first two or three of x, y, z by
+        default.
+    solver_oversampling : int, optional
+        Path-resampling factor of the time-optimal solver.
+    derate : bool, optional
+        Apply :func:`pypulseqpp.apply_system_derates` first.
+
+    Raises
+    ------
+    ValueError
+        If ``trajectory`` has the wrong shape, ``axes`` does not name one
+        distinct channel per component, or a size is out of range.
+
+    Examples
+    --------
+    A spoke written as a path starts and ends away from k = 0, so it is
+    bridged at both ends:
+
+    >>> import numpy as np
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> kmax = 64 / (2 * 0.22)
+    >>> spoke = np.column_stack([np.linspace(-kmax, kmax, 64), np.zeros(64)])
+    >>> path = design.Arbitrary(pp.Opts(), spoke, matrix=64)
+    >>> path.has_prewinder, path.has_rewinder, path.n_samples
+    (True, True, 64)
     """
 
     def __init__(
@@ -549,6 +620,56 @@ class Spiral(NonCartesianGradient):
     Where the time-optimal arm would put adjacent samples more than
     ``1 / (oversamp * fov)`` apart at that dwell, the arm is slowed rather
     than the bandwidth raised. The ADC fills the arm with whole samples.
+
+    Parameters
+    ----------
+    system : Opts
+        System limits.
+    fov : float
+        Isotropic field of view (m).
+    matrix : int
+        Isotropic matrix size.
+    design_interleaves : int
+        Interleave count the pitch is designed for, not the number of arms
+        acquired.
+    direction : {'outward', 'inward', 'in_out'}, optional
+        Traversal, as above.
+    density : {'constant', 'variable', 'dual'}, optional
+        Constant pitch, a radial power-law transition, or a logistic
+        transition.
+    inner_design_interleaves, outer_design_interleaves : float, optional
+        Local pitch at the centre and at the edge.
+    variable_density_power : float, optional
+        Exponent of the normalised radius, for variable density.
+    transition_radius, transition_speed : float, optional
+        Normalised radius and logistic steepness of the dual-density
+        transition.
+    num_points : int, optional
+        Path samples given to the solver, not ADC samples.
+    bandwidth_hz_px : float, optional
+        Requested ``1 / dwell`` (Hz).
+    oversamp : float, optional
+        ADC oversampling; tightens the step limit.
+    axes : tuple[str, str], optional
+        Channels for the path's two components.
+    solver_oversampling : int, optional
+        Path-resampling factor of the time-optimal solver.
+    derate : bool, optional
+        Apply :func:`pypulseqpp.apply_system_derates` first.
+
+    Raises
+    ------
+    ValueError
+        If ``direction`` is unknown, ``axes`` does not name two distinct
+        channels, or a size is out of range.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> arm = design.Spiral(pp.Opts(), 0.22, 64, 8)
+    >>> arm.axes, arm.has_prewinder, arm.has_rewinder
+    (('x', 'y'), False, True)
     """
 
     def __init__(
@@ -734,6 +855,14 @@ class Rosette(NonCartesianGradient):
     ValueError
         If ``echo_spacing_s`` is below the minimum the limits allow, or a
         parameter is out of range.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> rosette = design.Rosette(pp.Opts(), 0.22, 64)
+    >>> rosette.has_prewinder or rosette.has_rewinder
+    False
     """
 
     def __init__(

@@ -337,9 +337,7 @@ def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
 class BssfpReadout2D(_BssfpReadout):
     """Slice-selective balanced SSFP, phase-encoded along y.
 
-    ``fov`` and ``matrix`` take two values, readout first. See
-    :class:`~pypulseqpp.sequences.readout.bssfp._BssfpReadout` for the
-    parameters and the loop the transients need.
+    ``fov`` and ``matrix`` take two values, readout first.
     """
 
     _ndim = 2

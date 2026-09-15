@@ -201,9 +201,8 @@ class T2Preparation(RfModule):
 class T1T2Preparation(T2Preparation):
     """T2 preparation with storage on -z to initiate T1 recovery.
 
-    Accepts the :class:`T2Preparation` parameters except ``final_tip``, which
-    is fixed to ``'down'``; passing it raises ``ValueError``. The acquisition
-    loop supplies the recovery interval.
+    ``final_tip`` is fixed to ``'down'``, and passing it raises
+    ``ValueError``. The acquisition loop supplies the recovery interval.
 
     Examples
     --------

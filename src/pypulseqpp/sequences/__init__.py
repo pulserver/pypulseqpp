@@ -17,7 +17,6 @@ from ._app import SequenceApp
 from ._module import SequenceModule
 from .excitation import (
     FrequencySelectiveExcitation,
-    Inversion,
     MultibandExcitation,
     NonSelectiveExcitation,
     NonSelectiveRefocusing,
@@ -40,6 +39,7 @@ from .preparation import (
     T2Preparation,
 )
 from .readout import (
+    Arbitrary,
     BssfpReadout2D,
     BssfpReadout3D,
     EpiReadout2D,
@@ -48,15 +48,18 @@ from .readout import (
     FseReadout3D,
     LineReadout2D,
     LineReadout3D,
+    NonCartesianGradient,
     NonCartesianReadout,
     PropellerReadout2D,
     PropellerStackReadout,
     RadialProjectionReadout,
     RadialReadout2D,
     RadialStackReadout,
+    Rosette,
     RosetteProjectionReadout,
     RosetteReadout2D,
     RosetteStackReadout,
+    Spiral,
     SpiralNavigator,
     SpiralProjectionReadout,
     SpiralReadout2D,
@@ -67,7 +70,6 @@ from .readout import (
 #: Modules built around one RF pulse and its selection gradients, if any.
 EXCITATION = (
     "FrequencySelectiveExcitation",
-    "Inversion",
     "MultibandExcitation",
     "NonSelectiveExcitation",
     "NonSelectiveRefocusing",
@@ -86,6 +88,7 @@ PREPARATION = (
     "IhMtPreparation",
     "InversionPreparation",
     "MtPreparation",
+    "OffResonanceSaturation",
     "T1T2Preparation",
     "T2Preparation",
 )
@@ -102,6 +105,7 @@ READOUT = (
     "FseReadout3D",
     "LineReadout2D",
     "LineReadout3D",
+    "NonCartesianReadout",
     "PropellerReadout2D",
     "PropellerStackReadout",
     "RadialProjectionReadout",
@@ -117,8 +121,12 @@ READOUT = (
     "ZteReadout",
 )
 
+#: Solved non-Cartesian interleaves, each with its ADC and moment bridges, for
+#: a NonCartesianReadout to play.
+TRAJECTORIES = ("Arbitrary", "NonCartesianGradient", "Rosette", "Spiral")
+
 #: Base classes, for a family this package does not ship.
-BASES = ("NonCartesianReadout", "OffResonanceSaturation", "RfModule")
+BASES = ("RfModule", "SequenceModule")
 
 #: Complete sequences, one per module of the repo's `examples/sequence/`, which
 #: is installed as the subpackage `sequences.sequence`. Each is reached here by
@@ -126,7 +134,7 @@ BASES = ("NonCartesianReadout", "OffResonanceSaturation", "RfModule")
 ZOO = tuple(sorted(_importlib.import_module(f"{__name__}.sequence").__all__))
 
 __all__ = sorted(
-    {*EXCITATION, *PREPARATION, *READOUT, *BASES, *ZOO, "SequenceApp", "SequenceModule"}
+    {*EXCITATION, *PREPARATION, *READOUT, *TRAJECTORIES, *BASES, *ZOO, "SequenceApp"}
 )
 
 

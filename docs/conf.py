@@ -70,8 +70,23 @@ class _InventoryOutageFilter(logging.Filter):
         return self._MESSAGE not in record.getMessage()
 
 
-def setup(_app):
+def _public_bases(_app, _name, _obj, _options, bases):
+    """List a private base as the nearest public class it is built on.
+
+    A private class has no page to link to, and a public class built on one
+    carries its documentation already.
+    """
+    bases[:] = [
+        next(klass for klass in base.__mro__ if not klass.__name__.startswith("_"))
+        if isinstance(base, type)
+        else base
+        for base in bases
+    ]
+
+
+def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
+    app.connect("autodoc-process-bases", _public_bases)
     handlers = logging.getLogger("sphinx").handlers
     if not handlers:
         print("conf.py: no Sphinx log handler; an inventory outage will fail the build")

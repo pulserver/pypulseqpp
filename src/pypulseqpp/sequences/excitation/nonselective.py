@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["Inversion", "NonSelectiveExcitation", "NonSelectiveRefocusing"]
+__all__ = ["NonSelectiveExcitation", "NonSelectiveRefocusing"]
 
 import numpy as np
 
@@ -165,62 +165,3 @@ class NonSelectiveRefocusing(RfModule):
             self.seq.add_block(gz_spoil)
 
         self.center = lead + rf_reference(rf_ref)
-
-
-class Inversion(RfModule):
-    """Non-selective adiabatic inversion without a crusher or inversion-time delay.
-
-    Parameters
-    ----------
-    system : pypulseq.Opts
-        System limits.
-    duration_s : float, optional
-        Pulse duration (s). Adiabaticity is a condition on sweeping slowly
-        enough, so this is not free to shorten.
-    pulse_type : str, optional
-        Sweep family, as :func:`pypulseq.make_adiabatic_pulse` names them
-        (``"hypsec"``, ``"wurst"``).
-    bandwidth_hz : float, optional
-        Frequency width of the sweep (Hz).
-    adiabaticity : int, optional
-        Sweep-rate margin over the adiabatic condition.
-    use : str, optional
-        What the pulse is for.
-
-    Attributes
-    ----------
-    rf_prep : RfEvent
-        The pulse.
-
-    Examples
-    --------
-    >>> import pypulseqpp.sequences as design
-    >>> import pypulseqpp as pp
-    >>> inversion = design.Inversion(pp.Opts(), duration_s=8e-3)
-    >>> round(inversion.duration * 1e3, 1)
-    8.0
-    """
-
-    def init_module(
-        self,
-        system: pp.Opts,
-        duration_s: float = 10e-3,
-        *,
-        pulse_type: str = "hypsec",
-        bandwidth_hz: float = 40e3,
-        adiabaticity: int = 4,
-        use: str = "inversion",
-    ) -> None:
-        rf_prep = pp.make_adiabatic_pulse(
-            pulse_type=pulse_type,
-            duration=duration_s,
-            bandwidth=bandwidth_hz,
-            adiabaticity=adiabaticity,
-            use=use,
-            system=system,
-        )
-
-        self.seq = pp.Sequence(system)
-        self.seq.add_block(rf_prep)
-
-        self.center = rf_reference(rf_prep)

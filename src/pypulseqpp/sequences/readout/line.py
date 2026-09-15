@@ -464,8 +464,7 @@ def _reshape_readout(system, gx, bridged_start: bool, bridged_end: bool):
 class LineReadout2D(_LineReadout):
     """One Cartesian line, frequency-encoded along x and phase-encoded along y.
 
-    ``fov`` and ``matrix`` take two values here, readout first. See
-    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the timing, spoiling and echo-train arguments.
+    ``fov`` and ``matrix`` take two values here, readout first.
 
     Examples
     --------
@@ -490,8 +489,7 @@ class LineReadout2D(_LineReadout):
 class LineReadout3D(_LineReadout):
     """One Cartesian line of a 3D slab, phase-encoded along y and z.
 
-    ``fov`` and ``matrix`` take three values, readout first. See
-    :class:`~pypulseqpp.sequences.readout.line._LineReadout` for the shared arguments.
+    ``fov`` and ``matrix`` take three values, readout first.
 
     Examples
     --------
