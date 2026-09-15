@@ -52,7 +52,7 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     ----------
     seq : Sequence
         Sequence to check.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits; defaults to seq.system.
 
     Returns
@@ -91,7 +91,7 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
     ----------
     seq : Sequence
         Sequence to check.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         The scanner to weigh it against; the sequence's own by default.
 
     Returns
@@ -130,7 +130,7 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
     ----------
     seq : Sequence
         The sequence to check.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         The scanner whose slew limit a jump is judged against; the sequence's
         own by default.
 

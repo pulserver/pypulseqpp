@@ -18,7 +18,7 @@ class InversionPreparation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     duration_s : float, optional
         Inversion pulse duration (s). Adiabaticity is a condition on sweeping

@@ -78,7 +78,7 @@ class _BssfpReadout(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
         The excitation.

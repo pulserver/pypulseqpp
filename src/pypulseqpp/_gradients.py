@@ -31,7 +31,7 @@ def concatenate_gradients(*grads: Any, system=None):
     ----------
     *grads : GradEvent or TrapEvent or None
         Gradients on the **same** channel, in play order. ``None`` is skipped.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
 
     Returns
@@ -101,7 +101,7 @@ def make_phase_encoding(
     resolution : float
         Target resolution along ``channel`` (m) -- ``fov / matrix`` for an
         in-plane encode, the partition spacing for a 3D slab encode.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
     duration : float, optional
         Force a duration (s); the default is the shortest feasible.
@@ -159,7 +159,7 @@ def make_phase_blip(
         Field of view along ``channel`` (m).
     steps : float, optional
         Cells to traverse; non-zero, may be negative.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
     duration : float, optional
         Force a duration (s); the default is the shortest feasible.
@@ -220,7 +220,7 @@ def make_crusher(
         Amplitudes to begin and end at (Hz/m).
     convert_to_arbitrary : bool, optional
         Return the gradient as an arbitrary waveform.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         System limits.
 
     Returns

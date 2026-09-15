@@ -8,8 +8,9 @@ import warnings as _warnings
 from types import SimpleNamespace as _SimpleNamespace
 
 import numpy as _np
-import pypulseq as _pp
 from pypulseq import calc_rf_bandwidth as _upstream
+
+from ._opts import Opts as _Opts
 
 
 def _full_freq_offset(rf) -> float:
@@ -22,7 +23,7 @@ def _full_freq_offset(rf) -> float:
             "B0 of the default system",
             stacklevel=3,
         )
-        system = _pp.Opts.default
+        system = _Opts.default
         offset += ppm * 1e-6 * system.gamma * system.B0
     return offset
 
@@ -148,7 +149,7 @@ def calc_rf_bandwidth(
     --------
     sim_rf : the simulated profile, valid at any flip angle.
     """
-    step = _pp.Opts.default.rf_raster_time if dt is None else dt
+    step = _Opts.default.rf_raster_time if dt is None else dt
     offset = _full_freq_offset(rf)
     measured = _with_zero_edges(_at_baseband(rf) if offset else rf, step)
 

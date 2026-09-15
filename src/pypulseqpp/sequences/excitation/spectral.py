@@ -21,7 +21,7 @@ class FrequencySelectiveExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         Nominal flip angle (degrees).
@@ -122,7 +122,7 @@ class SpspExcitation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
         Nominal flip angle (degrees).

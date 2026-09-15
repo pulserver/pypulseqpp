@@ -106,7 +106,7 @@ def check_pns(
     rotation : array_like, optional
         3x3 prescription rotation from logical to physical axes, applied after
         each block's own rotation; identity (axial) by default.
-    system : pypulseq.Opts, optional
+    system : pypulseqpp.Opts, optional
         Source of the gyromagnetic ratio; the sequence's own by default.
 
     Returns

@@ -23,7 +23,7 @@ class DiffusionPreparation(RfModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : pypulseqpp.Opts
         System limits.
     b_value : float
         Design b-value (s/mm^2). This is the largest the module can produce;
