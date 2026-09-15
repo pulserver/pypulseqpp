@@ -42,7 +42,7 @@ class _EpiReadout(SequenceModule):
         Its rephaser, if one was given.
     gx_pre : TrapEvent
         Read prewinder, half a line lobe against the first line's polarity.
-    gx : list of GradEvent
+    gx : list[GradEvent]
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
     gx_flyback : TrapEvent
@@ -63,15 +63,15 @@ class _EpiReadout(SequenceModule):
         The lobe that closes the read axis, bridged off the last line.
     adc : AdcEvent
         The acquisition window, shared by every line.
-    shot_labels : tuple of LabelEvent
+    shot_labels : tuple[LabelEvent, ...]
         ``SET`` counters on the prewinder block, one per name in ``labels``.
         The loop writes the shot's origin into them. Always a tuple, however
         many names there are, because the loop splats it.
-    line_labels : tuple of tuple of LabelEvent
+    line_labels : tuple[tuple[LabelEvent, ...], ...]
         Per line, the ``INC`` counters that step from the previous line to this
         one -- the ordering, expressed as labels. Empty for the first line,
         which the ``SET`` already placed.
-    order : numpy.ndarray
+    order : NDArray[np.int64]
         ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.
     wait_te : DelayEvent
         Present only when a TE longer than the minimum was asked for.
@@ -81,7 +81,7 @@ class _EpiReadout(SequenceModule):
         Lines per repetition.
     esp : float
         Echo spacing (s).
-    echo_times : numpy.ndarray
+    echo_times : NDArray[np.float64]
         Each line's echo time (s) from the excitation isodelay.
     echo_time : float
         The first line's, which is what ``te`` sets.
@@ -96,7 +96,7 @@ class _EpiReadout(SequenceModule):
 
     Parameters
     ----------
-    system : pypulseq.Opts
+    system : Opts
         System limits.
     rf : RfEvent
         The pulse that opens the repetition. A refocusing pulse builds the
@@ -105,11 +105,11 @@ class _EpiReadout(SequenceModule):
         A selection gradient played in the same block as ``rf``.
     gz_reph : GradEvent, optional
         The rephaser that unwinds ``gz``.
-    fov : float or sequence of float
+    fov : float | Sequence[float]
         Field of view (m), per encoded axis, readout first.
-    matrix : int or sequence of int
+    matrix : int | Sequence[int]
         Matrix size, per encoded axis.
-    order : array_like, optional
+    order : ArrayLike, optional
         ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
         row per line. Supplying one silences the generator arguments below; the
         default asks ``calc_epi_order`` for a train.
@@ -117,10 +117,25 @@ class _EpiReadout(SequenceModule):
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
     scheme : {'linear', 'caipi', 'zigzag'}, optional
-        Which built-in ordering to generate. See
-        ``calc_epi_order``.
-    acceleration, segments, partition_acceleration, caipi_shift, extent
-        Passed to ``calc_epi_order``.
+        Which built-in ordering to generate. ``'linear'`` steps by
+        ``segments * acceleration`` every line and never leaves its
+        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;
+        ``'zigzag'`` walks up and down a phase-encode segment instead of
+        across the whole matrix.
+    acceleration : int, optional
+        Phase-encode undersampling, ``Ry``: lines the blip skips.
+    segments : int, optional
+        Shots the train is interleaved across, ``S``. The blip becomes
+        ``S * Ry``, which shortens the train without changing the lattice
+        sampled.
+    partition_acceleration : int, optional
+        Partition undersampling ``Rz``, the height of the CAIPI cycle.
+        ``'caipi'`` only.
+    caipi_shift : int, optional
+        Partitions the pattern climbs per acquired line. ``'caipi'`` only.
+    extent : int, optional
+        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused
+        by the others.
     te : float, optional
         Excitation isodelay to the **first** echo (s). ``None`` is as short as
         possible; every other echo follows at ``esp`` intervals, and
@@ -146,10 +161,10 @@ class _EpiReadout(SequenceModule):
     voxel_size_m : float, optional
         Length the spoiling is counted over (m). The read resolution by
         default.
-    labels : sequence of str, optional
+    labels : Sequence[str], optional
         Counters for the encoded axes, phase encode first. Two names for a 3D
         train, one for 2D.
-    trigger : event, optional
+    trigger : TriggerEvent, optional
         A trigger or digital output armed on the prewinder block.
 
     Raises

@@ -95,15 +95,17 @@ _UNWRAPPED = {"SigpyPulseOpts"}
 _UNADVERTISED = {
     "SigpyPulseOpts",
     "calc_SAR",
+    "check_timing",
     "eps",
     "make_sigpy_pulse",
+    "print_error_report",
     "round_half_up",
 }
 
 #: Upstream names that are modules rather than vocabulary: ``np``, ``math``,
 #: ``importlib``, and the submodules upstream's own ``__init__`` happens to
 #: touch. Filled in by the loop below, and kept out of ``__all__`` unless the
-#: name is rebound here to a function, as ``check_timing`` is.
+#: name is rebound here to a function, as ``block_to_events`` is.
 _UPSTREAM_MODULES: set[str] = set()
 
 for _name in dir(_pypulseq):

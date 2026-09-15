@@ -1,7 +1,7 @@
 # Sequence and system
 
 `pypulseqpp`: the container a sequence is written into, the scanner limits it is
-designed under, and the transforms and reports applied to it.
+designed under, and the transforms applied to it.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -54,15 +54,4 @@ leave the caller's limits unchanged.
    cap_system
    MAX_GRAD_DERATE
    MAX_SLEW_DERATE
-```
-
-## Timing reports
-
-```{eval-rst}
-.. autosummary::
-   :toctree: ../generated
-   :nosignatures:
-
-   check_timing
-   print_error_report
 ```

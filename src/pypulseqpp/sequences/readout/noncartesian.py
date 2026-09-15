@@ -427,7 +427,7 @@ class NonCartesianReadout(_ArmedReadout):
         End-of-TR spoiler, when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
         The acquisition window.
-    adc_labels : LabelSetEvent or list of LabelSetEvent
+    adc_labels : LabelEvent | list[LabelEvent]
         One per name in ``labels``; a bare event when there is one.
     wait_te, wait_tr : DelayEvent
         Present only when a TE or TR longer than the minimum was asked for.
@@ -441,15 +441,48 @@ class NonCartesianReadout(_ArmedReadout):
 
     Parameters
     ----------
+    system : Opts
+        System limits.
+    rf : RfEvent
+        The pulse that opens the repetition.
+    gz : GradEvent, optional
+        A selection gradient played in the same block as ``rf``.
+    gz_reph : GradEvent, optional
+        The rephaser that unwinds ``gz``, carried left-aligned in the first
+        block after the pulse. Only an axis the loop's rotation leaves alone
+        can carry one.
     trajectory : NonCartesianGradient
         Solved gradient interleave with ADC sampling and moment bridges.
-
-    Other Parameters
-    ----------------
-    system, rf, gz, gz_reph, fov_z, matrix_z, te, tr
-        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.
-    spoiling_cycles, voxel_size_m, spoiling_axis, n_echoes, explicit, angles, labels, trigger
-        As in :class:`~pypulseqpp.sequences.readout.noncartesian._RadialReadout`.
+    fov_z : float, optional
+        Partition field of view (m). Stacks only.
+    matrix_z : int, optional
+        Partition count. Stacks only.
+    te : float, optional
+        Echo time (s) from the RF isodelay to the path's nearest k = 0
+        crossing. ``None`` is as short as possible.
+    tr : float, optional
+        Repetition time (s). ``None`` is as short as possible.
+    spoiling_cycles : float, optional
+        Dephasing left at the end of the TR, in cycles across
+        ``voxel_size_m``. Zero leaves the path rewound.
+    voxel_size_m : float, optional
+        Length the spoiling is counted over (m); the trajectory's resolution
+        by default.
+    spoiling_axis : {'z', 'x', 'y'}, optional
+        Axis the spoiler is played on.
+    n_echoes : int, optional
+        Path traversals per repetition, separated by ``echo_spacing``, each
+        with its own ``ECO`` label and joined by rewinders and prewinders.
+    explicit : bool, optional
+        Write out one interleave per entry of ``angles`` instead of one base
+        interleave.
+    angles : ArrayLike, optional
+        In-plane rotations (rad). Required when ``explicit``, refused
+        otherwise.
+    labels : Sequence[str], optional
+        Counters emitted on the acquisition block.
+    trigger : TriggerEvent, optional
+        A trigger or digital output armed on the block that opens the readout.
 
     Examples
     --------
