@@ -49,8 +49,8 @@ preparation and readout modules they are built from.
 
 | Module | Description |
 | --- | --- |
-| `bssfp2D_sequence` | Balanced SSFP 2D Cartesian: one complete train per slice. |
-| `bssfp3D_sequence` | Balanced SSFP, 3D Cartesian: a hard pulse and a balanced line readout per TR. |
+| `bssfp2D_sequence` | Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated. |
+| `bssfp3D_sequence` | Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip. |
 
 
 ## Echo planar
