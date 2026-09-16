@@ -163,11 +163,11 @@ class Gre3DApp(sequences.SequenceApp):
         readout_oversampling: float = 2.0,
         n_acs_y: int = 24,
         n_acs_z: int = 16,
-        elliptical_sampling: bool = False,
+        elliptical_sampling: bool = True,
         elliptical_acs: bool = False,
-        wave: str | None = None,
+        wave: str = "both",
         wave_cycles: int = 8,
-        wave_amplitude: float = 8e-3,
+        wave_amplitude: float = 0.0,
     ) -> None:
         """Design the excitation, the readout and the ``(line, partition)`` order.
 
@@ -210,20 +210,21 @@ class Gre3DApp(sequences.SequenceApp):
             undersampled.
         elliptical_sampling : bool, optional
             Acquire only the views inside the ellipse inscribed in the
-            ``n_y x n_z`` grid. The calibration region is acquired whole.
+            ``n_y x n_z`` grid; off, the whole grid. The calibration region is
+            acquired whole either way.
         elliptical_acs : bool, optional
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-        wave : {'phase', 'partition', 'both'} | None, optional
-            Wave-CAIPI: wave-encoding gradients under every readout, a sine
-            on y, a cosine on z, or both. The calibration region is then
-            acquired again first without them, marked ``REF``, and no
-            wave-encoded view is marked ``IMA``.
+        wave : {'phase', 'partition', 'both'}, optional
+            Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
+            wave-encoding gradients the calibration region is acquired again
+            first without them, marked ``REF``, and no wave-encoded view is
+            marked ``IMA``.
         wave_cycles : int, optional
-            Wave periods across the sampling window.
+            Wave periods across the sampling window; zero plays no wave.
         wave_amplitude : float, optional
-            Requested peak wave-encoding gradient amplitude (T/m); the slew
-            rate may lower it.
+            Requested peak wave-encoding gradient amplitude (T/m); zero, the
+            default, plays no wave. The slew rate may lower it.
 
         Raises
         ------

@@ -319,6 +319,36 @@ def test_a_bipolar_train_needs_as_many_samples_before_the_echo_as_after(
         readout3d(system, slab, n_echoes=2, flyback=False, **kwargs)
 
 
+@pytest.mark.parametrize(
+    "kwargs", [{"wave_amplitude": 0.0}, {"wave_cycles": 0}], ids=["amplitude", "cycles"]
+)
+def test_a_wave_of_zero_builds_no_wave_gradients_even_in_2d(system, kwargs):
+    excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+    readout = design.LineReadout2D(
+        system, excitation.rf, excitation.gz, fov=0.22, matrix=64, wave="both", **kwargs
+    )
+
+    assert not hasattr(readout, "gy_wave")
+    assert readout.wave_amplitude == 0.0
+    assert readout.blocks[2] == (readout.gx, readout.adc)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"wave": "corkscrew", "wave_amplitude": 0.0},
+        {"wave": "both", "wave_amplitude": -1e-3},
+        {"wave": "both", "wave_cycles": -1},
+    ],
+    ids=["mode", "amplitude", "cycles"],
+)
+def test_an_invalid_wave_is_refused_even_when_it_would_play_nothing(
+    system, slab, kwargs
+):
+    with pytest.raises(ValueError, match="wave"):
+        readout3d(system, slab, **kwargs)
+
+
 # ----------------------------------------------------------------------
 # Timing budget
 # ----------------------------------------------------------------------

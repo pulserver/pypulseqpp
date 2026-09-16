@@ -145,9 +145,9 @@ class GreMultiecho2DApp(sequences.SequenceApp):
             longer one adds a delay after every echo but the last, following
             the flyback rewinder of a monopolar train.
         flyback : bool, optional
-            Monopolar train: rewind after every echo but the last, so every
-            echo is read the same way. ``False`` is bipolar: shorter echo
-            spacing, even echoes read backwards.
+            Monopolar echo train, rewound after every echo but the last so
+            every echo is read the same way; off, a bipolar train. A bipolar
+            train has a shorter echo spacing and reads even echoes backwards.
 
         Raises
         ------

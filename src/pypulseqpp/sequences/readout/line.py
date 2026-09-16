@@ -156,7 +156,8 @@ class _LineReadout(SequenceModule):
         Ignored with one echo.
     wave : {'phase', 'partition', 'both'}, optional
         Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
-        on z, or both. 3D only.
+        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
+        is zero, which builds no wave-encoding gradients.
     wave_cycles : int, optional
         Wave periods across the sampling window.
     wave_amplitude : float, optional
@@ -171,8 +172,8 @@ class _LineReadout(SequenceModule):
     Raises
     ------
     ValueError
-        If a count or a fraction is out of range, ``wave`` is set on a 2D
-        readout, ``gz_reph`` shares a channel with an encoded axis, or the
+        If a count or a fraction is out of range, ``wave`` names no wave
+        mode or would build wave-encoding gradients on a 2D readout, ``gz_reph`` shares a channel with an encoded axis, or the
         requested TE, TR or echo spacing is shorter than the module can
         achieve.
     """
@@ -207,7 +208,13 @@ class _LineReadout(SequenceModule):
         trigger: Any = None,
     ) -> None:
         ndim = self._ndim
-        if wave is not None and ndim != 3:
+        if wave is not None:
+            wave_channels(wave)
+        if wave_cycles < 0 or wave_amplitude < 0:
+            raise ValueError("wave_cycles and wave_amplitude must be >= 0")
+        # Zero cycles or zero amplitude is no wave at all, whatever the mode.
+        waving = wave is not None and wave_cycles > 0 and wave_amplitude > 0
+        if waving and ndim != 3:
             raise ValueError(
                 "wave encoding spreads a voxel along the two encoded axes "
                 "transverse to the readout, and a 2D readout has only one of "
@@ -333,7 +340,7 @@ class _LineReadout(SequenceModule):
         # about the readout.
         gy_wave = gz_wave = None
         wave_peak = 0.0
-        if wave is not None:
+        if waving:
             sine, cosine = wave_channels(wave)
             gy_wave, gz_wave, wave_peak = pp.make_wave_gradients(
                 readout_duration,

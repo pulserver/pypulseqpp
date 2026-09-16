@@ -6,6 +6,7 @@ __all__ = ["run", "write_sequence"]
 
 import argparse as _argparse
 import inspect as _inspect
+import re as _re
 import types as _types
 import typing as _typing
 
@@ -60,11 +61,12 @@ def _scalar(annotation) -> type | None:
 
 
 def _described(doc: str | None) -> dict[str, str]:
-    """Return one line of help per parameter, taken from the function's own docstring.
+    """Return one sentence of help per parameter, taken from the function's own docstring.
 
     A NumPy ``Parameters`` block states each name, then its description
     indented under it; several names sharing a description are comma
-    separated, and a long list of them wraps with a trailing backslash.
+    separated, and a long list of them wraps with a trailing backslash. The
+    help is the description's first sentence, however many lines it spans.
     """
     lines = _inspect.cleandoc(doc or "").splitlines()
     try:
@@ -76,29 +78,37 @@ def _described(doc: str | None) -> dict[str, str]:
     except StopIteration:
         return {}
 
-    described: dict[str, str] = {}
-    names: list[str] = []
+    described: dict[str, list[str]] = {}
+    current: list[str] | None = None
+    pending: list[str] = []
     heading = ""
     for line in lines[start:]:
         if not line.strip():
             continue
         if line[0].isspace():
-            if names and not described.get(names[0]):
-                for name in names:
-                    described[name] = line.strip()
+            if current is not None:
+                current.append(line.strip())
             continue
         if heading and set(line.strip()) == {"-"}:
             break  # the next section's underline
         heading = line
+        header = line[:-1] if line.endswith("\\") else line
+        names = pending + [
+            n.strip() for n in header.split(":")[0].split(",") if n.strip()
+        ]
         if line.endswith("\\"):
-            names += [
-                n.strip() for n in line[:-1].split(":")[0].split(",") if n.strip()
-            ]
+            pending = names
             continue
-        names = [n.strip() for n in line.split(":")[0].split(",") if n.strip()]
-        for name in names:
-            described.setdefault(name, "")
-    return {name: text for name, text in described.items() if text}
+        pending = []
+        # A name described twice keeps its first description.
+        current = None if names[0] in described else []
+        for name in names if current is not None else ():
+            described.setdefault(name, current)
+    return {
+        name: _re.split(r"(?<=\.)\s", " ".join(text), maxsplit=1)[0]
+        for name, text in described.items()
+        if text
+    }
 
 
 def _add(parser, name: str, kind: type, default, help_text: str) -> None:

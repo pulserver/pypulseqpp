@@ -69,8 +69,8 @@ def test_the_scan_opens_with_the_dummies_asked_for(name, n_dummy):
 
 @pytest.mark.parametrize("name", SMALL)
 def test_elliptical_sampling_keeps_the_views_inside_the_inscribed_ellipse(name):
-    full = app(name, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
-    cropped = app(name, ry=2, rz=2, n_acs_y=4, n_acs_z=2, elliptical_sampling=True)
+    full = app(name, ry=2, rz=2, n_acs_y=4, n_acs_z=2, elliptical_sampling=False)
+    cropped = app(name, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
     n_y, n_z = full.matrix[1:]
     centre, grid = (n_y // 2, n_z // 2), (n_y, n_z)
 
@@ -105,7 +105,15 @@ def test_a_fully_sampled_scan_has_no_calibration_region_whatever_its_shape(name)
 
 @pytest.mark.parametrize("name", SMALL)
 def test_the_wave_free_reference_leads_and_is_marked_ref(name):
-    built = app(name, wave="both", wave_cycles=2, ry=2, n_acs_y=4, n_acs_z=2)
+    built = app(
+        name,
+        wave="both",
+        wave_cycles=2,
+        wave_amplitude=8e-3,
+        ry=2,
+        n_acs_y=4,
+        n_acs_z=2,
+    )
     seq = built.design()
     lin, par, ref, ima, seg = adc_labels(seq, "LIN", "PAR", "REF", "IMA", "SEG")
     echoes = getattr(built, "n_echoes", 1)
@@ -122,7 +130,15 @@ def test_the_wave_free_reference_leads_and_is_marked_ref(name):
 
 @pytest.mark.parametrize("name", SMALL)
 def test_the_reference_is_played_with_the_corkscrew_scaled_away(name):
-    built = app(name, wave="phase", wave_cycles=2, ry=2, n_acs_y=4, n_acs_z=2)
+    built = app(
+        name,
+        wave="phase",
+        wave_cycles=2,
+        wave_amplitude=8e-3,
+        ry=2,
+        n_acs_y=4,
+        n_acs_z=2,
+    )
     reads = acquisitions(built.design())
     n_reference = len(built.reference) * getattr(built, "n_echoes", 1)
 
@@ -132,19 +148,30 @@ def test_the_reference_is_played_with_the_corkscrew_scaled_away(name):
 
 
 @pytest.mark.parametrize("name", SMALL)
-def test_without_wave_there_is_no_reference(name):
-    built = app(name, ry=2, n_acs_y=4, n_acs_z=2)
-    (ref,) = adc_labels(built.design(), "REF")
+@pytest.mark.parametrize(
+    "wave",
+    [{}, {"wave_amplitude": 8e-3, "wave_cycles": 0}],
+    ids=["default", "zero cycles"],
+)
+def test_without_wave_there_is_no_reference_and_no_wave_gradient(name, wave):
+    built = app(name, ry=2, n_acs_y=4, n_acs_z=2, **wave)
+    seq = built.design()
+    (ref,) = adc_labels(seq, "REF")
 
     assert built.reference == []
     assert set(ref) == {0}
+    assert all(b.gy is None and b.gz is None for b in acquisitions(seq))
 
 
 @pytest.mark.parametrize("name", SMALL)
 @pytest.mark.parametrize(
     "prescription",
-    [{}, {"wave": "both", "wave_cycles": 2}, {"elliptical_sampling": True}],
-    ids=["plain", "wave", "elliptical"],
+    [
+        {},
+        {"wave": "both", "wave_cycles": 2, "wave_amplitude": 8e-3},
+        {"elliptical_sampling": False},
+    ],
+    ids=["plain", "wave", "whole grid"],
 )
 def test_a_3d_cartesian_scan_repeats_from_its_first_block(name, prescription):
     seq = app(name, n_dummy=2, ry=2, n_acs_y=4, n_acs_z=2, **prescription).design()

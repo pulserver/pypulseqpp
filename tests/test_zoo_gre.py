@@ -126,7 +126,13 @@ def test_the_caipirinha_lattice_always_holds_the_centre_and_climbs_per_line(
 
 
 def test_partial_fourier_drops_the_lines_and_partitions_before_the_centre():
-    a = gre3d(n_y=16, n_z=8, partial_fourier_y=0.75, partial_fourier_z=0.75)
+    a = gre3d(
+        n_y=16,
+        n_z=8,
+        partial_fourier_y=0.75,
+        partial_fourier_z=0.75,
+        elliptical_sampling=False,
+    )
 
     assert a.views == [(y, z) for y in range(4, 16) for z in range(2, 8)]
 

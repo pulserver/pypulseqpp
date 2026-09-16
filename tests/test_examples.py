@@ -544,6 +544,30 @@ def test_a_flag_is_named_and_described_by_the_function_it_runs(
     assert help_text in printed
 
 
+def test_a_flag_is_described_by_the_first_sentence_whatever_lines_it_spans(capsys):
+    def main(fov_x: float = 0.2, fov_y: float = 0.2, flyback: bool = True):
+        """Build nothing.
+
+        Parameters
+        ----------
+        fov_x, fov_y : float, optional
+            Field of view along the readout and the phase encode, in metres,
+            as prescribed. Ignored.
+        flyback : bool, optional
+            Monopolar echo train; off, a
+            bipolar one. Ignored.
+        """
+
+    with pytest.raises(SystemExit):
+        cli.run(main, ["--help"])
+
+    printed = " ".join(capsys.readouterr().out.split())
+    fov = "Field of view along the readout and the phase encode, in metres, as prescribed."
+
+    assert f"--fov-x FOV_X {fov} --fov-y FOV_Y {fov}" in printed
+    assert printed.endswith("--no-flyback Monopolar echo train; off, a bipolar one.")
+
+
 def test_the_binary_form_is_smaller_and_carries_no_signature(tmp_path):
     seq = gre()
     text, binary = tmp_path / "s.seq", tmp_path / "s.bin"
