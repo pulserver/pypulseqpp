@@ -1,4 +1,4 @@
-"""Balanced SSFP 2D Cartesian, multi-slice."""
+"""Balanced SSFP 2D Cartesian, multi-slice, with optional cardiac cine gating."""
 
 from __future__ import annotations
 
@@ -8,25 +8,57 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import calc_calibration_lines, calc_sampled_lines
+
+#: The cardiac gating modes ``gating`` selects from.
+GATINGS = ("none", "retrospective", "prospective")
+
+
+def sampled_lines(
+    n: int, ry: int, n_acs_y: int, partial_fourier: float
+) -> tuple[list[int], set[int]]:
+    """Return the phase-encode lines in play order, and the calibration lines.
+
+    The lattice keeps every line ``i`` with ``(i - n // 2) % ry == 0``, so the
+    centre line is always acquired. Partial Fourier drops the lines before
+    ``n - round(partial_fourier * n)``. The calibration block, centred on the
+    same line, leads; a fully sampled scan has none.
+    """
+    first = n - round(partial_fourier * n)
+    start = n // 2 - (n_acs_y if ry > 1 else 0) // 2
+    stop = n // 2 + ((n_acs_y if ry > 1 else 0) + 1) // 2
+    calibration = list(range(max(start, first), min(stop, n)))
+    lattice = [
+        i for i in range(first, n) if (i - n // 2) % ry == 0 and i not in calibration
+    ]
+    return calibration + lattice, set(calibration)
 
 
 class Bssfp2DApp(sequences.SequenceApp):
-    """Balanced SSFP 2D Cartesian: one complete train per slice.
+    """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
     Every axis returns to k = 0 between pulse centres and TE is TR/2
     (:class:`BssfpReadout2D`). Each slice's train is entered through a
     half-flip pulse half a TR ahead of the first excitation and opposite in
     phase to it; excitations then alternate between phase pi and 0, the ADC
-    following. ``ONCE`` marks the half-flip (1), the steady state (0) and the
-    closing rewind (2). Slices play one after another, since a steady state
-    does not survive interleaving.
+    following. ``ONCE`` marks the half flip (1), the train (0) and the closing
+    rewind (2), so the whole slice is one repetition of the scan. Slices play
+    one after another, since a steady state does not survive interleaving,
+    and a slice longer than :attr:`MAX_SLICE_DURATION` is refused.
+
+    The phase-encode lines are played ``views_per_segment`` at a time. Under
+    ``retrospective`` gating each segment is cycled for one heartbeat, the
+    interpreter's ECG log binning it into cardiac phases; under
+    ``prospective`` gating every heartbeat opens with a trigger event on
+    :attr:`TRIGGER_CHANNEL`, then plays the segment once per cardiac phase.
+    Acquisitions carry ``LIN``, ``SLC``, the segment as ``SEG`` and the cardiac
+    phase, or the cycle within the heartbeat, as ``PHS``; calibration lines
+    are marked ``IMA``.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
     >>> seq = sequences.bssfp2D_sequence(
-    ...     n_x=64, n_y=16, readout_bandwidth_hz=50e3, n_acs_y=0, n_dummy=0
+    ...     n_x=64, n_y=16, readout_bandwidth_hz=50e3, n_dummy=0
     ... )
     >>> seq.check_timing()[0]
     True
@@ -40,71 +72,121 @@ class Bssfp2DApp(sequences.SequenceApp):
     #: thickness)``.
     PULSE_DURATION = 0.6e-3
     TIME_BW_PRODUCT = 4.0
+    #: Physiological signal a prospective heartbeat waits for.
+    TRIGGER_CHANNEL = "physio1"
+    #: Longest a slice's train may last (s); the interpreter aborts beyond it.
+    MAX_SLICE_DURATION = 15.0
 
     def init_sequence(
         self,
-        fov: float | tuple[float, float] = 220e-3,
-        n_x: int = 128,
-        n_y: int = 128,
+        fov_x: float = 300e-3,
+        fov_y: float = 300e-3,
+        n_x: int = 192,
+        n_y: int = 192,
         n_slices: int = 1,
-        slice_thickness: float = 5e-3,
-        slice_gap: float = 0.0,
+        slice_thickness: float = 6e-3,
+        slice_spacing: float = 0.0,
         flip_angle_deg: float = 45.0,
         tr: float | None = None,
         readout_bandwidth_hz: float = 125e3,
-        partial_fourier: float = 1.0,
-        acceleration: int = 1,
-        n_acs_y: int = 24,
+        ry: int = 1,
+        partial_fourier_y: float = 1.0,
+        n_frames: int = 25,
+        *,
         n_dummy: int = 10,
-        n_gain_calibration_readouts: int | None = None,
+        readout_oversampling: float = 1.0,
+        n_acs_y: int = 24,
+        gating: str = "none",
+        heart_rate_bpm: float = 60.0,
+        views_per_segment: int = 12,
+        trigger_delay: float = 0.0,
     ) -> None:
-        """Design the balanced repetition, the slice positions and the line order.
+        """Design the balanced repetition, the slice positions and the segments.
 
         Parameters
         ----------
-        fov : float or tuple of float, optional
-            In-plane field of view, in metres; ``(fov_x, fov_y)`` if a tuple.
+        fov_x, fov_y : float, optional
+            Field of view along the readout and the phase encode (m).
         n_x : int, optional
-            Readout samples.
+            Readout matrix size.
         n_y : int, optional
-            Phase-encode steps.
+            Phase-encode matrix size.
         n_slices : int, optional
             Number of slices, each acquired as its own complete train.
         slice_thickness : float, optional
-            Slice thickness, in metres.
-        slice_gap : float, optional
-            Gap between adjacent slices, in metres.
+            Slice thickness (m).
+        slice_spacing : float, optional
+            Gap between adjacent slices (m); zero is contiguous.
         flip_angle_deg : float, optional
-            Excitation flip angle, in degrees.
-        tr : float or None, optional
-            Repetition time, in seconds; TE is always TR/2. ``None`` is as
-            short as possible.
+            Excitation flip angle (degrees).
+        tr : float | None, optional
+            Repetition time (s); TE is TR/2. ``None`` is as short as possible.
         readout_bandwidth_hz : float, optional
-            Requested receiver bandwidth, in Hz. The half-flip pulse needs an
+            Requested receiver bandwidth (Hz). The half flip needs an
             acquisition block at least as long as the excitation's tail, which
             a lower bandwidth provides.
-        partial_fourier : float, optional
-            Fraction of the phase-encode extent acquired, in (0.5, 1].
-        acceleration : int, optional
-            Uniform phase-encode undersampling factor.
-        n_acs_y : int, optional
-            Fully sampled autocalibration lines, acquired ahead of the rest.
+        ry : int, optional
+            Phase-encode undersampling: one line in every ``ry`` is acquired,
+            the centre line among them.
+        partial_fourier_y : float, optional
+            Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
+        n_frames : int, optional
+            Cardiac phases a prospective heartbeat acquires.
         n_dummy : int, optional
-            Repetitions played without acquiring after the half-flip pulse,
-            while the oscillating transient settles.
-        n_gain_calibration_readouts : int or None, optional
-            Written as the ``NumGainCalibrationReadouts`` definition. ``None``
-            is one per slice.
+            Repetitions played without acquiring after the half flip, while
+            the oscillating transient settles; at least one under
+            ``prospective``, whose first trigger follows them.
+        readout_oversampling : float, optional
+            Readout oversampling factor, at least one.
+        n_acs_y : int, optional
+            Fully sampled calibration lines at the centre of k-space, acquired
+            ahead of the rest when ``ry > 1``.
+        gating : {'none', 'retrospective', 'prospective'}, optional
+            No gating; each segment cycled over one heartbeat; or each
+            heartbeat triggered and acquired once per cardiac phase.
+        heart_rate_bpm : float, optional
+            Nominal heart rate (beats per minute) the segments are timed to.
+        views_per_segment : int, optional
+            Phase-encode lines per segment, one segment per heartbeat. Unused
+            without gating.
+        trigger_delay : float, optional
+            Wait after a prospective trigger before the first cardiac phase (s).
+
+        Raises
+        ------
+        ValueError
+            If ``gating`` is unknown, ``partial_fourier_y`` is outside
+            ``[0.75, 1]``, a count is below one, a prospective heartbeat has no
+            dummy ahead of its first trigger or cannot hold its phases, a slice
+            outlasts :attr:`MAX_SLICE_DURATION`, or the TR is shorter than the
+            balanced repetition, or too short beside the pulse for the half
+            flip.
         """
+        if gating not in GATINGS:
+            raise ValueError(f"gating must be one of {GATINGS}, got {gating!r}")
+        if not 0.75 <= partial_fourier_y <= 1.0:
+            raise ValueError(
+                f"partial_fourier_y must lie in [0.75, 1], got {partial_fourier_y}"
+            )
+        for name, count in (
+            ("ry", ry),
+            ("n_frames", n_frames),
+            ("views_per_segment", views_per_segment),
+        ):
+            if count < 1:
+                raise ValueError(f"{name} must be at least 1, got {count}")
+        if gating == "prospective" and n_dummy < 1:
+            raise ValueError(
+                "a prospective train needs at least one dummy repetition, so its "
+                "first trigger does not split the half flip from its excitation"
+            )
+
         system = self.system
-        self.fov = (fov, fov) if np.isscalar(fov) else tuple(fov)
+        self.fov = (fov_x, fov_y)
         self.matrix = (n_x, n_y, n_slices)
-        self.n_dummy = n_dummy
-        self.n_gain_calibration_readouts = (
-            n_slices
-            if n_gain_calibration_readouts is None
-            else n_gain_calibration_readouts
-        )
+        self.n_dummy, self.gating = n_dummy, gating
+        self.n_frames, self.heart_rate_bpm = n_frames, heart_rate_bpm
+        self.views_per_segment, self.trigger_delay = views_per_segment, trigger_delay
         self.exc = sequences.SpatialSelectiveExcitation(
             system,
             flip_angle_deg,
@@ -122,47 +204,85 @@ class Bssfp2DApp(sequences.SequenceApp):
             fov=self.fov,
             matrix=(n_x, n_y),
             tr=tr,
+            oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
         )
         self.nominal = self.ro.rf.amplitude
+        self.trigger = pp.make_trigger(
+            self.TRIGGER_CHANNEL, duration=trigger_delay, system=system
+        )
 
-        self.lines = calc_sampled_lines(
-            n_y,
-            acceleration,
-            n_acs_y,
-            order="calibration_first",
-            partial_fourier=partial_fourier,
+        self.lines, self.calibration = sampled_lines(
+            n_y, ry, n_acs_y, partial_fourier_y
         )
-        n_calibration = len(
-            calc_calibration_lines(n_y, n_acs_y, partial_fourier=partial_fourier)
+        # A train is a list of (line, segment, phase) repetitions, None where a
+        # heartbeat's trigger falls.
+        rr = 60.0 / heart_rate_bpm
+        segments = (
+            [self.lines]
+            if gating == "none"
+            else [
+                self.lines[i : i + views_per_segment]
+                for i in range(0, len(self.lines), views_per_segment)
+            ]
         )
-        # SEG splits the calibration block that leads the train from the rest.
-        self.segment = {}
-        for i, line in enumerate(self.lines):
-            self.segment.setdefault(line, int(i >= n_calibration))
-        acs_start = max(0, n_y // 2 - n_acs_y // 2)
-        self.acs = range(acs_start, min(n_y, acs_start + n_acs_y))
+        self.train = [(None, 0, 0)] * n_dummy
+        for s, segment in enumerate(segments):
+            if gating == "none":
+                self.train += [(line, 0, 0) for line in segment]
+            elif gating == "retrospective":
+                cycles = max(1, round(rr / (len(segment) * self.ro.tr)))
+                self.train += [(line, s, c) for c in range(cycles) for line in segment]
+            else:
+                acquired = n_frames * len(segment) * self.ro.tr + trigger_delay
+                if acquired > rr + 1e-9:
+                    raise ValueError(
+                        f"{n_frames} cardiac phases of {len(segment)} lines take "
+                        f"{acquired * 1e3:.0f} ms, longer than the "
+                        f"{rr * 1e3:.0f} ms heartbeat"
+                    )
+                self.train.append(None)
+                self.train += [
+                    (line, s, f) for f in range(n_frames) for line in segment
+                ]
+        self.n_segments = len(segments)
 
-        self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
-            slice_thickness + slice_gap
-        )
-        self.slab_thickness = n_slices * (slice_thickness + slice_gap) - slice_gap
-        self.slice_gap = slice_thickness + slice_gap - self.exc.slice_thickness
-        # Half-flip, dummies, one repetition per line and the closing rewind.
-        self.duration = n_slices * (n_dummy + len(self.lines) + 1.5) * self.ro.tr
+        # Half flip, the repetitions and the closing rewind; a prospective
+        # heartbeat lasts until the next trigger.
+        repetitions = sum(item is not None for item in self.train)
+        self.slice_duration = (repetitions + 1.5) * self.ro.tr
+        if gating == "prospective":
+            self.slice_duration = n_dummy * self.ro.tr + self.n_segments * rr
+        if self.slice_duration > self.MAX_SLICE_DURATION:
+            raise ValueError(
+                f"a slice's train lasts {self.slice_duration:.1f} s, longer than "
+                f"the {self.MAX_SLICE_DURATION:.0f} s one repetition of the scan "
+                f"may; raise ry or views_per_segment, or lower n_y"
+            )
+        slice_step = slice_thickness + slice_spacing
+        self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * slice_step
+        self.slab_thickness = n_slices * slice_step - slice_spacing
+        self.slice_gap = slice_step - self.exc.slice_thickness
+        self.duration = n_slices * self.slice_duration
 
     def _ky(self, line: int | None) -> float:
         n_y = self.matrix[1]
-        return 0.0 if line is None else (line - n_y / 2) / (n_y / 2)
+        return 0.0 if line is None else (line - n_y // 2) / (n_y / 2)
 
     def loop(self) -> None:
         """Play each slice's whole train before the next slice's."""
-        shots = [None] * self.n_dummy + list(self.lines)
         for s in range(self.matrix[2]):
-            previous = None
-            for shot, line in enumerate(shots):
-                self.kernel(s, shot, line, previous, last=shot == len(shots) - 1)
-                previous = self._ky(line)
+            previous, shot, trigger = None, 0, False
+            last = max(i for i, item in enumerate(self.train) if item is not None)
+            for i, item in enumerate(self.train):
+                if item is None:
+                    trigger = True
+                    continue
+                line, segment, phase = item
+                self.kernel(
+                    s, shot, line, previous, segment, phase, trigger, last=i == last
+                )
+                previous, shot, trigger = self._ky(line), shot + 1, False
 
     def kernel(
         self,
@@ -170,13 +290,17 @@ class Bssfp2DApp(sequences.SequenceApp):
         shot: int,
         line: int | None,
         previous_ky: float | None,
+        segment: int = 0,
+        phase: int = 0,
+        trigger: bool = False,
         last: bool = False,
     ) -> None:
         """One repetition of slice ``s``: the rewind of the previous one, then excite and read.
 
         ``previous_ky`` is the fractional encode the rewind undoes; ``None``
-        opens the slice's train with the half-flip pulse. ``last`` closes it
-        with the final rewind, and ``line=None`` plays a dummy.
+        opens the slice's train with the half flip. ``trigger`` waits for the
+        heartbeat between the rewind and the excitation, ``last`` closes the
+        train with the final rewind, and ``line=None`` plays a dummy.
         """
         ro, seq = self.ro, self.seq
         rf = ro.rf
@@ -197,6 +321,8 @@ class Bssfp2DApp(sequences.SequenceApp):
             seq.add_block(ro.wait_rewind, ro.gz_rew)
         else:
             seq.add_block(ro.gx_rew, pp.scale_grad(ro.gy_rew, previous_ky), ro.gz_rew)
+        if trigger:
+            seq.add_block(self.trigger)
 
         alternation = np.pi * ((shot + 1) % 2)
         rf.phase_offset = alternation + centre_phase
@@ -208,7 +334,11 @@ class Bssfp2DApp(sequences.SequenceApp):
             seq.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre)
         else:
             labels = self.labels(
-                LIN=line, SLC=s, IMA=line in self.acs, SEG=self.segment[line]
+                LIN=line,
+                SLC=s,
+                SEG=segment,
+                PHS=phase,
+                IMA=line in self.calibration,
             )
             seq.add_block(
                 ro.gx, ro.adc, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *labels
@@ -219,7 +349,7 @@ class Bssfp2DApp(sequences.SequenceApp):
             )
 
     def finalize(self) -> None:
-        """Write the prescription and the k-space geometry as definitions."""
+        """Write the prescription, the gating and the k-space geometry as definitions."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         n_x, n_y, n_slices = self.matrix
@@ -229,13 +359,23 @@ class Bssfp2DApp(sequences.SequenceApp):
             "Name": self.NAME,
             "TE": self.ro.te,
             "TR": self.ro.tr,
-            "NumGainCalibrationReadouts": self.n_gain_calibration_readouts,
+            "Gating": self.gating,
             "kSpaceCenterLine": n_y // 2,
             "kSpaceCenterSample": self.ro.center_sample,
             "SlicePositions": self.positions.tolist(),
             "SliceThickness": self.exc.slice_thickness,
             "SliceGap": self.slice_gap,
         }
+        if self.gating != "none":
+            definitions.update(
+                HeartRate=self.heart_rate_bpm,
+                ViewsPerSegment=self.views_per_segment,
+                NumSegments=self.n_segments,
+            )
+        if self.gating == "prospective":
+            definitions.update(
+                CardiacPhases=self.n_frames, TriggerDelay=self.trigger_delay
+            )
         for key, value in definitions.items():
             self.seq.set_definition(key=key, value=value)
 

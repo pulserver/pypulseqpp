@@ -1,31 +1,96 @@
-"""Balanced SSFP, 3D Cartesian, non-selective."""
+"""Balanced SSFP, 3D Cartesian, with phase cycling."""
 
 from __future__ import annotations
 
+import math
 import sys
 
 import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import calc_sampled_pairs
+
+#: The excitations ``excitation`` selects from.
+EXCITATIONS = ("nonselective", "slab")
+
+
+def sampled_views(
+    shape: tuple[int, int],
+    acceleration: tuple[int, int],
+    caipi_shift: int,
+    calibration: tuple[int, int],
+    partial_fourier: tuple[float, float],
+    elliptical_acs: bool,
+) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
+    """Return the ``(line, partition)`` views in play order, and the calibration views.
+
+    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
+    sampled, on a CAIPIRINHA lattice holding the centre view: lines with
+    ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them from the centre
+    the partitions with ``(z - nz // 2 - caipi_shift * j) % rz == 0``. Partial
+    Fourier drops the lines and partitions before the centre. Under
+    undersampling the ``n_acs_y x n_acs_z`` calibration region, centred on the
+    centre view, is sampled whole: a rectangle, or under ``elliptical_acs`` the
+    ellipse inscribed in it. Lines are played in order and their partitions
+    back and forth, so no step jumps across the partitions.
+    """
+    (ny, nz), (ry, rz) = shape, acceleration
+    first_y = ny - round(partial_fourier[0] * ny)
+    first_z = nz - round(partial_fourier[1] * nz)
+    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
+
+    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
+        # Offsets from the centre view, the one the encodes scale to zero.
+        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
+        return dy * dy + dz * dz <= 0.25
+
+    region = {
+        (y, z)
+        for y in range(
+            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
+        )
+        for z in range(
+            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
+        )
+        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
+    }
+    lattice = {
+        (y, z)
+        for y in range(first_y, ny)
+        if (y - ny // 2) % ry == 0
+        for z in range(first_z, nz)
+        if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
+        and inside(y, z, ny, nz)
+    }
+    views = sorted(lattice | region)
+    lines = sorted({y for y, _ in views})
+    order = []
+    for index, line in enumerate(lines):
+        row = [view for view in views if view[0] == line]
+        order += row if index % 2 == 0 else row[::-1]
+    return order, region
 
 
 class Bssfp3DApp(sequences.SequenceApp):
-    """Balanced SSFP, 3D Cartesian: a hard pulse and a balanced line readout per TR.
+    """Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip.
 
-    Every repetition returns all three gradient moments to zero, and the RF
-    and ADC phases alternate by π. ``n_dummy`` unacquired repetitions let the
-    magnetisation approach its steady state before the calibration pairs lead
-    the scan. Every repetition plays the same blocks, so the scan is periodic
-    from its first block.
+    Every repetition returns all three gradient moments to zero, with TE at
+    TR/2 (:class:`BssfpReadout3D`). Only views inside the inscribed ky-kz
+    ellipse are sampled, lines in order and each line's partitions back and
+    forth. Phase cycle ``k`` of ``n_phase_cycles`` steps the RF and receiver
+    phase by ``pi + 2 pi k / n_phase_cycles`` per repetition, which shifts the
+    off-resonance bands; two cycles is CISS. Each cycle is a file of its own,
+    a repeating unit from its first excitation, and a ``catalyst`` file ahead
+    of it plays the half flip half a repetition before that excitation, at the
+    phase the repetition before the first would have had. The files are
+    chained in that order (:meth:`prescans`), so the scanner plays them as one
+    table. Acquisitions carry their line, partition and cycle as ``LIN``,
+    ``PAR`` and ``SET``, and calibration views are marked ``IMA``.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.bssfp3D_sequence(
-    ...     n_x=64, n_y=16, n_z=4, n_acs_y=0, n_acs_z=0, n_dummy=0
-    ... )
+    >>> seq = sequences.bssfp3D_sequence(n_x=64, n_y=16, n_z=4)
     >>> seq.check_timing()[0]
     True
     """
@@ -33,164 +98,242 @@ class Bssfp3DApp(sequences.SequenceApp):
     NAME = "bssfp_3d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
-    #: Duration of the hard pulse (s).
-    PULSE_DURATION = 0.5e-3
+    #: SLR design of the slab-selective pulse.
+    PULSE_DURATION = 1.0e-3
+    TIME_BW_PRODUCT = 2.0
+    #: Duration of the nonselective hard pulse (s).
+    HARD_PULSE_DURATION = 0.5e-3
 
     def init_sequence(
         self,
-        fov: float | tuple[float, float] = 220e-3,
-        n_x: int = 128,
-        n_y: int = 128,
-        n_z: int = 64,
-        slab_thickness: float = 128e-3,
+        fov_x: float = 220e-3,
+        fov_y: float = 220e-3,
+        fov_z: float = 128e-3,
+        n_x: int = 256,
+        n_y: int = 256,
+        n_z: int = 128,
         flip_angle_deg: float = 45.0,
         tr: float | None = None,
         readout_bandwidth_hz: float = 125e3,
-        partial_fourier: float = 1.0,
-        partial_fourier_z: float = 1.0,
-        acceleration: int = 1,
-        acceleration_z: int = 1,
+        ry: int = 1,
+        rz: int = 1,
         caipi_shift: int = 0,
-        elliptical: bool = True,
+        partial_fourier_y: float = 1.0,
+        partial_fourier_z: float = 1.0,
+        *,
+        excitation: str = "nonselective",
+        readout_oversampling: float = 2.0,
         n_acs_y: int = 24,
         n_acs_z: int = 16,
-        n_dummy: int = 10,
-        n_gain_calibration_readouts: int = 1,
+        elliptical_acs: bool = False,
+        n_phase_cycles: int = 1,
     ) -> None:
-        """Design the pulses, the balanced readout and the ``(line, partition)`` order.
+        """Design the pulse, the balanced repetition, the views and the phase cycles.
 
         Parameters
         ----------
-        fov : float or tuple of float, optional
-            In-plane field of view, in metres; one value for both axes, or
-            ``(fov_x, fov_y)``.
-        n_x : int, optional
-            Readout samples.
-        n_y : int, optional
-            Phase-encode steps.
-        n_z : int, optional
-            Partition-encode steps.
-        slab_thickness : float, optional
-            Field of view along z, in metres. The pulse is non-selective, so
-            the partition encode alone sets it.
+        fov_x, fov_y, fov_z : float, optional
+            Field of view along the readout, the phase encode and the
+            partition encode (m). A slab excited is ``fov_z`` thick.
+        n_x, n_y, n_z : int, optional
+            Matrix size along the readout, the phase encode and the partition
+            encode.
         flip_angle_deg : float, optional
-            Flip angle of every pulse of the train, in degrees.
-        tr : float or None, optional
-            Repetition time, in seconds. ``None`` is as short as the readout
-            admits.
+            Excitation flip angle (degrees).
+        tr : float | None, optional
+            Repetition time (s); TE is TR/2. ``None`` is as short as possible.
         readout_bandwidth_hz : float, optional
-            Requested receiver bandwidth, in Hz.
-        partial_fourier : float, optional
-            Fraction of the phase-encode extent acquired along y, in (0.5, 1].
-        partial_fourier_z : float, optional
-            Fraction of the partition-encode extent acquired along z, in
-            (0.5, 1].
-        acceleration : int, optional
-            Uniform phase-encode undersampling factor along y.
-        acceleration_z : int, optional
-            Uniform partition-encode undersampling factor along z.
+            Requested receiver bandwidth (Hz). The half flip needs an
+            acquisition block at least as long as the excitation's tail, which
+            a lower bandwidth provides.
+        ry, rz : int, optional
+            Undersampling along the phase and the partition encode.
         caipi_shift : int, optional
-            CAIPIRINHA shift along kz per sampled-ky block. ``0`` is a plain
-            lattice.
-        elliptical : bool, optional
-            Keep only the pairs inside the inscribed ky-kz ellipse.
-        n_acs_y : int, optional
-            Calibration extent along y, in lines.
-        n_acs_z : int, optional
-            Calibration extent along z, in partitions.
-        n_dummy : int, optional
-            Unacquired repetitions ahead of the first acquisition.
-        n_gain_calibration_readouts : int, optional
-            Written as the ``NumGainCalibrationReadouts`` definition.
-        """
-        system = self.system
-        fov_x, fov_y = (fov, fov) if np.isscalar(fov) else fov
-        self.fov = (fov_x, fov_y, slab_thickness)
-        self.matrix = (n_x, n_y, n_z)
-        self.n_dummy = n_dummy
-        self.n_gain_calibration_readouts = n_gain_calibration_readouts
+            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+        partial_fourier_y, partial_fourier_z : float, optional
+            Fraction of the phase- and partition-encode extent acquired, in
+            ``[0.75, 1]``.
+        excitation : {'nonselective', 'slab'}, optional
+            A hard pulse, or a slab-selective SLR pulse whose rephasers the
+            balanced readout builds.
+        readout_oversampling : float, optional
+            Readout oversampling factor, at least one.
+        n_acs_y, n_acs_z : int, optional
+            Extent of the fully sampled calibration region along the phase
+            and the partition encode, when undersampled.
+        elliptical_acs : bool, optional
+            Make the calibration region the ellipse inscribed in the
+            ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
+        n_phase_cycles : int, optional
+            Trains acquired, each with its own RF phase increment.
 
-        self.exc = sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, self.PULSE_DURATION
-        )
-        self.ro = sequences.LineReadout3D(
+        Raises
+        ------
+        ValueError
+            If ``excitation`` is unknown, a partial Fourier fraction is outside
+            ``[0.75, 1]``, a count is below one, ``caipi_shift`` is outside
+            ``[0, rz)``, or the TR is shorter than the repetition, or too short
+            beside the pulse for the half flip.
+        """
+        if excitation not in EXCITATIONS:
+            raise ValueError(
+                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+            )
+        for name, fraction in (
+            ("partial_fourier_y", partial_fourier_y),
+            ("partial_fourier_z", partial_fourier_z),
+        ):
+            if not 0.75 <= fraction <= 1.0:
+                raise ValueError(f"{name} must lie in [0.75, 1], got {fraction}")
+        for name, count in (("ry", ry), ("rz", rz), ("n_phase_cycles", n_phase_cycles)):
+            if count < 1:
+                raise ValueError(f"{name} must be at least 1, got {count}")
+        if not 0 <= caipi_shift < rz:
+            raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
+
+        system = self.system
+        self.fov = (fov_x, fov_y, fov_z)
+        self.matrix = (n_x, n_y, n_z)
+        self.excitation = excitation
+        if excitation == "slab":
+            exc = sequences.SpatialSelectiveExcitation(
+                system,
+                flip_angle_deg,
+                fov_z,
+                duration_s=self.PULSE_DURATION,
+                time_bw_product=self.TIME_BW_PRODUCT,
+                rephase=False,
+            )
+            rf, gz = exc.rf, exc.gz
+        else:
+            # An even number of block rasters puts the pulse centre on the raster.
+            raster = system.block_duration_raster
+            hard = (
+                2 * raster * math.ceil(self.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
+            )
+            rf, gz = (
+                sequences.NonSelectiveExcitation(
+                    system, flip_angle_deg, duration_s=hard
+                ).rf,
+                None,
+            )
+        self.ro = ro = sequences.BssfpReadout3D(
             system,
-            self.exc.rf,
+            rf,
+            gz,
             fov=self.fov,
             matrix=self.matrix,
             tr=tr,
+            oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=0.0,
         )
-        self.repetition_time = self.ro.duration
+        self.gz = getattr(ro, "gz", None)
+        self.nominal = ro.rf.amplitude
+        # The slice rephaser and the partition encode share one ramp and one
+        # window, so their sum is the partition lobe scaled.
+        self.z_pre = getattr(ro, "gz_pre", None)
+        self.z_rew = getattr(ro, "gz_rew", None)
 
-        self.pairs, self.n_calibration = calc_sampled_pairs(
+        self.views, self.calibration = sampled_views(
             (n_y, n_z),
-            (acceleration, acceleration_z),
+            (ry, rz),
+            caipi_shift,
             (n_acs_y, n_acs_z),
-            partial_fourier=(partial_fourier, partial_fourier_z),
-            caipi_shift=caipi_shift,
-            elliptical=elliptical,
-            order="calibration_first",
+            (partial_fourier_y, partial_fourier_z),
+            elliptical_acs,
         )
-        self.duration = (n_dummy + len(self.pairs)) * self.repetition_time
+        self.increments = [
+            np.pi + 2 * np.pi * k / n_phase_cycles for k in range(n_phase_cycles)
+        ]
+        self.duration = n_phase_cycles * (len(self.views) + 1) * ro.tr
+
+    def prescans(self) -> dict:
+        """Return every file but the last cycle: each cycle's catalyst, then the cycle."""
+        chain = {}
+        for k in range(len(self.increments)):
+            chain[f"catalyst_{k}"] = lambda k=k: self.catalyst(k)
+            if k < len(self.increments) - 1:
+                chain[f"cycle_{k}"] = lambda k=k: self.cycle(k)
+        return chain
 
     def loop(self) -> None:
-        """Play the dummies, then every pair, alternating the phase."""
-        views = [None] * self.n_dummy + list(self.pairs)
-        for k, view in enumerate(views):
-            calibrating = k - self.n_dummy < self.n_calibration
-            self.kernel(view, np.pi * (k % 2), calibrating)
+        """Play the last phase cycle."""
+        self.cycle(len(self.increments) - 1)
 
-    def kernel(
-        self, view: tuple[int, int] | None, phase: float, calibrating: bool = False
-    ) -> None:
-        """One balanced repetition at ``(line, partition)``; ``view=None`` is a dummy."""
-        rf, ro, seq = self.exc.rf, self.ro, self.seq
+    def catalyst(self, k: int) -> None:
+        """Play cycle ``k``'s half flip, half a repetition before its first excitation."""
+        ro, seq = self.ro, self.seq
+        ro.rf.amplitude = 0.5 * self.nominal
+        # The first excitation is at the increment itself, so the one before it
+        # would have been at zero.
+        ro.rf.phase_offset = 0.0
+        seq.add_block(ro.rf, *([] if self.gz is None else [self.gz]))
+        ro.rf.amplitude = self.nominal
+        seq.add_block(ro.wait_prep)
+        seq.add_block(ro.wait_rewind, *([] if self.z_rew is None else [self.z_rew]))
+        self._define(Name=f"{self.NAME}_catalyst", PhaseCycle=k)
+
+    def cycle(self, k: int) -> None:
+        """Play every view of phase cycle ``k``."""
+        increment = self.increments[k]
+        for n, view in enumerate(self.views):
+            self.kernel(view, (n + 1) * increment % (2 * np.pi), k)
+        self._define(
+            Name=self.NAME,
+            PhaseCycle=k,
+            PhaseIncrement=float(np.rad2deg(increment)),
+        )
+
+    def _z(self, lobe, rephaser, kz: float):
+        """Return ``lobe`` scaled to ``kz``, plus the ``rephaser`` sharing its window."""
+        amplitude = kz * lobe.amplitude
+        if rephaser is not None:
+            amplitude += rephaser.amplitude
+        return pp.scale_grad(lobe, amplitude / lobe.amplitude)
+
+    def kernel(self, view: tuple[int, int], phase: float, cycle: int = 0) -> None:
+        """One balanced repetition at ``(line, partition)``: excite, read, rewind."""
+        ro, seq = self.ro, self.seq
         n_y, n_z = self.matrix[1:]
-        rf.phase_offset = phase
+        line, partition = view
+        ky = (line - n_y // 2) / (n_y / 2)
+        kz = (partition - n_z // 2) / (n_z / 2)
+        ro.rf.phase_offset = phase
         ro.adc.phase_offset = phase
-
-        if view is None:
-            ky = kz = 0.0
-            labels = self.labels(ONCE=1)
-        else:
-            line, partition = view
-            ky, kz = (line - n_y / 2) / (n_y / 2), (partition - n_z / 2) / (n_z / 2)
-            labels = self.labels(
-                LIN=line, PAR=partition, IMA=calibrating, SEG=not calibrating, ONCE=0
-            )
-
-        seq.add_block(rf, *labels)
-        seq.add_block(
-            ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), pp.scale_grad(ro.gz_pre, kz)
+        labels = self.labels(
+            LIN=line, PAR=partition, SET=cycle, IMA=view in self.calibration
         )
-        seq.add_block(ro.gx, *([] if view is None else [ro.adc]))
+        seq.add_block(ro.rf, *([] if self.gz is None else [self.gz]))
         seq.add_block(
-            ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
+            ro.gx,
+            ro.adc,
+            pp.scale_grad(ro.gy_pre, ky),
+            self._z(ro.gz_partition, self.z_pre, kz),
+            *labels,
         )
-        wait_tr = getattr(ro, "wait_tr", None)
-        if wait_tr is not None:
-            seq.add_block(wait_tr)
+        seq.add_block(
+            ro.gx_rew,
+            pp.scale_grad(ro.gy_rew, ky),
+            self._z(ro.gz_partition_rew, self.z_rew, kz),
+        )
 
-    def finalize(self) -> None:
-        """Write the prescription and the k-space geometry as definitions."""
+    def _define(self, **definitions) -> None:
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         n_x, n_y, n_z = self.matrix
-        definitions = {
+        for key, value in {
             "FOV": list(self.fov),
             "Matrix": [n_x, n_y, n_z],
-            "Name": self.NAME,
-            "TE": self.ro.echo_time,
-            "TR": self.repetition_time,
-            "NumGainCalibrationReadouts": self.n_gain_calibration_readouts,
+            "TE": self.ro.te,
+            "TR": self.ro.tr,
+            "Excitation": self.excitation,
+            "NumPhaseCycles": len(self.increments),
             "kSpaceCenterLine": n_y // 2,
             "kSpaceCenterPartition": n_z // 2,
             "kSpaceCenterSample": self.ro.center_sample,
             "SliceThickness": self.fov[2],
-        }
-        for key, value in definitions.items():
+            **definitions,
+        }.items():
             self.seq.set_definition(key=key, value=value)
 
 
