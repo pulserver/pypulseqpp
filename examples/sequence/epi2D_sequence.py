@@ -1,4 +1,4 @@
-"""2D gradient-echo EPI, multi-slice, written as a linked chain of sequences."""
+"""Multi-slice 2D gradient-echo EPI, optionally segmented and multiband."""
 
 from __future__ import annotations
 
@@ -8,35 +8,85 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import calc_calibration_lines
-from pypulseqpp._ordering import calc_traversal_order
-
-#: What a shot of each kind of :meth:`Epi2DApp.kernel` plays.
-KINDS = ("calibration", "navigator", "reference", "dummy", "image")
 
 
-def sms_group_center(
-    group: int, n_slices: int, n_bands: int, slice_step: float
-) -> float:
-    """Centre (m) of the band comb exciting slices ``group, group + n_groups, ...``."""
-    n_groups = n_slices // n_bands
-    first = (group - (n_slices - 1) / 2) * slice_step
-    return first + (n_bands - 1) / 2 * n_groups * slice_step
+def caipi_shift(ry: int, rz: int) -> int:
+    """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
+
+    The sampled lattice is spanned by ``(0, rz)`` and ``(ry, shift)``, in
+    lines and partitions. Its aliases form the dual lattice, which in two
+    dimensions is the same lattice turned and scaled, so the shift that
+    lengthens the shortest sampling vector also spreads the aliases most.
+    Among equally short lattices, the one with the fewest shortest vectors has
+    the fewest nearest aliases; then the smaller shift wins.
+    """
+
+    def shortest(shift: int) -> tuple[int, int]:
+        # One of each pair of opposite vectors: b > 0, or b == 0 and a > 0.
+        lengths = [
+            (b * ry) ** 2 + (a * rz + b * shift) ** 2
+            for a in range(-rz, rz + 1)
+            for b in range(rz + 1)
+            if b or a > 0
+        ]
+        return min(lengths), -lengths.count(min(lengths))
+
+    return max(range(rz), key=lambda shift: (*shortest(shift), -shift))
+
+
+def train_lines(
+    n: int, ry: int, n_shots: int, partial_fourier: float
+) -> tuple[int, int]:
+    """Return the first line of shot 0 and the lines per shot.
+
+    Shot ``s`` reads lines ``start + (s + i * n_shots) * ry``. The lattice keeps
+    every line ``i`` with ``(i - n // 2) % ry == 0``, so the centre line is
+    always read. The shots end on the lattice's last line and cover the lines
+    from ``n - round(partial_fourier * n)`` up; when the shots cannot share
+    them evenly, the extra lines extend below that, or are dropped where
+    there is no room.
+    """
+    first = n - round(partial_fourier * n)
+    lattice = [i for i in range(n) if (i - n // 2) % ry == 0]
+    count = sum(1 for i in lattice if i >= first)
+    etl = -(-count // n_shots)
+    if lattice[-1] - (etl * n_shots - 1) * ry < 0:
+        etl = count // n_shots
+    if etl < 1:
+        raise ValueError(
+            f"{count} lines cannot be shared among {n_shots} shots; lower n_shots"
+        )
+    return lattice[-1] - (etl * n_shots - 1) * ry, etl
+
+
+def packets_of(n: int, per_packet: int) -> list[list[int]]:
+    """Deal ``n`` slices round-robin into packets, even slices first in each."""
+    n_packets = -(-n // per_packet)
+    packets = [range(start, n, n_packets) for start in range(n_packets)]
+    return [[*packet[::2], *packet[1::2]] for packet in packets]
 
 
 class Epi2DApp(sequences.SequenceApp):
-    """Multi-slice 2D gradient-echo EPI, single-shot or segmented, optionally multiband.
+    """Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
 
-    The trains are ramp-sampled with the blips on the read ramps, and every
-    acquisition carries ``REV`` for its read polarity. The imaging is preceded
-    by linked prescans (:meth:`prescans`): an accelerated scan's
-    ``calibration``, a low-resolution gradient echo per slice (``REF``); then
-    the ``navigator``, per slice :attr:`NAVIGATOR_LINES` blip-nulled centre
-    lines (``NAV``, ``REF``) and an opposite-phase-encode reference train
-    (``SET = 1``). Under ``sms`` a :class:`~pypulseqpp.sequences.SmsExcitation`
-    excites ``n_bands`` slices at once and a blipped-CAIPI train encodes the
-    band in ``PAR``; its one prescan, ``calibration``, is a blip-nulled
-    navigator at the centre group followed by the gradient-echo calibration.
+    Every shot reads :attr:`NAVIGATOR_LINES` centre lines without blips
+    (``NAV``) before its train, and every line carries ``REV`` for its read
+    polarity. The trains are ramp-sampled with the blips on the read ramps.
+    Segmented shots interleave on the phase-encode lattice, each delayed by
+    a fraction of the echo spacing so the echo time grows smoothly across
+    k-space; ``te`` is the echo time of the centre line.
+
+    Slices (under ``multiband``, slice groups) are excited once per shot in
+    packets, even ones first. With one frame, slices one TR cannot hold are
+    dealt round-robin into packets; a time series must fit every slice in
+    one. A multiband shot excites ``multiband`` slices at once and a
+    blipped-CAIPI train encodes the band in ``PAR``.
+
+    Two prescans are linked ahead of the imaging (:meth:`prescans`): the
+    ``calibration``, a single-band gradient echo per slice over the central
+    ``n_acs_y`` lines (``REF``), when undersampled or multiband; and the
+    ``reference``, one volume with the phase encode reversed (``SET = 1``),
+    for distortion correction.
 
     Examples
     --------
@@ -56,114 +106,129 @@ class Epi2DApp(sequences.SequenceApp):
     #: thickness)``.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Blip-nulled lines per navigator: odd, even, odd.
+    #: Centre lines read without blips at the start of every shot.
     NAVIGATOR_LINES = 3
+    #: Dephasing left on the readout axis at the end of each shot, in cycles
+    #: across one voxel.
+    SPOILING_CYCLES = 4.0
+    #: Digital output marking every volume under ``volume_output``, and how
+    #: long it lasts (s); it never outlasts the excitation block it rides.
+    OUTPUT_CHANNEL = "ext1"
+    OUTPUT_DURATION = 1e-3
 
     def init_sequence(
         self,
-        fov: float | tuple[float, float] = 220e-3,
+        fov_x: float = 220e-3,
+        fov_y: float = 220e-3,
         n_x: int = 128,
         n_y: int = 128,
         n_slices: int = 1,
         slice_thickness: float = 5e-3,
-        slice_gap: float = 0.0,
+        slice_spacing: float = 0.0,
         flip_angle_deg: float = 70.0,
         te: float | None = None,
         tr: float | None = None,
-        n_repetitions: int = 1,
-        segments: int = 1,
-        acceleration: int = 1,
-        n_bands: int = 1,
-        n_acs_y: int = 24,
+        n_frames: int = 1,
         readout_bandwidth_hz: float = 500e3,
-        opposite_reference: bool = True,
-        slice_order: str = "interleaved",
-        n_dummy: int = 2,
-        n_gain_calibration_readouts: int | None = None,
-        spoiling_cycles: float = 4.0,
+        ry: int = 1,
+        partial_fourier_y: float = 1.0,
+        n_shots: int = 1,
+        multiband: int = 1,
         fat_saturation: bool = False,
-        sms: bool = False,
+        *,
+        n_dummy: int = 2,
+        readout_oversampling: float = 1.0,
+        n_acs_y: int = 24,
+        volume_output: bool = False,
     ) -> None:
-        """Design the excitation, the train, the calibration and the shot order.
+        """Design the excitation, the trains, the slice packets and the shot order.
 
         Parameters
         ----------
-        fov : float or tuple of float, optional
-            In-plane field of view, in metres; ``(fov_x, fov_y)`` if a tuple.
+        fov_x, fov_y : float, optional
+            Field of view along the readout and the phase encode (m).
         n_x : int, optional
-            Readout samples.
+            Readout matrix size.
         n_y : int, optional
-            Phase-encode lines.
+            Phase-encode matrix size.
         n_slices : int, optional
-            Number of slices, interleaved within each repetition.
+            Number of slices.
         slice_thickness : float, optional
-            Slice thickness, in metres.
-        slice_gap : float, optional
-            Gap between adjacent slices, in metres.
+            Slice thickness (m).
+        slice_spacing : float, optional
+            Gap between adjacent slices (m); zero is contiguous.
         flip_angle_deg : float, optional
-            Excitation flip angle, in degrees.
-        te : float or None, optional
-            Echo time of the first line, in seconds. ``None`` is as short as
-            possible.
-        tr : float or None, optional
-            Repetition time over one shot of one slice, in seconds. ``None``
-            is as short as possible.
-        n_repetitions : int, optional
+            Excitation flip angle (degrees).
+        te : float | None, optional
+            Echo time of the centre line (s). ``None`` is as short as the
+            navigator and the train admit.
+        tr : float | None, optional
+            Volume repetition time (s): every shot of every slice. ``None`` is
+            as short as possible, and puts every slice in one packet.
+        n_frames : int, optional
             Volumes in the time series, each carrying its ``REP`` counter.
-        segments : int, optional
-            Interleaved shots the train is split into.
-        acceleration : int, optional
-            Uniform phase-encode undersampling factor. Above 1 the gradient-echo
-            calibration is acquired.
-        n_bands : int, optional
-            Multiband factor: slices excited at once under ``sms``. It must
-            divide ``n_slices``.
-        n_acs_y : int, optional
-            Calibration extent along y, in lines, of the gradient-echo
-            calibration.
         readout_bandwidth_hz : float, optional
-            Requested receiver bandwidth, in Hz.
-        opposite_reference : bool, optional
-            Acquire the opposite-phase-encode reference train after each
-            slice's navigator.
-        slice_order : str, optional
-            Order the slices are acquired in, as
-            ``calc_traversal_order`` accepts.
-        n_dummy : int, optional
-            Shots played without acquiring, per slice, before the first
-            acquired one.
-        n_gain_calibration_readouts : int or None, optional
-            Written as the ``NumGainCalibrationReadouts`` definition. ``None``
-            is one per slice.
-        spoiling_cycles : float, optional
-            Cycles of dephasing left at the end of each shot.
+            Requested receiver bandwidth (Hz).
+        ry : int, optional
+            Phase-encode undersampling: one line in every ``ry`` is read, the
+            centre line among them.
+        partial_fourier_y : float, optional
+            Fraction of the phase-encode extent read, in ``[0.5, 1]``.
+            Truncates the lines before the centre, which shortens the minimum
+            TE.
+        n_shots : int, optional
+            Interleaved shots each volume's phase encode is split into.
+        multiband : int, optional
+            Slices excited at once. It must divide ``n_slices``.
         fat_saturation : bool, optional
-            Saturate fat before every dummy and imaging shot.
-        sms : bool, optional
-            Excite ``n_bands`` slices at once with blipped-CAIPI encoding, when
-            ``n_bands`` is above 1.
+            Saturate fat before every shot.
+        n_dummy : int, optional
+            Non-acquiring volumes before a time series; with one frame,
+            non-acquiring shots per slice before each packet.
+        readout_oversampling : float, optional
+            Readout oversampling factor, at least one.
+        n_acs_y : int, optional
+            Phase-encode lines of the gradient-echo calibration.
+        volume_output : bool, optional
+            Play a digital output on :attr:`OUTPUT_CHANNEL` at the first
+            excitation of every volume, dummy volumes included.
+
+        Raises
+        ------
+        ValueError
+            If ``partial_fourier_y`` is outside ``[0.5, 1]``, a count is below
+            one, ``multiband`` does not divide ``n_slices``, the shots cannot
+            share the lines, the TE is shorter than the train admits, or the TR
+            cannot hold one slice, or every slice when ``n_frames`` is above
+            one.
         """
+        if not 0.5 <= partial_fourier_y <= 1.0:
+            raise ValueError(
+                f"partial_fourier_y must lie in [0.5, 1], got {partial_fourier_y}"
+            )
+        for name, count in (
+            ("ry", ry),
+            ("n_shots", n_shots),
+            ("multiband", multiband),
+            ("n_frames", n_frames),
+        ):
+            if count < 1:
+                raise ValueError(f"{name} must be at least 1, got {count}")
+        if n_slices % multiband:
+            raise ValueError(
+                f"the slice count {n_slices} is not a multiple of the multiband "
+                f"factor {multiband}"
+            )
+
         system = self.system
-        fov_x, fov_y = (fov, fov) if np.isscalar(fov) else fov
         self.fov = (fov_x, fov_y)
         self.matrix = (n_x, n_y, n_slices)
-        self.slice_thickness = slice_thickness
-        self.n_repetitions, self.segments = n_repetitions, segments
-        self.acceleration = acceleration
-        self.n_dummy, self.opposite_reference = n_dummy, opposite_reference
-        self.sms = sms and n_bands > 1
-        self.n_bands = n_bands
-        self.n_gain_calibration_readouts = (
-            n_slices
-            if n_gain_calibration_readouts is None
-            else n_gain_calibration_readouts
-        )
-        slice_step = slice_thickness + slice_gap
-        self.slab_thickness = n_slices * slice_step - slice_gap
+        self.n_frames, self.n_shots, self.multiband = n_frames, n_shots, multiband
+        self.n_dummy, self.volume_output = n_dummy, volume_output
+        self.raster = system.block_duration_raster
+        slice_step = slice_thickness + slice_spacing
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * slice_step
-        self.calibration_slices = [
-            int(s) for s in calc_traversal_order(n_slices, slice_order)
-        ]
+        self.slab_thickness = n_slices * slice_step - slice_spacing
 
         single = sequences.SpatialSelectiveExcitation(
             system,
@@ -172,86 +237,83 @@ class Epi2DApp(sequences.SequenceApp):
             duration_s=self.PULSE_DURATION,
             time_bw_product=self.TIME_BW_PRODUCT,
         )
+        self.slice_thickness = single.slice_thickness
+        self.slice_gap = slice_step - single.slice_thickness
+
+        # Shot s reads lines start + (s + i * n_shots) * ry, and the centre line
+        # is the c-th of the lattice: with the echo shifts, it is echoed at the
+        # (c / n_shots)-th line of the unshifted train.
+        start, etl = train_lines(n_y, ry, n_shots, partial_fourier_y)
+        self.origins = [start + s * ry for s in range(n_shots)]
         train = {
-            "segments": segments,
-            "acceleration": acceleration,
             "te": te,
-            "tr": tr,
+            "te_line": (n_y // 2 - start) // ry / n_shots,
+            "navigator_lines": self.NAVIGATOR_LINES,
+            "echo_shifts": n_shots,
+            "oversampling": readout_oversampling,
             "readout_bandwidth_hz": readout_bandwidth_hz,
-            "spoiling_cycles": spoiling_cycles,
+            "spoiling_cycles": self.SPOILING_CYCLES,
         }
-        if self.sms:
-            if n_slices % n_bands:
-                raise ValueError(
-                    f"the slice count {n_slices} is not a multiple of the multiband "
-                    f"factor {n_bands}"
-                )
-            n_groups = n_slices // n_bands
-            band_spacing = n_groups * slice_step
+        steps = np.arange(etl) * n_shots * ry
+        n_groups = n_slices // multiband
+        if multiband > 1:
             exc = sequences.SmsExcitation(
                 system,
                 flip_angle_deg,
                 thickness_m=slice_thickness,
-                slice_gap_m=band_spacing,
-                n_bands=n_bands,
+                slice_gap_m=n_groups * slice_step,
+                n_bands=multiband,
                 duration_s=self.PULSE_DURATION,
                 time_bw_product=self.TIME_BW_PRODUCT,
             )
-            # The rephaser folded onto the selection lobe, so the prewinder
-            # block holds no second z lobe.
+            # The rephaser folds onto the selection lobe, since the band phase
+            # takes the z channel of the phase-encode prewinder.
             gz = pp.concatenate_gradients(exc.gz, exc.gz_reph, system=system)
-            # The partition axis is the CAIPI band phase: the sawtooth's gz
-            # blips give band j the modulation exp(i 2 pi ky j / n_bands).
-            self.epi = sequences.EpiReadout3D(
-                system,
-                exc.rf,
-                gz,
-                **train,
-                fov=(fov_x, fov_y, n_bands * band_spacing),
-                matrix=(n_x, n_y, n_bands),
-                scheme="caipi",
-                partition_acceleration=n_bands,
-                caipi_shift=1,
-                labels=("LIN", "PAR"),
-            )
-            # Segment s starts s lines up, so its band phase starts s steps up
-            # the sawtooth, wrapped into the band count: each start is a train.
-            trains = {0: self.epi}
-            for start in {segment % n_bands for segment in range(segments)} - {0}:
-                order = self.epi.order.copy()
-                order[:, 1] = (order[:, 1] + start) % n_bands
-                trains[start] = sequences.EpiReadout3D(
-                    system,
-                    exc.rf,
-                    gz,
-                    **train,
-                    order=order,
-                    fov=(fov_x, fov_y, n_bands * band_spacing),
-                    matrix=(n_x, n_y, n_bands),
-                    labels=("LIN", "PAR"),
-                )
-            self.trains = [trains[segment % n_bands] for segment in range(segments)]
-            self.gz_amplitude = float(exc.gz.amplitude)
+            # The band axis is a partition axis of multiband partitions, with
+            # its lattice anchored on the centre band like the lines are.
+            shift = caipi_shift(ry, multiband)
+            self.trains = {}
+            self.shot_trains = []
+            for s in range(n_shots):
+                lines = start + (s + np.arange(etl) * n_shots) * ry
+                bands = (
+                    multiband // 2 + shift * ((lines - n_y // 2) // ry)
+                ) % multiband
+                key = tuple(bands)
+                if key not in self.trains:
+                    self.trains[key] = sequences.EpiReadout3D(
+                        system,
+                        exc.rf,
+                        gz,
+                        **train,
+                        order=np.column_stack((steps, bands)),
+                        fov=(fov_x, fov_y, multiband * n_groups * slice_step),
+                        matrix=(n_x, n_y, multiband),
+                        labels=("LIN", "PAR"),
+                    )
+                self.shot_trains.append(self.trains[key])
+            self.selection_amplitude = float(exc.gz.amplitude)
             self.centers = [
-                sms_group_center(g, n_slices, n_bands, slice_step)
+                (g - (n_slices - 1) / 2 + (multiband - 1) / 2 * n_groups) * slice_step
                 for g in range(n_groups)
             ]
-            self.slices = [int(g) for g in calc_traversal_order(n_groups, slice_order)]
         else:
-            self.epi = sequences.EpiReadout2D(
+            epi = sequences.EpiReadout2D(
                 system,
                 single.rf,
                 single.gz,
                 single.gz_reph,
                 **train,
+                order=steps,
                 fov=self.fov,
                 matrix=(n_x, n_y),
                 labels=("LIN",),
             )
-            self.trains = [self.epi] * segments
-            self.gz_amplitude = float(single.gz.amplitude)
+            self.shot_trains = [epi] * n_shots
+            self.selection_amplitude = single.selection_amplitude
             self.centers = list(self.positions)
-            self.slices = self.calibration_slices
+        self.epi = self.shot_trains[0]
+        self.echo_time = self.epi.echo_time
 
         self.fatsat = (
             sequences.FatSaturation(
@@ -261,13 +323,52 @@ class Epi2DApp(sequences.SequenceApp):
             else None
         )
 
-        # A gradient echo keeps EPI distortion out of the coil maps. An
-        # accelerated scan calibrates from it, and a multiband scan always does.
-        self.acs = (
-            calc_calibration_lines(n_y, n_acs_y) if self.sms or acceleration > 1 else []
+        # A shot is the fat saturation, the train, and a closing delay of at
+        # least one raster; the last shot of a packet waits out the cycle. A
+        # cycle is one shot of every slice of a packet, and a volume is
+        # n_shots cycles.
+        fatsat = self.fatsat.duration if self.fatsat is not None else 0.0
+        shot = fatsat + self.epi.duration + self.raster
+        cycle = None if tr is None else tr / n_shots
+        per_packet = n_groups if cycle is None else max(1, int(cycle / shot + 1e-9))
+        self.packets = packets_of(n_groups, per_packet)
+        if n_frames > 1 and len(self.packets) > 1:
+            raise ValueError(
+                f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
+                f"{n_groups} excitations of a volume, {shot * 1e3:.3f} ms each "
+                f"per shot"
+            )
+        if cycle is None:
+            cycle = max(map(len, self.packets)) * shot
+        self.pads = {
+            size: pp.round_to_raster(cycle - size * shot, self.raster) + self.raster
+            for size in {len(packet) for packet in self.packets}
+        }
+        if min(self.pads.values()) < self.raster:
+            raise ValueError(
+                f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
+                f"{n_shots * shot * 1e3:.3f} ms the shots of one slice take"
+            )
+        packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
+        self.repetition_time = n_shots * max(packet_time.values())
+        self.shot_duration = shot
+        self.dummy_cycles = n_dummy * (n_shots if n_frames > 1 else 1)
+        self.output = pp.make_digital_output_pulse(
+            self.OUTPUT_CHANNEL,
+            duration=min(
+                self.OUTPUT_DURATION, pp.calc_duration(self.epi.rf, self.epi.gz)
+            ),
+            system=system,
         )
+
+        # A gradient echo keeps EPI distortion out of the coil maps. An
+        # undersampled scan calibrates from it, and a multiband scan always does.
+        self.calibration = []
+        if ry > 1 or multiband > 1:
+            low = n_y // 2 - n_acs_y // 2
+            self.calibration = list(range(max(low, 0), min(low + n_acs_y, n_y)))
         self.gre = None
-        if self.acs:
+        if self.calibration:
             self.gre = sequences.LineReadout2D(
                 system,
                 single.rf,
@@ -275,206 +376,195 @@ class Epi2DApp(sequences.SequenceApp):
                 single.gz_reph,
                 fov=self.fov,
                 matrix=(n_x, n_y),
+                oversampling=readout_oversampling,
                 readout_bandwidth_hz=readout_bandwidth_hz,
-                spoiling_cycles=spoiling_cycles,
+                spoiling_cycles=self.SPOILING_CYCLES,
                 labels=("LIN",),
             )
-            self.gre_gz_amplitude = float(single.gz.amplitude)
+            self.gre_selection_amplitude = single.selection_amplitude
 
     def prescans(self) -> dict:
-        """Return ``calibration`` (when there is one) and, without ``sms``, ``navigator``."""
-        chain = {"calibration": self.calibrate} if self.sms or self.acs else {}
-        if not self.sms:
-            chain["navigator"] = self.navigate
-        return chain
+        """Return ``calibration`` (when undersampled or multiband) and ``reference``."""
+        chain = {"calibration": self.calibrate} if self.gre is not None else {}
+        return {**chain, "reference": self.reference}
 
     def calibrate(self) -> None:
-        """Play the gradient-echo calibration, after the navigator under ``sms``."""
-        if self.sms:
-            self.kernel(len(self.centers) // 2, None, "navigator")
-        for s in self.calibration_slices:
-            for line in self.acs:
-                self.kernel(s, line, "calibration")
-        name = (
-            f"sms_{self.NAME}_calibration" if self.sms else f"{self.NAME}_calibration"
-        )
-        self._define(Name=name, **({"EchoSpacing": self.epi.esp} if self.sms else {}))
+        """Play the gradient-echo calibration: every line of every slice."""
+        order = [
+            s for packet in packets_of(self.matrix[2], self.matrix[2]) for s in packet
+        ]
+        for s in order:
+            for line in self.calibration:
+                self.calibration_kernel(s, line)
+        self._define(Name=f"{self.NAME}_calibration")
 
-    def navigate(self) -> None:
-        """Play each slice's navigator and opposite-phase-encode reference."""
-        for s in self.slices:
-            self.kernel(s, None, "navigator")
-            if self.opposite_reference:
-                self.kernel(s, 0, "reference")
-        self._define(Name=f"{self.NAME}_navigator", EchoSpacing=self.epi.esp)
+    def calibration_kernel(self, s: int, line: int) -> None:
+        """One single-band gradient echo of slice ``s`` at ``line``."""
+        ro, seq, n_y = self.gre, self.seq, self.matrix[1]
+        ro.rf.freq_offset = self.gre_selection_amplitude * self.positions[s]
+        ro.rf.phase_offset = -2 * np.pi * ro.rf.freq_offset * ro.rf.center
+        ro.adc_labels.value = line
+        ky = (line - n_y // 2) / (n_y / 2)
+        seq.add_block(ro.rf, ro.gz, *self.labels(REF=1, SLC=s))
+        wait_te = getattr(ro, "wait_te", None)
+        if wait_te is not None:
+            seq.add_block(wait_te, ro.gz_reph)
+            seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky))
+        else:
+            seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), ro.gz_reph)
+        seq.add_block(ro.gx, ro.adc, ro.adc_labels)
+        seq.add_block(ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky))
+
+    def reference(self) -> None:
+        """Play one volume with the phase encode reversed, after its dummies."""
+        self.play(frames=[0], reversed_encode=True)
+        self._define(Name=f"{self.NAME}_reference", EchoSpacing=self.epi.esp)
 
     def _define(self, **definitions) -> None:
         n_x, n_y, n_slices = self.matrix
-        fov = [*self.fov, self.slice_thickness * n_slices]
         for key, value in {
-            "FOV": fov,
+            "FOV": [*self.fov, self.slab_thickness],
             "Matrix": [n_x, n_y, n_slices],
             **definitions,
         }.items():
             self.seq.set_definition(key=key, value=value)
 
     def loop(self) -> None:
-        """Play the dummy shots, then every repetition of the volume."""
-        for _ in range(self.n_dummy):
-            for s in self.slices:
-                self.kernel(s, 0, "dummy")
-        for repetition in range(self.n_repetitions):
-            for segment in range(self.segments):
-                for s in self.slices:
-                    origin = segment * self.acceleration
-                    self.kernel(s, origin, "image", repetition, segment)
+        """Play each packet: its dummies, then every frame, shot by shot."""
+        self.play(frames=range(self.n_frames))
+
+    def play(self, frames, reversed_encode: bool = False) -> None:
+        """Play the dummies and then ``frames``, packet by packet."""
+        n_shots = self.n_shots
+        for packet in self.packets:
+            cycles = [(None, c % n_shots) for c in range(self.dummy_cycles)]
+            cycles += [(frame, shot) for frame in frames for shot in range(n_shots)]
+            pad = self.pads[len(packet)]
+            for frame, shot in cycles:
+                for i, g in enumerate(packet):
+                    last = i == len(packet) - 1
+                    self.kernel(
+                        g,
+                        shot,
+                        frame,
+                        pad if last else self.raster,
+                        output=self.volume_output
+                        and not reversed_encode
+                        and i == 0
+                        and shot == 0,
+                        reversed_encode=reversed_encode,
+                    )
 
     def kernel(
         self,
-        s: int,
-        origin: int | None,
-        kind: str = "image",
-        repetition: int = 0,
-        segment: int = 0,
+        g: int,
+        shot: int,
+        frame: int | None,
+        pad: float,
+        output: bool = False,
+        reversed_encode: bool = False,
     ) -> None:
-        """One shot of ``kind``, one of :data:`KINDS`, at slice (multiband group) ``s``.
+        """One shot of slice (multiband group) ``g``; ``frame=None`` plays a dummy.
 
-        ``origin`` is the first line of the train, or the line a calibration
-        shot acquires; ``None`` leaves the phase encode at the centre. An
-        ``image`` shot plays the train of its ``segment``. The ``reference``
-        train negates every phase-encode event, and each of its lines is
-        labelled with the line it plays; the ``navigator`` plays
-        :attr:`NAVIGATOR_LINES` lines without blips.
+        ``pad`` is the closing delay the shot would have without echo shift.
+        ``reversed_encode`` negates every phase-encode event and keeps the
+        labels of the forward shot.
         """
-        seq, sms = self.seq, self.sms
-        n_y = self.matrix[1]
-        if sms:
-            flags = {
-                "calibration": {"NAV": 0, "REF": 1, "SMS": 0, "SLC": s, "REV": 0},
-                "navigator": {"NAV": 1, "REF": 0, "SMS": 0},
-                "dummy": {"ONCE": 1},
-                "image": {"NAV": 0, "REF": 0, "SMS": 1, "SLC": s, "REP": repetition},
-            }[kind]
-        else:
-            flags = {
-                "calibration": {"REF": 1, "SLC": s},
-                "navigator": {"NAV": 1, "REF": 1, "SET": 0, "SLC": s},
-                "reference": {"NAV": 0, "REF": 0, "SET": 1, "SLC": s},
-                "dummy": {"ONCE": 1},
-                "image": {"SLC": s, "REP": repetition},
-            }[kind]
-        if kind == "image" and self.n_dummy:
-            flags["ONCE"] = 0
-        labels = self.labels(**flags)
-
-        if kind == "calibration":
-            ro = self.gre
-            ro.rf.freq_offset = self.gre_gz_amplitude * self.positions[s]
-            ro.rf.phase_offset = -2 * np.pi * ro.rf.freq_offset * ro.rf.center
-            ro.adc_labels.value = origin
-            ky = (origin - n_y / 2) / (n_y / 2)
-            seq.add_block(ro.rf, ro.gz, *labels)
-            wait_te = getattr(ro, "wait_te", None)
-            if wait_te is not None:
-                seq.add_block(wait_te, ro.gz_reph)
-                seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky))
-            else:
-                seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), ro.gz_reph)
-            seq.add_block(ro.gx, ro.adc, ro.adc_labels)
-            seq.add_block(ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky))
-            return
-
-        epi = self.trains[segment] if kind == "image" else self.epi
-        epi.rf.freq_offset = self.gz_amplitude * self.centers[s]
+        seq, epi, n_y = self.seq, self.shot_trains[shot], self.matrix[1]
+        epi.rf.freq_offset = self.selection_amplitude * self.centers[g]
         epi.rf.phase_offset = -2 * np.pi * epi.rf.freq_offset * epi.rf.center
-        acquire = kind != "dummy"
-        blipped = kind != "navigator"
-        sign = -1.0 if kind == "reference" else 1.0
-        encoded = acquire and origin is not None
-        n_lines = self.NAVIGATOR_LINES if kind == "navigator" else epi.etl
-        gz_blips = getattr(epi, "gz_blips", [None] * epi.etl)
+        sign = -1.0 if reversed_encode else 1.0
+        origin = self.origins[shot]
+        acquire = frame is not None
 
-        if self.fatsat is not None and kind in ("dummy", "image"):
+        if not acquire:
+            flags = {"ONCE": 1}
+        else:
+            flags = {"SLC": g, "REP": frame, "SEG": shot, "ONCE": 0}
+            if self.multiband > 1:
+                flags["SMS"] = 1
+            if reversed_encode:
+                flags["SET"] = 1
+            if not self.n_dummy:
+                del flags["ONCE"]
+        labels = self.labels(**flags)
+        epi.shot_labels[0].value = origin
+        # The prewinder and the rewinder closing the shot are scaled alike.
+        ky = sign * (origin - n_y // 2) / (n_y / 2)
+        swap = {
+            id(epi.gy_pre): pp.scale_grad(epi.gy_pre, ky),
+            id(epi.gy_rew): pp.scale_grad(epi.gy_rew, ky),
+        }
+        if self.multiband > 1:
+            band = int(epi.order[0, 1])
+            epi.shot_labels[1].value = band
+            kz = (band - self.multiband // 2) / (self.multiband / 2)
+            swap[id(epi.gz_pre)] = pp.scale_grad(epi.gz_pre, kz)
+            swap[id(epi.gz_rew)] = pp.scale_grad(epi.gz_rew, kz)
+        if reversed_encode:
+            swap.update(
+                (id(blip), pp.scale_grad(blip, -1.0))
+                for blip in epi.gy_blips
+                if blip is not None
+            )
+        step = shot * epi.echo_shift_step
+        wait_shift = getattr(epi, "wait_shift", None)
+        if wait_shift is not None:
+            swap[id(wait_shift)] = pp.make_delay(wait_shift.delay + step)
+        wait_tr = getattr(epi, "wait_tr", None)
+        closing = pad + (0.0 if wait_tr is None else wait_tr.delay) - step
+
+        if self.fatsat is not None:
             for i, block in enumerate(self.fatsat.blocks):
                 seq.add_block(*block, *(labels if i == 0 else ()))
             labels = []
-        seq.add_block(epi.rf, epi.gz, *labels)
-
-        # The slice rephaser runs straight off the selection lobe: in the TE
-        # wait when there is one, in the prewinder block otherwise.
-        rephaser = [g for g in (getattr(epi, "gz_reph", None),) if g is not None]
-        wait_te = getattr(epi, "wait_te", None)
-        if wait_te is not None:
-            seq.add_block(wait_te, *rephaser)
-            rephaser = []
-        ky = 0.0 if origin is None else sign * (origin - n_y / 2) / (n_y / 2)
-        shot_labels, line_labels = (), [()] * n_lines
-        if encoded and kind == "reference":
-            # Every encode is negated, so line i plays -(origin + order_i),
-            # which is line n_y - origin - order_i on the grid modulo n_y.
-            offsets = epi.order[:, 0] - epi.order[0, 0]
-            line_labels = [
-                (pp.make_label("LIN", "SET", int(line)),)
-                for line in (n_y - origin - offsets) % n_y
+        navigator = {id(event) for event in getattr(epi, "gx_navigator", ())}
+        lines = {id(event) for event in epi.gx}
+        polarity = 0
+        for index, block in enumerate(epi.blocks):
+            head = block[0]
+            if head is wait_tr:
+                continue
+            events = [
+                swap.get(id(event), event)
+                for event in block
+                if acquire or event.type != "adc"
             ]
-        elif encoded:
-            epi.shot_labels[0].value = origin
-            if sms:
-                epi.shot_labels[1].value = int(epi.order[0, 1])
-            shot_labels, line_labels = epi.shot_labels, epi.line_labels
-        # A multiband shot's band phase starts at its train's first partition
-        # offset, from kz = 0; the gz blips walk the CAIPI sawtooth from there.
-        band_phase = (
-            [pp.scale_grad(epi.gz_pre, epi.order[0, 1] / (self.n_bands / 2))]
-            if sms
-            else []
-        )
-        if blipped:
-            seq.add_block(
-                epi.gx_pre,
-                pp.scale_grad(epi.gy_pre, ky),
-                *band_phase,
-                *rephaser,
-                *shot_labels,
-            )
-        else:
-            seq.add_block(epi.gx_pre, *rephaser)
-        for line in range(n_lines):
-            events = [epi.gx[line]]
-            if acquire:
-                events += [epi.adc, *self.labels(REV=line % 2)]
-            if blipped:
-                events += [
-                    pp.scale_grad(blip, sign) if sign < 0 else blip
-                    for blip in (epi.gy_blips[line], gz_blips[line])
-                    if blip is not None
-                ]
-                events += line_labels[line]
+            if index == 0:
+                events += [*labels, *([self.output] if output else [])]
+            elif id(head) in navigator or id(head) in lines:
+                if acquire:
+                    events += self.labels(NAV=int(id(head) in navigator), REV=polarity)
+                polarity ^= 1
             seq.add_block(*events)
-        if blipped:
-            seq.add_block(epi.gx_spoil, pp.scale_grad(epi.gy_rew, ky))
-        else:
-            seq.add_block(epi.gx_spoil)
-        wait_tr = getattr(epi, "wait_tr", None)
-        if wait_tr is not None:
-            seq.add_block(wait_tr)
+        seq.add_block(pp.make_delay(closing))
 
     def finalize(self) -> None:
-        """Write the prescription and the train's echo timing as definitions."""
+        """Write the prescription, the train's timing and the slice timing."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV (compat=False: the lines are sampled on the ramps).
         n_x, n_y, n_slices = self.matrix
         definitions = {
             "FOV": [*self.fov, self.slab_thickness],
             "Matrix": [n_x, n_y, n_slices],
-            "Name": f"sms_{self.NAME}" if self.sms else self.NAME,
-            "TE": float(self.epi.echo_times[len(self.epi.order) // 2]),
+            "Name": self.NAME,
+            "TE": self.echo_time,
+            "TR": self.repetition_time,
             "EchoSpacing": self.epi.esp,
             "EPIFactor": self.epi.etl,
-            "NumGainCalibrationReadouts": self.n_gain_calibration_readouts,
+            "kSpaceCenterLine": n_y // 2,
+            "SlicePositions": self.positions.tolist(),
+            "SliceThickness": self.slice_thickness,
+            "SliceGap": self.slice_gap,
         }
-        if self.sms:
-            definitions["MultibandFactor"] = self.n_bands
+        if self.multiband > 1:
+            definitions["MultibandFactor"] = self.multiband
+        if len(self.packets) == 1:
+            # Excitation time of each slice from the start of its volume.
+            n_groups = n_slices // self.multiband
+            (packet,) = self.packets
+            when = {g: i * self.shot_duration for i, g in enumerate(packet)}
+            definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
         for key, value in definitions.items():
             self.seq.set_definition(key=key, value=value)
 

@@ -499,3 +499,91 @@ def test_spoiling_leaves_the_read_axis_where_it_was_asked_to(system, excitation)
     assert abs(read_residual(system, epi)) == pytest.approx(
         4.0 / (FOV / MATRIX), rel=1e-6
     )
+
+
+# ----------------------------------------------------------------------
+# Navigator, echo time and echo shifts
+# ----------------------------------------------------------------------
+
+
+def acquired(module):
+    """``(kx line, ky, time)`` of every acquisition window, in play order."""
+    k, _, t_excitation, _, t_adc = module.calculate_kspace()
+    n = module.n_samples
+    kx, ky = k[0].reshape(-1, n), k[1].reshape(-1, n)
+    t = np.asarray(t_adc).reshape(-1, n) - t_excitation[0]
+    centre = np.argmin(np.abs(kx), axis=1)
+    rows = np.arange(len(kx))
+    return kx, ky[rows, centre], t[rows, centre]
+
+
+def test_the_navigator_reads_the_centre_line_before_the_phase_encode(
+    system, excitation
+):
+    epi = readout(system, excitation, navigator_lines=3)
+    kx, ky, _ = acquired(epi)
+    sweeps = np.sign(kx[:, -1] - kx[:, 0])
+
+    assert len(kx) == 3 + epi.etl
+    assert ky[:3] == pytest.approx(0.0, abs=TRACED)
+    assert list(sweeps) == [(-1) ** i for i in range(3 + epi.etl)]
+    assert [block[0] for block in epi.blocks[2:5]] == epi.gx_navigator
+    assert epi.blocks[5][0] is epi.gy_pre
+    assert epi.check_timing()[0]
+
+
+def test_a_navigator_is_refused_by_a_flyback_train(system, excitation):
+    with pytest.raises(ValueError, match="flyback"):
+        readout(system, excitation, navigator_lines=3, flyback=True)
+
+
+@pytest.mark.parametrize("te_line", [0.0, 7.5, 16.0])
+def test_the_echo_time_is_timed_to_the_line_asked_for(system, excitation, te_line):
+    epi = readout(system, excitation, te=30e-3, te_line=te_line, navigator_lines=3)
+    _, _, t = acquired(epi)
+    train = t[3:]
+
+    assert epi.echo_time == pytest.approx(30e-3)
+    assert np.interp(te_line, np.arange(epi.etl), train) == pytest.approx(
+        30e-3, abs=0.5 * epi.adc.dwell + 1e-9
+    )
+    assert epi.echo_times == pytest.approx(train, abs=0.5 * epi.adc.dwell + 1e-9)
+
+
+def test_a_line_outside_the_train_cannot_time_the_echo(system, excitation):
+    with pytest.raises(ValueError, match="te_line"):
+        readout(system, excitation, te_line=MATRIX)
+
+
+def test_echo_shifts_reserve_the_longest_shift_at_the_end(system, excitation):
+    plain = readout(system, excitation)
+    shifted = readout(system, excitation, echo_shifts=4)
+    raster = system.block_duration_raster
+
+    assert shifted.echo_shift_step == pytest.approx(
+        pp.round_to_raster(shifted.esp / 4, raster)
+    )
+    assert shifted.wait_shift.delay == pytest.approx(raster)
+    assert shifted.wait_tr.delay == pytest.approx(3 * shifted.echo_shift_step)
+    assert shifted.echo_time == pytest.approx(plain.echo_time + raster)
+    assert shifted.blocks[-1][0] is shifted.wait_tr
+
+
+def test_a_repetition_with_echo_shifts_still_lasts_the_time_asked_for(
+    system, excitation
+):
+    shifted = readout(system, excitation, echo_shifts=3, tr=0.1)
+
+    assert shifted.duration == pytest.approx(0.1)
+
+
+def test_oversampling_widens_the_read_field_of_view_not_the_resolution(
+    system, excitation
+):
+    plain = readout(system, excitation)
+    wide = readout(system, excitation, oversampling=2.0)
+    kx_plain, kx_wide = lines(plain)[0, 0, :, 0], lines(wide)[0, 0, :, 0]
+
+    assert wide.n_samples == 2 * plain.n_samples
+    assert wide.delta_kx == pytest.approx(plain.delta_kx / 2)
+    assert np.ptp(kx_wide) == pytest.approx(np.ptp(kx_plain), rel=0.05)
