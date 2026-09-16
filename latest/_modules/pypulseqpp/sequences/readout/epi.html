@@ -1091,8 +1091,14 @@
 
 <span class="sd">    The scan loop sets the shot origin by scaling prewinders. Blips implement</span>
 <span class="sd">    the relative offsets and share the readout ramps; flyback blips instead</span>
-<span class="sd">    play in the rewind gaps. TE is measured to the first echo, not the echo</span>
-<span class="sd">    that acquires central phase encoding.</span>
+<span class="sd">    play in the rewind gaps. TE is measured to the train line ``te_line``,</span>
+<span class="sd">    the first by default: the loop knows which line samples the centre of</span>
+<span class="sd">    k-space, the module does not.</span>
+
+<span class="sd">    Navigator lines, when asked for, are read after the read prewinder and</span>
+<span class="sd">    before the phase-encode prewinder, without blips, so they sample the</span>
+<span class="sd">    centre line at alternating polarities. The train then continues the</span>
+<span class="sd">    alternation.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -1107,6 +1113,9 @@
 <span class="sd">    gx : list[GradEvent]</span>
 <span class="sd">        One read lobe per line: alternating polarity for a blipped train, the</span>
 <span class="sd">        same lobe every time for a flyback one.</span>
+<span class="sd">    gx_navigator : list[GradEvent]</span>
+<span class="sd">        One read lobe per navigator line, the first positive. Present only</span>
+<span class="sd">        with ``navigator_lines``.</span>
 <span class="sd">    gx_flyback : TrapEvent</span>
 <span class="sd">        The rewind between two lines. ``flyback`` only.</span>
 <span class="sd">    gy_blips, gz_blips : list</span>
@@ -1137,16 +1146,26 @@
 <span class="sd">        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.</span>
 <span class="sd">    wait_te : DelayEvent</span>
 <span class="sd">        Present only when a TE longer than the minimum was asked for.</span>
+<span class="sd">    wait_shift : DelayEvent</span>
+<span class="sd">        The echo-shift delay right before the first train line, one block</span>
+<span class="sd">        raster long. Present only with ``echo_shifts`` above one; the loop</span>
+<span class="sd">        lengthens it by ``s * echo_shift_step`` on shot ``s`` and shortens</span>
+<span class="sd">        ``wait_tr`` by as much.</span>
 <span class="sd">    wait_tr : DelayEvent</span>
-<span class="sd">        Present only when a TR longer than the minimum was asked for.</span>
+<span class="sd">        Present when a TR longer than the minimum was asked for, or when</span>
+<span class="sd">        ``echo_shifts`` is above one: it then holds the longest shift.</span>
 <span class="sd">    etl : int</span>
 <span class="sd">        Lines per repetition.</span>
 <span class="sd">    esp : float</span>
 <span class="sd">        Echo spacing (s).</span>
 <span class="sd">    echo_times : NDArray[np.float64]</span>
-<span class="sd">        Each line's echo time (s) from the excitation isodelay.</span>
+<span class="sd">        Each line's echo time (s) from the excitation isodelay, with no echo</span>
+<span class="sd">        shift.</span>
 <span class="sd">    echo_time : float</span>
-<span class="sd">        The first line's, which is what ``te`` sets.</span>
+<span class="sd">        Echo time (s) of train line ``te_line``, which is what ``te`` sets.</span>
+<span class="sd">    echo_shift_step : float</span>
+<span class="sd">        Echo shift between successive shots (s), ``esp / echo_shifts`` on the</span>
+<span class="sd">        block raster; zero with one shift.</span>
 <span class="sd">    bandwidth_hz : float</span>
 <span class="sd">        Achieved ADC sampling rate (Hz).</span>
 <span class="sd">    n_samples : int</span>
@@ -1199,13 +1218,26 @@
 <span class="sd">        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused</span>
 <span class="sd">        by the others.</span>
 <span class="sd">    te : float, optional</span>
-<span class="sd">        Excitation isodelay to the **first** echo (s). ``None`` is as short as</span>
-<span class="sd">        possible; every other echo follows at ``esp`` intervals, and</span>
+<span class="sd">        Excitation isodelay to the echo of train line ``te_line`` (s). ``None``</span>
+<span class="sd">        is as short as possible; every echo is ``esp`` from the next, and</span>
 <span class="sd">        ``echo_times`` lists them.</span>
+<span class="sd">    te_line : float, optional</span>
+<span class="sd">        Train line, counted from zero and possibly fractional, that ``te`` is</span>
+<span class="sd">        timed to.</span>
 <span class="sd">    tr : float, optional</span>
-<span class="sd">        Repetition time (s), over the whole module.</span>
+<span class="sd">        Repetition time (s), over the whole module. It includes the longest</span>
+<span class="sd">        echo shift.</span>
+<span class="sd">    navigator_lines : int, optional</span>
+<span class="sd">        Lines read without blips between the read and the phase-encode</span>
+<span class="sd">        prewinders, for odd-even phase correction. Refused with ``flyback``.</span>
+<span class="sd">    echo_shifts : int, optional</span>
+<span class="sd">        Shots whose trains are delayed by successive multiples of</span>
+<span class="sd">        ``esp / echo_shifts``, so the echo time grows smoothly across the</span>
+<span class="sd">        interleaved lines. The module plays no shift; the loop lengthens</span>
+<span class="sd">        ``wait_shift``.</span>
 <span class="sd">    oversampling : float, optional</span>
-<span class="sd">        Read oversampling.</span>
+<span class="sd">        Read oversampling: ``delta_kx`` shrinks and the sampled read field of</span>
+<span class="sd">        view grows, while resolution is fixed by ``fov`` and ``matrix``.</span>
 <span class="sd">    readout_bandwidth_hz : float, optional</span>
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
@@ -1234,7 +1266,9 @@
 <span class="sd">    ValueError</span>
 <span class="sd">        If a count is out of range, ``order`` is the wrong shape or steps</span>
 <span class="sd">        outside the matrix, ``labels`` does not name one counter per encoded</span>
-<span class="sd">        axis, or the requested TE or TR is shorter than the train can achieve.</span>
+<span class="sd">        axis, ``te_line`` lies outside the train, a navigator is asked of a</span>
+<span class="sd">        flyback train, or the requested TE or TR is shorter than the train can</span>
+<span class="sd">        achieve.</span>
 <span class="sd">    """</span>
 
     <span class="c1">#: 2 or 3. The only thing that separates the two shipped EPI readouts.</span>
@@ -1258,7 +1292,10 @@
         <span class="n">caipi_shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">extent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">te</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">te_line</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">tr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">navigator_lines</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">echo_shifts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">oversampling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">readout_bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">500e3</span><span class="p">,</span>
         <span class="n">ramp_sampling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1275,6 +1312,14 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"readout_bandwidth_hz must be positive"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spoiling_cycles</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"spoiling_cycles must be &gt;= 0"</span><span class="p">)</span>
+        <span class="n">navigator_lines</span><span class="p">,</span> <span class="n">echo_shifts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">navigator_lines</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">echo_shifts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">navigator_lines</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">echo_shifts</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"navigator_lines must be &gt;= 0 and echo_shifts &gt;= 1"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">navigator_lines</span> <span class="ow">and</span> <span class="n">flyback</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a flyback train reads every line the same way and has no odd-even "</span>
+                <span class="s2">"inconsistency for a navigator to measure"</span>
+            <span class="p">)</span>
 
         <span class="n">fov</span> <span class="o">=</span> <span class="n">as_tuple</span><span class="p">(</span><span class="n">fov</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="s2">"fov"</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">as_tuple</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="s2">"matrix"</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
@@ -1295,6 +1340,8 @@
             <span class="p">)</span>
         <span class="n">order</span> <span class="o">=</span> <span class="n">_checked_order</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span>
         <span class="n">etl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">te_line</span> <span class="o">&lt;=</span> <span class="n">etl</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"te_line must lie in [0, </span><span class="si">{</span><span class="n">etl</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">], got </span><span class="si">{</span><span class="n">te_line</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">labels</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">labels</span> <span class="ow">or</span> <span class="p">())</span>
         <span class="k">if</span> <span class="n">labels</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
@@ -1304,7 +1351,8 @@
             <span class="p">)</span>
 
         <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
-        <span class="n">delta_k</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fov</span><span class="p">)</span>
+        <span class="c1"># Oversampling widens the sampled read field of view; resolution stays.</span>
+        <span class="n">delta_k</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">oversampling</span> <span class="o">*</span> <span class="n">fov</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">*</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
 
         <span class="c1"># One blip window serves every step, so it is built for the largest</span>
         <span class="c1"># step in the pattern and every other is that shape scaled. Half of it</span>
@@ -1369,8 +1417,9 @@
                 <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">etl</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The train continues the navigator's alternation.</span>
             <span class="n">gx</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">line</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+                <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="p">(</span><span class="n">navigator_lines</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span>
             <span class="p">]</span>
             <span class="n">esp</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span>
@@ -1439,13 +1488,29 @@
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span>
         <span class="p">)</span>
 
+        <span class="c1"># The navigator reads the centre line at alternating polarities, so</span>
+        <span class="c1"># the phase-encode prewinder moves to a block of its own after it.</span>
+        <span class="n">gx_navigator</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">line</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">navigator_lines</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">navigator_span</span> <span class="o">=</span> <span class="n">navigator_lines</span> <span class="o">*</span> <span class="n">_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">lobe</span><span class="p">)</span>
+        <span class="n">encode_span</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">))</span> <span class="k">if</span> <span class="n">navigator_lines</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="p">)</span>
+        <span class="n">shift_span</span> <span class="o">=</span> <span class="n">raster</span> <span class="k">if</span> <span class="n">echo_shifts</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">echo_shift_step</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="n">esp</span> <span class="o">/</span> <span class="n">echo_shifts</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="k">if</span> <span class="n">echo_shifts</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="p">)</span>
+
         <span class="c1"># Timing. The rephaser goes in whichever block follows the pulse, so it</span>
         <span class="c1"># runs straight off the selection lobe.</span>
         <span class="n">exc_span</span> <span class="o">=</span> <span class="n">_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
         <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">lead</span> <span class="o">=</span> <span class="n">navigator_span</span> <span class="o">+</span> <span class="n">encode_span</span> <span class="o">+</span> <span class="n">shift_span</span> <span class="o">+</span> <span class="n">te_line</span> <span class="o">*</span> <span class="n">esp</span>
         <span class="n">wait</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">echo_time</span> <span class="o">=</span> <span class="n">solve_rephasing</span><span class="p">(</span>
             <span class="n">te</span><span class="p">,</span>
-            <span class="p">(</span><span class="n">exc_span</span> <span class="o">-</span> <span class="n">rf_center</span><span class="p">)</span> <span class="o">+</span> <span class="n">echo_offset</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">exc_span</span> <span class="o">-</span> <span class="n">rf_center</span><span class="p">)</span> <span class="o">+</span> <span class="n">echo_offset</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span>
             <span class="n">pre_span</span><span class="p">,</span>
             <span class="n">_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">gz_reph</span><span class="p">),</span>
             <span class="n">system</span><span class="p">,</span>
@@ -1456,12 +1521,20 @@
         <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
             <span class="n">wait_te</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">))</span>
-        <span class="n">prewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">)]</span>
+        <span class="n">encode</span> <span class="o">=</span> <span class="p">[</span><span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="o">*</span><span class="n">shot_labels</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">)]</span>
+        <span class="n">prewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">]</span> <span class="k">if</span> <span class="n">navigator_lines</span> <span class="k">else</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">encode</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">wait</span><span class="p">:</span>
             <span class="n">prewinder</span> <span class="o">+=</span> <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">pre_span</span> <span class="o">&gt;</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">prewinder</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">:</span>
             <span class="n">prewinder</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">prewinder</span><span class="p">,</span> <span class="o">*</span><span class="n">shot_labels</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">prewinder</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">navigator_lines</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_navigator</span><span class="p">[</span><span class="n">line</span><span class="p">],</span> <span class="n">adc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">navigator_lines</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">encode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">echo_shifts</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">wait_shift</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">shift_span</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_shift</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">flyback</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">[</span><span class="n">line</span><span class="p">],</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">line_labels</span><span class="p">[</span><span class="n">line</span><span class="p">])</span>
@@ -1479,8 +1552,11 @@
                 <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">))</span>
 
-        <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">tr_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="c1"># The longest shift is held at the end of the repetition, so every shot</span>
+        <span class="c1"># lasts the same once the loop moves its own shift forward.</span>
+        <span class="n">longest_shift</span> <span class="o">=</span> <span class="p">(</span><span class="n">echo_shifts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">echo_shift_step</span>
+        <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">longest_shift</span>
+        <span class="n">tr_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span> <span class="o">+</span> <span class="n">longest_shift</span>
         <span class="k">if</span> <span class="n">tr_delay</span><span class="p">:</span>
             <span class="n">wait_tr</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">tr_delay</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_tr</span><span class="p">)</span>
@@ -1494,9 +1570,12 @@
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">gz_blips</span><span class="o">=</span><span class="n">gz_blips</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">exc_span</span> <span class="o">+</span> <span class="n">wait</span> <span class="o">+</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">echo_offset</span>
+        <span class="k">if</span> <span class="n">navigator_lines</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">gx_navigator</span><span class="o">=</span><span class="n">gx_navigator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">exc_span</span> <span class="o">+</span> <span class="n">wait</span> <span class="o">+</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">echo_offset</span> <span class="o">+</span> <span class="n">lead</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">echo_time</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">echo_times</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">esp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_times</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">esp</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span> <span class="o">-</span> <span class="n">te_line</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_shift_step</span> <span class="o">=</span> <span class="n">echo_shift_step</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">etl</span> <span class="o">=</span> <span class="n">etl</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esp</span> <span class="o">=</span> <span class="n">esp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">blip_span</span> <span class="o">=</span> <span class="n">blip_span</span>

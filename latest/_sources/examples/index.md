@@ -58,8 +58,8 @@ preparation and readout modules they are built from.
 
 | Module | Description |
 | --- | --- |
-| `epi2D_sequence` | Multi-slice 2D gradient-echo EPI, single-shot or segmented, optionally multiband. |
-| `epi3D_sequence` | Slab-selective 3D gradient-echo EPI: one train per ``(segment, shell)``. |
+| `epi2D_sequence` | Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband. |
+| `epi3D_sequence` | 3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled. |
 
 
 ## Radial
