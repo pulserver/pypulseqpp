@@ -1,4 +1,12 @@
-"""Making an ADC and its readout gradient land on both time rasters at once."""
+"""ADC dwell and readout duration compatible with the ADC and gradient rasters.
+
+An ADC event's dwell time must be a multiple of the ADC raster, while the
+readout gradient it is played under changes only on the gradient raster. These
+helpers choose a dwell that satisfies both.
+
+Receiver bandwidth here is the full sampling bandwidth, ``1 / dwell`` in Hz.
+Bandwidth per pixel is ``1 / (num_samples * dwell)``.
+"""
 
 from __future__ import annotations
 
@@ -27,10 +35,12 @@ def calc_adc_timing(
     adc_raster_time: float,
     min_readout_duration: float = 0.0,
 ) -> tuple[float, float]:
-    """Choose an ADC dwell while seeking a gradient-raster-aligned readout.
+    """Choose an ADC dwell whose acquisition duration is a multiple of the gradient raster.
 
     Search upward from the nearest ADC-raster dwell that meets the duration
-    floor. Report achieved receiver bandwidth as ``1 / dwell``.
+    floor, and return the first whose acquisition duration is a whole number
+    of gradient raster periods. The receiver bandwidth achieved is
+    ``1 / dwell``.
 
     If the bounded search finds no common-raster solution, the returned
     duration may be off the gradient raster; check it before constructing
@@ -41,7 +51,8 @@ def calc_adc_timing(
     num_samples : int
         Number of ADC samples (>= 1).
     target_dwell : float
-        Requested dwell time (s), i.e. ``1 / bandwidth``.
+        Requested dwell time (s), the reciprocal of the requested receiver
+        bandwidth.
     grad_raster_time : float
         Gradient raster (s), e.g. ``system.grad_raster_time``.
     adc_raster_time : float
@@ -100,10 +111,13 @@ def quantize_readout_timing(
     adc_raster_s: float,
     min_flat_time_s: float,
 ) -> tuple[float, float]:
-    """Choose a dwell using receiver bandwidth, defined as 1/dwell in Hz.
+    """Choose an ADC dwell from a requested receiver bandwidth.
+
+    Receiver bandwidth is the full sampling bandwidth, ``1 / dwell`` in Hz,
+    not bandwidth per pixel.
 
     Search upward from the nearest ADC-raster dwell satisfying the duration
-    floor, for at most MAX_RASTER_SEARCH_STEPS candidates. If none aligns
+    floor, for at most ``MAX_RASTER_SEARCH_STEPS`` candidates. If none aligns
     the readout to the gradient raster, return that starting dwell.
     Inputs must have positive sample count, bandwidth and rasters.
 
@@ -112,7 +126,9 @@ def quantize_readout_timing(
     nx_ro : int
         Number of readout samples.
     target_bw_hz_px : float
-        Requested receiver bandwidth (Hz), despite the parameter suffix.
+        Requested receiver bandwidth in Hz, i.e. ``1 / dwell``. The parameter
+        name is kept for compatibility; the value is not a per-pixel
+        bandwidth.
     grad_raster_s, adc_raster_s : float
         Gradient and ADC rasters (s).
     min_flat_time_s : float
@@ -161,10 +177,18 @@ def quantize_readout_timing(
 
 
 def round_to_raster(value_s: float, raster_s: float = 1e-5) -> float:
-    """Round seconds to the nearest raster multiple, with ties to even."""
+    """Round seconds to the nearest raster multiple, with ties to even.
+
+    ``raster_s`` is a raster period in seconds. Its default does not track
+    :attr:`pypulseqpp.Opts.grad_raster_time`; pass the raster explicitly.
+    """
     return round(value_s / raster_s) * raster_s
 
 
 def ceil_to_raster(value_s: float, raster_s: float) -> float:
-    """Round seconds upward to the raster, allowing for floating-point tolerance."""
+    """Round seconds up to the next raster multiple, within a 1e-10 relative tolerance.
+
+    ``raster_s`` is a raster period in seconds. A value already within the
+    tolerance of a raster multiple is not pushed to the next one.
+    """
     return math.ceil(value_s / raster_s - 1e-10) * raster_s

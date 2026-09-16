@@ -11,7 +11,7 @@ from pypulseqpp import cli, sequences
 
 
 class Zte3DApp(sequences.SequenceApp):
-    """3D zero echo time: hard pulses on a readout gradient that never returns to zero.
+    """3D zero echo time: hard pulses on a readout gradient held on across each shell.
 
     One shell of views, written out as one continuous waveform that ramps up
     once at its first view and down once after its last, is replayed per shot

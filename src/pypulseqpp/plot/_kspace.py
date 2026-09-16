@@ -1,4 +1,4 @@
-"""Where the ADC samples land in k-space, and the path between them."""
+"""ADC sampling locations in k-space, and the trajectory between them."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ _PANELS = {
 
 
 def _marker_size(points: np.ndarray) -> float:
-    """Return a scatter marker area suited to how crowded ``points`` is."""
+    """Return a scatter marker area scaled to the density of ``points``."""
     span = max(float(np.ptp(points)), 1e-12)
     grid = np.round(points / (span / 512.0)).astype(np.int64)
     distinct = max(len(np.unique(grid, axis=1)), 1)
@@ -33,7 +33,7 @@ def _marker_size(points: np.ndarray) -> float:
 
 
 def _frame(axis, points: np.ndarray) -> None:
-    """Hold ``axis`` to what ``points`` spans, with a small margin."""
+    """Limit ``axis`` to the range spanned by ``points``, with a small margin."""
     setters = [axis.set_xlim, axis.set_ylim]
     if hasattr(axis, "set_zlim"):
         setters.append(axis.set_zlim)
@@ -44,7 +44,7 @@ def _frame(axis, points: np.ndarray) -> None:
 
 
 def _readout_trains(seq, first: int, last: int):
-    """Return samples per readout, the pulses opening trains, and which each follows.
+    """Return samples per readout, the pulses opening each echo train, and their mapping.
 
     ``train`` is 1-based into the opening pulses: a readout follows the last
     excitation played at or before its block.
@@ -61,7 +61,7 @@ def _readout_trains(seq, first: int, last: int):
 
 
 def sampling_order(seq, first: int, last: int) -> tuple[np.ndarray, np.ndarray]:
-    """Which shot acquired each ADC sample, and which echo of that shot.
+    """Shot and echo index of each ADC sample.
 
     The echo is the ``ECO`` label where the sequence sets one, and otherwise
     the readout's rank after the excitation that opened its train. A shot
@@ -80,7 +80,7 @@ def sampling_order(seq, first: int, last: int) -> tuple[np.ndarray, np.ndarray]:
 
 
 def _slice_offsets(seq, first: int, last: int) -> np.ndarray:
-    """Return the frequency each sample's slice was excited at, in Hz."""
+    """Return the excitation frequency offset of each sample's slice, in Hz."""
     counts, opened, train = _readout_trains(seq, first, last)
     offsets = np.asarray(opened.freq_offset, dtype=float)
     if not offsets.size:
@@ -99,7 +99,7 @@ def plot_kspace(
     color_by: str | None = None,
     plot_now: bool = True,
 ):
-    """Draw the k-space the ADC samples visit.
+    """Plot the ADC sampling locations in k-space.
 
     Parameters
     ----------
@@ -113,12 +113,12 @@ def plot_kspace(
         the transmit frequency of each sample's slice. By default a trajectory
         confined to a plane is drawn in it, and any other in 3D.
     show_trajectory : bool, default True
-        Draw the path between samples too. The axes are held to the samples
-        either way, so a prewinder or spoiler is clipped rather than setting
-        the scale.
+        Also draw the trajectory between samples. The axis limits are set
+        from the sampling locations either way, so a prewinder or spoiler is
+        clipped rather than setting the scale.
     color_by : {"echo", "shot", "order"}, optional
-        Colour samples by the echo of its shot that acquired them, by the shot,
-        or both side by side. A panel whose index never varies is dropped.
+        Colour samples by echo index within the shot, by shot index, or both
+        side by side. A panel whose index never varies is dropped.
     plot_now : bool, default True
         Show the figure before returning.
 

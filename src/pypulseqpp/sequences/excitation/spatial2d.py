@@ -1,4 +1,4 @@
-"""Excitation confined in two dimensions rather than one."""
+"""Two-dimensionally selective excitation."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ class SpatialSelective2DExcitation(RfModule):
     gradients : tuple of GradEvent
         One per axis, played in the pulse's own block.
     rephasers : tuple of TrapEvent
-        Empty for the spiral trajectory; the attribute is there because a
+        Empty for the spiral trajectory; the attribute is present because a
         different path would need one.
     self_refocused : bool
         Whether the trajectory came back to the origin on its own.

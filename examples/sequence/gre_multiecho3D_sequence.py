@@ -19,7 +19,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
     lattice and reads it at ``n_echoes`` echo times, monopolar (a flyback
     between echoes) or bipolar (even echoes read backwards). Each acquisition
     carries its echo index as ``ECO``. The fully sampled calibration rectangle
-    leads the scan as segment 0 with ``IMA`` set; under a wave corkscrew it is
+    leads the scan as segment 0 with ``IMA`` set; under wave encoding it is
     first acquired again wave-free and marked ``REF``.
 
     Examples
@@ -129,7 +129,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
             Cycles of dephasing left on the readout axis at the end of each
             repetition, counted across one voxel.
         wave : {'phase', 'partition', 'both'} or None, optional
-            Wave-CAIPI corkscrew under every echo. The calibration rectangle
+            Wave-CAIPI encoding gradients under every echo. The calibration rectangle
             is then acquired again without it.
         wave_cycles : int, optional
             Wave periods across one echo's readout.
@@ -225,8 +225,8 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         """One excitation and its echo train at ``(line, partition)``.
 
         ``view=None`` plays a dummy. ``flags`` are labels carried on the
-        excitation with ``LIN`` and ``PAR``; ``ECO`` rides each acquisition.
-        ``wave`` scales the corkscrew.
+        excitation with ``LIN`` and ``PAR``; ``ECO`` is carried on each
+        acquisition. ``wave`` scales the wave-encoding gradients.
         """
         rf, gz, ro, seq = self.exc.rf, self.exc.gz, self.ro, self.seq
         n_y, n_z = self.matrix[1:]
@@ -242,7 +242,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
             line, partition = view
             ky, kz = (line - n_y / 2) / (n_y / 2), (partition - n_z / 2) / (n_z / 2)
             labels = self.labels(LIN=line, PAR=partition, **flags)
-        corkscrew = [pp.scale_grad(g, wave) for g in self.wave_events]
+        wave_gradients = [pp.scale_grad(g, wave) for g in self.wave_events]
 
         seq.add_block(rf, gz, *labels)
         wait_te = getattr(ro, "wait_te", None)
@@ -256,9 +256,9 @@ class GreMultiecho3DApp(sequences.SequenceApp):
                 seq.add_block(ro.gx_flyback)
             lobe = ro.gx if self.monopolar or echo % 2 == 0 else ro.gx_rev
             if view is None:
-                seq.add_block(lobe, *corkscrew)
+                seq.add_block(lobe, *wave_gradients)
             else:
-                seq.add_block(lobe, ro.adc, *corkscrew, *self.labels(ECO=echo))
+                seq.add_block(lobe, ro.adc, *wave_gradients, *self.labels(ECO=echo))
         seq.add_block(
             ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
         )

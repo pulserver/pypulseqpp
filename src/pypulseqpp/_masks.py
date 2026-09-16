@@ -58,7 +58,7 @@ def calc_sampled_lines(
         everything else, so a reconstruction can estimate coil sensitivities
         from it while the remaining views are still being acquired. It acquires
         the centre of k-space before the magnetisation has reached steady
-        state, so a sequence using it wants dummy repetitions first. Default is
+        state, so a sequence using it needs dummy repetitions first. Default is
         ``'ascending'``.
     partial_fourier : float, optional
         Fraction of the phase-encode extent acquired, in ``(0.5, 1]``. The
@@ -380,7 +380,7 @@ def make_linear_order(
         Echo the k-space centre is acquired at. ``None`` leaves the raster
         bands in order (centre wherever it falls); an integer rolls the bands
         so the one holding the centre plays at that echo -- the effective-TE
-        control an echo train wants.
+        control an echo train needs.
     pad : bool, optional
         When True every train is padded to ``train_length`` with ``None`` so
         the echo index is the position in the train; when False (the default)
@@ -571,7 +571,7 @@ def make_radial_adaptive_order(
 
     Views are ranked by radius and dealt echo-major into trains, but the echo
     a radius band plays at *folds* around ``center_echo``: the innermost band
-    lands on the target echo and the radius grows away from it in both echo
+    coincides with the target echo and the radius grows away from it in both echo
     directions. This is scheme C ("modified radial / adaptive reordering") of
     566-05-007, Fig. 2C-D, which enforces a UI-defined target TE at the centre
     of k-space without a central-k-space discontinuity, and within a band the

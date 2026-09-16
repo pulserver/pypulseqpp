@@ -18,9 +18,9 @@ excitation, preparation and readout modules.
 - Pulseq text and binary reading/writing, signatures and event deduplication.
 - Waveform expansion, k-space trajectories, sequence reports and structural
   repetition detection.
-- Timing, gradient amplitude, slew and boundary-continuity checks, a
-  mechanical-resonance check against forbidden gradient bands, and a PNS
-  check under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.
+- Timing, gradient amplitude, slew-rate and boundary-continuity checks, a
+  mechanical-resonance check against forbidden gradient bands, a PNS check
+  under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.
 - Logical-frame FOV scaling, rotation and translation.
 - Pulse, trajectory and sampling design, with reusable sequence modules.
 
@@ -58,8 +58,9 @@ ok, errors = seq.check_timing()
 seq.write("example.seq")
 ```
 
-Sequence-module classes are available from `pypulseqpp.sequences`.
-The [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
+Sequence-module classes are available from `pypulseqpp.sequences`, and the
+complete example sequences from `pypulseqpp.sequences.<name>`. The
+[API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
 groups sequence operations, event design, sampling, modules and checks.
 
 ## Development and documentation
@@ -75,5 +76,6 @@ bash scripts/build_docs.sh
 The script compiles the checkout into `docs/build/site` and generates the pages
 from that build.
 
-Open `docs/build/html/index.html`. The API reference is populated; the user
-guide, developer guide and examples sections are scaffolds.
+Open `docs/build/html/index.html`. The API reference and the example-sequence
+index are populated; the user and developer guides are scaffolds.
+Documentation contributions follow `docs/documentation_style.md`.

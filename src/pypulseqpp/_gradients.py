@@ -1,6 +1,7 @@
-"""Gradient factories in imaging terms, concatenation and wave-CAIPI waveforms.
+"""Gradient factories in imaging terms, concatenation and wave-encoding waveforms.
 
-Areas are in 1/m and amplitudes in Hz/m unless a docstring says otherwise.
+Gradient areas are in 1/m and amplitudes in Hz/m unless a docstring says
+otherwise.
 """
 
 from __future__ import annotations
@@ -285,13 +286,17 @@ def make_wave_gradients(
     return_amplitude: bool = False,
     system=None,
 ):
-    """Create self-balanced wave-CAIPI gradients for one readout flat top.
+    """Create self-balanced wave-encoding gradient events for one readout flat top.
 
     A sine on ``sine_channel`` and a cosine on ``cosine_channel`` run
-    ``cycles`` periods across the flat top. Each is tapered in and out by a
-    raised-cosine envelope over a quarter period (rounded down to the raster)
-    and offset under that envelope, so it starts and ends at zero with zero
-    net area: scaling either event, including to zero, changes no rewinder.
+    ``cycles`` periods across the flat top. Played with the readout gradient,
+    the pair traces the corkscrew k-space trajectory of wave-CAIPI [1]_; the
+    events themselves are two sinusoidal gradient waveforms.
+
+    Each sinusoid is tapered in and out by a raised-cosine envelope over a
+    quarter period (rounded down to the raster) and offset under that envelope,
+    so it starts and ends at zero amplitude with zero net area: scaling either
+    event, including to zero, leaves every rewinder unchanged.
 
     Parameters
     ----------
@@ -301,10 +306,11 @@ def make_wave_gradients(
     cycles : int
         Sinusoid periods across the flat top.
     amplitude : float
-        Requested sinusoid amplitude (T/m). An upper bound: the amplitude
-        built is lowered as needed to keep the played waveforms within
-        ``system.max_slew`` and ``system.max_grad``. The balancing offset
-        can lift a played peak a few percent above the amplitude.
+        Requested sinusoid amplitude, in **T/m** rather than the Hz/m used
+        elsewhere in this module. An upper bound: the amplitude built is
+        lowered as needed to keep the played waveforms within
+        ``system.max_slew`` and ``system.max_grad``. The balancing offset can
+        lift a played peak a few percent above the amplitude.
     sine_channel, cosine_channel : {"x", "y", "z"} or None, optional
         Channels for the sine and the cosine; ``None`` omits that one.
     delay : float, optional
@@ -320,7 +326,7 @@ def make_wave_gradients(
     sine, cosine : GradEvent or None
         Arbitrary gradients, ``None`` for an omitted channel.
     amplitude : float
-        Amplitude built (T/m). Only with ``return_amplitude``.
+        Amplitude built, in T/m. Only with ``return_amplitude``.
 
     Raises
     ------
@@ -336,6 +342,12 @@ def make_wave_gradients(
     >>> gy, gz = pp.make_wave_gradients(3e-3, 4, 10e-3)
     >>> [abs(round(float(np.sum(g.waveform)), 6)) for g in (gy, gz)]
     [0.0, 0.0]
+
+    References
+    ----------
+    .. [1] B Bilgic, B A Gagoski, S F Cauley et al., "Wave-CAIPI for highly
+       accelerated 3D imaging", Magn Reson Med 2015;73:2152-2162.
+       DOI 10.1002/mrm.25347.
     """
     channels = [c for c in (sine_channel, cosine_channel) if c is not None]
     if not channels:
@@ -351,7 +363,7 @@ def make_wave_gradients(
 
     raster = system.grad_raster_time
     n_flat = round(flat_time / raster)
-    # A quarter period is what each end is brought in over, so the corkscrew
+    # A quarter period is what each end is brought in over, so the sinusoid
     # needs whole periods and enough raster to shape their edges.
     n_edge = n_flat // (4 * cycles)
     if n_edge < 1:

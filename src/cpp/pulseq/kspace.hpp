@@ -17,7 +17,7 @@
 namespace pulseq
 {
 
-    /** What the trajectory is followed under. */
+    /** Parameters the k-space trajectory is integrated under. */
     struct KspaceOptions
     {
         /**
@@ -41,15 +41,15 @@ namespace pulseq
         bool samples_only = false;
     };
 
-    /** The trajectory, and everything read off it. */
+    /** The k-space trajectory and the quantities derived from it. */
     struct Kspace
     {
-        /** Every moment the trajectory has to be known at. */
+        /** Times in seconds at which the trajectory is evaluated. */
         std::vector<double> times;
-        /** Per axis, where the trajectory is at each of those moments. */
+        /** Per axis, the trajectory position at each of those times, in 1/m. */
         std::array<std::vector<double>, 3> position;
 
-        /** Where each ADC sample sits, and when it is taken. */
+        /** Per axis, the k-space location of each ADC sample, in 1/m, and its time. */
         std::array<std::vector<double>, 3> sampled;
         std::vector<double> adc_times;
         std::vector<double> adc_modulation;
@@ -57,7 +57,7 @@ namespace pulseq
         std::vector<double> excitation_times;
         std::vector<double> refocusing_times;
 
-        /** Per axis, where each excitation put its slice. */
+        /** Per axis, the slice position each excitation selected. */
         std::array<std::vector<double>, 3> slice_position;
 
         /**

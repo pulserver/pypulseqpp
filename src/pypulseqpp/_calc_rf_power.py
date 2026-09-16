@@ -1,4 +1,4 @@
-"""Energy, peak power and B1 rms of one RF pulse, in Pulseq's Hz units."""
+"""Energy, peak power and RMS B1 of one RF event, in Pulseq's Hz units."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ __all__ = ["calc_rf_power"]
 
 
 def _channels(t: np.ndarray) -> int:
-    """Return how many channels share the time base, as the reference interpreter counts them."""
+    """Return the number of transmit channels sharing the time base, as the reference interpreter counts them."""
     if t.size == 0:
         return 1
     count = int(np.count_nonzero(t == t[0]))
@@ -21,7 +21,7 @@ def _channels(t: np.ndarray) -> int:
 
 
 def calc_rf_power(rf, dt: float = 1e-6) -> tuple[float, float, float]:
-    """Return a pulse's energy, peak power and RMS amplitude, as MATLAB Pulseq's ``calcRfPower``.
+    """Return an RF event's energy, peak power and RMS amplitude, as MATLAB Pulseq's ``calcRfPower``.
 
     Parameters
     ----------

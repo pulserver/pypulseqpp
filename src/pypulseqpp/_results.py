@@ -1,4 +1,4 @@
-"""Named waveform and timing results for ``compat=False``."""
+"""Named waveform and timing results returned under ``compat=False``."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ _BY_CODE = {use[0]: use for use in RF_USES}
 
 
 def use_of(code: str) -> str:
-    """Return the use a stored code stands for; `undefined` for anything else."""
+    """Return the RF use a stored code denotes; `undefined` for any other code."""
     return _BY_CODE.get(code, "undefined")
 
 
@@ -44,7 +44,7 @@ class Waveforms:
 
     @property
     def channels(self) -> list[np.ndarray]:
-        """The gradients as upstream returns them: a list, RF appended."""
+        """The gradient channels as upstream returns them: a list, with RF appended."""
         channels = [self.gx, self.gy, self.gz]
         if self.rf is not None:
             channels.append(self.rf)
@@ -52,7 +52,7 @@ class Waveforms:
 
     @property
     def duration(self) -> float:
-        """The last time any channel carries, in seconds."""
+        """Latest time present on any channel, in seconds."""
         ends = [channel[0, -1] for channel in self.channels if channel.shape[1]]
         return float(max(ends)) if ends else 0.0
 

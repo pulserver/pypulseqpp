@@ -14,14 +14,14 @@ DENSITIES = ("constant", "variable", "dual")
 
 
 class SeSpiral2DApp(sequences.SequenceApp):
-    """Multi-slice 2D spiral spin echo: one interleave per excitation.
+    """Multi-slice 2D spiral spin echo: one interleaf per excitation.
 
     A slice-selective SLR 90, one slice-selective SLR 180 between crushers
-    half a TE later, and one outward interleave starting at the echo, turned
+    half a TE later, and one outward interleaf starting at the echo, turned
     per shot by a rotation extension. The interleaves are designed and chosen
     as :mod:`gre_spiral2D_sequence` designs and chooses them, and the slices
     dealt into packets as :mod:`gre2D_sequence` deals them. Every acquisition
-    carries its interleave as ``LIN`` and its slice as ``SLC``.
+    carries its interleaf as ``LIN`` and its slice as ``SLC``.
 
     Examples
     --------
@@ -37,7 +37,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
     #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first interleave's angle, before each
+    #: Non-acquiring repetitions, at the first interleaf's angle, before each
     #: packet.
     N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
@@ -68,7 +68,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         periphery_undersampling: float = 2.0,
         transition_speed: float = 12.0,
     ) -> None:
-        """Design the pulses, the interleave, the slice packets and the angles.
+        """Design the pulses, the interleaf, the slice packets and the angles.
 
         Parameters
         ----------
@@ -93,7 +93,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one interleave in every ``ry`` of the
+            Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
         n_shots : int, optional
             Interleaves that sample the centre of k-space at Nyquist.
@@ -143,7 +143,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         self.ref_phase = float(self.ref.rf_ref.phase_offset)
 
         # The centre is designed for n_shots interleaves and the periphery for
-        # proportionally more, which is what spreads an interleave's turns there.
+        # proportionally more, which is what spreads an interleaf's turns there.
         shaped = {}
         if density != "constant":
             shaped = {
@@ -190,7 +190,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
         self.echo_time = 2 * (half_floor + wait)
 
-        # An interleave covers a full turn, which the n_shots divide evenly.
+        # An interleaf covers a full turn, which the n_shots divide evenly.
         self.angles = 2 * np.pi * np.arange(0, n_shots, ry) / n_shots
         self.rotations = [pp.make_rotation(float(angle)) for angle in self.angles]
 
@@ -224,7 +224,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
 
     def loop(self) -> None:
-        """Play each packet: its dummies, then every interleave at each of its slices."""
+        """Play each packet: its dummies, then every interleaf at each of its slices."""
         arms = [None] * self.N_DUMMY + list(range(len(self.angles)))
         for packet in self.packets:
             for arm in arms:
@@ -236,7 +236,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         """One spin echo of slice ``s`` reading ``arm``; ``None`` plays a dummy.
 
         The readout's blocks, from the refocusing pulse on, are played as it
-        laid them out, each turned to the interleave's angle where it drives
+        laid them out, each turned to the interleaf's angle where it drives
         an in-plane gradient.
         """
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
@@ -269,7 +269,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         seq.add_block(pp.make_delay(pad))
 
     def finalize(self) -> None:
-        """Write the prescription, the interleave set and the timing as definitions."""
+        """Write the prescription, the interleaf set and the timing as definitions."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         definitions = {

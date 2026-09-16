@@ -15,13 +15,13 @@ DENSITIES = ("constant", "variable", "dual")
 
 
 class GreSpiral2DApp(sequences.SequenceApp):
-    """RF-spoiled, multi-slice 2D spiral gradient echo: one interleave per repetition.
+    """RF-spoiled, multi-slice 2D spiral gradient echo: one interleaf per repetition.
 
-    One solved outward interleave is turned per shot by a rotation extension.
+    One solved outward interleaf is turned per shot by a rotation extension.
     ``n_shots`` interleaves, spread evenly over a full turn, sample the centre
     of k-space at Nyquist; every ``ry``-th of them is played, in order. Slices
     are dealt into packets, and ordered within one, as :mod:`gre2D_sequence`
-    deals them. Every acquisition carries its interleave as ``LIN`` and its
+    deals them. Every acquisition carries its interleaf as ``LIN`` and its
     slice as ``SLC``.
 
     Examples
@@ -38,7 +38,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
     #: SLR design of the selective pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first interleave's angle, before each
+    #: Non-acquiring repetitions, at the first interleaf's angle, before each
     #: packet.
     N_DUMMY = 16
     #: Quadratic RF spoiling phase increment (degrees), counted per slice.
@@ -69,7 +69,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         periphery_undersampling: float = 2.0,
         transition_speed: float = 12.0,
     ) -> None:
-        """Design the pulse, the interleave, the slice packets and the angles.
+        """Design the pulse, the interleaf, the slice packets and the angles.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one interleave in every ``ry`` of the
+            Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
         n_shots : int, optional
             Interleaves that sample the centre of k-space at Nyquist.
@@ -133,7 +133,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
             time_bw_product=self.TIME_BW_PRODUCT,
         )
         # The centre is designed for n_shots interleaves and the periphery for
-        # proportionally more, which is what spreads an interleave's turns there.
+        # proportionally more, which is what spreads an interleaf's turns there.
         shaped = {}
         if density != "constant":
             shaped = {
@@ -157,7 +157,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
             spoiling_cycles=self.SPOILING_CYCLES,
             **shaped,
         )
-        # An interleave covers a full turn, which the n_shots divide evenly.
+        # An interleaf covers a full turn, which the n_shots divide evenly.
         self.angles = 2 * np.pi * np.arange(0, n_shots, ry) / n_shots
         self.rotations = [pp.make_rotation(float(angle)) for angle in self.angles]
 
@@ -192,7 +192,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
 
     def loop(self) -> None:
-        """Play each packet: its dummies, then every interleave at each of its slices."""
+        """Play each packet: its dummies, then every interleaf at each of its slices."""
         arms = [None] * self.N_DUMMY + list(range(len(self.angles)))
         phases = make_rf_spoiling_schedule(
             len(arms), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
@@ -208,7 +208,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         """One excitation of slice ``s`` reading ``arm``; ``None`` plays a dummy.
 
         The readout's blocks after the pulse are played as it laid them out,
-        each turned to the interleave's angle where it drives an in-plane
+        each turned to the interleaf's angle where it drives an in-plane
         gradient.
         """
         exc, ro, seq = self.exc, self.ro, self.seq
@@ -232,7 +232,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         seq.add_block(pp.make_delay(pad))
 
     def finalize(self) -> None:
-        """Write the prescription, the interleave set and the timing as definitions."""
+        """Write the prescription, the interleaf set and the timing as definitions."""
         # The volume's offset is applied to the finished sequence with
         # pp.TransformFOV.
         definitions = {

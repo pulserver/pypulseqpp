@@ -17,19 +17,20 @@
 namespace pulseq
 {
 
-    /** What the scanner will allow. */
+    /** Gradient hardware limits a sequence is checked against. */
     struct GradientLimits
     {
         /**
-         * Per-axis limits in Hz/m and Hz/m/s. Non-positive values disable judgment.
+         * Per-axis limits in Hz/m and Hz/m/s. A non-positive value disables
+         * that check.
          */
         double max_grad = 0.0;
         double max_slew = 0.0;
-        /** How often a gradient may change value. */
+        /** Gradient raster period in seconds. */
         double grad_raster_time = 10e-6;
     };
 
-    /** The strongest thing found, and the block that plays it. */
+    /** A peak value and the block containing it. */
     struct Peak
     {
         double value = 0.0;
@@ -37,20 +38,20 @@ namespace pulseq
         int axis = -1; /**< 0, 1, 2; -1 when the peak is a vector magnitude. */
     };
 
-    /** One place where a gradient does not continue what came before it. */
+    /** A gradient amplitude discontinuity at a block boundary. */
     struct Discontinuity
     {
         int block = 0;
         int axis = 0;
-        /** What the gradient jumps from and to, in Hz/m. */
+        /** Amplitudes on either side of the boundary, in Hz/m. */
         double before = 0.0;
         double after = 0.0;
-        /** The step that jump asks for, in Hz/m/s, against what is allowed. */
+        /** Slew rate the step implies, in Hz/m/s, and the limit it is compared with. */
         double slew = 0.0;
         double limit = 0.0;
     };
 
-    /** What the gradients reach. */
+    /** Peak gradient amplitudes reached by a sequence. */
     struct GradientReport
     {
         /**
@@ -58,41 +59,40 @@ namespace pulseq
          */
         Peak per_axis;
         Peak vector;
-        /** The strongest each axis reaches, x, y, z.
+        /** Peak amplitude on each axis in turn, x, y, z.
          *
-         * `per_axis` is the worst of these; these say which amplifier is
-         * asked for what, which is the question when one of them is over. */
+         * `per_axis` is the largest of these; the individual entries identify
+         * which gradient amplifier reaches which amplitude. */
         std::array<Peak, 3> axes;
     };
 
     /**
-     * What the gradients ask in the way of slewing, within the blocks.
+     * Peak slew rates within blocks.
      *
-     * What happens *between* two blocks is a different question with a
-     * different answer -- a gradient starting where the last one did not end
-     * asks for its whole step in no time at all -- and `continuity` is what
-     * asks it.
+     * Transitions *between* blocks are a separate check: a gradient starting
+     * at an amplitude the previous block did not end at implies an unbounded
+     * slew rate. `continuity` covers those.
      */
     struct SlewReport
     {
         Peak per_axis;
         Peak vector;
-        /** The steepest each axis is asked to change at, x, y, z. */
+        /** Peak slew rate on each axis in turn, x, y, z. */
         std::array<Peak, 3> axes;
     };
 
-    /** Where the gradients do not carry on from one block to the next. */
+    /** Gradient amplitude discontinuities between consecutive blocks. */
     struct ContinuityReport
     {
         std::vector<Discontinuity> discontinuities;
-        /** Whether the sequence leaves its gradients at zero. */
+        /** Whether every gradient waveform ends at zero amplitude. */
         bool ends_at_zero = true;
     };
 
     /**
-     * The strongest gradient the sequence plays.
+     * Peak gradient amplitude played by the sequence.
      *
-     * @param seq  The sequence to weigh.
+     * @param seq  The sequence to check.
      */
     GradientReport max_gradient(const Sequence& seq);
 
@@ -105,10 +105,12 @@ namespace pulseq
     SlewReport max_slew(const Sequence& seq, const GradientLimits& limits);
 
     /**
-     * Compare physical-axis endpoints across blocks and at sequence end.
+     * Compare physical-axis endpoint amplitudes across blocks and at the end
+     * of the sequence.
      *
-     * Missing gradients are zero. Boundary jumps are judged as a change over
-     * one gradient raster interval. Each endpoint uses its own block's rotation.
+     * An absent gradient contributes zero amplitude. A discontinuity is
+     * evaluated as a change over one gradient raster period. Each endpoint
+     * uses its own block's rotation.
      */
     ContinuityReport continuity(const Sequence& seq, const GradientLimits& limits);
 

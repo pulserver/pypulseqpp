@@ -15,8 +15,9 @@ import pypulseqpp as package
 #: What is collected is what the package ships, wherever it is written.
 _OURS = (
     Path(package.__file__).parent.resolve(),
-    # The zoo is written outside the package and mapped in, so its scripts
-    # are shipped code whose files are not under the package directory.
+    # The example sequences are written outside the package and mapped in, so
+    # their scripts are shipped code whose files are not under the package
+    # directory.
     *(
         Path(entry).resolve()
         for entry in importlib.import_module("pypulseqpp.sequences.sequence").__path__

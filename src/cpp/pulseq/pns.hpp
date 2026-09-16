@@ -51,7 +51,7 @@ namespace pulseq
         bool keep_trace = false;
     };
 
-    /** The strongest response, as a fraction of threshold, and where. */
+    /** Peak nerve response, as a fraction of the model threshold, with its time and block. */
     struct PnsPeak
     {
         double value = 0.0;

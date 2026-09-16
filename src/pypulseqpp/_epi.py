@@ -1,8 +1,8 @@
 """Within-shot echo orderings for EPI trains.
 
-An EPI shot walks a fixed pattern of phase-encode steps and repeats it every
-repetition, shifted bodily to wherever that shot samples. These build the
-pattern: offsets from the shot's own origin, one row per echo.
+An EPI shot traverses a fixed pattern of phase-encode steps and repeats it
+every repetition, translated to the region that shot samples. These functions
+build the pattern as offsets from the shot's own origin, one row per echo.
 
 References
 ----------
@@ -35,7 +35,7 @@ def calc_epi_order(
     caipi_shift: int = 1,
     extent: int | None = None,
 ) -> np.ndarray:
-    """Phase-encode offsets an EPI shot visits, relative to where it starts.
+    """Return the phase-encode offsets of an EPI shot, relative to its first echo.
 
     The first row is always ``(0, 0)``: the pattern says where the shot goes
     *from* its origin, and placing that origin is the scan loop's job. The
@@ -50,7 +50,7 @@ def calc_epi_order(
         ``'linear'`` steps by ``segments * acceleration`` every echo and never
         leaves its partition -- plain segmented EPI, and plain single-shot EPI
         at the defaults. ``'caipi'`` adds the partition sawtooth that turns
-        that into segmented blipped-CAIPI. ``'zigzag'`` walks up and down a
+        that into segmented blipped-CAIPI. ``'zigzag'`` traverses up and down a
         phase-encode segment instead of across the whole matrix, which is what
         lets a shot sample the same lines at many echo times.
     acceleration : int, optional
@@ -140,7 +140,7 @@ def calc_epi_order(
 
 
 def _caipi_partitions(line: np.ndarray, ry: int, rz: int, shift: int) -> np.ndarray:
-    """Read off which partition each phase-encode line sits on.
+    """Return the partition index of each phase-encode line.
 
     Taken from :func:`make_caipirinha_mask` rather than restated, so a train
     and the mask it is meant to tile cannot drift apart. One period of the
@@ -153,12 +153,11 @@ def _caipi_partitions(line: np.ndarray, ry: int, rz: int, shift: int) -> np.ndar
 
 
 def _zigzag(etl: int, step: int, extent: int) -> np.ndarray:
-    """Up and down one phase-encode segment, alternating between two lattices.
+    """Return a zigzag traversal of one phase-encode segment, alternating two lattices.
 
-    The outward pass walks ``0, step, 2 * step, ...`` as far as ``extent``
-    allows; the return pass walks the same ladder offset by ``step // 2``, so
-    consecutive passes sample between each other and every blip stays within
-    one ``step``. The two passes together are the cycle, repeated until the
+    The outward pass visits ``0, step, 2 * step, ...`` as far as ``extent``
+    allows; the return pass visits the same lattice offset by ``step // 2``, so
+    consecutive passes interleave and every blip stays within one ``step``. The two passes together are the cycle, repeated until the
     train runs out.
     """
     if extent < 0:

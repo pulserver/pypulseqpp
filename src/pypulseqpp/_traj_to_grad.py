@@ -1,4 +1,4 @@
-"""Turning a k-space path into a gradient that traces it."""
+"""Conversion of a k-space trajectory to the gradient waveform that traces it."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def traj_to_grad(
     start_at_zero: bool = True,
     end_at_zero: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Convert a k-space path to gradient and slew waveforms.
+    """Convert a k-space trajectory to gradient and slew-rate waveforms.
 
     By default, samples describe geometry and MRArbGrad chooses the timing
     within vector gradient and slew limits; output length can differ from

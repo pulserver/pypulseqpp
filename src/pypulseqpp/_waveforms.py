@@ -57,7 +57,7 @@ def _of(system, name, fallback):
 
 
 def _blocks_within(seq, time_range):
-    """Return the blocks a time range touches, and when the first starts."""
+    """Return the blocks a time range covers, and the start time of the first."""
     if len(time_range) != 2:
         raise ValueError("Time range must be list of two elements")
     if time_range[0] > time_range[1]:
@@ -72,12 +72,12 @@ def _blocks_within(seq, time_range):
 
 
 def _shifted(times, elapsed):
-    """Return times measured from the start of the scan, not of the range."""
+    """Shift times so they are measured from the start of the scan, not of the range."""
     return times if elapsed == 0.0 else times + elapsed
 
 
 def _named(expanded, elapsed, append_rf):
-    """Return the expansion as `WaveformsAndTimes`, timed where it plays."""
+    """Return the expansion as `WaveformsAndTimes`, timed from the start of the scan."""
     channels = [np.array(channel, copy=True) for channel in expanded["wave_data"]]
     if elapsed:
         for channel in channels:
@@ -128,7 +128,7 @@ def waveforms_and_times(
     *,
     compat: bool = True,
 ):
-    """Return the gradient waveforms, the RF moments and the ADC sampling.
+    """Return the gradient waveforms, the RF pulse timing and the ADC sampling.
 
     Parameters
     ----------
@@ -189,7 +189,7 @@ def waveforms(seq, append_RF: bool = False, time_range=None, block_range=None):
 
 
 def adc_times(seq, time_range=None):
-    """Return when every ADC sample is taken, and each window's offsets.
+    """Return the ADC sample times and each window's frequency and phase offsets.
 
     Returns
     -------
@@ -204,7 +204,7 @@ def adc_times(seq, time_range=None):
 
 
 def rf_times(seq, time_range=None, *, compat: bool = True):
-    """Return when the pulses act, and at what frequency and phase.
+    """Return RF pulse centre times with their frequency and phase offsets.
 
     Parameters
     ----------

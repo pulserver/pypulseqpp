@@ -1,4 +1,4 @@
-"""A gradient reaching a given area between two amplitudes, in least time."""
+"""Minimum-duration gradient waveform of a given area between two endpoint amplitudes."""
 
 from __future__ import annotations
 

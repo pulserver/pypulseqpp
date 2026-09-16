@@ -1,9 +1,9 @@
 # Events and blocks
 
-`pypulseqpp`: the events a block plays besides RF and gradients, and the
-operations on blocks and events. Every factory returns a compact event that
-{meth}`Sequence.add_block` accepts; RF and gradient factories have their own
-pages.
+`pypulseqpp`: the block events other than RF and gradients, and the operations
+on blocks and events. Every factory returns a compiled event that
+{meth}`Sequence.add_block` accepts; the RF and gradient factories have pages of
+their own.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp

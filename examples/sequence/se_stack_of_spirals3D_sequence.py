@@ -17,7 +17,7 @@ EXCITATIONS = ("nonselective", "slab", "spsp")
 DENSITIES = ("constant", "variable", "dual")
 
 #: How far each partition turns its tilts, as a fraction of the full turn an
-#: interleave covers: not at all, by the golden ratio ``1 / phi``, or by the
+#: interleaf covers: not at all, by the golden ratio ``1 / phi``, or by the
 #: tiny golden angle ``1 / (phi + 1)``.
 PARTITION_SHIFTS = {
     "none": 0.0,
@@ -79,13 +79,13 @@ def sampled_partitions(
 
 
 class SeStackOfSpirals3DApp(sequences.SequenceApp):
-    """3D stack-of-spirals spin echo: one interleave at one partition per excitation.
+    """3D stack-of-spirals spin echo: one interleaf at one partition per excitation.
 
     A 90 from the selected excitation, a nonselective 180 between crushers
-    half a TE later, and one outward interleave starting at the echo.
+    half a TE later, and one outward interleaf starting at the echo.
     Interleaves and partitions are designed, chosen and ordered as
     :mod:`gre_stack_of_spirals3D_sequence` does. Acquisitions carry the
-    interleave as ``LIN`` and the partition as ``PAR``.
+    interleaf as ``LIN`` and the partition as ``PAR``.
 
     Under partition undersampling the central ``n_acs_z`` partitions are
     acquired in full at every tilt, ahead of the rest, and marked ``IMA``.
@@ -109,7 +109,7 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
     #: Fat methylene shift from water (ppm), converted against ``system.B0``
     #: when the spectral-spatial pulse is built.
     FAT_SHIFT_PPM = -3.4
-    #: Non-acquiring repetitions, at the first interleave's angle and the
+    #: Non-acquiring repetitions, at the first interleaf's angle and the
     #: centre partition, before the scan.
     N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
@@ -144,7 +144,7 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         periphery_undersampling: float = 2.0,
         transition_speed: float = 12.0,
     ) -> None:
-        """Design the pulses, the interleave, the angles and the partitions.
+        """Design the pulses, the interleaf, the angles and the partitions.
 
         Parameters
         ----------
@@ -167,7 +167,7 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one interleave in every ``ry`` of the
+            Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
         rz : int, optional
             Partition undersampling: one partition in every ``rz`` is
@@ -236,7 +236,7 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
             system, spoiling_cycles=self.CRUSHER_CYCLES
         )
         # The centre is designed for n_shots interleaves and the periphery for
-        # proportionally more, which is what spreads an interleave's turns there.
+        # proportionally more, which is what spreads an interleaf's turns there.
         shaped = {}
         if density != "constant":
             shaped = {
@@ -289,7 +289,7 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
         self.echo_time = 2 * (half_floor + wait)
 
-        # An interleave covers a full turn, which the n_shots divide evenly.
+        # An interleaf covers a full turn, which the n_shots divide evenly.
         self.span = 2 * np.pi
         self.angles = self.span * np.arange(0, n_shots, ry) / n_shots
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
@@ -332,12 +332,12 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         return self._rotations[key]
 
     def loop(self) -> None:
-        """Play the dummies, then every acquired partition of each interleave in turn."""
+        """Play the dummies, then every acquired partition of each interleaf in turn."""
         for view in [None] * self.N_DUMMY + self.views:
             self.kernel(view)
 
     def kernel(self, view: tuple[int, int] | None) -> None:
-        """One spin echo, one interleave at one partition; ``None`` plays a dummy.
+        """One spin echo, one interleaf at one partition; ``None`` plays a dummy.
 
         After the refocusing module, the readout's blocks are played as it laid
         them out, with the partition encode scaled and every block that drives

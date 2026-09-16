@@ -1,4 +1,4 @@
-"""3D non-Cartesian zoo entries: stacks of stars, spirals and blades, and ZTE."""
+"""3D non-Cartesian example sequences: stacks of stars, spirals and blades, and ZTE."""
 
 import importlib
 from itertools import pairwise

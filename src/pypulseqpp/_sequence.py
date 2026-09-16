@@ -119,7 +119,7 @@ class Sequence:
         gx, gy, gz, ADC and extension. The delay column is zero for Pulseq
         1.5. Reading it allocates a dictionary for all blocks.
     definitions : dict[str, Any]
-        Everything `[DEFINITIONS]` will carry.
+        The definitions written to the `[DEFINITIONS]` section.
     grad_raster_time : float
         Gradient raster in seconds.
     rf_raster_time : float
@@ -127,11 +127,12 @@ class Sequence:
     adc_raster_time : float
         ADC dwell raster in seconds.
     block_duration_raster : float
-        Raster a block duration is a whole number of, in seconds.
+        Block duration raster in seconds; every block duration is a whole
+        number of these.
     version_major : int
         Major version of the Pulseq format the sequence is held as. A file
-        older than 1.5 is converted as it is read, so this is what the
-        sequence is rather than what its file declared.
+        older than 1.5 is converted as it is read, so this is the format of
+        the sequence in memory, not the version its file declared.
     version_minor : int
         Minor version of the format the sequence is held as.
     version_revision : int
@@ -233,7 +234,7 @@ class Sequence:
 
     @property
     def block_duration_raster(self) -> float:
-        """Raster a block duration is a whole number of, in seconds."""
+        """Block duration raster in seconds; every block duration is a whole number of these."""
         return self._native.block_duration_raster()
 
     # -- what has been worked out about the sequence -------------------
@@ -423,7 +424,7 @@ class Sequence:
         return dict(enumerate(rows, start=1))
 
     def find_block_by_time(self, t: float):
-        """Return the 1-based index of the block playing at ``t`` seconds.
+        """Return the 1-based index of the block containing time ``t`` in seconds.
 
         Parameters
         ----------
@@ -514,7 +515,7 @@ class Sequence:
         self._native.set_definition(key, value)
 
     def get_definition(self, key: str):
-        """Return what ``key`` says, or ``''`` if it is not defined.
+        """Return the value recorded for ``key``, or ``''`` when it is not defined.
 
         Parameters
         ----------
@@ -538,11 +539,11 @@ class Sequence:
 
     @property
     def definitions(self) -> dict:
-        """Everything `[DEFINITIONS]` will carry."""
+        """The definitions written to the `[DEFINITIONS]` section."""
         return self._native.definitions()
 
     def copy_definitions(self, other_seq: Sequence) -> None:
-        """Take every definition ``other_seq`` carries.
+        """Copy every definition from ``other_seq`` into this sequence.
 
         Parameters
         ----------
@@ -566,11 +567,11 @@ class Sequence:
     # -- extensions ----------------------------------------------------
 
     def get_extension_type_ID(self, extension_string: str) -> int:
-        """Return the numeric id for ``extension_string``, minting one if new."""
+        """Return the numeric id for ``extension_string``, assigning one if new."""
         return self._native.extension_type_id(extension_string)
 
     def get_extension_type_string(self, extension_id: int) -> str:
-        """Return the name ``extension_id`` stands for.
+        """Return the name ``extension_id`` maps to.
 
         Raises
         ------
@@ -591,7 +592,7 @@ class Sequence:
     # -- TR ids --------------------------------------------------------
 
     def get_or_create_trid_id(self, label_name: str) -> int:
-        """Return the TRID number ``label_name`` is known by, naming it if new.
+        """Return the TRID number assigned to ``label_name``, assigning one if new.
 
         Parameters
         ----------
@@ -618,7 +619,7 @@ class Sequence:
         return self._trid_names.index(label_name) + 1
 
     def add_trid(self, label_name: str) -> None:
-        """Append a block setting TRID to the number ``label_name`` is known by.
+        """Append a block setting TRID to the number assigned to ``label_name``.
 
         Nothing is appended when the system's ``flag_trid`` is False.
 
@@ -647,7 +648,7 @@ class Sequence:
     # -- gradients -----------------------------------------------------
 
     def mod_grad_axis(self, axis: str, modifier: float) -> None:
-        """Scale every gradient played on ``axis`` by ``modifier``.
+        """Scale the amplitude of every gradient on ``axis`` by ``modifier``.
 
         Parameters
         ----------
@@ -690,7 +691,7 @@ class Sequence:
         self._native.scale_gradient_axis("xyz".index(axis), float(modifier))
 
     def flip_grad_axis(self, axis: str) -> None:
-        """Invert every gradient played on ``axis``.
+        """Negate the amplitude of every gradient on ``axis``.
 
         Equivalent to ``mod_grad_axis(axis, -1)``.
 
@@ -728,7 +729,7 @@ class Sequence:
         Parameters
         ----------
         init : dict[str, int], optional
-            What a label is before the walk begins. A label named here is
+            Initial value of each label before evaluation begins. A label named here is
             reported whether or not the blocks touch it, which is what makes
             evaluating a sequence a piece at a time work.
         evolution : {'none', 'blocks', 'adc', 'label'}, default 'none'
@@ -809,7 +810,7 @@ class Sequence:
         *,
         compat: bool = True,
     ):
-        """Return the gradient waveforms, the RF moments and the ADC sampling.
+        """Return the gradient waveforms, the RF pulse timing and the ADC sampling.
 
         Parameters
         ----------
@@ -820,9 +821,9 @@ class Sequence:
         block_range : Sequence[int], optional
             Two 1-based block indices. Not with ``time_range``.
         compat : bool, default True
-            Return upstream's five values, which is what a drop-in caller
-            unpacks. False returns everything the pass worked out, including
-            the five RF uses those five values cannot carry.
+            Return upstream's five values, which a drop-in caller unpacks.
+            False returns a named result covering all seven Pulseq RF uses,
+            which those five values cannot carry.
 
         Returns
         -------
@@ -918,7 +919,7 @@ class Sequence:
         return _adc_times(self, time_range)
 
     def rf_times(self, time_range=None, *, compat: bool = True):
-        """Return when the pulses act, and at what frequency and phase.
+        """Return RF pulse centre times with their frequency and phase offsets.
 
         Parameters
         ----------
@@ -969,7 +970,7 @@ class Sequence:
         Returns
         -------
         k_traj_adc : NDArray[np.float64]
-            3-by-n: where each ADC sample sits in k-space, in 1/m.
+            ``(3, n)``: the k-space location of each ADC sample, in 1/m.
         k_traj : NDArray[np.float64]
             Full trajectory in 1/m, sampled through ramps and at event times.
         t_excitation : NDArray[np.float64]
@@ -1128,7 +1129,7 @@ class Sequence:
         )
 
     def test_report(self) -> str:
-        """Return a formatted sequence timing, encoding and gradient report.
+        """Return sequence timing, encoding and gradient statistics, formatted as text.
 
         Returns
         -------
@@ -1243,7 +1244,7 @@ class Sequence:
         ----------
         **kwargs
             What each delay, by its hint, is to be set to, in seconds. A
-            delay the sequence carries and nobody names is left alone.
+            delay in the sequence that is not named here is left unchanged.
 
         Raises
         ------
@@ -1317,7 +1318,7 @@ class Sequence:
                 )
 
     def get_default_soft_delay_values(self):
-        """Return what each soft delay stands for if nobody sets it.
+        """Return each soft delay's default value.
 
         A soft delay says how a block's duration follows from a value the
         console supplies: `duration = value / factor + offset`. Read the other
@@ -1433,7 +1434,7 @@ class Sequence:
         return stored
 
     def register_rf_event(self, event) -> tuple[int, list[int]]:
-        """Store a pulse and return its ids.
+        """Register an RF event and return its ids.
 
         Returns
         -------
@@ -1441,13 +1442,13 @@ class Sequence:
             The row it was stored as.
         shape_ids : list[int]
             Its magnitude, phase and time shapes; the time shape is 0 when
-            the pulse sits on the RF raster.
+            the pulse lies on the RF raster.
         """
         stored = self._register(event, ("rf",), "register_rf_event", "an RF pulse")
         return stored["id"], stored["shapes"]
 
     def register_grad_event(self, event):
-        """Store a gradient and return its ids.
+        """Register a gradient event and return its ids.
 
         Returns
         -------
@@ -1460,7 +1461,7 @@ class Sequence:
         return (stored["id"], stored["shapes"]) if stored["shapes"] else stored["id"]
 
     def register_adc_event(self, event) -> tuple[int, int]:
-        """Store an ADC and return its ids.
+        """Register an ADC event and return its ids.
 
         Returns
         -------
@@ -1473,31 +1474,31 @@ class Sequence:
         return stored["id"], stored["shapes"][0]
 
     def register_label_event(self, event) -> int:
-        """Store a label and return its row id."""
+        """Register a label event and return its row id."""
         return self._register(
             event, ("LABELSET", "LABELINC"), "register_label_event", "a label"
         )["id"]
 
     def register_control_event(self, event) -> int:
-        """Store a trigger or digital output and return its row id."""
+        """Register a trigger or digital-output event and return its row id."""
         return self._register(
             event, ("TRIGGERS",), "register_control_event", "a trigger"
         )["id"]
 
     def register_rotation_event(self, event) -> int:
-        """Store a rotation and return its row id."""
+        """Register a rotation event and return its row id."""
         return self._register(
             event, ("ROTATIONS",), "register_rotation_event", "a rotation"
         )["id"]
 
     def register_rf_shim_event(self, event) -> int:
-        """Store an RF shim vector and return its row id."""
+        """Register an RF shim event and return its row id."""
         return self._register(
             event, ("RF_SHIMS",), "register_rf_shim_event", "an RF shim"
         )["id"]
 
     def register_soft_delay_event(self, event) -> int:
-        """Store a soft delay and return its row id."""
+        """Register a soft delay event and return its row id."""
         return self._register(
             event, ("DELAYS",), "register_soft_delay_event", "a soft delay"
         )["id"]
@@ -1601,7 +1602,7 @@ class Sequence:
     def write_v141(
         self, name, create_signature: bool = True, gamma=42576000.0, field=1.5
     ) -> str | None:
-        """Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.
+        """Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.
 
         Parameters
         ----------
@@ -1755,7 +1756,7 @@ class Sequence:
 
     @property
     def version_major(self) -> int:
-        """The major version of the Pulseq format this sequence is held as."""
+        """Major version of the Pulseq format this sequence is held as."""
         return self._native.version_major()
 
     @property
@@ -1787,11 +1788,11 @@ class Sequence:
         block_range=None,
         tr_range=None,
     ) -> _plot.Viewer:
-        """Draw the sequence in SeqEyes.
+        """Open the sequence in the SeqEyes viewer.
 
         SeqEyes is an optional dependency, installed with
-        ``pip install 'pypulseqpp[plot]'``. It reads the sequence as a file,
-        so what it is handed is only what is asked to be drawn.
+        ``pip install 'pypulseqpp[plot]'``. It reads the sequence from a file,
+        which holds only the selected range.
 
         Parameters
         ----------
@@ -1893,7 +1894,7 @@ class Sequence:
         underlay_color="0.8",
         ax=None,
     ) -> SimpleNamespace:
-        """Draw a publication-style diagram of one repetition, with mrsd.
+        """Draw a publication-style diagram of one repetition, using mrsd.
 
         Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn
         from the waveform the sequence plays and scaled to its row: the three
@@ -1986,7 +1987,7 @@ class Sequence:
     # -- collapsing ----------------------------------------------------
 
     def remove_duplicates(self, in_place: bool = False) -> Sequence:
-        """Collapse identical library rows and renumber what points at them.
+        """Merge identical library rows and renumber the references to them.
 
         Parameters
         ----------
@@ -2039,7 +2040,7 @@ class Sequence:
         self.write(filename, create_signature=False)
 
     def read_binary(self, filename) -> None:
-        """`read(filename)`, which tells text and binary apart by itself."""
+        """`read(filename)`, which distinguishes text from binary itself."""
         self.read(filename)
 
     # -- no-ops --------------------------------------------------------
@@ -2067,12 +2068,12 @@ class Sequence:
 
     @property
     def block_cache_size(self) -> int:
-        """Zero: no block is held decompressed."""
+        """Always zero; no decoded block is cached."""
         return 0
 
     @property
     def event_cache_size(self) -> int:
-        """Zero: no registration result is held."""
+        """Always zero; no registration result is cached."""
         return 0
 
     def clear_block_cache(self) -> None:

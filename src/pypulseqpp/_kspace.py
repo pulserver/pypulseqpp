@@ -26,7 +26,7 @@ def calculate_kspace(
     gradient_offset=0.0,
     block_range=None,
 ):
-    """Return the trajectory, and where along it the samples are taken.
+    """Return the k-space trajectory and the ADC sampling locations along it.
 
     Parameters
     ----------
@@ -42,7 +42,7 @@ def calculate_kspace(
     Returns
     -------
     k_traj_adc : np.ndarray
-        3-by-n: where each ADC sample sits in k-space, in 1/m.
+        ``(3, n)``: the k-space location of each ADC sample, in 1/m.
     k_traj : np.ndarray
         3-by-m trajectory in 1/m, sampled through ramps and at event times.
     t_excitation : np.ndarray
@@ -75,7 +75,7 @@ def detail(
     block_range=None,
     samples_only: bool = False,
 ) -> dict:
-    """Return trajectory, RF, ADC and slice-position results by name.
+    """Return trajectory, RF, ADC and slice-position results as a named mapping.
 
     Returns
     -------
@@ -129,7 +129,7 @@ def detail(
 
 
 def _blocks_asked_for(block_range):
-    """Return the first and last block to follow; 0 for the last means the end."""
+    """Return the first and last block to integrate; 0 for the last means the end."""
     if block_range is None:
         return 1, 0
     if len(block_range) != 2:

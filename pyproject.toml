@@ -92,7 +92,8 @@ sdist.exclude = ["viewer/**"]
 # include generated artifacts.
 
 [tool.scikit-build.wheel]
-# The zoo installs beside `pypulseqpp.sequences` from where it is written, so a
+# The example sequences install beside `pypulseqpp.sequences` from where they are
+# written, so a
 # script stays a standalone file someone can read and copy rather than
 # something buried in the package it imports.
 #

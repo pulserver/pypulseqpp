@@ -70,8 +70,9 @@ class _LineReadout(SequenceModule):
     gx_rev : GradEvent
         The negated lobe that reads the even echoes of a bipolar train.
     gy_wave, gz_wave : GradEvent
-        The wave corkscrew under the flat top, each self-balanced so scaling
-        one to zero changes nothing else. Only the channels ``wave`` drives.
+        Wave-encoding gradients played under the readout flat top, each
+        self-balanced so scaling one to zero changes nothing else. Only the
+        channels ``wave`` drives.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
@@ -88,8 +89,8 @@ class _LineReadout(SequenceModule):
         Index of the sample at the echo; partial echo moves it toward the
         start.
     wave_amplitude : float
-        Peak wave gradient achieved (T/m), below the requested one where the
-        slew rate binds; zero without ``wave``.
+        Peak wave-encoding gradient amplitude built, in T/m, below the
+        requested one where the slew rate binds; zero without ``wave``.
 
     Parameters
     ----------
@@ -146,8 +147,9 @@ class _LineReadout(SequenceModule):
     wave_cycles : int, optional
         Wave periods across the sampling window.
     wave_amplitude : float, optional
-        Requested peak wave gradient (T/m). A ceiling: the slew rate may
-        lower it, and ``wave_amplitude`` on the module reports what was built.
+        Requested peak wave-encoding gradient amplitude, in T/m rather than the
+        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
+        module's ``wave_amplitude`` attribute reports the amplitude built.
     labels : sequence of str, optional
         Counters emitted on the acquisition block. The loop writes the values.
     trigger : event, optional
@@ -303,11 +305,11 @@ class _LineReadout(SequenceModule):
             num_samples=n_samples, dwell=dwell, delay=flat_top_start, system=system
         )
 
-        # The corkscrew rides under the same flat top the samples are taken
-        # on, and both encoded axes are free there: the phase encodes are
-        # spent in the prewinder. Each event is self-balanced, so a scan that
-        # scales one to zero for a calibration line changes nothing else about
-        # the readout.
+        # The wave-encoding gradients play under the same flat top the samples
+        # are taken on, and both encoded axes are free there: the phase encodes
+        # are spent in the prewinder. Each event is self-balanced, so a scan
+        # that scales one to zero for a calibration line changes nothing else
+        # about the readout.
         gy_wave = gz_wave = None
         wave_peak = 0.0
         if wave is not None:
@@ -426,7 +428,7 @@ class _LineReadout(SequenceModule):
         self.center_sample = n_pre
         self.delta_kx = delta_kx
         self.readout_duration = readout_duration
-        # What the corkscrew reached, which is the requested amplitude only
+        # The wave amplitude actually built, which is the requested one only
         # where the slew rate left room for it.
         self.wave_amplitude = wave_peak
 

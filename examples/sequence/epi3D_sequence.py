@@ -20,7 +20,7 @@ class Epi3DApp(sequences.SequenceApp):
 
     A shell is one partition for a plain stack of trains, or, under
     ``acceleration_z`` above 1, a band of ``acceleration_z`` partitions the
-    CAIPI sawtooth walks within the train. Every acquisition carries ``REV``
+    CAIPI sawtooth traverses within the train. Every acquisition carries ``REV``
     for its read polarity and its partition as ``PAR``. The imaging is
     preceded by linked prescans (:meth:`prescans`): an undersampled scan's
     ``calibration``, a Cartesian gradient echo over the central ``n_acs x
@@ -108,8 +108,8 @@ class Epi3DApp(sequences.SequenceApp):
         acceleration : int, optional
             Uniform phase-encode undersampling factor along y.
         acceleration_z : int, optional
-            Partition undersampling factor along z. Above 1 each shot walks a
-            shell of ``acceleration_z`` partitions with the CAIPI sawtooth.
+            Partition undersampling factor along z. Above 1 each shot traverses
+            a shell of ``acceleration_z`` partitions with the CAIPI sawtooth.
         caipi_shift : int, optional
             Partitions the CAIPI sawtooth climbs per acquired line, used when
             ``acceleration_z`` is above 1.

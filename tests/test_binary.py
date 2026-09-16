@@ -179,7 +179,7 @@ def test_an_extended_sequence_survives_the_binary_form(extended_name, build_exte
 
 
 def test_the_extension_sections_are_actually_written(extended_name, build_extended):
-    """The point of these sequences: each names a section the zoo never reaches."""
+    """Each of these sequences names a file section the example sequences never reach."""
     expected = {
         "rotations": "extension ROTATIONS",
         "rf_shims": "extension RF_SHIMS",

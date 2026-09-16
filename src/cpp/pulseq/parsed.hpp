@@ -72,11 +72,11 @@ namespace pulseq
          */
         bool has_signature = false;
         std::string signature;
-        /** Where the `[SIGNATURE]` header starts, so the digest knows its end. */
+        /** Offset of the `[SIGNATURE]` header, which bounds the digested region. */
         size_t signature_offset = 0;
     };
 
-    /** Register everything the file said, in the order that makes it a sequence. */
+    /** Register the parsed libraries and then the blocks, in that order. */
     Sequence build_sequence(const Parsed& parsed);
 
     /** Parse the binary form.  See binary.hpp for the layout. */

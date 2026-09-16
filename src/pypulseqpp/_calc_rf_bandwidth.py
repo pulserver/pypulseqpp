@@ -1,4 +1,4 @@
-"""The spectral width of an RF pulse, read off its envelope."""
+"""RF pulse bandwidth, estimated from the Fourier magnitude of the envelope."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from ._opts import Opts as _Opts
 
 
 def _full_freq_offset(rf) -> float:
-    """Where the pulse is tuned, in Hz, with a ppm shift folded in."""
+    """Return the pulse's total frequency offset in Hz, including the ppm term."""
     offset = float(getattr(rf, "freq_offset", 0.0) or 0.0)
     ppm = float(getattr(rf, "freq_ppm", 0.0) or 0.0)
     if abs(ppm) > _np.finfo(float).eps:
@@ -67,7 +67,7 @@ def _crossing(frequency, height, cutoff: float) -> float:
 
 
 def _width(frequency, spectrum, cutoff: float) -> float:
-    """Return the width between outermost threshold crossings, or zero for a zero spectrum."""
+    """Return the width between the outermost threshold crossings; zero for a zero spectrum."""
     height = _np.abs(_np.asarray(spectrum, dtype=complex))
     frequency = _np.asarray(frequency, dtype=float)
     if not height.size or not (height.max() > 0.0):

@@ -620,11 +620,11 @@ namespace pulseq
             HintRenumbered,
             /** One number under two hints. */
             NumberRenamed,
-            /** The value asked for makes the block last less than nothing. */
+            /** The requested value gives the block a negative duration. */
             Negative
         };
 
-        /** Every hint the sequence carries, in the order first seen. */
+        /** Every soft-delay hint in the sequence, in the order first seen. */
         std::vector<std::string> hints;
         std::vector<Rounding> rounded;
 
@@ -1512,8 +1512,8 @@ namespace pulseq
         }
 
     private:
-        /* What a sequence built here is, until a file it is read from says
-         * otherwise: the revision this package writes. */
+        /* The format version of a sequence built here, until a file read into
+         * it sets another: the revision this package writes. */
         int version_major_ = 1;
         int version_minor_ = 5;
         int version_revision_ = WRITTEN_REVISION;
@@ -1579,8 +1579,8 @@ namespace pulseq
                 detach_blocks();
         }
 
-        /** See deduplicated(); false until remove_duplicates() says otherwise. */
-        /** Note a change: what was worked out about the sequence is stale. */
+        /** See deduplicated(); false until remove_duplicates() sets it. */
+        /** Record a mutation, invalidating the derived analysis. */
         void changed()
         {
             deduplicated_ = false;

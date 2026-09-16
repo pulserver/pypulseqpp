@@ -1,4 +1,4 @@
-"""The 2D non-Cartesian zoo entries: radial, spiral and PROPELLER, gradient and spin echo."""
+"""The 2D non-Cartesian example sequences: radial, spiral and PROPELLER, gradient and spin echo."""
 
 import importlib
 import math
@@ -10,7 +10,7 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import cli
 
-#: A prescription small enough to build in a moment, per zoo entry.
+#: A prescription small enough to build in a moment, per example sequence.
 SMALL = {
     "gre_radial2D_sequence": {"n": 32, "tr": None},
     "gre_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},

@@ -1,8 +1,9 @@
 # RF pulse design
 
-`pypulseqpp`: RF pulses, from basic factories to designed pulses, and their
-analysis. Design functions return an RF event and, depending on their options,
-the gradients it plays under and design metadata.
+`pypulseqpp`: RF events, from the basic factories to designed pulses, and their
+analysis. A design function returns an RF event and, depending on its options,
+the slice-selection gradient and rephaser played with it, and design metadata.
+RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in radians.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -73,7 +74,8 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.
 
 ## Parallel transmit
 
-A dynamic pTx pulse holds every transmit channel's waveform in one RF event.
+A dynamic pTx pulse holds every transmit channel's waveform in one RF event,
+one channel after another over a shared time base.
 {func}`calc_rf_shim` computes static channel weights and
 {func}`make_spokes_pulse` designs spokes.
 

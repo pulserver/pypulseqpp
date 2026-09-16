@@ -1,6 +1,6 @@
-"""Gradient amplitude, slew, continuity, mechanical-resonance, PNS and SAR checks.
+"""Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks.
 
-Checks use physical-axis waveforms after applying block rotations.
+Checks use physical-axis gradient waveforms, after applying block rotations.
 These checks do not establish scanner or patient safety.
 """
 
@@ -34,7 +34,7 @@ def _limits(seq, system):
     chosen = system if system is not None else seq.system
     if chosen is None:
         raise ValueError(
-            "no limits to judge against: build the Sequence with a system= "
+            "no system limits available: build the Sequence with a system= "
             "argument, or pass one here"
         )
     return chosen
@@ -46,7 +46,7 @@ def _of(system, name, fallback=0.0):
 
 
 def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
-    """Return whether every gradient is within the amplitude limit.
+    """Check the peak gradient amplitude against ``max_grad``.
 
     Parameters
     ----------
@@ -58,18 +58,19 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     Returns
     -------
     is_ok : bool
-        True when no axis exceeds the limit.
+        True when the largest per-axis amplitude does not exceed ``max_grad``.
     report : SimpleNamespace
         ``limit``; the ``per_axis`` and ``vector`` peaks; and ``axes``, the
         peak of each of x, y and z on its own. Each peak carries ``value`` in
-        Hz/m, the 1-based ``block`` that plays it, and which ``axis``.
+        Hz/m, the 1-based ``block`` containing it, and its ``axis``.
 
     Notes
     -----
     Block rotations are applied before per-axis peaks are evaluated. Only the
-    largest per-axis peak is checked against the limit; a nonpositive limit
-    disables this check. The vector peak is the maximum simultaneous Euclidean
-    magnitude, not the norm of independently occurring axis peaks.
+    largest per-axis peak is compared with the limit; a nonpositive limit
+    disables the check. The vector peak is the largest simultaneous Euclidean
+    magnitude over the three physical axes; it is reported but not compared
+    with a limit, and it is not the norm of independently attained axis peaks.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_grad")
@@ -85,29 +86,31 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
 
 def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
-    """Return whether every gradient is within the slew limit, within a block.
+    """Check the within-block slew rate against ``max_slew``.
 
     Parameters
     ----------
     seq : Sequence
         Sequence to check.
     system : pypulseqpp.Opts, optional
-        The scanner to weigh it against; the sequence's own by default.
+        System limits; the sequence's own by default.
 
     Returns
     -------
     is_ok : bool
-        True when nothing slews too fast.
+        True when the largest per-axis slew rate does not exceed ``max_slew``.
     report : SimpleNamespace
-        ``limit``; the ``per_axis`` and ``vector`` slew peaks in Hz/m/s; and
-        ``axes``, the peak of each of x, y and z on its own.
+        ``limit``; the ``per_axis`` and ``vector`` slew-rate peaks in Hz/m/s;
+        and ``axes``, the peak of each of x, y and z on its own.
 
     Notes
     -----
-    Checks within-block slew after block rotations, not boundary jumps.
-    Only the largest per-axis peak is limited; a nonpositive limit disables
-    this check. Vector slew is the maximum simultaneous Euclidean magnitude.
-    Use check_grad_continuity for inter-block transitions.
+    Slew rates are evaluated within each block after block rotations;
+    boundaries between blocks are not covered. Only the largest per-axis peak
+    is compared with the limit; a nonpositive limit disables the check. The
+    vector slew rate is the largest simultaneous Euclidean magnitude, reported
+    but not compared with a limit. Use :func:`check_grad_continuity` for
+    transitions between blocks.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_slew")
@@ -124,31 +127,33 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
 
 def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
-    """Return whether each gradient carries on from the block before it.
+    """Check gradient amplitude continuity across block boundaries.
 
     Parameters
     ----------
     seq : Sequence
         The sequence to check.
     system : pypulseqpp.Opts, optional
-        The scanner whose slew limit a jump is judged against; the sequence's
-        own by default.
+        System limits supplying the slew limit a discontinuity is compared
+        with; the sequence's own by default.
 
     Returns
     -------
     is_ok : bool
-        True when nothing jumps and the sequence leaves its gradients at zero.
+        True when no discontinuity is found and every gradient waveform ends
+        at zero amplitude.
     report : SimpleNamespace
         ``limit``; the ``discontinuities`` found, each naming the ``block``,
-        the ``axis``, and what the gradient goes ``before`` and ``after`` the
-        jump, with the ``slew`` that step asks for; and ``ends_at_zero``.
+        the ``axis``, the amplitudes ``before`` and ``after`` the boundary and
+        the ``slew`` rate the step implies; and ``ends_at_zero``.
 
     Notes
     -----
-    Compare endpoints in physical coordinates after block rotations.
-    A missing gradient is zero. Jumps are assessed over one gradient raster,
-    and the final gradient must be zero. Block indices are 1-based, axes are
-    zero-based integers, amplitudes are in Hz/m and slew is in Hz/m/s.
+    Endpoints are compared in physical coordinates after block rotations.
+    An absent gradient contributes zero amplitude. A discontinuity is
+    evaluated over one gradient raster period, and the final amplitude on
+    every axis must be zero. Block indices are 1-based, axes are zero-based
+    integers, amplitudes are in Hz/m and slew rates in Hz/m/s.
     """
     limits = _limits(seq, system)
     limit = _of(limits, "max_slew")

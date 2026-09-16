@@ -180,9 +180,9 @@ class PropellerReadout2D(_PropellerReadout):
 class PropellerStackReadout(_PropellerReadout):
     """A stack of 2D PROPELLER blade sets, partition-encoded along z.
 
-    The blade turns about ``z``, which is the one axis the rotation leaves
-    alone, so the partition encode rides through it untouched: scale ``gz_pre``
-    per partition and turn the block per blade.
+    The blade turns about ``z``, the one axis the rotation leaves unchanged, so
+    the partition encode is unaffected by it: scale ``gz_pre`` per partition and
+    turn the block per blade.
 
     Examples
     --------

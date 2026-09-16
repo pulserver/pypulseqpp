@@ -125,10 +125,10 @@ def test_a_rotated_rosette_keeps_its_petals_and_turns_its_design_path(system):
     )
 
 
-def test_a_three_axis_interleave_has_no_plane_to_turn_in(system):
+def test_a_three_axis_interleaf_has_no_plane_to_turn_in(system):
     path = pp.calc_spiral_trajectory(FOV, 64, 8)
     volume = np.column_stack([path, np.linspace(-10.0, 10.0, path.shape[0])])
-    with pytest.raises(ValueError, match="planar interleave"):
+    with pytest.raises(ValueError, match="planar interleaf"):
         trajectories.Arbitrary(system, volume, matrix=64).rotated(0.5)
 
 

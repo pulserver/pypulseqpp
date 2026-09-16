@@ -13,7 +13,7 @@ from ..excitation.selective import SpatialSelectiveExcitation
 from .noncartesian import SpiralReadout2D
 
 #: The planes a navigator reads, and the rotation that carries the designed
-#: interleave onto each. The module is designed in x-y with its selection
+#: interleaf onto each. The module is designed in x-y with its selection
 #: gradient on z, which is the axial plane; the other two are that same
 #: module turned a quarter turn, so one waveform serves all three. Axes follow
 #: the patient convention: x left-right, y anterior-posterior, z
@@ -63,7 +63,7 @@ class SpiralNavigator(SequenceModule):
     excitation : SpatialSelectiveExcitation
         The pulse every plane is opened by.
     readout : SpiralReadout2D
-        The designed interleave every plane plays.
+        The designed interleaf every plane plays.
     rotations : dict
         The rotation carried by each plane's blocks, keyed by plane name.
     plane_duration : float
@@ -181,7 +181,7 @@ class SpiralNavigator(SequenceModule):
         Raises
         ------
         ValueError
-            If ``requested`` is negative, or asks for more than ``window``
+            If ``requested`` is negative, or exceeds the number ``window``
             holds.
         """
         if requested == "auto":

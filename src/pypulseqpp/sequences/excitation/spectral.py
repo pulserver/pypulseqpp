@@ -30,8 +30,8 @@ class FrequencySelectiveExcitation(RfModule):
     freq_offset_ppm : float, optional
         Centre of the band, relative to water (ppm). Water itself by default.
     freq_offset_hz : float, optional
-        Centre of the band as a frequency (Hz), added to whatever
-        ``freq_offset_ppm`` asks for.
+        Centre of the band as a frequency offset (Hz), added to the offset
+        ``freq_offset_ppm`` specifies.
     time_bw_product : float, optional
         Time-bandwidth product. Higher is a squarer band and a longer pulse.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional

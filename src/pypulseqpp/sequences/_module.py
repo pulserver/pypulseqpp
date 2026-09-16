@@ -1,4 +1,4 @@
-"""The base class every reusable sequence module is built on."""
+"""Base class of the reusable sequence modules."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ SEQUENCE_VIEWS = (
 
 
 def _unique(events: tuple) -> list:
-    """Distinct objects in ``events``, by identity, in first-seen order."""
+    """Return the distinct objects in ``events``, by identity, in first-seen order."""
     seen: dict[int, Any] = {}
     for event in events:
         seen.setdefault(id(event), event)
@@ -193,8 +193,9 @@ def _constructor_doc(cls: type) -> str | None:
 class SequenceModule(ABC):
     """A reusable block layout with named, mutable event templates.
 
-    Subclasses assign self.seq and add blocks in init_module. Played events
-    are published from constructor locals onto events and the module itself.
+    Subclasses assign ``self.seq`` and add blocks in ``init_module``. Events
+    are published from constructor locals onto ``events`` and onto the module
+    itself.
     Repeated references are deduplicated by identity: one distinct object
     becomes a scalar event, several become a list in first-seen order.
     Explicit register calls preserve the supplied structure, including
@@ -247,7 +248,7 @@ class SequenceModule(ABC):
 
     @abstractmethod
     def init_module(self, *args: Any, **kwargs: Any) -> None:
-        """Build the module: the part a subclass writes.
+        """Build the module's block layout; implemented by the subclass.
 
         Assign ``self.seq``, add blocks to it, and set :attr:`center` if the
         module is timed against something other than its own start. Events are
@@ -260,7 +261,7 @@ class SequenceModule(ABC):
 
     @property
     def seq(self):
-        """Stored sequence for the module's construction-time block layout.
+        """Sequence holding the module's construction-time block layout.
 
         Assigning a Sequence enables block recording. Later event-template
         changes affect replay through blocks, not this stored sequence.
@@ -280,7 +281,7 @@ class SequenceModule(ABC):
         self._seq = sequence
 
     def _find_init_frame(self) -> None:
-        """Retain all active init_module frames for this instance.
+        """Return the active ``init_module`` frames for this instance.
 
         Final locals from both subclass and base constructors are needed for
         event publication. Release the retained frames during finalisation.
@@ -334,7 +335,7 @@ class SequenceModule(ABC):
             self._set_event(name, played)
 
     def publish(self, **named: Any) -> None:
-        """Publish played events from the caller's locals and register keyword aliases.
+        """Publish events from the caller's locals and register keyword aliases.
 
         Use in construction helpers whose locals are not captured automatically.
         Keyword aliases take precedence over automatic names.
@@ -353,7 +354,7 @@ class SequenceModule(ABC):
             self._named.add(name)
 
     def _set_event(self, name: str, played: tuple) -> None:
-        """Publish ``played`` under ``name``, collapsed to one object if it is one."""
+        """Publish ``played`` under ``name``, collapsed to a single object where there is one."""
         unique = _unique(played)
         self._publish(name, unique[0] if len(unique) == 1 else unique)
 
@@ -379,7 +380,7 @@ class SequenceModule(ABC):
     # ------------------------------------------------------------------
 
     def __getattr__(self, name: str):
-        """Resolve selected sequence analyses and otherwise-unresolved event names."""
+        """Resolve the forwarded sequence analyses, then published event names."""
         if name.startswith("_"):
             # Never route dunder or private lookups: copy, pickle and inspect
             # probe for those, and answering would answer for the module.
@@ -414,7 +415,7 @@ class SequenceModule(ABC):
 
     @property
     def duration(self) -> float:
-        """Length of the module (s).
+        """Duration of the module in seconds.
 
         Summed from the blocks, unless the module derived its timing
         analytically and assigned the answer.

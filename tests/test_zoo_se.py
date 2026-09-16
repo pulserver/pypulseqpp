@@ -1,4 +1,4 @@
-"""The spin-echo zoo entries: 2D and 3D spin echo, 2D fast spin echo."""
+"""The spin-echo example sequences: 2D and 3D spin echo, 2D fast spin echo."""
 
 import importlib
 from itertools import pairwise

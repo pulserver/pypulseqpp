@@ -60,7 +60,7 @@ def _scalar(annotation) -> type | None:
 
 
 def _described(doc: str | None) -> dict[str, str]:
-    """One line of help per parameter, read off the function's own docstring.
+    """Return one line of help per parameter, taken from the function's own docstring.
 
     A NumPy ``Parameters`` block states each name, then its description
     indented under it; several names sharing a description are comma

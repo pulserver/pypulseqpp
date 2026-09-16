@@ -112,7 +112,7 @@ class _EpiReadout(SequenceModule):
     order : ArrayLike, optional
         ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
         row per line. Supplying one silences the generator arguments below; the
-        default asks ``calc_epi_order`` for a train.
+        default takes a train from ``calc_epi_order``.
     etl : int, optional
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
@@ -120,7 +120,7 @@ class _EpiReadout(SequenceModule):
         Which built-in ordering to generate. ``'linear'`` steps by
         ``segments * acceleration`` every line and never leaves its
         partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;
-        ``'zigzag'`` walks up and down a phase-encode segment instead of
+        ``'zigzag'`` traverses up and down a phase-encode segment instead of
         across the whole matrix.
     acceleration : int, optional
         Phase-encode undersampling, ``Ry``: lines the blip skips.

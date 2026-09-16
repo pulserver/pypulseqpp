@@ -41,7 +41,7 @@ def make_label(label: str, type: str, value):  # noqa: A002
     >>> event.type, event.label, event.value
     ('labelset', 'LIN', 12)
 
-    A name Pulseq does not define is accepted and travels by name:
+    A name Pulseq does not define is accepted and is carried by name:
 
     >>> pp.make_label("SPARKLE", "INC", 1).label
     'SPARKLE'

@@ -47,7 +47,7 @@ _STALE_AFTER = 24 * 3600.0
 
 
 def executable() -> Path:
-    """Return the SeqEyes program to run.
+    """Return the SeqEyes executable to run.
 
     The one ``pypulseqpp-seqeyes`` installs comes first, then ``seqeyes`` on
     ``PATH``.
@@ -55,7 +55,7 @@ def executable() -> Path:
     Raises
     ------
     ModuleNotFoundError
-        If neither is there.
+        If neither is available.
     """
     try:
         import pypulseqpp_seqeyes
@@ -75,7 +75,7 @@ def executable() -> Path:
 
 
 def _environment(program: Path, **extra: str) -> dict[str, str]:
-    """Return the environment ``program`` runs in, with ``extra`` set.
+    """Return the environment ``program`` runs in, with ``extra`` applied.
 
     The viewer ``pypulseqpp-seqeyes`` installs carries no Qt and is pointed at
     PySide6's; any other SeqEyes brings its own.
@@ -93,7 +93,7 @@ def _environment(program: Path, **extra: str) -> dict[str, str]:
 def blocks_for(
     seq, time_range=None, block_range=None, tr_range=None
 ) -> tuple[int, int]:
-    """Return the 1-based, inclusive blocks a range names.
+    """Return the 1-based, inclusive block range a selection names.
 
     Parameters
     ----------
@@ -174,11 +174,11 @@ def _pair(given) -> tuple[float, float]:
 
 
 class Viewer:
-    """A SeqEyes window showing a sequence.
+    """A SeqEyes viewer window showing a sequence.
 
-    The file it reads stays until the window is closed and this is told so,
-    by `wait` or `close`; a window still open when Python exits keeps its
-    file, and the next `plot` sweeps it once it is a day old.
+    The file it reads is retained until the window is closed through `wait` or
+    `close`. A window still open when Python exits keeps its file, and the next
+    `plot` removes that file once it is a day old.
     """
 
     def __init__(self, process: subprocess.Popen, folder: Path) -> None:
@@ -189,12 +189,12 @@ class Viewer:
 
     @property
     def path(self) -> Path:
-        """The file SeqEyes is showing."""
+        """Path of the file the viewer is showing."""
         return self._folder / f"{_NAME}.seq"
 
     @property
     def is_open(self) -> bool:
-        """Whether the window is still there."""
+        """Whether the viewer window is open."""
         return self._process.poll() is None
 
     def wait(self, timeout: float | None = None) -> int:
@@ -260,7 +260,7 @@ _SYSTEM_LIBRARIES = (
 
 
 def _said(folder: Path) -> str:
-    """Return what SeqEyes printed while showing what is in ``folder``.
+    """Return the viewer's output while it was showing the file in ``folder``.
 
     A library the system was expected to provide and did not is followed by
     how to install it.
@@ -275,7 +275,7 @@ def _said(folder: Path) -> str:
 
 
 def _folder() -> Path:
-    """Return a new folder for one drawing, sweeping stale ones beside it.
+    """Return a new folder for one drawing, removing stale ones beside it.
 
     On Linux it is under ``/dev/shm``, which is memory rather than disk.
     """
@@ -312,7 +312,7 @@ def plot(
     save: bool = False,
     **options,
 ) -> Viewer:
-    """Open a SeqEyes window on the sequence.
+    """Open a SeqEyes viewer window on the sequence.
 
     See `Sequence.plot`, which is what a script calls.
     """
@@ -363,7 +363,7 @@ def plot(
 
 
 def _run(program: Path, arguments: list[str], folder: Path, **environment):
-    """Start SeqEyes, with what it prints going to a log beside the file."""
+    """Start SeqEyes, directing its output to a log beside the file."""
     env = _environment(program, **environment)
     with (folder / "seqeyes.log").open("ab") as log:
         return subprocess.Popen(  # noqa: S603 -- our own arguments, no shell
@@ -376,7 +376,7 @@ def _run(program: Path, arguments: list[str], folder: Path, **environment):
 
 
 def _capture(program: Path, arguments: list[str], path: Path, where: Path) -> None:
-    """Write SeqEyes' pictures of the sequence and its trajectory to ``where``.
+    """Write the viewer's sequence and trajectory images to ``where``.
 
     Raises
     ------
@@ -427,7 +427,7 @@ def _is_default(value, default) -> bool:
 
 
 def _span(seq, first: int, last: int) -> tuple[float, float]:
-    """Return when block ``first`` starts and block ``last`` ends, in s."""
+    """Return the start time of block ``first`` and the end time of block ``last``, in seconds."""
     durations = np.asarray(seq._native.block_durations())
     before = float(durations[: first - 1].sum())
     return before, before + float(durations[first - 1 : last].sum())

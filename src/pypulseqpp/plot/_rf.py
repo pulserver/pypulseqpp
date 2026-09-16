@@ -1,4 +1,4 @@
-"""An RF pulse beside the magnetisation profile it produces."""
+"""RF pulse envelope beside the magnetisation profile it produces."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def _blocks_of(seq) -> list[tuple]:
 
 
 def _first_rf(blocks, use: str | None = None):
-    """Return the first RF event played, optionally the first tagged with ``use``."""
+    """Return the first RF event, or the first tagged with ``use``."""
     for block in blocks:
         for event in block:
             if getattr(event, "type", None) != "rf":
@@ -56,7 +56,7 @@ def _first_rf(blocks, use: str | None = None):
 
 
 def _window(source, pulse, time_range, block_range):
-    """Return the blocks a profile is simulated over, as a sequence, and the pulse's use.
+    """Return the blocks a profile is simulated over, as a Sequence, with the pulse's use.
 
     A sequence gives the block of its first pulse matching ``pulse`` unless a
     range is given; a module gives all its blocks; an RF event is played alone.
@@ -127,7 +127,7 @@ def _gradient_at(event, time: float) -> float:
 
 
 def _selection(blocks, pulse) -> tuple[int | None, float]:
-    """Return the channel a pulse is selective along, and the gradient at its centre."""
+    """Return the axis a pulse is selective along, and the gradient amplitude at its centre."""
     centre = float(pulse.delay) + float(pulse.center)
     for block in blocks:
         if not any(event is pulse for event in block):
@@ -165,14 +165,14 @@ def _on_one_raster(window, dt: float):
 
 
 def _field(axis_values, channel, gradients, times):
-    """Return the longitudinal field each grid point sees over ``times``, in Hz."""
+    """Return the longitudinal field at each grid point over ``times``, in Hz."""
     if channel is None:
         return np.asarray(axis_values, dtype=float)[:, None] * np.ones_like(times)
     return np.outer(1e-3 * np.asarray(axis_values, dtype=float), gradients[channel])
 
 
 def _responses(b1, field, dt: float) -> dict:
-    """Every response a ``use`` can ask for, from three starting states."""
+    """Return the responses a ``use`` selects, simulated from three starting states."""
     from .._sim_rf import sim_bloch
 
     from_z, from_x, from_y = (
@@ -228,7 +228,7 @@ def plot_rf(
     Parameters
     ----------
     source : Sequence, sequence module or RF event
-        What plays the pulse. From a sequence only the pulse's own block is
+        Source of the RF event. From a sequence, only the pulse's own block is
         simulated unless a range is given.
     pulse : RF event or str, optional
         Which pulse of ``source``: an event, or the ``use`` it is tagged with

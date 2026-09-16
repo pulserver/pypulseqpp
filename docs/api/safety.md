@@ -1,10 +1,11 @@
-# Hardware safety
+# Gradient, PNS and SAR checks
 
-`pypulseqpp.safety`: what a complete sequence asks of the scanner and of the
-subject. The checks apply block rotations, judge the three physical axes
-together, and use the sequence's own limits or another
-{class}`pypulseqpp.Opts`. They are estimates, not a complete scanner or
-patient-safety assessment.
+`pypulseqpp.safety`: checks of a complete sequence against gradient hardware
+limits, vendor forbidden gradient bands, a peripheral-nerve-stimulation model
+and a VOP SAR model. Every check applies each block's rotation and evaluates
+the three physical gradient axes, and takes its limits from the sequence's own
+{class}`pypulseqpp.Opts` or from one passed to it. They are estimates, not a
+complete scanner or patient-safety assessment.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.safety
@@ -12,10 +13,15 @@ patient-safety assessment.
 
 ## Gradient limits
 
-{func}`check_max_grad` checks the peak played amplitude,
-{func}`check_max_slew` the slew within blocks, and
-{func}`check_grad_continuity` the transitions between blocks and the end of
-the sequence.
+{func}`check_max_grad` checks the peak gradient amplitude,
+{func}`check_max_slew` the slew rate within blocks, and
+{func}`check_grad_continuity` the gradient amplitude across block boundaries
+and at the end of the sequence.
+
+The amplitude and slew-rate checks compare the largest **per-axis** peak with
+`max_grad` and `max_slew`. They also report the largest simultaneous vector
+magnitude over the three physical axes, but do not compare it with a limit;
+that magnitude is not the norm of independently attained axis peaks.
 
 ```{eval-rst}
 .. autosummary::

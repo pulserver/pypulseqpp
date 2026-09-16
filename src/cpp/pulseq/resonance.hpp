@@ -23,7 +23,7 @@ namespace pulseq
         /** Edges in Hz, inclusive. */
         double f_min = 0.0;
         double f_max = 0.0;
-        /** Largest amplitude allowed inside, in Hz/m. */
+        /** Amplitude threshold inside the band, in Hz/m. */
         double threshold = 0.0;
     };
 
@@ -40,12 +40,12 @@ namespace pulseq
         std::string mkl_runtime;
     };
 
-    /** One band on one axis: its worst window, and how many windows violate it. */
+    /** One forbidden band on one axis: its worst window and its violation count. */
     struct BandReading
     {
         int band = 0;
         int axis = 0;
-        /** Largest amplitude inside the band over all windows, Hz/m, and where. */
+        /** Largest amplitude inside the band over all windows, in Hz/m, with its frequency. */
         double peak = 0.0;
         double frequency = 0.0;
         int64_t window = 0;

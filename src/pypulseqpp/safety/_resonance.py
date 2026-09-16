@@ -16,7 +16,7 @@ from ._physical import _gamma, _prescription
 
 
 class ForbiddenBand(NamedTuple):
-    """A frequency range a physical gradient axis must not be driven in.
+    """A forbidden gradient band: a frequency range on one physical axis.
 
     ``axis`` is ``"x"``, ``"y"``, ``"z"`` or None for every axis; ``f_min`` and
     ``f_max`` are inclusive edges in Hz; ``tolerance`` is the largest amplitude
@@ -166,7 +166,7 @@ def check_mech_resonance(
     rotation=None,
     system=None,
 ) -> tuple[bool, SimpleNamespace]:
-    """Return whether no window drives a forbidden band above its threshold.
+    """Check the gradient amplitude spectrum against forbidden gradient bands.
 
     Parameters
     ----------

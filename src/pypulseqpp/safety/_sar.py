@@ -234,7 +234,7 @@ def check_sar(
     default_shim=None,
     reference=None,
 ) -> tuple[bool, SimpleNamespace]:
-    """Return whether no repetition exceeds the local and global SAR limits.
+    """Check window-averaged local and global SAR against their limits.
 
     Parameters
     ----------

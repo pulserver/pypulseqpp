@@ -1,7 +1,11 @@
-# Timing utilities
+# Timing and rasterization
 
-`pypulseqpp`: legal ADC timing, and times quantized to the scanner's rasters.
-Pulseq events land on the RF, gradient, ADC or block raster.
+`pypulseqpp`: ADC dwell and acquisition duration compatible with both the ADC
+and gradient rasters, and times quantized to a raster. Pulseq quantizes event
+timing to the RF, gradient, ADC and block duration rasters.
+
+Receiver bandwidth is the full sampling bandwidth, `1 / dwell` in Hz;
+bandwidth per pixel is `1 / (num_samples * dwell)`.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
