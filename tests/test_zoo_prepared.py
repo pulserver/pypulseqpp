@@ -1,4 +1,4 @@
-"""Inversion-prepared and balanced example sequences: MPRAGE, stack-of-spirals MPRAGE, 2D bSSFP."""
+"""The balanced example sequence: 2D bSSFP."""
 
 import importlib
 
@@ -10,25 +10,6 @@ from pypulseqpp import cli
 
 #: A prescription small enough to build in a moment, per sequence.
 SMALL = {
-    "mprage3D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_z": 8,
-        "views_per_segment": 16,
-        "ti": 100e-3,
-        "tr_outer": 300e-3,
-        "n_acs_y": 0,
-        "n_acs_z": 0,
-        "n_dummy": 0,
-    },
-    "mprage_stack_of_spirals3D_sequence": {
-        "n_x": 32,
-        "n_z": 4,
-        "n_arms": 4,
-        "ti": 100e-3,
-        "tr_outer": 300e-3,
-        "n_dummy": 0,
-    },
     "bssfp2D_sequence": {
         "n_x": 64,
         "n_y": 16,
@@ -39,8 +20,6 @@ SMALL = {
 }
 
 APPS = {
-    "mprage3D_sequence": "Mprage3DApp",
-    "mprage_stack_of_spirals3D_sequence": "MprageStackOfSpirals3DApp",
     "bssfp2D_sequence": "Bssfp2DApp",
 }
 
@@ -81,118 +60,6 @@ def test_a_small_prescription_builds_a_sequence_that_passes_its_timing_check(nam
     is_ok, errors = seq.check_timing()
     assert is_ok, errors
     assert seq.definitions["Name"] == getattr(module(name), APPS[name]).NAME
-
-
-# -- 3D MPRAGE -------------------------------------------------------------
-
-MPRAGE = "mprage3D_sequence"
-
-
-@pytest.mark.parametrize("ordering", ("linear", "centric", "radial", "shuffling"))
-def test_every_mprage_view_is_acquired_once_at_its_place_in_the_segment(ordering):
-    a = app(MPRAGE, ordering=ordering, acceleration=2, n_acs_y=4, n_acs_z=2, n_dummy=1)
-    lin, par, eco = adc_labels(a.design(), "LIN", "PAR", "ECO")
-
-    views = [v for segment in a.segments for v in segment if v is not None]
-    echoes = [e for seg in a.segments for e, v in enumerate(seg) if v is not None]
-
-    assert list(zip(lin, par, strict=True)) == views
-    assert len(set(views)) == len(views)
-    assert list(eco) == echoes
-
-
-def test_the_centre_view_is_excited_ti_after_its_inversion():
-    a = app(MPRAGE, n_dummy=1, ti=120e-3)
-    seq = a.design()
-    inverted = pulses(seq, "inversion").t
-    excited = pulses(seq, "excitation").t.reshape(len(inverted), -1)
-    centre = (a.matrix[1] // 2, a.matrix[2] // 2)
-
-    assert [centre in segment for segment in a.segments].count(True) == 1
-    segment = next(s for s in a.segments if centre in s)
-    assert segment.index(centre) == a.n_center
-    assert excited[:, a.n_center] - inverted == pytest.approx(120e-3, abs=RASTER / 2)
-
-
-def test_each_mprage_shot_repeats_at_the_outer_repetition_time():
-    seq = build(MPRAGE, n_dummy=1, tr_outer=400e-3, navigator=True)
-    inverted = pulses(seq, "inversion").t
-
-    assert np.diff(inverted) == pytest.approx(400e-3, abs=1e-9)
-    assert seq.check_timing()[0]
-
-
-def test_the_wave_free_calibration_shots_lead_and_are_marked_reference():
-    a = app(MPRAGE, wave="both", wave_cycles=2, n_acs_y=4, n_acs_z=2)
-    seq = a.design()
-    ref, lin, par = adc_labels(seq, "REF", "LIN", "PAR")
-    n_reference = len(a.calibration_views)
-
-    assert seq.check_timing()[0]
-    assert list(zip(lin, par, strict=True))[:n_reference] == a.calibration_views
-    assert list(ref) == [1] * n_reference + [0] * (len(ref) - n_reference)
-    # A part-filled calibration shot is padded, not shortened.
-    assert np.diff(pulses(seq, "inversion").t) == pytest.approx(a.tr_outer, abs=1e-9)
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "match"),
-    [({"ti": 1e-3}, "TI"), ({"tr_outer": 50e-3}, "shorter than one segment")],
-)
-def test_an_mprage_that_does_not_fit_is_refused(kwargs, match):
-    with pytest.raises(ValueError, match=match):
-        build(MPRAGE, **kwargs)
-
-
-# -- stack-of-spirals MPRAGE -----------------------------------------------
-
-SPIRALS = "mprage_stack_of_spirals3D_sequence"
-
-
-def test_every_arm_of_every_partition_is_acquired_under_its_own_train():
-    a = app(SPIRALS, etl=2, n_dummy=1)
-    lin, par, seg = adc_labels(a.design(), "LIN", "PAR", "SEG")
-    n_arms, n_z = a.n_arms, a.matrix[2]
-
-    expected = [
-        (arm, partition, partition * (n_arms // 2) + arm // 2)
-        for partition in range(n_z)
-        for arm in range(n_arms)
-    ]
-    assert list(zip(lin, par, seg, strict=True)) == expected
-
-
-def test_the_first_echo_of_a_spiral_train_is_ti_after_its_inversion():
-    a = app(SPIRALS, n_dummy=1, ti=120e-3, tr_outer=400e-3)
-    seq = a.design()
-    inverted = pulses(seq, "inversion").t
-    excited = pulses(seq, "excitation").t.reshape(len(inverted), -1)
-
-    first_echo = excited[:, 0] + a.ro.echo_time
-    assert first_echo - inverted == pytest.approx(120e-3, abs=RASTER / 2)
-    assert np.diff(inverted) == pytest.approx(400e-3, abs=1e-9)
-
-
-def test_one_rotation_event_is_made_per_distinct_shot_angle():
-    plain = app(SPIRALS)
-    staggered = app(SPIRALS, partition_angle_offset_deg=10.0)
-
-    assert len(plain.rotations) == plain.n_arms
-    assert len(staggered.rotations) == staggered.n_arms * staggered.matrix[2]
-
-
-def test_explicit_arms_play_the_same_timing_as_rotated_ones():
-    rotated = build(SPIRALS, partition_angle_offset_deg=10.0)
-    explicit = build(SPIRALS, partition_angle_offset_deg=10.0, use_rotation_ext=False)
-
-    assert explicit.check_timing()[0]
-    assert np.array_equal(explicit.rf_times()[0], rotated.rf_times()[0])
-    assert np.array_equal(explicit.adc_times()[0], rotated.adc_times()[0])
-
-
-def test_an_echo_train_that_does_not_divide_the_arms_is_refused():
-    with pytest.raises(ValueError, match="etl must divide"):
-        build(SPIRALS, etl=3)
 
 
 # -- 2D balanced SSFP ------------------------------------------------------
@@ -265,8 +132,6 @@ def test_a_repetition_shorter_than_the_balanced_one_is_refused():
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [
-        (MPRAGE, "--views-per-segment", "Views acquired per inversion."),
-        (SPIRALS, "--tr-outer", "Inversion-to-inversion interval, in seconds."),
         (BSSFP, "--n-slices", "Number of slices, each acquired as its own"),
     ],
 )

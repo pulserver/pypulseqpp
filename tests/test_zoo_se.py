@@ -1,4 +1,4 @@
-"""The spin-echo example sequences: 2D and 3D spin echo, 2D fast spin echo."""
+"""The spin-echo example sequences: 2D and 3D spin echo."""
 
 import importlib
 from itertools import pairwise
@@ -11,9 +11,8 @@ from pypulseqpp import cli
 
 se2D = importlib.import_module("pypulseqpp.sequences.sequence.se2D_sequence")
 se3D = importlib.import_module("pypulseqpp.sequences.sequence.se3D_sequence")
-fse2D = importlib.import_module("pypulseqpp.sequences.sequence.fse2D_sequence")
 
-MODULES = {"se2D_sequence": se2D, "se3D_sequence": se3D, "fse2D_sequence": fse2D}
+MODULES = {"se2D_sequence": se2D, "se3D_sequence": se3D}
 
 #: A prescription small enough to build in a moment, per sequence.
 SMALL = {
@@ -26,21 +25,11 @@ SMALL = {
         "n_acs_z": 0,
         "tr": None,
     },
-    "fse2D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_slices": 1,
-        "etl": 4,
-        "n_acs_y": 0,
-        "te": None,
-        "tr": None,
-    },
 }
 
 APPS = {
     "se2D_sequence": se2D.Se2DApp,
     "se3D_sequence": se3D.Se3DApp,
-    "fse2D_sequence": fse2D.Fse2DApp,
 }
 
 
@@ -102,8 +91,7 @@ def test_the_slices_of_a_spin_echo_packet_are_not_neighbours_and_keep_the_tr():
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(40e-3)
 
 
-@pytest.mark.parametrize("name", ["se2D_sequence", "fse2D_sequence"])
-def test_every_refocusing_pulse_selects_the_slice_its_excitation_does(name):
+def test_every_refocusing_pulse_selects_the_slice_its_excitation_does():
     """Refocusing offset = excitation offset x the ratio of selection amplitudes.
 
     The refocusing pulse selects on the plateau between its crushers, its
@@ -111,8 +99,9 @@ def test_every_refocusing_pulse_selects_the_slice_its_excitation_does(name):
     ``amplitude`` reports.
     """
     thickness = 4e-3
-    spacing = "slice_spacing" if name == "se2D_sequence" else "slice_gap"
-    sequence = app(name, n_slices=3, slice_thickness=thickness, **{spacing: 1e-3})
+    sequence = app(
+        "se2D_sequence", n_slices=3, slice_thickness=thickness, slice_spacing=1e-3
+    )
     pulses, _ = played(sequence.design())
     excitation = sequence.exc.selection_amplitude
     refocusing = sequence.ref.selection_amplitude
@@ -195,52 +184,6 @@ def test_the_180_sits_midway_for_a_te_off_the_raster(name, excitation):
     assert requested - 1e-9 <= written <= requested + 2 * raster
 
 
-# -- 2D fast spin echo -------------------------------------------------------
-
-
-def test_every_sampled_line_is_acquired_once_per_slice_in_train_order():
-    fse = app("fse2D_sequence", n_slices=3, acceleration=2, n_acs_y=4, n_dummy=1)
-    lin, slc, ima = adc_labels(fse.design(), "LIN", "SLC", "IMA")
-
-    expected = [
-        (line, s)
-        for group in fse.passes
-        for train in fse.trains
-        for s in group
-        for line in train
-        if line is not None
-    ]
-    assert list(zip(lin, slc, strict=True)) == expected
-    assert list(ima) == [int(line in fse.calibration) for line, _ in expected]
-    sampled = [line for train in fse.trains for line in train if line is not None]
-    assert len(set(sampled)) == len(sampled)
-
-
-def test_every_excitation_is_followed_by_one_train_of_refocusing_pulses():
-    fse = app("fse2D_sequence", etl=6, n_slices=2, n_dummy=1)
-    uses = [use for _, use, _ in played(fse.design())[0]]
-    trains = len(fse.passes[0]) * (1 + len(fse.trains))
-
-    assert uses == (["excitation"] + ["refocusing"] * 6) * trains
-
-
-def test_the_centre_line_is_acquired_at_the_effective_echo_asked_for():
-    fse = app("fse2D_sequence", n_y=32, etl=8, te=40e-3)
-    written = np.atleast_1d(fse.design().definitions["TE"])[0]
-    center = fse.matrix[1] // 2
-
-    assert all(
-        train.index(center) == fse.n_center for train in fse.trains if center in train
-    )
-    assert written == pytest.approx(fse.fse.echo_times[fse.n_center])
-    assert abs(written - 40e-3) <= fse.fse.esp / 2
-
-
-def test_a_repetition_shorter_than_the_train_is_refused():
-    with pytest.raises(ValueError, match="shorter than one train"):
-        fse2D.main(**{**SMALL["fse2D_sequence"], "tr": 5e-3})
-
-
 # -- the command line --------------------------------------------------------
 
 
@@ -249,7 +192,6 @@ def test_a_repetition_shorter_than_the_train_is_refused():
     [
         ("se2D_sequence", "--partial-fourier-x", "Fraction of the echo acquired"),
         ("se3D_sequence", "--n-z", "Matrix size along the readout"),
-        ("fse2D_sequence", "--etl", "Echo train length: lines per excitation."),
     ],
 )
 def test_a_flag_is_named_and_described_by_the_function_it_runs(

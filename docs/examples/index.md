@@ -33,7 +33,7 @@ preparation and readout modules they are built from.
 | `gre3D_sequence` | RF-spoiled 3D Cartesian gradient echo. |
 | `gre_multiecho2D_sequence` | RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo. |
 | `gre_multiecho3D_sequence` | RF-spoiled multi-echo 3D Cartesian gradient echo. |
-| `mprage3D_sequence` | 3D MPRAGE: one adiabatic inversion per segment of spoiled low-flip lines. |
+| `mprage3D_sequence` | 3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines. |
 
 
 ## Cartesian spin echo
@@ -42,7 +42,6 @@ preparation and readout modules they are built from.
 | --- | --- |
 | `se2D_sequence` | Multi-slice 2D Cartesian spin echo: one line per excitation. |
 | `se3D_sequence` | 3D Cartesian spin echo: one ``(line, partition)`` view per excitation. |
-| `fse2D_sequence` | Multi-slice 2D Cartesian fast spin echo: one CPMG train per excitation. |
 | `fse3D_sequence` | 3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid. |
 
 
@@ -70,6 +69,7 @@ preparation and readout modules they are built from.
 | `se_radial2D_sequence` | Multi-slice 2D radial spin echo: one full spoke per excitation. |
 | `gre_stack_of_stars3D_sequence` | RF-spoiled 3D stack of stars: radial spokes in-plane, Cartesian partitions along z. |
 | `se_stack_of_stars3D_sequence` | 3D stack-of-stars spin echo: one spoke at one partition per excitation. |
+| `mprage_stack_of_stars3D_sequence` | 3D MPRAGE on a stack of stars: one inversion per partition, then its spokes. |
 
 
 ## Spiral
@@ -80,7 +80,7 @@ preparation and readout modules they are built from.
 | `se_spiral2D_sequence` | Multi-slice 2D spiral spin echo: one interleaf per excitation. |
 | `gre_stack_of_spirals3D_sequence` | RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z. |
 | `se_stack_of_spirals3D_sequence` | 3D stack-of-spirals spin echo: one interleaf at one partition per excitation. |
-| `mprage_stack_of_spirals3D_sequence` | 3D MPRAGE whose shots play spiral arms of one partition. |
+| `mprage_stack_of_spirals3D_sequence` | 3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves. |
 
 
 ## PROPELLER
