@@ -8,6 +8,7 @@
 
 user_guide
 developer_guide
+guides/developer/documentation
 documentation_style
 ```
 

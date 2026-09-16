@@ -14,7 +14,7 @@ repos:
         entry: bash scripts/format_and_lint.sh
         language: system
         pass_filenames: false
-        types_or: [python, markdown]
+        types: [python]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
