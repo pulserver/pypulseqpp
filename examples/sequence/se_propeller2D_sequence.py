@@ -38,8 +38,6 @@ class SePropeller2DApp(sequences.SequenceApp):
     TIME_BW_PRODUCT = 4.0
     #: Readout oversampling factor.
     READOUT_OVERSAMPLING = 2.0
-    #: Non-acquiring repetitions, at the first blade's angle, before each packet.
-    N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
     #: across one voxel.
     CRUSHER_CYCLES = 4.0
@@ -59,6 +57,7 @@ class SePropeller2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 0,
         blade_width: int = 16,
     ) -> None:
         """Design the pulses, the readout, the slice packets and the blade angles.
@@ -87,6 +86,9 @@ class SePropeller2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one blade in every ``ry`` of the Nyquist set
             is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first blade's angle, before each
+            packet.
         blade_width : int, optional
             Phase-encode lines per blade, at most ``n``.
 
@@ -96,6 +98,7 @@ class SePropeller2DApp(sequences.SequenceApp):
             If ``ry`` is below one, ``blade_width`` is outside ``[1, n]``, or
             the TE or TR is shorter than the pulses and the readout take.
         """
+        self.n_dummy = n_dummy
         if ry < 1:
             raise ValueError(f"ry must be at least 1, got {ry}")
         if not 1 <= blade_width <= n:
@@ -203,7 +206,7 @@ class SePropeller2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every blade line at each of its slices."""
-        views = [None] * self.N_DUMMY + self.views
+        views = [None] * self.n_dummy + self.views
         for packet in self.packets:
             for view in views:
                 for i, s in enumerate(packet):

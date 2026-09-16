@@ -23,7 +23,7 @@ class Epi3DApp(sequences.SequenceApp):
     CAIPI sawtooth traverses within the train. Every acquisition carries ``REV``
     for its read polarity and its partition as ``PAR``. The imaging is
     preceded by linked prescans (:meth:`prescans`): an undersampled scan's
-    ``calibration``, a Cartesian gradient echo over the central ``n_acs x
+    ``calibration``, a Cartesian gradient echo over the central ``n_acs_y x
     n_acs_z`` rectangle (``REF``); then the ``navigator``,
     :attr:`NAVIGATOR_LINES` blip-nulled lines at the centre partition (``NAV``,
     ``REF``) and an opposite-phase-encode reference train (``SET = 1``).
@@ -68,7 +68,7 @@ class Epi3DApp(sequences.SequenceApp):
         caipi_shift: int = 1,
         partial_fourier: float = 1.0,
         partial_fourier_z: float = 1.0,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_acs_z: int = 16,
         readout_bandwidth_hz: float = 500e3,
         opposite_reference: bool = True,
@@ -119,7 +119,7 @@ class Epi3DApp(sequences.SequenceApp):
         partial_fourier_z : float, optional
             Fraction of the shells acquired along z, in ``(0.5, 1]``. Drops
             the leading shells.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Calibration extent along y, in lines.
         n_acs_z : int, optional
             Calibration extent along z, in partitions.
@@ -228,7 +228,7 @@ class Epi3DApp(sequences.SequenceApp):
             or partial_fourier < 1.0
             or partial_fourier_z < 1.0
         )
-        acs_y = calc_calibration_lines(n_y, n_acs)
+        acs_y = calc_calibration_lines(n_y, n_acs_y)
         acs_z = calc_calibration_lines(n_z, n_acs_z)
         # Partitions outer, lines inner.
         self.acs = [(y, z) for z in acs_z for y in acs_y] if undersampled else []

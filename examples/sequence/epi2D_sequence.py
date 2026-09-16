@@ -74,7 +74,7 @@ class Epi2DApp(sequences.SequenceApp):
         segments: int = 1,
         acceleration: int = 1,
         n_bands: int = 1,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         readout_bandwidth_hz: float = 500e3,
         opposite_reference: bool = True,
         slice_order: str = "interleaved",
@@ -118,7 +118,7 @@ class Epi2DApp(sequences.SequenceApp):
         n_bands : int, optional
             Multiband factor: slices excited at once under ``sms``. It must
             divide ``n_slices``.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Calibration extent along y, in lines, of the gradient-echo
             calibration.
         readout_bandwidth_hz : float, optional
@@ -264,7 +264,7 @@ class Epi2DApp(sequences.SequenceApp):
         # A gradient echo keeps EPI distortion out of the coil maps. An
         # accelerated scan calibrates from it, and a multiband scan always does.
         self.acs = (
-            calc_calibration_lines(n_y, n_acs) if self.sms or acceleration > 1 else []
+            calc_calibration_lines(n_y, n_acs_y) if self.sms or acceleration > 1 else []
         )
         self.gre = None
         if self.acs:

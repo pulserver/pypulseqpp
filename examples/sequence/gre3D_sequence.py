@@ -51,6 +51,8 @@ def sampled_views(
     caipi_shift: int,
     calibration: tuple[int, int],
     partial_fourier: tuple[float, float],
+    elliptical_sampling: bool = False,
+    elliptical_acs: bool = False,
 ) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
     """Return the ``(line, partition)`` pairs in play order, and the calibration pairs.
 
@@ -58,38 +60,57 @@ def sampled_views(
     line from the centre keep ``(z - nz // 2 - caipi_shift * j) % rz == 0``,
     so the centre pair is always acquired and the partition lattice climbs
     ``caipi_shift`` per acquired line. Partial Fourier drops the lines and the
-    partitions before the centre. Under undersampling the calibration
-    rectangle, centred on the same pair, leads. Both parts run line by line,
-    each line's partitions in order.
+    partitions before the centre, and ``elliptical_sampling`` the pairs outside
+    the ellipse inscribed in the ``ny x nz`` grid. Under undersampling the
+    ``n_acs_y x n_acs_z`` calibration region, centred on the same pair, leads
+    and is acquired whole: a rectangle, or under ``elliptical_acs`` the ellipse
+    inscribed in it. Both parts run line by line, each line's partitions in
+    order.
     """
     (ny, nz), (ry, rz) = shape, acceleration
     first_y = ny - round(partial_fourier[0] * ny)
     first_z = nz - round(partial_fourier[1] * nz)
-    cy, cz = calibration if ry * rz > 1 else (0, 0)
-    lines = range(max(ny // 2 - cy // 2, first_y), min(ny // 2 + (cy + 1) // 2, ny))
-    partitions = range(
-        max(nz // 2 - cz // 2, first_z), min(nz // 2 + (cz + 1) // 2, nz)
+    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
+
+    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
+        # Offsets from the centre pair, the one the encodes scale to zero.
+        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
+        return dy * dy + dz * dz <= 0.25
+
+    lines_acs = range(
+        max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
     )
-    rectangle = [(y, z) for y in lines for z in partitions]
-    inside = set(rectangle)
+    partitions_acs = range(
+        max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
+    )
+    region = [
+        (y, z)
+        for y in lines_acs
+        for z in partitions_acs
+        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
+    ]
+    calibrating = set(region)
     lattice = [
         (y, z)
         for y in range(first_y, ny)
         if (y - ny // 2) % ry == 0
         for z in range(first_z, nz)
         if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        and (y, z) not in inside
+        and (not elliptical_sampling or inside(y, z, ny, nz))
+        and (y, z) not in calibrating
     ]
-    return rectangle + lattice, inside
+    return region + lattice, calibrating
 
 
 class Gre3DApp(sequences.SequenceApp):
     """RF-spoiled 3D Cartesian gradient echo.
 
     One line per repetition, phase-encoded along y and z over a CAIPIRINHA
-    lattice that always holds the centre of k-space. Under undersampling the
-    fully sampled calibration rectangle leads, marked ``IMA``. Lines are played
-    in order, each line's partitions one after another.
+    lattice that always holds the centre of k-space, optionally cropped to an
+    ellipse. Under undersampling the fully sampled calibration region, a
+    rectangle or an ellipse, leads, marked ``IMA``; under wave-CAIPI it is
+    first acquired wave-free and marked ``REF``. Lines are played in order,
+    each line's partitions one after another.
 
     Examples
     --------
@@ -112,8 +133,6 @@ class Gre3DApp(sequences.SequenceApp):
     #: Fat methylene shift from water (ppm), converted against ``system.B0``
     #: when the spectral-spatial pulse is built.
     FAT_SHIFT_PPM = -3.4
-    #: Non-acquiring repetitions before the first view.
-    N_DUMMY = 64
     #: Quadratic RF spoiling phase increment (degrees).
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the readout axis at the end of each repetition, in
@@ -139,10 +158,16 @@ class Gre3DApp(sequences.SequenceApp):
         partial_fourier_y: float = 1.0,
         partial_fourier_z: float = 1.0,
         *,
+        n_dummy: int = 64,
         excitation: str = "slab",
         readout_oversampling: float = 2.0,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_acs_z: int = 16,
+        elliptical_sampling: bool = True,
+        elliptical_acs: bool = False,
+        wave: str = "both",
+        wave_cycles: int = 8,
+        wave_amplitude: float = 0.0,
     ) -> None:
         """Design the excitation, the readout and the ``(line, partition)`` order.
 
@@ -172,24 +197,44 @@ class Gre3DApp(sequences.SequenceApp):
         partial_fourier_y, partial_fourier_z : float, optional
             Fraction of the phase- and partition-encode extent acquired, in
             ``[0.75, 1]``.
+        n_dummy : int, optional
+            Non-acquiring repetitions before the first view.
         excitation : {'slab', 'nonselective', 'spsp'}, optional
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
-        n_acs, n_acs_z : int, optional
-            Extent of the fully sampled calibration rectangle along the phase
+        n_acs_y, n_acs_z : int, optional
+            Extent of the fully sampled calibration region along the phase
             and the partition encode, acquired ahead of the rest when
             undersampled.
+        elliptical_sampling : bool, optional
+            Acquire only the views inside the ellipse inscribed in the
+            ``n_y x n_z`` grid; off, the whole grid. The calibration region is
+            acquired whole either way.
+        elliptical_acs : bool, optional
+            Make the calibration region the ellipse inscribed in the
+            ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
+        wave : {'phase', 'partition', 'both'}, optional
+            Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
+            wave-encoding gradients the calibration region is acquired again
+            first without them, marked ``REF``, and no wave-encoded view is
+            marked ``IMA``.
+        wave_cycles : int, optional
+            Wave periods across the sampling window; zero plays no wave.
+        wave_amplitude : float, optional
+            Requested peak wave-encoding gradient amplitude (T/m); zero, the
+            default, plays no wave. The slew rate may lower it.
 
         Raises
         ------
         ValueError
             If ``excitation`` is unknown, a partial Fourier fraction is outside
-            ``[0.75, 1]``, an undersampling factor is below one, ``caipi_shift``
-            is outside ``[0, rz)``, or the TE or TR is shorter than the readout
-            takes.
+            ``[0.75, 1]``, an undersampling factor is below one,
+            ``caipi_shift`` is outside ``[0, rz)``, ``wave`` names no wave
+            mode, or the TE or TR is shorter than the readout takes.
         """
+        self.n_dummy = n_dummy
         if excitation not in EXCITATIONS:
             raise ValueError(
                 f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
@@ -223,28 +268,56 @@ class Gre3DApp(sequences.SequenceApp):
             oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
             spoiling_cycles=self.SPOILING_CYCLES,
+            wave=wave,
+            wave_cycles=wave_cycles,
+            wave_amplitude=wave_amplitude,
         )
         self.views, self.calibration = sampled_views(
             (n_y, n_z),
             (ry, rz),
             caipi_shift,
-            (n_acs, n_acs_z),
+            (n_acs_y, n_acs_z),
             (partial_fourier_y, partial_fourier_z),
+            elliptical_sampling,
+            elliptical_acs,
         )
+        # A wave-encoded view calibrates nothing, so with the wave on the
+        # calibration region is acquired again wave-free ahead of the scan.
+        self.waves = [
+            gradient
+            for gradient in (
+                getattr(self.ro, "gy_wave", None),
+                getattr(self.ro, "gz_wave", None),
+            )
+            if gradient is not None
+        ]
+        self.no_waves = [pp.scale_grad(g, 0.0) for g in self.waves]
+        self.reference = self.views[: len(self.calibration)] if self.waves else []
         self.repetition_time = self.ro.duration
-        self.duration = (self.N_DUMMY + len(self.views)) * self.ro.duration
+        self.duration = (
+            self.n_dummy + len(self.reference) + len(self.views)
+        ) * self.ro.duration
 
     def loop(self) -> None:
-        """Play the dummies, then every view."""
-        views = [None] * self.N_DUMMY + list(self.views)
+        """Play the dummies, the wave-free reference views, then every view."""
+        views = [None] * self.n_dummy + self.reference + list(self.views)
+        references = [False] * len(views)
+        references[self.n_dummy : self.n_dummy + len(self.reference)] = [True] * len(
+            self.reference
+        )
         phases = make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
-        for view, phase in zip(views, phases, strict=True):
-            self.kernel(view, phase)
+        for view, reference, phase in zip(views, references, phases, strict=True):
+            self.kernel(view, phase, reference)
 
-    def kernel(self, view: tuple[int, int] | None, phase: float) -> None:
-        """One excitation at ``(line, partition)``; ``view=None`` plays a dummy."""
+    def kernel(
+        self, view: tuple[int, int] | None, phase: float, reference: bool = False
+    ) -> None:
+        """One excitation at ``(line, partition)``.
+
+        ``view=None`` plays a dummy; ``reference`` plays the view wave-free.
+        """
         rf, ro, seq = self.exc.rf, self.ro, self.seq
         n_y, n_z = self.matrix[1:]
         rf.phase_offset = phase
@@ -257,10 +330,13 @@ class Gre3DApp(sequences.SequenceApp):
             line, partition = view
             ky = (line - n_y // 2) / (n_y / 2)
             kz = (partition - n_z // 2) / (n_z / 2)
-            calibrating = view in self.calibration
-            labels = self.labels(
-                LIN=line, PAR=partition, IMA=calibrating, SEG=not calibrating, ONCE=0
-            )
+            if self.waves:
+                flags = {"REF": reference, "IMA": False, "SEG": not reference}
+            else:
+                calibrating = view in self.calibration
+                flags = {"IMA": calibrating, "SEG": not calibrating}
+            labels = self.labels(LIN=line, PAR=partition, **flags, ONCE=0)
+        waves = self.no_waves if reference else self.waves
 
         seq.add_block(rf, *([] if self.gz is None else [self.gz]), *labels)
         wait_te = getattr(ro, "wait_te", None)
@@ -269,7 +345,7 @@ class Gre3DApp(sequences.SequenceApp):
         seq.add_block(
             ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), pp.scale_grad(ro.gz_pre, kz)
         )
-        seq.add_block(ro.gx, *([] if view is None else [ro.adc]))
+        seq.add_block(ro.gx, *waves, *([] if view is None else [ro.adc]))
         seq.add_block(
             ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
         )

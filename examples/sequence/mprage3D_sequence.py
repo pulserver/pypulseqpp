@@ -56,8 +56,8 @@ def order_views(
     return [[None if i is None else views[i] for i in train] for train in trains]
 
 
-def _acs_range(n: int, n_acs: int) -> range:
-    return range(max(0, n // 2 - n_acs // 2), min(n, n // 2 + -(-n_acs // 2)))
+def _acs_range(n: int, n_acs_y: int) -> range:
+    return range(max(0, n // 2 - n_acs_y // 2), min(n, n // 2 + -(-n_acs_y // 2)))
 
 
 class Mprage3DApp(sequences.SequenceApp):
@@ -112,7 +112,7 @@ class Mprage3DApp(sequences.SequenceApp):
         acceleration_z: int = 1,
         caipi_shift: int = 0,
         elliptical: bool = True,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_acs_z: int = 16,
         shuffle_seed: int = 0,
         n_dummy: int = 1,
@@ -167,7 +167,7 @@ class Mprage3DApp(sequences.SequenceApp):
             orderings. ``0`` is a plain lattice.
         elliptical : bool, optional
             Keep only the views inside the inscribed ky-kz ellipse.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Calibration extent along y, in lines.
         n_acs_z : int, optional
             Calibration extent along z, in partitions.
@@ -245,7 +245,7 @@ class Mprage3DApp(sequences.SequenceApp):
             mask = make_poisson_disc_mask(
                 (n_y, n_z),
                 float(acceleration * acceleration_z),
-                calib=(n_acs, n_acs_z),
+                calib=(n_acs_y, n_acs_z),
                 seed=shuffle_seed,
             )
             views = [(int(y), int(z)) for y, z in np.argwhere(mask)]
@@ -255,7 +255,7 @@ class Mprage3DApp(sequences.SequenceApp):
             views, _ = calc_sampled_pairs(
                 (n_y, n_z),
                 (acceleration, acceleration_z),
-                (n_acs, n_acs_z),
+                (n_acs_y, n_acs_z),
                 caipi_shift=caipi_shift,
                 elliptical=elliptical,
                 order="ascending",
@@ -271,7 +271,7 @@ class Mprage3DApp(sequences.SequenceApp):
             (n_y, n_z),
             seed=shuffle_seed,
         )
-        self.acs = (_acs_range(n_y, n_acs), _acs_range(n_z, n_acs_z))
+        self.acs = (_acs_range(n_y, n_acs_y), _acs_range(n_z, n_acs_z))
         # A wave-encoded line calibrates nothing, so with the wave on the
         # calibration rectangle is acquired again wave-free, in shots of its own.
         self.calibration_views = (

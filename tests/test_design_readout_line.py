@@ -24,9 +24,8 @@ def slab(system):
 
 
 def readout3d(system, slab, **kwargs):
-    return design.LineReadout3D(
-        system, slab.rf, slab.gz, fov=FOV, matrix=MATRIX, **kwargs
-    )
+    kwargs = {"fov": FOV, "matrix": MATRIX, **kwargs}
+    return design.LineReadout3D(system, slab.rf, slab.gz, **kwargs)
 
 
 def _first_line(module):
@@ -264,6 +263,92 @@ def test_every_echo_of_a_monopolar_train_traces_the_same_line(system, slab):
     )
 
 
+@pytest.mark.parametrize("flyback", [True, False], ids=["monopolar", "bipolar"])
+@pytest.mark.parametrize("echo_spacing", [None, 6e-3], ids=["shortest", "spaced"])
+def test_every_echo_crosses_k_zero_one_spacing_after_the_last(
+    system, slab, flyback, echo_spacing
+):
+    readout = readout3d(
+        system, slab, n_echoes=3, flyback=flyback, echo_spacing=echo_spacing
+    )
+    k_traj_adc, _, t_excitation, _, t_adc = readout.calculate_kspace()
+    count = int(readout.adc.num_samples)
+    kx = k_traj_adc[0].reshape(3, count)
+    t_adc = np.asarray(t_adc).reshape(3, count) - t_excitation[0]
+
+    for echo in range(3):
+        nearest = int(np.argmin(np.abs(kx[echo])))
+        assert t_adc[echo, nearest] == pytest.approx(
+            readout.echo_time + echo * readout.echo_spacing,
+            abs=0.5 * readout.adc.dwell + 1e-9,
+        )
+    if echo_spacing is not None:
+        assert readout.echo_spacing == pytest.approx(echo_spacing)
+
+
+@pytest.mark.parametrize("flyback", [True, False], ids=["monopolar", "bipolar"])
+def test_the_spacing_wait_follows_the_rewinder_or_the_lobe(system, slab, flyback):
+    readout = readout3d(system, slab, n_echoes=3, flyback=flyback, echo_spacing=6e-3)
+    train = readout.blocks[2:-1]
+    period = [readout.gx_flyback, readout.wait_esp] if flyback else [readout.wait_esp]
+
+    assert [block[0] for block in train[1 : 1 + len(period)]] == period
+    assert len(train) == 3 + 2 * len(period)
+    assert train[-1][0] is readout.gx
+
+
+def test_the_shortest_train_has_no_spacing_wait(system, slab):
+    readout = readout3d(system, slab, n_echoes=3)
+
+    assert not hasattr(readout, "wait_esp")
+
+
+def test_a_single_echo_has_no_spacing(system, slab):
+    assert readout3d(system, slab, echo_spacing=6e-3).echo_spacing == 0.0
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"partial_echo": 0.8}, {"matrix": (65, 128, 64)}],
+    ids=["partial echo", "odd samples"],
+)
+def test_a_bipolar_train_needs_as_many_samples_before_the_echo_as_after(
+    system, slab, kwargs
+):
+    with pytest.raises(ValueError, match="bipolar"):
+        readout3d(system, slab, n_echoes=2, flyback=False, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "kwargs", [{"wave_amplitude": 0.0}, {"wave_cycles": 0}], ids=["amplitude", "cycles"]
+)
+def test_a_wave_of_zero_builds_no_wave_gradients_even_in_2d(system, kwargs):
+    excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+    readout = design.LineReadout2D(
+        system, excitation.rf, excitation.gz, fov=0.22, matrix=64, wave="both", **kwargs
+    )
+
+    assert not hasattr(readout, "gy_wave")
+    assert readout.wave_amplitude == 0.0
+    assert readout.blocks[2] == (readout.gx, readout.adc)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"wave": "corkscrew", "wave_amplitude": 0.0},
+        {"wave": "both", "wave_amplitude": -1e-3},
+        {"wave": "both", "wave_cycles": -1},
+    ],
+    ids=["mode", "amplitude", "cycles"],
+)
+def test_an_invalid_wave_is_refused_even_when_it_would_play_nothing(
+    system, slab, kwargs
+):
+    with pytest.raises(ValueError, match="wave"):
+        readout3d(system, slab, **kwargs)
+
+
 # ----------------------------------------------------------------------
 # Timing budget
 # ----------------------------------------------------------------------
@@ -278,7 +363,12 @@ def test_a_longer_te_or_tr_is_padded_with_a_wait(system, slab):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "name"), [({"te": 1e-4}, "TE"), ({"tr": 1e-4}, "TR")]
+    ("kwargs", "name"),
+    [
+        ({"te": 1e-4}, "TE"),
+        ({"tr": 1e-4}, "TR"),
+        ({"n_echoes": 2, "echo_spacing": 1e-4}, "echo spacing"),
+    ],
 )
 def test_an_impossible_time_is_refused_by_name(system, slab, kwargs, name):
     with pytest.raises(ValueError, match=f"requested {name}"):

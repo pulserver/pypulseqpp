@@ -24,7 +24,7 @@ class Bssfp3DApp(sequences.SequenceApp):
     --------
     >>> from pypulseqpp import sequences
     >>> seq = sequences.bssfp3D_sequence(
-    ...     n_x=64, n_y=16, n_z=4, n_acs=0, n_acs_z=0, n_dummy=0
+    ...     n_x=64, n_y=16, n_z=4, n_acs_y=0, n_acs_z=0, n_dummy=0
     ... )
     >>> seq.check_timing()[0]
     True
@@ -52,7 +52,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         acceleration_z: int = 1,
         caipi_shift: int = 0,
         elliptical: bool = True,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_acs_z: int = 16,
         n_dummy: int = 10,
         n_gain_calibration_readouts: int = 1,
@@ -94,7 +94,7 @@ class Bssfp3DApp(sequences.SequenceApp):
             lattice.
         elliptical : bool, optional
             Keep only the pairs inside the inscribed ky-kz ellipse.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Calibration extent along y, in lines.
         n_acs_z : int, optional
             Calibration extent along z, in partitions.
@@ -127,7 +127,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.pairs, self.n_calibration = calc_sampled_pairs(
             (n_y, n_z),
             (acceleration, acceleration_z),
-            (n_acs, n_acs_z),
+            (n_acs_y, n_acs_z),
             partial_fourier=(partial_fourier, partial_fourier_z),
             caipi_shift=caipi_shift,
             elliptical=elliptical,

@@ -12,7 +12,7 @@ from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 def sampled_lines(
-    n: int, ry: int, n_acs: int, partial_fourier: float
+    n: int, ry: int, n_acs_y: int, partial_fourier: float
 ) -> tuple[list[int], set[int]]:
     """Return the phase-encode lines in play order, and the calibration lines.
 
@@ -22,8 +22,8 @@ def sampled_lines(
     same line, leads; a fully sampled scan has none.
     """
     first = n - round(partial_fourier * n)
-    start = n // 2 - (n_acs if ry > 1 else 0) // 2
-    stop = n // 2 + ((n_acs if ry > 1 else 0) + 1) // 2
+    start = n // 2 - (n_acs_y if ry > 1 else 0) // 2
+    stop = n // 2 + ((n_acs_y if ry > 1 else 0) + 1) // 2
     calibration = list(range(max(start, first), min(stop, n)))
     lattice = [
         i for i in range(first, n) if (i - n // 2) % ry == 0 and i not in calibration
@@ -59,8 +59,6 @@ class Gre2DApp(sequences.SequenceApp):
     #: thickness)``.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions before the first line of each packet.
-    N_DUMMY = 16
     #: Quadratic RF spoiling phase increment (degrees), counted per slice.
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the readout axis at the end of each repetition, in
@@ -84,8 +82,9 @@ class Gre2DApp(sequences.SequenceApp):
         partial_fourier_x: float = 1.0,
         partial_fourier_y: float = 1.0,
         *,
+        n_dummy: int = 16,
         readout_oversampling: float = 2.0,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
     ) -> None:
         """Design the pulse, the readout, the slice packets and the line order.
 
@@ -123,9 +122,11 @@ class Gre2DApp(sequences.SequenceApp):
         partial_fourier_y : float, optional
             Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
             Truncates the lines before the centre.
+        n_dummy : int, optional
+            Non-acquiring repetitions before the first line of each packet.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Fully sampled calibration lines at the centre of k-space, acquired
             ahead of the rest when ``ry > 1``.
 
@@ -135,6 +136,7 @@ class Gre2DApp(sequences.SequenceApp):
             If a partial Fourier fraction is outside ``[0.75, 1]``, ``ry`` is
             below one, or the TR cannot hold one slice.
         """
+        self.n_dummy = n_dummy
         for name, fraction in (
             ("partial_fourier_x", partial_fourier_x),
             ("partial_fourier_y", partial_fourier_y),
@@ -196,7 +198,9 @@ class Gre2DApp(sequences.SequenceApp):
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
 
-        self.lines, self.calibration = sampled_lines(n_y, ry, n_acs, partial_fourier_y)
+        self.lines, self.calibration = sampled_lines(
+            n_y, ry, n_acs_y, partial_fourier_y
+        )
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_spacing
         )
@@ -204,7 +208,7 @@ class Gre2DApp(sequences.SequenceApp):
             n_slices * (slice_thickness + slice_spacing) - slice_spacing
         )
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
-        self.duration = (self.N_DUMMY + len(self.lines)) * sum(
+        self.duration = (self.n_dummy + len(self.lines)) * sum(
             packet_time[len(packet)] for packet in self.packets
         )
 
@@ -214,7 +218,7 @@ class Gre2DApp(sequences.SequenceApp):
         Every slice sees the same line order, so the RF spoiling phase of a
         slice's ``k``-th excitation is the schedule's ``k``-th entry.
         """
-        lines = [None] * self.N_DUMMY + list(self.lines)
+        lines = [None] * self.n_dummy + list(self.lines)
         phases = make_rf_spoiling_schedule(
             len(lines), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )

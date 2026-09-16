@@ -35,8 +35,6 @@ class SeRadial2DApp(sequences.SequenceApp):
     #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first spoke's angle, before each packet.
-    N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
     #: across one voxel.
     CRUSHER_CYCLES = 4.0
@@ -56,6 +54,7 @@ class SeRadial2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 0,
         readout_oversampling: float = 2.0,
     ) -> None:
         """Design the pulses, the spoke, the slice packets and the spoke angles.
@@ -85,6 +84,9 @@ class SeRadial2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one spoke in every ``ry`` of the Nyquist set
             is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first spoke's angle, before each
+            packet.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
 
@@ -94,6 +96,7 @@ class SeRadial2DApp(sequences.SequenceApp):
             If ``ry`` is below one, or the TE or TR is shorter than the pulses
             and the readout take.
         """
+        self.n_dummy = n_dummy
         if ry < 1:
             raise ValueError(f"ry must be at least 1, got {ry}")
 
@@ -187,7 +190,7 @@ class SeRadial2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every spoke at each of its slices."""
-        spokes = [None] * self.N_DUMMY + list(range(len(self.angles)))
+        spokes = [None] * self.n_dummy + list(range(len(self.angles)))
         for packet in self.packets:
             for spoke in spokes:
                 for i, s in enumerate(packet):

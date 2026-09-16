@@ -66,7 +66,7 @@ class _LineReadout(SequenceModule):
     gy_rew, gz_rew : TrapEvent
         The negated encodes that unwind them, for a balanced TR.
     gx_flyback : TrapEvent
-        Rewinder played between echoes of a monopolar train.
+        Rewinder played after every echo but the last of a monopolar train.
     gx_rev : GradEvent
         The negated lobe that reads the even echoes of a bipolar train.
     gy_wave, gz_wave : GradEvent
@@ -81,10 +81,17 @@ class _LineReadout(SequenceModule):
     wait_te : DelayEvent
         Present only when a TE longer than the minimum was asked for and the
         wait can hold ``gz_reph``; otherwise the prewinder block starts later.
+    wait_esp : DelayEvent
+        Present only when an echo spacing longer than the minimum was asked
+        for. Played after every echo but the last: after the readout lobe of a
+        bipolar train, after the rewinder of a monopolar one.
     wait_tr : DelayEvent
         Present only when a TR longer than the minimum was asked for.
     echo_time : float
         From the RF isodelay to the first echo (s), on the block raster.
+    echo_spacing : float
+        Between successive echoes (s), on the block raster; zero with one
+        echo.
     center_sample : int
         Index of the sample at the echo; partial echo moves it toward the
         start.
@@ -141,9 +148,16 @@ class _LineReadout(SequenceModule):
         the same direction (monopolar, the default), or alternate the readout
         sign (bipolar), which is faster but reads even echoes backwards and
         puts any gradient-delay error into a phase difference between them.
+        A bipolar train needs as many samples before the echo as after it, so
+        it refuses partial echo and an odd sample count.
+    echo_spacing : float, optional
+        Echo spacing (s). ``None`` is as short as possible: the readout lobe
+        of a bipolar train, the lobe and its rewinder for a monopolar one.
+        Ignored with one echo.
     wave : {'phase', 'partition', 'both'}, optional
         Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
-        on z, or both. 3D only.
+        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
+        is zero, which builds no wave-encoding gradients.
     wave_cycles : int, optional
         Wave periods across the sampling window.
     wave_amplitude : float, optional
@@ -158,9 +172,10 @@ class _LineReadout(SequenceModule):
     Raises
     ------
     ValueError
-        If a count or a fraction is out of range, ``wave`` is set on a 2D
-        readout, ``gz_reph`` shares a channel with an encoded axis, or the
-        requested TE or TR is shorter than the module can achieve.
+        If a count or a fraction is out of range, ``wave`` names no wave
+        mode or would build wave-encoding gradients on a 2D readout, ``gz_reph`` shares a channel with an encoded axis, or the
+        requested TE, TR or echo spacing is shorter than the module can
+        achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped line readouts.
@@ -185,6 +200,7 @@ class _LineReadout(SequenceModule):
         spoiling_position: str = "post",
         n_echoes: int = 1,
         flyback: bool = True,
+        echo_spacing: float | None = None,
         wave: str | None = None,
         wave_cycles: int = 8,
         wave_amplitude: float = 8e-3,
@@ -192,7 +208,13 @@ class _LineReadout(SequenceModule):
         trigger: Any = None,
     ) -> None:
         ndim = self._ndim
-        if wave is not None and ndim != 3:
+        if wave is not None:
+            wave_channels(wave)
+        if wave_cycles < 0 or wave_amplitude < 0:
+            raise ValueError("wave_cycles and wave_amplitude must be >= 0")
+        # Zero cycles or zero amplitude is no wave at all, whatever the mode.
+        waving = wave is not None and wave_cycles > 0 and wave_amplitude > 0
+        if waving and ndim != 3:
             raise ValueError(
                 "wave encoding spreads a voxel along the two encoded axes "
                 "transverse to the readout, and a 2D readout has only one of "
@@ -225,6 +247,12 @@ class _LineReadout(SequenceModule):
         n_post = n_full // 2
         n_samples = max(n_post + 1, round(partial_echo * n_full))
         n_pre = n_samples - n_post
+        if n_echoes > 1 and not flyback and n_pre != n_post:
+            raise ValueError(
+                f"a bipolar train reads alternate echoes backwards, which moves "
+                f"the echo from sample {n_pre} to sample {n_post}; acquire a "
+                f"full echo with an even number of samples"
+            )
         readout_area = n_samples * delta_kx
         dwell, readout_duration = pp.calc_adc_timing(
             n_samples,
@@ -312,7 +340,7 @@ class _LineReadout(SequenceModule):
         # about the readout.
         gy_wave = gz_wave = None
         wave_peak = 0.0
-        if wave is not None:
+        if waving:
             sine, cosine = wave_channels(wave)
             gy_wave, gz_wave, wave_peak = pp.make_wave_gradients(
                 readout_duration,
@@ -340,6 +368,20 @@ class _LineReadout(SequenceModule):
             gx_flyback = pp.make_trapezoid(channel="x", area=-_area(gx), system=system)
         if n_echoes > 1 and not flyback:
             gx_rev = pp.scale_grad(gx, -1.0)
+
+        # Echoes are spaced by whole blocks, so the spacing is counted on the
+        # block raster that `add_block` rounds each of them up to.
+        _waves = [*present(gy_wave), *present(gz_wave)]
+        raster = system.block_duration_raster
+        spacing = spacing_delay = 0.0
+        if n_echoes > 1:
+            spacing = pp.ceil_to_raster(pp.calc_duration(gx, adc, *_waves), raster)
+            if flyback:
+                spacing += pp.ceil_to_raster(pp.calc_duration(gx_flyback), raster)
+            spacing_delay = solve_delay(echo_spacing, spacing, "echo spacing", system)
+            if spacing_delay:
+                wait_esp = pp.make_delay(spacing_delay)
+                spacing += spacing_delay
 
         # The prewinder block already carries one gradient per encoded axis, so
         # a rephaser sharing one of those channels has nowhere to sit.
@@ -406,12 +448,12 @@ class _LineReadout(SequenceModule):
         self.seq.add_block(*_pre_block)
 
         for i_echo in range(n_echoes):
-            if n_echoes > 1 and flyback and i_echo:
+            if i_echo and flyback:
                 self.seq.add_block(gx_flyback)
+            if i_echo and spacing_delay:
+                self.seq.add_block(wait_esp)
             lobe = gx if (flyback or i_echo % 2 == 0) else gx_rev
-            self.seq.add_block(
-                lobe, adc, *present(gy_wave), *present(gz_wave), *adc_labels
-            )
+            self.seq.add_block(lobe, adc, *_waves, *adc_labels)
 
         self.seq.add_block(*_rewinder)
 
@@ -422,6 +464,7 @@ class _LineReadout(SequenceModule):
             self.seq.add_block(wait_tr)
 
         self.echo_time = echo_time
+        self.echo_spacing = spacing
         self.center = echo_time + rf_center
         self.bandwidth_hz = 1.0 / dwell
         self.n_samples = n_samples

@@ -164,10 +164,13 @@ def test_an_unknown_mode_is_refused():
         readout(wave="corkscrew")
 
 
-@pytest.mark.parametrize("cycles", [0, -1])
-def test_a_corkscrew_that_does_not_turn_is_refused(cycles):
-    with pytest.raises(ValueError, match="at least one"):
-        readout(wave_cycles=cycles)
+def test_a_corkscrew_that_does_not_turn_is_no_wave():
+    assert not hasattr(readout(wave_cycles=0), "gy_wave")
+
+
+def test_a_corkscrew_turning_backwards_is_refused():
+    with pytest.raises(ValueError, match="wave_cycles"):
+        readout(wave_cycles=-1)
 
 
 def test_wave_needs_both_encoded_axes_free():

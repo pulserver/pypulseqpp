@@ -58,18 +58,18 @@ def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
 
 
 def sampled_partitions(
-    n: int, rz: int, n_acs: int, partial_fourier: float
+    n: int, rz: int, n_acs_z: int, partial_fourier: float
 ) -> tuple[list[int], list[int]]:
     """Return the calibration partitions and the other partitions acquired.
 
     The lattice keeps every partition ``z`` with ``(z - n // 2) % rz == 0``, so
     the centre partition is always acquired; partial Fourier drops those before
-    ``n - round(partial_fourier * n)``. Under undersampling the ``n_acs``
+    ``n - round(partial_fourier * n)``. Under undersampling the ``n_acs_z``
     partitions centred on the same one are acquired in full; a fully sampled
     scan has none. Both lists are in order.
     """
     first = n - round(partial_fourier * n)
-    size = n_acs if rz > 1 else 0
+    size = n_acs_z if rz > 1 else 0
     calibration = list(
         range(max(n // 2 - size // 2, first), min(n // 2 + (size + 1) // 2, n))
     )
@@ -111,9 +111,6 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
     #: Fat methylene shift from water (ppm), converted against ``system.B0``
     #: when the spectral-spatial pulse is built.
     FAT_SHIFT_PPM = -3.4
-    #: Non-acquiring repetitions, at the first interleaf's angle and the
-    #: centre partition, before the scan.
-    N_DUMMY = 32
     #: Quadratic RF spoiling phase increment (degrees).
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the partition axis at the end of each repetition, in
@@ -138,6 +135,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         rz: int = 1,
         partial_fourier_z: float = 1.0,
         *,
+        n_dummy: int = 32,
         excitation: str = "slab",
         partition_angle_shift: str = "none",
         n_acs_z: int = 16,
@@ -177,6 +175,9 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             acquired, the centre one among them.
         partial_fourier_z : float, optional
             Fraction of the partition extent acquired, in ``[0.75, 1]``.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first interleaf's angle and the
+            centre partition, before the scan.
         excitation : {'slab', 'nonselective', 'spsp'}, optional
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
@@ -206,6 +207,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             below one, ``partial_fourier_z`` is outside ``[0.75, 1]``, or the
             TE or TR is shorter than the readout takes.
         """
+        self.n_dummy = n_dummy
         if excitation not in EXCITATIONS:
             raise ValueError(
                 f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
@@ -291,7 +293,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             if pad > 0:
                 self.wait_tr = pp.make_delay(pad)
                 self.repetition_time += pad
-        self.duration = (self.N_DUMMY + len(self.views)) * self.repetition_time
+        self.duration = (self.n_dummy + len(self.views)) * self.repetition_time
 
     def rotation(self, arm: int, partition: int):
         """Return the rotation extension turning ``arm`` at ``partition``."""
@@ -303,7 +305,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play the dummies, then every acquired partition of each interleaf in turn."""
-        views = [None] * self.N_DUMMY + self.views
+        views = [None] * self.n_dummy + self.views
         phases = make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
