@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1143,16 +1144,20 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.quantize_readout_timing">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">quantize_readout_timing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx_ro</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_bw_hz_px</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_raster_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_raster_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_flat_time_s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_timing.html#quantize_readout_timing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.quantize_readout_timing" title="Link to this definition">#</a></dt>
-<dd><p>Choose a dwell using receiver bandwidth, defined as 1/dwell in Hz.</p>
+<dd><p>Choose an ADC dwell from a requested receiver bandwidth.</p>
+<p>Receiver bandwidth is the full sampling bandwidth, <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> in Hz,
+not bandwidth per pixel.</p>
 <p>Search upward from the nearest ADC-raster dwell satisfying the duration
-floor, for at most MAX_RASTER_SEARCH_STEPS candidates. If none aligns
+floor, for at most <code class="docutils literal notranslate"><span class="pre">MAX_RASTER_SEARCH_STEPS</span></code> candidates. If none aligns
 the readout to the gradient raster, return that starting dwell.
 Inputs must have positive sample count, bandwidth and rasters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nx_ro</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of readout samples.</p></li>
-<li><p><strong>target_bw_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Requested receiver bandwidth (Hz), despite the parameter suffix.</p></li>
+<li><p><strong>target_bw_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Requested receiver bandwidth in Hz, i.e. <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code>. The parameter
+name is kept for compatibility; the value is not a per-pixel
+bandwidth.</p></li>
 <li><p><strong>grad_raster_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Gradient and ADC rasters (s).</p></li>
 <li><p><strong>adc_raster_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Gradient and ADC rasters (s).</p></li>
 <li><p><strong>min_flat_time_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Lower bound on the flat time (s), e.g. from the max-gradient limit.</p></li>

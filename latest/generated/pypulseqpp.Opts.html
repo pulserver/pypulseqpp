@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1145,12 +1146,13 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">Opts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_dead_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_raster_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2e-6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_duration_raster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20e-6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_raster_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20e-6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Hz/m'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_slew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_dead_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_raster_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2e-6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_ringdown_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_samples_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_samples_divisor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rise_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slew_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Hz/m/s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_opts.html#Opts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Opts" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></p>
 <p>PyPulseq system limits with shared raster defaults.</p>
-<p>The constructor accepts PyPulseq’s parameters. Defaults are 20 us for
-gradients and block durations, 2 us for RF and ADC, and zero for RF/ADC
-dead time and RF ringdown. Specify the actual hardware timings before
-checking a sequence.</p>
-<p>Gradient and slew limits are stored in Hz/m and Hz/m/s after conversion
-from grad_unit and slew_unit; gamma is in Hz/T and B0 in T.</p>
+<p>The constructor accepts PyPulseq’s parameters. Raster defaults are 20 us
+for the gradient and block duration rasters, 2 us for the RF and ADC
+rasters, and zero for the RF and ADC dead times and the RF ringdown time.
+Set the actual hardware timings before checking a sequence.</p>
+<p>Gradient amplitude and slew-rate limits are stored in Hz/m and Hz/m/s after
+conversion from <code class="docutils literal notranslate"><span class="pre">grad_unit</span></code> and <code class="docutils literal notranslate"><span class="pre">slew_unit</span></code>; <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is in Hz/T and
+<code class="docutils literal notranslate"><span class="pre">B0</span></code> in T.</p>
 <p>Importing pypulseqpp installs these defaults for PyPulseq factories.
 Constructing Opts alone does not change the shared default; use
 set_as_default or reset_default.</p>
@@ -1169,7 +1171,7 @@ set_as_default or reset_default.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Opts.reset_default.html#pypulseqpp.Opts.reset_default" title="pypulseqpp.Opts.reset_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_default</span></code></a></p></td>
-<td><p>Make a fresh vendor-neutral system the shared default.</p></td>
+<td><p>Install a fresh vendor-neutral system as the shared default.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Opts.set_as_default.html#pypulseqpp.Opts.set_as_default" title="pypulseqpp.Opts.set_as_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_as_default</span></code></a></p></td>
 <td><p></p></td>

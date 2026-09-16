@@ -1,7 +1,7 @@
-# Sequence and system
+# Sequence and system limits
 
-`pypulseqpp`: the container a sequence is written into, the scanner limits it is
-designed under, and the transforms applied to it.
+`pypulseqpp`: the sequence container, the system limits a sequence is designed
+under, and the geometry transforms applied to it.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -10,9 +10,9 @@ designed under, and the transforms applied to it.
 ## Sequence container
 
 {class}`Sequence` holds the event libraries, block table, definitions and
-scanner limits of one Pulseq sequence. It authors, reads and writes the
-sequence, expands its waveforms and k-space, inspects its structure and checks
-its timing over the compiled core.
+system limits of one Pulseq sequence. It builds, reads and writes the sequence,
+expands its gradient and RF waveforms and its k-space trajectory, inspects its
+structure and checks its timing, over the compiled core.
 
 ```{eval-rst}
 .. autosummary::
@@ -25,9 +25,11 @@ its timing over the compiled core.
 
 ## Field-of-view transforms
 
-{class}`TransformFOV` translates, rotates and scales the logical frame of the
-events a sequence plays; scaling the gradient amplitude scales the FOV
-inversely.
+{class}`TransformFOV` applies a prescription to an existing sequence:
+per-axis gradient amplitude scaling in the logical frame, a rotation composed
+after each block's own rotation, and a translation in logical metres. Field of
+view scales inversely with gradient amplitude, so halving an axis's amplitude
+doubles the field of view along it.
 
 ```{eval-rst}
 .. autosummary::
@@ -37,9 +39,10 @@ inversely.
    TransformFOV
 ```
 
-## Scanner limits
+## System limits
 
-{class}`Opts` holds the gradient, slew, RF and ADC limits and rasters.
+{class}`Opts` holds the gradient amplitude, slew-rate, RF and ADC limits
+together with the RF, gradient, ADC and block duration rasters.
 {func}`apply_system_derates` and {func}`cap_system` return adjusted copies and
 leave the caller's limits unchanged.
 

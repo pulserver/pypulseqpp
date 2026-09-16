@@ -1,8 +1,8 @@
 # Sequence modules
 
-`pypulseqpp.sequences`: modules that solve the timing and gradients of a group
-of blocks once and expose the events for a scan loop, and the non-Cartesian
-interleaves the readouts play.
+`pypulseqpp.sequences`: modules that solve the timing and gradient waveforms of
+a group of blocks once and expose the resulting events to a scan loop, together
+with the non-Cartesian interleaves the readout modules play.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
@@ -10,10 +10,11 @@ interleaves the readouts play.
 
 ## Base classes
 
-Modules stay plain Pulseq building blocks: the scan loop chooses the views,
-scales the encoding events and adds the blocks. A {class}`SequenceModule` lays
-its blocks out in `init_module`; an {class}`RfModule` is one built around a
-pulse, which {meth}`~RfModule.sim_rf` simulates.
+A module is a reusable block layout with named, mutable event templates. The
+scan loop chooses the views, scales the encoding events and adds the blocks.
+A {class}`SequenceModule` lays its blocks out in `init_module`; an
+{class}`RfModule` is a module built around one RF event, which
+{meth}`~RfModule.sim_rf` simulates against off-resonance.
 
 ```{eval-rst}
 .. autosummary::
@@ -81,7 +82,7 @@ pulse, which {meth}`~RfModule.sim_rf` simulates.
 
 ## Non-Cartesian readouts
 
-{class}`NonCartesianReadout` plays any interleave from
+{class}`NonCartesianReadout` plays any interleaf from
 {ref}`non-cartesian-interleaves` as a whole repetition.
 The spiral and rosette readouts design theirs from the prescription.
 
@@ -108,8 +109,8 @@ The spiral and rosette readouts design theirs from the prescription.
 
 ## Non-Cartesian interleaves
 
-One base interleave each, with its ADC and the moment bridges to and from
-k = 0. The scan loop rotates it per shot.
+One base interleaf each, with its ADC and the prewinding and rewinding
+gradients to and from k = 0. The scan loop rotates it per shot.
 
 ```{eval-rst}
 .. autosummary::

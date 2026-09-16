@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Timing utilities &#8212; pypulseqpp documentation</title>
+    <title>Timing and rasterization &#8212; pypulseqpp documentation</title>
   
   
   
@@ -226,15 +226,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -310,7 +311,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -367,7 +368,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Timing utilities</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Timing and rasterization</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -828,7 +829,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -848,7 +849,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -902,9 +903,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1110,7 +1111,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Timing utilities</h1>
+    <h1>Timing and rasterization</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -1124,26 +1125,29 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="timing-utilities">
-<h1>Timing utilities<a class="headerlink" href="#timing-utilities" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: legal ADC timing, and times quantized to the scanner’s rasters.
-Pulseq events land on the RF, gradient, ADC or block raster.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="timing-and-rasterization">
+<h1>Timing and rasterization<a class="headerlink" href="#timing-and-rasterization" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: ADC dwell and acquisition duration compatible with both the ADC
+and gradient rasters, and times quantized to a raster. Pulseq quantizes event
+timing to the RF, gradient, ADC and block duration rasters.</p>
+<p>Receiver bandwidth is the full sampling bandwidth, <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> in Hz;
+bandwidth per pixel is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_samples</span> <span class="pre">*</span> <span class="pre">dwell)</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html#pypulseqpp.calc_adc_segments" title="pypulseqpp.calc_adc_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_segments</span></code></a></p></td>
 <td><p>Calculate splitting of the ADC in segments with equal samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html#pypulseqpp.calc_adc_timing" title="pypulseqpp.calc_adc_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_timing</span></code></a></p></td>
-<td><p>Choose an ADC dwell while seeking a gradient-raster-aligned readout.</p></td>
+<td><p>Choose an ADC dwell whose acquisition duration is a multiple of the gradient raster.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html#pypulseqpp.quantize_readout_timing" title="pypulseqpp.quantize_readout_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize_readout_timing</span></code></a></p></td>
-<td><p>Choose a dwell using receiver bandwidth, defined as 1/dwell in Hz.</p></td>
+<td><p>Choose an ADC dwell from a requested receiver bandwidth.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.round_to_raster.html#pypulseqpp.round_to_raster" title="pypulseqpp.round_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round_to_raster</span></code></a></p></td>
-<td><p>Round seconds to the nearest raster multiple, with ties to even.</p></td>
+<td><p>Round seconds to the nearest multiple of <code class="docutils literal notranslate"><span class="pre">raster_s</span></code>, with ties to even.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.ceil_to_raster.html#pypulseqpp.ceil_to_raster" title="pypulseqpp.ceil_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceil_to_raster</span></code></a></p></td>
-<td><p>Round seconds upward to the raster, allowing for floating-point tolerance.</p></td>
+<td><p>Round seconds up to the next raster multiple, within a 1e-10 relative tolerance.</p></td>
 </tr>
 </tbody>
 </table>

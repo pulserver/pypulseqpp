@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1144,7 +1145,7 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.Arbitrary">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">Arbitrary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_hz_px</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">250e3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_oversampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/readout/_trajectories.html#Arbitrary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.Arbitrary" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.NonCartesianGradient.html#pypulseqpp.sequences.NonCartesianGradient" title="pypulseqpp.sequences.readout._trajectories.NonCartesianGradient"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></p>
-<p>Base interleave from a caller-supplied 2D or 3D k-space path.</p>
+<p>Base interleaf from a caller-supplied 2D or 3D k-space path.</p>
 <p>A path not starting at k = 0 gets prewinders, and one not ending there
 gets rewinders. The readout is stretched to last at least its sample count
 over <code class="docutils literal notranslate"><span class="pre">bandwidth_hz_px</span></code>, and the dwell is the longest on the ADC raster
@@ -1171,8 +1172,8 @@ default.</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>A spoke written as a path starts and ends away from k = 0, so it is
-bridged at both ends:</p>
+<p>A spoke written as a path starts and ends away from k = 0, so it carries a
+prewinder and a rewinder:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp.sequences</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">design</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
@@ -1189,7 +1190,7 @@ bridged at both ends:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.rotated.html#pypulseqpp.sequences.Arbitrary.rotated" title="pypulseqpp.sequences.Arbitrary.rotated"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotated</span></code></a></p></td>
-<td><p>Return this interleave rotated in its own plane, with unchanged timing.</p></td>
+<td><p>Return this interleaf rotated in its own plane, with unchanged timing.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1198,22 +1199,22 @@ bridged at both ends:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.axes.html#pypulseqpp.sequences.Arbitrary.axes" title="pypulseqpp.sequences.Arbitrary.axes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">axes</span></code></a></p></td>
-<td><p>The gradient channels this interleave drives, in waveform order.</p></td>
+<td><p>The gradient channels this interleaf drives, in waveform order.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.gx.html#pypulseqpp.sequences.Arbitrary.gx" title="pypulseqpp.sequences.Arbitrary.gx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gx</span></code></a></p></td>
-<td><p>Gradient on channel x, or None when this interleave does not drive it.</p></td>
+<td><p>Gradient on channel x, or None when this interleaf does not drive it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.gy.html#pypulseqpp.sequences.Arbitrary.gy" title="pypulseqpp.sequences.Arbitrary.gy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gy</span></code></a></p></td>
-<td><p>Gradient on channel y, or None when this interleave does not drive it.</p></td>
+<td><p>Gradient on channel y, or None when this interleaf does not drive it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.gz.html#pypulseqpp.sequences.Arbitrary.gz" title="pypulseqpp.sequences.Arbitrary.gz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gz</span></code></a></p></td>
-<td><p>Gradient on channel z, or None when this interleave does not drive it.</p></td>
+<td><p>Gradient on channel z, or None when this interleaf does not drive it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.has_prewinder.html#pypulseqpp.sequences.Arbitrary.has_prewinder" title="pypulseqpp.sequences.Arbitrary.has_prewinder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_prewinder</span></code></a></p></td>
-<td><p>Whether a bridge leads from k = 0 to the start of the path.</p></td>
+<td><p>Whether a prewinder leads from k = 0 to the start of the path.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.Arbitrary.has_rewinder.html#pypulseqpp.sequences.Arbitrary.has_rewinder" title="pypulseqpp.sequences.Arbitrary.has_rewinder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_rewinder</span></code></a></p></td>
-<td><p>Whether a bridge leads from the end of the path back to k = 0.</p></td>
+<td><p>Whether a rewinder leads from the end of the path back to k = 0.</p></td>
 </tr>
 </tbody>
 </table>

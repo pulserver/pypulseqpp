@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1190,8 +1191,9 @@ puts any gradient-delay error into a phase difference between them.</p></li>
 <li><p><strong>wave</strong> (<em>{'phase'</em><em>, </em><em>'partition'</em><em>, </em><em>'both'}</em><em>, </em><em>optional</em>) – Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
 on z, or both. 3D only.</p></li>
 <li><p><strong>wave_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Wave periods across the sampling window.</p></li>
-<li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Requested peak wave gradient (T/m). A ceiling: the slew rate may
-lower it, and <code class="docutils literal notranslate"><span class="pre">wave_amplitude</span></code> on the module reports what was built.</p></li>
+<li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Requested peak wave-encoding gradient amplitude, in T/m rather than the
+Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
+module’s <code class="docutils literal notranslate"><span class="pre">wave_amplitude</span></code> attribute reports the amplitude built.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Counters emitted on the acquisition block. The loop writes the values.</p></li>
 <li><p><strong>trigger</strong> (<em>event</em><em>, </em><em>optional</em>) – A trigger or digital output armed on the prewinder block.</p></li>
 </ul>
@@ -1215,8 +1217,9 @@ is 3D only.</p></li>
 <li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The negated encodes that unwind them, for a balanced TR.</p></li>
 <li><p><strong>gx_flyback</strong> (<em>TrapEvent</em>) – Rewinder played between echoes of a monopolar train.</p></li>
 <li><p><strong>gx_rev</strong> (<em>GradEvent</em>) – The negated lobe that reads the even echoes of a bipolar train.</p></li>
-<li><p><strong>gy_wave, gz_wave</strong> (<em>GradEvent</em>) – The wave corkscrew under the flat top, each self-balanced so scaling
-one to zero changes nothing else. Only the channels <code class="docutils literal notranslate"><span class="pre">wave</span></code> drives.</p></li>
+<li><p><strong>gy_wave, gz_wave</strong> (<em>GradEvent</em>) – Wave-encoding gradients played under the readout flat top, each
+self-balanced so scaling one to zero changes nothing else. Only the
+channels <code class="docutils literal notranslate"><span class="pre">wave</span></code> drives.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, shared by every echo.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>, in order. Absent when <code class="docutils literal notranslate"><span class="pre">labels</span></code> is empty,
 and a bare event rather than a list when there is one.</p></li>
@@ -1226,8 +1229,8 @@ wait can hold <code class="docutils literal notranslate"><span class="pre">gz_re
 <li><p><strong>echo_time</strong> (<em>float</em>) – From the RF isodelay to the first echo (s), on the block raster.</p></li>
 <li><p><strong>center_sample</strong> (<em>int</em>) – Index of the sample at the echo; partial echo moves it toward the
 start.</p></li>
-<li><p><strong>wave_amplitude</strong> (<em>float</em>) – Peak wave gradient achieved (T/m), below the requested one where the
-slew rate binds; zero without <code class="docutils literal notranslate"><span class="pre">wave</span></code>.</p></li>
+<li><p><strong>wave_amplitude</strong> (<em>float</em>) – Peak wave-encoding gradient amplitude built, in T/m, below the
+requested one where the slew rate binds; zero without <code class="docutils literal notranslate"><span class="pre">wave</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -1255,10 +1258,10 @@ slew rate binds; zero without <code class="docutils literal notranslate"><span c
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.LineReadout3D.init_module.html#pypulseqpp.sequences.LineReadout3D.init_module" title="pypulseqpp.sequences.LineReadout3D.init_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_module</span></code></a></p></td>
-<td><p>Build the module: the part a subclass writes.</p></td>
+<td><p>Build the module's block layout; implemented by the subclass.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.LineReadout3D.publish.html#pypulseqpp.sequences.LineReadout3D.publish" title="pypulseqpp.sequences.LineReadout3D.publish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish</span></code></a></p></td>
-<td><p>Publish played events from the caller's locals and register keyword aliases.</p></td>
+<td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.LineReadout3D.register.html#pypulseqpp.sequences.LineReadout3D.register" title="pypulseqpp.sequences.LineReadout3D.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
 <td><p>Publish named events without requiring prior block registration.</p></td>
@@ -1273,10 +1276,10 @@ slew rate binds; zero without <code class="docutils literal notranslate"><span c
 <td><p>Return block tuples in play order, retaining the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.LineReadout3D.duration.html#pypulseqpp.sequences.LineReadout3D.duration" title="pypulseqpp.sequences.LineReadout3D.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Length of the module (s).</p></td>
+<td><p>Duration of the module in seconds.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.LineReadout3D.seq.html#pypulseqpp.sequences.LineReadout3D.seq" title="pypulseqpp.sequences.LineReadout3D.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
-<td><p>Stored sequence for the module's construction-time block layout.</p></td>
+<td><p>Sequence holding the module's construction-time block layout.</p></td>
 </tr>
 </tbody>
 </table>

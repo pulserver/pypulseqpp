@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1145,9 +1146,10 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="rf-pulse-design">
 <h1>RF pulse design<a class="headerlink" href="#rf-pulse-design" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: RF pulses, from basic factories to designed pulses, and their
-analysis. Design functions return an RF event and, depending on their options,
-the gradients it plays under and design metadata.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: RF events, from the basic factories to designed pulses, and their
+analysis. A design function returns an RF event and, depending on its options,
+the slice-selection gradient and rephaser played with it, and design metadata.
+RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in radians.</p>
 <section id="pulse-factories">
 <h2>Pulse factories<a class="headerlink" href="#pulse-factories" title="Link to this heading">#</a></h2>
 <p>Hard, arbitrary, Gaussian, sinc and adiabatic pulses, and the adiabatic
@@ -1155,7 +1157,7 @@ half-passage pair.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse" title="pypulseqpp.make_adiabatic_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_adiabatic_pulse</span></code></a></p></td>
-<td><p>Make an adiabatic pulse: a frequency sweep whose effect does not follow B1.</p></td>
+<td><p>Construct an adiabatic RF pulse: a frequency sweep whose rotation is insensitive to B1.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_rf.html#pypulseqpp.make_arbitrary_rf" title="pypulseqpp.make_arbitrary_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_arbitrary_rf</span></code></a></p></td>
 <td><p>Create an RF pulse with the given pulse shape.</p></td>
@@ -1206,7 +1208,7 @@ gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.<
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_gslider_pulse.html#pypulseqpp.make_gslider_pulse" title="pypulseqpp.make_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gslider_pulse</span></code></a></p></td>
-<td><p>Design a gSlider slab pulse whose <code class="docutils literal notranslate"><span class="pre">subslice</span></code> carries <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+<td><p>Design a gSlider slab pulse with <code class="docutils literal notranslate"><span class="pre">subslice</span></code> at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_hadamard_pulse.html#pypulseqpp.make_hadamard_pulse" title="pypulseqpp.make_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_hadamard_pulse</span></code></a></p></td>
 <td><p>Design a slab pulse whose sub-bands are signed by row <code class="docutils literal notranslate"><span class="pre">row</span></code> of a Hadamard matrix.</p></td>
@@ -1225,13 +1227,13 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_selective_pulse.html#pypulseqpp.make_b1_selective_pulse" title="pypulseqpp.make_b1_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_selective_pulse</span></code></a></p></td>
-<td><p>Design a pulse that excites only where B1 lies in a band.</p></td>
+<td><p>Design a B1-selective RF pulse, excited only where the transmit amplitude lies in a band.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_gslider_pulse.html#pypulseqpp.make_b1_gslider_pulse" title="pypulseqpp.make_b1_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_gslider_pulse</span></code></a></p></td>
-<td><p>Design a B1-selective gSlider pulse: one sub-band of B1 at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+<td><p>Design a B1-selective gSlider pulse with one B1 sub-band at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_hadamard_pulse.html#pypulseqpp.make_b1_hadamard_pulse" title="pypulseqpp.make_b1_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_hadamard_pulse</span></code></a></p></td>
-<td><p>Design a B1-selective pulse whose sub-bands of B1 a Hadamard row signs.</p></td>
+<td><p>Design a B1-selective pulse whose B1 sub-bands are signed by a Hadamard row.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_bloch_siegert_pulse.html#pypulseqpp.make_bloch_siegert_pulse" title="pypulseqpp.make_bloch_siegert_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_bloch_siegert_pulse</span></code></a></p></td>
 <td><p>Design an adiabatic Bloch-Siegert encoding pulse.</p></td>
@@ -1242,7 +1244,8 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
 </section>
 <section id="parallel-transmit">
 <h2>Parallel transmit<a class="headerlink" href="#parallel-transmit" title="Link to this heading">#</a></h2>
-<p>A dynamic pTx pulse holds every transmit channel’s waveform in one RF event.
+<p>A dynamic pTx pulse holds every transmit channel’s waveform in one RF event,
+one channel after another over a shared time base.
 <a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html#pypulseqpp.calc_rf_shim" title="pypulseqpp.calc_rf_shim"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_shim()</span></code></a> computes static channel weights and
 <a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html#pypulseqpp.make_spokes_pulse" title="pypulseqpp.make_spokes_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_spokes_pulse()</span></code></a> designs spokes.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
@@ -1274,7 +1277,7 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
 <td><p>Calculate the time point of the effective rotation calculated as the peak of the radio-frequency amplitude for the shaped pulses and the center of the pulse for the block pulses.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_power</span></code></a></p></td>
-<td><p>Return a pulse's energy, peak power and RMS amplitude, as MATLAB Pulseq's <code class="docutils literal notranslate"><span class="pre">calcRfPower</span></code>.</p></td>
+<td><p>Return an RF event's energy, peak power and RMS amplitude, as MATLAB Pulseq's <code class="docutils literal notranslate"><span class="pre">calcRfPower</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sim_bloch.html#pypulseqpp.sim_bloch" title="pypulseqpp.sim_bloch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_bloch</span></code></a></p></td>
 <td><p>Simulate the Bloch equation without relaxation, in hard-pulse steps.</p></td>

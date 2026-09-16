@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Hardware safety &#8212; pypulseqpp documentation</title>
+    <title>Gradient, PNS and SAR checks &#8212; pypulseqpp documentation</title>
   
   
   
@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Hardware safety</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Gradient, PNS and SAR checks</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1116,7 +1117,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Hardware safety</h1>
+    <h1>Gradient, PNS and SAR checks</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -1141,29 +1142,34 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="hardware-safety">
-<h1>Hardware safety<a class="headerlink" href="#hardware-safety" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code>: what a complete sequence asks of the scanner and of the
-subject. The checks apply block rotations, judge the three physical axes
-together, and use the sequence’s own limits or another
-<a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a>. They are estimates, not a complete scanner or
-patient-safety assessment.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="gradient-pns-and-sar-checks">
+<h1>Gradient, PNS and SAR checks<a class="headerlink" href="#gradient-pns-and-sar-checks" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code>: checks of a complete sequence against gradient hardware
+limits, vendor forbidden gradient bands, a peripheral-nerve-stimulation model
+and a VOP SAR model. Every check applies each block’s rotation and evaluates
+the three physical gradient axes, and takes its limits from the sequence’s own
+<a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a> or from one passed to it. They are estimates, not a
+complete scanner or patient-safety assessment.</p>
 <section id="gradient-limits">
 <h2>Gradient limits<a class="headerlink" href="#gradient-limits" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a> checks the peak played amplitude,
-<a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> the slew within blocks, and
-<a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_grad_continuity()</span></code></a> the transitions between blocks and the end of
-the sequence.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a> checks the peak gradient amplitude,
+<a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> the slew rate within blocks, and
+<a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_grad_continuity()</span></code></a> the gradient amplitude across block boundaries
+and at the end of the sequence.</p>
+<p>The amplitude and slew-rate checks compare the largest <strong>per-axis</strong> peak with
+<code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>. They also report the largest simultaneous vector
+magnitude over the three physical axes, but do not compare it with a limit;
+that magnitude is not the norm of independently attained axis peaks.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_max_grad</span></code></a></p></td>
-<td><p>Return whether every gradient is within the amplitude limit.</p></td>
+<td><p>Check the peak gradient amplitude against <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_max_slew</span></code></a></p></td>
-<td><p>Return whether every gradient is within the slew limit, within a block.</p></td>
+<td><p>Check the within-block slew rate against <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_grad_continuity</span></code></a></p></td>
-<td><p>Return whether each gradient carries on from the block before it.</p></td>
+<td><p>Check gradient amplitude continuity across block boundaries.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1180,13 +1186,13 @@ otherwise.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_mech_resonance</span></code></a></p></td>
-<td><p>Return whether no window drives a forbidden band above its threshold.</p></td>
+<td><p>Check the gradient amplitude spectrum against forbidden gradient bands.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_forbidden_bands</span></code></a></p></td>
 <td><p>Read forbidden bands from a vendor table.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></p></td>
-<td><p>A frequency range a physical gradient axis must not be driven in.</p></td>
+<td><p>A forbidden gradient band: a frequency range on one physical axis.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1202,7 +1208,7 @@ upstream’s <code class="docutils literal notranslate"><span class="pre">safe_e
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_pns</span></code></a></p></td>
-<td><p>Return whether the nerve response stays below threshold throughout.</p></td>
+<td><p>Check peripheral nerve stimulation against a SAFE or chronaxie model.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_safe_model</span></code></a></p></td>
 <td><p>Read a SAFE nerve model from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p></td>
@@ -1227,7 +1233,7 @@ for a sequence.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_sar</span></code></a></p></td>
-<td><p>Return whether no repetition exceeds the local and global SAR limits.</p></td>
+<td><p>Check window-averaged local and global SAR against their limits.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_vops</span></code></a></p></td>
 <td><p>Read VOPs and a global SAR matrix from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p></td>

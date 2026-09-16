@@ -225,15 +225,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -309,7 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -366,7 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -827,7 +828,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -847,7 +848,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -901,9 +902,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
 </ul>
 
@@ -1059,9 +1060,9 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp.safety</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Gradient amplitude, slew, continuity, mechanical-resonance, PNS and SAR checks.</span>
+<span></span><span class="sd">"""Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks.</span>
 
-<span class="sd">Checks use physical-axis waveforms after applying block rotations.</span>
+<span class="sd">Checks use physical-axis gradient waveforms, after applying block rotations.</span>
 <span class="sd">These checks do not establish scanner or patient safety.</span>
 <span class="sd">"""</span>
 
@@ -1095,7 +1096,7 @@
     <span class="n">chosen</span> <span class="o">=</span> <span class="n">system</span> <span class="k">if</span> <span class="n">system</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">seq</span><span class="o">.</span><span class="n">system</span>
     <span class="k">if</span> <span class="n">chosen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"no limits to judge against: build the Sequence with a system= "</span>
+            <span class="s2">"no system limits available: build the Sequence with a system= "</span>
             <span class="s2">"argument, or pass one here"</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">chosen</span>
@@ -1109,7 +1110,7 @@
 <div class="viewcode-block" id="check_max_grad">
 <a class="viewcode-back" href="../../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_max_grad</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return whether every gradient is within the amplitude limit.</span>
+<span class="w">    </span><span class="sd">"""Check the peak gradient amplitude against ``max_grad``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1121,18 +1122,19 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    is_ok : bool</span>
-<span class="sd">        True when no axis exceeds the limit.</span>
+<span class="sd">        True when the largest per-axis amplitude does not exceed ``max_grad``.</span>
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        ``limit``; the ``per_axis`` and ``vector`` peaks; and ``axes``, the</span>
 <span class="sd">        peak of each of x, y and z on its own. Each peak carries ``value`` in</span>
-<span class="sd">        Hz/m, the 1-based ``block`` that plays it, and which ``axis``.</span>
+<span class="sd">        Hz/m, the 1-based ``block`` containing it, and its ``axis``.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Block rotations are applied before per-axis peaks are evaluated. Only the</span>
-<span class="sd">    largest per-axis peak is checked against the limit; a nonpositive limit</span>
-<span class="sd">    disables this check. The vector peak is the maximum simultaneous Euclidean</span>
-<span class="sd">    magnitude, not the norm of independently occurring axis peaks.</span>
+<span class="sd">    largest per-axis peak is compared with the limit; a nonpositive limit</span>
+<span class="sd">    disables the check. The vector peak is the largest simultaneous Euclidean</span>
+<span class="sd">    magnitude over the three physical axes; it is reported but not compared</span>
+<span class="sd">    with a limit, and it is not the norm of independently attained axis peaks.</span>
 <span class="sd">    """</span>
     <span class="n">limits</span> <span class="o">=</span> <span class="n">_limits</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
     <span class="n">limit</span> <span class="o">=</span> <span class="n">_of</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="s2">"max_grad"</span><span class="p">)</span>
@@ -1151,29 +1153,31 @@
 <div class="viewcode-block" id="check_max_slew">
 <a class="viewcode-back" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_max_slew</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return whether every gradient is within the slew limit, within a block.</span>
+<span class="w">    </span><span class="sd">"""Check the within-block slew rate against ``max_slew``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to check.</span>
 <span class="sd">    system : pypulseqpp.Opts, optional</span>
-<span class="sd">        The scanner to weigh it against; the sequence's own by default.</span>
+<span class="sd">        System limits; the sequence's own by default.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    is_ok : bool</span>
-<span class="sd">        True when nothing slews too fast.</span>
+<span class="sd">        True when the largest per-axis slew rate does not exceed ``max_slew``.</span>
 <span class="sd">    report : SimpleNamespace</span>
-<span class="sd">        ``limit``; the ``per_axis`` and ``vector`` slew peaks in Hz/m/s; and</span>
-<span class="sd">        ``axes``, the peak of each of x, y and z on its own.</span>
+<span class="sd">        ``limit``; the ``per_axis`` and ``vector`` slew-rate peaks in Hz/m/s;</span>
+<span class="sd">        and ``axes``, the peak of each of x, y and z on its own.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    Checks within-block slew after block rotations, not boundary jumps.</span>
-<span class="sd">    Only the largest per-axis peak is limited; a nonpositive limit disables</span>
-<span class="sd">    this check. Vector slew is the maximum simultaneous Euclidean magnitude.</span>
-<span class="sd">    Use check_grad_continuity for inter-block transitions.</span>
+<span class="sd">    Slew rates are evaluated within each block after block rotations;</span>
+<span class="sd">    boundaries between blocks are not covered. Only the largest per-axis peak</span>
+<span class="sd">    is compared with the limit; a nonpositive limit disables the check. The</span>
+<span class="sd">    vector slew rate is the largest simultaneous Euclidean magnitude, reported</span>
+<span class="sd">    but not compared with a limit. Use :func:`check_grad_continuity` for</span>
+<span class="sd">    transitions between blocks.</span>
 <span class="sd">    """</span>
     <span class="n">limits</span> <span class="o">=</span> <span class="n">_limits</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
     <span class="n">limit</span> <span class="o">=</span> <span class="n">_of</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="s2">"max_slew"</span><span class="p">)</span>
@@ -1193,31 +1197,33 @@
 <div class="viewcode-block" id="check_grad_continuity">
 <a class="viewcode-back" href="../../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_grad_continuity</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return whether each gradient carries on from the block before it.</span>
+<span class="w">    </span><span class="sd">"""Check gradient amplitude continuity across block boundaries.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        The sequence to check.</span>
 <span class="sd">    system : pypulseqpp.Opts, optional</span>
-<span class="sd">        The scanner whose slew limit a jump is judged against; the sequence's</span>
-<span class="sd">        own by default.</span>
+<span class="sd">        System limits supplying the slew limit a discontinuity is compared</span>
+<span class="sd">        with; the sequence's own by default.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    is_ok : bool</span>
-<span class="sd">        True when nothing jumps and the sequence leaves its gradients at zero.</span>
+<span class="sd">        True when no discontinuity is found and every gradient waveform ends</span>
+<span class="sd">        at zero amplitude.</span>
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        ``limit``; the ``discontinuities`` found, each naming the ``block``,</span>
-<span class="sd">        the ``axis``, and what the gradient goes ``before`` and ``after`` the</span>
-<span class="sd">        jump, with the ``slew`` that step asks for; and ``ends_at_zero``.</span>
+<span class="sd">        the ``axis``, the amplitudes ``before`` and ``after`` the boundary and</span>
+<span class="sd">        the ``slew`` rate the step implies; and ``ends_at_zero``.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    Compare endpoints in physical coordinates after block rotations.</span>
-<span class="sd">    A missing gradient is zero. Jumps are assessed over one gradient raster,</span>
-<span class="sd">    and the final gradient must be zero. Block indices are 1-based, axes are</span>
-<span class="sd">    zero-based integers, amplitudes are in Hz/m and slew is in Hz/m/s.</span>
+<span class="sd">    Endpoints are compared in physical coordinates after block rotations.</span>
+<span class="sd">    An absent gradient contributes zero amplitude. A discontinuity is</span>
+<span class="sd">    evaluated over one gradient raster period, and the final amplitude on</span>
+<span class="sd">    every axis must be zero. Block indices are 1-based, axes are zero-based</span>
+<span class="sd">    integers, amplitudes are in Hz/m and slew rates in Hz/m/s.</span>
 <span class="sd">    """</span>
     <span class="n">limits</span> <span class="o">=</span> <span class="n">_limits</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
     <span class="n">limit</span> <span class="o">=</span> <span class="n">_of</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="s2">"max_slew"</span><span class="p">)</span>

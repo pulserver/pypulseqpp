@@ -225,15 +225,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -309,7 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -366,7 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -827,7 +828,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -847,7 +848,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -901,9 +902,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
 </ul>
 
@@ -1059,9 +1060,10 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._gradients</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Gradient factories in imaging terms, concatenation and wave-CAIPI waveforms.</span>
+<span></span><span class="sd">"""Gradient factories in imaging terms, concatenation and wave-encoding waveforms.</span>
 
-<span class="sd">Areas are in 1/m and amplitudes in Hz/m unless a docstring says otherwise.</span>
+<span class="sd">Gradient areas are in 1/m and amplitudes in Hz/m unless a docstring says</span>
+<span class="sd">otherwise.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1360,13 +1362,17 @@
     <span class="n">return_amplitude</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Create self-balanced wave-CAIPI gradients for one readout flat top.</span>
+<span class="w">    </span><span class="sd">"""Create self-balanced wave-encoding gradient events for one readout flat top.</span>
 
 <span class="sd">    A sine on ``sine_channel`` and a cosine on ``cosine_channel`` run</span>
-<span class="sd">    ``cycles`` periods across the flat top. Each is tapered in and out by a</span>
-<span class="sd">    raised-cosine envelope over a quarter period (rounded down to the raster)</span>
-<span class="sd">    and offset under that envelope, so it starts and ends at zero with zero</span>
-<span class="sd">    net area: scaling either event, including to zero, changes no rewinder.</span>
+<span class="sd">    ``cycles`` periods across the flat top. Played with the readout gradient,</span>
+<span class="sd">    the pair traces the corkscrew k-space trajectory of wave-CAIPI [1]_; the</span>
+<span class="sd">    events themselves are two sinusoidal gradient waveforms.</span>
+
+<span class="sd">    Each sinusoid is tapered in and out by a raised-cosine envelope over a</span>
+<span class="sd">    quarter period (rounded down to the raster) and offset under that envelope,</span>
+<span class="sd">    so it starts and ends at zero amplitude with zero net area: scaling either</span>
+<span class="sd">    event, including to zero, leaves every rewinder unchanged.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1376,10 +1382,11 @@
 <span class="sd">    cycles : int</span>
 <span class="sd">        Sinusoid periods across the flat top.</span>
 <span class="sd">    amplitude : float</span>
-<span class="sd">        Requested sinusoid amplitude (T/m). An upper bound: the amplitude</span>
-<span class="sd">        built is lowered as needed to keep the played waveforms within</span>
-<span class="sd">        ``system.max_slew`` and ``system.max_grad``. The balancing offset</span>
-<span class="sd">        can lift a played peak a few percent above the amplitude.</span>
+<span class="sd">        Requested sinusoid amplitude, in **T/m** rather than the Hz/m used</span>
+<span class="sd">        elsewhere in this module. An upper bound: the amplitude built is</span>
+<span class="sd">        lowered as needed to keep the played waveforms within</span>
+<span class="sd">        ``system.max_slew`` and ``system.max_grad``. The balancing offset can</span>
+<span class="sd">        lift a played peak a few percent above the amplitude.</span>
 <span class="sd">    sine_channel, cosine_channel : {"x", "y", "z"} or None, optional</span>
 <span class="sd">        Channels for the sine and the cosine; ``None`` omits that one.</span>
 <span class="sd">    delay : float, optional</span>
@@ -1395,7 +1402,7 @@
 <span class="sd">    sine, cosine : GradEvent or None</span>
 <span class="sd">        Arbitrary gradients, ``None`` for an omitted channel.</span>
 <span class="sd">    amplitude : float</span>
-<span class="sd">        Amplitude built (T/m). Only with ``return_amplitude``.</span>
+<span class="sd">        Amplitude built, in T/m. Only with ``return_amplitude``.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -1411,6 +1418,12 @@
 <span class="sd">    &gt;&gt;&gt; gy, gz = pp.make_wave_gradients(3e-3, 4, 10e-3)</span>
 <span class="sd">    &gt;&gt;&gt; [abs(round(float(np.sum(g.waveform)), 6)) for g in (gy, gz)]</span>
 <span class="sd">    [0.0, 0.0]</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] B Bilgic, B A Gagoski, S F Cauley et al., "Wave-CAIPI for highly</span>
+<span class="sd">       accelerated 3D imaging", Magn Reson Med 2015;73:2152-2162.</span>
+<span class="sd">       DOI 10.1002/mrm.25347.</span>
 <span class="sd">    """</span>
     <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">sine_channel</span><span class="p">,</span> <span class="n">cosine_channel</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">channels</span><span class="p">:</span>
@@ -1426,7 +1439,7 @@
 
     <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
     <span class="n">n_flat</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">flat_time</span> <span class="o">/</span> <span class="n">raster</span><span class="p">)</span>
-    <span class="c1"># A quarter period is what each end is brought in over, so the corkscrew</span>
+    <span class="c1"># A quarter period is what each end is brought in over, so the sinusoid</span>
     <span class="c1"># needs whole periods and enough raster to shape their edges.</span>
     <span class="n">n_edge</span> <span class="o">=</span> <span class="n">n_flat</span> <span class="o">//</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">cycles</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n_edge</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>

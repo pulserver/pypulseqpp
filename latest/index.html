@@ -231,15 +231,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -315,7 +316,7 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -372,7 +373,7 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -833,7 +834,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -853,7 +854,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -907,9 +908,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc/license.html">License</a></li>
 </ul>
 
@@ -1162,9 +1163,9 @@ excitation, preparation and readout modules.</p>
 <li><p>Pulseq text and binary reading/writing, signatures and event deduplication.</p></li>
 <li><p>Waveform expansion, k-space trajectories, sequence reports and structural
 repetition detection.</p></li>
-<li><p>Timing, gradient amplitude, slew and boundary-continuity checks, a
-mechanical-resonance check against forbidden gradient bands, and a PNS
-check under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.</p></li>
+<li><p>Timing, gradient amplitude, slew-rate and boundary-continuity checks, a
+mechanical-resonance check against forbidden gradient bands, a PNS check
+under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.</p></li>
 <li><p>Logical-frame FOV scaling, rotation and translation.</p></li>
 <li><p>Pulse, trajectory and sampling design, with reusable sequence modules.</p></li>
 </ul>
@@ -1197,8 +1198,9 @@ PyPulseq; the native core is included in platform wheels.</p>
 <span class="n">seq</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"example.seq"</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Sequence-module classes are available from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>.
-The <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/api/index.html">API reference</a>
+<p>Sequence-module classes are available from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>, and the
+complete example sequences from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences.&lt;name&gt;</span></code>. The
+<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/api/index.html">API reference</a>
 groups sequence operations, event design, sampling, modules and checks.</p>
 </section>
 <section id="development-and-documentation">
@@ -1211,8 +1213,9 @@ bash<span class="w"> </span>scripts/build_docs.sh
 </div>
 <p>The script compiles the checkout into <code class="docutils literal notranslate"><span class="pre">docs/build/site</span></code> and generates the pages
 from that build.</p>
-<p>Open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code>. The API reference is populated; the user
-guide, developer guide and examples sections are scaffolds.</p>
+<p>Open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code>. The API reference and the example-sequence
+index are populated; the user and developer guides are scaffolds.
+Documentation contributions follow <code class="docutils literal notranslate"><span class="pre">docs/documentation_style.md</span></code>.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">

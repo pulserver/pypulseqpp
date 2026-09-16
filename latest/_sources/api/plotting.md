@@ -1,6 +1,6 @@
 # Plotting
 
-`pypulseqpp.plot`: every figure is a function that takes what it draws.
+`pypulseqpp.plot`: each figure is a function of the object it draws.
 {func}`plot` and {func}`paper_plot` are also {class}`pypulseqpp.Sequence`
 methods, for scripts written against upstream PyPulseq; the other figures are
 functions only.
@@ -12,8 +12,8 @@ functions only.
 ## Sequence views
 
 {func}`plot` opens the sequence in SeqEyes, an optional viewer installed with
-`pip install 'pypulseqpp[plot]'`. {func}`paper_plot` draws one repetition as
-a publication diagram over the others.
+`pip install 'pypulseqpp[plot]'`. {func}`paper_plot` draws one repetition as a
+publication diagram, overlaid on the others.
 
 ```{eval-rst}
 .. autosummary::
@@ -26,10 +26,10 @@ a publication diagram over the others.
 
 ## k-space and RF profiles
 
-{func}`plot_kspace` draws where the ADC samples land in physical-axis k-space,
-optionally coloured by shot or echo. {func}`plot_rf` draws a pulse's envelope
-beside the magnetisation profile it produces, against position or
-off-resonance, or over a plane.
+{func}`plot_kspace` draws the ADC sampling locations in physical-axis k-space,
+in 1/m, optionally coloured by shot or echo index. {func}`plot_rf` draws an RF
+pulse's envelope beside the magnetisation profile it produces, against position
+or off-resonance, or over a plane.
 
 ```{eval-rst}
 .. autosummary::

@@ -225,15 +225,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -309,7 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -366,7 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -827,7 +828,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -847,7 +848,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -901,9 +902,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
 </ul>
 
@@ -1059,12 +1060,12 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._trajectories</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""K-space interleave geometry for :func:`pypulseqpp.traj_to_grad`.</span>
+<span></span><span class="sd">"""K-space interleaf geometry for :func:`pypulseqpp.traj_to_grad`.</span>
 
-<span class="sd">Each function returns one base interleave as an ``(n, 2)`` polyline in</span>
-<span class="sd">cycles/m, describing where the path goes but not when;</span>
-<span class="sd">:func:`pypulseqpp.traj_to_grad` assigns the timing under gradient and slew</span>
-<span class="sd">limits. The number and angles of rotated copies come from</span>
+<span class="sd">Each function returns one base interleaf as an ``(n, 2)`` polyline in 1/m,</span>
+<span class="sd">describing where the trajectory goes but not when;</span>
+<span class="sd">:func:`pypulseqpp.traj_to_grad` assigns the timing within the gradient</span>
+<span class="sd">amplitude and slew limits. The number and angles of rotated copies come from</span>
 <span class="sd">``calc_golden_angles`` and :func:`pypulseqpp.make_rotation`.</span>
 <span class="sd">"""</span>
 
@@ -1133,7 +1134,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    numpy.ndarray</span>
-<span class="sd">        ``(num_points, 2)``, in cycles/m, from ``-kmax`` to ``+kmax`` along x.</span>
+<span class="sd">        ``(num_points, 2)``, in 1/m, from ``-kmax`` to ``+kmax`` along x.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -1166,7 +1167,7 @@
     <span class="n">transition_speed</span><span class="o">=</span><span class="mf">12.0</span><span class="p">,</span>
     <span class="n">num_points</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Return one spiral-out interleave, from the centre to ``kmax``.</span>
+<span class="w">    </span><span class="sd">"""Return one spiral-out interleaf, from the centre to ``kmax``.</span>
 
 <span class="sd">    The pitch between neighbouring turns is set so that</span>
 <span class="sd">    ``design_interleaves`` rotated copies of this path sample the disc at the</span>
@@ -1179,14 +1180,14 @@
 <span class="sd">    matrix : int</span>
 <span class="sd">        Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.</span>
 <span class="sd">    design_interleaves : int</span>
-<span class="sd">        Interleave count the pitch is designed for. One is a single-shot</span>
+<span class="sd">        Interleaf count the pitch is designed for. One is a single-shot</span>
 <span class="sd">        spiral of ``matrix / 2`` turns.</span>
 <span class="sd">    density : {"constant", "variable", "dual"}, optional</span>
 <span class="sd">        How the local pitch changes with radius: not at all, as</span>
 <span class="sd">        ``radius ** variable_density_power``, or between two plateaus joined</span>
 <span class="sd">        by a logistic transition.</span>
 <span class="sd">    inner_design_interleaves, outer_design_interleaves : float, optional</span>
-<span class="sd">        Local interleave count at the centre and at the edge. The inner one</span>
+<span class="sd">        Local interleaf count at the centre and at the edge. The inner one</span>
 <span class="sd">        defaults to ``design_interleaves``; the outer one to twice the inner</span>
 <span class="sd">        for a variable-density spiral, and is required for a dual-density</span>
 <span class="sd">        one. A larger count is a coarser pitch, so a variable-density</span>
@@ -1203,13 +1204,13 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    numpy.ndarray</span>
-<span class="sd">        ``(num_points, 2)``, in cycles/m, starting at the origin.</span>
+<span class="sd">        ``(num_points, 2)``, in 1/m, starting at the origin.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If ``density`` is not one of the three, a dual-density spiral has no</span>
-<span class="sd">        outer interleave count, or any count or shape parameter is out of</span>
+<span class="sd">        outer interleaf count, or any count or shape parameter is out of</span>
 <span class="sd">        range.</span>
 
 <span class="sd">    Examples</span>
@@ -1289,7 +1290,7 @@
     <span class="n">angular_frequency_ratio</span><span class="o">=</span><span class="mf">3.0</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">,</span>
     <span class="n">num_points</span><span class="o">=</span><span class="mi">2049</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Return one rosette interleave, petals through the centre of k-space.</span>
+<span class="w">    </span><span class="sd">"""Return one rosette interleaf, petals through the centre of k-space.</span>
 
 <span class="sd">    The path is ``rho(u) = kmax sin(pi petals u)`` at angle</span>
 <span class="sd">    ``theta(u) = pi petals angular_frequency_ratio u`` for ``u`` in</span>
@@ -1302,7 +1303,7 @@
 <span class="sd">    matrix : int</span>
 <span class="sd">        Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.</span>
 <span class="sd">    petals : int, optional</span>
-<span class="sd">        Centre-to-centre lobes within this one interleave. More petals cross</span>
+<span class="sd">        Centre-to-centre lobes within this one interleaf. More petals cross</span>
 <span class="sd">        the centre more often and lengthen the readout.</span>
 <span class="sd">    angular_frequency_ratio : float, optional</span>
 <span class="sd">        Angular over radial frequency. Below one the petals are open; one is</span>
@@ -1314,7 +1315,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    numpy.ndarray</span>
-<span class="sd">        ``(num_points, 2)``, in cycles/m, starting and ending at the origin.</span>
+<span class="sd">        ``(num_points, 2)``, in 1/m, starting and ending at the origin.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>

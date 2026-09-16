@@ -225,15 +225,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -309,7 +310,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -366,7 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -827,7 +828,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -847,7 +848,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -901,9 +902,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
 </ul>
 
@@ -1182,7 +1183,7 @@
 <span class="sd">        gx, gy, gz, ADC and extension. The delay column is zero for Pulseq</span>
 <span class="sd">        1.5. Reading it allocates a dictionary for all blocks.</span>
 <span class="sd">    definitions : dict[str, Any]</span>
-<span class="sd">        Everything `[DEFINITIONS]` will carry.</span>
+<span class="sd">        The definitions written to the `[DEFINITIONS]` section.</span>
 <span class="sd">    grad_raster_time : float</span>
 <span class="sd">        Gradient raster in seconds.</span>
 <span class="sd">    rf_raster_time : float</span>
@@ -1190,11 +1191,12 @@
 <span class="sd">    adc_raster_time : float</span>
 <span class="sd">        ADC dwell raster in seconds.</span>
 <span class="sd">    block_duration_raster : float</span>
-<span class="sd">        Raster a block duration is a whole number of, in seconds.</span>
+<span class="sd">        Block duration raster in seconds; every block duration is a whole</span>
+<span class="sd">        number of these.</span>
 <span class="sd">    version_major : int</span>
 <span class="sd">        Major version of the Pulseq format the sequence is held as. A file</span>
-<span class="sd">        older than 1.5 is converted as it is read, so this is what the</span>
-<span class="sd">        sequence is rather than what its file declared.</span>
+<span class="sd">        older than 1.5 is converted as it is read, so this is the format of</span>
+<span class="sd">        the sequence in memory, not the version its file declared.</span>
 <span class="sd">    version_minor : int</span>
 <span class="sd">        Minor version of the format the sequence is held as.</span>
 <span class="sd">    version_revision : int</span>
@@ -1296,7 +1298,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">block_duration_raster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Raster a block duration is a whole number of, in seconds."""</span>
+<span class="w">        </span><span class="sd">"""Block duration raster in seconds; every block duration is a whole number of these."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">()</span>
 
     <span class="c1"># -- what has been worked out about the sequence -------------------</span>
@@ -1500,7 +1502,7 @@
 <div class="viewcode-block" id="Sequence.find_block_by_time">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.find_block_by_time.html#pypulseqpp.Sequence.find_block_by_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">find_block_by_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return the 1-based index of the block playing at ``t`` seconds.</span>
+<span class="w">        </span><span class="sd">"""Return the 1-based index of the block containing time ``t`` in seconds.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1600,7 +1602,7 @@
 <div class="viewcode-block" id="Sequence.get_definition">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return what ``key`` says, or ``''`` if it is not defined.</span>
+<span class="w">        </span><span class="sd">"""Return the value recorded for ``key``, or ``''`` when it is not defined.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1625,13 +1627,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Everything `[DEFINITIONS]` will carry."""</span>
+<span class="w">        </span><span class="sd">"""The definitions written to the `[DEFINITIONS]` section."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">definitions</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Sequence.copy_definitions">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.copy_definitions.html#pypulseqpp.Sequence.copy_definitions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_seq</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Take every definition ``other_seq`` carries.</span>
+<span class="w">        </span><span class="sd">"""Copy every definition from ``other_seq`` into this sequence.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1656,11 +1658,11 @@
     <span class="c1"># -- extensions ----------------------------------------------------</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_extension_type_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extension_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return the numeric id for ``extension_string``, minting one if new."""</span>
+<span class="w">        </span><span class="sd">"""Return the numeric id for ``extension_string``, assigning one if new."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">extension_type_id</span><span class="p">(</span><span class="n">extension_string</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_extension_type_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extension_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return the name ``extension_id`` stands for.</span>
+<span class="w">        </span><span class="sd">"""Return the name ``extension_id`` maps to.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -1683,7 +1685,7 @@
 <div class="viewcode-block" id="Sequence.get_or_create_trid_id">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.get_or_create_trid_id.html#pypulseqpp.Sequence.get_or_create_trid_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_trid_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return the TRID number ``label_name`` is known by, naming it if new.</span>
+<span class="w">        </span><span class="sd">"""Return the TRID number assigned to ``label_name``, assigning one if new.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1713,7 +1715,7 @@
 <div class="viewcode-block" id="Sequence.add_trid">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.add_trid.html#pypulseqpp.Sequence.add_trid">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_trid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Append a block setting TRID to the number ``label_name`` is known by.</span>
+<span class="w">        </span><span class="sd">"""Append a block setting TRID to the number assigned to ``label_name``.</span>
 
 <span class="sd">        Nothing is appended when the system's ``flag_trid`` is False.</span>
 
@@ -1745,7 +1747,7 @@
 <div class="viewcode-block" id="Sequence.mod_grad_axis">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.mod_grad_axis.html#pypulseqpp.Sequence.mod_grad_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mod_grad_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">modifier</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Scale every gradient played on ``axis`` by ``modifier``.</span>
+<span class="w">        </span><span class="sd">"""Scale the amplitude of every gradient on ``axis`` by ``modifier``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1791,7 +1793,7 @@
 <div class="viewcode-block" id="Sequence.flip_grad_axis">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.flip_grad_axis.html#pypulseqpp.Sequence.flip_grad_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flip_grad_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Invert every gradient played on ``axis``.</span>
+<span class="w">        </span><span class="sd">"""Negate the amplitude of every gradient on ``axis``.</span>
 
 <span class="sd">        Equivalent to ``mod_grad_axis(axis, -1)``.</span>
 
@@ -1832,7 +1834,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init : dict[str, int], optional</span>
-<span class="sd">            What a label is before the walk begins. A label named here is</span>
+<span class="sd">            Initial value of each label before evaluation begins. A label named here is</span>
 <span class="sd">            reported whether or not the blocks touch it, which is what makes</span>
 <span class="sd">            evaluating a sequence a piece at a time work.</span>
 <span class="sd">        evolution : {'none', 'blocks', 'adc', 'label'}, default 'none'</span>
@@ -1916,7 +1918,7 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">compat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return the gradient waveforms, the RF moments and the ADC sampling.</span>
+<span class="w">        </span><span class="sd">"""Return the gradient waveforms, the RF pulse timing and the ADC sampling.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1927,9 +1929,9 @@
 <span class="sd">        block_range : Sequence[int], optional</span>
 <span class="sd">            Two 1-based block indices. Not with ``time_range``.</span>
 <span class="sd">        compat : bool, default True</span>
-<span class="sd">            Return upstream's five values, which is what a drop-in caller</span>
-<span class="sd">            unpacks. False returns everything the pass worked out, including</span>
-<span class="sd">            the five RF uses those five values cannot carry.</span>
+<span class="sd">            Return upstream's five values, which a drop-in caller unpacks.</span>
+<span class="sd">            False returns a named result covering all seven Pulseq RF uses,</span>
+<span class="sd">            which those five values cannot carry.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2034,7 +2036,7 @@
 <div class="viewcode-block" id="Sequence.rf_times">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">rf_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return when the pulses act, and at what frequency and phase.</span>
+<span class="w">        </span><span class="sd">"""Return RF pulse centre times with their frequency and phase offsets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2088,7 +2090,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        k_traj_adc : NDArray[np.float64]</span>
-<span class="sd">            3-by-n: where each ADC sample sits in k-space, in 1/m.</span>
+<span class="sd">            ``(3, n)``: the k-space location of each ADC sample, in 1/m.</span>
 <span class="sd">        k_traj : NDArray[np.float64]</span>
 <span class="sd">            Full trajectory in 1/m, sampled through ramps and at event times.</span>
 <span class="sd">        t_excitation : NDArray[np.float64]</span>
@@ -2256,7 +2258,7 @@
 <div class="viewcode-block" id="Sequence.test_report">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.test_report.html#pypulseqpp.Sequence.test_report">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">test_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return a formatted sequence timing, encoding and gradient report.</span>
+<span class="w">        </span><span class="sd">"""Return sequence timing, encoding and gradient statistics, formatted as text.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2377,7 +2379,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            What each delay, by its hint, is to be set to, in seconds. A</span>
-<span class="sd">            delay the sequence carries and nobody names is left alone.</span>
+<span class="sd">            delay in the sequence that is not named here is left unchanged.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -2454,7 +2456,7 @@
 <div class="viewcode-block" id="Sequence.get_default_soft_delay_values">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.get_default_soft_delay_values.html#pypulseqpp.Sequence.get_default_soft_delay_values">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_default_soft_delay_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return what each soft delay stands for if nobody sets it.</span>
+<span class="w">        </span><span class="sd">"""Return each soft delay's default value.</span>
 
 <span class="sd">        A soft delay says how a block's duration follows from a value the</span>
 <span class="sd">        console supplies: `duration = value / factor + offset`. Read the other</span>
@@ -2571,7 +2573,7 @@
         <span class="k">return</span> <span class="n">stored</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_rf_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">"""Store a pulse and return its ids.</span>
+<span class="w">        </span><span class="sd">"""Register an RF event and return its ids.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2579,13 +2581,13 @@
 <span class="sd">            The row it was stored as.</span>
 <span class="sd">        shape_ids : list[int]</span>
 <span class="sd">            Its magnitude, phase and time shapes; the time shape is 0 when</span>
-<span class="sd">            the pulse sits on the RF raster.</span>
+<span class="sd">            the pulse lies on the RF raster.</span>
 <span class="sd">        """</span>
         <span class="n">stored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"rf"</span><span class="p">,),</span> <span class="s2">"register_rf_event"</span><span class="p">,</span> <span class="s2">"an RF pulse"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"shapes"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_grad_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Store a gradient and return its ids.</span>
+<span class="w">        </span><span class="sd">"""Register a gradient event and return its ids.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2598,7 +2600,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">stored</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"shapes"</span><span class="p">])</span> <span class="k">if</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"shapes"</span><span class="p">]</span> <span class="k">else</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_adc_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Store an ADC and return its ids.</span>
+<span class="w">        </span><span class="sd">"""Register an ADC event and return its ids.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2611,31 +2613,31 @@
         <span class="k">return</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">stored</span><span class="p">[</span><span class="s2">"shapes"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_label_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Store a label and return its row id."""</span>
+<span class="w">        </span><span class="sd">"""Register a label event and return its row id."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"LABELSET"</span><span class="p">,</span> <span class="s2">"LABELINC"</span><span class="p">),</span> <span class="s2">"register_label_event"</span><span class="p">,</span> <span class="s2">"a label"</span>
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_control_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Store a trigger or digital output and return its row id."""</span>
+<span class="w">        </span><span class="sd">"""Register a trigger or digital-output event and return its row id."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"TRIGGERS"</span><span class="p">,),</span> <span class="s2">"register_control_event"</span><span class="p">,</span> <span class="s2">"a trigger"</span>
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_rotation_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Store a rotation and return its row id."""</span>
+<span class="w">        </span><span class="sd">"""Register a rotation event and return its row id."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"ROTATIONS"</span><span class="p">,),</span> <span class="s2">"register_rotation_event"</span><span class="p">,</span> <span class="s2">"a rotation"</span>
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_rf_shim_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Store an RF shim vector and return its row id."""</span>
+<span class="w">        </span><span class="sd">"""Register an RF shim event and return its row id."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"RF_SHIMS"</span><span class="p">,),</span> <span class="s2">"register_rf_shim_event"</span><span class="p">,</span> <span class="s2">"an RF shim"</span>
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">register_soft_delay_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Store a soft delay and return its row id."""</span>
+<span class="w">        </span><span class="sd">"""Register a soft delay event and return its row id."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="s2">"DELAYS"</span><span class="p">,),</span> <span class="s2">"register_soft_delay_event"</span><span class="p">,</span> <span class="s2">"a soft delay"</span>
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
@@ -2747,7 +2749,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">write_v141</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">42576000.0</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="mf">1.5</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.</span>
+<span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2905,7 +2907,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">version_major</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The major version of the Pulseq format this sequence is held as."""</span>
+<span class="w">        </span><span class="sd">"""Major version of the Pulseq format this sequence is held as."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">version_major</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -2939,11 +2941,11 @@
         <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">tr_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_plot</span><span class="o">.</span><span class="n">Viewer</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Draw the sequence in SeqEyes.</span>
+<span class="w">        </span><span class="sd">"""Open the sequence in the SeqEyes viewer.</span>
 
 <span class="sd">        SeqEyes is an optional dependency, installed with</span>
-<span class="sd">        ``pip install 'pypulseqpp[plot]'``. It reads the sequence as a file,</span>
-<span class="sd">        so what it is handed is only what is asked to be drawn.</span>
+<span class="sd">        ``pip install 'pypulseqpp[plot]'``. It reads the sequence from a file,</span>
+<span class="sd">        which holds only the selected range.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3048,7 +3050,7 @@
         <span class="n">underlay_color</span><span class="o">=</span><span class="s2">"0.8"</span><span class="p">,</span>
         <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Draw a publication-style diagram of one repetition, with mrsd.</span>
+<span class="w">        </span><span class="sd">"""Draw a publication-style diagram of one repetition, using mrsd.</span>
 
 <span class="sd">        Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn</span>
 <span class="sd">        from the waveform the sequence plays and scaled to its row: the three</span>
@@ -3144,7 +3146,7 @@
 <div class="viewcode-block" id="Sequence.remove_duplicates">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.remove_duplicates.html#pypulseqpp.Sequence.remove_duplicates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_place</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Collapse identical library rows and renumber what points at them.</span>
+<span class="w">        </span><span class="sd">"""Merge identical library rows and renumber the references to them.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3198,7 +3200,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">create_signature</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">read_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""`read(filename)`, which tells text and binary apart by itself."""</span>
+<span class="w">        </span><span class="sd">"""`read(filename)`, which distinguishes text from binary itself."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 
     <span class="c1"># -- no-ops --------------------------------------------------------</span>
@@ -3226,12 +3228,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">block_cache_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Zero: no block is held decompressed."""</span>
+<span class="w">        </span><span class="sd">"""Always zero; no decoded block is cached."""</span>
         <span class="k">return</span> <span class="mi">0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">event_cache_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Zero: no registration result is held."""</span>
+<span class="w">        </span><span class="sd">"""Always zero; no registration result is cached."""</span>
         <span class="k">return</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">clear_block_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="sequence.html">Sequence and system limits</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.Sequence.html">Sequence</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1145,15 +1146,16 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-modules">
 <h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>: modules that solve the timing and gradients of a group
-of blocks once and expose the events for a scan loop, and the non-Cartesian
-interleaves the readouts play.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>: modules that solve the timing and gradient waveforms of
+a group of blocks once and expose the resulting events to a scan loop, together
+with the non-Cartesian interleaves the readout modules play.</p>
 <section id="base-classes">
 <h2>Base classes<a class="headerlink" href="#base-classes" title="Link to this heading">#</a></h2>
-<p>Modules stay plain Pulseq building blocks: the scan loop chooses the views,
-scales the encoding events and adds the blocks. A <a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> lays
-its blocks out in <code class="docutils literal notranslate"><span class="pre">init_module</span></code>; an <a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a> is one built around a
-pulse, which <a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.sim_rf.html#pypulseqpp.sequences.RfModule.sim_rf" title="pypulseqpp.sequences.RfModule.sim_rf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> simulates.</p>
+<p>A module is a reusable block layout with named, mutable event templates. The
+scan loop chooses the views, scales the encoding events and adds the blocks.
+A <a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> lays its blocks out in <code class="docutils literal notranslate"><span class="pre">init_module</span></code>; an
+<a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a> is a module built around one RF event, which
+<a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.sim_rf.html#pypulseqpp.sequences.RfModule.sim_rf" title="pypulseqpp.sequences.RfModule.sim_rf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> simulates against off-resonance.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></p></td>
@@ -1276,13 +1278,13 @@ pulse, which <a class="reference internal" href="../generated/pypulseqpp.sequenc
 </section>
 <section id="non-cartesian-readouts">
 <h2>Non-Cartesian readouts<a class="headerlink" href="#non-cartesian-readouts" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a> plays any interleave from
+<p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a> plays any interleaf from
 <a class="reference internal" href="#non-cartesian-interleaves"><span class="std std-ref">Non-Cartesian interleaves</span></a> as a whole repetition.
 The spiral and rosette readouts design theirs from the prescription.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a></p></td>
-<td><p>A solved interleave with moment bridges and a repetition-time budget.</p></td>
+<td><p>A solved interleaf with its prewinder, rewinder and repetition-time budget.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RadialReadout2D.html#pypulseqpp.sequences.RadialReadout2D" title="pypulseqpp.sequences.RadialReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadialReadout2D</span></code></a></p></td>
 <td><p>A full radial spoke through the centre of a plane.</p></td>
@@ -1306,7 +1308,7 @@ The spiral and rosette readouts design theirs from the prescription.</p>
 <td><p>Three orthogonal thick-slab spiral navigators.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RosetteReadout2D.html#pypulseqpp.sequences.RosetteReadout2D" title="pypulseqpp.sequences.RosetteReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code></a></p></td>
-<td><p>One multi-petal rosette interleave in a plane.</p></td>
+<td><p>One multi-petal rosette interleaf in a plane.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RosetteStackReadout.html#pypulseqpp.sequences.RosetteStackReadout" title="pypulseqpp.sequences.RosetteStackReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RosetteStackReadout</span></code></a></p></td>
 <td><p>Rosette petals in-plane, Cartesian partitions along z.</p></td>
@@ -1323,21 +1325,21 @@ The spiral and rosette readouts design theirs from the prescription.</p>
 </section>
 <section id="non-cartesian-interleaves">
 <span id="id1"></span><h2>Non-Cartesian interleaves<a class="headerlink" href="#non-cartesian-interleaves" title="Link to this heading">#</a></h2>
-<p>One base interleave each, with its ADC and the moment bridges to and from
-k = 0. The scan loop rotates it per shot.</p>
+<p>One base interleaf each, with its ADC and the prewinding and rewinding
+gradients to and from k = 0. The scan loop rotates it per shot.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianGradient.html#pypulseqpp.sequences.NonCartesianGradient" title="pypulseqpp.sequences.NonCartesianGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></p></td>
-<td><p>One canonical non-Cartesian base interleave, independent of its acquisition schedule.</p></td>
+<td><p>One canonical non-Cartesian base interleaf, independent of its acquisition schedule.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary" title="pypulseqpp.sequences.Arbitrary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Arbitrary</span></code></a></p></td>
-<td><p>Base interleave from a caller-supplied 2D or 3D k-space path.</p></td>
+<td><p>Base interleaf from a caller-supplied 2D or 3D k-space path.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Spiral.html#pypulseqpp.sequences.Spiral" title="pypulseqpp.sequences.Spiral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Spiral</span></code></a></p></td>
-<td><p>Constant-, variable- or dual-density spiral base interleave.</p></td>
+<td><p>Constant-, variable- or dual-density spiral base interleaf.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Rosette.html#pypulseqpp.sequences.Rosette" title="pypulseqpp.sequences.Rosette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rosette</span></code></a></p></td>
-<td><p>Multi-petal rosette base interleave, starting and ending at k = 0.</p></td>
+<td><p>Multi-petal rosette base interleaf, starting and ending at k = 0.</p></td>
 </tr>
 </tbody>
 </table>

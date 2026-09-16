@@ -59,7 +59,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Sequence.add_block" href="pypulseqpp.Sequence.add_block.html" />
-    <link rel="prev" title="Sequence and system" href="../api/sequence.html" />
+    <link rel="prev" title="Sequence and system limits" href="../api/sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -230,15 +230,16 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation_style.html">Documentation style guide</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example sequences</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active has-children"><a class="current reference internal" href="#">Sequence</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.add_block.html">Sequence.add_block</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.Sequence.set_block.html">Sequence.set_block</a></li>
@@ -314,7 +315,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.as_namespace.html">as_namespace</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient waveform design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/gradients.html">Gradient design</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_arbitrary_grad.html">make_arbitrary_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_crusher.html">make_crusher</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.make_extended_trapezoid.html">make_extended_trapezoid</a></li>
@@ -371,7 +372,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.traj_to_grad.html">traj_to_grad</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_segments.html">calc_adc_segments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.calc_adc_timing.html">calc_adc_timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.quantize_readout_timing.html">quantize_readout_timing</a></li>
@@ -832,7 +833,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Sequence apps</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/apps.html">Complete sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.html">SequenceApp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.design.html">SequenceApp.design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pypulseqpp.sequences.SequenceApp.finalize.html">SequenceApp.finalize</a></li>
@@ -852,7 +853,7 @@
 </details></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Hardware safety</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_grad.html">check_max_grad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_max_slew.html">check_max_slew</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pypulseqpp.safety.check_grad_continuity.html">check_grad_continuity</a></li>
@@ -906,9 +907,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
 </ul>
 
@@ -1169,14 +1170,15 @@ Assigning an entry changes the stored block duration.</p></li>
 <li><p><strong>block_events</strong> (<em>dict[int, NDArray[np.int32]]</em>) – Event IDs of each block, keyed by 1-based block index: delay, RF,
 gx, gy, gz, ADC and extension. The delay column is zero for Pulseq
 1.5. Reading it allocates a dictionary for all blocks.</p></li>
-<li><p><strong>definitions</strong> (<em>dict[str, Any]</em>) – Everything <cite>[DEFINITIONS]</cite> will carry.</p></li>
+<li><p><strong>definitions</strong> (<em>dict[str, Any]</em>) – The definitions written to the <cite>[DEFINITIONS]</cite> section.</p></li>
 <li><p><strong>grad_raster_time</strong> (<em>float</em>) – Gradient raster in seconds.</p></li>
 <li><p><strong>rf_raster_time</strong> (<em>float</em>) – RF raster in seconds.</p></li>
 <li><p><strong>adc_raster_time</strong> (<em>float</em>) – ADC dwell raster in seconds.</p></li>
-<li><p><strong>block_duration_raster</strong> (<em>float</em>) – Raster a block duration is a whole number of, in seconds.</p></li>
+<li><p><strong>block_duration_raster</strong> (<em>float</em>) – Block duration raster in seconds; every block duration is a whole
+number of these.</p></li>
 <li><p><strong>version_major</strong> (<em>int</em>) – Major version of the Pulseq format the sequence is held as. A file
-older than 1.5 is converted as it is read, so this is what the
-sequence is rather than what its file declared.</p></li>
+older than 1.5 is converted as it is read, so this is the format of
+the sequence in memory, not the version its file declared.</p></li>
 <li><p><strong>version_minor</strong> (<em>int</em>) – Minor version of the format the sequence is held as.</p></li>
 <li><p><strong>version_revision</strong> (<em>int</em>) – Revision of the format the sequence is held as.</p></li>
 <li><p><strong>signature_type</strong> (<em>str | None</em>) – Hash algorithm of the signature carried by the last file written, or
@@ -1213,10 +1215,10 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Decode a block by its 1-based index.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.find_block_by_time.html#pypulseqpp.Sequence.find_block_by_time" title="pypulseqpp.Sequence.find_block_by_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_block_by_time</span></code></a></p></td>
-<td><p>Return the 1-based index of the block playing at <code class="docutils literal notranslate"><span class="pre">t</span></code> seconds.</p></td>
+<td><p>Return the 1-based index of the block containing time <code class="docutils literal notranslate"><span class="pre">t</span></code> in seconds.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.remove_duplicates.html#pypulseqpp.Sequence.remove_duplicates" title="pypulseqpp.Sequence.remove_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_duplicates</span></code></a></p></td>
-<td><p>Collapse identical library rows and renumber what points at them.</p></td>
+<td><p>Merge identical library rows and renumber the references to them.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1230,19 +1232,19 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Record <code class="docutils literal notranslate"><span class="pre">key</span></code> in <cite>[DEFINITIONS]</cite>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_definition</span></code></a></p></td>
-<td><p>Return what <code class="docutils literal notranslate"><span class="pre">key</span></code> says, or <code class="docutils literal notranslate"><span class="pre">''</span></code> if it is not defined.</p></td>
+<td><p>Return the value recorded for <code class="docutils literal notranslate"><span class="pre">key</span></code>, or <code class="docutils literal notranslate"><span class="pre">''</span></code> when it is not defined.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.copy_definitions.html#pypulseqpp.Sequence.copy_definitions" title="pypulseqpp.Sequence.copy_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy_definitions</span></code></a></p></td>
-<td><p>Take every definition <code class="docutils literal notranslate"><span class="pre">other_seq</span></code> carries.</p></td>
+<td><p>Copy every definition from <code class="docutils literal notranslate"><span class="pre">other_seq</span></code> into this sequence.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_labels</span></code></a></p></td>
 <td><p>Evaluate running label values in block order.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.add_trid.html#pypulseqpp.Sequence.add_trid" title="pypulseqpp.Sequence.add_trid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_trid</span></code></a></p></td>
-<td><p>Append a block setting TRID to the number <code class="docutils literal notranslate"><span class="pre">label_name</span></code> is known by.</p></td>
+<td><p>Append a block setting TRID to the number assigned to <code class="docutils literal notranslate"><span class="pre">label_name</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_or_create_trid_id.html#pypulseqpp.Sequence.get_or_create_trid_id" title="pypulseqpp.Sequence.get_or_create_trid_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_or_create_trid_id</span></code></a></p></td>
-<td><p>Return the TRID number <code class="docutils literal notranslate"><span class="pre">label_name</span></code> is known by, naming it if new.</p></td>
+<td><p>Return the TRID number assigned to <code class="docutils literal notranslate"><span class="pre">label_name</span></code>, assigning one if new.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1256,7 +1258,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Set each named soft delay to the value given.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_default_soft_delay_values.html#pypulseqpp.Sequence.get_default_soft_delay_values" title="pypulseqpp.Sequence.get_default_soft_delay_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_default_soft_delay_values</span></code></a></p></td>
-<td><p>Return what each soft delay stands for if nobody sets it.</p></td>
+<td><p>Return each soft delay's default value.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1276,7 +1278,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Write Pulseq binary, with float32 shape samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.write_v141.html#pypulseqpp.Sequence.write_v141" title="pypulseqpp.Sequence.write_v141"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_v141</span></code></a></p></td>
-<td><p>Write Pulseq 1.4.1 text, for an interpreter that predates 1.5.</p></td>
+<td><p>Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1290,7 +1292,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Return gradient corners as time (s) over amplitude (Hz/m), per axis.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.waveforms_and_times.html#pypulseqpp.Sequence.waveforms_and_times" title="pypulseqpp.Sequence.waveforms_and_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waveforms_and_times</span></code></a></p></td>
-<td><p>Return the gradient waveforms, the RF moments and the ADC sampling.</p></td>
+<td><p>Return the gradient waveforms, the RF pulse timing and the ADC sampling.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_gradients.html#pypulseqpp.Sequence.get_gradients" title="pypulseqpp.Sequence.get_gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradients</span></code></a></p></td>
 <td><p>Return physical-axis gradient splines in Hz/m over seconds.</p></td>
@@ -1302,7 +1304,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_times</span></code></a></p></td>
-<td><p>Return when the pulses act, and at what frequency and phase.</p></td>
+<td><p>Return RF pulse centre times with their frequency and phase offsets.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
 <td><p>Return total duration, block count and per-event block counts.</p></td>
@@ -1319,7 +1321,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <td><p>Check timing, gradient continuity and the stored total duration.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.test_report.html#pypulseqpp.Sequence.test_report" title="pypulseqpp.Sequence.test_report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_report</span></code></a></p></td>
-<td><p>Return a formatted sequence timing, encoding and gradient report.</p></td>
+<td><p>Return sequence timing, encoding and gradient statistics, formatted as text.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.test_report_dict.html#pypulseqpp.Sequence.test_report_dict" title="pypulseqpp.Sequence.test_report_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_report_dict</span></code></a></p></td>
 <td><p>Return timing, encoding and gradient statistics.</p></td>
@@ -1336,10 +1338,10 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.flip_grad_axis.html#pypulseqpp.Sequence.flip_grad_axis" title="pypulseqpp.Sequence.flip_grad_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flip_grad_axis</span></code></a></p></td>
-<td><p>Invert every gradient played on <code class="docutils literal notranslate"><span class="pre">axis</span></code>.</p></td>
+<td><p>Negate the amplitude of every gradient on <code class="docutils literal notranslate"><span class="pre">axis</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.mod_grad_axis.html#pypulseqpp.Sequence.mod_grad_axis" title="pypulseqpp.Sequence.mod_grad_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mod_grad_axis</span></code></a></p></td>
-<td><p>Scale every gradient played on <code class="docutils literal notranslate"><span class="pre">axis</span></code> by <code class="docutils literal notranslate"><span class="pre">modifier</span></code>.</p></td>
+<td><p>Scale the amplitude of every gradient on <code class="docutils literal notranslate"><span class="pre">axis</span></code> by <code class="docutils literal notranslate"><span class="pre">modifier</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1350,10 +1352,10 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.plot.html#pypulseqpp.Sequence.plot" title="pypulseqpp.Sequence.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a></p></td>
-<td><p>Draw the sequence in SeqEyes.</p></td>
+<td><p>Open the sequence in the SeqEyes viewer.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paper_plot</span></code></a></p></td>
-<td><p>Draw a publication-style diagram of one repetition, with mrsd.</p></td>
+<td><p>Draw a publication-style diagram of one repetition, using mrsd.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1378,7 +1380,7 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sequence and system</p>
+        <p class="prev-next-title">Sequence and system limits</p>
       </div>
     </a>
     <a class="right-next"
