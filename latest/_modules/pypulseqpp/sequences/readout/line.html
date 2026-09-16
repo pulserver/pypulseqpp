@@ -1128,7 +1128,7 @@
 <span class="sd">    gy_rew, gz_rew : TrapEvent</span>
 <span class="sd">        The negated encodes that unwind them, for a balanced TR.</span>
 <span class="sd">    gx_flyback : TrapEvent</span>
-<span class="sd">        Rewinder played between echoes of a monopolar train.</span>
+<span class="sd">        Rewinder played after every echo but the last of a monopolar train.</span>
 <span class="sd">    gx_rev : GradEvent</span>
 <span class="sd">        The negated lobe that reads the even echoes of a bipolar train.</span>
 <span class="sd">    gy_wave, gz_wave : GradEvent</span>
@@ -1143,10 +1143,17 @@
 <span class="sd">    wait_te : DelayEvent</span>
 <span class="sd">        Present only when a TE longer than the minimum was asked for and the</span>
 <span class="sd">        wait can hold ``gz_reph``; otherwise the prewinder block starts later.</span>
+<span class="sd">    wait_esp : DelayEvent</span>
+<span class="sd">        Present only when an echo spacing longer than the minimum was asked</span>
+<span class="sd">        for. Played after every echo but the last: after the readout lobe of a</span>
+<span class="sd">        bipolar train, after the rewinder of a monopolar one.</span>
 <span class="sd">    wait_tr : DelayEvent</span>
 <span class="sd">        Present only when a TR longer than the minimum was asked for.</span>
 <span class="sd">    echo_time : float</span>
 <span class="sd">        From the RF isodelay to the first echo (s), on the block raster.</span>
+<span class="sd">    echo_spacing : float</span>
+<span class="sd">        Between successive echoes (s), on the block raster; zero with one</span>
+<span class="sd">        echo.</span>
 <span class="sd">    center_sample : int</span>
 <span class="sd">        Index of the sample at the echo; partial echo moves it toward the</span>
 <span class="sd">        start.</span>
@@ -1203,9 +1210,16 @@
 <span class="sd">        the same direction (monopolar, the default), or alternate the readout</span>
 <span class="sd">        sign (bipolar), which is faster but reads even echoes backwards and</span>
 <span class="sd">        puts any gradient-delay error into a phase difference between them.</span>
+<span class="sd">        A bipolar train needs as many samples before the echo as after it, so</span>
+<span class="sd">        it refuses partial echo and an odd sample count.</span>
+<span class="sd">    echo_spacing : float, optional</span>
+<span class="sd">        Echo spacing (s). ``None`` is as short as possible: the readout lobe</span>
+<span class="sd">        of a bipolar train, the lobe and its rewinder for a monopolar one.</span>
+<span class="sd">        Ignored with one echo.</span>
 <span class="sd">    wave : {'phase', 'partition', 'both'}, optional</span>
 <span class="sd">        Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine</span>
-<span class="sd">        on z, or both. 3D only.</span>
+<span class="sd">        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``</span>
+<span class="sd">        is zero, which builds no wave-encoding gradients.</span>
 <span class="sd">    wave_cycles : int, optional</span>
 <span class="sd">        Wave periods across the sampling window.</span>
 <span class="sd">    wave_amplitude : float, optional</span>
@@ -1220,9 +1234,10 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a count or a fraction is out of range, ``wave`` is set on a 2D</span>
-<span class="sd">        readout, ``gz_reph`` shares a channel with an encoded axis, or the</span>
-<span class="sd">        requested TE or TR is shorter than the module can achieve.</span>
+<span class="sd">        If a count or a fraction is out of range, ``wave`` names no wave</span>
+<span class="sd">        mode or would build wave-encoding gradients on a 2D readout, ``gz_reph`` shares a channel with an encoded axis, or the</span>
+<span class="sd">        requested TE, TR or echo spacing is shorter than the module can</span>
+<span class="sd">        achieve.</span>
 <span class="sd">    """</span>
 
     <span class="c1">#: 2 or 3. The only thing that separates the two shipped line readouts.</span>
@@ -1247,6 +1262,7 @@
         <span class="n">spoiling_position</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"post"</span><span class="p">,</span>
         <span class="n">n_echoes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">flyback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">echo_spacing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wave</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wave_cycles</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
         <span class="n">wave_amplitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8e-3</span><span class="p">,</span>
@@ -1254,7 +1270,13 @@
         <span class="n">trigger</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndim</span>
-        <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wave_channels</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wave_cycles</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">wave_amplitude</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"wave_cycles and wave_amplitude must be &gt;= 0"</span><span class="p">)</span>
+        <span class="c1"># Zero cycles or zero amplitude is no wave at all, whatever the mode.</span>
+        <span class="n">waving</span> <span class="o">=</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">wave_cycles</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">wave_amplitude</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">waving</span> <span class="ow">and</span> <span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"wave encoding spreads a voxel along the two encoded axes "</span>
                 <span class="s2">"transverse to the readout, and a 2D readout has only one of "</span>
@@ -1287,6 +1309,12 @@
         <span class="n">n_post</span> <span class="o">=</span> <span class="n">n_full</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_post</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">partial_echo</span> <span class="o">*</span> <span class="n">n_full</span><span class="p">))</span>
         <span class="n">n_pre</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">-</span> <span class="n">n_post</span>
+        <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flyback</span> <span class="ow">and</span> <span class="n">n_pre</span> <span class="o">!=</span> <span class="n">n_post</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a bipolar train reads alternate echoes backwards, which moves "</span>
+                <span class="sa">f</span><span class="s2">"the echo from sample </span><span class="si">{</span><span class="n">n_pre</span><span class="si">}</span><span class="s2"> to sample </span><span class="si">{</span><span class="n">n_post</span><span class="si">}</span><span class="s2">; acquire a "</span>
+                <span class="sa">f</span><span class="s2">"full echo with an even number of samples"</span>
+            <span class="p">)</span>
         <span class="n">readout_area</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">*</span> <span class="n">delta_kx</span>
         <span class="n">dwell</span><span class="p">,</span> <span class="n">readout_duration</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_adc_timing</span><span class="p">(</span>
             <span class="n">n_samples</span><span class="p">,</span>
@@ -1374,7 +1402,7 @@
         <span class="c1"># about the readout.</span>
         <span class="n">gy_wave</span> <span class="o">=</span> <span class="n">gz_wave</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">wave_peak</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">waving</span><span class="p">:</span>
             <span class="n">sine</span><span class="p">,</span> <span class="n">cosine</span> <span class="o">=</span> <span class="n">wave_channels</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
             <span class="n">gy_wave</span><span class="p">,</span> <span class="n">gz_wave</span><span class="p">,</span> <span class="n">wave_peak</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_wave_gradients</span><span class="p">(</span>
                 <span class="n">readout_duration</span><span class="p">,</span>
@@ -1402,6 +1430,20 @@
             <span class="n">gx_flyback</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="n">_area</span><span class="p">(</span><span class="n">gx</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flyback</span><span class="p">:</span>
             <span class="n">gx_rev</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># Echoes are spaced by whole blocks, so the spacing is counted on the</span>
+        <span class="c1"># block raster that `add_block` rounds each of them up to.</span>
+        <span class="n">_waves</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gy_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_wave</span><span class="p">)]</span>
+        <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
+        <span class="n">spacing</span> <span class="o">=</span> <span class="n">spacing_delay</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">spacing</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">_waves</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">flyback</span><span class="p">:</span>
+                <span class="n">spacing</span> <span class="o">+=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gx_flyback</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
+            <span class="n">spacing_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">echo_spacing</span><span class="p">,</span> <span class="n">spacing</span><span class="p">,</span> <span class="s2">"echo spacing"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">spacing_delay</span><span class="p">:</span>
+                <span class="n">wait_esp</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">spacing_delay</span><span class="p">)</span>
+                <span class="n">spacing</span> <span class="o">+=</span> <span class="n">spacing_delay</span>
 
         <span class="c1"># The prewinder block already carries one gradient per encoded axis, so</span>
         <span class="c1"># a rephaser sharing one of those channels has nowhere to sit.</span>
@@ -1468,12 +1510,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">_pre_block</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">flyback</span> <span class="ow">and</span> <span class="n">i_echo</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i_echo</span> <span class="ow">and</span> <span class="n">flyback</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_flyback</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i_echo</span> <span class="ow">and</span> <span class="n">spacing_delay</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_esp</span><span class="p">)</span>
             <span class="n">lobe</span> <span class="o">=</span> <span class="n">gx</span> <span class="k">if</span> <span class="p">(</span><span class="n">flyback</span> <span class="ow">or</span> <span class="n">i_echo</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">gx_rev</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                <span class="n">lobe</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gy_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span>
-            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">_waves</span><span class="p">,</span> <span class="o">*</span><span class="n">adc_labels</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">_rewinder</span><span class="p">)</span>
 
@@ -1484,6 +1526,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_tr</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">echo_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_spacing</span> <span class="o">=</span> <span class="n">spacing</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">rf_center</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">dwell</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
