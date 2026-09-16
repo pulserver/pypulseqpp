@@ -162,9 +162,10 @@ def test_every_line_is_labelled_with_the_view_it_samples(case):
 
 
 @pytest.mark.parametrize("case", CASES)
-def test_every_shot_opens_with_its_navigator_at_the_centre_of_k_space(case):
+@pytest.mark.parametrize("prescan", [None, "reference"], ids=["main", "reference"])
+def test_every_shot_opens_with_its_navigator_at_the_centre_of_k_space(case, prescan):
     app = CASES[case]()
-    seq = app.design()
+    seq = app.design(prescan)
     rows = echoes(seq, samples(app))
     nav, rev = labels(seq, "NAV", "REV")
     per_shot = app.NAVIGATOR_LINES + app.epi.etl
