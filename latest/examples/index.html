@@ -1189,7 +1189,7 @@ preparation and readout modules they are built from.</p>
 <td><p>RF-spoiled multi-echo 3D Cartesian gradient echo.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage3D_sequence</span></code></p></td>
-<td><p>3D MPRAGE: one adiabatic inversion per segment of spoiled low-flip lines.</p></td>
+<td><p>3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1210,10 +1210,7 @@ preparation and readout modules they are built from.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se3D_sequence</span></code></p></td>
 <td><p>3D Cartesian spin echo: one <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> view per excitation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fse2D_sequence</span></code></p></td>
-<td><p>Multi-slice 2D Cartesian fast spin echo: one CPMG train per excitation.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fse3D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fse3D_sequence</span></code></p></td>
 <td><p>3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid.</p></td>
 </tr>
 </tbody>
@@ -1279,6 +1276,9 @@ preparation and readout modules they are built from.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_stack_of_stars3D_sequence</span></code></p></td>
 <td><p>3D stack-of-stars spin echo: one spoke at one partition per excitation.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage_stack_of_stars3D_sequence</span></code></p></td>
+<td><p>3D MPRAGE on a stack of stars: one inversion per partition, then its spokes.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1305,7 +1305,7 @@ preparation and readout modules they are built from.</p>
 <td><p>3D stack-of-spirals spin echo: one interleaf at one partition per excitation.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage_stack_of_spirals3D_sequence</span></code></p></td>
-<td><p>3D MPRAGE whose shots play spiral arms of one partition.</p></td>
+<td><p>3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves.</p></td>
 </tr>
 </tbody>
 </table>

@@ -1198,7 +1198,8 @@ default.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Counters emitted on the acquisition block. The loop writes the values.</p></li>
 <li><p><strong>trigger</strong> (<em>event</em><em>, </em><em>optional</em>) – A trigger or digital output armed on the prephaser block.</p></li>
 <li><p><strong>wave</strong> (<em>{'phase'</em><em>, </em><em>'partition'</em><em>, </em><em>'both'}</em><em>, </em><em>optional</em>) – Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
-on z, or both. 3D only.</p></li>
+on z, or both. 3D only, unless <code class="docutils literal notranslate"><span class="pre">wave_cycles</span></code> or <code class="docutils literal notranslate"><span class="pre">wave_amplitude</span></code>
+is zero, which builds no wave-encoding gradients.</p></li>
 <li><p><strong>wave_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Wave periods across the sampling window.</p></li>
 <li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Requested peak wave-encoding gradient amplitude, in T/m rather than the
 Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
@@ -1247,7 +1248,8 @@ requested one where the slew rate binds; zero without <code class="docutils lite
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count or fraction is out of range, <code class="docutils literal notranslate"><span class="pre">wave</span></code> is set on a 2D train,
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count or fraction is out of range, <code class="docutils literal notranslate"><span class="pre">wave</span></code> names no wave mode or
+    would build wave-encoding gradients on a 2D train,
     <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code> is on the read channel, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code> is not marked as a
     refocusing pulse, or the requested echo spacing or TR is shorter than
     the train can achieve.</p>
