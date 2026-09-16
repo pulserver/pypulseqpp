@@ -32,7 +32,7 @@ preparation and readout modules they are built from.
 | `gre2D_sequence` | RF-spoiled, multi-slice 2D Cartesian gradient echo. |
 | `gre3D_sequence` | RF-spoiled 3D Cartesian gradient echo. |
 | `gre_multiecho2D_sequence` | RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo. |
-| `gre_multiecho3D_sequence` | RF-spoiled, slab-selective multi-echo 3D Cartesian gradient echo. |
+| `gre_multiecho3D_sequence` | RF-spoiled multi-echo 3D Cartesian gradient echo. |
 | `mprage3D_sequence` | 3D MPRAGE: one adiabatic inversion per segment of spoiled low-flip lines. |
 
 

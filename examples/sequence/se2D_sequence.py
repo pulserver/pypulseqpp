@@ -11,7 +11,7 @@ from pypulseqpp import cli, sequences
 
 
 def sampled_lines(
-    n: int, ry: int, n_acs: int, partial_fourier: float
+    n: int, ry: int, n_acs_y: int, partial_fourier: float
 ) -> tuple[list[int], set[int]]:
     """Return the phase-encode lines in play order, and the calibration lines.
 
@@ -21,8 +21,8 @@ def sampled_lines(
     same line, leads; a fully sampled scan has none.
     """
     first = n - round(partial_fourier * n)
-    start = n // 2 - (n_acs if ry > 1 else 0) // 2
-    stop = n // 2 + ((n_acs if ry > 1 else 0) + 1) // 2
+    start = n // 2 - (n_acs_y if ry > 1 else 0) // 2
+    stop = n // 2 + ((n_acs_y if ry > 1 else 0) + 1) // 2
     calibration = list(range(max(start, first), min(stop, n)))
     lattice = [
         i for i in range(first, n) if (i - n // 2) % ry == 0 and i not in calibration
@@ -53,8 +53,6 @@ class Se2DApp(sequences.SequenceApp):
     #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions before the first line of each packet.
-    N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
     #: across one voxel.
     CRUSHER_CYCLES = 4.0
@@ -78,8 +76,9 @@ class Se2DApp(sequences.SequenceApp):
         partial_fourier_x: float = 1.0,
         partial_fourier_y: float = 1.0,
         *,
+        n_dummy: int = 0,
         readout_oversampling: float = 2.0,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
     ) -> None:
         """Design the pulses, the readout, the slice packets and the line order.
 
@@ -113,9 +112,11 @@ class Se2DApp(sequences.SequenceApp):
             Fraction of the echo acquired, in ``[0.75, 1]``.
         partial_fourier_y : float, optional
             Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
+        n_dummy : int, optional
+            Non-acquiring repetitions before the first line of each packet.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Fully sampled calibration lines at the centre of k-space, acquired
             ahead of the rest when ``ry > 1``.
 
@@ -126,6 +127,7 @@ class Se2DApp(sequences.SequenceApp):
             below one, or the TE or TR is shorter than the pulses and the
             readout take.
         """
+        self.n_dummy = n_dummy
         for name, fraction in (
             ("partial_fourier_x", partial_fourier_x),
             ("partial_fourier_y", partial_fourier_y),
@@ -213,7 +215,9 @@ class Se2DApp(sequences.SequenceApp):
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
 
-        self.lines, self.calibration = sampled_lines(n_y, ry, n_acs, partial_fourier_y)
+        self.lines, self.calibration = sampled_lines(
+            n_y, ry, n_acs_y, partial_fourier_y
+        )
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_spacing
         )
@@ -221,13 +225,13 @@ class Se2DApp(sequences.SequenceApp):
             n_slices * (slice_thickness + slice_spacing) - slice_spacing
         )
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
-        self.duration = (self.N_DUMMY + len(self.lines)) * sum(
+        self.duration = (self.n_dummy + len(self.lines)) * sum(
             packet_time[len(packet)] for packet in self.packets
         )
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every line at each of its slices."""
-        lines = [None] * self.N_DUMMY + list(self.lines)
+        lines = [None] * self.n_dummy + list(self.lines)
         for packet in self.packets:
             for line in lines:
                 for i, s in enumerate(packet):

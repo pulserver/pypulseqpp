@@ -53,12 +53,9 @@ def app_class(name):
     )
 
 
-def app(name, dummies=None, **kwargs):
-    """The entry's application, with ``dummies`` non-acquiring repetitions if given."""
-    cls = app_class(name)
-    if dummies is not None:
-        cls = type(cls.__name__, (cls,), {"N_DUMMY": dummies})
-    return cls(pp.Opts(), **{**SMALL[name], **kwargs})
+def app(name, **kwargs):
+    """The entry's application, built from its small prescription."""
+    return app_class(name)(pp.Opts(), **{**SMALL[name], **kwargs})
 
 
 def adc_labels(seq, *names):
@@ -112,7 +109,7 @@ def shot_views(built):
         played = [(blade, z) for blade, _, z in built.views]
     else:
         played = list(built.views)
-    return [(0, n_z // 2)] * built.N_DUMMY + played
+    return [(0, n_z // 2)] * built.n_dummy + played
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -178,7 +175,7 @@ def test_rz_and_partial_fourier_keep_the_centre_partition_and_drop_the_early_one
 
 @pytest.mark.parametrize("name", STACKS)
 def test_the_calibration_partitions_lead_at_every_tilt_and_are_marked_ima(name):
-    stack = app(name, dummies=0, n_z=16, rz=4, n_acs_z=4)
+    stack = app(name, n_dummy=0, n_z=16, rz=4, n_acs_z=4)
     par, ima = adc_labels(stack.design(), "PAR", "IMA")
     leading = [view for view in stack.views if view[-1] in stack.calibration]
 
@@ -199,7 +196,7 @@ def test_a_fully_sampled_stack_has_no_calibration_partitions(name):
 
 @pytest.mark.parametrize("name", ARMED)
 def test_every_partition_of_a_stack_arm_is_acquired_before_the_next_arm(name):
-    stack = app(name, dummies=3, rz=2)
+    stack = app(name, n_dummy=3, rz=2)
     seq = stack.design()
     lin, par, once = adc_labels(seq, "LIN", "PAR", "ONCE")
 
@@ -211,7 +208,7 @@ def test_every_partition_of_a_stack_arm_is_acquired_before_the_next_arm(name):
 
 @pytest.mark.parametrize("name", BLADES)
 def test_every_partition_of_a_blade_line_is_acquired_before_the_next_line(name):
-    stack = app(name, dummies=3, rz=2)
+    stack = app(name, n_dummy=3, rz=2)
     seq = stack.design()
     lin, seg, par = adc_labels(seq, "LIN", "SEG", "PAR")
 
@@ -223,7 +220,7 @@ def test_every_partition_of_a_blade_line_is_acquired_before_the_next_line(name):
 @pytest.mark.parametrize("shift", ["none", "golden", "tiny_golden"])
 @pytest.mark.parametrize("name", STACKS)
 def test_every_in_plane_block_is_turned_to_its_tilt_and_partition_angle(name, shift):
-    stack = app(name, dummies=1, partition_angle_shift=shift)
+    stack = app(name, n_dummy=1, partition_angle_shift=shift)
     fraction = module(name).PARTITION_SHIFTS[shift]
     views = iter(shot_views(stack))
 
@@ -269,7 +266,7 @@ def test_every_partition_is_encoded_at_the_step_its_label_names(name):
 @pytest.mark.parametrize("name", STACKS)
 def test_every_shot_closes_its_in_plane_gradient_moment(name):
     """A residual moment would turn with the shot and differ from one to the next."""
-    stack = app(name, dummies=1)
+    stack = app(name, n_dummy=1)
     seq = stack.design()
     delta_k = 1.0 / stack.fov
 

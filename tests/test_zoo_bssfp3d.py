@@ -6,7 +6,7 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-SMALL = {"n_x": 64, "n_y": 16, "n_z": 4, "n_acs": 0, "n_acs_z": 0, "n_dummy": 2}
+SMALL = {"n_x": 64, "n_y": 16, "n_z": 4, "n_acs_y": 0, "n_acs_z": 0, "n_dummy": 2}
 
 
 def app(**kwargs):
@@ -70,7 +70,7 @@ def test_every_repetition_returns_its_gradient_moments_to_zero():
 
 
 def test_each_acquisition_carries_the_pair_it_encodes():
-    sequence = app(acceleration=2, n_acs=4, n_acs_z=2)
+    sequence = app(acceleration=2, n_acs_y=4, n_acs_z=2)
     found = sequence.design().evaluate_labels(evolution="adc")
     lin, par, once = (
         np.atleast_1d(found.get(name, 0)) for name in ("LIN", "PAR", "ONCE")

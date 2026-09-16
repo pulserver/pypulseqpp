@@ -39,8 +39,6 @@ class GrePropeller2DApp(sequences.SequenceApp):
     TIME_BW_PRODUCT = 4.0
     #: Readout oversampling factor.
     READOUT_OVERSAMPLING = 2.0
-    #: Non-acquiring repetitions, at the first blade's angle, before each packet.
-    N_DUMMY = 16
     #: Quadratic RF spoiling phase increment (degrees), counted per slice.
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the slice axis at the end of each repetition, in
@@ -60,6 +58,7 @@ class GrePropeller2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 16,
         blade_width: int = 16,
     ) -> None:
         """Design the pulse, the readout, the slice packets and the blade angles.
@@ -89,6 +88,9 @@ class GrePropeller2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one blade in every ``ry`` of the Nyquist set
             is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first blade's angle, before each
+            packet.
         blade_width : int, optional
             Phase-encode lines per blade, at most ``n``.
 
@@ -98,6 +100,7 @@ class GrePropeller2DApp(sequences.SequenceApp):
             If ``ry`` is below one, ``blade_width`` is outside ``[1, n]``, or
             the TR cannot hold one slice.
         """
+        self.n_dummy = n_dummy
         if ry < 1:
             raise ValueError(f"ry must be at least 1, got {ry}")
         if not 1 <= blade_width <= n:
@@ -173,7 +176,7 @@ class GrePropeller2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every blade line at each of its slices."""
-        views = [None] * self.N_DUMMY + self.views
+        views = [None] * self.n_dummy + self.views
         phases = make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )

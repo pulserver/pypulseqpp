@@ -54,7 +54,7 @@ def shots(seq, etl, *names):
     ("app", "files"),
     [
         (
-            lambda: app2d(n_slices=2, acceleration=2, n_acs=4),
+            lambda: app2d(n_slices=2, acceleration=2, n_acs_y=4),
             [
                 ("scan.seq", "epi_2d_calibration"),
                 ("scan_navigator.seq", "epi_2d_navigator"),
@@ -66,11 +66,11 @@ def shots(seq, etl, *names):
             [("scan.seq", "epi_2d_navigator"), ("scan_main.seq", "epi_2d")],
         ),
         (
-            lambda: app2d(n_slices=4, n_bands=2, sms=True, n_acs=4),
+            lambda: app2d(n_slices=4, n_bands=2, sms=True, n_acs_y=4),
             [("scan.seq", "sms_epi_2d_calibration"), ("scan_main.seq", "sms_epi_2d")],
         ),
         (
-            lambda: app3d(acceleration=2, n_acs=4, n_acs_z=2),
+            lambda: app3d(acceleration=2, n_acs_y=4, n_acs_z=2),
             [
                 ("scan.seq", "epi_3d_calibration"),
                 ("scan_navigator.seq", "epi_3d_navigator"),
@@ -120,7 +120,7 @@ def test_the_main_sequence_repeats_from_its_first_block(app):
     "app",
     [
         lambda: app3d(n_y=24, n_z=8, acceleration=2, acceleration_z=2, segments=3),
-        lambda: app2d(n_slices=4, n_bands=2, sms=True, n_acs=0, segments=2),
+        lambda: app2d(n_slices=4, n_bands=2, sms=True, n_acs_y=0, segments=2),
     ],
     ids=["3D caipi", "2D multiband"],
 )
@@ -163,7 +163,7 @@ def test_dummy_shots_are_played_once_ahead_of_the_2d_imaging():
 
 
 def test_an_accelerated_2d_scan_calibrates_each_slice_with_a_gradient_echo():
-    app = app2d(n_slices=2, acceleration=2, n_acs=4)
+    app = app2d(n_slices=2, acceleration=2, n_acs_y=4)
     lin, slc, ref = adc_labels(app.design("calibration"), "LIN", "SLC", "REF")
 
     assert list(zip(lin, slc, strict=True)) == [
@@ -210,7 +210,7 @@ def test_every_2d_reference_line_is_labelled_with_the_line_it_encodes(accelerati
 
 
 def test_a_multiband_shot_encodes_its_group_and_band_phase():
-    app = app2d(n_slices=4, n_bands=2, sms=True, n_acs=4)
+    app = app2d(n_slices=4, n_bands=2, sms=True, n_acs_y=4)
     seq = app.design()
     found = shots(seq, app.epi.etl, "LIN", "PAR", "SLC", "SMS")
 
@@ -225,7 +225,7 @@ def test_a_multiband_shot_encodes_its_group_and_band_phase():
 def test_a_segmented_multiband_line_carries_the_band_phase_of_its_line():
     """The reconstruction models band j's phase on line ky as 2 pi ky j / n_bands."""
     n_bands, slice_step = 2, 5e-3
-    app = app2d(n_slices=4, n_bands=n_bands, sms=True, n_acs=0, segments=2)
+    app = app2d(n_slices=4, n_bands=n_bands, sms=True, n_acs_y=0, segments=2)
     seq = app.design()
     lin, par = adc_labels(seq, "LIN", "PAR")
     fov_z = n_bands * (4 // n_bands) * slice_step
@@ -247,7 +247,7 @@ def test_multiband_imaging_starts_after_its_dummy_shots():
 
 
 def test_the_multiband_calibration_navigates_then_calibrates_every_slice():
-    app = app2d(n_slices=4, n_bands=2, sms=True, n_acs=4)
+    app = app2d(n_slices=4, n_bands=2, sms=True, n_acs_y=4)
     nav, ref, slc, lin = adc_labels(
         app.design("calibration"), "NAV", "REF", "SLC", "LIN"
     )
@@ -359,7 +359,9 @@ def test_the_first_shells_encoded_are_the_central_ones():
 
 
 def test_partial_fourier_drops_the_leading_lines_and_shells_but_not_the_reference():
-    app = app3d(n_z=8, partial_fourier=0.75, partial_fourier_z=0.5, n_acs=0, n_acs_z=0)
+    app = app3d(
+        n_z=8, partial_fourier=0.75, partial_fourier_z=0.5, n_acs_y=0, n_acs_z=0
+    )
     lin, par = adc_labels(app.design(), "LIN", "PAR")
     (set_,) = adc_labels(app.design("navigator"), "SET")
 
@@ -370,14 +372,14 @@ def test_partial_fourier_drops_the_leading_lines_and_shells_but_not_the_referenc
 
 
 def test_an_undersampled_3d_scan_calibrates_over_the_central_rectangle():
-    app = app3d(acceleration=2, n_acs=4, n_acs_z=2)
+    app = app3d(acceleration=2, n_acs_y=4, n_acs_z=2)
     lin, par, ref = adc_labels(app.design("calibration"), "LIN", "PAR", "REF")
 
     assert list(zip(lin, par, strict=True)) == [
         (y, z) for z in (1, 2) for y in (6, 7, 8, 9)
     ]
     assert set(ref) == {1}
-    assert "calibration" not in app3d(n_acs=4, n_acs_z=2).prescans()
+    assert "calibration" not in app3d(n_acs_y=4, n_acs_z=2).prescans()
 
 
 @pytest.mark.parametrize("acceleration_z", [1, 2])

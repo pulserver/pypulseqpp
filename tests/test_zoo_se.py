@@ -17,12 +17,12 @@ MODULES = {"se2D_sequence": se2D, "se3D_sequence": se3D, "fse2D_sequence": fse2D
 
 #: A prescription small enough to build in a moment, per sequence.
 SMALL = {
-    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0, "tr": None},
+    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
     "se3D_sequence": {
         "n_x": 32,
         "n_y": 8,
         "n_z": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "tr": None,
     },
@@ -31,7 +31,7 @@ SMALL = {
         "n_y": 16,
         "n_slices": 1,
         "etl": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "te": None,
         "tr": None,
     },
@@ -82,7 +82,7 @@ def test_a_small_prescription_builds_and_passes_its_timing_check(name):
 
 
 def test_each_spin_echo_acquisition_carries_its_line_and_slice_in_play_order():
-    se = app("se2D_sequence", n_slices=4, tr=40e-3, ry=2, n_acs=4)
+    se = app("se2D_sequence", n_slices=4, tr=40e-3, ry=2, n_acs_y=4)
     lin, slc, ima, seg = adc_labels(se.design(), "LIN", "SLC", "IMA", "SEG")
 
     assert len(se.packets) == 2
@@ -163,7 +163,7 @@ def test_a_spin_echo_shorter_than_it_can_play_is_refused(name, prescription, mat
 
 
 def test_each_3d_acquisition_carries_its_view_calibration_rectangle_first():
-    se = app("se3D_sequence", ry=2, n_acs=4, n_acs_z=2, tr=50e-3)
+    se = app("se3D_sequence", ry=2, n_acs_y=4, n_acs_z=2, tr=50e-3)
     seq = se.design()
     lin, par, ima, seg = adc_labels(seq, "LIN", "PAR", "IMA", "SEG")
     calibrating = [int(view in se.calibration) for view in se.views]
@@ -199,7 +199,7 @@ def test_the_180_sits_midway_for_a_te_off_the_raster(name, excitation):
 
 
 def test_every_sampled_line_is_acquired_once_per_slice_in_train_order():
-    fse = app("fse2D_sequence", n_slices=3, acceleration=2, n_acs=4, n_dummy=1)
+    fse = app("fse2D_sequence", n_slices=3, acceleration=2, n_acs_y=4, n_dummy=1)
     lin, slc, ima = adc_labels(fse.design(), "LIN", "SLC", "IMA")
 
     expected = [

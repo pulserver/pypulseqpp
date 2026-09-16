@@ -67,12 +67,9 @@ def app_class(name):
     )
 
 
-def app(name, dummies=None, **kwargs):
-    """The entry's application, with ``dummies`` non-acquiring repetitions if given."""
-    cls = app_class(name)
-    if dummies is not None:
-        cls = type(cls.__name__, (cls,), {"N_DUMMY": dummies})
-    return cls(pp.Opts(), **{**SMALL[name], **kwargs})
+def app(name, **kwargs):
+    """The entry's application, built from its small prescription."""
+    return app_class(name)(pp.Opts(), **{**SMALL[name], **kwargs})
 
 
 def adc_labels(seq, *names):
@@ -106,7 +103,7 @@ def tilts(built):
     """The tilt index of every excitation, dummies first, for one slice."""
     views = getattr(built, "views", None)
     played = [b for b, _ in views] if views else list(range(len(built.angles)))
-    return [0] * built.N_DUMMY + played
+    return [0] * built.n_dummy + played
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -144,7 +141,7 @@ def test_ry_plays_every_ryth_tilt_of_the_nyquist_set_in_order(name, nyquist, spa
 
 @pytest.mark.parametrize("name", TILTED)
 def test_every_in_plane_block_of_a_shot_is_turned_by_its_tilt(name):
-    built = app(name, dummies=2)
+    built = app(name, n_dummy=2)
     shots = iter(tilts(built))
 
     played, intended = [], []
@@ -171,7 +168,7 @@ def test_the_refocusing_pulse_is_not_turned(name):
 
 @pytest.mark.parametrize("name", RADIAL + SPIRAL)
 def test_each_acquisition_carries_its_shot_and_slice_in_play_order(name):
-    built = app(name, dummies=2, n_slices=3)
+    built = app(name, n_dummy=2, n_slices=3)
     lin, slc = adc_labels(built.design(), "LIN", "SLC")
 
     expected = [
@@ -185,7 +182,7 @@ def test_each_acquisition_carries_its_shot_and_slice_in_play_order(name):
 
 @pytest.mark.parametrize("name", PROPELLER)
 def test_each_blade_line_carries_its_line_blade_and_slice_in_play_order(name):
-    built = app(name, dummies=2, n_slices=3)
+    built = app(name, n_dummy=2, n_slices=3)
     lin, seg, slc = adc_labels(built.design(), "LIN", "SEG", "SLC")
 
     expected = [
@@ -283,7 +280,7 @@ def test_an_infeasible_prescription_is_refused(name, prescription):
 @pytest.mark.parametrize("name", TILTED)
 def test_every_slice_is_excited_at_the_repetition_time_asked_for(name):
     tr = 3 * app(name).repetition_time
-    built = app(name, dummies=0, n_slices=5, tr=tr)
+    built = app(name, n_dummy=0, n_slices=5, tr=tr)
     excited = np.asarray(built.design().rf_times()[0])
     shots = len(tilts(built))
 
@@ -307,7 +304,7 @@ def area(event):
 @pytest.mark.parametrize("name", [*TILTED, "se_epi_propeller2D_sequence"])
 def test_every_shot_closes_its_in_plane_gradient_moment(name):
     """A residual moment would turn with the shot and differ from one to the next."""
-    built = app(name, n_dummy=1) if "epi" in name else app(name, dummies=1)
+    built = app(name, n_dummy=1)
     seq = built.design()
     delta_k = 1.0 / built.fov
 
@@ -357,7 +354,7 @@ def layout(block):
 )
 def test_a_shot_plays_the_block_layout_its_readout_solved(name, prescription):
     """Same blocks, durations and gradient areas as the readout module's."""
-    built = app(name, dummies=0, **prescription)
+    built = app(name, n_dummy=0, **prescription)
     seq = built.design()
     solved = [
         layout(built.ro.seq.get_block(i)) for i in range(2, len(built.ro.blocks) + 1)

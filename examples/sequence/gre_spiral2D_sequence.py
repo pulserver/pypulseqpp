@@ -38,9 +38,6 @@ class GreSpiral2DApp(sequences.SequenceApp):
     #: SLR design of the selective pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first interleaf's angle, before each
-    #: packet.
-    N_DUMMY = 16
     #: Quadratic RF spoiling phase increment (degrees), counted per slice.
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the slice axis at the end of each repetition, in
@@ -64,6 +61,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 16,
         n_shots: int = 16,
         density: str = "constant",
         periphery_undersampling: float = 2.0,
@@ -97,6 +95,9 @@ class GreSpiral2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first interleaf's angle, before
+            each packet.
         n_shots : int, optional
             Interleaves that sample the centre of k-space at Nyquist.
         density : {'constant', 'variable', 'dual'}, optional
@@ -114,6 +115,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
             If ``density`` is unknown, ``ry`` or ``periphery_undersampling`` is
             below one, or the TR cannot hold one slice.
         """
+        self.n_dummy = n_dummy
         if density not in DENSITIES:
             raise ValueError(f"density must be one of {DENSITIES}, got {density!r}")
         if ry < 1:
@@ -193,7 +195,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every interleaf at each of its slices."""
-        arms = [None] * self.N_DUMMY + list(range(len(self.angles)))
+        arms = [None] * self.n_dummy + list(range(len(self.angles)))
         phases = make_rf_spoiling_schedule(
             len(arms), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )

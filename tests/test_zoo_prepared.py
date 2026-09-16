@@ -17,7 +17,7 @@ SMALL = {
         "views_per_segment": 16,
         "ti": 100e-3,
         "tr_outer": 300e-3,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "n_dummy": 0,
     },
@@ -33,7 +33,7 @@ SMALL = {
         "n_x": 64,
         "n_y": 16,
         "readout_bandwidth_hz": 50e3,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_dummy": 0,
     },
 }
@@ -90,7 +90,7 @@ MPRAGE = "mprage3D_sequence"
 
 @pytest.mark.parametrize("ordering", ("linear", "centric", "radial", "shuffling"))
 def test_every_mprage_view_is_acquired_once_at_its_place_in_the_segment(ordering):
-    a = app(MPRAGE, ordering=ordering, acceleration=2, n_acs=4, n_acs_z=2, n_dummy=1)
+    a = app(MPRAGE, ordering=ordering, acceleration=2, n_acs_y=4, n_acs_z=2, n_dummy=1)
     lin, par, eco = adc_labels(a.design(), "LIN", "PAR", "ECO")
 
     views = [v for segment in a.segments for v in segment if v is not None]
@@ -123,7 +123,7 @@ def test_each_mprage_shot_repeats_at_the_outer_repetition_time():
 
 
 def test_the_wave_free_calibration_shots_lead_and_are_marked_reference():
-    a = app(MPRAGE, wave="both", wave_cycles=2, n_acs=4, n_acs_z=2)
+    a = app(MPRAGE, wave="both", wave_cycles=2, n_acs_y=4, n_acs_z=2)
     seq = a.design()
     ref, lin, par = adc_labels(seq, "REF", "LIN", "PAR")
     n_reference = len(a.calibration_views)
@@ -201,7 +201,7 @@ BSSFP = "bssfp2D_sequence"
 
 
 def test_each_slice_is_acquired_whole_before_the_next():
-    a = app(BSSFP, n_slices=3, slice_gap=1e-3, n_acs=4, acceleration=2, n_dummy=2)
+    a = app(BSSFP, n_slices=3, slice_gap=1e-3, n_acs_y=4, acceleration=2, n_dummy=2)
     lin, slc, seg = adc_labels(a.design(), "LIN", "SLC", "SEG")
 
     expected = [(line, s) for s in range(3) for line in a.lines]

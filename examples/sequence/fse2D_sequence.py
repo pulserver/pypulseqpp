@@ -56,7 +56,7 @@ class Fse2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         partial_fourier: float = 1.0,
         acceleration: int = 1,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_dummy: int = 0,
         n_gain_calibration_readouts: int | None = None,
         crusher_cycles: float = 4.0,
@@ -97,7 +97,7 @@ class Fse2DApp(sequences.SequenceApp):
             Fraction of the phase-encode extent acquired, in (0.5, 1].
         acceleration : int, optional
             Uniform phase-encode undersampling factor.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Fully sampled autocalibration lines at the centre of k-space.
         n_dummy : int, optional
             Trains played without acquiring before the first train of each
@@ -178,7 +178,7 @@ class Fse2DApp(sequences.SequenceApp):
         self.repetition_time = max(pass_time.values())
 
         lines = calc_sampled_lines(
-            n_y, acceleration, n_acs, partial_fourier=partial_fourier
+            n_y, acceleration, n_acs_y, partial_fourier=partial_fourier
         )
         self.trains = [
             [None if i is None else lines[i] for i in train]
@@ -187,7 +187,7 @@ class Fse2DApp(sequences.SequenceApp):
             )
         ]
         self.calibration = set(
-            calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
+            calc_calibration_lines(n_y, n_acs_y, partial_fourier=partial_fourier)
         )
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_gap

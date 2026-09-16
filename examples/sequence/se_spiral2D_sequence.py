@@ -37,9 +37,6 @@ class SeSpiral2DApp(sequences.SequenceApp):
     #: SLR design shared by the excitation and the refocusing pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first interleaf's angle, before each
-    #: packet.
-    N_DUMMY = 0
     #: Dephasing each crusher beside the refocusing pulse winds, in cycles
     #: across one voxel.
     CRUSHER_CYCLES = 4.0
@@ -63,6 +60,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 0,
         n_shots: int = 16,
         density: str = "constant",
         periphery_undersampling: float = 2.0,
@@ -95,6 +93,9 @@ class SeSpiral2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first interleaf's angle, before
+            each packet.
         n_shots : int, optional
             Interleaves that sample the centre of k-space at Nyquist.
         density : {'constant', 'variable', 'dual'}, optional
@@ -113,6 +114,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
             below one, or the TE or TR is shorter than the pulses and the
             readout take.
         """
+        self.n_dummy = n_dummy
         if density not in DENSITIES:
             raise ValueError(f"density must be one of {DENSITIES}, got {density!r}")
         if ry < 1:
@@ -225,7 +227,7 @@ class SeSpiral2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every interleaf at each of its slices."""
-        arms = [None] * self.N_DUMMY + list(range(len(self.angles)))
+        arms = [None] * self.n_dummy + list(range(len(self.angles)))
         for packet in self.packets:
             for arm in arms:
                 for i, s in enumerate(packet):

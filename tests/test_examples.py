@@ -13,23 +13,16 @@ from pypulseqpp import cli, sequences
 
 #: A prescription small enough to build in a moment, per example sequence.
 SMALL = {
-    "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0},
-    "gre3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "n_acs": 0, "n_acs_z": 0},
-    "gre_multiecho2D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_echoes": 3,
-        "n_acs": 0,
-        "n_dummy": 0,
-    },
+    "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0},
+    "gre3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "n_acs_y": 0, "n_acs_z": 0},
+    "gre_multiecho2D_sequence": {"n_x": 32, "n_y": 16, "n_echoes": 3, "n_acs_y": 0},
     "gre_multiecho3D_sequence": {
         "n_x": 32,
         "n_y": 16,
         "n_z": 8,
         "n_echoes": 3,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
-        "n_dummy": 0,
     },
     "gre_stack_of_stars3D_sequence": {"n": 32, "n_z": 4},
     "gre_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4},
@@ -53,12 +46,12 @@ SMALL = {
     },
     "epi2D_sequence": {"n_x": 32, "n_y": 16, "n_dummy": 0},
     "epi3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 4, "n_dummy": 0},
-    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0, "tr": None},
+    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
     "se3D_sequence": {
         "n_x": 32,
         "n_y": 8,
         "n_z": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "tr": None,
     },
@@ -67,7 +60,7 @@ SMALL = {
         "n_y": 16,
         "n_slices": 1,
         "etl": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "te": None,
         "tr": None,
     },
@@ -78,7 +71,7 @@ SMALL = {
         "views_per_segment": 16,
         "ti": 100e-3,
         "tr_outer": 300e-3,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "n_dummy": 0,
     },
@@ -94,14 +87,14 @@ SMALL = {
         "n_x": 64,
         "n_y": 16,
         "readout_bandwidth_hz": 50e3,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_dummy": 0,
     },
     "bssfp3D_sequence": {
         "n_x": 64,
         "n_y": 16,
         "n_z": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "n_dummy": 0,
     },
@@ -110,7 +103,7 @@ SMALL = {
         "n_y": 16,
         "n_z": 8,
         "etl": 4,
-        "n_acs": 0,
+        "n_acs_y": 0,
         "n_acs_z": 0,
         "te": None,
         "tr": None,
@@ -130,6 +123,15 @@ def test_a_zoo_entry_is_callable_as_the_sequence_it_builds(name):
     assert callable(script)
     assert script.__doc__ == script.main.__doc__
     assert "system" in script.__signature__.parameters
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_a_zoo_entry_takes_its_dummies_and_names_the_axis_of_its_calibration(name):
+    parameters = getattr(sequences, name).__signature__.parameters
+    calibration = [p for p in parameters if p.startswith("n_acs")]
+
+    assert "n_dummy" in parameters
+    assert all(p in ("n_acs_y", "n_acs_z") for p in calibration)
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
@@ -154,10 +156,10 @@ def gre(**kwargs):
     return sequences.gre2D_sequence(**{**SMALL["gre2D_sequence"], **kwargs})
 
 
-def gre_app(dummies=0, **kwargs):
-    """The 2D gradient echo with ``dummies`` non-acquiring repetitions per packet."""
-    app = type("Gre2D", (sequences.gre2D_sequence.Gre2DApp,), {"N_DUMMY": dummies})
-    return app(pp.Opts(), **{**SMALL["gre2D_sequence"], **kwargs})
+def gre_app(**kwargs):
+    """The 2D gradient echo, without dummies unless asked for."""
+    app = sequences.gre2D_sequence.Gre2DApp
+    return app(pp.Opts(), **{**SMALL["gre2D_sequence"], "n_dummy": 0, **kwargs})
 
 
 def test_every_line_is_one_repetition_of_the_same_blocks():
@@ -201,7 +203,7 @@ def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
     n_x, n_slices
 ):
     """A packet that holds one slice more is a longer wait, not a different shot."""
-    seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs=8, readout_oversampling=1.0)
+    seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs_y=8, readout_oversampling=1.0)
 
     _size, start = seq._detect_tr()
 
@@ -255,7 +257,7 @@ def test_undersampling_acquires_fewer_lines_than_it_encodes():
 @pytest.mark.parametrize("n_y", [32, 33])
 @pytest.mark.parametrize("ry", [2, 3, 4, 5])
 def test_undersampling_always_acquires_the_centre_line(n_y, ry):
-    app = gre_app(n_y=n_y, ry=ry, n_acs=0)
+    app = gre_app(n_y=n_y, ry=ry, n_acs_y=0)
 
     assert n_y // 2 in app.lines
     assert all((line - n_y // 2) % ry == 0 for line in app.lines)
@@ -294,20 +296,20 @@ def test_every_slice_is_rf_spoiled_by_its_own_excitation_count():
 
 def test_the_calibration_block_leads_the_scan():
     """A reconstruction calibrates while the rest of the scan is arriving."""
-    app = gre_app(n_y=32, ry=2, n_acs=8)
+    app = gre_app(n_y=32, ry=2, n_acs_y=8)
 
     assert list(app.lines[:8]) == sorted(app.calibration)
 
 
 def test_a_fully_sampled_scan_has_no_calibration_block():
-    app = gre_app(n_y=32, ry=1, n_acs=8)
+    app = gre_app(n_y=32, ry=1, n_acs_y=8)
 
     assert app.calibration == set()
     assert app.lines == list(range(32))
 
 
 def test_each_acquisition_carries_the_line_and_slice_it_encodes():
-    app = gre_app(dummies=2, n_y=16, n_slices=3, ry=2, n_acs=4)
+    app = gre_app(n_dummy=2, n_y=16, n_slices=3, ry=2, n_acs_y=4)
     lin, slc, ima, seg = adc_labels(app.design(), "LIN", "SLC", "IMA", "SEG")
 
     expected = [
@@ -333,7 +335,7 @@ def fse_app(**kwargs):
 
 @pytest.mark.parametrize("ordering", sequences.fse3D_sequence.ORDERINGS)
 def test_every_sampled_view_is_acquired_once_at_its_place_in_the_train(ordering):
-    app = fse_app(ordering=ordering, acceleration=2, n_acs=4, n_acs_z=2)
+    app = fse_app(ordering=ordering, acceleration=2, n_acs_y=4, n_acs_z=2)
     lin, par, eco = adc_labels(app.design(), "LIN", "PAR", "ECO")
 
     views = [v for train in app.trains for v in train if v is not None]
@@ -361,7 +363,7 @@ def test_a_variable_train_starts_and_ends_at_its_largest_flip():
 
 
 def test_the_wave_free_calibration_trains_lead_and_are_marked_reference():
-    app = fse_app(wave="both", wave_cycles=2, n_acs=4, n_acs_z=2)
+    app = fse_app(wave="both", wave_cycles=2, n_acs_y=4, n_acs_z=2)
     seq = app.design()
     ref, seg = adc_labels(seq, "REF", "SEG")
     n_reference = len(app.calibration_views)

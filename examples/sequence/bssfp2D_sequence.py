@@ -26,7 +26,7 @@ class Bssfp2DApp(sequences.SequenceApp):
     --------
     >>> from pypulseqpp import sequences
     >>> seq = sequences.bssfp2D_sequence(
-    ...     n_x=64, n_y=16, readout_bandwidth_hz=50e3, n_acs=0, n_dummy=0
+    ...     n_x=64, n_y=16, readout_bandwidth_hz=50e3, n_acs_y=0, n_dummy=0
     ... )
     >>> seq.check_timing()[0]
     True
@@ -54,7 +54,7 @@ class Bssfp2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 125e3,
         partial_fourier: float = 1.0,
         acceleration: int = 1,
-        n_acs: int = 24,
+        n_acs_y: int = 24,
         n_dummy: int = 10,
         n_gain_calibration_readouts: int | None = None,
     ) -> None:
@@ -87,7 +87,7 @@ class Bssfp2DApp(sequences.SequenceApp):
             Fraction of the phase-encode extent acquired, in (0.5, 1].
         acceleration : int, optional
             Uniform phase-encode undersampling factor.
-        n_acs : int, optional
+        n_acs_y : int, optional
             Fully sampled autocalibration lines, acquired ahead of the rest.
         n_dummy : int, optional
             Repetitions played without acquiring after the half-flip pulse,
@@ -129,19 +129,19 @@ class Bssfp2DApp(sequences.SequenceApp):
         self.lines = calc_sampled_lines(
             n_y,
             acceleration,
-            n_acs,
+            n_acs_y,
             order="calibration_first",
             partial_fourier=partial_fourier,
         )
         n_calibration = len(
-            calc_calibration_lines(n_y, n_acs, partial_fourier=partial_fourier)
+            calc_calibration_lines(n_y, n_acs_y, partial_fourier=partial_fourier)
         )
         # SEG splits the calibration block that leads the train from the rest.
         self.segment = {}
         for i, line in enumerate(self.lines):
             self.segment.setdefault(line, int(i >= n_calibration))
-        acs_start = max(0, n_y // 2 - n_acs // 2)
-        self.acs = range(acs_start, min(n_y, acs_start + n_acs))
+        acs_start = max(0, n_y // 2 - n_acs_y // 2)
+        self.acs = range(acs_start, min(n_y, acs_start + n_acs_y))
 
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_gap

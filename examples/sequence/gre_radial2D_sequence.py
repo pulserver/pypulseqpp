@@ -35,8 +35,6 @@ class GreRadial2DApp(sequences.SequenceApp):
     #: SLR design of the selective pulse.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
-    #: Non-acquiring repetitions, at the first spoke's angle, before each packet.
-    N_DUMMY = 16
     #: Quadratic RF spoiling phase increment (degrees), counted per slice.
     RF_SPOILING_INCREMENT_DEG = 117.0
     #: Dephasing left on the slice axis at the end of each repetition, in
@@ -56,6 +54,7 @@ class GreRadial2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         *,
+        n_dummy: int = 16,
         readout_oversampling: float = 2.0,
     ) -> None:
         """Design the pulse, the spoke, the slice packets and the spoke angles.
@@ -86,6 +85,9 @@ class GreRadial2DApp(sequences.SequenceApp):
         ry : int, optional
             Angular undersampling: one spoke in every ``ry`` of the Nyquist set
             is played.
+        n_dummy : int, optional
+            Non-acquiring repetitions, at the first spoke's angle, before each
+            packet.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
 
@@ -94,6 +96,7 @@ class GreRadial2DApp(sequences.SequenceApp):
         ValueError
             If ``ry`` is below one, or the TR cannot hold one slice.
         """
+        self.n_dummy = n_dummy
         if ry < 1:
             raise ValueError(f"ry must be at least 1, got {ry}")
 
@@ -155,7 +158,7 @@ class GreRadial2DApp(sequences.SequenceApp):
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every spoke at each of its slices."""
-        spokes = [None] * self.N_DUMMY + list(range(len(self.angles)))
+        spokes = [None] * self.n_dummy + list(range(len(self.angles)))
         phases = make_rf_spoiling_schedule(
             len(spokes), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
