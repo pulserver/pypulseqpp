@@ -366,10 +366,58 @@ def test_an_impossible_2d_prescription_is_refused(prescription):
 
 
 @pytest.mark.parametrize(
-    ("ry", "rz", "shift"), [(1, 1, 0), (1, 2, 1), (1, 3, 1), (1, 4, 2), (2, 2, 1)]
+    ("ry", "rz", "shift"),
+    [
+        (1, 1, 0),
+        (1, 2, 1),
+        (1, 3, 1),
+        # Patterns Stirnberg and Stöcker (MRM 2021) found best, Tables 1 and 2.
+        (2, 2, 1),
+        (3, 2, 1),
+        (4, 2, 1),
+        (2, 3, 1),
+        (2, 4, 2),
+        (1, 4, 2),
+        (1, 5, 2),
+        (1, 6, 2),
+        (1, 7, 2),
+    ],
 )
 def test_the_caipi_shift_keeps_the_aliases_furthest_apart(ry, rz, shift):
     assert epi3d.caipi_shift(ry, rz) == shift
+    assert epi2d.caipi_shift(ry, rz) == shift
+
+
+def blip_cycle(steps):
+    """The shortest period the blip sequence repeats with."""
+    return next(
+        n
+        for n in range(1, len(steps) + 1)
+        if all(steps[i] == steps[i % n] for i in range(len(steps)))
+    )
+
+
+@pytest.mark.parametrize(
+    ("ry", "rz", "n_shots"),
+    [(1, 4, 1), (1, 4, 2), (1, 4, 3), (2, 2, 1), (1, 6, 1), (1, 6, 4), (1, 5, 3)],
+)
+def test_the_partition_blips_are_the_two_the_paper_derives(ry, rz, n_shots):
+    """Stirnberg and Stöcker (MRM 2021), Appendix, equations A1 and A2."""
+    app = app3d(n_y=48, n_z=2 * rz, ry=ry, rz=rz, n_shots=n_shots)
+    b1 = (n_shots * app.shift) % rz
+    b2 = (rz - b1) % rz
+    smallest = min(b1, b2)
+    if smallest == 0:
+        cycle = 1
+    elif rz % smallest == 0:
+        cycle = rz // smallest
+    else:
+        cycle = rz
+
+    for train in app.shot_trains:
+        steps = list(np.diff(train.order[:, 1]))
+        assert set(steps) <= {b1, -b2}
+        assert cycle % blip_cycle(steps) == 0
 
 
 @pytest.mark.parametrize(

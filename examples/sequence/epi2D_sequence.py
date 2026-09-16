@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import sys
 
 import numpy as np
@@ -16,22 +17,24 @@ def caipi_shift(ry: int, rz: int) -> int:
     The sampled lattice is spanned by ``(0, rz)`` and ``(ry, shift)``, in
     lines and partitions. Its aliases form the dual lattice, which in two
     dimensions is the same lattice turned and scaled, so the shift that
-    lengthens the shortest sampling vector also spreads the aliases most.
-    Among equally short lattices, the one with the fewest shortest vectors has
-    the fewest nearest aliases; then the smaller shift wins.
+    lengthens the sampling vectors also spreads the aliases most. Shifts are
+    compared on the lengths of their two shortest primitive vectors, so a tie
+    on the shortest is settled by the next, and then by the smaller shift. The rule
+    reproduces the patterns Stirnberg and Stöcker (Magn Reson Med 2021,
+    doi:10.1002/mrm.28486) found best, such as 2x2z1, 3x2z1, 2x4z2 and 1x6z2.
     """
 
-    def shortest(shift: int) -> tuple[int, int]:
-        # One of each pair of opposite vectors: b > 0, or b == 0 and a > 0.
-        lengths = [
+    def shortest(shift: int) -> list[int]:
+        # One of each pair of opposite vectors, b > 0 or b == 0 < a, and no
+        # multiple of a shorter one.
+        return sorted(
             (b * ry) ** 2 + (a * rz + b * shift) ** 2
             for a in range(-rz, rz + 1)
             for b in range(rz + 1)
-            if b or a > 0
-        ]
-        return min(lengths), -lengths.count(min(lengths))
+            if (b or a > 0) and math.gcd(a, b) == 1
+        )[:2]
 
-    return max(range(rz), key=lambda shift: (*shortest(shift), -shift))
+    return max(range(rz), key=lambda shift: (shortest(shift), -shift))
 
 
 def train_lines(
