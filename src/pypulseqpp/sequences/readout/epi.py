@@ -29,8 +29,14 @@ class _EpiReadout(SequenceModule):
 
     The scan loop sets the shot origin by scaling prewinders. Blips implement
     the relative offsets and share the readout ramps; flyback blips instead
-    play in the rewind gaps. TE is measured to the first echo, not the echo
-    that acquires central phase encoding.
+    play in the rewind gaps. TE is measured to the train line ``te_line``,
+    the first by default: the loop knows which line samples the centre of
+    k-space, the module does not.
+
+    Navigator lines, when asked for, are read after the read prewinder and
+    before the phase-encode prewinder, without blips, so they sample the
+    centre line at alternating polarities. The train then continues the
+    alternation.
 
     Attributes
     ----------
@@ -45,6 +51,9 @@ class _EpiReadout(SequenceModule):
     gx : list[GradEvent]
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
+    gx_navigator : list[GradEvent]
+        One read lobe per navigator line, the first positive. Present only
+        with ``navigator_lines``.
     gx_flyback : TrapEvent
         The rewind between two lines. ``flyback`` only.
     gy_blips, gz_blips : list
@@ -75,16 +84,26 @@ class _EpiReadout(SequenceModule):
         ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.
     wait_te : DelayEvent
         Present only when a TE longer than the minimum was asked for.
+    wait_shift : DelayEvent
+        The echo-shift delay right before the first train line, one block
+        raster long. Present only with ``echo_shifts`` above one; the loop
+        lengthens it by ``s * echo_shift_step`` on shot ``s`` and shortens
+        ``wait_tr`` by as much.
     wait_tr : DelayEvent
-        Present only when a TR longer than the minimum was asked for.
+        Present when a TR longer than the minimum was asked for, or when
+        ``echo_shifts`` is above one: it then holds the longest shift.
     etl : int
         Lines per repetition.
     esp : float
         Echo spacing (s).
     echo_times : NDArray[np.float64]
-        Each line's echo time (s) from the excitation isodelay.
+        Each line's echo time (s) from the excitation isodelay, with no echo
+        shift.
     echo_time : float
-        The first line's, which is what ``te`` sets.
+        Echo time (s) of train line ``te_line``, which is what ``te`` sets.
+    echo_shift_step : float
+        Echo shift between successive shots (s), ``esp / echo_shifts`` on the
+        block raster; zero with one shift.
     bandwidth_hz : float
         Achieved ADC sampling rate (Hz).
     n_samples : int
@@ -137,13 +156,26 @@ class _EpiReadout(SequenceModule):
         Phase-encode lines one pass spans. Required by ``'zigzag'``, refused
         by the others.
     te : float, optional
-        Excitation isodelay to the **first** echo (s). ``None`` is as short as
-        possible; every other echo follows at ``esp`` intervals, and
+        Excitation isodelay to the echo of train line ``te_line`` (s). ``None``
+        is as short as possible; every echo is ``esp`` from the next, and
         ``echo_times`` lists them.
+    te_line : float, optional
+        Train line, counted from zero and possibly fractional, that ``te`` is
+        timed to.
     tr : float, optional
-        Repetition time (s), over the whole module.
+        Repetition time (s), over the whole module. It includes the longest
+        echo shift.
+    navigator_lines : int, optional
+        Lines read without blips between the read and the phase-encode
+        prewinders, for odd-even phase correction. Refused with ``flyback``.
+    echo_shifts : int, optional
+        Shots whose trains are delayed by successive multiples of
+        ``esp / echo_shifts``, so the echo time grows smoothly across the
+        interleaved lines. The module plays no shift; the loop lengthens
+        ``wait_shift``.
     oversampling : float, optional
-        Read oversampling.
+        Read oversampling: ``delta_kx`` shrinks and the sampled read field of
+        view grows, while resolution is fixed by ``fov`` and ``matrix``.
     readout_bandwidth_hz : float, optional
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
@@ -172,7 +204,9 @@ class _EpiReadout(SequenceModule):
     ValueError
         If a count is out of range, ``order`` is the wrong shape or steps
         outside the matrix, ``labels`` does not name one counter per encoded
-        axis, or the requested TE or TR is shorter than the train can achieve.
+        axis, ``te_line`` lies outside the train, a navigator is asked of a
+        flyback train, or the requested TE or TR is shorter than the train can
+        achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped EPI readouts.
@@ -196,7 +230,10 @@ class _EpiReadout(SequenceModule):
         caipi_shift: int = 1,
         extent: int | None = None,
         te: float | None = None,
+        te_line: float = 0.0,
         tr: float | None = None,
+        navigator_lines: int = 0,
+        echo_shifts: int = 1,
         oversampling: float = 1.0,
         readout_bandwidth_hz: float = 500e3,
         ramp_sampling: bool = True,
@@ -213,6 +250,14 @@ class _EpiReadout(SequenceModule):
             raise ValueError("readout_bandwidth_hz must be positive")
         if spoiling_cycles < 0:
             raise ValueError("spoiling_cycles must be >= 0")
+        navigator_lines, echo_shifts = int(navigator_lines), int(echo_shifts)
+        if navigator_lines < 0 or echo_shifts < 1:
+            raise ValueError("navigator_lines must be >= 0 and echo_shifts >= 1")
+        if navigator_lines and flyback:
+            raise ValueError(
+                "a flyback train reads every line the same way and has no odd-even "
+                "inconsistency for a navigator to measure"
+            )
 
         fov = as_tuple(fov, ndim, "fov")
         n = as_tuple(matrix, ndim, "matrix", int)
@@ -233,6 +278,8 @@ class _EpiReadout(SequenceModule):
             )
         order = _checked_order(order, n, ndim)
         etl = len(order)
+        if not 0.0 <= te_line <= etl - 1:
+            raise ValueError(f"te_line must lie in [0, {etl - 1}], got {te_line}")
 
         labels = tuple(labels or ())
         if labels and len(labels) != ndim - 1:
@@ -242,7 +289,8 @@ class _EpiReadout(SequenceModule):
             )
 
         raster = system.block_duration_raster
-        delta_k = tuple(1.0 / value for value in fov)
+        # Oversampling widens the sampled read field of view; resolution stays.
+        delta_k = (1.0 / (oversampling * fov[0]), *(1.0 / value for value in fov[1:]))
 
         # One blip window serves every step, so it is built for the largest
         # step in the pattern and every other is that shape scaled. Half of it
@@ -307,8 +355,9 @@ class _EpiReadout(SequenceModule):
                 else [None] * etl
             )
         else:
+            # The train continues the navigator's alternation.
             gx = [
-                pp.scale_grad(lobe, 1.0 if line % 2 == 0 else -1.0)
+                pp.scale_grad(lobe, 1.0 if (navigator_lines + line) % 2 == 0 else -1.0)
                 for line in range(etl)
             ]
             esp = pp.calc_duration(lobe)
@@ -377,13 +426,29 @@ class _EpiReadout(SequenceModule):
             for line in range(etl)
         )
 
+        # The navigator reads the centre line at alternating polarities, so
+        # the phase-encode prewinder moves to a block of its own after it.
+        gx_navigator = [
+            pp.scale_grad(lobe, 1.0 if line % 2 == 0 else -1.0)
+            for line in range(navigator_lines)
+        ]
+        navigator_span = navigator_lines * _span(system, lobe)
+        encode_span = (
+            _span(system, gy_pre, *present(gz_pre)) if navigator_lines else 0.0
+        )
+        shift_span = raster if echo_shifts > 1 else 0.0
+        echo_shift_step = (
+            pp.round_to_raster(esp / echo_shifts, raster) if echo_shifts > 1 else 0.0
+        )
+
         # Timing. The rephaser goes in whichever block follows the pulse, so it
         # runs straight off the selection lobe.
         exc_span = _span(system, rf, gz)
         rf_center = float(rf.delay) + float(rf.center)
+        lead = navigator_span + encode_span + shift_span + te_line * esp
         wait, pre_span, echo_time = solve_rephasing(
             te,
-            (exc_span - rf_center) + echo_offset,
+            (exc_span - rf_center) + echo_offset + lead,
             pre_span,
             _span(system, gz_reph),
             system,
@@ -394,12 +459,20 @@ class _EpiReadout(SequenceModule):
         if wait:
             wait_te = pp.make_delay(wait)
             self.seq.add_block(wait_te, *present(gz_reph))
-        prewinder = [gx_pre, gy_pre, *present(gz_pre)]
+        encode = [gy_pre, *present(gz_pre), *shot_labels, *present(trigger)]
+        prewinder = [gx_pre] if navigator_lines else [gx_pre, *encode]
         if not wait:
             prewinder += present(gz_reph)
         if pre_span > pp.calc_duration(*prewinder) + 1e-12:
             prewinder.append(pp.make_delay(pre_span))
-        self.seq.add_block(*prewinder, *shot_labels, *present(trigger))
+        self.seq.add_block(*prewinder)
+        for line in range(navigator_lines):
+            self.seq.add_block(gx_navigator[line], adc)
+        if navigator_lines:
+            self.seq.add_block(*encode)
+        if echo_shifts > 1:
+            wait_shift = pp.make_delay(shift_span)
+            self.seq.add_block(wait_shift)
         for line in range(etl):
             if flyback:
                 self.seq.add_block(gx[line], adc, *line_labels[line])
@@ -417,8 +490,11 @@ class _EpiReadout(SequenceModule):
                 )
         self.seq.add_block(gx_spoil, gy_rew, *present(gz_rew))
 
-        tr_min = self.seq.duration()[0]
-        tr_delay = solve_delay(tr, tr_min, "TR", system)
+        # The longest shift is held at the end of the repetition, so every shot
+        # lasts the same once the loop moves its own shift forward.
+        longest_shift = (echo_shifts - 1) * echo_shift_step
+        tr_min = self.seq.duration()[0] + longest_shift
+        tr_delay = solve_delay(tr, tr_min, "TR", system) + longest_shift
         if tr_delay:
             wait_tr = pp.make_delay(tr_delay)
             self.seq.add_block(wait_tr)
@@ -432,9 +508,12 @@ class _EpiReadout(SequenceModule):
         )
         if ndim == 3:
             self.register(gz_blips=gz_blips)
-        self.center = exc_span + wait + pre_span + echo_offset
+        if navigator_lines:
+            self.register(gx_navigator=gx_navigator)
+        self.center = exc_span + wait + pre_span + echo_offset + lead
         self.echo_time = echo_time
-        self.echo_times = echo_time + esp * np.arange(etl)
+        self.echo_times = echo_time + esp * (np.arange(etl) - te_line)
+        self.echo_shift_step = echo_shift_step
         self.etl = etl
         self.esp = esp
         self.blip_span = blip_span
