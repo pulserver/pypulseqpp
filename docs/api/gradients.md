@@ -1,6 +1,8 @@
-# Gradient waveform design
+# Gradient design
 
-`pypulseqpp`: gradient events on one logical axis, and the operations on them.
+`pypulseqpp`: gradient events on one logical gradient axis, and the operations
+on them. Amplitudes are in Hz/m, slew rates in Hz/m/s and gradient areas in
+1/m, except where a docstring states otherwise.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -8,8 +10,9 @@
 
 ## Gradient factories
 
-Trapezoidal, extended-trapezoid and arbitrary events, and the wave-CAIPI
-corkscrew played under a readout's flat top.
+Trapezoidal, extended-trapezoid and arbitrary gradient events, and the
+wave-encoding gradients played under a readout's flat top, which trace the
+wave-CAIPI corkscrew trajectory.
 
 ```{eval-rst}
 .. autosummary::
@@ -29,8 +32,8 @@ corkscrew played under a readout's flat top.
 
 ## Gradient operations
 
-Concatenate, superpose, split, scale or rotate events; each contract states
-how timing changes.
+Concatenate, superpose, split, scale or rotate gradient events. Each docstring
+states how the operation changes the event's timing.
 
 ```{eval-rst}
 .. autosummary::

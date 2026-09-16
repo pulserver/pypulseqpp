@@ -8,7 +8,7 @@ from pypulseqpp import _ext
 
 pytest.importorskip(
     "pypulseq_matlab_like",
-    reason="the toolbox that builds the reference zoo; see reference.py",
+    reason="the toolbox that builds the reference corpus; see reference.py",
 )
 
 

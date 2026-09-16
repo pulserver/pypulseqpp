@@ -16,7 +16,7 @@
 namespace pulseq
 {
 
-    /** What to expand, and what the sequence is played on. */
+    /** Which blocks to expand, and the field parameters they are expanded under. */
     struct WaveformOptions
     {
         /** Also build the RF envelope, as a fourth channel. */
@@ -42,14 +42,14 @@ namespace pulseq
         double phase = 0.0;
     };
 
-    /** What a sequence does, in the order it does it. */
+    /** Expanded gradient waveforms, RF envelope and ADC timing, in play order. */
     struct Waveforms
     {
-        /** Per gradient axis, the corners of the waveform: when, and how much. */
+        /** Per gradient axis, the waveform corners: times in seconds and amplitudes in Hz/m. */
         std::array<std::vector<double>, 3> times;
         std::array<std::vector<double>, 3> amplitudes;
 
-        /** The RF envelope, when it was asked for. */
+        /** The RF envelope, when `append_rf` requested it. */
         std::vector<double> rf_times;
         std::vector<std::complex<double>> rf_signal;
 
@@ -62,13 +62,13 @@ namespace pulseq
         std::vector<int> pulse_blocks;
 
         /**
-         * Per ADC window rather than per sample: the offsets it was asked
-         * for, as the sequence records them and without the ppm terms folded
-         * in. What `adc_times` reports, where one window is one row.
+         * Per ADC window rather than per sample: the frequency and phase
+         * offsets as the sequence records them, without the ppm terms folded
+         * in. This is what `adc_times` reports, one row per window.
          */
         std::vector<double> window_frequency;
         std::vector<double> window_phase;
-        /** Which block each window is in, and how many samples it takes. */
+        /** The block each window belongs to, and its sample count. */
         std::vector<int> window_blocks;
         std::vector<int> window_samples;
 

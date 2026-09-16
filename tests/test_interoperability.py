@@ -55,7 +55,7 @@ def test_they_read_a_binary_file_we_wrote(their_sequence, tmp_path):
 
 
 def test_they_read_every_reference_sequence_we_write(build_reference, tmp_path):
-    """Nothing the zoo reaches puts a section in the file they cannot take."""
+    """No example sequence writes a file section the reference toolbox cannot read."""
     import convert
 
     ours = convert.to_core(build_reference())

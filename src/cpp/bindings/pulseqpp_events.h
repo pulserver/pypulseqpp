@@ -730,9 +730,9 @@ namespace pulseqpp_events
             PyObject* dict = holder.ptr();
             PyObject* kind_value = field(dict, n.type);
 
-            /* A whole block rather than an event: what `get_block` hands
-             * back, and what a script passes on to move a block from one
-             * sequence to another. Its events are registered as if they had
+            /* A whole block rather than an event: the object `get_block`
+             * returns, and the object a script passes on to move a block from
+             * one sequence to another. Its events are registered as if they had
              * been given one by one, and its stored duration sets a floor --
              * which is the only place a block that plays nothing keeps how
              * long it waits. */

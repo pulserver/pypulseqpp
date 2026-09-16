@@ -1,4 +1,4 @@
-"""FOV scaling, rotation and translation of existing sequences."""
+"""Field-of-view scaling, rotation and translation of existing sequences."""
 
 from __future__ import annotations
 
@@ -71,7 +71,12 @@ def _runs_not_exempt(seq, label, first, last):
 
 
 class TransformFOV:
-    """Apply a prescription to an existing sequence.
+    """Geometry prescription applied to an existing sequence.
+
+    Scales gradient amplitudes per logical axis, composes a rotation after each
+    block's own rotation, and translates the field of view in logical metres.
+    Field of view scales inversely with gradient amplitude, so halving an
+    axis's scale doubles the field of view along it.
 
     Parameters
     ----------

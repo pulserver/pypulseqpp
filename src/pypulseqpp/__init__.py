@@ -274,7 +274,7 @@ _WITHHELD = {
 
 
 #: Sampling, view-ordering, angle and schedule helpers, held back from the
-#: public interface until the sequence zoo settles which of them it needs.
+#: public interface until the example sequences settle which of them they need.
 #: Their code stays in the private modules named here.
 _PRIVATE_SAMPLING = {
     "_angles": (
@@ -309,8 +309,8 @@ _PRIVATE_SAMPLING = {
 _WITHHELD.update(
     {
         name: (
-            "held back from the public interface while the sequence zoo settles "
-            f"which sampling helpers it needs; it remains in pypulseqpp.{module}."
+            "held back from the public interface while the example sequences "
+            f"settle which sampling helpers they need; it remains in pypulseqpp.{module}."
         )
         for module, names in _PRIVATE_SAMPLING.items()
         for name in names

@@ -197,8 +197,8 @@ def test_a_sequence_can_be_weighed_against_another_scanner(system):
     assert report.limit == pytest.approx(weaker.max_grad)
 
 
-def test_weighing_needs_limits_from_somewhere():
-    with pytest.raises(ValueError, match="no limits"):
+def test_a_check_without_system_limits_raises():
+    with pytest.raises(ValueError, match="no system limits"):
         safety.check_max_grad(pp.Sequence())
 
 

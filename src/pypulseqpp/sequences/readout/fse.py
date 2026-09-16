@@ -49,10 +49,10 @@ class _FseReadout(SequenceModule):
         Read prephaser, played once before the train and right-aligned in its
         block.
     gx_bridge_pre, gx_bridge_post : GradEvent
-        The lobes that carry the read axis, and the crushers, onto and off the
-        readout plateau, one each side of every acquisition. Each spans its
-        whole block, so the echo timing holds when the loop leaves an encode
-        out.
+        Read-axis lobes that carry the axis, together with the crushers, onto
+        and off the readout plateau, one on each side of every acquisition.
+        Each spans its whole block, so the echo timing holds when the loop
+        leaves an encode out.
     gx : GradEvent
         The readout plateau, flat from end to end.
     gy_pre, gz_pre : TrapEvent
@@ -62,8 +62,9 @@ class _FseReadout(SequenceModule):
         The encodes negated, unwinding each line before the next refocusing
         pulse.
     gy_wave, gz_wave : GradEvent
-        The wave corkscrew under the plateau, each self-balanced so scaling one
-        to zero changes nothing else. Only the channels ``wave`` drives.
+        Wave-encoding gradients played under the readout plateau, each
+        self-balanced so scaling one to zero changes nothing else. Only the
+        channels ``wave`` drives.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
@@ -92,8 +93,8 @@ class _FseReadout(SequenceModule):
     readout_duration : float
         Sampling window (s).
     wave_amplitude : float
-        Peak wave gradient achieved (T/m), below the requested one where the
-        slew rate binds; zero without ``wave``.
+        Peak wave-encoding gradient amplitude built, in T/m, below the
+        requested one where the slew rate binds; zero without ``wave``.
 
     Parameters
     ----------
@@ -162,8 +163,9 @@ class _FseReadout(SequenceModule):
     wave_cycles : int, optional
         Wave periods across the sampling window.
     wave_amplitude : float, optional
-        Requested peak wave gradient (T/m). A ceiling: the slew rate may
-        lower it, and ``wave_amplitude`` on the module reports what was built.
+        Requested peak wave-encoding gradient amplitude, in T/m rather than the
+        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
+        module's ``wave_amplitude`` attribute reports the amplitude built.
 
     Raises
     ------
@@ -271,10 +273,10 @@ class _FseReadout(SequenceModule):
         ramp_area = 0.5 * float(shape.rise_time) * amplitude
         adc = pp.make_adc(num_samples=n_samples, dwell=dwell, system=system)
 
-        # The corkscrew rides under the plateau the samples are taken on. Both
-        # encoded axes are free there -- the encodes are spent in the bridges
-        # either side -- and each event is self-balanced, so an echo that
-        # scales one to zero changes nothing else about the readout.
+        # The wave-encoding gradients play under the plateau the samples are
+        # taken on. Both encoded axes are free there -- the encodes are spent
+        # in the lobes either side -- and each event is self-balanced, so an
+        # echo that scales one to zero changes nothing else about the readout.
         gy_wave = gz_wave = None
         wave_peak = 0.0
         if wave is not None:
@@ -449,7 +451,7 @@ class _FseReadout(SequenceModule):
         self.center_sample = n_pre
         self.delta_kx = delta_kx
         self.readout_duration = readout_duration
-        # What the corkscrew reached, which is the requested amplitude only
+        # The wave amplitude actually built, which is the requested one only
         # where the slew rate left room for it.
         self.wave_amplitude = wave_peak
 

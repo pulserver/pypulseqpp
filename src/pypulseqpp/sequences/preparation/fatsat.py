@@ -1,4 +1,4 @@
-"""Fat saturation, optionally confined to a band and pointed where asked."""
+"""Fat saturation, optionally confined to a spatial band on a chosen axis."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ class FatSaturation(RfModule):
         frame, in millimetres. Needs ``thickness_m``.
     orientation : array_like or scipy.spatial.transform.Rotation, optional
         A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one
-        the band should sit in. Needs ``thickness_m``.
+        the band lies on. Needs ``thickness_m``.
     use_rotation_extension : bool, optional
         Carry the orientation as a ``ROTATIONS`` extension rather than baking
         it into new waveforms. Only ``True`` is implemented; see

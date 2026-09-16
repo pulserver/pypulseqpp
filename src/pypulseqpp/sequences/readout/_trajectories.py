@@ -1,4 +1,4 @@
-"""Canonical non-Cartesian gradient interleaves with ADCs and moment bridges."""
+"""Canonical non-Cartesian gradient interleaves with ADCs, prewinders and rewinders."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ _SPIRAL_DIRECTIONS = ("outward", "inward", "in_out")
 def traj2grad(
     trajectory, system, *, oversampling=8, start_at_zero=True, end_at_zero=True
 ):
-    """Gradient tracing ``trajectory`` under the vector gradient and slew limits.
+    """Return the gradient waveform tracing ``trajectory`` within the vector amplitude and slew limits.
 
     The path's samples describe geometry only; :func:`pypulseqpp.traj_to_grad`
     assigns the timing.
@@ -41,7 +41,7 @@ def traj2grad(
         Path-resampling factor the solver works at.
     start_at_zero, end_at_zero : bool, optional
         Ramp up from and back down to zero amplitude. Disable an endpoint
-        where a moment bridge meets the readout at non-zero amplitude.
+        where a prewinder or rewinder meets the readout at non-zero amplitude.
 
     Returns
     -------
@@ -100,7 +100,7 @@ def _make_grad_events(system, gradient, axes, *, first=None, last=None):
 
 
 def _adc_samples(system, n_samples):
-    """Round down to a multiple of the ADC sample divisor, with at least one group."""
+    """Round the sample count down to a multiple of the ADC sample divisor, keeping at least one group."""
     divisor = int(getattr(system, "adc_samples_divisor", 0) or 1)
     return max(divisor, int(n_samples) // divisor * divisor)
 
@@ -118,7 +118,7 @@ def _make_adc(system, n_samples, read_duration):
 
 
 def _sample_gradient_trajectory(gradient, raster, adc):
-    """Return k (1/m) at the ADC sample centres, with k = 0 at the gradient start."""
+    """Return the k-space location (1/m) at each ADC sample centre, with k = 0 at the gradient start."""
     gradient = np.asarray(gradient, dtype=float)
     k_edges = np.vstack(
         (np.zeros((1, gradient.shape[1])), np.cumsum(gradient, axis=0) * raster)
@@ -179,13 +179,14 @@ def _moment_bridges(system, area, grad_start, grad_end, axes):
 
 
 class NonCartesianGradient:
-    """One canonical non-Cartesian base interleave, independent of its acquisition schedule.
+    """One canonical non-Cartesian base interleaf, independent of its acquisition schedule.
 
-    Prewinders bridge from zero gradient and k = 0 to the readout's start,
-    and rewinders from its end back to zero; they play in blocks of their
-    own, so ``duration`` is the longest prewinder plus ``read_duration`` plus
-    the longest rewinder (s). The subclasses design an interleave; this class
-    wraps events designed elsewhere.
+    A prewinder carries the trajectory from k = 0, at zero gradient amplitude,
+    to the start of the readout; a rewinder carries it from the end of the
+    readout back to k = 0 at zero amplitude. Both play in blocks of their own,
+    so ``duration`` is the longest prewinder plus ``read_duration`` plus the
+    longest rewinder (s). The subclasses design an interleaf; this class wraps
+    events designed elsewhere.
 
     Parameters
     ----------
@@ -198,14 +199,14 @@ class NonCartesianGradient:
     trajectory : ArrayLike
         ``(n, 2)`` or ``(n, 3)`` k-space path (1/m).
     design_interleaves : int, optional
-        Interleave count the path's pitch was designed for.
+        Interleaf count the path's pitch was designed for.
     recommended_rotations : int, optional
         Rotated copies that sample the path's disc at Nyquist.
     prewinders, rewinders : Sequence[GradEvent], optional
-        Bridges from k = 0 to the path's start and from its end back to k = 0,
-        one event per channel.
+        Prewinding gradients from k = 0 to the path's start, and rewinding
+        gradients from its end back to k = 0, one event per channel.
     kind : str, optional
-        Name of the interleave family.
+        Name of the interleaf family.
 
     Attributes
     ----------
@@ -215,7 +216,7 @@ class NonCartesianGradient:
     bandwidth_hz_px : float
         ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.
     design_interleaves : int | None
-        Interleave count the spiral pitch was designed for.
+        Interleaf count the spiral pitch was designed for.
     recommended_rotations : int | None
         Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``,
         for a radial spoke; ``None`` otherwise.
@@ -271,36 +272,36 @@ class NonCartesianGradient:
 
     @property
     def has_prewinder(self):
-        """Whether a bridge leads from k = 0 to the start of the path."""
+        """Whether a prewinder leads from k = 0 to the start of the path."""
         return bool(self.prewinders)
 
     @property
     def has_rewinder(self):
-        """Whether a bridge leads from the end of the path back to k = 0."""
+        """Whether a rewinder leads from the end of the path back to k = 0."""
         return bool(self.rewinders)
 
     @property
     def gx(self):
-        """Gradient on channel x, or None when this interleave does not drive it."""
+        """Gradient on channel x, or None when this interleaf does not drive it."""
         return next((g for g in self.gradients if g.channel == "x"), None)
 
     @property
     def gy(self):
-        """Gradient on channel y, or None when this interleave does not drive it."""
+        """Gradient on channel y, or None when this interleaf does not drive it."""
         return next((g for g in self.gradients if g.channel == "y"), None)
 
     @property
     def gz(self):
-        """Gradient on channel z, or None when this interleave does not drive it."""
+        """Gradient on channel z, or None when this interleaf does not drive it."""
         return next((g for g in self.gradients if g.channel == "z"), None)
 
     @property
     def axes(self) -> tuple[str, ...]:
-        """The gradient channels this interleave drives, in waveform order."""
+        """The gradient channels this interleaf drives, in waveform order."""
         return tuple(gradient.channel for gradient in self.gradients)
 
     def rotated(self, angle: float) -> NonCartesianGradient:
-        """Return this interleave rotated in its own plane, with unchanged timing.
+        """Return this interleaf rotated in its own plane, with unchanged timing.
 
         The readout waveforms and trajectory turn from the first channel
         towards the second. Prewinders stay right-aligned and rewinders
@@ -321,13 +322,14 @@ class NonCartesianGradient:
         Raises
         ------
         ValueError
-            If the interleave does not drive exactly two channels, or a rotated
-            bridge's vector amplitude exceeds ``system.max_grad``.
+            If the interleaf does not drive exactly two channels, or a rotated
+            prewinder or rewinder exceeds ``system.max_grad`` in vector
+            amplitude.
         """
         axes = self.axes
         if len(axes) != 2:
             raise ValueError(
-                "only a two-channel planar interleave can be rotated in its own plane"
+                "only a two-channel planar interleaf can be rotated in its own plane"
             )
 
         waveforms = np.column_stack(
@@ -370,10 +372,10 @@ class NonCartesianGradient:
 
 
 def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
-    """Rotate one bridge per channel as a single vector waveform.
+    """Rotate one prewinder or rewinder per channel as a single vector waveform.
 
     Prewinders (``anchor="right"``) end together and rewinders
-    (``anchor="left"``) start together; each bridge holds its end values
+    (``anchor="left"``) start together; each event holds its end values
     outside its own extent. Raises ValueError if the rotated vector amplitude
     exceeds ``system.max_grad``, so every further rotation stays feasible.
     """
@@ -399,7 +401,7 @@ def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
     peak = float(np.linalg.norm(rotated, axis=1).max())
     if peak > float(system.max_grad) * (1.0 + 1e-6):
         raise ValueError(
-            f"rotated bridge reaches {peak:.0f} Hz/m vector amplitude, above the "
+            f"rotated prewinder/rewinder reaches {peak:.0f} Hz/m vector amplitude, above the "
             f"{float(system.max_grad):.0f} Hz/m per-axis ceiling a rotation may land it on"
         )
 
@@ -419,7 +421,7 @@ def _rotated_bridge_pair(events, axes, turn, system, *, anchor):
 
 
 class Arbitrary(NonCartesianGradient):
-    """Base interleave from a caller-supplied 2D or 3D k-space path.
+    """Base interleaf from a caller-supplied 2D or 3D k-space path.
 
     A path not starting at k = 0 gets prewinders, and one not ending there
     gets rewinders. The readout is stretched to last at least its sample count
@@ -456,8 +458,8 @@ class Arbitrary(NonCartesianGradient):
 
     Examples
     --------
-    A spoke written as a path starts and ends away from k = 0, so it is
-    bridged at both ends:
+    A spoke written as a path starts and ends away from k = 0, so it carries a
+    prewinder and a rewinder:
 
     >>> import numpy as np
     >>> import pypulseqpp.sequences as design
@@ -545,8 +547,9 @@ class Radial(NonCartesianGradient):
 
     The readout is a constant-amplitude plateau from ``-kmax`` to ``+kmax``
     lasting ``round(matrix * oversamp) / bandwidth_hz_px``, or longer where
-    ``system.max_grad`` requires, ceiled to the gradient raster. The bridges
-    carry area ``-kmax`` from and back to zero gradient.
+    ``system.max_grad`` requires, ceiled to the gradient raster. The prewinder
+    and the rewinder each carry area ``-kmax``, from and back to zero gradient
+    amplitude.
     """
 
     def __init__(
@@ -606,14 +609,14 @@ class Radial(NonCartesianGradient):
 
 
 class Spiral(NonCartesianGradient):
-    """Constant-, variable- or dual-density spiral base interleave.
+    """Constant-, variable- or dual-density spiral base interleaf.
 
     ``design_interleaves`` and the density parameters set the pitch as in
     :func:`pypulseqpp.calc_spiral_trajectory`; the caller may acquire any
     number of rotated copies. ``direction`` is ``"outward"`` (centre to edge,
     with rewinders), ``"inward"`` (edge to centre, with prewinders) or
     ``"in_out"`` (edge through centre to edge, with both). Each half of an
-    ``"in_out"`` arm is designed for twice the interleave counts, so one arm
+    ``"in_out"`` arm is designed for twice the interleaf counts, so one arm
     samples like two outward ones.
 
     The dwell is ``1 / bandwidth_hz_px`` (Hz) floored to the ADC raster.
@@ -630,7 +633,7 @@ class Spiral(NonCartesianGradient):
     matrix : int
         Isotropic matrix size.
     design_interleaves : int
-        Interleave count the pitch is designed for, not the number of arms
+        Interleaf count the pitch is designed for, not the number of arms
         acquired.
     direction : {'outward', 'inward', 'in_out'}, optional
         Traversal, as above.
@@ -807,9 +810,10 @@ class Spiral(NonCartesianGradient):
 
 
 class Rosette(NonCartesianGradient):
-    """Multi-petal rosette base interleave, starting and ending at k = 0.
+    """Multi-petal rosette base interleaf, starting and ending at k = 0.
 
-    The readout needs no bridges. ``trajectory`` is the k-space at the ADC
+    The readout needs neither a prewinder nor a rewinder. ``trajectory`` is
+    the k-space at the ADC
     samples and ``design_trajectory`` the polyline the gradient was solved
     from; ``echo_spacing_s`` is the realised mean petal duration and
     ``requested_echo_spacing_s`` the request. The ADC takes the same number
@@ -827,7 +831,7 @@ class Rosette(NonCartesianGradient):
     matrix : int or array-like
         Isotropic matrix size.
     petals : int, optional
-        Centre-to-centre lobes within this one interleave, not rotated shots.
+        Centre-to-centre lobes within this one interleaf, not rotated shots.
     angular_frequency_ratio : float, optional
         Angular over radial frequency: below one the petals are open, one is
         the circular limit, above one they wind more tightly.

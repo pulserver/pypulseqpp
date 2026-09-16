@@ -20,13 +20,14 @@ from pypulseq.convert import convert as _convert
 class Opts(_pp.Opts):
     """PyPulseq system limits with shared raster defaults.
 
-    The constructor accepts PyPulseq's parameters. Defaults are 20 us for
-    gradients and block durations, 2 us for RF and ADC, and zero for RF/ADC
-    dead time and RF ringdown. Specify the actual hardware timings before
-    checking a sequence.
+    The constructor accepts PyPulseq's parameters. Raster defaults are 20 us
+    for the gradient and block duration rasters, 2 us for the RF and ADC
+    rasters, and zero for the RF and ADC dead times and the RF ringdown time.
+    Set the actual hardware timings before checking a sequence.
 
-    Gradient and slew limits are stored in Hz/m and Hz/m/s after conversion
-    from grad_unit and slew_unit; gamma is in Hz/T and B0 in T.
+    Gradient amplitude and slew-rate limits are stored in Hz/m and Hz/m/s after
+    conversion from ``grad_unit`` and ``slew_unit``; ``gamma`` is in Hz/T and
+    ``B0`` in T.
 
     Importing pypulseqpp installs these defaults for PyPulseq factories.
     Constructing Opts alone does not change the shared default; use
@@ -85,7 +86,7 @@ class Opts(_pp.Opts):
 
     @classmethod
     def reset_default(cls) -> None:
-        """Make a fresh vendor-neutral system the shared default."""
+        """Install a fresh vendor-neutral system as the shared default."""
         cls().set_as_default()
 
 
@@ -93,7 +94,7 @@ Opts.reset_default()
 
 
 def default_system(system: _pp.Opts | None) -> _pp.Opts:
-    """``system``, or the shared default when it is ``None``.
+    """Return ``system``, or the shared default system when it is ``None``.
 
     Examples
     --------

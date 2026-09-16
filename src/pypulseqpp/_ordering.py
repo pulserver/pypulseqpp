@@ -26,7 +26,7 @@ def interleaved(n: int) -> np.ndarray:
 
 
 def center_out(n: int) -> np.ndarray:
-    """Order positions by distance from the middle, the lower index first on a tie."""
+    """Order positions by distance from the centre, the lower index first on a tie."""
     n = _count(n)
     center = (n - 1) / 2.0
     return np.asarray(

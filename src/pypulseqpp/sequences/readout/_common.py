@@ -21,12 +21,12 @@ AXES = ("x", "y", "z")
 
 
 def present(event: Any) -> tuple:
-    """``(event,)`` when there is one, so it can be splatted into a block."""
+    """Return ``(event,)`` when the event exists, else ``()``, for unpacking into a block."""
     return () if event is None else (event,)
 
 
 def as_tuple(value: Any, length: int, name: str, cast=float) -> tuple:
-    """Broadcast a scalar to ``length``, or check a sequence already is that long."""
+    """Broadcast a scalar to ``length``, or verify a sequence is already that long."""
     if isinstance(value, int | float):
         return (cast(value),) * length
     values = tuple(cast(item) for item in value)
@@ -40,7 +40,7 @@ def as_tuple(value: Any, length: int, name: str, cast=float) -> tuple:
 def solve_delay(
     requested: float | None, minimum: float, name: str, system: pp.Opts
 ) -> float:
-    """Wait that turns ``minimum`` into ``requested``, rounded onto the raster.
+    """Return the delay (s) that extends ``minimum`` to ``requested``, rounded to the raster.
 
     Parameters
     ----------
@@ -76,7 +76,7 @@ def solve_delay(
 
 
 def left_align_rephaser(gz_reph: Any, occupied: tuple[str, ...], owner: str):
-    """Copy a rephaser with zero delay, rejecting occupied gradient channels.
+    """Return a copy of the rephaser with zero delay, rejecting occupied gradient channels.
 
     Parameters
     ----------
@@ -115,7 +115,7 @@ def solve_rephasing(
     reph_span: float,
     system: pp.Opts,
 ) -> tuple[float, float, float]:
-    """Size the two blocks between the pulse and the acquisition.
+    """Return the durations of the two blocks between the pulse and the acquisition.
 
     The rephaser goes in the first block after the pulse -- the TE wait when
     there is one, the prewinder block otherwise -- so that nothing separates it

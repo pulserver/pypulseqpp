@@ -205,7 +205,7 @@ class Fse3DApp(sequences.SequenceApp):
         n_navigators : int or str, optional
             Navigators per wait; ``"auto"`` fits as many as the wait holds.
         wave : {'phase', 'partition', 'both'} or None, optional
-            Wave-CAIPI corkscrew under every readout. The calibration
+            Wave-CAIPI encoding gradients under every readout. The calibration
             rectangle is then acquired again without it.
         wave_cycles : int, optional
             Wave periods across the readout.
@@ -358,13 +358,13 @@ class Fse3DApp(sequences.SequenceApp):
     ) -> None:
         """One echo train over ``views``; ``None`` plays an echo unencoded.
 
-        ``wave`` scales the corkscrew, and ``flags`` are the labels the train
+        ``wave`` scales the wave-encoding gradients, and ``flags`` are the labels the train
         carries on its excitation.
         """
         fse, seq = self.fse, self.seq
         n_y, n_z = self.matrix[1:]
         acs_y, acs_z = self.acs
-        corkscrew = [pp.scale_grad(g, wave) for g in self.wave_events]
+        wave_gradients = [pp.scale_grad(g, wave) for g in self.wave_events]
 
         seq.add_block(fse.rf, fse.gz, *self.labels(**(flags or {})))
         seq.add_block(fse.gx_pre)
@@ -383,9 +383,9 @@ class Fse3DApp(sequences.SequenceApp):
             if acquire and view is not None:
                 calibrating = self.wave is None and line in acs_y and partition in acs_z
                 labels = self.labels(LIN=line, PAR=partition, ECO=echo, IMA=calibrating)
-                seq.add_block(fse.gx, fse.adc, *corkscrew, *labels)
+                seq.add_block(fse.gx, fse.adc, *wave_gradients, *labels)
             else:
-                seq.add_block(fse.gx, *corkscrew)
+                seq.add_block(fse.gx, *wave_gradients)
             seq.add_block(
                 fse.gx_bridge_post,
                 pp.scale_grad(fse.gy_rew, ky),

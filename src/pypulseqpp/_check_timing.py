@@ -10,7 +10,10 @@ __all__ = ["check_timing", "describe", "print_error_report"]
 
 
 #: One message per kind of problem, in f-string syntax over the finding's own
-#: fields plus the unit it is read in.
+#: fields plus the unit it is read in. The entries up to ADC_SAMPLES_DIVISOR
+#: are transcribed from the reference toolbox and are a compatibility surface:
+#: do not reword them. The gradient, frequency-offset and total-duration
+#: entries below them are this package's own.
 error_messages = {
     "RASTER": "{value*multiplier:.2f} {unit} does not align to {raster} (Nearest valid value: {value_rounded*multiplier:.0f} {unit}, error: {error*multiplier:.2f} {unit})",
     "ADC_DEAD_TIME": "ADC delay is smaller than ADC dead time ({value*multiplier:.2f} {unit} < {dead_time*multiplier:.0f} {unit})",
@@ -24,12 +27,12 @@ error_messages = {
     "SOFT_DELAY_HINT_INCONSISTENCY": "Soft delay {hint}/{numID}: Soft delays with the same numeric ID are expected to share the same text hint but previous hint recorded is {prev_hint}.",
     "SOFT_DELAY_INVALID_NUMID": "Soft delay {hint}/{numID} has an invalid numeric ID {numID}. Numeric IDs must be non-negative integers.",
     "ADC_SAMPLES_DIVISOR": "ADC num_samples is not an integer multiple of adc_samples_divisor ({value} / {divisor}).",
-    "GRADIENT_START_DELAY": "Gradient starts at {amplitude:.0f} Hz/m but is delayed by {value*multiplier:.2f} {unit}, which leaves the axis at zero until then",
-    "GRADIENT_END_NONZERO": "Gradient is left at {amplitude:.0f} Hz/m after {value*multiplier:.2f} {unit}, before the end of the block at {duration*multiplier:.2f} {unit}",
-    "GRADIENT_DISCONTINUITY": "Gradient starts at {value:.0f} Hz/m where the previous block left the axis at {before:.0f} Hz/m, a step of {slew:.0f} Hz/m/s against a limit of {limit:.0f} Hz/m/s",
-    "GRADIENT_NOT_RAMPED_DOWN": "The sequence ends with a gradient still on: the axes are not ramped down",
-    "FREQ_OFFSET": "Frequency offset of {offset:.0f} Hz is outside what the scanner will play ({limit:.0f} Hz)",
-    "TOTAL_DURATION_MISMATCH": "TotalDuration is recorded as {value:.9g} s, but the blocks add up to {duration:.9g} s",
+    "GRADIENT_START_DELAY": "Gradient starts at an amplitude of {amplitude:.0f} Hz/m after a delay of {value*multiplier:.2f} {unit}, so the axis steps from zero at the start of the delay",
+    "GRADIENT_END_NONZERO": "Gradient ends at an amplitude of {amplitude:.0f} Hz/m after {value*multiplier:.2f} {unit}, before the end of the block at {duration*multiplier:.2f} {unit}",
+    "GRADIENT_DISCONTINUITY": "Gradient starts at {value:.0f} Hz/m where the previous block ended at {before:.0f} Hz/m; the step requires a slew rate of {slew:.0f} Hz/m/s, exceeding max_slew of {limit:.0f} Hz/m/s",
+    "GRADIENT_NOT_RAMPED_DOWN": "The sequence ends at a non-zero gradient amplitude",
+    "FREQ_OFFSET": "Frequency offset of {offset:.0f} Hz exceeds max_freq_offset ({limit:.0f} Hz)",
+    "TOTAL_DURATION_MISMATCH": "TotalDuration is recorded as {value:.9g} s, but the block durations sum to {duration:.9g} s",
 }
 
 
@@ -39,19 +42,19 @@ def _limit(system, name: str, fallback: float) -> float:
 
 
 def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
-    """Check timing, gradient continuity and the stored total duration.
+    """Check event timing, gradient continuity and the stored total duration.
 
     Parameters
     ----------
     seq : Sequence
-        The sequence to judge.
+        The sequence to check.
 
     Returns
     -------
     is_ok : bool
-        True when nothing was found.
+        True when the error report is empty.
     error_report : list[SimpleNamespace]
-        One entry per problem, in block order, with anything about the
+        One entry per problem, in block order, with findings about the
         sequence as a whole last and carrying block 0. Each carries ``block``,
         ``event``, ``field`` and ``error_type``, plus the values that kind of
         problem reports.
@@ -59,7 +62,7 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     Raises
     ------
     ValueError
-        If ``seq`` was built without a system to judge against.
+        If ``seq`` was built without system limits to check against.
 
     Notes
     -----
@@ -79,7 +82,7 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
     system = seq.system
     if system is None:
         raise ValueError(
-            "check_timing() needs the system the sequence was designed "
+            "check_timing() needs the system limits the sequence was designed "
             "against; build the Sequence with a system= argument"
         )
 
@@ -108,7 +111,7 @@ def check_timing(seq) -> tuple[bool, list[SimpleNamespace]]:
 
 
 def _continuity(seq) -> list[SimpleNamespace]:
-    """Report inter-block gradient jumps and a nonzero final gradient."""
+    """Report gradient discontinuities between blocks and a non-zero final amplitude."""
     from .safety import check_grad_continuity
 
     report = check_grad_continuity(seq)[1]
@@ -178,7 +181,7 @@ def _message(finding: SimpleNamespace) -> str:
 
 
 def describe(finding: SimpleNamespace) -> str:
-    """Return one finding as a line naming where in the sequence it is."""
+    """Format one finding as a line naming the block, event and field it is in."""
     where = f"Block:{finding.block} " if finding.block else ""
     return f"   {where}{finding.event}.{finding.field}: {_message(finding)}"
 
@@ -195,14 +198,14 @@ def print_error_report(
     Parameters
     ----------
     seq : Sequence
-        The sequence the report is about. Accepted so the signature is the
-        toolbox's; nothing here reads it.
+        The sequence the report is about. Accepted so the signature matches
+        the reference toolbox's; nothing here reads it.
     error_report : list[SimpleNamespace]
         What :func:`check_timing` returned.
     full_report : bool, default False
         Print every problem rather than the first ``max_errors``.
     max_errors : int, default 10
-        How many to print before summarising the rest.
+        Number of problems to print before summarising the rest.
     colored : bool, default True
         Wrap each message in an ANSI colour.
 

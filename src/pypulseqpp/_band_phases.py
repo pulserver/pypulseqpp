@@ -9,7 +9,7 @@ with the band count. The schedules:
   2012, p. 2209).
 - ``"malik"``: Hermitian phases for 4 to 12 bands (S J Malik, ISMRM 2015,
   p. 2398). Opposite bands carry opposite phases, so with the bands placed
-  symmetrically the modulation is real and rides on the amplitude alone.
+  symmetrically the modulation is real and appears in the amplitude alone.
 
 The two tables are transcribed from SigPy's
 ``sigpy.mri.rf.multiband.mb_phs_tab`` (Copyright (c) 2016, Frank Ong and The

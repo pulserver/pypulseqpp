@@ -1,9 +1,9 @@
 # Command-line helpers
 
-`pypulseqpp.cli`: {func}`run` turns a sequence function's signature and
-NumPy-style parameter documentation into command-line options, and
-{func}`write_sequence` deduplicates the finished sequence and writes signed
-Pulseq text for offline use or the binary scanner form.
+`pypulseqpp.cli`: {func}`run` derives command-line options from a sequence
+function's signature and its NumPy-style `Parameters` section;
+{func}`write_sequence` deduplicates the finished sequence and writes it as
+signed Pulseq text or in the binary form.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.cli

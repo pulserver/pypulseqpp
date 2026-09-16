@@ -49,7 +49,7 @@ def make_adiabatic_pulse(
     gradient_modulation: float = 0.9,
     gradient_order: int = 4,
 ):
-    """Make an adiabatic pulse: a frequency sweep whose effect does not follow B1.
+    """Construct an adiabatic RF pulse: a frequency sweep whose rotation is insensitive to B1.
 
     Four sweeps:
 
@@ -267,7 +267,7 @@ def make_adiabatic_pulse(
 
 
 def _adiabatic_amplitude(envelope, sweep, phase, index, dwell, adiabaticity):
-    """Scale meeting ``adiabaticity`` where ``sweep`` crosses zero near ``index``.
+    """Return the amplitude scale meeting ``adiabaticity`` where ``sweep`` crosses zero near ``index``.
 
     Returns the envelope's scale, in Hz, and the phase at the crossing. A
     crossing that falls on a sample takes the sweep's rate across it; one
@@ -291,7 +291,7 @@ def _adiabatic_amplitude(envelope, sweep, phase, index, dwell, adiabaticity):
 
 
 def _bir4(n: int, beta: float, kappa: float, theta: float, dw0: float):
-    """BIR-4 envelope (complex, carrying the flip's phase jumps) and sweep (rad/s)."""
+    """Return the BIR-4 envelope, complex with the flip's phase jumps, and its sweep in rad/s."""
     t = np.arange(n) / n
     q1, q2, q3 = n // 4, n // 2, 3 * n // 4
     envelope = np.concatenate(
@@ -317,7 +317,7 @@ def _bir4(n: int, beta: float, kappa: float, theta: float, dw0: float):
 def _goia_wurst(
     n: int, duration: float, f: float, n_b1: int, m_grad: int, bandwidth: float
 ):
-    """GOIA-WURST envelope, sweep (rad/s) and gradient modulation (peak 1)."""
+    """Return the GOIA-WURST envelope, its sweep in rad/s and its gradient modulation, peak 1."""
     t = np.arange(n) * duration / n
     s = np.abs(np.sin(np.pi / 2 * (2 * t / duration - 1)))
     envelope = 1 - s**n_b1

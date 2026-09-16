@@ -237,7 +237,7 @@ def test_a_projection_rotates_every_axis_so_none_can_hold_it(
     kwargs = (
         {"design_interleaves": 16} if factory is design.SpiralProjectionReadout else {}
     )
-    with pytest.raises(ValueError, match="would be turned with the interleave"):
+    with pytest.raises(ValueError, match="would be turned with the interleaf"):
         factory(
             system,
             excitation.rf,

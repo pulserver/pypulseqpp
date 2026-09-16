@@ -1,4 +1,4 @@
-"""Non-Cartesian readouts: one designed interleave, played as a whole repetition."""
+"""Non-Cartesian readouts: one designed interleaf, played as a whole repetition."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class _ArmedReadout(SequenceModule):
     """
 
     def arm(self, index: int) -> list[tuple]:
-        """Blocks of one arm, as the module laid them out.
+        """Block layout of one arm, as the module built it.
 
         Parameters
         ----------
@@ -51,7 +51,7 @@ class _ArmedReadout(SequenceModule):
         return self._arms[index if len(self._arms) > 1 else 0]
 
     def _lay_out_arms(self, n_arms: int, tail: Any = None) -> None:
-        """Split what has been laid out so far into one block layout per arm.
+        """Split the blocks built so far into one block layout per arm.
 
         The TR wait cannot be laid out with its arm -- the minimum TR is only
         known once every arm is -- so it is passed here and closes each one.
@@ -400,7 +400,7 @@ class RadialProjectionReadout(_RadialReadout):
 
 
 class NonCartesianReadout(_ArmedReadout):
-    """A solved interleave with moment bridges and a repetition-time budget.
+    """A solved interleaf with its prewinder, rewinder and repetition-time budget.
 
     Nonzero k-space endpoints require prewinder or rewinder blocks.
     ``trajectory`` is any two-channel :class:`NonCartesianGradient`; the
@@ -417,11 +417,13 @@ class NonCartesianReadout(_ArmedReadout):
         Its rephaser, if one was given, left-aligned in whichever block follows
         the pulse.
     gx, gy : GradEvent
-        The interleave. Lists of one entry per angle when ``explicit``.
+        The interleaf. Lists of one entry per angle when ``explicit``.
     gx_pre, gy_pre : GradEvent
-        Bridges reaching the start of the path, when it is not k = 0.
+        Prewinding gradients reaching the start of the path, when it is not
+        k = 0.
     gx_rew, gy_rew : GradEvent
-        Bridges returning to k = 0, when the path does not end there.
+        Rewinding gradients returning to k = 0, when the path does not end
+        there.
     gz_pre, gz_rew : TrapEvent
         Partition encode and its rewinder. Stacks only.
     gz_spoil : GradEvent
@@ -436,7 +438,7 @@ class NonCartesianReadout(_ArmedReadout):
         Pads setting the span of the prewinder and rewinder blocks, which can
         outlast their gradients. Absent when that block is not played.
     trajectory : NonCartesianGradient
-        The designed interleave, for its ``trajectory`` array and timings.
+        The designed interleaf, for its ``trajectory`` array and timings.
     echo_spacing : float
         Time between consecutive echoes (s), zero for a single-echo readout.
 
@@ -453,7 +455,7 @@ class NonCartesianReadout(_ArmedReadout):
         block after the pulse. Only an axis the loop's rotation leaves alone
         can carry one.
     trajectory : NonCartesianGradient
-        Solved gradient interleave with ADC sampling and moment bridges.
+        Solved gradient interleaf with its ADC, prewinder and rewinder.
     fov_z : float, optional
         Partition field of view (m). Stacks only.
     matrix_z : int, optional
@@ -475,8 +477,8 @@ class NonCartesianReadout(_ArmedReadout):
         Path traversals per repetition, separated by ``echo_spacing``, each
         with its own ``ECO`` label and joined by rewinders and prewinders.
     explicit : bool, optional
-        Write out one interleave per entry of ``angles`` instead of one base
-        interleave.
+        Write out one interleaf per entry of ``angles`` instead of one base
+        interleaf.
     angles : ArrayLike, optional
         In-plane rotations (rad). Required when ``explicit``, refused
         otherwise.
@@ -551,7 +553,7 @@ class NonCartesianReadout(_ArmedReadout):
                 spoiling_cycles, voxel_size_m, spoiling_axis, system=system
             )
 
-        # Every explicit arm plays the base bridges' timing corners (rotation
+        # Every explicit arm plays the base prewinder/rewinder timing corners (rotation
         # turns the amplitude pair, never the timing), so these spans agree
         # across arms by construction; the max() is the shared value.
         raster = system.block_duration_raster
@@ -832,7 +834,7 @@ class _RosetteReadout(NonCartesianReadout):
     matrix : int
         In-plane matrix size.
     petals : int, optional
-        Centre-to-centre radial lobes in one interleave, not shots.
+        Centre-to-centre radial lobes in one interleaf, not shots.
     angular_frequency_ratio : float, optional
         Positive angular-to-radial frequency ratio.
     echo_spacing_s : float, optional
@@ -878,7 +880,7 @@ class _RosetteReadout(NonCartesianReadout):
 
 
 class RosetteReadout2D(_RosetteReadout):
-    """One multi-petal rosette interleave in a plane."""
+    """One multi-petal rosette interleaf in a plane."""
 
 
 class RosetteStackReadout(_RosetteReadout):
@@ -918,7 +920,7 @@ def _checked_layout(
     if angles is not None and not explicit:
         raise ValueError(
             "angles are a sampling pattern, which a readout does not hold; rotate the "
-            "interleave in the scan loop, or pass explicit=True to write every arm out"
+            "interleaf in the scan loop, or pass explicit=True to write every arm out"
         )
     return n_echoes
 
@@ -943,7 +945,7 @@ def _accept_rephaser(gz_reph, module, occupied):
         )
         raise ValueError(
             f"{type(module).__name__} is oriented by rotating {turned}, so a slice rephaser "
-            f"on {gz_reph.channel} would be turned with the interleave; {hint}"
+            f"on {gz_reph.channel} would be turned with the interleaf; {hint}"
         )
     return left_align_rephaser(gz_reph, occupied, type(module).__name__)
 
@@ -1028,7 +1030,7 @@ def _natural_span(arms, attribute, raster):
 def _bracket(arms, attribute, alignment, span, system):
     """X and y halves of one bracket, per arm, padded to ``span``.
 
-    Returns a bare event when every arm shares one -- the single-interleave
+    Returns a bare event when every arm shares one -- the single-interleaf
     case -- and a list of one per arm otherwise, which is what makes the module
     publish ``gx`` as a list exactly when the arms really differ.
     """
@@ -1059,14 +1061,14 @@ def _bracket(arms, attribute, alignment, span, system):
 
 
 def _resolution(trajectory: NonCartesianGradient) -> float:
-    """Nominal resolution of an interleave: half a period at its largest |k|."""
+    """Nominal spatial resolution of an interleaf, ``1 / (2 kmax)`` at its largest |k|."""
     path = np.asarray(trajectory.trajectory, dtype=float)
     kmax = float(np.max(np.linalg.norm(path[:, :2], axis=1)))
     return 1.0 / (2.0 * kmax)
 
 
 def _echo_offset_of(trajectory: NonCartesianGradient, raster: float) -> float:
-    """Return the readout's nearest k=0 crossing time in seconds.
+    """Return the time in seconds at which the readout passes closest to k = 0.
 
     Integrate using each event's stored times, which may be nonuniform
     vertices rather than raster samples.

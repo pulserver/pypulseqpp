@@ -1,9 +1,9 @@
-"""K-space interleave geometry for :func:`pypulseqpp.traj_to_grad`.
+"""K-space interleaf geometry for :func:`pypulseqpp.traj_to_grad`.
 
-Each function returns one base interleave as an ``(n, 2)`` polyline in
-cycles/m, describing where the path goes but not when;
-:func:`pypulseqpp.traj_to_grad` assigns the timing under gradient and slew
-limits. The number and angles of rotated copies come from
+Each function returns one base interleaf as an ``(n, 2)`` polyline in 1/m,
+describing where the trajectory goes but not when;
+:func:`pypulseqpp.traj_to_grad` assigns the timing within the gradient
+amplitude and slew limits. The number and angles of rotated copies come from
 ``calc_golden_angles`` and :func:`pypulseqpp.make_rotation`.
 """
 
@@ -70,7 +70,7 @@ def calc_radial_trajectory(fov, matrix, *, num_points=None):
     Returns
     -------
     numpy.ndarray
-        ``(num_points, 2)``, in cycles/m, from ``-kmax`` to ``+kmax`` along x.
+        ``(num_points, 2)``, in 1/m, from ``-kmax`` to ``+kmax`` along x.
 
     Examples
     --------
@@ -100,7 +100,7 @@ def calc_spiral_trajectory(
     transition_speed=12.0,
     num_points=1024,
 ):
-    """Return one spiral-out interleave, from the centre to ``kmax``.
+    """Return one spiral-out interleaf, from the centre to ``kmax``.
 
     The pitch between neighbouring turns is set so that
     ``design_interleaves`` rotated copies of this path sample the disc at the
@@ -113,14 +113,14 @@ def calc_spiral_trajectory(
     matrix : int
         Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.
     design_interleaves : int
-        Interleave count the pitch is designed for. One is a single-shot
+        Interleaf count the pitch is designed for. One is a single-shot
         spiral of ``matrix / 2`` turns.
     density : {"constant", "variable", "dual"}, optional
         How the local pitch changes with radius: not at all, as
         ``radius ** variable_density_power``, or between two plateaus joined
         by a logistic transition.
     inner_design_interleaves, outer_design_interleaves : float, optional
-        Local interleave count at the centre and at the edge. The inner one
+        Local interleaf count at the centre and at the edge. The inner one
         defaults to ``design_interleaves``; the outer one to twice the inner
         for a variable-density spiral, and is required for a dual-density
         one. A larger count is a coarser pitch, so a variable-density
@@ -137,13 +137,13 @@ def calc_spiral_trajectory(
     Returns
     -------
     numpy.ndarray
-        ``(num_points, 2)``, in cycles/m, starting at the origin.
+        ``(num_points, 2)``, in 1/m, starting at the origin.
 
     Raises
     ------
     ValueError
         If ``density`` is not one of the three, a dual-density spiral has no
-        outer interleave count, or any count or shape parameter is out of
+        outer interleaf count, or any count or shape parameter is out of
         range.
 
     Examples
@@ -220,7 +220,7 @@ def calc_rosette_trajectory(
     angular_frequency_ratio=3.0 / 5.0,
     num_points=2049,
 ):
-    """Return one rosette interleave, petals through the centre of k-space.
+    """Return one rosette interleaf, petals through the centre of k-space.
 
     The path is ``rho(u) = kmax sin(pi petals u)`` at angle
     ``theta(u) = pi petals angular_frequency_ratio u`` for ``u`` in
@@ -233,7 +233,7 @@ def calc_rosette_trajectory(
     matrix : int
         Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.
     petals : int, optional
-        Centre-to-centre lobes within this one interleave. More petals cross
+        Centre-to-centre lobes within this one interleaf. More petals cross
         the centre more often and lengthen the readout.
     angular_frequency_ratio : float, optional
         Angular over radial frequency. Below one the petals are open; one is
@@ -245,7 +245,7 @@ def calc_rosette_trajectory(
     Returns
     -------
     numpy.ndarray
-        ``(num_points, 2)``, in cycles/m, starting and ending at the origin.
+        ``(num_points, 2)``, in 1/m, starting and ending at the origin.
 
     Raises
     ------

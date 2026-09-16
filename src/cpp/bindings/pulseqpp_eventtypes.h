@@ -314,7 +314,8 @@ namespace pulseqpp_types
     /** The base the nine event types share; none of them is subclassable. */
     extern PyTypeObject EventBaseType;
 
-    /** Is this one of ours?  One dereference, because the nine are leaves. */
+    /** Whether `object` is one of this package's event types. One dereference,
+     *  because the nine event types are all leaves. */
     inline bool is_event(PyObject* object)
     {
         return Py_TYPE(object)->tp_base == &EventBaseType;

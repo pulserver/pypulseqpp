@@ -1,4 +1,4 @@
-"""Base class of complete sequences: events designed once, one repetition per call."""
+"""Base class of complete sequences: events designed once, one repetition per kernel call."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ system : pypulseqpp.Opts, optional
 
 
 class SequenceApp(ABC):
-    """A complete sequence: its events and sampling, and the loop that plays them.
+    """A complete sequence: its events, its sampling order and the loop that plays them.
 
     Constructing an application designs it: ``init_sequence`` receives the
     prescription and builds the events and the sampling order. Nothing is
@@ -88,21 +88,21 @@ class SequenceApp(ABC):
 
     @abstractmethod
     def kernel(self, *args: Any, **kwargs: Any) -> None:
-        """Play one repetition into :attr:`seq`."""
+        """Add the blocks of one repetition to :attr:`seq`."""
 
     @abstractmethod
     def loop(self) -> None:
-        """Play the whole scan, calling :meth:`kernel` once per repetition in play order."""
+        """Run the whole scan, calling :meth:`kernel` once per repetition in play order."""
 
     def finalize(self) -> None:  # noqa: B027 -- an optional hook
-        """Complete :attr:`seq` after the loop, e.g. with its definitions."""
+        """Complete :attr:`seq` after the loop, for example with its definitions."""
 
     def __call__(self, *args: Any, **kwargs: Any) -> SequenceApp:
         self.kernel(*args, **kwargs)
         return self
 
     def prescans(self) -> dict[str, Callable[[], None]]:
-        """Return the sequences played before this one, as the loops that play them.
+        """Return the prescans played before this sequence, as the loops that play them.
 
         :meth:`write` writes each as its own file ahead of the main one, in
         order, and each file names the next as its ``NextSequence``: an
@@ -113,7 +113,7 @@ class SequenceApp(ABC):
         return {}
 
     def design(self, prescan: str | None = None) -> pp.Sequence:
-        """Play the whole scan, or the named prescan, into a new :attr:`seq`."""
+        """Build the whole scan, or the named prescan, into a new :attr:`seq`."""
         self.seq = pp.Sequence(self.system)
         self._label_state, self._label_steps = {}, {}
         if prescan is None:
@@ -152,7 +152,7 @@ class SequenceApp(ABC):
         return [str(p) for p in paths]
 
     def labels(self, **values: int) -> list:
-        """Return the label events that bring each label to its new value.
+        """Return the label events that set each label to its new value.
 
         Label state is sticky in Pulseq, so an unchanged value writes nothing.
         A change equal to the label's previous change is an INC, which a scan
@@ -179,7 +179,7 @@ class SequenceApp(ABC):
         return events
 
     def restart_labels(self) -> None:
-        """Write every label's next value as a SET, whatever was written before.
+        """Write every label's next value as a SET, regardless of what was written before.
 
         An interpreter repeating the scan plays ``ONCE`` blocks only once, so
         a value set inside them, or counted from one set there, is not there
@@ -196,7 +196,7 @@ class SequenceApp(ABC):
         return {name: p.default for name, p in parameters.items() if name != "self"}
 
     class _Main:
-        """Module-level entry point of a concrete application.
+        """Module-level entry point of a concrete sequence implementation.
 
         Builds the application from keyword arguments, designs it, and on
         request reports, plots and writes the sequence. Its parameters are
@@ -215,7 +215,7 @@ class SequenceApp(ABC):
 
 
 def _make_main(cls: type[SequenceApp]):
-    """Build the module-level entry point of ``cls``, its protocol in the signature."""
+    """Build the module-level entry point of ``cls``, with its protocol in the signature."""
 
     def main(
         plot: bool = False,

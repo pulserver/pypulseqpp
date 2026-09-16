@@ -22,7 +22,7 @@ _RF_PARTS = {"abs": np.abs, "real": np.real, "imag": np.imag}
 
 
 def select_trs(seq, tr=None, max_underlays=16):
-    """Return which repetitions a diagram draws.
+    """Return the repetitions a diagram draws.
 
     Returns
     -------
@@ -68,7 +68,7 @@ def select_trs(seq, tr=None, max_underlays=16):
 
 
 def _played(seq, first, last, rf_plot):
-    """Return one range's rows, ADC windows and duration, timed from its start."""
+    """Return one range's rows, ADC windows and duration, timed from the range start."""
     found = waveforms_and_times(
         seq, append_RF=True, block_range=(first, last), compat=False
     )
@@ -140,7 +140,7 @@ def paper_plot(
     from mrsd.event import Event
 
     class Trace(Event):
-        """A played waveform as an mrsd event: its own path, on its own row."""
+        """One waveform as an mrsd event, drawn as a path on its own row."""
 
         def __init__(self, pieces, **kwargs):
             self._pieces = pieces

@@ -19,8 +19,8 @@ reusable sequence modules. Tiling is deferred.
 
 Sampling, view-ordering, angle and schedule helpers live in private modules
 (`_masks`, `_sampling`, `_ordering`, `_epi`, `_angles`, `_schedules`) and are
-withheld from the public namespace until the sequence zoo settles which of them
-it needs. Code that uses one imports it from its private module.
+withheld from the public namespace until the example sequences settle which of
+them they need. Code that uses one imports it from its private module.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
@@ -211,111 +211,58 @@ test compares the remaining columns explicitly.
 
 ## Documentation and docstrings
 
-Documentation in this project is written primarily for human developers. Optimize for clarity, precision, and high information density. Do not make documentation verbose in order to help an LLM understand the code.
+`docs/documentation_style.md` is the documentation style guide, and it is
+binding. Read it before writing or changing any docstring, documentation page,
+code comment or user-facing diagnostic string, including the Doxygen comments
+under `src/cpp/`. It carries the terminology table, the register rules, the
+unit/frame/raster conventions, the safety-language rules and the
+source-of-truth requirements in full. What follows is the operational summary,
+not a substitute for it.
 
-### General principles
-
-Preserve NumPy-style Python docstrings. Write concise technical prose for
-developers and MR scientists. Document units, frames, composition order,
-state, side effects and non-obvious return conventions where useful.
-
-Write parameter, return and attribute types as Python 3.10 type expressions,
-not prose: `float | ArrayLike`, `NDArray[np.float64]`, `Sequence[int]`,
-`tuple[float, float, float]`, `str | os.PathLike[str]`, keeping numpydoc's
-`, optional` and `, default X` suffixes. Every documented public function,
-class and method carries a brief `Examples` section whose doctest runs.
-
-Do not restate names, annotations, obvious attributes or implementation steps.
-Private helpers need no filler docstrings. Package/module docstrings describe
-purpose briefly; architectural constraints belong here or in dedicated docs.
-
-Describe the code as it is, not its history. Avoid “used to”, “previously”,
-“this replaces”, fixed-bug narratives and comparisons with removed designs.
-Preserve non-obvious invariants a maintainer could accidentally break, and
-protect them with tests where possible.
-
-Do not print measured constants that are not guaranteed across releases or
-hardware. Use symbols and their sources. Benchmark tables must be generated
-by benchmark scripts rather than maintained by hand.
-
-* Document information that is not obvious from names, signatures, type annotations, or the implementation itself.
-* Prefer direct technical prose over narrative, tutorial-style, conversational, literary, or essay-like explanations.
-* Do not use docstrings to record your reasoning process or to narrate how the code works line by line.
-* Do not restate the signature in prose.
-* Do not document parameters or attributes with descriptions that merely repeat their names or types.
-* Do not add documentation solely for completeness or because a symbol exists.
-* Preserve the project's established docstring format and terminology.
-
-Conciseness is a means, not the goal. Preserve enough detail to state non-obvious contracts precisely.
-
-### Information worth documenting
-
-Document these when relevant and non-obvious:
-
-* purpose and externally visible behavior;
-* physical units;
-* coordinate or reference frames;
-* transformation/composition order;
-* invariants and state transitions;
-* side effects;
-* important preconditions or assumptions;
-* non-obvious return conventions;
-* behavior at boundaries or special values;
-* state whose meaning is not apparent from its name/type;
-* compatibility constraints;
-* surprising behavior that is intentional and must be preserved.
-
-These details are more important than minimizing line count.
-
-### Packages and modules
-
-Package and module docstrings should normally be brief: usually a one-line summary or a few sentences describing the responsibility of the package/module.
-
-Do not put a design essay, implementation walkthrough, usage tutorial, or historical rationale in a module docstring. Put substantial architectural rationale in dedicated documentation, or a focused code comment if it is local to an implementation decision.
-
-### Classes
-
-A class docstring should explain what abstraction the class represents and any important semantic conventions.
-
-Document constructor parameters and public attributes when their meaning is useful and not obvious. Do not mechanically enumerate every attribute.
-
-For stateful classes, document state variables whose interpretation or lifecycle would otherwise be unclear.
-
-### Functions and methods
-
-State what the operation means rather than narrating its implementation.
-
-Document parameters, return values, exceptions, units, frames, side effects, or special cases only where they convey useful semantics beyond the signature.
-
-A short precise statement is preferred to a long explanatory paragraph.
-
-### Private and helper functions
-
-Private helpers do not require docstrings merely because they are functions.
-
-Add or retain a helper docstring when it communicates a non-obvious contract, invariant, state transition, algorithmic assumption, side effect, special return convention, or other information useful to a maintainer.
-
-If a private helper's behavior is obvious from its name, signature, and short implementation, omit the docstring rather than adding filler.
-
-### Comments versus docstrings
-
-Use docstrings for the contract and semantics of an abstraction.
-
-Use local comments for implementation details, algorithmic tricks, performance-sensitive choices, and explanations of why a particular piece of code is written in a non-obvious way.
-
-Do not move local implementation commentary into a docstring simply to preserve it.
-
-### Style to avoid
-
-Avoid generated prose such as:
-
-* extended scenarios used where a direct rule would suffice;
-* phrases describing code metaphorically or narratively;
-* repeated explanations of implementation mechanics;
-* obvious descriptions such as "the first value", "the system options", or "helper for X";
-* commentary about what is "common", "usually", or "nearly all" unless this is a meaningful documented constraint;
-* large `Parameters` or `Attributes` sections containing mostly information already present in type annotations;
-* statements whose primary purpose is to make the code easier for an LLM to reconstruct.
-
-When modifying existing code, clean up nearby documentation that clearly violates these rules, but do not broaden an otherwise focused code change into a repository-wide documentation rewrite unless requested.
-
+- Documentation is written for human developers: MRI researchers and sequence
+  developers who know MR physics and Pulseq. Optimize for precision and
+  information density. Do not pad documentation to help an LLM read the code.
+- Use the established MRI, MR physics, sequence-design and Pulseq term. Do not
+  replace a technical concept with a paraphrase, a personification, a metaphor,
+  a tagline or an invented informal label. Repeating the correct term beats
+  stylistic variation.
+- Keep these distinct: gradient amplitude, slew rate, moment/area, waveform and
+  event; RF waveform, RF event, flip angle, phase/frequency offset and
+  slice-selection gradient; ADC event, samples, dwell time, acquisition
+  duration and sampling times; gradient waveform, k-space trajectory and ADC
+  sampling locations; event delay, block duration, sequence timing and
+  rasterization; logical sequence axes and physical gradient axes; Pulseq
+  representation, pypulseqpp abstraction, PyPulseq compatibility and scanner
+  execution.
+- Fixed vocabulary: *interleaf/interleaves*, not "interleave" as a count noun;
+  *prewinder/prephasing* and *rewinder/rephasing*, not "bridge"; *example
+  sequences* or *sequence library*, not "zoo"; *wave-encoding gradients* for
+  the events and *corkscrew trajectory* for the k-space path; k-space in 1/m.
+- Units, coordinate frames, composition order, rasters and normalization
+  conventions are API semantics. Document them, and verify them from the
+  implementation, the tests or the specification rather than guessing.
+- Safety language is narrow. State exactly what is checked or estimated and
+  against which limit. Passing a timing, gradient, slew, continuity,
+  mechanical-resonance, PNS or SAR check never means a sequence is scanner-safe
+  or patient-safe. Preserve the existing disclaimers verbatim.
+- Preserve NumPy-style docstrings. Write parameter, return and attribute types
+  as Python 3.10 type expressions, not prose: `float | ArrayLike`,
+  `NDArray[np.float64]`, `Sequence[int]`, `tuple[float, float, float]`,
+  `str | os.PathLike[str]`, keeping numpydoc's `, optional` and `, default X`
+  suffixes. Every documented public function, class and method carries a brief
+  `Examples` section whose doctest runs.
+- Summary lines classify. Functions and methods take a verb; classes,
+  properties and attributes take a noun phrase. Do not restate names,
+  annotations or obvious attributes. Private helpers need no filler docstring.
+  Package and module docstrings state a responsibility briefly; architectural
+  rationale belongs here or in `docs/`.
+- Describe the code as it is, not its history. No "used to", "previously",
+  "this replaces", no fixed-bug narratives, no comparisons with removed
+  designs. Preserve non-obvious invariants and protect them with tests.
+- Do not print measured constants that are not guaranteed across releases or
+  hardware. Benchmark tables are generated by the benchmark scripts.
+- Existing documentation is not a source of truth, but correct documentation is
+  not to be churned. Do not rewrite prose that already uses the conventional
+  term with its units and frame. When modifying code, clean up nearby
+  documentation that clearly violates the guide; do not broaden a focused
+  change into a repository-wide rewrite unless that is the task.

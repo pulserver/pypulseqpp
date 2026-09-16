@@ -35,10 +35,10 @@ namespace pulseq
         std::vector<std::vector<int32_t>> values;
     };
 
-    /** Where a label evolution is recorded. */
+    /** Points at which a label evolution is recorded. */
     enum class LabelEvolutionAt
     {
-        End,     /**< Once, at the end: what the labels finish at. */
+        End,     /**< Once, at the end: the labels' final values. */
         Blocks,  /**< Every block. */
         Adc,     /**< Every block that acquires. */
         Label,   /**< Every block that sets or increments one. */
@@ -47,13 +47,12 @@ namespace pulseq
     /**
      * Follow every label the sequence uses.
      *
-     * @param seq          The sequence to walk.
+     * @param seq          The sequence to evaluate.
      * @param at           Where to record a value.
-     * @param first_block  First block to walk, 1-based.
+     * @param first_block  First block to evaluate, 1-based.
      * @param last_block   Last block, or 0 for the end of the sequence.
-     * @param start        What each label is before the walk begins, by name.
-     *                     A label named here is reported whether or not the
-     *                     blocks touch it.
+     * @param start        Initial value of each label, by name. A label named
+     *                     here is reported whether or not the blocks touch it.
      */
     LabelEvolution evaluate_labels(
         const Sequence& seq,
@@ -62,12 +61,12 @@ namespace pulseq
         int last_block,
         const std::vector<std::pair<std::string, int32_t>>& start);
 
-    /** What the sampled trajectory covers, and how often it goes back. */
+    /** k-space extent of the sampled trajectory and how often positions repeat. */
     struct KspaceCoverage
     {
         /** Distinct positions along each axis, in the axis order given. */
         std::vector<double> unique_positions;
-        /** How many times a position is visited, over the positions. */
+        /** Number of visits per position, summarised over the positions. */
         double repeats_min = 0.0;
         double repeats_max = 0.0;
         double repeats_median = 0.0;

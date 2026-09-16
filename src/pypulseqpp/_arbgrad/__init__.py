@@ -1,7 +1,7 @@
 """MRArbGrad waveform design.
 
 Spiral and rosette designs return one unrotated base shot in Hz/pixel;
-traj2grad accepts k-space paths in cycles/m and returns gradients in Hz/m.
+traj2grad accepts k-space paths in 1/m and returns gradients in Hz/m.
 Shot ordering and rotation are supplied by the caller.
 """
 
@@ -67,7 +67,7 @@ def traj2grad(
     Parameters
     ----------
     trajectory : numpy.ndarray
-        Shape ``(n, 2)`` or ``(n, 3)`` k-space path in cycles/m. Samples need
+        Shape ``(n, 2)`` or ``(n, 3)`` k-space path in 1/m. Samples need
         not be uniformly spaced, but consecutive duplicates are not allowed.
     max_slew : float
         Vector slew limit in Hz/m/s.

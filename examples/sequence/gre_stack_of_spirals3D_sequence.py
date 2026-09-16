@@ -18,7 +18,7 @@ EXCITATIONS = ("nonselective", "slab", "spsp")
 DENSITIES = ("constant", "variable", "dual")
 
 #: How far each partition turns its tilts, as a fraction of the full turn an
-#: interleave covers: not at all, by the golden ratio ``1 / phi``, or by the
+#: interleaf covers: not at all, by the golden ratio ``1 / phi``, or by the
 #: tiny golden angle ``1 / (phi + 1)``.
 PARTITION_SHIFTS = {
     "none": 0.0,
@@ -82,12 +82,12 @@ def sampled_partitions(
 class GreStackOfSpirals3DApp(sequences.SequenceApp):
     """RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z.
 
-    One solved outward interleave serves every shot: its angle is a rotation
+    One solved outward interleaf serves every shot: its angle is a rotation
     extension and its partition an amplitude on the encode pair. ``n_shots``
     interleaves, spread evenly over a full turn, sample the centre of each
     plane at Nyquist; every ``ry``-th of them is played, in order, each at
     every acquired partition before the next. Acquisitions carry the
-    interleave as ``LIN`` and the partition as ``PAR``.
+    interleaf as ``LIN`` and the partition as ``PAR``.
 
     Under partition undersampling the central ``n_acs_z`` partitions are
     acquired in full at every tilt, ahead of the rest, and marked ``IMA``.
@@ -111,7 +111,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
     #: Fat methylene shift from water (ppm), converted against ``system.B0``
     #: when the spectral-spatial pulse is built.
     FAT_SHIFT_PPM = -3.4
-    #: Non-acquiring repetitions, at the first interleave's angle and the
+    #: Non-acquiring repetitions, at the first interleaf's angle and the
     #: centre partition, before the scan.
     N_DUMMY = 32
     #: Quadratic RF spoiling phase increment (degrees).
@@ -146,7 +146,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         periphery_undersampling: float = 2.0,
         transition_speed: float = 12.0,
     ) -> None:
-        """Design the excitation, the interleave, the angles and the partitions.
+        """Design the excitation, the interleaf, the angles and the partitions.
 
         Parameters
         ----------
@@ -170,7 +170,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
-            Angular undersampling: one interleave in every ``ry`` of the
+            Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
         rz : int, optional
             Partition undersampling: one partition in every ``rz`` is
@@ -236,7 +236,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
         self.gz = getattr(self.exc, "gz", None)
         # The centre is designed for n_shots interleaves and the periphery for
-        # proportionally more, which is what spreads an interleave's turns there.
+        # proportionally more, which is what spreads an interleaf's turns there.
         shaped = {}
         if density != "constant":
             shaped = {
@@ -262,7 +262,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             **shaped,
         )
 
-        # An interleave covers a full turn, which the n_shots divide evenly.
+        # An interleaf covers a full turn, which the n_shots divide evenly.
         self.span = 2 * np.pi
         self.angles = self.span * np.arange(0, n_shots, ry) / n_shots
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
@@ -302,7 +302,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         return self._rotations[key]
 
     def loop(self) -> None:
-        """Play the dummies, then every acquired partition of each interleave in turn."""
+        """Play the dummies, then every acquired partition of each interleaf in turn."""
         views = [None] * self.N_DUMMY + self.views
         phases = make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
@@ -311,7 +311,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
             self.kernel(view, phase)
 
     def kernel(self, view: tuple[int, int] | None, phase: float) -> None:
-        """One excitation, one interleave at one partition; ``None`` plays a dummy.
+        """One excitation, one interleaf at one partition; ``None`` plays a dummy.
 
         The readout's blocks after the pulse are played as it laid them out,
         with the partition encode scaled and every block that drives an

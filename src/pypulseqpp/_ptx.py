@@ -211,7 +211,7 @@ def _selective_waveforms(
 
     ``target`` is the transverse magnetisation wanted at ``coordinates`` (m),
     in rad; ``kspace`` is the gradient moment still to come after each sample,
-    in cycles/m. Only samples in ``active`` are designed; the rest are zero.
+    in 1/m. Only samples in ``active`` are designed; the rest are zero.
     """
     from ._ext import ptx
 

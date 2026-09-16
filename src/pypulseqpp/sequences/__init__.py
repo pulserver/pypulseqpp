@@ -121,8 +121,8 @@ READOUT = (
     "ZteReadout",
 )
 
-#: Solved non-Cartesian interleaves, each with its ADC and moment bridges, for
-#: a NonCartesianReadout to play.
+#: Solved non-Cartesian interleaves, each with its ADC, prewinder and
+#: rewinder, for a NonCartesianReadout to play.
 TRAJECTORIES = ("Arbitrary", "NonCartesianGradient", "Rosette", "Spiral")
 
 #: Base classes, for a family this package does not ship.
@@ -139,7 +139,7 @@ __all__ = sorted(
 
 
 class SequenceScript(_ModuleType):
-    """A zoo module whose call is its ``main``.
+    """An example-sequence module whose call is its ``main``.
 
     The module's ``__doc__`` and ``__signature__`` are ``main``'s, not the
     file's, so :func:`help` and :func:`inspect.signature` describe the call.
@@ -163,7 +163,7 @@ def _as_script(module: _ModuleType) -> _ModuleType:
 
 
 def __getattr__(name: str):
-    """Import one zoo sequence on first use."""
+    """Import one example sequence on first use."""
     if name in ZOO:
         return _as_script(_importlib.import_module(f"{__name__}.sequence.{name}"))
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

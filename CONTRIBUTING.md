@@ -37,8 +37,16 @@ builds and tests. If `pre-commit` rewrites a file, review and stage it again.
 
 ## Comments and documentation
 
-Write for someone reading the code as it is now, with no memory of an earlier
-version. Do not write text whose subject is the history of the code — no "used
+[`docs/documentation_style.md`](docs/documentation_style.md) is the
+documentation style guide. Read it before changing a docstring, a page under
+`docs/`, a code comment or a user-facing diagnostic string. It sets the
+terminology, the register, the unit, frame and raster conventions, the
+safety-language rules and what has to be verified against which source.
+
+In short: use the established MRI and Pulseq term rather than a paraphrase of
+it; document units, coordinate frames, composition order and rasters as part of
+the API; keep safety language to exactly what is checked; and write for someone
+reading the code as it is now, with no memory of an earlier version — no "used
 to", "previously", "this replaces", no naming a bug that is fixed. A comment
 earns its place by explaining a non-obvious algorithm or a choice a reader
 would otherwise undo; prefer a well-named function, or a test whose name states
@@ -56,11 +64,9 @@ bash scripts/build_docs.sh
 It compiles the checkout into `docs/build/site` and runs Sphinx against that
 build, with warnings as errors; extra arguments are passed to `sphinx-build`.
 
-Open `docs/build/html/index.html`. Preserve the NumPy convention and document
-units, coordinate frames, mutation and non-obvious return conventions.
-Private helpers need docstrings only when their contracts are not evident
-from the signature and implementation. The user/developer guides and examples
-remain scaffolds; API pages live in `docs/api/`.
+Open `docs/build/html/index.html`. API pages live in `docs/api/`, the example
+sequences are indexed in `docs/examples/`, and the documentation style guide is
+`docs/documentation_style.md`. The user and developer guides remain scaffolds.
 
 ## Releasing
 

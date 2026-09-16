@@ -1,4 +1,4 @@
-"""Inversion-prepared and balanced zoo sequences: MPRAGE, stack-of-spirals MPRAGE, 2D bSSFP."""
+"""Inversion-prepared and balanced example sequences: MPRAGE, stack-of-spirals MPRAGE, 2D bSSFP."""
 
 import importlib
 

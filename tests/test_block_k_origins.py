@@ -169,10 +169,10 @@ def test_a_rotated_block_is_answered_in_the_logical_frame():
     "name", ["spin_echo", "inversion_recovery_train", "gre_with_label_inc"]
 )
 def test_the_origins_are_the_trajectory_the_package_already_builds(name):
-    """Held against every reference sequence the zoo carries, not a handful."""
+    """Held against every sequence in the reference corpus, not a handful."""
     pytest.importorskip(
         "pypulseq_matlab_like",
-        reason="the toolbox that builds the reference zoo; see reference.py",
+        reason="the toolbox that builds the reference corpus; see reference.py",
     )
     import sys
     from pathlib import Path
@@ -182,7 +182,7 @@ def test_the_origins_are_the_trajectory_the_package_already_builds(name):
     import reference
 
     if name not in reference.ZOO:
-        pytest.skip(f"the zoo has no {name}")
+        pytest.skip(f"the reference corpus has no {name}")
     theirs = reference.ZOO[name]()
     sequence = pp.Sequence(theirs.system)
     sequence._native = convert.to_core(theirs)

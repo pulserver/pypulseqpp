@@ -72,7 +72,7 @@ namespace pulseq
     void apply_fov_rotation(
         Sequence& seq, const double quaternion[4], int first, int last);
 
-    /** What a shift is allowed to write on. */
+    /** Which events an FOV shift may modify. */
     enum class FovShiftScope
     {
         /**

@@ -83,7 +83,7 @@ class ZteReadout(SequenceModule):
     matrix : int
         Isotropic matrix size.
     directions : array_like, optional
-        ``(n_views, 3)`` unit spoke directions, in the order the shell walks
+        ``(n_views, 3)`` unit spoke directions, in the order the shell visits
         them. Supplying one silences the four generator arguments below; the
         default asks ``calc_projection_shell`` for a
         shell. An ordering whose steps vary is accepted, but every turn is

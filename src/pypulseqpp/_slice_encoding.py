@@ -40,7 +40,7 @@ def make_gslider_pulse(
     freq_ppm: float = 0.0,
     phase_ppm: float = 0.0,
 ):
-    """Design a gSlider slab pulse whose ``subslice`` carries ``subslice_phase``.
+    """Design a gSlider slab pulse with ``subslice`` at ``subslice_phase``.
 
     One pulse per sub-slice, combined across acquisitions, resolves the slab
     into ``num_subslices`` sub-slices (Setsompop et al., Magn Reson Med
@@ -196,7 +196,7 @@ def _slab_pulse(
     system,
     **event,
 ):
-    """Play ``design(n)``, a large-tip waveform in radians per sample, centred."""
+    """Build the centred RF event for ``design(n)``, a large-tip waveform in radians per sample."""
     system = default_system(system)
     dwell = dwell or system.rf_raster_time
     if return_gz and slice_thickness <= 0:

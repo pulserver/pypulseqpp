@@ -1,4 +1,4 @@
-"""The 2D and 3D EPI zoo entries: linked prescans, encoding labels and prescription."""
+"""The 2D and 3D EPI example sequences: linked prescans, encoding labels and prescription."""
 
 from pathlib import Path
 

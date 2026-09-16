@@ -1,4 +1,4 @@
-"""Colours and axis treatment shared by the analysis figures."""
+"""Colours and axis styling shared by the analysis figures."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ SIGNED = LinearSegmentedColormap.from_list(
 
 
 def axis_style(axis, title: str = "") -> None:
-    """Two faint spines and muted ticks, with an optional left-aligned title."""
+    """Apply the shared axis style: two faint spines, muted ticks, optional left-aligned title."""
     for side in ("top", "right"):
         axis.spines[side].set_visible(False)
     for side in ("left", "bottom"):
@@ -52,7 +52,7 @@ def axis_style(axis, title: str = "") -> None:
 
 
 def image_style(axis, title: str = "") -> None:
-    """Like :func:`axis_style`, keeping all four sides of a heatmap's frame."""
+    """As :func:`axis_style`, but keeping all four sides of a heatmap's frame."""
     for spine in axis.spines.values():
         spine.set_color(FAINT)
     axis.grid(False)

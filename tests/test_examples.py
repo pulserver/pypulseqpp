@@ -11,7 +11,7 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: A prescription small enough to build in a moment, per zoo entry.
+#: A prescription small enough to build in a moment, per example sequence.
 SMALL = {
     "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs": 0},
     "gre3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "n_acs": 0, "n_acs_z": 0},

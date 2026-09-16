@@ -54,7 +54,7 @@ def _b1_selective(
     system,
     use,
 ):
-    """Play the B1-selective pulse whose filter ``beta_of(n, d1, d2)`` returns.
+    """Build the RF event for the B1-selective pulse designed by ``beta_of(n, d1, d2)``.
 
     The filter, scaled by ``flip_angle``, is designed on the coarse step
     ``_SAMPLES_PER_PERIOD`` sets and its sweep interpolated onto ``dwell``.
@@ -116,7 +116,7 @@ def make_b1_selective_pulse(
     system=None,
     use: str = "excitation",
 ):
-    """Design a pulse that excites only where B1 lies in a band.
+    """Design a B1-selective RF pulse, excited only where the transmit amplitude lies in a band.
 
     Constant-magnitude RF whose frequency is swept: in the frame tilted onto
     the RF field, the local B1 plays the part of a gradient and the sweep that
@@ -186,7 +186,7 @@ def make_b1_gslider_pulse(
     system=None,
     use: str = "excitation",
 ):
-    """Design a B1-selective gSlider pulse: one sub-band of B1 at ``subslice_phase``.
+    """Design a B1-selective gSlider pulse with one B1 sub-band at ``subslice_phase``.
 
     The B1 counterpart of :func:`make_gslider_pulse`: the passband is split
     into ``num_subslices`` sub-bands of B1, counted from the lowest, and
@@ -266,7 +266,7 @@ def make_b1_hadamard_pulse(
     system=None,
     use: str = "excitation",
 ):
-    """Design a B1-selective pulse whose sub-bands of B1 a Hadamard row signs.
+    """Design a B1-selective pulse whose B1 sub-bands are signed by a Hadamard row.
 
     The B1 counterpart of :func:`make_hadamard_pulse`: rows are those of
     ``scipy.linalg.hadamard(order)``, sub-bands are counted from the lowest

@@ -33,11 +33,11 @@ namespace pulseq
         double rf_ringdown_time = 0.0;
         double adc_dead_time = 0.0;
 
-        /** ADC sample counts must be a multiple of this; 0 or 1 asks nothing. */
+        /** ADC sample counts must be a multiple of this; 0 or 1 imposes no constraint. */
         double adc_samples_divisor = 1.0;
 
         /**
-         * How far off resonance a pulse or a window may be asked to sit, in
+         * Largest frequency offset a pulse or an ADC window may carry, in
          * hertz. Zero asks nothing, which is what a scanner that does not say
          * gets.
          *

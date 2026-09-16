@@ -93,7 +93,7 @@ def _pns(seq, model, rotation, system, keep_trace):
 def check_pns(
     seq, model, *, rotation=None, system=None
 ) -> tuple[bool, SimpleNamespace]:
-    """Return whether the nerve response stays below threshold throughout.
+    """Check peripheral nerve stimulation against a SAFE or chronaxie model.
 
     Parameters
     ----------
@@ -112,7 +112,8 @@ def check_pns(
     Returns
     -------
     is_ok : bool
-        True when the axis-combined response stays below 1 at every sample.
+        True when the axis-combined response, as a fraction of the model's
+        threshold, stays below 1 at every sample.
     report : SimpleNamespace
         ``model`` (``"safe"`` or ``"chronaxie"``), ``raster`` (s),
         ``samples``, ``peak``, the largest root-sum-square response, and

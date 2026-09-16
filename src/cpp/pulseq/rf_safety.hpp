@@ -36,7 +36,7 @@ namespace pulseq
      */
     RfPower rf_power(const Sequence& seq, int first, int last, double window, double dt);
 
-    /** VOPs, and how a pulse drives the channels they are written for. */
+    /** Virtual observation points and the channel drive they are written for. */
     struct SarModel
     {
         int channels = 0;
@@ -50,11 +50,11 @@ namespace pulseq
         std::vector<std::complex<double>> default_shim;
         /** Resampling step, as for rf_power. */
         double dt = 1e-6;
-        /** Per-VOP SAR each window is compared with; empty for none. */
+        /** Reference per-VOP SAR each window is compared with; empty when there is none. */
         std::vector<double> reference;
     };
 
-    /** One averaging window: a prologue, one repetition, a tail, or everything. */
+    /** One SAR averaging window: a prologue, one repetition, a tail, or the whole sequence. */
     struct SarWindow
     {
         int first = 0;

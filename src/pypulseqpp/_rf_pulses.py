@@ -86,7 +86,7 @@ def make_slr_pulse(
     freq_offset, phase_offset : float, optional
         Frequency (Hz) and phase (rad) offsets.
     center_pos : float, optional
-        Where the effective centre sits in the pulse, in ``[0, 1]``.
+        Position of the effective centre within the pulse, in ``[0, 1]``.
     slice_thickness : float, optional
         Slice thickness (m); required when ``return_gz``.
     return_gz : bool, optional
@@ -205,7 +205,7 @@ def _play_slr(
     bandwidth=None,
     **event,
 ):
-    """Build an SLR waveform's event, and under ``return_gz`` its gradient and rephaser.
+    """Build the RF event for an SLR waveform, and under ``return_gz`` its gradient and rephaser.
 
     A ``designed`` waveform is in radians per sample and plays as it is; any
     other is scaled until its area is ``flip_angle``.
@@ -574,7 +574,7 @@ def make_2d_selective_pulse(
 ):
     """Design a small-tip 2D-selective pulse on a spiral excitation trajectory.
 
-    Each centre-out interleave is followed by an RF-off retrace to the origin.
+    Each centre-out interleaf is followed by an RF-off retrace to the origin.
     The envelope uses arc-length weighting, without an additional radial
     density factor. The closed trajectory requires no separate rephaser.
 

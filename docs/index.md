@@ -8,6 +8,7 @@
 
 user_guide
 developer_guide
+documentation_style
 ```
 
 ```{toctree}

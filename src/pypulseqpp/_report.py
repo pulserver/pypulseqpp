@@ -24,12 +24,12 @@ _STEADY = 1e-10
 
 
 def report_data(seq) -> dict[str, Any]:
-    """Return what the sequence is, as named statistics.
+    """Return sequence timing, encoding and gradient statistics.
 
     Parameters
     ----------
     seq : Sequence
-        The sequence to describe.
+        The sequence to summarise.
 
     Returns
     -------
@@ -143,11 +143,11 @@ def report_data(seq) -> dict[str, Any]:
 
 
 def _echo_time(k_traj_adc, t_adc):
-    """Return when the sequence passes closest to the centre of k-space.
+    """Return the time at which the trajectory passes closest to the centre of k-space.
 
     The sample nearest the origin, refined by projecting the way back to the
     origin onto the step to its neighbour: the echo falls between two samples
-    unless one happens to land on it.
+    unless a sample coincides with it.
     """
     if t_adc.size == 0:
         return np.nan
@@ -198,7 +198,7 @@ def _te_and_tr(t_excitation, t_echo, duration):
 
 
 def _coverage(k_traj_adc) -> dict[str, Any]:
-    """Return what the sampled trajectory covers.
+    """Return the k-space extent, sampling repetition and Cartesian flag.
 
     An axis the trajectory never moves along is not a dimension of the
     encoding, so it is dropped before the positions are counted.

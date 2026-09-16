@@ -190,7 +190,7 @@ class Mprage3DApp(sequences.SequenceApp):
             Navigators per recovery; ``"auto"`` fits as many as it holds, up to
             ``NAVIGATOR_COUNT``.
         wave : {'phase', 'partition', 'both'} or None, optional
-            Wave-CAIPI corkscrew under every readout.
+            Wave-CAIPI encoding gradients under every readout.
         wave_cycles : int, optional
             Wave periods across the readout.
         wave_amplitude : float, optional
@@ -362,13 +362,13 @@ class Mprage3DApp(sequences.SequenceApp):
         """One inversion-prepared shot over ``views``; ``None`` plays a line unencoded.
 
         ``phases`` are the RF-spoiling phases (rad) of its repetitions,
-        ``wave`` scales the corkscrew, and ``flags`` are the labels the shot
+        ``wave`` scales the wave-encoding gradients, and ``flags`` are the labels the shot
         carries on its inversion.
         """
         inv, ro, seq = self.inv, self.ro, self.seq
         n_y, n_z = self.matrix[1:]
         acs_y, acs_z = self.acs
-        corkscrew = [pp.scale_grad(g, wave) for g in self.wave_events]
+        wave_gradients = [pp.scale_grad(g, wave) for g in self.wave_events]
         wait_te = getattr(ro, "wait_te", None)
         wait_tr = getattr(ro, "wait_tr", None)
 
@@ -397,9 +397,9 @@ class Mprage3DApp(sequences.SequenceApp):
                     SEG=0,
                     ECO=echo,
                 )
-                seq.add_block(ro.gx, ro.adc, *corkscrew, *labels)
+                seq.add_block(ro.gx, ro.adc, *wave_gradients, *labels)
             else:
-                seq.add_block(ro.gx, *corkscrew)
+                seq.add_block(ro.gx, *wave_gradients)
             seq.add_block(
                 ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
             )

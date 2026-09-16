@@ -1,4 +1,4 @@
-"""Turning a block's gradients onto a rotated set of axes."""
+"""Projection of a block's gradient waveforms onto rotated axes."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""A block as the events it plays."""
+"""Decomposition of a block into its constituent events."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 
 def block_to_events(*args: Any) -> tuple:
-    """Split a block into the events it plays, or pass events through.
+    """Split a block into its events, or pass events through unchanged.
 
     A block is a namespace with an ``rf`` field, and its events are its
     fields in the order they are stored -- a field holding several, as a

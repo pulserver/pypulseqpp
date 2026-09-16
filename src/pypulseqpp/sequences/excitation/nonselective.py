@@ -1,4 +1,4 @@
-"""Excitation, refocusing and inversion acting on everything in the transmit coil."""
+"""Non-selective excitation, refocusing and inversion."""
 
 from __future__ import annotations
 
@@ -87,8 +87,7 @@ class NonSelectiveRefocusing(RfModule):
         Pulse duration (s).
     spoiling_cycles : float, optional
         Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero
-        leaves the pulse bare, which is what an echo train that crushes
-        elsewhere wants.
+        omits the crushers, for an echo train that crushes elsewhere.
     voxel_size_m : float, optional
         Length the dephasing is counted over (m).
     axis : {'z', 'x', 'y'}, optional
