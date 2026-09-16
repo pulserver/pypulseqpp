@@ -176,11 +176,24 @@ def quantize_readout_timing(
     return dwell, nx_ro * dwell
 
 
-def round_to_raster(value_s: float, raster_s: float = 1e-5) -> float:
-    """Round seconds to the nearest raster multiple, with ties to even.
+def round_to_raster(value_s: float, raster_s: float) -> float:
+    """Round seconds to the nearest multiple of ``raster_s``, with ties to even.
 
-    ``raster_s`` is a raster period in seconds. Its default does not track
-    :attr:`pypulseqpp.Opts.grad_raster_time`; pass the raster explicitly.
+    ``raster_s`` is a raster period in seconds, such as
+    :attr:`pypulseqpp.Opts.grad_raster_time` or
+    :attr:`pypulseqpp.Opts.block_duration_raster`.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.round_to_raster(23e-6, 10e-6)
+    2e-05
+
+    A value halfway between two multiples rounds to the even one, so 1.5 and
+    2.5 raster periods both round to 2:
+
+    >>> pp.round_to_raster(15e-6, 10e-6), pp.round_to_raster(25e-6, 10e-6)
+    (2e-05, 2e-05)
     """
     return round(value_s / raster_s) * raster_s
 
