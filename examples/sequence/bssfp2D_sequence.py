@@ -49,7 +49,10 @@ class Bssfp2DApp(sequences.SequenceApp):
     ``retrospective`` gating each segment is cycled for one heartbeat, the
     interpreter's ECG log binning it into cardiac phases; under
     ``prospective`` gating every heartbeat opens with a trigger event on
-    :attr:`TRIGGER_CHANNEL`, then plays the segment once per cardiac phase.
+    :attr:`TRIGGER_CHANNEL`, then plays the segment once per cardiac phase;
+    the first heartbeat's trigger precedes the half flip, so the whole train
+    is timed from the R wave, and a slice held in one heartbeat is a triggered
+    single shot.
     Acquisitions carry ``LIN``, ``SLC``, the segment as ``SEG`` and the cardiac
     phase, or the cycle within the heartbeat, as ``PHS``; calibration lines
     are marked ``IMA``.
@@ -91,7 +94,7 @@ class Bssfp2DApp(sequences.SequenceApp):
         readout_bandwidth_hz: float = 125e3,
         ry: int = 1,
         partial_fourier_y: float = 1.0,
-        n_frames: int = 25,
+        n_phases: int = 25,
         *,
         n_dummy: int = 10,
         readout_oversampling: float = 1.0,
@@ -130,12 +133,11 @@ class Bssfp2DApp(sequences.SequenceApp):
             the centre line among them.
         partial_fourier_y : float, optional
             Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
-        n_frames : int, optional
+        n_phases : int, optional
             Cardiac phases a prospective heartbeat acquires.
         n_dummy : int, optional
             Repetitions played without acquiring after the half flip, while
-            the oscillating transient settles; at least one under
-            ``prospective``, whose first trigger follows them.
+            the oscillating transient settles.
         readout_oversampling : float, optional
             Readout oversampling factor, at least one.
         n_acs_y : int, optional
@@ -156,8 +158,8 @@ class Bssfp2DApp(sequences.SequenceApp):
         ------
         ValueError
             If ``gating`` is unknown, ``partial_fourier_y`` is outside
-            ``[0.75, 1]``, a count is below one, a prospective heartbeat has no
-            dummy ahead of its first trigger or cannot hold its phases, a slice
+            ``[0.75, 1]``, a count is below one, a prospective heartbeat cannot
+            hold its phases, a slice
             outlasts :attr:`MAX_SLICE_DURATION`, or the TR is shorter than the
             balanced repetition, or too short beside the pulse for the half
             flip.
@@ -170,22 +172,17 @@ class Bssfp2DApp(sequences.SequenceApp):
             )
         for name, count in (
             ("ry", ry),
-            ("n_frames", n_frames),
+            ("n_phases", n_phases),
             ("views_per_segment", views_per_segment),
         ):
             if count < 1:
                 raise ValueError(f"{name} must be at least 1, got {count}")
-        if gating == "prospective" and n_dummy < 1:
-            raise ValueError(
-                "a prospective train needs at least one dummy repetition, so its "
-                "first trigger does not split the half flip from its excitation"
-            )
 
         system = self.system
         self.fov = (fov_x, fov_y)
         self.matrix = (n_x, n_y, n_slices)
         self.n_dummy, self.gating = n_dummy, gating
-        self.n_frames, self.heart_rate_bpm = n_frames, heart_rate_bpm
+        self.n_phases, self.heart_rate_bpm = n_phases, heart_rate_bpm
         self.views_per_segment, self.trigger_delay = views_per_segment, trigger_delay
         self.exc = sequences.SpatialSelectiveExcitation(
             system,
@@ -216,7 +213,8 @@ class Bssfp2DApp(sequences.SequenceApp):
             n_y, ry, n_acs_y, partial_fourier_y
         )
         # A train is a list of (line, segment, phase) repetitions, None where a
-        # heartbeat's trigger falls.
+        # heartbeat's trigger falls; the first heartbeat's is ahead of the half
+        # flip, and so ahead of the dummies too.
         rr = 60.0 / heart_rate_bpm
         segments = (
             [self.lines]
@@ -234,16 +232,19 @@ class Bssfp2DApp(sequences.SequenceApp):
                 cycles = max(1, round(rr / (len(segment) * self.ro.tr)))
                 self.train += [(line, s, c) for c in range(cycles) for line in segment]
             else:
-                acquired = n_frames * len(segment) * self.ro.tr + trigger_delay
+                acquired = n_phases * len(segment) * self.ro.tr + trigger_delay
+                if s == 0:
+                    acquired += (0.5 + n_dummy) * self.ro.tr
                 if acquired > rr + 1e-9:
                     raise ValueError(
-                        f"{n_frames} cardiac phases of {len(segment)} lines take "
+                        f"{n_phases} cardiac phases of {len(segment)} lines take "
                         f"{acquired * 1e3:.0f} ms, longer than the "
                         f"{rr * 1e3:.0f} ms heartbeat"
                     )
-                self.train.append(None)
+                if s:
+                    self.train.append(None)
                 self.train += [
-                    (line, s, f) for f in range(n_frames) for line in segment
+                    (line, s, f) for f in range(n_phases) for line in segment
                 ]
         self.n_segments = len(segments)
 
@@ -252,7 +253,7 @@ class Bssfp2DApp(sequences.SequenceApp):
         repetitions = sum(item is not None for item in self.train)
         self.slice_duration = (repetitions + 1.5) * self.ro.tr
         if gating == "prospective":
-            self.slice_duration = n_dummy * self.ro.tr + self.n_segments * rr
+            self.slice_duration = self.n_segments * rr
         if self.slice_duration > self.MAX_SLICE_DURATION:
             raise ValueError(
                 f"a slice's train lasts {self.slice_duration:.1f} s, longer than "
@@ -298,9 +299,10 @@ class Bssfp2DApp(sequences.SequenceApp):
         """One repetition of slice ``s``: the rewind of the previous one, then excite and read.
 
         ``previous_ky`` is the fractional encode the rewind undoes; ``None``
-        opens the slice's train with the half flip. ``trigger`` waits for the
-        heartbeat between the rewind and the excitation, ``last`` closes the
-        train with the final rewind, and ``line=None`` plays a dummy.
+        opens the slice's train with the half flip, after the trigger under
+        ``prospective`` gating. ``trigger`` waits for the heartbeat between the
+        rewind and the excitation, ``last`` closes the train with the final
+        rewind, and ``line=None`` plays a dummy.
         """
         ro, seq = self.ro, self.seq
         rf = ro.rf
@@ -315,7 +317,11 @@ class Bssfp2DApp(sequences.SequenceApp):
             self.restart_labels()
             rf.amplitude = 0.5 * self.nominal
             rf.phase_offset = centre_phase
-            seq.add_block(rf, ro.gz, *ro.prep_labels)
+            if self.gating == "prospective":
+                seq.add_block(self.trigger, *ro.prep_labels)
+                seq.add_block(rf, ro.gz)
+            else:
+                seq.add_block(rf, ro.gz, *ro.prep_labels)
             seq.add_block(ro.wait_prep, *ro.train_labels)
             rf.amplitude = self.nominal
             seq.add_block(ro.wait_rewind, ro.gz_rew)
@@ -374,7 +380,7 @@ class Bssfp2DApp(sequences.SequenceApp):
             )
         if self.gating == "prospective":
             definitions.update(
-                CardiacPhases=self.n_frames, TriggerDelay=self.trigger_delay
+                CardiacPhases=self.n_phases, TriggerDelay=self.trigger_delay
             )
         for key, value in definitions.items():
             self.seq.set_definition(key=key, value=value)

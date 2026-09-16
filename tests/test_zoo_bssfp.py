@@ -67,7 +67,7 @@ def final_moments(seq):
     [
         {},
         {"gating": "retrospective", **CINE},
-        {"gating": "prospective", "n_frames": 3, **CINE},
+        {"gating": "prospective", "n_phases": 3, **CINE},
     ],
     ids=["ungated", "retrospective", "prospective"],
 )
@@ -140,7 +140,7 @@ def test_a_retrospective_heartbeat_cycles_its_segment():
 
 
 def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
-    built = app2d(gating="prospective", n_frames=3, trigger_delay=5e-3, **CINE)
+    built = app2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     seq = built.design()
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
     triggers = [block.trig for block in blocks(seq) if getattr(block, "trig", None)]
@@ -158,8 +158,32 @@ def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
     assert seq.definitions["CardiacPhases"] == pytest.approx([3])
 
 
+@pytest.mark.parametrize("n_dummy", [0, 3])
+def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
+    built = app2d(gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE)
+    seq = built.design()
+    listed = blocks(seq)
+    (once,) = labels(seq, "ONCE", evolution="blocks")
+    size = len(listed) // 2
+
+    for start in (0, size):
+        assert getattr(listed[start], "trig", None)
+        assert once[start] == 1
+        half, full = listed[start + 1].rf, listed[start + 4].rf
+        peak = np.abs(np.asarray(half.signal)).max()
+        assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
+
+
+def test_a_single_shot_slice_has_one_trigger():
+    built = app2d(gating="prospective", n_phases=1, views_per_segment=16, n_slices=2)
+    triggers = [b for b in blocks(built.design()) if getattr(b, "trig", None)]
+
+    assert built.n_segments == 1
+    assert len(triggers) == 2
+
+
 def test_every_trigger_falls_between_two_balanced_repetitions():
-    seq = app2d(gating="prospective", n_frames=2, **CINE).design()
+    seq = app2d(gating="prospective", n_phases=2, **CINE).design()
     listed = blocks(seq)
     for index, block in enumerate(listed):
         if getattr(block, "trig", None):
@@ -172,15 +196,14 @@ def test_every_trigger_falls_between_two_balanced_repetitions():
     ("prescription", "match"),
     [
         ({"gating": "gated"}, "gating"),
-        ({"gating": "prospective", "n_dummy": 0}, "dummy"),
-        ({"gating": "prospective", "n_frames": 60, **CINE}, "heartbeat"),
+        ({"gating": "prospective", "n_phases": 60, **CINE}, "heartbeat"),
         (
             {"gating": "retrospective", "heart_rate_bpm": 20, "views_per_segment": 2},
             "longer than",
         ),
         ({"tr": 1e-3}, "TR"),
     ],
-    ids=["gating", "no dummy", "too many phases", "too long", "short TR"],
+    ids=["gating", "too many phases", "too long", "short TR"],
 )
 def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
     with pytest.raises(ValueError, match=match):
