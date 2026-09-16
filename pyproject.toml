@@ -39,6 +39,9 @@ plot = ["pypulseqpp-seqeyes>=0.3.3,<0.4"]
 # check uses the pocketfft compiled into the extension. Intel publishes no
 # wheel for ARM.
 mkl = ["mkl; platform_machine == 'x86_64' or platform_machine == 'AMD64'"]
+# The simulator the 3D fast spin echo designs its refocusing trains with, under
+# flip_modulation="optimized". It brings PyTorch, so no other path imports it.
+design = ["torchsim>=0.0.5"]
 doc = [
   "sphinx>=7.0",
   "sphinx-book-theme>=1.1",

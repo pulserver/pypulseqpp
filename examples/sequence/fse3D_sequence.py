@@ -1,101 +1,318 @@
-"""3D Cartesian fast spin echo, slab-selective, with selectable view ordering."""
+"""3D Cartesian fast spin echo, with optionally designed and individually parameterized echo trains."""
 
 from __future__ import annotations
 
+import math
 import sys
 
 import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import (
-    calc_calibration_lines,
-    calc_sampled_pairs,
-    make_centric_order,
-    make_linear_order,
-    make_poisson_disc_mask,
-    make_radial_adaptive_order,
-    make_radial_order,
-    make_shuffling_order,
-)
+from pypulseqpp._masks import make_poisson_disc_mask, make_shuffling_order
 
-#: The view orderings ``ordering`` selects from, each a pypulseqpp echo-train
-#: ordering of the same name.
-ORDERINGS = ("linear", "centric", "radial", "radial_adaptive", "shuffling")
+#: The excitations ``excitation`` selects from.
+EXCITATIONS = ("nonselective", "slab")
+
+#: The view orders ``ordering`` selects from.
+ORDERINGS = ("radial", "shuffling")
+
+#: The refocusing trains ``flip_modulation`` selects from.
+MODULATIONS = ("constant", "optimized")
 
 
-def traps_flip_schedule(
-    etl: int,
-    n_center: int,
+def sampled_views(
+    shape: tuple[int, int],
+    acceleration: tuple[int, int],
+    caipi_shift: int,
+    calibration: tuple[int, int],
+    partial_fourier: tuple[float, float],
+    elliptical_acs: bool,
     *,
-    alpha_min_deg: float = 60.0,
-    alpha_center_deg: float = 100.0,
-    alpha_max_deg: float = 160.0,
-    n_down: int = 6,
-) -> np.ndarray:
-    """TRAPS-style refocusing flips, in degrees, one per echo.
-
-    Piecewise linear between Busse's control points (MRM 2008;60:640):
-    ``alpha_max`` at the first echo, ``alpha_min`` from echo ``n_down``,
-    ``alpha_center`` at echo ``n_center`` and ``alpha_max`` again at the last.
-    """
-    bottom = min(max(1, n_down), max(1, etl - 1))
-    echoes, flips = [0], [alpha_max_deg]
-    if bottom < etl:
-        echoes, flips = [*echoes, bottom], [*flips, alpha_min_deg]
-    if n_center > bottom:
-        echoes, flips = [*echoes, n_center], [*flips, alpha_center_deg]
-    if etl - 1 > echoes[-1]:
-        echoes, flips = [*echoes, etl - 1], [*flips, alpha_max_deg]
-    return np.interp(np.arange(etl), echoes, flips)
-
-
-def order_views(
-    views: list[tuple[int, int]],
-    etl: int,
-    n_center: int,
-    ordering: str,
-    grid: tuple[int, int],
-    *,
+    shuffling: bool = False,
     seed: int = 0,
-) -> list[list[tuple[int, int] | None]]:
-    """Deal ``(line, partition)`` views into trains, one per echo.
+) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
+    """Return the ``(line, partition)`` views sampled, and the calibration views.
 
-    ``None`` pads an echo with nothing left to encode. The orderings rank by
-    radius, so the views are ranked in fractional k-space about the centre of
-    ``grid``.
+    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
+    sampled, and partial Fourier drops the lines and partitions before the
+    centre. The regular set keeps a CAIPIRINHA lattice holding the centre
+    view: lines with ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them
+    from the centre the partitions with ``(z - nz // 2 - caipi_shift * j) % rz
+    == 0``. The ``shuffling`` set is a variable-density Poisson-disc draw at
+    ``ry * rz``. Under undersampling the ``n_acs_y x n_acs_z`` calibration
+    region, centred on the centre view, is sampled whole: a rectangle, or under
+    ``elliptical_acs`` the ellipse inscribed in it.
     """
-    if ordering not in ORDERINGS:
-        raise ValueError(f"ordering must be one of {ORDERINGS}, got {ordering!r}")
-    coords = (np.asarray(views, dtype=float) - np.divide(grid, 2)) / np.asarray(grid)
-    if ordering == "shuffling":
-        trains = make_shuffling_order(coords, etl, seed=seed, pad=True)
-    elif ordering == "radial":
-        trains = make_radial_order(coords, etl, center=(0.0, 0.0), pad=True)
+    (ny, nz), (ry, rz) = shape, acceleration
+    first_y = ny - round(partial_fourier[0] * ny)
+    first_z = nz - round(partial_fourier[1] * nz)
+    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
+
+    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
+        # Offsets from the centre view, the one the encodes scale to zero.
+        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
+        return dy * dy + dz * dz <= 0.25
+
+    region = {
+        (y, z)
+        for y in range(
+            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
+        )
+        for z in range(
+            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
+        )
+        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
+    }
+    if shuffling:
+        mask = (
+            make_poisson_disc_mask(
+                (ny, nz), float(ry * rz), calib=(n_acs_y, n_acs_z), seed=seed
+            )
+            if ry * rz > 1
+            else np.ones((ny, nz), dtype=bool)
+        )
+        kept = {(int(y), int(z)) for y, z in np.argwhere(mask)}
     else:
-        make = {
-            "linear": make_linear_order,
-            "centric": make_centric_order,
-            "radial_adaptive": make_radial_adaptive_order,
-        }[ordering]
-        trains = make(coords, etl, center=(0.0, 0.0), center_echo=n_center, pad=True)
-    return [[None if i is None else views[i] for i in train] for train in trains]
+        kept = {
+            (y, z)
+            for y in range(ny)
+            if (y - ny // 2) % ry == 0
+            for z in range(nz)
+            if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
+        }
+    views = {
+        (y, z)
+        for y, z in kept
+        if y >= first_y and z >= first_z and inside(y, z, ny, nz)
+    }
+    return sorted(views | region), region
+
+
+def cubic(fraction):
+    """Return the smooth step ``3 u**2 - 2 u**3`` the parameters move along."""
+    fraction = np.asarray(fraction, dtype=float)
+    return 3 * fraction**2 - 2 * fraction**3
+
+
+def shot_parameters(
+    n_views: int, etl: int, etl_periphery: int, tr: float, tr_periphery: float
+) -> tuple[list[int], list[float], np.ndarray]:
+    """Return every shot's train length and TR, and its place in the transition.
+
+    Shot ``s`` of ``n`` sits at ``u = s / (n - 1)`` and takes its train length
+    and TR a cubic step (:func:`cubic`) of the way from the centre values to
+    the periphery ones (Buonincontri et al., ISMRM 2025, abstract 566-05-007,
+    Fig. 1). ``n`` is the fewest shots whose trains hold every view.
+    """
+    n = max(1, -(-n_views // max(etl, etl_periphery)))
+    while True:
+        place = np.arange(n) / (n - 1) if n > 1 else np.zeros(1)
+        step = cubic(place)
+        lengths = [round(etl + (etl_periphery - etl) * c) for c in step]
+        if sum(lengths) >= n_views:
+            break
+        n += 1
+    times = [tr + (tr_periphery - tr) * c for c in step]
+    return lengths, times, place
+
+
+def deal_trains(
+    coords: np.ndarray,
+    lengths: list[int],
+    place: np.ndarray,
+    te_echo: int,
+    etl_max: int,
+) -> list[list[int | None]]:
+    """Deal views into trains by adaptive radial reordering.
+
+    Every ``(shot, echo)`` slot a train plays is ranked by its distance from
+    the prescription: how far the echo is from the TE echo, and how far the
+    shot is along the transition. The views are ranked by radius. Both are cut
+    into sections of one slot per shot, the innermost views filling the
+    nearest slots, and within a section the views, sorted by angle, fill the
+    slots in shot order (Buonincontri et al., abstract 566-05-007, Fig. 2D);
+    the centre of k-space, which has no angle, takes the nearest slot.
+    With identical trains the shot term vanishes and a section is one echo, so
+    this is the radial ordering folded about the TE echo.
+    """
+    n_shots = len(lengths)
+    radius = np.hypot(coords[:, 0], coords[:, 1])
+    angle = np.arctan2(coords[:, 1], coords[:, 0])
+    views = sorted(range(len(coords)), key=lambda i: (radius[i], angle[i]))
+    span = max(etl_max - 1, 1)
+    slots = sorted(
+        ((s, e) for s in range(n_shots) for e in range(lengths[s])),
+        key=lambda slot: (
+            math.hypot(abs(slot[1] - te_echo) / span, place[slot[0]]),
+            slot[1],
+            slot[0],
+        ),
+    )
+    trains: list[list[int | None]] = [[None] * etl_max for _ in range(n_shots)]
+    # The centre of k-space, which has no angle, takes the nearest slot.
+    if len(views) and radius[views[0]] == 0.0:
+        shot, echo = slots.pop(0)
+        trains[shot][echo] = views.pop(0)
+    for start in range(0, len(views), n_shots):
+        section = sorted(views[start : start + n_shots], key=lambda i: angle[i])
+        # The last section may hold fewer views than it has slots.
+        for (s, e), view in zip(
+            sorted(slots[start : start + n_shots]), section, strict=False
+        ):
+            trains[s][e] = view
+    return trains
+
+
+def design_trains(app, lengths, times, place, te_echo, etl_max, esp) -> np.ndarray:
+    """Design the refocusing angles (degrees) of every shot, ``(shots, etl_max)``.
+
+    A train falls from its maximum angle to its minimum over the first five
+    echoes, rises to the prescribed angle at the TE echo and returns to the
+    maximum at its end (Busse et al., Magn Reson Med 2008;60:640); a TE echo
+    among the first five holds the prescribed angle up to it and falls to the
+    minimum after. The minimum and maximum are designed with torchsim against
+    the sharpness of the periphery of k-space, the contrast at the centre
+    between the tissues ``DESIGN_CONTRAST`` names, and the RF power of the
+    starting trains. Individually parameterized trains have a minimum and a
+    maximum at each end, and every shot takes them a cubic step of the way
+    along its transition. Angles past a shot's own train length are zero.
+    """
+    try:
+        import torch
+        from torchsim.optim import Bounded, SequenceDesign
+        from torchsim.simulators import FSESimulator
+    except ImportError as error:
+        raise ImportError(
+            "flip_modulation='optimized' designs the trains with torchsim; "
+            "install it with pip install 'pypulseqpp[design]'"
+        ) from error
+
+    dtype = torch.float64
+    angle = float(app.refocusing_angle_deg)
+    echo = torch.arange(1, etl_max + 1, dtype=dtype)
+    length = torch.tensor(lengths, dtype=dtype)[:, None]
+    tr_ms = torch.tensor(times, dtype=dtype)[:, None] * 1e3
+    step = torch.as_tensor(cubic(place), dtype=dtype)[:, None]
+    acquired = (echo <= length).to(dtype)
+    centre = float(te_echo + 1)
+    one = torch.ones_like(length)
+
+    def smooth(knots, values):
+        """Smooth steps between successive ``(knot, value)`` pairs, held beyond them."""
+        out = values[-1] * one
+        for k in reversed(range(len(knots) - 1)):
+            span = (echo - knots[k]) / (knots[k + 1] - knots[k]).clamp_min(1e-3)
+            span = span.clamp(0.0, 1.0)
+            ramp = values[k] + (values[k + 1] - values[k]) * span.square() * (
+                3 - 2 * span
+            )
+            out = torch.where(echo <= knots[k + 1], ramp, out)
+        return out
+
+    def trains(low, high):
+        if centre > 5.0:
+            knots = [one, 5.0 * one, centre * one, length]
+            values = [high, low, angle * one, high]
+        else:
+            fallen = torch.minimum((centre + 4.0) * one, length)
+            knots = [centre * one, fallen, length]
+            values = [angle * one, low, high]
+        return smooth(knots, values) * acquired
+
+    simulator = FSESimulator(
+        ESP=esp * 1e3,
+        states=app.DESIGN_STATES,
+        T1=list(app.DESIGN_T1_MS),
+        T2=list(app.DESIGN_T2_MS),
+    )
+    bright, dark = app.DESIGN_CONTRAST
+
+    def measure(centre_low, centre_high, edge_low, edge_high):
+        low = centre_low + (edge_low - centre_low) * step
+        high = centre_high + (edge_high - centre_high) * step
+        flip = trains(low, high)
+        signal = simulator.simulate(flip=flip, TR=tr_ms).abs()
+        pair = acquired[:, None, :-1] * acquired[:, None, 1:]
+        slope = (torch.diff(signal, dim=-1) * pair).square().sum(-1)
+        energy = (signal * acquired[:, None, :]).square().sum(-1).clamp_min(1e-12)
+        blur = (length / (2 * torch.pi) * (slope / energy).sqrt()).mean(-1)
+        contrast = signal[:, bright, te_echo] - signal[:, dark, te_echo]
+        power = ((flip / 180.0).square() * acquired).sum(-1) / (tr_ms[:, 0] * 1e-3)
+        return flip, blur, contrast, power
+
+    # Each control angle moves between its limits, the midpoint to start; one
+    # with no room to move is held at its limit.
+    lowest = min(app.DESIGN_MIN_DEG, 0.5 * angle)
+    limits = {"low": (lowest, angle), "high": (angle, 180.0)}
+    free, fixed = {}, {}
+    for end in ("centre", "edge") if app.individual else ("centre",):
+        for kind, (lower, upper) in limits.items():
+            if upper - lower > 1.0:
+                start = torch.tensor([0.5 * (lower + upper)], dtype=dtype)
+                free[f"{end}_{kind}"] = Bounded(start, lower, upper)
+            else:
+                fixed[f"{end}_{kind}"] = torch.tensor([upper], dtype=dtype)
+
+    def complete(values):
+        values = {**fixed, **values}
+        for kind in limits:
+            values.setdefault(f"edge_{kind}", values[f"centre_{kind}"])
+        return values
+
+    start = complete({name: bound.initial for name, bound in free.items()})
+    budget = measure(**start)[3].mean()
+    weight = step[:, 0]
+    outer = weight if app.individual else torch.ones_like(weight)
+    inner = 1.0 - weight
+
+    def cost(**values):
+        _, blur, contrast, power = measure(**complete(values))
+        return (
+            (outer * blur).sum() / outer.sum()
+            - app.DESIGN_CONTRAST_WEIGHT * (inner * contrast).sum() / inner.sum()
+            + app.DESIGN_POWER_WEIGHT * torch.relu(power.mean() / budget - 1.0)
+        )
+
+    if free:
+        result = SequenceDesign(cost, **free).minimize(
+            iterations=app.DESIGN_ITERATIONS, learning_rate=app.DESIGN_LEARNING_RATE
+        )
+        start = complete(result.parameters)
+    with torch.no_grad():
+        flip = measure(**start)[0]
+    return flip.numpy(force=True)
 
 
 class Fse3DApp(sequences.SequenceApp):
     """3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid.
 
-    The view ordering maps the train's signal modulation into k-space; every
-    acquisition carries its echo index as ``ECO``. Regular orderings sample a
-    CAIPIRINHA lattice around a fully sampled calibration rectangle, and
-    ``shuffling`` a variable-density Poisson-disc set. The optional variable
-    refocusing train follows :func:`traps_flip_schedule`, and the angles played
-    are written as ``RefocusingFlipAngles``.
+    Only views inside the inscribed ky-kz ellipse are sampled. ``radial``
+    deals them by adaptive radial reordering (:func:`deal_trains`), so the
+    centre of k-space is read at the TE echo; ``shuffling`` deals a
+    variable-density Poisson-disc set randomly across echoes (Tamir et al.,
+    Magn Reson Med 2017;77:180), for a time-resolved reconstruction. Every
+    acquisition carries its line, partition and echo as ``LIN``, ``PAR`` and
+    ``ECO``, and calibration views are marked ``IMA``; under wave-CAIPI the
+    calibration region is first acquired wave-free in trains of its own,
+    marked ``REF``.
+
+    The refocusing angle is constant, or, under ``optimized``, the angle at the
+    TE echo of a train :func:`design_trains` shapes around it. Giving the
+    periphery of k-space its own TR or train length individually
+    parameterizes the trains (Buonincontri et al., ISMRM 2025, abstract
+    566-05-007): every shot moves from the centre values to the periphery ones
+    along :func:`shot_parameters`, and the view order is radial. Every shot
+    plays the longest train; past its own length a shot's refocusing pulses
+    have zero amplitude and nothing is acquired, and its closing delay makes
+    its TR, so the scan stays one repeating train.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.fse3D_sequence(n_x=64, n_y=16, n_z=4, etl=4, te=20e-3, tr=None)
+    >>> seq = sequences.fse3D_sequence(
+    ...     n_x=32, n_y=16, n_z=8, etl=8, te=20e-3, tr=300e-3
+    ... )
     >>> seq.check_timing()[0]
     True
     """
@@ -103,320 +320,432 @@ class Fse3DApp(sequences.SequenceApp):
     NAME = "fse_3d"
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
+    #: SLR design of the slab-selective excitation and refocusing.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
+    #: Duration of the nonselective hard pulses (s).
+    HARD_PULSE_DURATION = 0.5e-3
+    #: Dephasing each crusher beside a refocusing pulse winds, in cycles
+    #: across one voxel; a nonselective train crushes on the readout axis.
+    CRUSHER_CYCLES = 4.0
+    #: Seed of the shuffled order and of its Poisson-disc views.
+    SHUFFLE_SEED = 0
     #: Pacing of one three-plane navigator (s), and the most one TR wait
-    #: carries when their count is ``"auto"``: each takes a little
-    #: longitudinal magnetisation from the volume the wait is restoring.
+    #: carries: each takes a little longitudinal magnetisation from the volume
+    #: the wait is restoring.
     NAVIGATOR_TR = 100e-3
     NAVIGATOR_COUNT = 5
+    #: Tissues the ``optimized`` trains are designed for (ms): cartilage,
+    #: muscle and synovial fluid.
+    DESIGN_T1_MS = (1200.0, 1420.0, 3600.0)
+    DESIGN_T2_MS = (35.0, 30.0, 250.0)
+    #: The two tissues, brighter first, whose difference at the TE echo is the
+    #: contrast the design keeps, and how much it weighs against sharpness.
+    DESIGN_CONTRAST = (2, 0)
+    DESIGN_CONTRAST_WEIGHT = 12.0
+    #: How much RF power beyond the starting trains' costs.
+    DESIGN_POWER_WEIGHT = 20.0
+    #: Lowest refocusing angle a designed train may reach (degrees).
+    DESIGN_MIN_DEG = 20.0
+    #: Configuration-state count, iterations and step of the design.
+    DESIGN_STATES = 12
+    DESIGN_ITERATIONS = 25
+    DESIGN_LEARNING_RATE = 0.3
 
     def init_sequence(
         self,
-        fov: float | tuple[float, float] = 220e-3,
-        n_x: int = 128,
-        n_y: int = 128,
-        n_z: int = 64,
-        slab_thickness: float = 128e-3,
-        etl: int = 32,
-        te: float | None = 100e-3,
-        tr: float | None = 1000e-3,
-        ordering: str = "radial_adaptive",
-        variable_flip: bool = True,
-        alpha_min_deg: float = 60.0,
-        alpha_center_deg: float = 100.0,
-        alpha_max_deg: float = 160.0,
+        fov_x: float = 160e-3,
+        fov_y: float = 160e-3,
+        fov_z: float = 160e-3,
+        n_x: int = 320,
+        n_y: int = 240,
+        n_z: int = 240,
+        te: float | None = 28e-3,
+        tr: float = 1800e-3,
+        etl: int = 45,
+        refocusing_angle_deg: float = 180.0,
         readout_bandwidth_hz: float = 250e3,
-        acceleration: int = 1,
-        acceleration_z: int = 1,
+        ry: int = 1,
+        rz: int = 1,
         caipi_shift: int = 0,
-        elliptical: bool = True,
+        partial_fourier_x: float = 1.0,
+        partial_fourier_y: float = 1.0,
+        partial_fourier_z: float = 1.0,
+        *,
+        n_dummy: int = 0,
+        excitation: str = "slab",
+        readout_oversampling: float = 2.0,
+        esp: float | None = None,
         n_acs_y: int = 24,
         n_acs_z: int = 16,
-        n_dummy: int = 0,
-        shuffle_seed: int = 0,
-        n_gain_calibration_readouts: int = 1,
-        crusher_cycles: float = 4.0,
-        readout_crusher_cycles: float = 0.0,
-        navigator: bool = False,
-        n_navigators: int | str = "auto",
-        wave: str | None = None,
+        elliptical_acs: bool = False,
+        ordering: str = "radial",
+        flip_modulation: str = "constant",
+        tr_periphery: float | None = None,
+        etl_periphery: int | None = None,
+        wave: str = "both",
         wave_cycles: int = 8,
-        wave_amplitude: float = 8e-3,
+        wave_amplitude: float = 0.0,
+        navigator: bool = False,
     ) -> None:
-        """Design the train, its flip schedule and the view order that fills it.
+        """Design the train, its refocusing angles, the shots and the views they read.
 
         Parameters
         ----------
-        fov : float or tuple of float, optional
-            In-plane field of view, in metres; ``(fov_x, fov_y)`` if a tuple.
-        n_x : int, optional
-            Readout samples.
-        n_y : int, optional
-            Phase-encode steps.
-        n_z : int, optional
-            Partition-encode steps.
-        slab_thickness : float, optional
-            Excited slab thickness, in metres, which is also the field of view
-            along z.
+        fov_x, fov_y, fov_z : float, optional
+            Field of view along the readout, the phase encode and the
+            partition encode (m). A slab excited is ``fov_z`` thick.
+        n_x, n_y, n_z : int, optional
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        te : float | None, optional
+            Effective echo time (s): the echo the centre of k-space is read
+            at, rounded onto the echo grid. ``None`` is the first echo.
+            Meaningless under ``shuffling``.
+        tr : float, optional
+            Repetition time (s), one per train; at the centre of k-space when
+            the trains are individually parameterized.
         etl : int, optional
-            Echo train length: views per excitation.
-        te : float or None, optional
-            Effective echo time, in seconds, rounded onto the echo grid.
-            Ignored by ``radial``, which puts the centre on the first echo,
-            and meaningless under ``shuffling``. ``None`` is the first echo.
-        tr : float or None, optional
-            Repetition time, in seconds, one per train. ``None`` is as short
-            as the train admits.
-        ordering : str, optional
-            One of :data:`ORDERINGS`.
-        variable_flip : bool, optional
-            Play the refocusing train of :func:`traps_flip_schedule` rather
-            than constant 180s.
-        alpha_min_deg, alpha_center_deg, alpha_max_deg : float, optional
-            The variable train's control points, in degrees.
+            Echo train length; at the centre of k-space when the trains are
+            individually parameterized.
+        refocusing_angle_deg : float, optional
+            Refocusing flip angle (degrees): of every pulse under
+            ``constant``, at the TE echo under ``optimized``.
         readout_bandwidth_hz : float, optional
-            Requested receiver bandwidth, in Hz.
-        acceleration : int, optional
-            Uniform phase-encode undersampling factor along y.
-        acceleration_z : int, optional
-            Uniform partition-encode undersampling factor along z.
+            Requested receiver bandwidth (Hz).
+        ry, rz : int, optional
+            Undersampling along the phase and the partition encode.
         caipi_shift : int, optional
-            CAIPIRINHA shift along kz per sampled-ky block, for the regular
-            orderings. ``0`` is a plain lattice.
-        elliptical : bool, optional
-            Keep only the views inside the inscribed ky-kz ellipse.
-        n_acs_y : int, optional
-            Calibration extent along y, in lines.
-        n_acs_z : int, optional
-            Calibration extent along z, in partitions.
+            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            Unused by ``shuffling``.
+        partial_fourier_x : float, optional
+            Fraction of the echo acquired, in ``[0.75, 1]``.
+        partial_fourier_y, partial_fourier_z : float, optional
+            Fraction of the phase- and partition-encode extent acquired, in
+            ``[0.75, 1]``.
         n_dummy : int, optional
             Trains played without acquiring before the first.
-        shuffle_seed : int, optional
-            Seed of the shuffling permutation and its Poisson-disc set.
-        n_gain_calibration_readouts : int, optional
-            Written as the ``NumGainCalibrationReadouts`` definition.
-        crusher_cycles : float, optional
-            Cycles of dephasing each crusher beside a refocusing pulse winds.
-        readout_crusher_cycles : float, optional
-            Read-axis crushing each side of every acquisition, in cycles.
-        navigator : bool, optional
-            Play three-plane spiral navigators in the TR wait after each train.
-        n_navigators : int or str, optional
-            Navigators per wait; ``"auto"`` fits as many as the wait holds.
-        wave : {'phase', 'partition', 'both'} or None, optional
-            Wave-CAIPI encoding gradients under every readout. The calibration
-            rectangle is then acquired again without it.
+        excitation : {'slab', 'nonselective'}, optional
+            Slab-selective excitation and refocusing, or hard pulses with
+            readout-axis crushers, which shorten the echo spacing.
+        readout_oversampling : float, optional
+            Readout oversampling factor, at least one.
+        esp : float | None, optional
+            Echo spacing (s). ``None`` is as short as the train admits.
+        n_acs_y, n_acs_z : int, optional
+            Extent of the fully sampled calibration region along the phase
+            and the partition encode, when undersampled.
+        elliptical_acs : bool, optional
+            Make the calibration region the ellipse inscribed in the
+            ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
+        ordering : {'radial', 'shuffling'}, optional
+            Adaptive radial reordering on the CAIPIRINHA lattice, or a
+            shuffled Poisson-disc set.
+        flip_modulation : {'constant', 'optimized'}, optional
+            Constant refocusing angles, or trains designed with torchsim,
+            which the ``design`` extra installs.
+        tr_periphery : float | None, optional
+            Repetition time (s) at the periphery of k-space. ``None`` is
+            ``tr``.
+        etl_periphery : int | None, optional
+            Echo train length at the periphery of k-space. ``None`` is
+            ``etl``.
+        wave : {'phase', 'partition', 'both'}, optional
+            Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
+            wave-encoding gradients the calibration region is acquired again
+            first without them, marked ``REF``, and no wave-encoded view is
+            marked ``IMA``.
         wave_cycles : int, optional
-            Wave periods across the readout.
+            Wave periods across the sampling window; zero plays no wave.
         wave_amplitude : float, optional
-            Peak wave gradient, in T/m; a ceiling the slew rate may lower.
-        """
-        system = self.system
-        fov_x, fov_y = (fov, fov) if np.isscalar(fov) else fov
-        self.fov = (fov_x, fov_y, slab_thickness)
-        self.matrix = (n_x, n_y, n_z)
-        self.n_dummy, self.wave, self.ordering = n_dummy, wave, ordering
-        self.n_gain_calibration_readouts = n_gain_calibration_readouts
+            Requested peak wave-encoding gradient amplitude (T/m); zero, the
+            default, plays no wave. The slew rate may lower it.
+        navigator : bool, optional
+            Play three-plane spiral navigators after each train, as many as
+            the shortest TR holds up to :attr:`NAVIGATOR_COUNT`.
 
-        self.exc = sequences.SpatialSelectiveExcitation(
-            system,
-            90.0,
-            slab_thickness,
-            duration_s=self.PULSE_DURATION,
-            time_bw_product=self.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-        refocusing = sequences.SpatialSelectiveRefocusing(
-            system,
-            slab_thickness,
-            duration_s=self.PULSE_DURATION,
-            time_bw_product=self.TIME_BW_PRODUCT,
-            spoiling_cycles=crusher_cycles,
-        )
+        Raises
+        ------
+        ValueError
+            If ``excitation``, ``ordering`` or ``flip_modulation`` is unknown, a
+            partial Fourier fraction is outside ``[0.75, 1]``, a count is below
+            one, ``caipi_shift`` is outside ``[0, rz)``, ``wave`` names no wave
+            mode, individually parameterized trains are shuffled, a train ends
+            before the TE echo, or a TR is shorter than the longest train.
+        ImportError
+            If ``optimized`` is asked for without torchsim.
+        """
+        self.n_dummy = n_dummy
+        for name, value, allowed in (
+            ("excitation", excitation, EXCITATIONS),
+            ("ordering", ordering, ORDERINGS),
+            ("flip_modulation", flip_modulation, MODULATIONS),
+        ):
+            if value not in allowed:
+                raise ValueError(f"{name} must be one of {allowed}, got {value!r}")
+        for name, fraction in (
+            ("partial_fourier_x", partial_fourier_x),
+            ("partial_fourier_y", partial_fourier_y),
+            ("partial_fourier_z", partial_fourier_z),
+        ):
+            if not 0.75 <= fraction <= 1.0:
+                raise ValueError(f"{name} must lie in [0.75, 1], got {fraction}")
+        tr_periphery = tr if tr_periphery is None else tr_periphery
+        etl_periphery = etl if etl_periphery is None else etl_periphery
+        for name, count in (
+            ("ry", ry),
+            ("rz", rz),
+            ("etl", etl),
+            ("etl_periphery", etl_periphery),
+        ):
+            if count < 1:
+                raise ValueError(f"{name} must be at least 1, got {count}")
+        if not 0 <= caipi_shift < rz:
+            raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
+        self.individual = tr_periphery != tr or etl_periphery != etl
+        if self.individual and ordering != "radial":
+            raise ValueError(
+                "individually parameterized trains need the radial order, which "
+                "places each view by its distance from the prescription"
+            )
+
+        system = self.system
+        self.fov = (fov_x, fov_y, fov_z)
+        self.matrix = (n_x, n_y, n_z)
+        self.excitation, self.ordering = excitation, ordering
+        self.flip_modulation = flip_modulation
+        self.refocusing_angle_deg = refocusing_angle_deg
+        self.repetition_time, self.tr_periphery = tr, tr_periphery
+        self.etl, self.etl_periphery = etl, etl_periphery
+        etl_max = max(etl, etl_periphery)
+
+        if excitation == "slab":
+            self.exc = sequences.SpatialSelectiveExcitation(
+                system,
+                90.0,
+                fov_z,
+                duration_s=self.PULSE_DURATION,
+                time_bw_product=self.TIME_BW_PRODUCT,
+                is_slab=True,
+            )
+            refocusing = sequences.SpatialSelectiveRefocusing(
+                system,
+                fov_z,
+                duration_s=self.PULSE_DURATION,
+                time_bw_product=self.TIME_BW_PRODUCT,
+                spoiling_cycles=self.CRUSHER_CYCLES,
+            )
+            rf_ref, gz_ref, read_crushing = refocusing.rf_ref, refocusing.gz, 0.0
+        else:
+            # An even number of block rasters puts each pulse centre on the raster.
+            raster = system.block_duration_raster
+            hard = (
+                2 * raster * math.ceil(self.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
+            )
+            self.exc = sequences.NonSelectiveExcitation(system, 90.0, duration_s=hard)
+            rf_ref = sequences.NonSelectiveRefocusing(system, duration_s=hard).rf_ref
+            gz_ref, read_crushing = None, self.CRUSHER_CYCLES
+        self.gz = getattr(self.exc, "gz", None)
         self.fse = fse = sequences.FseReadout3D(
             system,
             self.exc.rf,
-            self.exc.gz,
-            rf_ref=refocusing.rf_ref,
-            gz_ref=refocusing.gz,
+            self.gz,
+            rf_ref=rf_ref,
+            gz_ref=gz_ref,
             fov=self.fov,
             matrix=self.matrix,
-            etl=etl,
+            etl=etl_max,
+            esp=esp,
+            partial_echo=partial_fourier_x,
+            oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=readout_crusher_cycles,
+            spoiling_cycles=read_crushing,
             wave=wave,
             wave_cycles=wave_cycles,
             wave_amplitude=wave_amplitude,
         )
         self.nominal = fse.rf_ref.amplitude
-        self.wave_events = [
-            g
-            for g in (getattr(fse, "gy_wave", None), getattr(fse, "gz_wave", None))
-            if g
+        self.gz_ref = getattr(fse, "gz_ref", None)
+        self.waves = [
+            gradient
+            for gradient in (
+                getattr(fse, "gy_wave", None),
+                getattr(fse, "gz_wave", None),
+            )
+            if gradient is not None
+        ]
+        self.no_waves = [pp.scale_grad(g, 0.0) for g in self.waves]
+        self.te_echo = 0 if te is None else int(np.argmin(np.abs(fse.echo_times - te)))
+        if min(etl, etl_periphery) <= self.te_echo:
+            raise ValueError(
+                f"a train of {min(etl, etl_periphery)} echoes ends before echo "
+                f"{self.te_echo + 1}, which the TE of {te * 1e3:.1f} ms falls on"
+            )
+
+        views, self.calibration = sampled_views(
+            (n_y, n_z),
+            (ry, rz),
+            caipi_shift,
+            (n_acs_y, n_acs_z),
+            (partial_fourier_y, partial_fourier_z),
+            elliptical_acs,
+            shuffling=ordering == "shuffling",
+            seed=self.SHUFFLE_SEED,
+        )
+        coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
+        self.lengths, self.times, place = shot_parameters(
+            len(views), etl, etl_periphery, tr, tr_periphery
+        )
+        raster = system.block_duration_raster
+        self.times = [pp.round_to_raster(time, raster) for time in self.times]
+        if not self.individual:
+            # Identical trains sit nowhere along a transition.
+            place = np.zeros_like(place)
+        if ordering == "shuffling":
+            order = make_shuffling_order(coords, etl, seed=self.SHUFFLE_SEED, pad=True)
+            self.lengths = [etl] * len(order)
+            self.times = [tr] * len(order)
+            place = np.zeros(len(order))
+        else:
+            order = deal_trains(coords, self.lengths, place, self.te_echo, etl_max)
+        self.trains = [
+            [None if i is None else views[i] for i in train] for train in order
         ]
 
-        radial = ordering == "radial" or te is None
-        self.n_center = 0 if radial else int(np.argmin(abs(fse.echo_times - te)))
-        self.flips = (
-            traps_flip_schedule(
-                etl,
-                self.n_center,
-                alpha_min_deg=alpha_min_deg,
-                alpha_center_deg=alpha_center_deg,
-                alpha_max_deg=alpha_max_deg,
+        # Refocusing angles, one row per shot; past its own length a shot's
+        # pulses play at zero amplitude.
+        played = np.arange(etl_max)[None, :] < np.asarray(self.lengths)[:, None]
+        if flip_modulation == "optimized":
+            self.flips = design_trains(
+                self, self.lengths, self.times, place, self.te_echo, etl_max, fse.esp
             )
-            if variable_flip
-            else np.full(etl, 180.0)
-        )
+        else:
+            self.flips = refocusing_angle_deg * played.astype(float)
 
-        # Navigators ride in the TR wait after each train, where they cost no
-        # scan time; what is left of the wait closes the repetition.
-        length = fse.duration
-        self.navigator, self.n_navigators = None, 0
+        # A wave-encoded view calibrates nothing, so with the wave on the
+        # calibration region is acquired again wave-free, in trains of its own
+        # played as the first shot is.
+        self.reference = []
+        if self.waves:
+            region = [v for v in views if v in self.calibration]
+            for start in range(0, len(region), self.lengths[0]):
+                chunk = region[start : start + self.lengths[0]]
+                self.reference.append(chunk + [None] * (etl_max - len(chunk)))
+
+        # Navigators ride after each train, where they cost no scan time; the
+        # closing delay makes every shot's own TR.
+        shortest = min(self.times)
+        if shortest < fse.duration + raster - 1e-9:
+            raise ValueError(
+                f"the TR of {shortest * 1e3:.1f} ms is shorter than the "
+                f"{(fse.duration + raster) * 1e3:.1f} ms the longest train takes"
+            )
+        self.navigator, self.n_navigators, navigating = None, 0, 0.0
         if navigator:
             self.navigator = sequences.SpiralNavigator(
                 system, navigator_tr=self.NAVIGATOR_TR
             )
-            window = 0.0 if tr is None else max(tr - length, 0.0)
             self.n_navigators = self.navigator.fit(
-                window, n_navigators, limit=self.NAVIGATOR_COUNT
+                shortest - fse.duration - raster, "auto", limit=self.NAVIGATOR_COUNT
             )
-            length += self.n_navigators * self.navigator.duration
-        self.wait_tr = None
-        if tr is not None:
-            if tr < length - 1e-9:
-                raise ValueError(
-                    f"TR {tr * 1e3:.1f} ms is shorter than one train takes "
-                    f"({length * 1e3:.1f} ms)"
-                )
-            pad = pp.round_to_raster(tr - length, system.block_duration_raster)
-            if pad > 0:
-                self.wait_tr = pp.make_delay(pad)
-                length += pad
-        self.repetition_time = length
-
-        if ordering == "shuffling" and acceleration * acceleration_z > 1:
-            mask = make_poisson_disc_mask(
-                (n_y, n_z),
-                float(acceleration * acceleration_z),
-                calib=(n_acs_y, n_acs_z),
-                seed=shuffle_seed,
-            )
-            views = [(int(y), int(z)) for y, z in np.argwhere(mask)]
-        elif ordering == "shuffling":
-            views = [(y, z) for z in range(n_z) for y in range(n_y)]
-        else:
-            views, _ = calc_sampled_pairs(
-                (n_y, n_z),
-                (acceleration, acceleration_z),
-                (n_acs_y, n_acs_z),
-                caipi_shift=caipi_shift,
-                elliptical=elliptical,
-                order="ascending",
-            )
-        self.trains = order_views(
-            views, etl, self.n_center, ordering, (n_y, n_z), seed=shuffle_seed
-        )
-
-        self.acs = (
-            set(calc_calibration_lines(n_y, n_acs_y)),
-            set(calc_calibration_lines(n_z, n_acs_z)),
-        )
-        # A wave-encoded line calibrates nothing, so with the wave on the
-        # calibration rectangle is acquired again wave-free, as trains of its own.
-        self.calibration_views = (
-            [v for v in views if v[0] in self.acs[0] and v[1] in self.acs[1]]
-            if wave is not None
-            else []
-        )
-        n_calibration_trains = -(-len(self.calibration_views) // etl)
-        self.duration = (n_dummy + len(self.trains) + n_calibration_trains) * length
+            navigating = self.n_navigators * self.navigator.duration
+        self.closing = [
+            pp.round_to_raster(time - fse.duration - navigating, raster)
+            for time in self.times
+        ]
+        self.duration = (n_dummy + len(self.reference)) * tr + sum(self.times)
 
     def loop(self) -> None:
-        """Play the dummy trains, the wave-free calibration trains, then the imaging trains."""
-        etl = self.fse.etl
-        blank = [None] * etl
+        """Play the dummy trains, the wave-free reference trains, then every shot."""
+        blank = [None] * self.fse.etl
         for _ in range(self.n_dummy):
-            self.kernel(blank, acquire=False, flags={"ONCE": 1})
-        segment = 0
-        if self.wave is not None:
-            views = self.calibration_views
-            for start in range(0, len(views), etl):
-                train = (views[start : start + etl] + blank)[:etl]
-                self.kernel(train, wave=0.0, flags={"ONCE": 0, "REF": 1, "SEG": 0})
-            segment = 1
-        for train in self.trains:
-            self.kernel(train, flags={"ONCE": 0, "REF": 0, "SEG": segment})
+            self.kernel(blank, self.flips[0], self.closing[0], "dummy")
+        for views in self.reference:
+            self.kernel(views, self.flips[0], self.closing[0], "reference")
+        for views, flips, closing in zip(
+            self.trains, self.flips, self.closing, strict=True
+        ):
+            self.kernel(views, flips, closing)
 
-    def kernel(
-        self,
-        views: list[tuple[int, int] | None],
-        acquire: bool = True,
-        wave: float = 1.0,
-        flags: dict[str, int] | None = None,
-    ) -> None:
-        """One echo train over ``views``; ``None`` plays an echo unencoded.
+    def kernel(self, views, flips, closing: float, kind: str = "image") -> None:
+        """One echo train over ``views`` at refocusing angles ``flips`` (degrees).
 
-        ``wave`` scales the wave-encoding gradients, and ``flags`` are the labels the train
-        carries on its excitation.
+        ``None`` plays an echo unencoded and unacquired, and ``closing`` is the
+        delay after the train. A ``dummy`` train acquires nothing and a
+        ``reference`` train plays without the wave.
         """
         fse, seq = self.fse, self.seq
         n_y, n_z = self.matrix[1:]
-        acs_y, acs_z = self.acs
-        wave_gradients = [pp.scale_grad(g, wave) for g in self.wave_events]
+        waves = self.no_waves if kind == "reference" else self.waves
+        if kind == "dummy":
+            flags = {"ONCE": 1}
+        else:
+            flags = {"ONCE": 0} if self.n_dummy else {}
+            if self.waves:
+                flags["REF"] = int(kind == "reference")
 
-        seq.add_block(fse.rf, fse.gz, *self.labels(**(flags or {})))
+        seq.add_block(
+            fse.rf, *([] if self.gz is None else [self.gz]), *self.labels(**flags)
+        )
         seq.add_block(fse.gx_pre)
-        for echo, view in enumerate(views):
-            fse.rf_ref.amplitude = self.nominal * self.flips[echo] / 180.0
-            seq.add_block(fse.rf_ref, fse.gz_ref)
+        for echo, (view, flip) in enumerate(zip(views, flips, strict=True)):
+            fse.rf_ref.amplitude = self.nominal * float(flip) / 180.0
+            seq.add_block(fse.rf_ref, *([] if self.gz_ref is None else [self.gz_ref]))
             if echo == 0 and fse.esp_first > fse.esp:
                 seq.add_block(fse.wait_esp1)
-            line, partition = (n_y / 2, n_z / 2) if view is None else view
-            ky, kz = (line - n_y / 2) / (n_y / 2), (partition - n_z / 2) / (n_z / 2)
+            line, partition = (n_y // 2, n_z // 2) if view is None else view
+            ky = (line - n_y // 2) / (n_y / 2)
+            kz = (partition - n_z // 2) / (n_z / 2)
             seq.add_block(
                 fse.gx_bridge_pre,
                 pp.scale_grad(fse.gy_pre, ky),
                 pp.scale_grad(fse.gz_pre, kz),
             )
-            if acquire and view is not None:
-                calibrating = self.wave is None and line in acs_y and partition in acs_z
+            if kind != "dummy" and view is not None:
+                calibrating = not self.waves and view in self.calibration
                 labels = self.labels(LIN=line, PAR=partition, ECO=echo, IMA=calibrating)
-                seq.add_block(fse.gx, fse.adc, *wave_gradients, *labels)
+                seq.add_block(fse.gx, *waves, fse.adc, *labels)
             else:
-                seq.add_block(fse.gx, *wave_gradients)
+                seq.add_block(fse.gx, *waves)
             seq.add_block(
                 fse.gx_bridge_post,
                 pp.scale_grad(fse.gy_rew, ky),
                 pp.scale_grad(fse.gz_rew, kz),
             )
+        fse.rf_ref.amplitude = self.nominal
         for _ in range(self.n_navigators):
             for block in self.navigator.blocks:
                 seq.add_block(*block)
-        if self.wait_tr is not None:
-            seq.add_block(self.wait_tr)
-        fse.rf_ref.amplitude = self.nominal
+        seq.add_block(pp.make_delay(closing))
 
     def finalize(self) -> None:
-        """Write the prescription, echo timing and flip train as definitions."""
+        """Write the prescription, the echo timing and the trains as definitions."""
+        # The volume's offset is applied to the finished sequence with
+        # pp.TransformFOV.
         n_x, n_y, n_z = self.matrix
         definitions = {
             "FOV": list(self.fov),
             "Matrix": [n_x, n_y, n_z],
             "Name": self.NAME,
-            "TE": float(self.fse.echo_times[self.n_center]),
+            "TE": float(self.fse.echo_times[self.te_echo]),
             "TR": self.repetition_time,
             "EchoSpacing": self.fse.esp,
-            "EchoTrainLength": self.fse.etl,
+            "EchoTrainLength": self.etl,
+            "Excitation": self.excitation,
             "ViewOrdering": self.ordering,
-            "RefocusingFlipAngles": list(self.flips),
-            "NumGainCalibrationReadouts": self.n_gain_calibration_readouts,
+            "FlipModulation": self.flip_modulation,
+            "RefocusingFlipAngles": [
+                float(f) for f in self.flips[0][: self.lengths[0]]
+            ],
+            "NumShots": len(self.trains),
             "kSpaceCenterLine": n_y // 2,
             "kSpaceCenterPartition": n_z // 2,
             "kSpaceCenterSample": self.fse.center_sample,
-            "SliceThickness": self.exc.slice_thickness,
+            "SliceThickness": self.fov[2],
         }
+        if self.individual:
+            definitions["TRPeriphery"] = self.tr_periphery
+            definitions["EchoTrainLengthPeriphery"] = self.etl_periphery
         for key, value in definitions.items():
             self.seq.set_definition(key=key, value=value)
 

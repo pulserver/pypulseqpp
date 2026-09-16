@@ -55,32 +55,27 @@ SMALL = {
         "n_acs_z": 0,
         "tr": None,
     },
-    "fse2D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_slices": 1,
-        "etl": 4,
-        "n_acs_y": 0,
-        "te": None,
-        "tr": None,
-    },
     "mprage3D_sequence": {
         "n_x": 32,
         "n_y": 16,
         "n_z": 8,
-        "views_per_segment": 16,
         "ti": 100e-3,
-        "tr_outer": 300e-3,
-        "n_acs_y": 0,
-        "n_acs_z": 0,
+        "tr": 300e-3,
         "n_dummy": 0,
     },
     "mprage_stack_of_spirals3D_sequence": {
-        "n_x": 32,
+        "n": 32,
         "n_z": 4,
-        "n_arms": 4,
+        "n_shots": 4,
         "ti": 100e-3,
-        "tr_outer": 300e-3,
+        "tr": 300e-3,
+        "n_dummy": 0,
+    },
+    "mprage_stack_of_stars3D_sequence": {
+        "n": 32,
+        "n_z": 4,
+        "ti": 100e-3,
+        "tr": 500e-3,
         "n_dummy": 0,
     },
     "bssfp2D_sequence": {
@@ -103,10 +98,8 @@ SMALL = {
         "n_y": 16,
         "n_z": 8,
         "etl": 4,
-        "n_acs_y": 0,
-        "n_acs_z": 0,
         "te": None,
-        "tr": None,
+        "tr": 200e-3,
     },
 }
 
@@ -320,74 +313,6 @@ def test_each_acquisition_carries_the_line_and_slice_it_encodes():
     assert list(seg) == [1 - int(line in app.calibration) for line, _ in expected]
 
 
-# -- what the 3D fast spin echo is -----------------------------------------
-
-
-def fse(**kwargs):
-    return sequences.fse3D_sequence(**{**SMALL["fse3D_sequence"], **kwargs})
-
-
-def fse_app(**kwargs):
-    return sequences.fse3D_sequence.Fse3DApp(
-        pp.Opts(), **{**SMALL["fse3D_sequence"], **kwargs}
-    )
-
-
-@pytest.mark.parametrize("ordering", sequences.fse3D_sequence.ORDERINGS)
-def test_every_sampled_view_is_acquired_once_at_its_place_in_the_train(ordering):
-    app = fse_app(ordering=ordering, acceleration=2, n_acs_y=4, n_acs_z=2)
-    lin, par, eco = adc_labels(app.design(), "LIN", "PAR", "ECO")
-
-    views = [v for train in app.trains for v in train if v is not None]
-    echoes = [e for train in app.trains for e, v in enumerate(train) if v is not None]
-
-    assert list(zip(lin, par, strict=True)) == views
-    assert len(set(views)) == len(views)
-    assert list(eco) == echoes
-
-
-def test_the_effective_echo_is_the_one_asked_for():
-    app = fse_app(etl=8, te=40e-3, ordering="linear")
-    written = np.atleast_1d(app.design().definitions["TE"])[0]
-
-    assert written == pytest.approx(app.fse.echo_times[app.n_center])
-    assert abs(written - 40e-3) <= app.fse.esp / 2
-
-
-def test_a_variable_train_starts_and_ends_at_its_largest_flip():
-    flips = sequences.fse3D_sequence.traps_flip_schedule(16, 8)
-
-    assert flips[0] == flips[-1] == 160.0
-    assert flips.min() == 60.0
-    assert flips[8] == 100.0
-
-
-def test_the_wave_free_calibration_trains_lead_and_are_marked_reference():
-    app = fse_app(wave="both", wave_cycles=2, n_acs_y=4, n_acs_z=2)
-    seq = app.design()
-    ref, seg = adc_labels(seq, "REF", "SEG")
-    n_reference = len(app.calibration_views)
-
-    assert seq.check_timing()[0]
-    assert list(ref[:n_reference]) == [1] * n_reference
-    assert set(ref[n_reference:]) == {0}
-    assert set(seg[n_reference:]) == {1}
-
-
-def test_navigators_fit_in_the_repetition_asked_for():
-    app = fse_app(navigator=True, tr=1.0)
-    seq = app.design()
-
-    assert app.n_navigators > 0
-    assert app.repetition_time == pytest.approx(1.0)
-    assert seq.check_timing()[0]
-
-
-def test_a_repetition_shorter_than_the_train_is_refused():
-    with pytest.raises(ValueError, match="shorter than one train"):
-        fse(tr=1e-3)
-
-
 # -- the application contract ----------------------------------------------
 
 
@@ -529,7 +454,7 @@ def test_the_command_line_writes_what_the_call_builds(tmp_path):
     ("name", "flag", "help_text"),
     [
         ("gre2D_sequence", "--flip-angle-deg", "Excitation flip angle (degrees)."),
-        ("fse3D_sequence", "--etl", "Echo train length: views per excitation."),
+        ("fse3D_sequence", "--flip-modulation", "Constant refocusing angles, or"),
     ],
 )
 def test_a_flag_is_named_and_described_by_the_function_it_runs(
