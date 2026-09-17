@@ -23,24 +23,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="An echo-planar train samples the whole phase-encode axis after one excitation, so off-resonance accumulates along that axis instead of across repetitions. A spin at offset \Delta f acquires phase 2\pi \Delta f\, m\, \mathrm{esp} on echo m, which is linear in k_y and therefore a displacement of">
-
-.. only:: html
-
-  .. image:: /generated/gallery/15-epi/images/thumb/sphx_glr_epi-segmentation-and-acceleration_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/15-epi/epi-segmentation-and-acceleration`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a train of readout lobes of alternating polarity with phase-encode blips between them, so the whole phase-encode axis is covered in one or a few shots.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encode blip between them, so the whole phase-encode axis is covered after a single pulse. Off-resonance then accumulates along that axis instead of across repetitions, and the train length is what decides how far it displaces the image.">
 
 .. only:: html
 
@@ -57,7 +40,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and a partition encode over the echo-planar train, with the skipped-CAIPI lattice available when both encoded axes are undersampled.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA lattice: line y is read when (y - n_y // 2) % ry == 0, and the partition it is read at advances by the CAIPI shift from one lattice line to the next. A shot reads every n_shots-th lattice line, which is skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
 
 .. only:: html
 
@@ -82,7 +65,6 @@ Echo-planar imaging
 .. toctree::
    :hidden:
 
-   /generated/gallery/15-epi/epi-segmentation-and-acceleration
    /generated/gallery/15-epi/epi2D_sequence
    /generated/gallery/15-epi/epi3D_sequence
 

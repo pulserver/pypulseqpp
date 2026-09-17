@@ -61,6 +61,23 @@ Getting started
     </div>
 
 
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The package computes five checks over a finished sequence: the gradient amplitude and slew rate the hardware is asked for, the continuity of the gradient waveform across block boundaries, the nerve response the slew implies, the gradient spectrum inside a scanner&#x27;s forbidden bands, and the power a transmit array deposits. Each returns a verdict and a report, and this page runs all of them over one sequence.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/01-getting-started/images/thumb/sphx_glr_safety-checks_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/01-getting-started/safety-checks`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Checking a sequence for safety</div>
+    </div>
+
+
 .. thumbnail-parent-div-close
 
 .. raw:: html
@@ -332,7 +349,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One phase-encode line is read per repetition and the transverse magnetisation is spoiled between them, so the signal is a steady state of the flip angle, the repetition time and T1.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. The workhorse of the family, and the sequence the other Cartesian variants are read against.">
 
 .. only:: html
 
@@ -349,7 +366,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation replaces the slice-selective one and the second phase encode samples the partition axis, so one repetition reads one (line, partition) view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse.">
 
 .. only:: html
 
@@ -366,7 +383,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each excitation is followed by several readout lobes, so one phase-encode line is sampled at several echo times and the decay across them measures T2*.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. The signal decays between echoes at a rate the tissue&#x27;s apparent transverse relaxation sets, so one repetition measures the decay rather than one point on it.">
 
 .. only:: html
 
@@ -383,7 +400,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout of the two-dimensional sequence over a slab-selective excitation and a partition encode.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times.">
 
 .. only:: html
 
@@ -400,7 +417,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot reads a rectangular blade of Cartesian lines and the blades are rotated to cover k-space. Every blade samples the centre, so the shots can be registered against each other before reconstruction.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected.">
 
 .. only:: html
 
@@ -417,7 +434,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every repetition reads a full spoke through the centre of k-space, so the low spatial frequencies are sampled once per repetition rather than once per scan.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the centre, so the acquisition is insensitive to motion between repetitions in a way a Cartesian one is not, and undersampling shows as streaks rather than as aliasing.">
 
 .. only:: html
 
@@ -434,7 +451,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read per repetition, designed from the prescription rather than from a fixed shape, and rotated to each of n_shots angles.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions.">
 
 .. only:: html
 
@@ -451,7 +468,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and a Cartesian partition encode along z.">
+    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis.">
 
 .. only:: html
 
@@ -468,7 +485,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and a Cartesian partition encode along z.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines.">
 
 .. only:: html
 
@@ -485,7 +502,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and a Cartesian partition encode along z. The in-plane interleaf is one waveform for the whole scan, rotated per shot.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane acquisition keeps the motion behaviour of a radial one; the partition axis keeps the efficiency of Cartesian encoding.">
 
 .. only:: html
 
@@ -527,7 +544,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A refocusing pulse between the excitation and the readout recovers the dephasing from static field inhomogeneity, so the acquired echo is weighted by T2 rather than by T2*.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per repetition, with the line read at the refocused echo. Refocusing undoes the dephasing that static field inhomogeneity causes, so the contrast follows the true transverse relaxation rather than the apparent one.">
 
 .. only:: html
 
@@ -544,7 +561,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One (line, partition) view is read per excitation, at a refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per (line, partition) view over a slab.">
 
 .. only:: html
 
@@ -561,7 +578,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A whole blade is read after one excitation as an echo-planar train, so a PROPELLER coverage is acquired in as many shots as there are blades.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One whole blade per excitation, read as an echo-planar train. The blade is acquired in one shot rather than a line at a time, so the scan is far shorter than a line-by-line PROPELLER and the blade carries the off-resonance behaviour of an echo-planar readout.">
 
 .. only:: html
 
@@ -578,7 +595,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotated blade is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -595,7 +612,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A full spoke through the centre of k-space is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -612,7 +629,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -629,7 +646,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 
@@ -646,7 +663,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 
@@ -663,7 +680,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 
@@ -705,24 +722,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/13-fast-spin-echo/images/thumb/sphx_glr_fse-echo-ordering-and-point-spread_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/13-fast-spin-echo/fse-echo-ordering-and-point-spread`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a CPMG train of refocusing pulses, and one (line, partition) view is read at each echo. The amplitude left at an echo weights whichever view that echo reads.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. The train amplitude at echo m becomes the weight of whichever view that echo reads, so the map from echo index to k-space position is a filter applied to the image, and the ordering is what chooses it.">
 
 .. only:: html
 
@@ -764,7 +764,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads every sampled line of a single partition as a spoiled gradient-echo train, so the partition encode is constant within a shot.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The contrast follows from where in the recovery the centre of k-space is acquired, so the ordering within the train is part of the sequence rather than a reconstruction choice.">
 
 .. only:: html
 
@@ -781,7 +781,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the interleaves of a single partition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion.">
 
 .. only:: html
 
@@ -798,7 +798,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the spokes of a single partition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines.">
 
 .. only:: html
 
@@ -840,7 +840,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the steady state depends on the off-resonance accumulated over one repetition time.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the magnetisation reaches a steady state that carries both relaxation times. The train opens with a half flip, which places the magnetisation on the axis the steady state oscillates about.">
 
 .. only:: html
 
@@ -857,7 +857,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure of the two-dimensional sequence over a partition-encoded slab, with each train opened by a half flip.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure over a partition-encoded slab, with each train opened by a half flip.">
 
 .. only:: html
 
@@ -899,24 +899,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="An echo-planar train samples the whole phase-encode axis after one excitation, so off-resonance accumulates along that axis instead of across repetitions. A spin at offset \Delta f acquires phase 2\pi \Delta f\, m\, \mathrm{esp} on echo m, which is linear in k_y and therefore a displacement of">
-
-.. only:: html
-
-  .. image:: /generated/gallery/15-epi/images/thumb/sphx_glr_epi-segmentation-and-acceleration_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/15-epi/epi-segmentation-and-acceleration`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a train of readout lobes of alternating polarity with phase-encode blips between them, so the whole phase-encode axis is covered in one or a few shots.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encode blip between them, so the whole phase-encode axis is covered after a single pulse. Off-resonance then accumulates along that axis instead of across repetitions, and the train length is what decides how far it displaces the image.">
 
 .. only:: html
 
@@ -933,7 +916,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and a partition encode over the echo-planar train, with the skipped-CAIPI lattice available when both encoded axes are undersampled.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA lattice: line y is read when (y - n_y // 2) % ry == 0, and the partition it is read at advances by the CAIPI shift from one lattice line to the next. A shot reads every n_shots-th lattice line, which is skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
 
 .. only:: html
 
@@ -975,7 +958,7 @@ Zero echo time
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins without a ramp and the trajectory starts at the centre of k-space.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. What the pulse cannot excite during the gradient, and what the dead time costs at the centre of k-space, are the price of it.">
 
 .. only:: html
 

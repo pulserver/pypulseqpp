@@ -273,6 +273,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -554,9 +555,9 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path">The path</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-interleaf">The interleaf</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-readout-module">The readout module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-twist-costs">What the twist costs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-module-in-a-repetition">The module in a repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#played-by-a-scan-loop">Played by a scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration-against-a-spiral">Readout duration against a spiral</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
 </ul>
             </nav>
         </div>
@@ -693,8 +694,8 @@ shipped spiral and rosette readouts are written.</p>
 </span>        <span class="nb">super</span><span class="p">(</span><span class="p">)</span><span class="o">.</span><span class="n">init_module</span><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span> <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gz_reph</span><span class="p">,</span> <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span> <span class="o">*</span><span class="o">*</span><span class="n">kwargs</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 </section>
-<section id="what-the-twist-costs">
-<h2>What the twist costs<a class="headerlink" href="#what-the-twist-costs" title="Link to this heading">#</a></h2>
+<section id="readout-duration-against-a-spiral">
+<h2>Readout duration against a spiral<a class="headerlink" href="#readout-duration-against-a-spiral" title="Link to this heading">#</a></h2>
 <p>A constant-density spiral designed for the same interleaf count samples the
 same field of view at the same resolution, and spends longer doing it: the
 twisting arm crosses the centre of k-space radially, where the spiral has to
@@ -732,8 +733,8 @@ transition radius 11.6 of 290.9 1/m
 </pre></div>
 </div>
 </section>
-<section id="the-module-in-a-repetition">
-<h2>The module in a repetition<a class="headerlink" href="#the-module-in-a-repetition" title="Link to this heading">#</a></h2>
+<section id="one-repetition">
+<h2>One repetition<a class="headerlink" href="#one-repetition" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><span class="n">excitation</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><span class="n">design</span><span class="o">.</span><span class="n">SpatialSelectiveExcitation</span></a><span class="p">(</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span> <span class="n">flip_angle_deg</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">thickness_m</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">duration_s</span><span class="o">=</span><span class="mf">3e-3</span><span class="w">
 </span><span class="p">)</span><span class="w">
@@ -765,12 +766,12 @@ transition radius 11.6 of 290.9 1/m
 events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
 TE 2.080 ms over a 9.240 ms repetition
 
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f351af3a3c0&gt;, tr=1, underlays=[])
+namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f448a244b60&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
 </section>
-<section id="played-by-a-scan-loop">
-<h2>Played by a scan loop<a class="headerlink" href="#played-by-a-scan-loop" title="Link to this heading">#</a></h2>
+<section id="scan-loop">
+<h2>Scan loop<a class="headerlink" href="#scan-loop" title="Link to this heading">#</a></h2>
 <p>One solved arm is turned per shot by a rotation extension, which the loop
 adds to every block that drives an in-plane gradient.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">angles</span></a> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">INTERLEAVES</span></a><span class="p">)</span> <span class="o">/</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">INTERLEAVES</span></a><span class="w">
@@ -865,9 +866,9 @@ adds to every block that drives an in-plane gradient.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path">The path</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-interleaf">The interleaf</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-readout-module">The readout module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-twist-costs">What the twist costs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-module-in-a-repetition">The module in a repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#played-by-a-scan-loop">Played by a scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration-against-a-spiral">Readout duration against a spiral</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
 </ul>
   </nav></div>
 

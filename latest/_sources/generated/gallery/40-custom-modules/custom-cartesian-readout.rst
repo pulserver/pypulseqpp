@@ -43,8 +43,8 @@ that trade, and plays it in a scan loop.
 
 .. GENERATED FROM PYTHON SOURCE LINES 58-72
 
-The contract
-------------
+Required interface
+-------------------
 
 ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -184,8 +184,8 @@ k.
 
 .. GENERATED FROM PYTHON SOURCE LINES 186-192
 
-What the ramps buy
-------------------
+Readout duration
+----------------
 
 Both designs sample the same extent of k-space, so both resolve the same
 matrix over the same field of view. The flat-top design carries that extent
@@ -241,8 +241,8 @@ on its plateau alone, and its ramps add duration without adding samples.
 
 .. GENERATED FROM PYTHON SOURCE LINES 223-225
 
-The module in a repetition
---------------------------
+One repetition
+--------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 225-248
 
@@ -290,8 +290,8 @@ The module in a repetition
 
 .. GENERATED FROM PYTHON SOURCE LINES 249-260
 
-Where the samples land
-----------------------
+Sample spacing along the line
+-----------------------------
 
 ``calculate_kspace`` is one of the analyses a module forwards to the sequence
 it built, so the sample positions come from the events themselves rather than
@@ -338,8 +338,8 @@ at the edges of the line and a regridding step in the reconstruction.
 
 .. GENERATED FROM PYTHON SOURCE LINES 272-277
 
-Played by a scan loop
----------------------
+Scan loop
+---------
 
 The loop scales the published phase encode per line and labels the
 acquisition; the rest of the layout is played as the module laid it out.
@@ -398,14 +398,14 @@ One repetition of the module.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e52b500>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448c80bf20>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.255 seconds)
+   **Total running time of the script:** (0 minutes 0.260 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-cartesian-readout.py:

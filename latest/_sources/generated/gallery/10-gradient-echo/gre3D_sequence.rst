@@ -18,20 +18,32 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre3D_sequence.py:
 
 
-==========================
+============================
 3D Cartesian gradient echo
-==========================
+============================
 
-A slab-selective excitation replaces the slice-selective one and the second
-phase encode samples the partition axis, so one repetition reads one
-``(line, partition)`` view.
+One excitation and one ``(line, partition)`` view per repetition over a
+slab. The second phase-encode axis replaces slice selection, so the slab is
+resolved by encoding rather than by the pulse.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 10-37
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 38-43
+
+Baseline
+--------
+
+A full Cartesian sampling of the slab, inside an elliptical shutter that
+leaves the corners of the phase-encode plane unread.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-51
 
 .. code-block:: Python
 
@@ -39,15 +51,9 @@ documented on its :doc:`API page </generated/sequences/gre3D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre3D_sequence
 
-    seq = gre3D_sequence(
-        n_x=160,
-        n_y=160,
-        n_z=32,
-        te=None,
-        tr=None,
-        n_dummy=0,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = gre3D_sequence(n_x=160, n_y=160, n_z=32, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms")
 
 
 
@@ -58,23 +64,22 @@ documented on its :doc:`API page </generated/sequences/gre3D_sequence>`.
  .. code-block:: none
 
     15980 blocks, 26.77 s
+    TR 6.70 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 52-54
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 54-57
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=40)
+    baseline.paper_plot()
 
 
 
@@ -90,21 +95,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351b1324b0>, tr=40, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0debb60>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 58-63
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+Both phase-encode axes are shown. The order runs over the lines of one
+partition before moving to the next.
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-66
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
+
 
 
 
@@ -119,14 +128,111 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-73
+
+Acceleration on both encoded axes
+---------------------------------
+
+``ry`` and ``rz`` skip lines and partitions independently, so the volume is
+acquired in a quarter of the repetitions with the calibration region kept
+at the centre.
+
+.. GENERATED FROM PYTHON SOURCE LINES 73-87
+
+.. code-block:: Python
+
+
+    alternative = gre3D_sequence(
+        n_x=160, n_y=160, n_z=32, ry=2, rz=2, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    full                15980         26.77          3995
+    2 x 2                5116          8.57          1279
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="yz", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre3D_sequence_003.png
+   :alt: gre3D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 91-97
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 97-128
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.1 mT/m
+    slew rate                  pass                  167 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.26 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 17.228 seconds)
+   **Total running time of the script:** (0 minutes 24.771 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

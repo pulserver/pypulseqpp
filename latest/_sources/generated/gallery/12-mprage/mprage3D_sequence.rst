@@ -18,36 +18,48 @@
 .. _sphx_glr_generated_gallery_12-mprage_mprage3D_sequence.py:
 
 
-===================
+====================
 3D Cartesian MPRAGE
-===================
+====================
 
-Each shot applies one inversion and then reads every sampled line of a single
-partition as a spoiled gradient-echo train, so the partition encode is constant
-within a shot.
+One inversion per shot, an inversion time, and then a spoiled gradient-echo
+train that reads the views of one partition. The contrast follows from where in
+the recovery the centre of k-space is acquired, so the ordering within the
+train is part of the sequence rather than a reconstruction choice.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 11-72
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/mprage3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 73-81
+
+Timing structure
+----------------
+
+The inversion, its crusher, the inversion time, the gradient-echo train and
+the recovery that closes the cycle. The configuration below shortens the
+preparation and the train so that all of it stays visible at the width of
+this page; a protocol uses an inversion time of several hundred milliseconds
+and a train of a hundred or more readouts.
+
+.. GENERATED FROM PYTHON SOURCE LINES 81-91
 
 .. code-block:: Python
 
 
-    import pypulseqpp as pp
     from pypulseqpp.sequences import mprage3D_sequence
 
-    seq = mprage3D_sequence(
-        n_x=192,
-        n_y=128,
-        n_z=24,
-        ti=0.9,
-        tr=2.3,
-        n_dummy=0,
+    compact = mprage3D_sequence(n_x=128, n_y=32, n_z=8, ti=0.06, tr=0.305, n_dummy=0)
+    print(
+        f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
+        f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
+        f"TR {compact.get_definition('TR')[0] * 1e3:.0f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -57,24 +69,16 @@ documented on its :doc:`API page </generated/sequences/mprage3D_sequence>`.
 
  .. code-block:: none
 
-    12384 blocks, 55.20 s
+    1056 blocks, 2.44 s, TI 60 ms, TR 305 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
-
-Sequence diagram
-----------------
-
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 92-94
 
 .. code-block:: Python
 
-
-    seq.paper_plot(time_range=(0.0, 1.0))
+    compact.paper_plot()
 
 
 
@@ -90,21 +94,35 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e570950>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a85e5dc0>, tr=5, underlays=[1, 2, 3, 4, 6, 7, 8])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 95-104
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+At a protocol matrix, one inversion reads the sampled lines of one partition:
+the inversion cycle is constant along each row of the map, and the index
+within the train runs outward from the centre of the line axis. The centre of
+k-space is therefore read at the start of a train, one inversion time after
+the inversion, which is what sets the contrast; the periphery is read later,
+as the magnetisation continues to recover.
+
+.. GENERATED FROM PYTHON SOURCE LINES 104-116
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
+    protocol = mprage3D_sequence(n_x=192, n_y=128, n_z=24, ti=0.9, tr=2.3, n_dummy=0)
+    print(
+        f"{protocol.duration()[0]:.1f} s, "
+        f"{int(np.asarray(protocol.evaluate_labels(evolution='adc')['ECO']).max()) + 1} "
+        "readouts in the longest train"
+    )
+
+
 
 
 
@@ -118,15 +136,99 @@ Acquisition order
 
  .. code-block:: none
 
+    55.2 s, 128 readouts in the longest train
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 946x396 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 117-127
+
+Accelerated sampling
+--------------------
+
+``ry`` and ``rz`` skip lines and partitions, and ``caipi_shift`` moves each
+line's partitions so that the aliases land away from one another. The train
+shortens with the number of lines each partition keeps, so every view is read
+closer to the inversion and the contrast the inversion time sets is carried
+further into k-space. The scan time does not follow: it is the number of
+inversion cycles times the repetition time, and with the calibration region
+fully sampled every partition is still visited.
+
+.. GENERATED FROM PYTHON SOURCE LINES 127-143
+
+.. code-block:: Python
+
+
+    accelerated = mprage3D_sequence(
+        n_x=192, n_y=128, n_z=24, ry=2, rz=2, caipi_shift=1, ti=0.9, tr=2.3, n_dummy=0
+    )
+
+
+
+
+
+.. image-sg:: /generated/gallery/12-mprage/images/sphx_glr_mprage3D_sequence_003.png
+   :alt: mprage3D sequence
+   :srcset: /generated/gallery/12-mprage/images/sphx_glr_mprage3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                     views   cycles  per train  scan (s)
+    1 x 1             2391       24       99.6      55.2
+    2 x 2, shift 1     883       24       36.8      55.2
+
+    <Figure size 946x396 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 144-150
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 150-181
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(protocol)
+    slew_ok, slew = safety.check_max_slew(protocol)
+    cont_ok, cont = safety.check_grad_continuity(protocol)
+    pns_ok, pns = safety.check_pns(protocol, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.6 mT/m
+    slew rate                  pass                  168 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.12 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.481 seconds)
+   **Total running time of the script:** (0 minutes 4.504 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

@@ -265,6 +265,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,10 +549,7 @@
   <section id="fast-spin-echo">
 <span id="sphx-glr-generated-gallery-13-fast-spin-echo"></span><h1>Fast spin echo<a class="headerlink" href="#fast-spin-echo" title="Link to this heading">#</a></h1>
 <p>One excitation followed by a CPMG train, with one view acquired per echo.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition."><img alt="" src="../../../_images/sphx_glr_fse-echo-ordering-and-point-spread_thumb.png" />
-<p><a class="reference internal" href="fse-echo-ordering-and-point-spread.html"><span class="doc">Echo train length, signal envelope and point spread</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a CPMG train of refocusing pulses, and one (line, partition) view is read at each echo. The amplitude left at an echo weights whichever view that echo reads."><img alt="" src="../../../_images/sphx_glr_fse3D_sequence_thumb.png" />
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. The train amplitude at echo m becomes the weight of whichever view that echo reads, so the map from echo index to k-space position is a filter applied to the image, and the ordering is what chooses it."><img alt="" src="../../../_images/sphx_glr_fse3D_sequence_thumb.png" />
 <p><a class="reference internal" href="fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
 </div></div><div class="toctree-wrapper compound">

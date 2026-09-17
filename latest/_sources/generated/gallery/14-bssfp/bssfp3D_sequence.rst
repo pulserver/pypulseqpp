@@ -18,19 +18,30 @@
 .. _sphx_glr_generated_gallery_14-bssfp_bssfp3D_sequence.py:
 
 
-================
+==================
 3D balanced SSFP
-================
+==================
 
-The balanced gradient structure of the two-dimensional sequence over a
-partition-encoded slab, with each train opened by a half flip.
+The balanced gradient structure over a partition-encoded slab, with each
+train opened by a half flip.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 9-36
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/bssfp3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-25
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+Baseline
+--------
+
+A full Cartesian sampling of the slab.
+
+.. GENERATED FROM PYTHON SOURCE LINES 41-49
 
 .. code-block:: Python
 
@@ -38,13 +49,9 @@ documented on its :doc:`API page </generated/sequences/bssfp3D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import bssfp3D_sequence
 
-    seq = bssfp3D_sequence(
-        n_x=160,
-        n_y=160,
-        n_z=32,
-        tr=None,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, tr=None)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -59,19 +66,17 @@ documented on its :doc:`API page </generated/sequences/bssfp3D_sequence>`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-30
+.. GENERATED FROM PYTHON SOURCE LINES 50-52
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 30-33
+.. GENERATED FROM PYTHON SOURCE LINES 52-55
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=40)
+    baseline.paper_plot()
 
 
 
@@ -87,21 +92,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f343948cf80>, tr=40, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44881b8ad0>, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-36
+.. GENERATED FROM PYTHON SOURCE LINES 56-60
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+The phase-encode plane in the order it is read.
+
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
+
 
 
 
@@ -116,14 +124,109 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
+
+Acceleration on both encoded axes
+---------------------------------
+
+Skipping lines and partitions shortens the scan without disturbing the
+steady state, which depends on the repetition time and the flip angle
+rather than on which view is read.
+
+.. GENERATED FROM PYTHON SOURCE LINES 70-82
+
+.. code-block:: Python
+
+
+    alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    full                11985         16.46          3995
+    2 x 2                3837          5.27          1279
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 83-85
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="yz", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/14-bssfp/images/sphx_glr_bssfp3D_sequence_003.png
+   :alt: bssfp3D sequence
+   :srcset: /generated/gallery/14-bssfp/images/sphx_glr_bssfp3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 86-92
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-123
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  36.2 mT/m
+    slew rate                  pass                  165 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.23 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 17.154 seconds)
+   **Total running time of the script:** (0 minutes 24.052 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp3D_sequence.py:

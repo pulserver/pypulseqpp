@@ -269,6 +269,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,6 +549,7 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.ForbiddenBand"><code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-forbiddenband">Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -601,6 +603,15 @@ allowed inside the band, in mT/m, and 0 where the table states none.</p>
 </tbody>
 </table>
 </div>
+<section id="examples-using-forbiddenband">
+<h2>Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code><a class="headerlink" href="#examples-using-forbiddenband" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The package computes five checks over a finished sequence: the gradient amplitude and slew rate the hardware is asked for, the continuity of the gradient waveform across block boundaries, the nerve response the slew implies, the gradient spectrum inside a scanner&#x27;s forbidden bands, and the power a transmit array deposits. Each returns a verdict and a report, and this page runs all of them over one sequence."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
+<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Checking a sequence for safety</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Checking a sequence for safety</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encode blip between them, so the whole phase-encode axis is covered after a single pulse. Off-resonance then accumulates along that axis instead of across repetitions, and the train length is what decides how far it displaces the image."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
+</div></div></section>
 </section>
 
 
@@ -633,6 +644,7 @@ allowed inside the band, in mT/m, and 0 where the table states none.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.ForbiddenBand"><code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-forbiddenband">Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
 </ul>
   </nav></div>
 

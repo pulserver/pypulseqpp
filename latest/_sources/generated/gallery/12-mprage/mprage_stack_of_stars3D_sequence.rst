@@ -18,19 +18,35 @@
 .. _sphx_glr_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:
 
 
-========================
+==========================
 3D stack-of-stars MPRAGE
-========================
+==========================
 
-Each shot applies one inversion and then reads the spokes of a single
-partition.
+One inversion per shot, followed by a spoiled gradient-echo train that
+reads the radial spokes of one partition. In-plane the acquisition is
+radial, so every spoke crosses the centre of k-space and the contrast the
+inversion time sets is carried by every readout rather than by a few
+central lines.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 12-73
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/mprage_stack_of_stars3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-27
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 74-80
+
+Timing structure
+----------------
+
+The inversion, the inversion time, the spoke train over one partition, and
+the recovery. The configuration below shortens the preparation and the train
+so that all of it stays visible at the width of this page.
+
+.. GENERATED FROM PYTHON SOURCE LINES 80-93
 
 .. code-block:: Python
 
@@ -38,15 +54,14 @@ documented on its :doc:`API page </generated/sequences/mprage_stack_of_stars3D_s
     import pypulseqpp as pp
     from pypulseqpp.sequences import mprage_stack_of_stars3D_sequence
 
-    seq = mprage_stack_of_stars3D_sequence(
-        n=192,
-        n_z=16,
-        ry=4,
-        ti=0.9,
-        tr=2.3,
-        n_dummy=0,
+    compact = mprage_stack_of_stars3D_sequence(
+        n=96, n_z=8, ry=8, ti=0.06, tr=0.205, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(
+        f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
+        f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
+        f"TR {compact.get_definition('TR')[0] * 1e3:.0f} ms"
+    )
 
 
 
@@ -56,24 +71,16 @@ documented on its :doc:`API page </generated/sequences/mprage_stack_of_stars3D_s
 
  .. code-block:: none
 
-    4928 blocks, 36.80 s
+    640 blocks, 1.64 s, TI 60 ms, TR 205 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-32
-
-Sequence diagram
-----------------
-
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 94-96
 
 .. code-block:: Python
 
-
-    seq.paper_plot(time_range=(0.0, 1.0))
+    compact.paper_plot()
 
 
 
@@ -89,21 +96,31 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e4262a0>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0d075f0>, tr=1, underlays=[2, 3, 4, 5, 6, 7, 8])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 97-105
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+One inversion reads the spokes of one partition, so the inversion cycle is
+constant along each row. The index within the train runs over the spokes in
+the order they are played, and ``partition_angle_shift`` turns the set from
+one partition to the next so that the spokes of neighbouring partitions do
+not coincide.
+
+.. GENERATED FROM PYTHON SOURCE LINES 105-114
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", show_trajectory=False)
+    protocol = mprage_stack_of_stars3D_sequence(
+        n=192, n_z=16, ry=4, ti=0.9, tr=2.3, n_dummy=0
+    )
+
+
 
 
 
@@ -118,14 +135,85 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 946x374 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 115-119
+
+Trajectory
+----------
+
+The spokes of the whole volume projected onto the plane, coloured by shot.
+
+.. GENERATED FROM PYTHON SOURCE LINES 119-122
+
+.. code-block:: Python
+
+
+    pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+
+
+
+
+.. image-sg:: /generated/gallery/12-mprage/images/sphx_glr_mprage_stack_of_stars3D_sequence_003.png
+   :alt: mprage stack of stars3D sequence
+   :srcset: /generated/gallery/12-mprage/images/sphx_glr_mprage_stack_of_stars3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 123-129
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 129-160
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(protocol)
+    slew_ok, slew = safety.check_max_slew(protocol)
+    cont_ok, cont = safety.check_grad_continuity(protocol)
+    pns_ok, pns = safety.check_pns(protocol, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.6 mT/m
+    slew rate                  pass                  168 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation pass          0.97 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 14.935 seconds)
+   **Total running time of the script:** (0 minutes 10.071 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

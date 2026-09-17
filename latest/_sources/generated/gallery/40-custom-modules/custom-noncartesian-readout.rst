@@ -199,8 +199,8 @@ shipped spiral and rosette readouts are written.
 
 .. GENERATED FROM PYTHON SOURCE LINES 144-151
 
-What the twist costs
---------------------
+Readout duration against a spiral
+---------------------------------
 
 A constant-density spiral designed for the same interleaf count samples the
 same field of view at the same resolution, and spends longer doing it: the
@@ -256,8 +256,8 @@ wind through it at the Nyquist pitch.
 
 .. GENERATED FROM PYTHON SOURCE LINES 180-182
 
-The module in a repetition
---------------------------
+One repetition
+--------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 182-209
 
@@ -308,14 +308,14 @@ The module in a repetition
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351af3a3c0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448a244b60>, tr=1, underlays=[])
 
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 210-215
 
-Played by a scan loop
----------------------
+Scan loop
+---------
 
 One solved arm is turned per shot by a rotation extension, which the loop
 adds to every block that drives an in-plane gradient.

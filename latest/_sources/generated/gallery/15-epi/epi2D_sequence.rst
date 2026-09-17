@@ -18,36 +18,46 @@
 .. _sphx_glr_generated_gallery_15-epi_epi2D_sequence.py:
 
 
-======================
+========================
 2D echo-planar imaging
-======================
+========================
 
-One excitation is followed by a train of readout lobes of alternating polarity
-with phase-encode blips between them, so the whole phase-encode axis is covered
-in one or a few shots.
+One excitation followed by a train of readout lobes of alternating polarity,
+with a phase-encode blip between them, so the whole phase-encode axis is
+covered after a single pulse. Off-resonance then accumulates along that axis
+instead of across repetitions, and the train length is what decides how far it
+displaces the image.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 12-97
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/epi2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 98-104
+
+Baseline: single shot
+---------------------
+
+One excitation reads every line of the phase-encode axis. The train is as
+long as the matrix, and the echo spacing times the train length is what a
+spin at a given off-resonance is displaced by.
+
+.. GENERATED FROM PYTHON SOURCE LINES 104-113
 
 .. code-block:: Python
 
 
-    import pypulseqpp as pp
     from pypulseqpp.sequences import epi2D_sequence
 
-    seq = epi2D_sequence(
-        n_x=128,
-        n_y=128,
-        n_slices=1,
-        n_shots=2,
-        tr=None,
-        n_dummy=0,
+    single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
+    print(
+        f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
+        f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -57,24 +67,22 @@ documented on its :doc:`API page </generated/sequences/epi2D_sequence>`.
 
  .. code-block:: none
 
-    146 blocks, 0.20 s
+    104 blocks, 108.3 ms, TE 55.94 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 114-116
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 116-119
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=1)
+    single.paper_plot()
 
 
 
@@ -90,26 +98,69 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f3438bff4a0>, tr=1, underlays=[2])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0df23c0>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 120-132
 
-Acquisition order
------------------
+Segmentation and in-plane acceleration
+--------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+Both shorten the train, and they differ in what else they change.
+``n_shots`` interleaves the lines over several excitations, so every line is
+still acquired and the scan takes proportionally longer. ``ry`` skips lines
+instead, which leaves the scan time alone and needs a parallel-imaging
+reconstruction to fill what was skipped. A spin at offset :math:`\Delta f`
+gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
+linear in :math:`k_y` and therefore a displacement of
+:math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
+routes shorten the train, and both shorten the distortion with it.
+
+.. GENERATED FROM PYTHON SOURCE LINES 132-158
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)
+    accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)
+
+    designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                echoes  trains  per train   TE (ms)  scan (ms)  px per Hz
+    1 shot          96       1       96.0     55.94      108.3      0.100
+    3 shots         96       3       32.0     23.46      131.6      0.035
+    ry = 3          32       1       32.0     23.44       43.1      0.035
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 159-166
+
+Echo traversal
+--------------
+
+The line each echo reads, against its index in the train. A single shot walks
+the axis one line at a time; a segmented acquisition walks it in steps of
+``n_shots``, each shot starting one line further on; acceleration walks it in
+steps of ``ry`` and stops there.
+
+.. GENERATED FROM PYTHON SOURCE LINES 166-171
+
 
 
 
 .. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_002.png
-   :alt: epi2D sequence
+   :alt: 1 shot, 3 shots, ry = 3
    :srcset: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_002.png
    :class: sphx-glr-single-img
 
@@ -119,14 +170,116 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 946x330 with 3 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 172-178
+
+Which lines are acquired
+------------------------
+
+Segmentation and acceleration produce the same train length from different
+sets of lines: the segmented acquisition covers the axis, the accelerated one
+leaves two lines in three unread.
+
+.. GENERATED FROM PYTHON SOURCE LINES 178-183
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_003.png
+   :alt: epi2D sequence
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 946x253 with 1 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 184-190
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model and the forbidden bands below are
+demonstrations, not a scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 190-220
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    bands = [safety.ForbiddenBand(axis=None, f_min=550.0, f_max=650.0, tolerance=6.0)]
+
+    grad_ok, grad = safety.check_max_grad(single)
+    slew_ok, slew = safety.check_max_slew(single)
+    pns_ok, pns = safety.check_pns(single, model)
+    mech_ok, mech = safety.check_mech_resonance(single, bands, window_width=20e-3)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  166 T/m/s
+    peripheral nerve stimulation FAIL          1.19 of threshold
+    mechanical resonance       pass           3.5 mT/m in band
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 221-228
+
+Mechanical resonance
+--------------------
+
+The readout train is a periodic gradient waveform, so its spectrum is a comb
+at the echo-spacing frequency and its harmonics. A forbidden band that one of
+those lines falls in is driven for as long as the train lasts.
+``mech_resonance_spectrum`` returns the windowed spectrum the check reads.
+
+.. GENERATED FROM PYTHON SOURCE LINES 228-247
+
+.. code-block:: Python
+
+
+    spectrum = safety.mech_resonance_spectrum(
+        single, window=mech.bands[0].window, window_width=20e-3
+    )
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
+   :alt: forbidden band shaded, its threshold dashed
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
+   :class: sphx-glr-single-img
+
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.845 seconds)
+   **Total running time of the script:** (0 minutes 0.454 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

@@ -23,7 +23,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One phase-encode line is read per repetition and the transverse magnetisation is spoiled between them, so the signal is a steady state of the flip angle, the repetition time and T1.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. The workhorse of the family, and the sequence the other Cartesian variants are read against.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation replaces the slice-selective one and the second phase encode samples the partition axis, so one repetition reads one (line, partition) view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each excitation is followed by several readout lobes, so one phase-encode line is sampled at several echo times and the decay across them measures T2*.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. The signal decays between echoes at a rate the tissue&#x27;s apparent transverse relaxation sets, so one repetition measures the decay rather than one point on it.">
 
 .. only:: html
 
@@ -74,7 +74,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout of the two-dimensional sequence over a slab-selective excitation and a partition encode.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times.">
 
 .. only:: html
 
@@ -91,7 +91,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot reads a rectangular blade of Cartesian lines and the blades are rotated to cover k-space. Every blade samples the centre, so the shots can be registered against each other before reconstruction.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected.">
 
 .. only:: html
 
@@ -108,7 +108,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every repetition reads a full spoke through the centre of k-space, so the low spatial frequencies are sampled once per repetition rather than once per scan.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the centre, so the acquisition is insensitive to motion between repetitions in a way a Cartesian one is not, and undersampling shows as streaks rather than as aliasing.">
 
 .. only:: html
 
@@ -125,7 +125,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read per repetition, designed from the prescription rather than from a fixed shape, and rotated to each of n_shots angles.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions.">
 
 .. only:: html
 
@@ -142,7 +142,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and a Cartesian partition encode along z.">
+    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis.">
 
 .. only:: html
 
@@ -159,7 +159,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and a Cartesian partition encode along z.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines.">
 
 .. only:: html
 
@@ -176,7 +176,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and a Cartesian partition encode along z. The in-plane interleaf is one waveform for the whole scan, rotated per shot.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane acquisition keeps the motion behaviour of a radial one; the partition axis keeps the efficiency of Cartesian encoding.">
 
 .. only:: html
 

@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.500** total execution time for 1 file **from generated/gallery/22-modules-preparation**:
+**00:00.501** total execution time for 1 file **from generated/gallery/22-modules-preparation**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_22-modules-preparation_preparation-modules.py` (``preparation-modules.py``)
-     - 00:00.500
+     - 00:00.501
      - 0.0

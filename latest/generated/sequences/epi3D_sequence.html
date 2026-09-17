@@ -269,6 +269,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -683,10 +684,7 @@ excitation of every volume, dummy volumes included.</p></li>
 
 <section id="designed-and-drawn">
 <h3>Designed and drawn<a class="headerlink" href="#designed-and-drawn" title="Link to this heading">#</a></h3>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="An echo-planar train samples the whole phase-encode axis after one excitation, so off-resonance accumulates along that axis instead of across repetitions. A spin at offset \Delta f acquires phase 2\pi \Delta f\, m\, \mathrm{esp} on echo m, which is linear in k_y and therefore a displacement of"><img alt="" src="../../_images/sphx_glr_epi-segmentation-and-acceleration_thumb.png" />
-<p><a class="reference internal" href="../gallery/15-epi/epi-segmentation-and-acceleration.html"><span class="doc">Echo train length and geometric distortion in EPI</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and a partition encode over the echo-planar train, with the skipped-CAIPI lattice available when both encoded axes are undersampled."><img alt="" src="../../_images/sphx_glr_epi3D_sequence_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA lattice: line y is read when (y - n_y // 2) % ry == 0, and the partition it is read at advances by the CAIPI shift from one lattice line to the next. A shot reads every n_shots-th lattice line, which is skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI."><img alt="" src="../../_images/sphx_glr_epi3D_sequence_thumb.png" />
 <p><a class="reference internal" href="../gallery/15-epi/epi3D_sequence.html"><span class="doc">3D echo-planar imaging</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D echo-planar imaging</div>
 </div></div></section>

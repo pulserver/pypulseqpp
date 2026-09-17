@@ -116,14 +116,14 @@ not a protocol: it shows what each contributes to a repetition.
 
     15 blocks, 99.38 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a7c0ec0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44aa0df710>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.500 seconds)
+   **Total running time of the script:** (0 minutes 0.501 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_22-modules-preparation_preparation-modules.py:

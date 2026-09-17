@@ -265,6 +265,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,34 +549,34 @@
   <section id="gradient-echoes">
 <span id="sphx-glr-generated-gallery-10-gradient-echo"></span><h1>Gradient echoes<a class="headerlink" href="#gradient-echoes" title="Link to this heading">#</a></h1>
 <p>One excitation per repetition with no refocusing pulse, spoiled between repetitions.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One phase-encode line is read per repetition and the transverse magnetisation is spoiled between them, so the signal is a steady state of the flip angle, the repetition time and T1."><img alt="" src="../../../_images/sphx_glr_gre2D_sequence_thumb.png" />
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. The workhorse of the family, and the sequence the other Cartesian variants are read against."><img alt="" src="../../../_images/sphx_glr_gre2D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre2D_sequence.html"><span class="doc">2D Cartesian gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D Cartesian gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation replaces the slice-selective one and the second phase encode samples the partition axis, so one repetition reads one (line, partition) view."><img alt="" src="../../../_images/sphx_glr_gre3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse."><img alt="" src="../../../_images/sphx_glr_gre3D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre3D_sequence.html"><span class="doc">3D Cartesian gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D Cartesian gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Each excitation is followed by several readout lobes, so one phase-encode line is sampled at several echo times and the decay across them measures T2*."><img alt="" src="../../../_images/sphx_glr_gre_multiecho2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. The signal decays between echoes at a rate the tissue&#x27;s apparent transverse relaxation sets, so one repetition measures the decay rather than one point on it."><img alt="" src="../../../_images/sphx_glr_gre_multiecho2D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_multiecho2D_sequence.html"><span class="doc">2D Cartesian multi-echo gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D Cartesian multi-echo gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout of the two-dimensional sequence over a slab-selective excitation and a partition encode."><img alt="" src="../../../_images/sphx_glr_gre_multiecho3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times."><img alt="" src="../../../_images/sphx_glr_gre_multiecho3D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_multiecho3D_sequence.html"><span class="doc">3D Cartesian multi-echo gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D Cartesian multi-echo gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot reads a rectangular blade of Cartesian lines and the blades are rotated to cover k-space. Every blade samples the centre, so the shots can be registered against each other before reconstruction."><img alt="" src="../../../_images/sphx_glr_gre_propeller2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected."><img alt="" src="../../../_images/sphx_glr_gre_propeller2D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_propeller2D_sequence.html"><span class="doc">2D PROPELLER gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D PROPELLER gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Every repetition reads a full spoke through the centre of k-space, so the low spatial frequencies are sampled once per repetition rather than once per scan."><img alt="" src="../../../_images/sphx_glr_gre_radial2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the centre, so the acquisition is insensitive to motion between repetitions in a way a Cartesian one is not, and undersampling shows as streaks rather than as aliasing."><img alt="" src="../../../_images/sphx_glr_gre_radial2D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_radial2D_sequence.html"><span class="doc">2D radial gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D radial gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read per repetition, designed from the prescription rather than from a fixed shape, and rotated to each of n_shots angles."><img alt="" src="../../../_images/sphx_glr_gre_spiral2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions."><img alt="" src="../../../_images/sphx_glr_gre_spiral2D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_spiral2D_sequence.html"><span class="doc">2D spiral gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D spiral gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and a Cartesian partition encode along z."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_blades3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_blades3D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-blades gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and a Cartesian partition encode along z."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_spirals3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_spirals3D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-spirals gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and a Cartesian partition encode along z. The in-plane interleaf is one waveform for the whole scan, rotated per shot."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane acquisition keeps the motion behaviour of a radial one; the partition axis keeps the efficiency of Cartesian encoding."><img alt="" src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_thumb.png" />
 <p><a class="reference internal" href="gre_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars gradient echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-stars gradient echo</div>
 </div></div><div class="toctree-wrapper compound">

@@ -18,19 +18,32 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:
 
 
-==============================================
+================================================
 2D PROPELLER spin echo with echo-planar blades
-==============================================
+================================================
 
-A whole blade is read after one excitation as an echo-planar train, so a
-PROPELLER coverage is acquired in as many shots as there are blades.
+One whole blade per excitation, read as an echo-planar train. The blade
+is acquired in one shot rather than a line at a time, so the scan is far
+shorter than a line-by-line PROPELLER and the blade carries the off-resonance
+behaviour of an echo-planar readout.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se_epi_propeller2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-27
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+Sixteen lines to a blade, each blade read after one excitation.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-53
 
 .. code-block:: Python
 
@@ -38,15 +51,11 @@ documented on its :doc:`API page </generated/sequences/se_epi_propeller2D_sequen
     import pypulseqpp as pp
     from pypulseqpp.sequences import se_epi_propeller2D_sequence
 
-    seq = se_epi_propeller2D_sequence(
-        n_x=192,
-        blade_width=16,
-        n_slices=1,
-        te=60e-3,
-        tr=None,
-        n_dummy=0,
+    baseline = se_epi_propeller2D_sequence(
+        n_x=192, blade_width=16, n_slices=1, te=60e-3, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -61,19 +70,17 @@ documented on its :doc:`API page </generated/sequences/se_epi_propeller2D_sequen
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-32
+.. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=4)
+    baseline.paper_plot()
 
 
 
@@ -89,21 +96,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a8de570>, tr=4, underlays=[1, 3, 5, 7, 9, 10, 11, 13, 15, 17, 19])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44ca59cad0>, tr=15, underlays=[1, 3, 5, 7, 9, 10, 11, 13, 17, 19])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+The blades in the order they are played; the lines within a blade are read
+in one train.
+
+.. GENERATED FROM PYTHON SOURCE LINES 65-68
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -118,14 +129,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 69-74
+
+Wider blades
+------------
+
+A wider blade is a longer echo-planar train, so the blade covers more of
+the disc and accumulates more off-resonance phase across itself.
+
+.. GENERATED FROM PYTHON SOURCE LINES 74-88
+
+.. code-block:: Python
+
+
+    alternative = se_epi_propeller2D_sequence(
+        n_x=192, blade_width=24, n_slices=1, te=60e-3, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    16 lines              437          1.46           304
+    24 lines              403          1.11           312
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 89-91
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se_epi_propeller2D_sequence_003.png
+   :alt: se epi propeller2D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se_epi_propeller2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-98
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 98-129
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.7 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.04 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.041 seconds)
+   **Total running time of the script:** (0 minutes 2.295 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

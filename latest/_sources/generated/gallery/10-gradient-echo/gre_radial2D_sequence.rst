@@ -18,19 +18,32 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:
 
 
-=======================
+=========================
 2D radial gradient echo
-=======================
+=========================
 
-Every repetition reads a full spoke through the centre of k-space, so the low
-spatial frequencies are sampled once per repetition rather than once per scan.
+One full spoke through the centre of k-space per repetition. Every
+readout crosses the centre, so the acquisition is insensitive to motion
+between repetitions in a way a Cartesian one is not, and undersampling
+shows as streaks rather than as aliasing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre_radial2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-26
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+Enough spokes to sample the outer radius at the Nyquist spacing.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-51
 
 .. code-block:: Python
 
@@ -38,14 +51,9 @@ documented on its :doc:`API page </generated/sequences/gre_radial2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_radial2D_sequence
 
-    seq = gre_radial2D_sequence(
-        n=192,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = gre_radial2D_sequence(n=192, n_slices=1, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -60,19 +68,17 @@ documented on its :doc:`API page </generated/sequences/gre_radial2D_sequence>`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-31
+.. GENERATED FROM PYTHON SOURCE LINES 52-54
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 31-34
+.. GENERATED FROM PYTHON SOURCE LINES 54-57
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -88,21 +94,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f353b6daa20>, tr=48, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a8889280>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+.. GENERATED FROM PYTHON SOURCE LINES 58-63
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+The spokes, coloured by the order they are played in. Consecutive spokes
+are spread over the disc rather than played side by side.
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-66
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -117,14 +127,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-72
+
+Angular undersampling
+---------------------
+
+``ry`` plays one spoke in three. The centre of k-space stays fully
+sampled, because every spoke crosses it; what thins out is the periphery.
+
+.. GENERATED FROM PYTHON SOURCE LINES 72-86
+
+.. code-block:: Python
+
+
+    alternative = gre_radial2D_sequence(
+        n=192, n_slices=1, ry=3, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    Nyquist              1208          3.13           302
+    ry = 3                404          1.05           101
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 87-89
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_radial2D_sequence_003.png
+   :alt: gre radial2D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_radial2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 90-96
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 96-127
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  165 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.38 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.903 seconds)
+   **Total running time of the script:** (0 minutes 2.851 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

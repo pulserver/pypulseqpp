@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.454** total execution time for 1 file **from generated/gallery/30-building-sequences**:
+**00:00.458** total execution time for 1 file **from generated/gallery/30-building-sequences**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_30-building-sequences_sequence-app-from-scratch.py` (``sequence-app-from-scratch.py``)
-     - 00:00.454
+     - 00:00.458
      - 0.0

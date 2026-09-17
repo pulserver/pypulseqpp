@@ -58,8 +58,8 @@ def design_figure(designs, thickness_m):
 # sphinx_gallery_end_ignore
 
 # %%
-# The contract
-# ------------
+# Required interface
+# -------------------
 #
 # A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 # of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -155,8 +155,8 @@ class MinimumPhaseExcitation(design.RfModule):
 
 
 # %%
-# What the module publishes
-# -------------------------
+# Published events
+# ----------------
 
 system = pp.Opts(
     max_grad=40.0,
@@ -191,8 +191,8 @@ for name, module in (("linear", linear_phase), ("minimum", minimum_phase)):
 # collapses to its shortest and the pulse ends a gradient raster or two before
 # the encoding starts.
 #
-# Envelope and slice profile
-# --------------------------
+# Pulse envelope and slice profile
+# --------------------------------
 #
 # ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 # selection amplitude reads the result as a position.
@@ -214,8 +214,8 @@ for name, module in (("linear phase", linear_phase), ("minimum phase", minimum_p
 design_figure(designs, THICKNESS_M)
 
 # %%
-# Consumed by a readout module
-# ----------------------------
+# Echo time
+# ---------
 #
 # A readout module takes the pulse, its selection gradient and its rephaser,
 # and measures the echo time from the pulse's effective centre. Handing it each

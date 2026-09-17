@@ -23,7 +23,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A refocusing pulse between the excitation and the readout recovers the dephasing from static field inhomogeneity, so the acquired echo is weighted by T2 rather than by T2*.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per repetition, with the line read at the refocused echo. Refocusing undoes the dephasing that static field inhomogeneity causes, so the contrast follows the true transverse relaxation rather than the apparent one.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One (line, partition) view is read per excitation, at a refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per (line, partition) view over a slab.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A whole blade is read after one excitation as an echo-planar train, so a PROPELLER coverage is acquired in as many shots as there are blades.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One whole blade per excitation, read as an echo-planar train. The blade is acquired in one shot rather than a line at a time, so the scan is far shorter than a line-by-line PROPELLER and the blade carries the off-resonance behaviour of an echo-planar readout.">
 
 .. only:: html
 
@@ -74,7 +74,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotated blade is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -91,7 +91,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A full spoke through the centre of k-space is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -108,7 +108,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read at the refocused echo of each excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per excitation, read at the refocused echo.">
 
 .. only:: html
 
@@ -125,7 +125,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 
@@ -142,7 +142,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 
@@ -159,7 +159,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane, a Cartesian partition encode along z, and a refocused echo per view.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
 
 .. only:: html
 

@@ -175,7 +175,7 @@ raster its event is played on and that the dead times are respected.
 
     timing: True, 0 errors, 8 blocks
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351b1309b0>, tr=1, underlays=[2])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a8869880>, tr=1, underlays=[2])
 
 
 

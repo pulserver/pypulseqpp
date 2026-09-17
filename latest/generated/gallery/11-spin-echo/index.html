@@ -265,6 +265,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,31 +549,31 @@
   <section id="spin-echoes">
 <span id="sphx-glr-generated-gallery-11-spin-echo"></span><h1>Spin echoes<a class="headerlink" href="#spin-echoes" title="Link to this heading">#</a></h1>
 <p>One excitation and one refocusing pulse per repetition, acquired at the refocused echo.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A refocusing pulse between the excitation and the readout recovers the dephasing from static field inhomogeneity, so the acquired echo is weighted by T2 rather than by T2*."><img alt="" src="../../../_images/sphx_glr_se2D_sequence_thumb.png" />
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per repetition, with the line read at the refocused echo. Refocusing undoes the dephasing that static field inhomogeneity causes, so the contrast follows the true transverse relaxation rather than the apparent one."><img alt="" src="../../../_images/sphx_glr_se2D_sequence_thumb.png" />
 <p><a class="reference internal" href="se2D_sequence.html"><span class="doc">2D Cartesian spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D Cartesian spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One (line, partition) view is read per excitation, at a refocused echo."><img alt="" src="../../../_images/sphx_glr_se3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per (line, partition) view over a slab."><img alt="" src="../../../_images/sphx_glr_se3D_sequence_thumb.png" />
 <p><a class="reference internal" href="se3D_sequence.html"><span class="doc">3D Cartesian spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D Cartesian spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A whole blade is read after one excitation as an echo-planar train, so a PROPELLER coverage is acquired in as many shots as there are blades."><img alt="" src="../../../_images/sphx_glr_se_epi_propeller2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One whole blade per excitation, read as an echo-planar train. The blade is acquired in one shot rather than a line at a time, so the scan is far shorter than a line-by-line PROPELLER and the blade carries the off-resonance behaviour of an echo-planar readout."><img alt="" src="../../../_images/sphx_glr_se_epi_propeller2D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_epi_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo with echo-planar blades</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo with echo-planar blades</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotated blade is read at the refocused echo of each excitation."><img alt="" src="../../../_images/sphx_glr_se_propeller2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per excitation, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_propeller2D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A full spoke through the centre of k-space is read at the refocused echo of each excitation."><img alt="" src="../../../_images/sphx_glr_se_radial2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One full spoke per excitation, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_radial2D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_radial2D_sequence.html"><span class="doc">2D radial spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D radial spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read at the refocused echo of each excitation."><img alt="" src="../../../_images/sphx_glr_se_spiral2D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per excitation, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_spiral2D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_spiral2D_sequence.html"><span class="doc">2D spiral spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D spiral spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../../../_images/sphx_glr_se_stack_of_blades3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_stack_of_blades3D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-blades spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../../../_images/sphx_glr_se_stack_of_spirals3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_stack_of_spirals3D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-spirals spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../../../_images/sphx_glr_se_stack_of_stars3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../../../_images/sphx_glr_se_stack_of_stars3D_sequence_thumb.png" />
 <p><a class="reference internal" href="se_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-stars spin echo</div>
 </div></div><div class="toctree-wrapper compound">

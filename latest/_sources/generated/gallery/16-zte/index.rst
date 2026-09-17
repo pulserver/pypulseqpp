@@ -23,7 +23,7 @@ Zero echo time
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins without a ramp and the trajectory starts at the centre of k-space.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. What the pulse cannot excite during the gradient, and what the dead time costs at the centre of k-space, are the price of it.">
 
 .. only:: html
 

@@ -271,6 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -549,11 +550,11 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-contract">The contract</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-ramps-buy">What the ramps buy</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-module-in-a-repetition">The module in a repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-samples-land">Where the samples land</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#played-by-a-scan-loop">Played by a scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#required-interface">Required interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration">Readout duration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-spacing-along-the-line">Sample spacing along the line</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
 </ul>
             </nav>
         </div>
@@ -580,8 +581,8 @@ them.</p>
 <p>This example implements a ramp-sampled line readout against the
 <a class="reference internal" href="../../pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> contract, measures both sides of
 that trade, and plays it in a scan loop.</p>
-<section id="the-contract">
-<h2>The contract<a class="headerlink" href="#the-contract" title="Link to this heading">#</a></h2>
+<section id="required-interface">
+<h2>Required interface<a class="headerlink" href="#required-interface" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">init_module</span></code> assigns <code class="docutils literal notranslate"><span class="pre">self.seq</span></code>, adds the blocks of the layout to it and
 sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">center</span></code>, which for a readout
 is the interval from the start of the module to the echo. Events bound to
@@ -704,8 +705,8 @@ k.</p>
 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">dwell</span><span class="w">
 </span></pre></div></div>
 </section>
-<section id="what-the-ramps-buy">
-<h2>What the ramps buy<a class="headerlink" href="#what-the-ramps-buy" title="Link to this heading">#</a></h2>
+<section id="readout-duration">
+<h2>Readout duration<a class="headerlink" href="#readout-duration" title="Link to this heading">#</a></h2>
 <p>Both designs sample the same extent of k-space, so both resolve the same
 matrix over the same field of view. The flat-top design carries that extent
 on its plateau alone, and its ramps add duration without adding samples.</p>
@@ -743,8 +744,8 @@ flat top only  lobe   1080 us, flat    520 us, amplitude  39.4 mT/m
 </pre></div>
 </div>
 </section>
-<section id="the-module-in-a-repetition">
-<h2>The module in a repetition<a class="headerlink" href="#the-module-in-a-repetition" title="Link to this heading">#</a></h2>
+<section id="one-repetition">
+<h2>One repetition<a class="headerlink" href="#one-repetition" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><span class="n">excitation</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><span class="n">design</span><span class="o">.</span><span class="n">SpatialSelectiveExcitation</span></a><span class="p">(</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span> <span class="n">flip_angle_deg</span><span class="o">=</span><span class="mf">12.0</span><span class="p">,</span> <span class="n">thickness_m</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">duration_s</span><span class="o">=</span><span class="mf">3e-3</span><span class="w">
 </span><span class="p">)</span><span class="w">
@@ -775,8 +776,8 @@ TE 2.520 ms over a 6.600 ms repetition
 </pre></div>
 </div>
 </section>
-<section id="where-the-samples-land">
-<h2>Where the samples land<a class="headerlink" href="#where-the-samples-land" title="Link to this heading">#</a></h2>
+<section id="sample-spacing-along-the-line">
+<h2>Sample spacing along the line<a class="headerlink" href="#sample-spacing-along-the-line" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code> is one of the analyses a module forwards to the sequence
 it built, so the sample positions come from the events themselves rather than
 from the design arithmetic. The spacing is finest on the ramps, where the
@@ -801,8 +802,8 @@ at the edges of the line and a regridding step in the reconstruction.</p>
 </pre></div>
 </div>
 </section>
-<section id="played-by-a-scan-loop">
-<h2>Played by a scan loop<a class="headerlink" href="#played-by-a-scan-loop" title="Link to this heading">#</a></h2>
+<section id="scan-loop">
+<h2>Scan loop<a class="headerlink" href="#scan-loop" title="Link to this heading">#</a></h2>
 <p>The loop scales the published phase encode per line and labels the
 acquisition; the rest of the layout is played as the module laid it out.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="o">=</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">)</span><span class="w">
@@ -823,10 +824,10 @@ acquisition; the rest of the layout is played as the module laid it out.</p>
 <p>One repetition of the module.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_custom-cartesian-readout_002.png" srcset="../../../_images/sphx_glr_custom-cartesian-readout_002.png" alt="custom cartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f342e52b500&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+<img src="../../../_images/sphx_glr_custom-cartesian-readout_002.png" srcset="../../../_images/sphx_glr_custom-cartesian-readout_002.png" alt="custom cartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f448c80bf20&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.255 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.260 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-40-custom-modules-custom-cartesian-readout-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/51dbe49219a316e5451f598a305017eb/custom-cartesian-readout.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">custom-cartesian-readout.ipynb</span></code></a></p>
@@ -889,11 +890,11 @@ acquisition; the rest of the layout is played as the module laid it out.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-contract">The contract</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-ramps-buy">What the ramps buy</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-module-in-a-repetition">The module in a repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-samples-land">Where the samples land</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#played-by-a-scan-loop">Played by a scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#required-interface">Required interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration">Readout duration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-spacing-along-the-line">Sample spacing along the line</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
 </ul>
   </nav></div>
 

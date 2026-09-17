@@ -18,18 +18,31 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:
 
 
-=================================
+===================================
 3D stack-of-spirals gradient echo
-=================================
+===================================
 
-Spiral interleaves in the plane and a Cartesian partition encode along z.
+Spiral interleaves in the plane and Cartesian encoding along the slab
+axis, which is the most efficient of the stacks: a partition is covered by
+a few interleaves rather than by a few hundred lines.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-12
+.. GENERATED FROM PYTHON SOURCE LINES 10-37
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre_stack_of_spirals3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-25
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 38-42
+
+Baseline
+--------
+
+Sixteen interleaves at every partition.
+
+.. GENERATED FROM PYTHON SOURCE LINES 42-52
 
 .. code-block:: Python
 
@@ -37,14 +50,11 @@ documented on its :doc:`API page </generated/sequences/gre_stack_of_spirals3D_se
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_stack_of_spirals3D_sequence
 
-    seq = gre_stack_of_spirals3D_sequence(
-        n=192,
-        n_z=16,
-        n_shots=16,
-        tr=None,
-        n_dummy=0,
+    baseline = gre_stack_of_spirals3D_sequence(
+        n=192, n_z=16, n_shots=16, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -59,19 +69,17 @@ documented on its :doc:`API page </generated/sequences/gre_stack_of_spirals3D_se
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-30
+.. GENERATED FROM PYTHON SOURCE LINES 53-55
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 30-33
+.. GENERATED FROM PYTHON SOURCE LINES 55-58
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=8)
+    baseline.paper_plot()
 
 
 
@@ -87,21 +95,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f353b6fb500>, tr=8, underlays=[1, 17, 33, 49, 65, 81, 97, 113, 129, 145, 161, 177, 193, 209, 225, 241])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a9de4ad0>, tr=97, underlays=[1, 17, 33, 49, 65, 81, 113, 129, 145, 161, 177, 193, 209, 225, 241])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-36
+.. GENERATED FROM PYTHON SOURCE LINES 59-63
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+The interleaves of the whole stack projected onto the plane.
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-66
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -116,14 +127,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-72
+
+Fewer interleaves
+-----------------
+
+Halving the interleaf count halves the repetitions and doubles the pitch
+of each arm, so the disc is sampled below the Nyquist spacing at its edge.
+
+.. GENERATED FROM PYTHON SOURCE LINES 72-86
+
+.. code-block:: Python
+
+
+    alternative = gre_stack_of_spirals3D_sequence(
+        n=192, n_z=16, n_shots=8, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    16 interleaves       1024          3.77           256
+    8 interleaves         512          3.02           128
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 87-89
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_stack_of_spirals3D_sequence_003.png
+   :alt: gre stack of spirals3D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_stack_of_spirals3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 90-96
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 96-127
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.4 mT/m
+    slew rate                  pass                  164 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.26 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.442 seconds)
+   **Total running time of the script:** (0 minutes 18.049 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

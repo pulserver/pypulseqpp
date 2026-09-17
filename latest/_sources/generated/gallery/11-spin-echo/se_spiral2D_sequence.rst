@@ -18,18 +18,29 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:
 
 
-===================
+=====================
 2D spiral spin echo
-===================
+=====================
 
-One spiral interleaf is read at the refocused echo of each excitation.
+One spiral interleaf per excitation, read at the refocused echo.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-12
+.. GENERATED FROM PYTHON SOURCE LINES 8-35
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se_spiral2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-26
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 36-40
+
+Baseline
+--------
+
+Sixteen interleaves at a constant pitch.
+
+.. GENERATED FROM PYTHON SOURCE LINES 40-50
 
 .. code-block:: Python
 
@@ -37,15 +48,11 @@ documented on its :doc:`API page </generated/sequences/se_spiral2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import se_spiral2D_sequence
 
-    seq = se_spiral2D_sequence(
-        n=192,
-        n_shots=16,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = se_spiral2D_sequence(
+        n=192, n_shots=16, n_slices=1, te=None, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -60,19 +67,17 @@ documented on its :doc:`API page </generated/sequences/se_spiral2D_sequence>`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-31
+.. GENERATED FROM PYTHON SOURCE LINES 51-53
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 31-34
+.. GENERATED FROM PYTHON SOURCE LINES 53-56
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=8)
+    baseline.paper_plot()
 
 
 
@@ -88,21 +93,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f352c518ce0>, tr=8, underlays=[1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a881ba40>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+.. GENERATED FROM PYTHON SOURCE LINES 57-61
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+Each interleaf is the solved arm turned to its own angle.
+
+.. GENERATED FROM PYTHON SOURCE LINES 61-64
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -117,14 +125,117 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 65-70
+
+Variable density
+----------------
+
+A dual-density arm keeps the Nyquist spacing at the centre and samples the
+periphery more sparsely, which shortens the readout.
+
+.. GENERATED FROM PYTHON SOURCE LINES 70-91
+
+.. code-block:: Python
+
+
+    alternative = se_spiral2D_sequence(
+        n=192,
+        n_shots=16,
+        n_slices=1,
+        density="dual",
+        periphery_undersampling=2.0,
+        te=None,
+        tr=None,
+        n_dummy=0,
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    constant              112          0.40            16
+    dual density          112          0.35            16
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-94
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se_spiral2D_sequence_003.png
+   :alt: se spiral2D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se_spiral2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 95-101
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 101-132
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.7 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.26 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.842 seconds)
+   **Total running time of the script:** (0 minutes 1.411 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

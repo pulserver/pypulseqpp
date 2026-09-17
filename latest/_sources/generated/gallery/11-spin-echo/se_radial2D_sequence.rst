@@ -18,19 +18,29 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se_radial2D_sequence.py:
 
 
-===================
+=====================
 2D radial spin echo
-===================
+=====================
 
-A full spoke through the centre of k-space is read at the refocused echo of
-each excitation.
+One full spoke per excitation, read at the refocused echo.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 8-35
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se_radial2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-26
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 36-40
+
+Baseline
+--------
+
+Enough spokes to sample the outer radius at the Nyquist spacing.
+
+.. GENERATED FROM PYTHON SOURCE LINES 40-48
 
 .. code-block:: Python
 
@@ -38,14 +48,9 @@ documented on its :doc:`API page </generated/sequences/se_radial2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import se_radial2D_sequence
 
-    seq = se_radial2D_sequence(
-        n=192,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = se_radial2D_sequence(n=192, n_slices=1, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -60,19 +65,17 @@ documented on its :doc:`API page </generated/sequences/se_radial2D_sequence>`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-31
+.. GENERATED FROM PYTHON SOURCE LINES 49-51
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 31-34
+.. GENERATED FROM PYTHON SOURCE LINES 51-54
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -88,21 +91,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f352c518d70>, tr=48, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44aa1af410>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+.. GENERATED FROM PYTHON SOURCE LINES 55-59
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+The spokes in the order they are played.
+
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -117,14 +123,107 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-67
+
+Angular undersampling
+---------------------
+
+One spoke in three, which thins the periphery and leaves the centre alone.
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-79
+
+.. code-block:: Python
+
+
+    alternative = se_radial2D_sequence(n=192, n_slices=1, ry=3, te=None, tr=None, n_dummy=0)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    Nyquist              2114          5.88           302
+    ry = 3                707          1.97           101
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se_radial2D_sequence_003.png
+   :alt: se radial2D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se_radial2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 83-89
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 89-120
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.05 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.965 seconds)
+   **Total running time of the script:** (0 minutes 3.035 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

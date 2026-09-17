@@ -253,6 +253,34 @@ A **gallery example** teaches a scientific, numerical or design concept through 
 
 The gallery is therefore not a catalogue of what the library ships. A reference page per object fulfils that role, and an object does not earn a gallery example by being undocumented elsewhere.
 
+#### An example is a tour of an object, not a call of it
+
+An example that constructs an object in its simplest form, prints a number and draws one figure documents nothing the reference page does not already carry. Where a public interface exposes modes that materially change what it produces — acceleration, segmentation, partial sampling, a train length, a density — at least one example demonstrates one of them, and shows what it changes.
+
+Show the consequence, not only the call. A second configuration earns its place by the figure or the table that compares it with the first.
+
+#### Defaults of a plotting helper
+
+Where a plotting helper chooses something automatically — a representative window, a colour scale, a decimation — an example calls it the way a reader would, without overriding that choice.
+
+If the automatic choice produces a poor figure, that is a defect in the helper or in the object being drawn. Investigate it and fix it there. Hard-coding a selection in the example hides the defect from everyone who is not reading the example's source.
+
+#### Geometry and traversal are different figures
+
+A plot of where the samples are answers a different question from a plot of the order they were acquired in, and both differ from a plot of the path between them. When the traversal matters — when a reader needs to see what happens between one acquisition and the next — draw the connections and the direction, not only coloured points.
+
+Derive an ordering or traversal figure from what the implementation records: its labels, its loop, the acquisitions themselves. A figure that reconstructs an idealised ordering from the prescription can disagree with the sequence, and is then worse than no figure.
+
+#### Diagnostics come from the implementation they illustrate
+
+A figure of what a check computed uses the check's own computation. Where the public interface does not return enough to draw it, extend that interface — an optional trace, a diagnostic function — rather than recomputing the algorithm in the example. Two implementations of one calculation disagree eventually, and the documentation is where it will not be noticed.
+
+#### One subject, one example
+
+Where the sampling, the ordering or the mode structure of an object is part of understanding the object, it belongs in that object's own example. Splitting it into a second example leaves the first too thin to be useful and the second detached from what it explains.
+
+A separate example is justified when it studies something across objects, or goes substantially beyond what using one of them requires.
+
 #### Gallery organization and navigation
 
 When examples fall into categories, each category gets a landing page the documentation owns, carrying one or two factual sentences and a table of what is below it. A table is preferred to a wall of thumbnails once a category holds more than a handful of examples, because a reader looking for one sequence or one module reads names rather than pictures.

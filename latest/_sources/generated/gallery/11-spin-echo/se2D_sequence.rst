@@ -18,20 +18,33 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se2D_sequence.py:
 
 
-======================
+========================
 2D Cartesian spin echo
-======================
+========================
 
-A refocusing pulse between the excitation and the readout recovers the
-dephasing from static field inhomogeneity, so the acquired echo is weighted by
-T2 rather than by T2*.
+One excitation and one refocusing pulse per repetition, with the line
+read at the refocused echo. Refocusing undoes the dephasing that static
+field inhomogeneity causes, so the contrast follows the true transverse
+relaxation rather than the apparent one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-44
+
+Baseline
+--------
+
+A full Cartesian sampling of one slice, at the shortest echo time the
+pulses and the readout allow.
+
+.. GENERATED FROM PYTHON SOURCE LINES 44-55
 
 .. code-block:: Python
 
@@ -39,15 +52,12 @@ documented on its :doc:`API page </generated/sequences/se2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import se2D_sequence
 
-    seq = se2D_sequence(
-        n_x=192,
-        n_y=192,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = se2D_sequence(n_x=192, n_y=192, n_slices=1, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(
+        f"TE {baseline.get_definition('TE')[0] * 1e3:.2f} ms, "
+        f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -58,23 +68,22 @@ documented on its :doc:`API page </generated/sequences/se2D_sequence>`.
  .. code-block:: none
 
     1536 blocks, 3.58 s
+    TE 13.12 ms, TR 18.64 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 56-58
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -90,21 +99,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a7c3350>, tr=48, underlays=[1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0df2e70>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 62-66
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+The lines in the order they are read.
+
+.. GENERATED FROM PYTHON SOURCE LINES 66-69
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
+
 
 
 
@@ -119,14 +131,112 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 70-77
+
+Partial Fourier
+---------------
+
+``partial_fourier_y`` omits the lines furthest from the centre on one side
+and leaves the reconstruction to use the conjugate symmetry of k-space to
+replace them, which shortens the scan at the cost of noise and of
+sensitivity to the phase the object carries.
+
+.. GENERATED FROM PYTHON SOURCE LINES 77-91
+
+.. code-block:: Python
+
+
+    alternative = se2D_sequence(
+        n_x=192, n_y=192, n_slices=1, partial_fourier_y=0.75, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    full                 1536          3.58           192
+    6/8 along y          1152          2.68           144
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-94
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se2D_sequence_003.png
+   :alt: se2D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 95-101
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 101-132
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.37 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.356 seconds)
+   **Total running time of the script:** (0 minutes 2.468 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

@@ -29,8 +29,8 @@ interface running.
 
 .. GENERATED FROM PYTHON SOURCE LINES 13-18
 
-A module is constructed from a prescription
--------------------------------------------
+Constructing a module
+---------------------
 
 ``SpatialSelectiveExcitation`` designs an SLR pulse, its selection gradient
 and the rephaser that unwinds the second half of the selection.
@@ -77,8 +77,8 @@ and the rephaser that unwinds the second half of the selection.
 
 .. GENERATED FROM PYTHON SOURCE LINES 39-46
 
-Three parts of the interface
-----------------------------
+Blocks, events and timing reference
+-----------------------------------
 
 ``blocks`` returns the block tuples in play order, so a module that needs no
 per-view modification is added to a sequence as it stands. The named events
@@ -111,8 +111,8 @@ module's timing reference, in seconds from its start.
 
 .. GENERATED FROM PYTHON SOURCE LINES 53-60
 
-Modules compose at prescribed intervals
----------------------------------------
+Composing modules
+-----------------
 
 Intervals between modules are measured between their timing references. An
 inversion time runs from one pulse centre to the next, so the recovery delay
@@ -194,14 +194,14 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a5f7140>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a8e86d50>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.246 seconds)
+   **Total running time of the script:** (0 minutes 0.192 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_20-modules-overview_sequence-module-composition.py:

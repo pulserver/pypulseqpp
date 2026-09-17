@@ -18,20 +18,32 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:
 
 
-==========================
+============================
 2D PROPELLER gradient echo
-==========================
+============================
 
-Each shot reads a rectangular blade of Cartesian lines and the blades are
-rotated to cover k-space. Every blade samples the centre, so the shots can be
-registered against each other before reconstruction.
+One line of one rotating blade per repetition. A blade is a narrow band
+of parallel lines through the centre of k-space, and the blades are turned
+so that between them they cover the disc; each blade samples the centre, so
+a blade corrupted by motion can be detected and rejected.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre_propeller2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+Sixteen lines to a blade, at enough blades to cover the disc.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-53
 
 .. code-block:: Python
 
@@ -39,15 +51,11 @@ documented on its :doc:`API page </generated/sequences/gre_propeller2D_sequence>
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_propeller2D_sequence
 
-    seq = gre_propeller2D_sequence(
-        n=192,
-        blade_width=16,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = gre_propeller2D_sequence(
+        n=192, blade_width=16, n_slices=1, te=None, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -62,19 +70,17 @@ documented on its :doc:`API page </generated/sequences/gre_propeller2D_sequence>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -90,21 +96,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351a850680>, tr=48, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44bb5f0890>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+The blades, coloured by the order they are played in. Each blade is a band
+of parallel lines; the bands overlap at the centre.
+
+.. GENERATED FROM PYTHON SOURCE LINES 65-68
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -119,14 +129,111 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 69-75
+
+Wider blades
+------------
+
+A wider blade covers more of the disc, so fewer blades are needed and each
+takes longer. What one blade samples of the centre grows with its width,
+which is what the motion correction works from.
+
+.. GENERATED FROM PYTHON SOURCE LINES 75-89
+
+.. code-block:: Python
+
+
+    alternative = gre_propeller2D_sequence(
+        n=192, blade_width=32, n_slices=1, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    16 lines             1824          2.67           304
+    32 lines             1920          2.81           320
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_propeller2D_sequence_003.png
+   :alt: gre propeller2D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_propeller2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 93-99
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 99-130
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  40.0 mT/m
+    slew rate                  pass                  165 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.38 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.885 seconds)
+   **Total running time of the script:** (0 minutes 4.112 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

@@ -18,35 +18,50 @@
 .. _sphx_glr_generated_gallery_15-epi_epi3D_sequence.py:
 
 
-======================
+========================
 3D echo-planar imaging
-======================
+========================
 
-A slab-selective excitation and a partition encode over the echo-planar train,
-with the skipped-CAIPI lattice available when both encoded axes are
-undersampled.
+One excitation per shot, followed by a train of readout lobes of alternating
+polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA
+lattice: line ``y`` is read when ``(y - n_y // 2) % ry == 0``, and the partition
+it is read at advances by the CAIPI shift from one lattice line to the next.
+A shot reads every ``n_shots``-th lattice line, which is skipped-CAIPI sampling
+(Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot
+per shell is blipped-CAIPI.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 14-133
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/epi3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-27
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 134-140
+
+Baseline: one shot per shell
+----------------------------
+
+A single shot per shell reads every lattice line of that shell, blipping to
+each line's partition as it goes. ``ry`` and ``rz`` set the lattice; the
+CAIPI shift follows from them and is written into the sequence definitions.
+
+.. GENERATED FROM PYTHON SOURCE LINES 140-151
 
 .. code-block:: Python
 
 
-    import pypulseqpp as pp
     from pypulseqpp.sequences import epi3D_sequence
 
-    seq = epi3D_sequence(
-        n_x=128,
-        n_y=128,
-        n_z=24,
-        tr=None,
-        n_dummy=0,
+    baseline = epi3D_sequence(n_x=64, n_y=64, n_z=16, ry=1, rz=8, n_shots=1, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(
+        f"CAIPI shift {int(baseline.get_definition('CaipiShift')[0])}, "
+        f"TE {baseline.get_definition('TE')[0] * 1e3:.2f} ms, "
+        f"TR {baseline.get_definition('TR')[0] * 1e3:.1f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -56,24 +71,23 @@ documented on its :doc:`API page </generated/sequences/epi3D_sequence>`.
 
  .. code-block:: none
 
-    3264 blocks, 4.42 s
+    144 blocks, 0.12 s
+    CAIPI shift 3, TE 32.10 ms, TR 122.2 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-32
+.. GENERATED FROM PYTHON SOURCE LINES 152-154
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 154-157
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=1)
+    baseline.paper_plot()
 
 
 
@@ -89,27 +103,63 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351a8522a0>, tr=1, underlays=[3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 24])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44884f3140>, tr=2, underlays=[1])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 158-168
 
-Acquisition order
------------------
+Skipped-CAIPI traversal
+-----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+Each cell of the lattice is one ``(line, partition)`` view, white where it is
+sampled. The path is the order the echoes of one train read those views,
+drawn as the parabolas the triangular blips integrate to. The partition jumps
+between consecutive echoes are the CAIPI blips: they alternate between
+amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
+:math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z`, and the pattern repeats every
+:math:`n` echoes.
 
-.. code-block:: Python
+.. GENERATED FROM PYTHON SOURCE LINES 168-175
 
-
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
 
 
 
 .. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_002.png
-   :alt: epi3D sequence
+   :alt: $1\cdot{1\times8}_{z3}$:  $b^{(1)}=3,\ b^{(2)}=5,\ n=8$
    :srcset: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_002.png
+   :class: sphx-glr-single-img
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 176-184
+
+Segmented: three shots per shell
+--------------------------------
+
+Raising ``n_shots`` divides the same lattice between shots, each reading
+every third lattice line. The echo train shortens in proportion, which is
+what shortens the readout window and the geometric distortion along the
+phase-encode axis, and the blips grow because a shot steps three lattice
+lines at a time.
+
+.. GENERATED FROM PYTHON SOURCE LINES 184-205
+
+.. code-block:: Python
+
+
+    segmented = epi3D_sequence(n_x=64, n_y=64, n_z=16, ry=1, rz=8, n_shots=3, n_dummy=0)
+
+
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_003.png
+   :alt: $1\cdot{1\times8}_{z3}$:  $b^{(1)}=3,\ b^{(2)}=5,\ n=8$, $3\cdot{1\times8}_{z3}$:  $b^{(1)}=1,\ b^{(2)}=7,\ n=8$
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_003.png
    :class: sphx-glr-single-img
 
 
@@ -117,15 +167,120 @@ Acquisition order
 
  .. code-block:: none
 
+               echoes  trains  per train   TE (ms)
+    1 shot        128       2       64.0     32.10
+    3 shots       126       6       21.0     14.47
 
-    <Figure size 1100x500 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 206-212
+
+In-plane acceleration
+---------------------
+
+``ry`` skips lines, which shortens the train further and widens the lattice
+along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
+where the CAIPI shift puts them.
+
+.. GENERATED FROM PYTHON SOURCE LINES 212-225
+
+.. code-block:: Python
+
+
+    accelerated = epi3D_sequence(n_x=64, n_y=64, n_z=16, ry=2, rz=4, n_shots=2, n_dummy=0)
+    print(
+        f"ry=2, rz=4: CAIPI shift {int(accelerated.get_definition('CaipiShift')[0])}, "
+        f"{accelerated.num_blocks} blocks, {accelerated.duration()[0]:.2f} s"
+    )
+
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_004.png
+   :alt: $2\cdot{2\times4}_{z2}$:  $b^{(1)}=0,\ b^{(2)}=0,\ n=1$
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_004.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    ry=2, rz=4: CAIPI shift 2, 200 blocks, 0.16 s
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 226-233
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's. This configuration exceeds its threshold, which is what an
+echo-planar train at a short echo spacing does on a body gradient system.
+
+.. GENERATED FROM PYTHON SOURCE LINES 233-265
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model, trace=True)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.7 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.07 of threshold
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 266-272
+
+Peripheral nerve stimulation
+----------------------------
+
+The readout train drives one axis hard and repetitively, so the response
+reaches its peak within the first echoes and stays there. ``check_pns``
+returns the response it took its peak from.
+
+.. GENERATED FROM PYTHON SOURCE LINES 272-286
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_005.png
+   :alt: threshold dashed
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_005.png
+   :class: sphx-glr-single-img
+
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.753 seconds)
+   **Total running time of the script:** (0 minutes 0.660 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

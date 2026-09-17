@@ -18,18 +18,30 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se3D_sequence.py:
 
 
-======================
+========================
 3D Cartesian spin echo
-======================
+========================
 
-One ``(line, partition)`` view is read per excitation, at a refocused echo.
+One excitation and one refocusing pulse per ``(line, partition)`` view
+over a slab.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-12
+.. GENERATED FROM PYTHON SOURCE LINES 9-36
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-26
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+Baseline
+--------
+
+A full Cartesian sampling of the slab.
+
+.. GENERATED FROM PYTHON SOURCE LINES 41-49
 
 .. code-block:: Python
 
@@ -37,15 +49,9 @@ documented on its :doc:`API page </generated/sequences/se3D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import se3D_sequence
 
-    seq = se3D_sequence(
-        n_x=160,
-        n_y=160,
-        n_z=32,
-        te=None,
-        tr=None,
-        n_dummy=0,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = se3D_sequence(n_x=160, n_y=160, n_z=32, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -60,19 +66,17 @@ documented on its :doc:`API page </generated/sequences/se3D_sequence>`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-31
+.. GENERATED FROM PYTHON SOURCE LINES 50-52
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 31-34
+.. GENERATED FROM PYTHON SOURCE LINES 52-55
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=40)
+    baseline.paper_plot()
 
 
 
@@ -88,21 +92,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a7c2540>, tr=40, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a856f470>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+.. GENERATED FROM PYTHON SOURCE LINES 56-60
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+The phase-encode plane in the order it is read.
+
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
+
 
 
 
@@ -117,14 +124,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-69
+
+Acceleration on both encoded axes
+---------------------------------
+
+Skipping lines and partitions leaves a spin echo's contrast alone, because
+the echo time is a property of one repetition rather than of the sampling.
+
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
+
+.. code-block:: Python
+
+
+    alternative = se3D_sequence(
+        n_x=160, n_y=160, n_z=32, ry=2, rz=2, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    full                31960         53.45          3995
+    2 x 2               10232         17.11          1279
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="yz", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se3D_sequence_003.png
+   :alt: se3D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 87-93
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 93-124
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.5 mT/m
+    slew rate                  pass                  167 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.26 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 17.214 seconds)
+   **Total running time of the script:** (0 minutes 26.309 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

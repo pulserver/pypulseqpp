@@ -18,19 +18,30 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:
 
 
-===========================
+=============================
 3D stack-of-stars spin echo
-===========================
+=============================
 
-Radial spokes in the plane, a Cartesian partition encode along z, and a
-refocused echo per view.
+Radial spokes in the plane and Cartesian encoding along the slab axis,
+read at the refocused echo.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 9-36
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se_stack_of_stars3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-26
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+Baseline
+--------
+
+A spoke at every partition.
+
+.. GENERATED FROM PYTHON SOURCE LINES 41-49
 
 .. code-block:: Python
 
@@ -38,14 +49,9 @@ documented on its :doc:`API page </generated/sequences/se_stack_of_stars3D_seque
     import pypulseqpp as pp
     from pypulseqpp.sequences import se_stack_of_stars3D_sequence
 
-    seq = se_stack_of_stars3D_sequence(
-        n=192,
-        n_z=16,
-        te=None,
-        tr=None,
-        n_dummy=0,
-    )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    baseline = se_stack_of_stars3D_sequence(n=192, n_z=16, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -60,19 +66,17 @@ documented on its :doc:`API page </generated/sequences/se_stack_of_stars3D_seque
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-31
+.. GENERATED FROM PYTHON SOURCE LINES 50-52
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 31-34
+.. GENERATED FROM PYTHON SOURCE LINES 52-55
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -88,21 +92,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f350a4262d0>, tr=48, underlays=[1, 303, 605, 907, 1209, 1511, 1813, 2115, 2417, 2719, 3021, 3323, 3625, 3927, 4229, 4531, 4817])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44bb410ce0>, tr=3633, underlays=[1, 303, 605, 907, 1209, 1511, 1813, 2115, 2417, 2719, 3021, 3323, 3625, 3927, 4229, 4531, 4817])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+.. GENERATED FROM PYTHON SOURCE LINES 56-60
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+The spokes of the stack projected onto the plane.
+
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -117,14 +124,109 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-68
+
+Angular undersampling
+---------------------
+
+One spoke in four, which shortens the scan fourfold.
+
+.. GENERATED FROM PYTHON SOURCE LINES 68-82
+
+.. code-block:: Python
+
+
+    alternative = se_stack_of_stars3D_sequence(
+        n=192, n_z=16, ry=4, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    Nyquist             38656         86.59          4832
+    ry = 4               9728         21.79          1216
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 83-85
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se_stack_of_stars3D_sequence_003.png
+   :alt: se stack of stars3D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se_stack_of_stars3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 86-92
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-123
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  164 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.09 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 30.663 seconds)
+   **Total running time of the script:** (0 minutes 39.735 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

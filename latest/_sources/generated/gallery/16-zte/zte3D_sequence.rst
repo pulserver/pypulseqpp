@@ -18,20 +18,33 @@
 .. _sphx_glr_generated_gallery_16-zte_zte3D_sequence.py:
 
 
-=================
+===================
 3D zero echo time
-=================
+===================
 
 The readout gradient is already at amplitude when the hard pulse is
-transmitted, so acquisition begins without a ramp and the trajectory starts at
-the centre of k-space.
+transmitted, so acquisition begins as soon as the receiver is available and
+the echo time is a few tens of microseconds. What the pulse cannot excite
+during the gradient, and what the dead time costs at the centre of k-space,
+are the price of it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 12-39
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/zte3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-24
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 40-44
+
+Baseline
+--------
+
+Half-spokes turned over a sphere, at enough views to sample its surface.
+
+.. GENERATED FROM PYTHON SOURCE LINES 44-55
 
 .. code-block:: Python
 
@@ -39,11 +52,12 @@ documented on its :doc:`API page </generated/sequences/zte3D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import zte3D_sequence
 
-    seq = zte3D_sequence(
-        n_x=128,
-        n_dummy=0,
+    baseline = zte3D_sequence(n_x=64, n_views=300, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(
+        f"{int(baseline.get_definition('NumShots')[0])} shots, "
+        f"TR {baseline.get_definition('TR')[0] * 1e6:.0f} us"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -53,24 +67,23 @@ documented on its :doc:`API page </generated/sequences/zte3D_sequence>`.
 
  .. code-block:: none
 
-    104139 blocks, 66.42 s
+    118998 blocks, 38.03 s
+    198 shots, TR 640 us
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 25-29
+.. GENERATED FROM PYTHON SOURCE LINES 56-58
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 29-32
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
 
-    seq.paper_plot(time_range=(0.0, 0.004))
+    baseline.paper_plot()
 
 
 
@@ -86,21 +99,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e426660>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448873f560>, tr=28, underlays=[1, 7, 14, 27, 40, 53, 66, 79, 92, 105, 106, 118, 131, 144, 152, 157, 170, 183, 196])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-35
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-37
+The half-spokes projected onto a plane. Each starts at the centre of
+k-space and runs outward.
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-70
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", show_trajectory=False, block_range=(1, 2000))
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -115,14 +132,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 71-78
+
+Fewer views
+-----------
+
+``n_views`` sets how many half-spokes are played. Fewer of them shortens the
+scan and undersamples the surface of the sphere, which shows as streaks rather
+than as aliasing. Both configurations here play far fewer views than the
+matrix asks for, so that the individual spokes stay visible on the page.
+
+.. GENERATED FROM PYTHON SOURCE LINES 78-90
+
+.. code-block:: Python
+
+
+    alternative = zte3D_sequence(n_x=64, n_views=120, n_dummy=0)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    Nyquist            118998         38.03         59400
+    half the views      47718         15.22         23760
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/16-zte/images/sphx_glr_zte3D_sequence_003.png
+   :alt: zte3D sequence
+   :srcset: /generated/gallery/16-zte/images/sphx_glr_zte3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 94-100
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 100-131
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                   5.3 mT/m
+    slew rate                  pass                  133 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation pass          0.35 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.545 seconds)
+   **Total running time of the script:** (1 minutes 20.413 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

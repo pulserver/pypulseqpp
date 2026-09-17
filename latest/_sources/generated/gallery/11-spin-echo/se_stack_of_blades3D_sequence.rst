@@ -18,19 +18,30 @@
 .. _sphx_glr_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py:
 
 
-============================
+==============================
 3D stack-of-blades spin echo
-============================
+==============================
 
-PROPELLER blades in the plane, a Cartesian partition encode along z, and a
-refocused echo per view.
+PROPELLER blades in the plane and Cartesian encoding along the slab axis,
+read at the refocused echo.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 9-36
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/se_stack_of_blades3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-27
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+Baseline
+--------
+
+Sixteen lines to a blade, at every partition.
+
+.. GENERATED FROM PYTHON SOURCE LINES 41-51
 
 .. code-block:: Python
 
@@ -38,15 +49,11 @@ documented on its :doc:`API page </generated/sequences/se_stack_of_blades3D_sequ
     import pypulseqpp as pp
     from pypulseqpp.sequences import se_stack_of_blades3D_sequence
 
-    seq = se_stack_of_blades3D_sequence(
-        n=192,
-        n_z=16,
-        blade_width=16,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = se_stack_of_blades3D_sequence(
+        n=192, n_z=16, blade_width=16, te=None, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
 
 
 
@@ -61,19 +68,17 @@ documented on its :doc:`API page </generated/sequences/se_stack_of_blades3D_sequ
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-32
+.. GENERATED FROM PYTHON SOURCE LINES 52-54
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 54-57
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -89,21 +94,24 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351a83bce0>, tr=48, underlays=[1, 305, 609, 913, 1217, 1521, 1825, 2129, 2305, 2433, 2737, 3041, 3345, 3649, 3953, 4257, 4561, 4609])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44ca564ad0>, tr=3585, underlays=[1, 305, 609, 913, 1217, 1521, 1825, 2129, 2305, 2433, 2737, 3041, 3345, 3649, 3953, 4257, 4561, 4609])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 58-62
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+The blades of the stack projected onto the plane.
+
+.. GENERATED FROM PYTHON SOURCE LINES 62-65
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="shot", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+
 
 
 
@@ -16684,14 +16692,1573 @@ Acquisition order
     check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
       return _waveforms_and_times(
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 66-70
+
+Wider blades
+------------
+
+Fewer, wider blades, each sampling more of the centre.
+
+.. GENERATED FROM PYTHON SOURCE LINES 70-84
+
+.. code-block:: Python
+
+
+    alternative = se_stack_of_blades3D_sequence(
+        n=192, n_z=16, blade_width=32, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    16 lines            43776         76.56          4864
+    32 lines            46080         80.59          5120
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 85-87
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+
+
+
+
+.. image-sg:: /generated/gallery/11-spin-echo/images/sphx_glr_se_stack_of_blades3D_sequence_003.png
+   :alt: se stack of blades3D sequence
+   :srcset: /generated/gallery/11-spin-echo/images/sphx_glr_se_stack_of_blades3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8006680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8022420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8038160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8053900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76570120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76585860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76601600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76617340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76633080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76648820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76664560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76680300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76711780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76727520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76743260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76759000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76774740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76790480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76806220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76821960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76837700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76853440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76869180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76884920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76900660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76916400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76932140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76963620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76979360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76995100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77010840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77026580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77042320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77058060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77073800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77089540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77105280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77121020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77136760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77152500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77168240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77183980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77215460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77231200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77246940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77262680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77278420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77294160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77309900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77325640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77341380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77357120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77372860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77388600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77404340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77420080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77435820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77467300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77483040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77498780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77514520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77530260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77546000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77561740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77577480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77593220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77608960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77624700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77640440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77656180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77671920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77687660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77719140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77734880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77750620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77766360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77782100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77797840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77813580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77829320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77845060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77860800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77876540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77892280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77908020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77923760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77939500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77970980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77986720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78002460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78018200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78033940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78049680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78065420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78081160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78096900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78112640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78128380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78144120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78159860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78175600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78191340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78222820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78238560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78254300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78270040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78285780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78301520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78317260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78333000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78348740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78364480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78380220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78395960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78411700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78427440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78443180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78474660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78490400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78506140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78521880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78537620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78553360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78569100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78584840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78600580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78616320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78632060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78647800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78663540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78679280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78695020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78726500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78742240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78757980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78773720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78789460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78805200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78820940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78836680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78852420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78868160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78883900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78899640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78915380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78931120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78946860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78978340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78994080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79009820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79025560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79041300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79057040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79072780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79088520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79104260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79120000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79135740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79151480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79167220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79182960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79198700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79230180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79245920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79261660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79277400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79293140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79308880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79324620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79340360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79356100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79371840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79387580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79403320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79419060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79434800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79450540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79482020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79497760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79513500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79529240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79544980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79560720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79576460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79592200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79607940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79623680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79639420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79655160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79670900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79686640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79702380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79733860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79749600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79765340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79781080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79796820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79812560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79828300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79844040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79859780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79875520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79891260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79907000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79922740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79938480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79954220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79985700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80001440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80017180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80032920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80048660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80064400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80080140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80095880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80111620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80127360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80143100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80158840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80174580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80190320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80206060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80237540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80253280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80269020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80284760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80300500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80316240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80331980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80347720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80363460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80379200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80394940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80410680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80426420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80442160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80457900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80489380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80505120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80520860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80536600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80552340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80568080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:1014: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80583820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _kspace_detail(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8006680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8022420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8038160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 2 at t=8053900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76570120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76585860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76601600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76617340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76633080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76648820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76664560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76680300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76711780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76727520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76743260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76759000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76774740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76790480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76806220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76821960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76837700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76853440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76869180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76884920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76900660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76916400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76932140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76963620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76979360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=76995100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77010840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77026580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77042320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77058060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77073800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77089540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77105280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77121020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77136760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77152500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77168240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77183980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77215460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77231200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77246940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77262680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77278420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77294160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77309900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77325640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77341380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77357120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77372860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77388600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77404340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77420080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77435820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77467300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77483040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77498780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77514520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77530260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77546000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77561740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77577480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77593220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77608960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77624700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77640440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77656180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77671920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77687660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77719140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77734880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77750620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77766360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77782100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77797840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77813580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77829320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77845060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77860800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77876540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77892280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77908020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77923760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77939500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77970980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=77986720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78002460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78018200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78033940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78049680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78065420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78081160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78096900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78112640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78128380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78144120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78159860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78175600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78191340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78222820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78238560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78254300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78270040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78285780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78301520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78317260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78333000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78348740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78364480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78380220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78395960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78411700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78427440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78443180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78474660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78490400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78506140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78521880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78537620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78553360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78569100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78584840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78600580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78616320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78632060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78647800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78663540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78679280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78695020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78726500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78742240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78757980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78773720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78789460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78805200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78820940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78836680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78852420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78868160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78883900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78899640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78915380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78931120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78946860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78978340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=78994080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79009820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79025560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79041300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79057040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79072780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79088520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79104260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79120000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79135740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79151480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79167220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79182960 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79198700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79230180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79245920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79261660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79277400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79293140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79308880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79324620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79340360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79356100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79371840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79387580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79403320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79419060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79434800 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79450540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79482020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79497760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79513500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79529240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79544980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79560720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79576460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79592200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79607940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79623680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79639420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79655160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79670900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79686640 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79702380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79733860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79749600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79765340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79781080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79796820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79812560 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79828300 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79844040 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79859780 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79875520 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79891260 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79907000 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79922740 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79938480 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79954220 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=79985700 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80001440 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80017180 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80032920 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80048660 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80064400 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80080140 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80095880 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80111620 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80127360 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80143100 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80158840 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80174580 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80190320 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80206060 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80237540 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80253280 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80269020 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80284760 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80300500 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80316240 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80331980 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80347720 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80363460 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80379200 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80394940 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80410680 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80426420 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80442160 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80457900 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80489380 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80505120 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80520860 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80536600 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80552340 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80568080 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_sequence.py:858: UserWarning: waveforms_and_times(): forcing ramp-down from a non-zero gradient sample on axis 3 at t=80583820 us 
+    check your sequence, some calculations are possibly wrong. If using mr.makeArbitraryGrad() consider using explicit values for 'first' and 'last' and setting them correctly.
+      return _waveforms_and_times(
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 88-94
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 94-125
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  40.0 mT/m
+    slew rate                  pass                  164 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.01 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 31.311 seconds)
+   **Total running time of the script:** (1 minutes 2.507 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py:

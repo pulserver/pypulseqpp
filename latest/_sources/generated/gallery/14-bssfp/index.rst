@@ -23,7 +23,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the steady state depends on the off-resonance accumulated over one repetition time.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the magnetisation reaches a steady state that carries both relaxation times. The train opens with a half flip, which places the magnetisation on the axis the steady state oscillates about.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure of the two-dimensional sequence over a partition-encoded slab, with each train opened by a half flip.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure over a partition-encoded slab, with each train opened by a half flip.">
 
 .. only:: html
 

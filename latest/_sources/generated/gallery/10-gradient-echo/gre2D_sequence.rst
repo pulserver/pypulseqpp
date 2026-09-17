@@ -18,20 +18,32 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre2D_sequence.py:
 
 
-==========================
+============================
 2D Cartesian gradient echo
-==========================
+============================
 
-One phase-encode line is read per repetition and the transverse magnetisation is
-spoiled between them, so the signal is a steady state of the flip angle, the
-repetition time and T1.
+One excitation and one phase-encode line per repetition, with the
+transverse magnetisation spoiled by a gradient and by a quadratic RF phase
+increment before the next excitation. The workhorse of the family, and the
+sequence the other Cartesian variants are read against.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+A full Cartesian sampling of one slice.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-54
 
 .. code-block:: Python
 
@@ -39,15 +51,12 @@ documented on its :doc:`API page </generated/sequences/gre2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre2D_sequence
 
-    seq = gre2D_sequence(
-        n_x=192,
-        n_y=192,
-        n_slices=1,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = gre2D_sequence(n_x=192, n_y=192, n_slices=1, te=None, tr=None, n_dummy=0)
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(
+        f"TE {baseline.get_definition('TE')[0] * 1e3:.2f} ms, "
+        f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -58,23 +67,22 @@ documented on its :doc:`API page </generated/sequences/gre2D_sequence>`.
  .. code-block:: none
 
     960 blocks, 1.83 s
+    TE 4.02 ms, TR 9.54 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 55-57
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -90,21 +98,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351a853140>, tr=48, underlays=[1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a9de58e0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+The lines are dealt so that the centre of k-space is read near the middle
+of the scan, which is what the colour by acquisition order shows.
+
+.. GENERATED FROM PYTHON SOURCE LINES 66-69
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
+
 
 
 
@@ -119,14 +131,111 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 70-76
+
+In-plane acceleration
+---------------------
+
+``ry`` reads one line in two and adds a fully sampled calibration region at
+the centre, which a parallel-imaging reconstruction needs to estimate the
+coil sensitivities from.
+
+.. GENERATED FROM PYTHON SOURCE LINES 76-90
+
+.. code-block:: Python
+
+
+    alternative = gre2D_sequence(
+        n_x=192, n_y=192, n_slices=1, ry=2, n_acs_y=24, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    full                  960          1.83           192
+    ry = 2                540          1.03           108
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre2D_sequence_003.png
+   :alt: gre2D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 94-100
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 100-131
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  165 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.63 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.243 seconds)
+   **Total running time of the script:** (0 minutes 2.076 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

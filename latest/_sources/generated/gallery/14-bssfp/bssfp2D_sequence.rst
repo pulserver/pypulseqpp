@@ -18,20 +18,32 @@
 .. _sphx_glr_generated_gallery_14-bssfp_bssfp2D_sequence.py:
 
 
-================
+==================
 2D balanced SSFP
-================
+==================
 
-Every gradient axis returns to zero moment within each repetition and the RF
-phase alternates, so the steady state depends on the off-resonance accumulated
-over one repetition time.
+Every gradient axis returns to zero moment within each repetition and the
+RF phase alternates, so the magnetisation reaches a steady state that carries
+both relaxation times. The train opens with a half flip, which places the
+magnetisation on the axis the steady state oscillates about.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/bssfp2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+One cardiac phase over a full Cartesian sampling.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-53
 
 .. code-block:: Python
 
@@ -39,15 +51,11 @@ documented on its :doc:`API page </generated/sequences/bssfp2D_sequence>`.
     import pypulseqpp as pp
     from pypulseqpp.sequences import bssfp2D_sequence
 
-    seq = bssfp2D_sequence(
-        n_x=192,
-        n_y=192,
-        n_slices=1,
-        n_phases=1,
-        tr=None,
-        n_dummy=0,
+    baseline = bssfp2D_sequence(
+        n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print(f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms")
 
 
 
@@ -58,26 +66,22 @@ documented on its :doc:`API page </generated/sequences/bssfp2D_sequence>`.
  .. code-block:: none
 
     579 blocks, 0.74 s
+    TR 3.84 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-35
+.. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 Sequence diagram
 ----------------
 
-Structural repetition detection reports the whole train as this sequence's
-repeating unit, so the window drawn here is one repetition time from the
-middle of the scan rather than a repetition index.
-
-.. GENERATED FROM PYTHON SOURCE LINES 35-39
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
 
-    repetition_time = seq.get_definition("TR")[0]
-    seq.paper_plot(time_range=(96 * repetition_time, 97 * repetition_time))
+    baseline.paper_plot()
 
 
 
@@ -93,21 +97,24 @@ middle of the scan rather than a repetition index.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f351a8500e0>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f4488140410>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-42
+.. GENERATED FROM PYTHON SOURCE LINES 60-64
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-44
+The lines in the order they are read, in segments of ``views_per_segment``.
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-67
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
+
 
 
 
@@ -122,14 +129,112 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 550x500 with 2 Axes>
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 68-75
+
+Cine
+----
+
+``n_phases`` reads the same segment of lines at several points after the
+trigger, so one breath-hold resolves the cardiac cycle. The segment length
+is what trades temporal resolution against the number of heartbeats the
+scan takes.
+
+.. GENERATED FROM PYTHON SOURCE LINES 75-89
+
+.. code-block:: Python
+
+
+    alternative = bssfp2D_sequence(
+        n_x=192, n_y=192, n_slices=1, n_phases=8, views_per_segment=12, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    1 phase               579          0.74           192
+    8 phases              579          0.74           192
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/14-bssfp/images/sphx_glr_bssfp2D_sequence_003.png
+   :alt: bssfp2D sequence
+   :srcset: /generated/gallery/14-bssfp/images/sphx_glr_bssfp2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 93-99
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 99-130
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  38.1 mT/m
+    slew rate                  pass                  167 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.60 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.712 seconds)
+   **Total running time of the script:** (0 minutes 1.427 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

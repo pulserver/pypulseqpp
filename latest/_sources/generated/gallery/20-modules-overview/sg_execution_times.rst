@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.246** total execution time for 1 file **from generated/gallery/20-modules-overview**:
+**00:00.192** total execution time for 1 file **from generated/gallery/20-modules-overview**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_20-modules-overview_sequence-module-composition.py` (``sequence-module-composition.py``)
-     - 00:00.246
+     - 00:00.192
      - 0.0

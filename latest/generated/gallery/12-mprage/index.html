@@ -265,6 +265,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,13 +549,13 @@
   <section id="mprage">
 <span id="sphx-glr-generated-gallery-12-mprage"></span><h1>MPRAGE<a class="headerlink" href="#mprage" title="Link to this heading">#</a></h1>
 <p>An inversion followed by a spoiled gradient-echo train over one partition.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads every sampled line of a single partition as a spoiled gradient-echo train, so the partition encode is constant within a shot."><img alt="" src="../../../_images/sphx_glr_mprage3D_sequence_thumb.png" />
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The contrast follows from where in the recovery the centre of k-space is acquired, so the ordering within the train is part of the sequence rather than a reconstruction choice."><img alt="" src="../../../_images/sphx_glr_mprage3D_sequence_thumb.png" />
 <p><a class="reference internal" href="mprage3D_sequence.html"><span class="doc">3D Cartesian MPRAGE</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D Cartesian MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the interleaves of a single partition."><img alt="" src="../../../_images/sphx_glr_mprage_stack_of_spirals3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion."><img alt="" src="../../../_images/sphx_glr_mprage_stack_of_spirals3D_sequence_thumb.png" />
 <p><a class="reference internal" href="mprage_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals MPRAGE</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-spirals MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the spokes of a single partition."><img alt="" src="../../../_images/sphx_glr_mprage_stack_of_stars3D_sequence_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines."><img alt="" src="../../../_images/sphx_glr_mprage_stack_of_stars3D_sequence_thumb.png" />
 <p><a class="reference internal" href="mprage_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars MPRAGE</span></a></p>
   <div class="sphx-glr-thumbnail-title">3D stack-of-stars MPRAGE</div>
 </div></div><div class="toctree-wrapper compound">

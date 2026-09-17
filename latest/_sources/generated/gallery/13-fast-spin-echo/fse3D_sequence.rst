@@ -18,37 +18,57 @@
 .. _sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:
 
 
-=================
+==================
 3D fast spin echo
-=================
+==================
 
-One excitation is followed by a CPMG train of refocusing pulses, and one
-``(line, partition)`` view is read at each echo. The amplitude left at an echo
-weights whichever view that echo reads.
+One excitation followed by a CPMG train of refocusing pulses, with one
+``(line, partition)`` view acquired per echo. The train amplitude at echo
+:math:`m` becomes the weight of whichever view that echo reads, so the map from
+echo index to k-space position is a filter applied to the image, and the
+ordering is what chooses it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-14
+.. GENERATED FROM PYTHON SOURCE LINES 12-87
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/fse3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-29
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 88-94
+
+Baseline
+--------
+
+A short train keeps the echo amplitudes near the excitation's, and the
+``(line, partition)`` views of one train are chosen so that the early echoes
+land at the centre of k-space.
+
+.. GENERATED FROM PYTHON SOURCE LINES 94-114
 
 .. code-block:: Python
 
 
-    import pypulseqpp as pp
+
     from pypulseqpp.sequences import fse3D_sequence
 
-    seq = fse3D_sequence(
-        n_x=192,
-        n_y=160,
-        n_z=32,
-        etl=16,
-        te=None,
-        tr=0.6,
-        n_dummy=0,
+    PRESCRIPTION = {
+        "n_x": 128,
+        "n_y": 96,
+        "n_z": 16,
+        "fov_x": 0.2,
+        "fov_y": 0.2,
+        "fov_z": 0.1,
+    }
+
+    baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=0.6, n_dummy=0)
+    print(
+        f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
+        f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
+        f"TE {baseline.get_definition('TE')[0] * 1e3:.1f} ms"
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 
 
 
@@ -58,24 +78,22 @@ documented on its :doc:`API page </generated/sequences/fse3D_sequence>`.
 
  .. code-block:: none
 
-    16750 blocks, 150.00 s
+    5100 blocks, 45.0 s, echo spacing 11.60 ms, TE 12.4 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-34
+.. GENERATED FROM PYTHON SOURCE LINES 115-117
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 34-37
+.. GENERATED FROM PYTHON SOURCE LINES 117-120
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=1)
+    baseline.paper_plot()
 
 
 
@@ -91,21 +109,23 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f3438a99bb0>, tr=1, underlays=[17, 33, 49, 61, 65, 81, 97, 113, 129, 145, 161, 177, 193, 209, 225, 241, 245])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0df1040>, tr=62, underlays=[1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+.. GENERATED FROM PYTHON SOURCE LINES 121-129
 
-Acquisition order
------------------
+Echo order and shot order
+-------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-42
+Two different quantities. The echo index says where in the train a view was
+read, and so how much the train had decayed when it was: it runs outward from
+the centre, which puts the largest amplitudes on the lines that carry the
+image contrast. The shot index says which train read it, and so which views
+share an excitation.
 
-.. code-block:: Python
+.. GENERATED FROM PYTHON SOURCE LINES 129-134
 
-
-    pp.plot.plot_kspace(seq, color_by="order", plane="yz", show_trajectory=False)
 
 
 
@@ -120,14 +140,145 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 946x396 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 135-140
+
+Train length
+------------
+
+A longer train acquires the volume in fewer excitations and reaches further
+into the decay, so the weight it applies to the outer lines is smaller.
+
+.. GENERATED FROM PYTHON SOURCE LINES 140-154
+
+.. code-block:: Python
+
+
+    long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=0.6, n_dummy=0)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                 ETL   shots   scan (s)   train (ms)
+    ETL 16        16      75       45.0        185.6
+    ETL 48        48      25       15.0        556.8
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 155-162
+
+The weight the ordering applies
+-------------------------------
+
+The refocusing schedule and the echo spacing are written into the sequence,
+so the envelope is simulated from what will be played. Each line's weight is
+the envelope at the echo index that read it, averaged over the partitions it
+was read at.
+
+.. GENERATED FROM PYTHON SOURCE LINES 162-187
+
+.. code-block:: Python
+
+
+    import torchsim
+
+    #: Relaxation times (ms) of the tissue the envelopes are simulated for.
+    T1_MS, T2_MS = 1200.0, 60.0
+
+    envelopes, weighting = {}, {}
+    for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
+        angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
+        esp_ms = 1e3 * seq.get_definition("EchoSpacing")[0]
+        amplitude = np.abs(
+            np.asarray(torchsim.fse_sim(flip=angles, ESP=esp_ms, T1=T1_MS, T2=T2_MS))
+        )
+        line, _, echo, _ = _views(seq, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
+        offsets = np.unique(line)
+        weighting[name] = (
+            offsets,
+            np.array([amplitude[echo[line == offset]].mean() for offset in offsets]),
+        )
+        envelopes[name] = amplitude
+
+
+
+
+
+.. image-sg:: /generated/gallery/13-fast-spin-echo/images/sphx_glr_fse3D_sequence_003.png
+   :alt: fse3D sequence
+   :srcset: /generated/gallery/13-fast-spin-echo/images/sphx_glr_fse3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+      warnings.warn(
+
+    <Figure size 946x330 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 188-199
+
+The centre of k-space keeps nearly the excitation's amplitude under either
+train length, because the ordering reads it first. What lengthening the train
+costs is at the edges, where the weight falls further; the image is blurred
+along the phase-encode axes in proportion.
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 199-230
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.5 mT/m
+    slew rate                  pass                  164 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation pass          0.99 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 40.359 seconds)
+   **Total running time of the script:** (0 minutes 6.691 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

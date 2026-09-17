@@ -271,6 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -549,9 +550,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-module-is-constructed-from-a-prescription">A module is constructed from a prescription</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-parts-of-the-interface">Three parts of the interface</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modules-compose-at-prescribed-intervals">Modules compose at prescribed intervals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constructing-a-module">Constructing a module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks-events-and-timing-reference">Blocks, events and timing reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#composing-modules">Composing modules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 </ul>
             </nav>
@@ -575,8 +576,8 @@ to download the full example code.</p>
 exposes the resulting events for a scan loop to place. The architecture is
 described in <a class="reference internal" href="../../../explanations/design/sequence-module.html"><span class="doc">Sequence modules</span></a>; this page shows the
 interface running.</p>
-<section id="a-module-is-constructed-from-a-prescription">
-<h2>A module is constructed from a prescription<a class="headerlink" href="#a-module-is-constructed-from-a-prescription" title="Link to this heading">#</a></h2>
+<section id="constructing-a-module">
+<h2>Constructing a module<a class="headerlink" href="#constructing-a-module" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code> designs an SLR pulse, its selection gradient
 and the rephaser that unwinds the second half of the selection.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
@@ -605,8 +606,8 @@ events: gz, gz_reph, rf
 </pre></div>
 </div>
 </section>
-<section id="three-parts-of-the-interface">
-<h2>Three parts of the interface<a class="headerlink" href="#three-parts-of-the-interface" title="Link to this heading">#</a></h2>
+<section id="blocks-events-and-timing-reference">
+<h2>Blocks, events and timing reference<a class="headerlink" href="#blocks-events-and-timing-reference" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">blocks</span></code> returns the block tuples in play order, so a module that needs no
 per-view modification is added to a sequence as it stands. The named events
 are the individual events a loop scales or offsets. <code class="docutils literal notranslate"><span class="pre">center</span></code> is the
@@ -621,8 +622,8 @@ selection amplitude 266.7 kHz/m
 </pre></div>
 </div>
 </section>
-<section id="modules-compose-at-prescribed-intervals">
-<h2>Modules compose at prescribed intervals<a class="headerlink" href="#modules-compose-at-prescribed-intervals" title="Link to this heading">#</a></h2>
+<section id="composing-modules">
+<h2>Composing modules<a class="headerlink" href="#composing-modules" title="Link to this heading">#</a></h2>
 <p>Intervals between modules are measured between their timing references. An
 inversion time runs from one pulse centre to the next, so the recovery delay
 subtracts the part of the inversion module after its pulse and the part of
@@ -667,10 +668,10 @@ the excitation module before its own.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_sequence-module-composition_001.png" srcset="../../../_images/sphx_glr_sequence-module-composition_001.png" alt="sequence module composition" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f350a5f7140&gt;, tr=1, underlays=[])
+<img src="../../../_images/sphx_glr_sequence-module-composition_001.png" srcset="../../../_images/sphx_glr_sequence-module-composition_001.png" alt="sequence module composition" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f44a8e86d50&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.246 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.192 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-20-modules-overview-sequence-module-composition-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/8f3a0c3eff44fbf403d6bf3b323044ac/sequence-module-composition.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">sequence-module-composition.ipynb</span></code></a></p>
@@ -733,9 +734,9 @@ the excitation module before its own.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-module-is-constructed-from-a-prescription">A module is constructed from a prescription</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-parts-of-the-interface">Three parts of the interface</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modules-compose-at-prescribed-intervals">Modules compose at prescribed intervals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constructing-a-module">Constructing a module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks-events-and-timing-reference">Blocks, events and timing reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#composing-modules">Composing modules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 </ul>
   </nav></div>

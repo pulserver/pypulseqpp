@@ -23,24 +23,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/13-fast-spin-echo/images/thumb/sphx_glr_fse-echo-ordering-and-point-spread_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/13-fast-spin-echo/fse-echo-ordering-and-point-spread`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a CPMG train of refocusing pulses, and one (line, partition) view is read at each echo. The amplitude left at an echo weights whichever view that echo reads.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. The train amplitude at echo m becomes the weight of whichever view that echo reads, so the map from echo index to k-space position is a filter applied to the image, and the ordering is what chooses it.">
 
 .. only:: html
 
@@ -65,6 +48,5 @@ Fast spin echo
 .. toctree::
    :hidden:
 
-   /generated/gallery/13-fast-spin-echo/fse-echo-ordering-and-point-spread
    /generated/gallery/13-fast-spin-echo/fse3D_sequence
 

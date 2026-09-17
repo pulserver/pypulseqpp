@@ -23,7 +23,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads every sampled line of a single partition as a spoiled gradient-echo train, so the partition encode is constant within a shot.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The contrast follows from where in the recovery the centre of k-space is acquired, so the ordering within the train is part of the sequence rather than a reconstruction choice.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the interleaves of a single partition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the spokes of a single partition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines.">
 
 .. only:: html
 

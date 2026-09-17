@@ -18,19 +18,34 @@
 .. _sphx_glr_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:
 
 
-==========================
+============================
 3D stack-of-spirals MPRAGE
-==========================
+============================
 
-Each shot applies one inversion and then reads the interleaves of a single
-partition.
+One inversion per shot, followed by a spoiled gradient-echo train that
+reads the spiral interleaves of one partition. An interleaf covers far more
+of the plane than a line does, so a partition needs few readouts and the
+whole train sits close behind the inversion.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 11-72
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/mprage_stack_of_spirals3D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-27
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 73-79
+
+Timing structure
+----------------
+
+The inversion, the inversion time, the interleaf train over one partition, and
+the recovery. The configuration below shortens the preparation and the train
+so that all of it stays visible at the width of this page.
+
+.. GENERATED FROM PYTHON SOURCE LINES 79-92
 
 .. code-block:: Python
 
@@ -38,15 +53,14 @@ documented on its :doc:`API page </generated/sequences/mprage_stack_of_spirals3D
     import pypulseqpp as pp
     from pypulseqpp.sequences import mprage_stack_of_spirals3D_sequence
 
-    seq = mprage_stack_of_spirals3D_sequence(
-        n=192,
-        n_z=16,
-        n_shots=16,
-        ti=0.9,
-        tr=2.3,
-        n_dummy=0,
+    compact = mprage_stack_of_spirals3D_sequence(
+        n=96, n_z=8, n_shots=8, ti=0.06, tr=0.2, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(
+        f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
+        f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
+        f"TR {compact.get_definition('TR')[0] * 1e3:.0f} ms"
+    )
 
 
 
@@ -56,24 +70,16 @@ documented on its :doc:`API page </generated/sequences/mprage_stack_of_spirals3D
 
  .. code-block:: none
 
-    1088 blocks, 36.80 s
+    288 blocks, 1.60 s, TI 60 ms, TR 200 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-32
-
-Sequence diagram
-----------------
-
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 32-35
+.. GENERATED FROM PYTHON SOURCE LINES 93-95
 
 .. code-block:: Python
 
-
-    seq.paper_plot(time_range=(0.0, 1.0))
+    compact.paper_plot()
 
 
 
@@ -89,21 +95,30 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e537620>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44887c4e30>, tr=1, underlays=[2, 3, 4, 5, 6, 7, 8])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 96-103
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-40
+One inversion reads the interleaves of one partition, so the inversion cycle
+is constant along each row. With an interleaf per readout the train is a
+few tens of readouts long rather than a few hundred, and every view is read
+within a short interval of the inversion time.
+
+.. GENERATED FROM PYTHON SOURCE LINES 103-112
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", show_trajectory=False)
+    protocol = mprage_stack_of_spirals3D_sequence(
+        n=192, n_z=16, n_shots=16, ti=0.9, tr=2.3, n_dummy=0
+    )
+
+
 
 
 
@@ -118,14 +133,86 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 946x374 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 113-118
+
+Trajectory
+----------
+
+The interleaves projected onto the plane, coloured by shot. Each one is
+turned from the last so that the set covers the plane.
+
+.. GENERATED FROM PYTHON SOURCE LINES 118-121
+
+.. code-block:: Python
+
+
+    pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+
+
+
+
+.. image-sg:: /generated/gallery/12-mprage/images/sphx_glr_mprage_stack_of_spirals3D_sequence_003.png
+   :alt: mprage stack of spirals3D sequence
+   :srcset: /generated/gallery/12-mprage/images/sphx_glr_mprage_stack_of_spirals3D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 605x550 with 2 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 122-128
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 128-159
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(protocol)
+    slew_ok, slew = safety.check_max_slew(protocol)
+    cont_ok, cont = safety.check_grad_continuity(protocol)
+    pns_ok, pns = safety.check_pns(protocol, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.6 mT/m
+    slew rate                  pass                  168 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.28 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 19.775 seconds)
+   **Total running time of the script:** (0 minutes 12.159 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

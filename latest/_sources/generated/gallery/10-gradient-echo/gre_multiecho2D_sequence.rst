@@ -18,19 +18,32 @@
 .. _sphx_glr_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:
 
 
-=====================================
+=======================================
 2D Cartesian multi-echo gradient echo
-=====================================
+=======================================
 
-Each excitation is followed by several readout lobes, so one phase-encode line
-is sampled at several echo times and the decay across them measures T2*.
+One excitation per repetition, with the line read again at several echo
+times. The signal decays between echoes at a rate the tissue's apparent
+transverse relaxation sets, so one repetition measures the decay rather
+than one point on it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-13
+.. GENERATED FROM PYTHON SOURCE LINES 11-38
 
-The sequence is designed by one call. Every parameter of the prescription is
-documented on its :doc:`API page </generated/sequences/gre_multiecho2D_sequence>`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-28
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+Baseline
+--------
+
+Four echoes after one excitation, read in alternating directions.
+
+.. GENERATED FROM PYTHON SOURCE LINES 43-53
 
 .. code-block:: Python
 
@@ -38,16 +51,11 @@ documented on its :doc:`API page </generated/sequences/gre_multiecho2D_sequence>
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_multiecho2D_sequence
 
-    seq = gre_multiecho2D_sequence(
-        n_x=192,
-        n_y=192,
-        n_slices=1,
-        n_echoes=4,
-        te=None,
-        tr=None,
-        n_dummy=0,
+    baseline = gre_multiecho2D_sequence(
+        n_x=192, n_y=192, n_slices=1, n_echoes=4, te=None, tr=None, n_dummy=0
     )
-    print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+    print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+    print("TE", [round(t * 1e3, 2) for t in baseline.get_definition("TE")], "ms")
 
 
 
@@ -58,23 +66,22 @@ documented on its :doc:`API page </generated/sequences/gre_multiecho2D_sequence>
  .. code-block:: none
 
     2112 blocks, 4.54 s
+    TE [4.02, 8.7, 13.38, 18.06] ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 Sequence diagram
 ----------------
 
-One repetition, with the others drawn underneath in grey.
-
-.. GENERATED FROM PYTHON SOURCE LINES 33-36
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
 
-    seq.paper_plot(tr=48)
+    baseline.paper_plot()
 
 
 
@@ -90,21 +97,25 @@ One repetition, with the others drawn underneath in grey.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f353b6f8b30>, tr=48, underlays=[1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a85e5c40>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-39
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
-Acquisition order
------------------
+Sampling order
+--------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+Colouring by echo index separates the echoes of one excitation; colouring by
+shot separates the excitations.
+
+.. GENERATED FROM PYTHON SOURCE LINES 65-68
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
+
 
 
 
@@ -119,14 +130,110 @@ Acquisition order
  .. code-block:: none
 
 
-    <Figure size 1100x500 with 4 Axes>
+    <Figure size 1210x550 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 69-74
+
+A longer echo train
+-------------------
+
+More echoes sample the decay further into it, at the cost of a longer
+repetition and a later last echo.
+
+.. GENERATED FROM PYTHON SOURCE LINES 74-88
+
+.. code-block:: Python
+
+
+    alternative = gre_multiecho2D_sequence(
+        n_x=192, n_y=192, n_slices=1, n_echoes=8, te=None, tr=None, n_dummy=0
+    )
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+                       blocks  duration (s)  acquisitions
+    4 echoes             2112          4.54           768
+    8 echoes             3648          8.13          1536
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 89-91
+
+.. code-block:: Python
+
+    pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+
+
+
+
+.. image-sg:: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_multiecho2D_sequence_003.png
+   :alt: gre multiecho2D sequence
+   :srcset: /generated/gallery/10-gradient-echo/images/sphx_glr_gre_multiecho2D_sequence_003.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 1210x550 with 4 Axes>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-98
+
+Safety checks
+-------------
+
+A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The nerve model below is a demonstration, not a
+scanner's.
+
+.. GENERATED FROM PYTHON SOURCE LINES 98-129
+
+.. code-block:: Python
+
+
+    from pypulseqpp import safety
+
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    grad_ok, grad = safety.check_max_grad(baseline)
+    slew_ok, slew = safety.check_max_slew(baseline)
+    cont_ok, cont = safety.check_grad_continuity(baseline)
+    pns_ok, pns = safety.check_pns(baseline, model)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    check                      result                     peak
+    gradient amplitude         pass                  39.8 mT/m
+    slew rate                  pass                  166 T/m/s
+    gradient continuity        pass          0 discontinuities
+    peripheral nerve stimulation FAIL          1.63 of threshold
+
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.101 seconds)
+   **Total running time of the script:** (0 minutes 24.914 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:

@@ -267,6 +267,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -560,13 +561,10 @@ accumulates along it.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p></td>
-<td><p>One blipped echo train per excitation.</p></td>
+<td><p>One blipped echo train per excitation, with segmentation and in-plane acceleration against the train length and the distortion it implies.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../../generated/gallery/15-epi/epi3D_sequence.html"><span class="doc">3D echo-planar imaging</span></a></p></td>
-<td><p>One blipped echo train per (shot, shell), skipped-CAIPI when undersampled.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/15-epi/epi-segmentation-and-acceleration.html"><span class="doc">Echo train length and geometric distortion in EPI</span></a></p></td>
-<td><p>Echo train length against geometric distortion and volume acquisition time, over segmentation and in-plane acceleration.</p></td>
+<td><p>The skipped-CAIPI lattice and the traversal through it, blipped and segmented.</p></td>
 </tr>
 </tbody>
 </table>

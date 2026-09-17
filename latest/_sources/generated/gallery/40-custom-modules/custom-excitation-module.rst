@@ -42,8 +42,8 @@ This example implements that design as a module against the
 
 .. GENERATED FROM PYTHON SOURCE LINES 61-80
 
-The contract
-------------
+Required interface
+-------------------
 
 A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -152,8 +152,8 @@ measures its echo time from. A minimum-phase pulse is used at
 
 .. GENERATED FROM PYTHON SOURCE LINES 158-160
 
-What the module publishes
--------------------------
+Published events
+----------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 160-188
 
@@ -211,8 +211,8 @@ At ``center_pos=1.0`` that is the fall ramp alone, so the rephaser block
 collapses to its shortest and the pulse ends a gradient raster or two before
 the encoding starts.
 
-Envelope and slice profile
---------------------------
+Pulse envelope and slice profile
+--------------------------------
 
 ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 selection amplitude reads the result as a position.
@@ -260,8 +260,8 @@ selection amplitude reads the result as a position.
 
 .. GENERATED FROM PYTHON SOURCE LINES 217-223
 
-Consumed by a readout module
-----------------------------
+Echo time
+---------
 
 A readout module takes the pulse, its selection gradient and its rephaser,
 and measures the echo time from the pulse's effective centre. Handing it each
@@ -335,14 +335,14 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f342e427380>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448841cb60>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.768 seconds)
+   **Total running time of the script:** (0 minutes 0.766 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-excitation-module.py:
