@@ -65,7 +65,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/explanations/safety/sar.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Examples" href="../../generated/gallery/index.html" />
+    <link rel="next" title="Examples" href="../../examples.html" />
     <link rel="prev" title="Mechanical resonance" href="mechanical_resonance.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -270,12 +270,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +286,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -524,7 +519,7 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-observation-points">Virtual observation points</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#drive-calibration-from-rf-amplitude">Drive calibration from RF amplitude</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-averaging-window">The averaging window</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-window">Averaging window</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
@@ -586,8 +581,8 @@ or one per channel, in whatever unit the VOPs were computed in.</p>
 <code class="docutils literal notranslate"><span class="pre">default_shim</span></code> where a single-channel pulse defines none. A single-channel pulse
 is treated as the same waveform on every channel, weighted by the shim.</p>
 </section>
-<section id="the-averaging-window">
-<h2>The averaging window<a class="headerlink" href="#the-averaging-window" title="Link to this heading">#</a></h2>
+<section id="averaging-window">
+<h2>Averaging window<a class="headerlink" href="#averaging-window" title="Link to this heading">#</a></h2>
 <p>SAR is defined per unit time, so the check needs an interval to average over.
 It uses the repetitions the sequence’s own block definitions repeat with: the
 blocks before the first full repetition, each repetition, and any blocks after
@@ -608,8 +603,8 @@ than folding them into the steady-state ones.</p>
 Comparing two sequences under the <em>same</em> model and calibration is much more
 robust, because the scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the VOPs cancels in the
 ratio.</p>
-<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> takes a second sequence — a CP-mode free induction decay is the
-usual choice — or the report of an earlier call, and the report then states
+<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> takes a second sequence, usually a CP-mode free induction decay, or
+the report of an earlier call. The report then states
 <code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code>, the largest ratio over windows and VOPs of a VOP’s SAR to the same
 VOP’s in the reference, and <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>, that ratio weighted by the window
 durations. With a reference lasting its own minimum repetition time,
@@ -662,7 +657,7 @@ sequence and reading its report.</p></li>
       </div>
     </a>
     <a class="right-next"
-       href="../../generated/gallery/index.html"
+       href="../../examples.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
@@ -690,7 +685,7 @@ sequence and reading its report.</p></li>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-observation-points">Virtual observation points</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#drive-calibration-from-rf-amplitude">Drive calibration from RF amplitude</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-averaging-window">The averaging window</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-window">Averaging window</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>

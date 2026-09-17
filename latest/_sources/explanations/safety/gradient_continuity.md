@@ -1,13 +1,13 @@
 # Gradient continuity
 
-Blocks are played back to back with no gap. A gradient that ends one block at a
-nonzero amplitude and is followed by a block whose gradient starts at a
-different amplitude is asking the amplifier for a step, and the hardware has to
-slew it like any other change.
-{func}`~pypulseqpp.safety.check_grad_continuity` finds those steps, and
+Blocks are played back to back with no gap. When a gradient ends one block at a
+nonzero amplitude and the next block begins it at a different amplitude, the
+file prescribes an instantaneous step, and the amplifier has to slew across it
+as it would across any other change of amplitude.
+{func}`~pypulseqpp.safety.check_grad_continuity` finds those steps and
 establishes that every axis ends the sequence at zero amplitude.
 
-## The criterion
+## Continuity criterion
 
 For each block boundary and each physical axis, the check compares the
 amplitude the previous block left the axis at with the amplitude the next block
@@ -30,10 +30,11 @@ and is not reported; the right one could not.
 ```
 
 A discontinuity is therefore not a second physical constraint alongside the
-slew limit. It is the slew limit applied where no waveform exists to realize
-the change, and the report states it as a step, naming the block, the axis, the
-amplitudes on either side and the slew rate the step implies — the form that
-says which pair of blocks to fix rather than which number to lower.
+slew limit; it is the slew limit applied where the file provides no waveform
+over which the change could occur. The report states each discontinuity as a
+step, naming the block, the axis, the amplitudes on either side and the slew
+rate the step implies. Those fields identify the pair of blocks to correct,
+which a single worst-case number would not.
 
 ## Final gradient amplitude
 
@@ -59,7 +60,7 @@ rotated endpoints meet.
 ## Contents of the report
 
 The blocks a discontinuity names are 1-based indices into the sequence, which
-is what {meth}`~pypulseqpp.Sequence.get_block` takes and what
+is the index {meth}`~pypulseqpp.Sequence.get_block` takes and the one
 {meth}`~pypulseqpp.Sequence.paper_plot` and
 {func}`~pypulseqpp.plot.plot_kspace` accept as a `block_range`, so a reported
 boundary can be looked at directly.

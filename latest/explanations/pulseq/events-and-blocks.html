@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,7 +515,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-block-as-the-unit-of-playout">The block as the unit of playout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks">Blocks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#event-libraries">Event libraries</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gyromagnetic-ratio-free-units">Gyromagnetic-ratio-free units</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extensions">Extensions</a></li>
@@ -541,14 +536,14 @@
 <p><a class="reference external" href="https://pulseq.github.io">Pulseq</a> is an open file format for MR pulse
 sequences. A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file states what is played, on which channel and for how
 long: the complete prescription of an acquisition, portable between sites and
-vendors. Everything <code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code> builds, analyses and writes is that
-description, so this page states what a block contains and which of the
-format’s conventions the Python interface preserves.</p>
+vendors. <code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code> builds, analyses and writes that description, and the
+sections below define what a block contains and which of the format’s
+conventions the Python interface preserves.</p>
 <p>The authoritative definition is the <a class="reference external" href="https://pulseq.github.io/specification.pdf">Pulseq
 specification</a> and the MATLAB
 reference implementation.</p>
-<section id="the-block-as-the-unit-of-playout">
-<h2>The block as the unit of playout<a class="headerlink" href="#the-block-as-the-unit-of-playout" title="Link to this heading">#</a></h2>
+<section id="blocks">
+<h2>Blocks<a class="headerlink" href="#blocks" title="Link to this heading">#</a></h2>
 <p>A sequence is an ordered list of <strong>blocks</strong>. A block has a duration and at most
 one event per channel: one RF pulse, one gradient on each of <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code>,
 one ADC window, and a chain of extensions.</p>
@@ -583,7 +578,7 @@ are 1-based.</p>
 <dt>RF</dt><dd><p>An amplitude in Hz, ids into a magnitude, a phase and optionally a time
 shape, a delay, frequency and phase offsets, a centre time, and a <code class="docutils literal notranslate"><span class="pre">use</span></code> —
 excitation, refocusing, inversion, saturation or preparation. The <code class="docutils literal notranslate"><span class="pre">use</span></code>
-identifies which pulses begin a shot and which refocus one, which is why the
+identifies which pulses begin a shot and which refocus one, so the
 pulse factories such as <a class="reference internal" href="../../generated/pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a> accept it and why
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rf_times()</span></code></a> can report the two separately.</p>
 </dd>
@@ -615,7 +610,7 @@ convert with that constant.</p>
 </section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Link to this heading">#</a></h2>
-<p>The extension chain expresses what the core format has no column for. Each
+<p>Extensions carry information for which the block table has no column. Each
 block’s <code class="docutils literal notranslate"><span class="pre">EXT</span></code> id refers to a linked list of typed rows.</p>
 <dl class="simple myst">
 <dt><code class="docutils literal notranslate"><span class="pre">LABELSET</span></code> and <code class="docutils literal notranslate"><span class="pre">LABELINC</span></code></dt><dd><p>Counters and flags. The counters (<code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, <code class="docutils literal notranslate"><span class="pre">SLC</span></code>, <code class="docutils literal notranslate"><span class="pre">ECO</span></code>, <code class="docutils literal notranslate"><span class="pre">REP</span></code>, <code class="docutils literal notranslate"><span class="pre">AVG</span></code>,
@@ -628,9 +623,9 @@ contains one row where a counter changes rather than one row per block.
 order and returns the running values.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code></dt><dd><p>A quaternion that rotates the block’s gradients into the physical frame.
-Storing one row per orientation, rather than a rotated copy of every
-waveform, is what allows a radial or spiral acquisition to reference a single
-interleaf for every shot; see <a class="reference internal" href="libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>.</p>
+One row per orientation replaces a rotated copy of every waveform, so a
+radial or spiral acquisition references a single interleaf for every shot;
+see <a class="reference internal" href="libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">TRIGGERS</span></code></dt><dd><p>Wait on, or emit, a hardware signal.</p>
 </dd>
@@ -697,7 +692,7 @@ interleaf for every shot; see <a class="reference internal" href="libraries-and-
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-block-as-the-unit-of-playout">The block as the unit of playout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blocks">Blocks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#event-libraries">Event libraries</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gyromagnetic-ratio-free-units">Gyromagnetic-ratio-free units</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extensions">Extensions</a></li>

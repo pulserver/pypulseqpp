@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -523,8 +518,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-and-instances">Definitions and instances</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deduplication">Deduplication</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rotation-extensions-and-the-size-of-the-shape-library">Rotation extensions and the size of the shape library</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-chains-and-the-signature">Definitions, chains and the signature</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-format-does-not-state">What the format does not state</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-sequence-chains-and-the-signature">Definitions, sequence chains and the signature</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#information-outside-the-format">Information outside the format</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#revisions-and-the-binary-form">Revisions and the binary form</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
 </ul>
@@ -557,7 +552,7 @@ because the waveform belongs to the instance only in the sense of being scaled,
 not reshaped.</p>
 <p>For RF events, the magnitude, phase and time shapes belong to the definition;
 frequency offset, phase offset and amplitude belong to the instance.</p>
-<p>This separation is what allows the package to detect that a run of blocks
+<p>This separation allows the package to detect that a run of blocks
 repeats, which is the repetition the SAR check of <a class="reference internal" href="../safety/sar.html"><span class="doc">Specific absorption rate</span></a> averages
 over.</p>
 </section>
@@ -590,31 +585,31 @@ library that grows with the view count.</p>
 waveforms must apply the block rotation first. <a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> states
 this for the constraint checks.</p>
 </section>
-<section id="definitions-chains-and-the-signature">
-<h2>Definitions, chains and the signature<a class="headerlink" href="#definitions-chains-and-the-signature" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">[DEFINITIONS]</span></code> is free-form key/value metadata. Some keys are conventional —
-<code class="docutils literal notranslate"><span class="pre">FOV</span></code>, <code class="docutils literal notranslate"><span class="pre">Name</span></code>, the raster times, <code class="docutils literal notranslate"><span class="pre">TotalDuration</span></code> — and the remainder is
-whatever the writer wants a reader to know. The shipped sequence
-implementations record the prescription and the k-space geometry a
-reconstruction requires: the matrix size, the echo and repetition times, the
-index of the k-space centre line and sample, and the slice positions.</p>
+<section id="definitions-sequence-chains-and-the-signature">
+<h2>Definitions, sequence chains and the signature<a class="headerlink" href="#definitions-sequence-chains-and-the-signature" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">[DEFINITIONS]</span></code> is free-form key/value metadata. A few keys are conventional:
+<code class="docutils literal notranslate"><span class="pre">FOV</span></code>, <code class="docutils literal notranslate"><span class="pre">Name</span></code>, the raster times and <code class="docutils literal notranslate"><span class="pre">TotalDuration</span></code>. The rest are chosen by
+whoever writes the file. The shipped sequence implementations record the
+prescription and the k-space geometry a reconstruction requires: the matrix
+size, the echo and repetition times, the index of the k-space centre line and
+sample, and the slice positions.</p>
 <p><code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> links files into a chain. A calibration prescan and the imaging
 scan it belongs to are two files played in order rather than one file with a
-mode flag, which is what <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.write.html#pypulseqpp.sequences.SequenceApp.write" title="pypulseqpp.sequences.SequenceApp.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>
+mode flag, which <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.write.html#pypulseqpp.sequences.SequenceApp.write" title="pypulseqpp.sequences.SequenceApp.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>
 produces from an application’s
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.prescans.html#pypulseqpp.sequences.SequenceApp.prescans" title="pypulseqpp.sequences.SequenceApp.prescans"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prescans()</span></code></a>, and which keeps each file a
 single repeating unit.</p>
 <p><code class="docutils literal notranslate"><span class="pre">[SIGNATURE]</span></code> closes the file with an MD5 digest of everything above it, so a
 reader can establish that the file is the one that was written.</p>
 </section>
-<section id="what-the-format-does-not-state">
-<h2>What the format does not state<a class="headerlink" href="#what-the-format-does-not-state" title="Link to this heading">#</a></h2>
+<section id="information-outside-the-format">
+<h2>Information outside the format<a class="headerlink" href="#information-outside-the-format" title="Link to this heading">#</a></h2>
 <p>The format states the playout order and nothing above it. Nothing in the file
 identifies which run of blocks is a repetition, which events belong to one
-shot, or which acquisitions form a calibration region. A consumer that requires
-that structure derives it from the content — which is what the repetition
-detection underlying the SAR check does, and why the shipped sequences record
-their encoding indices as labels rather than leaving them to be inferred.</p>
+shot, or which acquisitions form a calibration region. A consumer that requires that
+structure derives it from the content. The repetition detection underlying the
+SAR check does exactly that, and the shipped sequences record their encoding
+indices as labels rather than leaving a consumer to infer them.</p>
 </section>
 <section id="revisions-and-the-binary-form">
 <h2>Revisions and the binary form<a class="headerlink" href="#revisions-and-the-binary-form" title="Link to this heading">#</a></h2>
@@ -694,8 +689,8 @@ signature.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-and-instances">Definitions and instances</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deduplication">Deduplication</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rotation-extensions-and-the-size-of-the-shape-library">Rotation extensions and the size of the shape library</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-chains-and-the-signature">Definitions, chains and the signature</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-format-does-not-state">What the format does not state</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-sequence-chains-and-the-signature">Definitions, sequence chains and the signature</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#information-outside-the-format">Information outside the format</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#revisions-and-the-binary-form">Revisions and the binary form</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
 </ul>

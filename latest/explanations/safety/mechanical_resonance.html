@@ -270,12 +270,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +286,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -577,12 +572,12 @@ reported for bin <span class="math notranslate nohighlight">\(k\)</span> is</p>
 \[
 A_k = \frac{2\,|X_k|}{\sum_n w_n},
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(w\)</span> is the taper. The normalization is what makes the reading
+<p>where <span class="math notranslate nohighlight">\(w\)</span> is the taper. The normalization makes the reading
 interpretable as a gradient amplitude: a sustained sinusoid of amplitude <span class="math notranslate nohighlight">\(A\)</span> at
 a bin frequency reads <span class="math notranslate nohighlight">\(A\)</span>, so a threshold stated in mT/m is compared with a
 quantity in mT/m rather than with a spectral density.</p>
 <p>Mean subtraction removes the constant component of the window, which is not a
-drive at any resonance. Tapering is what keeps a strong low-frequency component
+drive at any resonance. Tapering keeps a strong low-frequency component
 from leaking across the whole spectrum and producing a reading inside a band
 that no gradient in the window put there. Zero-padding does not add
 information; it interpolates the spectrum so that a line falling between bins
@@ -615,9 +610,9 @@ reaches.</span><a class="headerlink" href="#id1" title="Link to this image">#</a
 </figcaption>
 </figure>
 <p>A spiral readout sweeps its instantaneous frequency as the trajectory winds out,
-so it spreads its power over a range instead of concentrating it. Sweeping
-through a band is what a window has to be short enough to resolve, and long
-enough not to mistake for a sustained drive.</p>
+so it spreads its power over a range instead of concentrating it. The window has to be short
+enough to resolve the interval the sweep spends inside a band, and long enough
+that such an interval is not read as a sustained drive.</p>
 <p>A conventional Cartesian gradient echo puts most of its gradient power below a
 few hundred hertz and is at zero amplitude for most of each repetition, so it
 rarely reaches a band at all.</p>

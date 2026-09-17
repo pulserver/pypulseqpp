@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="current nav bd-sidenav">
@@ -665,8 +660,8 @@ gradient event played with the pulse; it is not part of the RF event.</p>
 <code class="docutils literal notranslate"><span class="pre">num_samples</span> <span class="pre">*</span> <span class="pre">dwell</span></code>. <em>Sampling times</em> are the sample instants. <em>Receiver
 bandwidth</em> is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code>; <em>bandwidth per pixel</em> is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_samples</span> <span class="pre">*</span> <span class="pre">dwell)</span></code>.
 State which of the two a value is.</p>
-<p><strong>Encoding.</strong> A <em>gradient waveform</em> is what the hardware plays. A <em>k-space
-trajectory</em> is its time integral, in 1/m. <em>ADC sampling locations</em> are the
+<p><strong>Encoding.</strong> A <em>gradient waveform</em> is the amplitude the hardware plays against
+time. A <em>k-space trajectory</em> is its time integral, in 1/m. <em>ADC sampling locations</em> are the
 points of that trajectory at the ADC sample times. A gradient waveform is not
 a trajectory, and a trajectory is not a set of sampling locations.</p>
 <p><strong>Timing.</strong> An <em>event delay</em> offsets an event within its block. A <em>block
@@ -678,13 +673,14 @@ in imaging terms readout, phase encode and slice/partition. <em>Physical
 gradient axes</em> are the scanner’s, reached by applying each block’s rotation
 and any prescription rotation. Every amplitude, slew, PNS, resonance or
 k-space statement must say which frame it is in.</p>
-<p><strong>Layers.</strong> The <em>Pulseq representation</em> is what a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file holds — blocks,
-event libraries, shapes, definitions and extensions. The <em>pypulseqpp
-abstraction</em> is what this package adds on top: compiled event objects,
+<p><strong>Layers.</strong> The <em>Pulseq representation</em> is the content of a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file:
+blocks, event libraries, shapes, definitions and extensions. The <em>pypulseqpp
+abstraction</em> is the layer this package adds above it: compiled event objects,
 sequence modules, designers and checks. <em>PyPulseq compatibility</em> means a
 supported upstream signature and event convention is preserved. <em>Scanner
-execution</em> is what an interpreter does on the hardware, and belongs to
-Pulserver, not here. Do not attribute a property of one layer to another.</p>
+execution</em> is the behaviour of an interpreter on the hardware, and belongs to
+Pulserver rather than here. Do not attribute a property of one layer to
+another.</p>
 </section>
 <section id="fixed-vocabulary">
 <h3>Fixed vocabulary<a class="headerlink" href="#fixed-vocabulary" title="Link to this heading">#</a></h3>

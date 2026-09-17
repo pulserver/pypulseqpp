@@ -18,9 +18,9 @@
 .. _sphx_glr_generated_gallery_01-cartesian_01-epi-segmentation-and-acceleration.py:
 
 
-===============================================
-Echo train length, distortion and volume time
-===============================================
+=================================================
+Echo train length and geometric distortion in EPI
+=================================================
 
 An echo-planar train samples the whole phase-encode axis after one excitation,
 so off-resonance accumulates along that axis instead of across repetitions. A
@@ -33,9 +33,9 @@ displacement of
     \delta y = \Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}
 
 pixels in the reconstructed image, whatever k-space step the train takes. The
-echo train length is what the design controls: interleaving the lines over
-several shots and undersampling the phase encode both shorten it, and they
-differ in what else they change.
+The design controls the echo train length: interleaving the lines over several
+shots and undersampling the phase encode both shorten it, and the two differ in
+what else they change.
 
 This example designs the configurations, reads the echo spacing and the train
 length back from each designed sequence, and places them on the plane of
@@ -316,7 +316,7 @@ loss and the conditioning of the reconstruction.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.661 seconds)
+   **Total running time of the script:** (0 minutes 0.816 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-cartesian_01-epi-segmentation-and-acceleration.py:

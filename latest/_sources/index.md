@@ -25,7 +25,7 @@ explanations/safety/index
 :maxdepth: 2
 :caption: Examples
 
-generated/gallery/index
+examples
 ```
 
 ```{toctree}
@@ -34,7 +34,6 @@ generated/gallery/index
 :caption: API reference
 
 api/index
-sequences
 ```
 
 ```{toctree}

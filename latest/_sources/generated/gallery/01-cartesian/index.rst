@@ -34,7 +34,7 @@ Cartesian imaging
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Echo train length, distortion and volume time</div>
+      <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
     </div>
 
 

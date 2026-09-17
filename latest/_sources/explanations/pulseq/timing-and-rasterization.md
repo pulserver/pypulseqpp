@@ -2,8 +2,9 @@
 
 A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
-in a `.seq` file is quantized before it is written. This page states which grid
-applies to which time, what follows from the grids interacting, and what
+in a `.seq` file is quantized before it is written. The sections below define
+which grid applies to which time, the constraint that follows when two grids
+apply to the same interval, and what
 {meth}`~pypulseqpp.Sequence.check_timing` establishes.
 
 ## The four rasters
@@ -43,8 +44,8 @@ remaining interval is undefined; `check_timing` reports it as
 
 An acquisition window is `num_samples * dwell` long. The dwell is quantized to
 the ADC raster, and the readout gradient's flat top is quantized to the
-gradient raster. When the window has to coincide with the flat top — which it
-does whenever the samples must be taken at constant gradient amplitude — both
+gradient raster. Whenever the samples must be taken at constant gradient
+amplitude the window has to coincide with the flat top, and both
 conditions apply at once, and they constrain the achievable receiver bandwidth.
 
 Write $a$ for the ADC raster, $g$ for the gradient raster and
@@ -71,11 +72,12 @@ what they achieved as `bandwidth_hz` rather than echoing the request.
 
 ## Dead times and ringdown
 
-Raster addressability is a separate question from what the transmit and receive
-chains can do. Three intervals in {class}`~pypulseqpp.Opts` bound the latter:
-`rf_dead_time` before a pulse, `rf_ringdown_time` after it, and `adc_dead_time`
-after an acquisition window. They are not quantization constraints, and a
-sequence can satisfy every raster and still violate them.
+Raster addressability and the settling times of the transmit and receive chains
+are separate constraints. Three intervals in {class}`~pypulseqpp.Opts` state the
+second: `rf_dead_time` before a pulse, `rf_ringdown_time` after it, and
+`adc_dead_time` after an acquisition window. None of the three is a
+quantization constraint, so a sequence can satisfy every raster and still
+violate them.
 
 `check_timing` reports both classes. Raster violations appear as `RASTER`;
 chain violations appear as `RF_DEAD_TIME`, `RF_RINGDOWN_TIME`, `ADC_DEAD_TIME`
@@ -86,8 +88,8 @@ requires the sample count to be divisible by a fixed factor.
 
 A sequence whose gradient waveforms are within every amplitude and slew limit
 can still be unplayable because one delay is off the raster. The constraint
-checks of {doc}`../safety/index` and `check_timing` answer different questions
-and are separate calls.
+checks of {doc}`../safety/index` and `check_timing` establish different
+properties and are separate calls.
 
 ## Related pages
 

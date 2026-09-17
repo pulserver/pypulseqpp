@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.635** total execution time for 1 file **from generated/gallery/02-non-cartesian**:
+**00:00.726** total execution time for 1 file **from generated/gallery/02-non-cartesian**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_02-non-cartesian_01-spiral-design-under-hardware-limits.py` (``01-spiral-design-under-hardware-limits.py``)
-     - 00:00.635
+     - 00:00.726
      - 0.0

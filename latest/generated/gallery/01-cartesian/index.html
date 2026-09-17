@@ -63,8 +63,6 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/01-cartesian/index.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Echo train length, distortion and volume time" href="01-epi-segmentation-and-acceleration.html" />
-    <link rel="prev" title="Examples" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -263,13 +261,8 @@
 </details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -285,9 +278,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,18 +513,12 @@
                   
   <section id="cartesian-imaging">
 <span id="sphx-glr-generated-gallery-01-cartesian"></span><h1>Cartesian imaging<a class="headerlink" href="#cartesian-imaging" title="Link to this heading">#</a></h1>
-<p>Sampling and echo-ordering decisions for Cartesian acquisitions, where the
-readout lies on a regular grid and the design freedom is in how the remaining
-axes are covered.</p>
-<p>Echo-planar imaging covers the phase-encoded axis within one or a few
-excitations, which makes the time the train takes — and therefore the
-geometric distortion off-resonance produces — a consequence of the shot count
-and the undersampling factors. Fast spin echo covers it over a refocused
-train, which turns the decay of that train into a k-space weighting and its
-transform into the point-spread function of the acquisition.</p>
+<p>Sampling and echo-ordering decisions for Cartesian acquisitions. The readout
+lies on a regular grid, so the design freedom is in how the phase-encoded axes
+are covered and in how long the echo train that covers them lasts.</p>
 <div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="An echo-planar train samples the whole phase-encode axis after one excitation, so off-resonance accumulates along that axis instead of across repetitions. A spin at offset \Delta f acquires phase 2\pi \Delta f\, m\, \mathrm{esp} on echo m, which is linear in k_y and therefore a displacement of"><img alt="" src="../../../_images/sphx_glr_01-epi-segmentation-and-acceleration_thumb.png" />
-<p><a class="reference internal" href="01-epi-segmentation-and-acceleration.html"><span class="doc">Echo train length, distortion and volume time</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Echo train length, distortion and volume time</div>
+<p><a class="reference internal" href="01-epi-segmentation-and-acceleration.html"><span class="doc">Echo train length and geometric distortion in EPI</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition."><img alt="" src="../../../_images/sphx_glr_02-fse-train-length-and-point-spread_thumb.png" />
 <p><a class="reference internal" href="02-fse-train-length-and-point-spread.html"><span class="doc">Echo train length, signal envelope and point spread</span></a></p>
   <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
@@ -550,24 +537,6 @@ transform into the point-spread function of the acquisition.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="../index.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Examples</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="01-epi-segmentation-and-acceleration.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Echo train length, distortion and volume time</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

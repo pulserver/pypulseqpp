@@ -1,7 +1,7 @@
 # API reference
 
 Conceptual background is in {doc}`../explanations/index` and complete workflows
-in the {doc}`examples <../generated/gallery/index>`.
+in the {doc}`examples <../examples>`.
 
 | Page | Contents |
 | --- | --- |
@@ -16,6 +16,7 @@ in the {doc}`examples <../generated/gallery/index>`.
 | {doc}`safety` | `pypulseqpp.safety`: gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks |
 | {doc}`plotting` | `pypulseqpp.plot`: the SeqEyes view, the publication diagram, and k-space and RF-profile figures |
 | {doc}`cli` | `pypulseqpp.cli`: running a sequence from the shell and writing its file |
+| {doc}`../sequences` | Every complete sequence the package ships, grouped by family, each with its own reference page |
 
 ```{toctree}
 :hidden:
@@ -31,4 +32,5 @@ apps
 safety
 plotting
 cli
+../sequences
 ```

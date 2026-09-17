@@ -3,15 +3,15 @@
 [Pulseq](https://pulseq.github.io) is an open file format for MR pulse
 sequences. A `.seq` file states what is played, on which channel and for how
 long: the complete prescription of an acquisition, portable between sites and
-vendors. Everything `pypulseqpp` builds, analyses and writes is that
-description, so this page states what a block contains and which of the
-format's conventions the Python interface preserves.
+vendors. `pypulseqpp` builds, analyses and writes that description, and the
+sections below define what a block contains and which of the format's
+conventions the Python interface preserves.
 
 The authoritative definition is the [Pulseq
 specification](https://pulseq.github.io/specification.pdf) and the MATLAB
 reference implementation.
 
-## The block as the unit of playout
+## Blocks
 
 A sequence is an ordered list of **blocks**. A block has a duration and at most
 one event per channel: one RF pulse, one gradient on each of `x`, `y` and `z`,
@@ -52,7 +52,7 @@ RF
 : An amplitude in Hz, ids into a magnitude, a phase and optionally a time
   shape, a delay, frequency and phase offsets, a centre time, and a `use` —
   excitation, refocusing, inversion, saturation or preparation. The `use`
-  identifies which pulses begin a shot and which refocus one, which is why the
+  identifies which pulses begin a shot and which refocus one, so the
   pulse factories such as {func}`~pypulseqpp.make_slr_pulse` accept it and why
   {meth}`~pypulseqpp.Sequence.rf_times` can report the two separately.
 
@@ -86,7 +86,7 @@ convert with that constant.
 
 ## Extensions
 
-The extension chain expresses what the core format has no column for. Each
+Extensions carry information for which the block table has no column. Each
 block's `EXT` id refers to a linked list of typed rows.
 
 `LABELSET` and `LABELINC`
@@ -101,9 +101,9 @@ block's `EXT` id refers to a linked list of typed rows.
 
 `ROTATIONS`
 : A quaternion that rotates the block's gradients into the physical frame.
-  Storing one row per orientation, rather than a rotated copy of every
-  waveform, is what allows a radial or spiral acquisition to reference a single
-  interleaf for every shot; see {doc}`libraries-and-shapes`.
+  One row per orientation replaces a rotated copy of every waveform, so a
+  radial or spiral acquisition references a single interleaf for every shot;
+  see {doc}`libraries-and-shapes`.
 
 `TRIGGERS`
 : Wait on, or emit, a hardware signal.

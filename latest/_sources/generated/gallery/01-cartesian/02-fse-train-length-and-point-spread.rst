@@ -141,18 +141,17 @@ weighting below is the short-:math:`T_2` one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 156-164
+.. GENERATED FROM PYTHON SOURCE LINES 156-163
 
 From the echo index to a k-space weighting
 ------------------------------------------
 
 The view labels record which line and partition each acquisition read and at
-which echo, so the weighting follows from the sequence without restating the
-ordering. Radial ordering sorts views by their distance from the centre of
-k-space, which turns the envelope into a radially symmetric filter; the
-shuffled ordering draws each echo's views from the whole of k-space instead.
+which echo, so the weighting is assembled from the sequence rather than from
+the ordering rule. Radial ordering sorts views by their distance from the
+centre of k-space, which makes the weighting a radially symmetric filter.
 
-.. GENERATED FROM PYTHON SOURCE LINES 164-193
+.. GENERATED FROM PYTHON SOURCE LINES 163-192
 
 .. code-block:: Python
 
@@ -200,16 +199,20 @@ shuffled ordering draws each echo's views from the whole of k-space instead.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 194-200
+.. GENERATED FROM PYTHON SOURCE LINES 193-203
 
-The elliptical edge is the corner of k-space the design leaves unsampled.
-Under radial ordering the weighting decreases outward and one point-spread
-function describes the whole image. Under shuffling the centre of k-space is
-read at many different echoes, so the decay is a dimension a reconstruction
-can separate rather than a filter applied to a single image, and the
-point-spread measurement below does not apply to it.
+The weighting decreases outward from the centre, and the elliptical edge is
+the corner of k-space the design leaves unsampled.
 
-.. GENERATED FROM PYTHON SOURCE LINES 200-220
+The measurement below assumes a weighting of this shape, so it applies to
+distance ordering and not to every ordering the design offers. Under
+``ordering="shuffling"`` the centre of k-space is read at many different
+echoes, and no single amplitude weights it; the printed echo indices below
+show the difference. A shuffled acquisition is reconstructed jointly over the
+decay rather than as one image with one point-spread function, which is a
+different subject from this one.
+
+.. GENERATED FROM PYTHON SOURCE LINES 203-223
 
 
 
@@ -227,7 +230,7 @@ point-spread measurement below does not apply to it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 221-229
+.. GENERATED FROM PYTHON SOURCE LINES 224-232
 
 Train length against point spread
 ---------------------------------
@@ -238,7 +241,7 @@ inverse Fourier transform of the weighting, zero-padded so its width can be
 measured between samples, and its width is quoted against the width the same
 sampled region gives with no decay at all.
 
-.. GENERATED FROM PYTHON SOURCE LINES 229-263
+.. GENERATED FROM PYTHON SOURCE LINES 232-266
 
 .. code-block:: Python
 
@@ -283,12 +286,12 @@ sampled region gives with no decay at all.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 264-266
+.. GENERATED FROM PYTHON SOURCE LINES 267-269
 
 The train lengths differ in nothing else: the same views are read, at the same
 echo spacing, with the schedule each length is designed with.
 
-.. GENERATED FROM PYTHON SOURCE LINES 266-309
+.. GENERATED FROM PYTHON SOURCE LINES 269-312
 
 .. code-block:: Python
 
@@ -350,7 +353,7 @@ echo spacing, with the schedule each length is designed with.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 310-319
+.. GENERATED FROM PYTHON SOURCE LINES 313-322
 
 Every acquired view is read at every train length, so the acquisition time
 is inversely proportional to the train length while the width is not. The
@@ -365,7 +368,7 @@ The profiles drawn are the short-:math:`T_2` ones.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.977 seconds)
+   **Total running time of the script:** (0 minutes 5.148 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-cartesian_02-fse-train-length-and-point-spread.py:

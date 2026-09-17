@@ -270,12 +270,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +286,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -542,8 +537,9 @@
 <h1>Timing and rasterization<a class="headerlink" href="#timing-and-rasterization" title="Link to this heading">#</a></h1>
 <p>A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
-in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized before it is written. This page states which grid
-applies to which time, what follows from the grids interacting, and what
+in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized before it is written. The sections below define
+which grid applies to which time, the constraint that follows when two grids
+apply to the same interval, and what
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a> establishes.</p>
 <section id="the-four-rasters">
 <h2>The four rasters<a class="headerlink" href="#the-four-rasters" title="Link to this heading">#</a></h2>
@@ -594,8 +590,8 @@ remaining interval is undefined; <code class="docutils literal notranslate"><spa
 <h2>Coupling between the ADC and gradient rasters<a class="headerlink" href="#coupling-between-the-adc-and-gradient-rasters" title="Link to this heading">#</a></h2>
 <p>An acquisition window is <code class="docutils literal notranslate"><span class="pre">num_samples</span> <span class="pre">*</span> <span class="pre">dwell</span></code> long. The dwell is quantized to
 the ADC raster, and the readout gradient’s flat top is quantized to the
-gradient raster. When the window has to coincide with the flat top — which it
-does whenever the samples must be taken at constant gradient amplitude — both
+gradient raster. Whenever the samples must be taken at constant gradient
+amplitude the window has to coincide with the flat top, and both
 conditions apply at once, and they constrain the achievable receiver bandwidth.</p>
 <p>Write <span class="math notranslate nohighlight">\(a\)</span> for the ADC raster, <span class="math notranslate nohighlight">\(g\)</span> for the gradient raster and
 <span class="math notranslate nohighlight">\(r = g / a\)</span>, an integer for any realistic pair. Admissible dwell times are the
@@ -619,11 +615,12 @@ what they achieved as <code class="docutils literal notranslate"><span class="pr
 </section>
 <section id="dead-times-and-ringdown">
 <h2>Dead times and ringdown<a class="headerlink" href="#dead-times-and-ringdown" title="Link to this heading">#</a></h2>
-<p>Raster addressability is a separate question from what the transmit and receive
-chains can do. Three intervals in <a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> bound the latter:
-<code class="docutils literal notranslate"><span class="pre">rf_dead_time</span></code> before a pulse, <code class="docutils literal notranslate"><span class="pre">rf_ringdown_time</span></code> after it, and <code class="docutils literal notranslate"><span class="pre">adc_dead_time</span></code>
-after an acquisition window. They are not quantization constraints, and a
-sequence can satisfy every raster and still violate them.</p>
+<p>Raster addressability and the settling times of the transmit and receive chains
+are separate constraints. Three intervals in <a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> state the
+second: <code class="docutils literal notranslate"><span class="pre">rf_dead_time</span></code> before a pulse, <code class="docutils literal notranslate"><span class="pre">rf_ringdown_time</span></code> after it, and
+<code class="docutils literal notranslate"><span class="pre">adc_dead_time</span></code> after an acquisition window. None of the three is a
+quantization constraint, so a sequence can satisfy every raster and still
+violate them.</p>
 <p><code class="docutils literal notranslate"><span class="pre">check_timing</span></code> reports both classes. Raster violations appear as <code class="docutils literal notranslate"><span class="pre">RASTER</span></code>;
 chain violations appear as <code class="docutils literal notranslate"><span class="pre">RF_DEAD_TIME</span></code>, <code class="docutils literal notranslate"><span class="pre">RF_RINGDOWN_TIME</span></code>, <code class="docutils literal notranslate"><span class="pre">ADC_DEAD_TIME</span></code>
 and <code class="docutils literal notranslate"><span class="pre">POST_ADC_DEAD_TIME</span></code>. The same pass also reports <code class="docutils literal notranslate"><span class="pre">BLOCK_DURATION_MISMATCH</span></code>,
@@ -632,8 +629,8 @@ soft-delay consistency conditions, and <code class="docutils literal notranslate
 requires the sample count to be divisible by a fixed factor.</p>
 <p>A sequence whose gradient waveforms are within every amplitude and slew limit
 can still be unplayable because one delay is off the raster. The constraint
-checks of <a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> and <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> answer different questions
-and are separate calls.</p>
+checks of <a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> and <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> establish different
+properties and are separate calls.</p>
 </section>
 <section id="related-pages">
 <h2>Related pages<a class="headerlink" href="#related-pages" title="Link to this heading">#</a></h2>

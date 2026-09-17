@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -527,7 +522,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-to-do-with-a-failing-check">What to do with a failing check</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#responses-to-a-failing-check">Responses to a failing check</a></li>
 </ul>
             </nav>
         </div>
@@ -677,8 +672,8 @@ with <a class="reference internal" href="../generated/pypulseqpp.safety.read_vop
 a second sequence evaluated under the same model and calibration reports ratios
 instead, in which the scale of the drive and of the VOPs cancels.</p>
 </section>
-<section id="what-to-do-with-a-failing-check">
-<h2>What to do with a failing check<a class="headerlink" href="#what-to-do-with-a-failing-check" title="Link to this heading">#</a></h2>
+<section id="responses-to-a-failing-check">
+<h2>Responses to a failing check<a class="headerlink" href="#responses-to-a-failing-check" title="Link to this heading">#</a></h2>
 <p>A sequence over a threshold is redesigned, not re-checked. The gradient
 constraints are relieved by lowering the amplitude or lengthening a ramp; the
 stimulation estimate additionally by lengthening the echo spacing or splitting
@@ -744,7 +739,7 @@ is imposed on a sequence implementation from outside its prescription.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-to-do-with-a-failing-check">What to do with a failing check</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#responses-to-a-failing-check">Responses to a failing check</a></li>
 </ul>
   </nav></div>
 

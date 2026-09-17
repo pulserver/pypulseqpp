@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Non-Cartesian imaging &#8212; pypulseqpp documentation</title>
+    <title>Non-Cartesian trajectories &#8212; pypulseqpp documentation</title>
   
   
   
@@ -63,8 +63,6 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/02-non-cartesian/index.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Which limit bounds a spiral arm" href="01-spiral-design-under-hardware-limits.html" />
-    <link rel="prev" title="Echo train length, signal envelope and point spread" href="../01-cartesian/02-fse-train-length-and-point-spread.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -263,13 +261,8 @@
 </details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -285,9 +278,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -504,7 +497,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Non-Cartesian imaging</h1>
+    <h1>Non-Cartesian trajectories</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -518,17 +511,15 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="non-cartesian-imaging">
-<span id="sphx-glr-generated-gallery-02-non-cartesian"></span><h1>Non-Cartesian imaging<a class="headerlink" href="#non-cartesian-imaging" title="Link to this heading">#</a></h1>
-<p>Trajectory design for acquisitions whose readout does not lie on a grid.</p>
-<p>The gradient waveform and the k-space trajectory are not separable from the
-hardware limits here: the achievable trajectory is bounded by the gradient
-amplitude and the slew rate over the whole readout rather than only at its
-extremes, and by the amplitude at which the receiver’s dwell time would leave
-the sampling criterion behind.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A spiral arm is traversed as fast as three ceilings allow. Two of them are the system&#x27;s: the gradient amplitude and the slew rate the hardware will accept. The third comes from the receiver: with a dwell time \Delta t the trajectory may not move further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../../../_images/sphx_glr_01-spiral-design-under-hardware-limits_thumb.png" />
-<p><a class="reference internal" href="01-spiral-design-under-hardware-limits.html"><span class="doc">Which limit bounds a spiral arm</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Which limit bounds a spiral arm</div>
+  <section id="non-cartesian-trajectories">
+<span id="sphx-glr-generated-gallery-02-non-cartesian"></span><h1>Non-Cartesian trajectories<a class="headerlink" href="#non-cartesian-trajectories" title="Link to this heading">#</a></h1>
+<p>The achievable trajectory is bounded by the gradient system and by the
+receiver: the gradient amplitude and slew rate limit the whole readout
+rather than only its extremes, and the dwell time caps the amplitude at
+which the sampling criterion still holds.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../../../_images/sphx_glr_01-spiral-design-under-hardware-limits_thumb.png" />
+<p><a class="reference internal" href="01-spiral-design-under-hardware-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
 </div></div><div class="toctree-wrapper compound">
 </div>
 </section>
@@ -544,24 +535,6 @@ the sampling criterion behind.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="../01-cartesian/02-fse-train-length-and-point-spread.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Echo train length, signal envelope and point spread</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="01-spiral-design-under-hardware-limits.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Which limit bounds a spiral arm</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

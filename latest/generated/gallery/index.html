@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Examples &#8212; pypulseqpp documentation</title>
+    <title>Gallery source pages &#8212; pypulseqpp documentation</title>
   
   
   
@@ -63,8 +63,6 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/index.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Cartesian imaging" href="01-cartesian/index.html" />
-    <link rel="prev" title="Specific absorption rate" href="../../explanations/safety/sar.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -152,6 +150,10 @@
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -161,6 +163,8 @@
     <div class="bd-container__inner bd-page-width">
       
       
+      
+        
       
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
@@ -263,13 +267,8 @@
 </details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -285,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -493,7 +492,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -504,11 +505,23 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Examples</h1>
+    <h1>Gallery source pages</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Gallery source pages</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-imaging">Cartesian imaging</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#non-cartesian-trajectories">Non-Cartesian trajectories</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-pulse-design">RF pulse design</a></li>
+</ul>
+
+            </nav>
         </div>
     </div>
 </div>
@@ -518,30 +531,52 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="examples">
-<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h1>
-<p>Executable sequence-design studies. Each page states a design question, varies
-the parameters that decide it, and reports a result that can be read off a
-figure or a table.</p>
-<dl class="simple myst">
-<dt><a class="reference internal" href="01-cartesian/index.html"><span class="doc">Cartesian imaging</span></a></dt><dd><p>Echo-planar and fast-spin-echo acquisitions, where the readout lies on a
-regular grid and the design freedom is in how the phase-encoded axes are
-covered.</p>
-</dd>
-<dt><a class="reference internal" href="02-non-cartesian/index.html"><span class="doc">Non-Cartesian imaging</span></a></dt><dd><p>Trajectory design for readouts that do not lie on a grid, where the
-achievable trajectory is bounded by the gradient system and the receiver.</p>
-</dd>
-<dt><a class="reference internal" href="03-advanced-design/index.html"><span class="doc">Advanced design</span></a></dt><dd><p>Design parameters chosen against a simulated response or a computed
-feasibility bound rather than prescribed.</p>
-</dd>
-</dl>
-<p>The conceptual material these examples rely on — the Pulseq representation,
-the sequence-design abstractions, and the gradient, stimulation and SAR
-constraints — is in <a class="reference internal" href="../../explanations/index.html"><span class="doc">Explanations</span></a>, and the interfaces they call
-are in <a class="reference internal" href="../../api/index.html"><span class="doc">API reference</span></a>. A page here assumes that material rather than
-restating it.</p>
-<div class="toctree-wrapper compound">
+  <section id="gallery-source-pages">
+<h1>Gallery source pages<a class="headerlink" href="#gallery-source-pages" title="Link to this heading">#</a></h1>
+<p>The pages sphinx-gallery generates from the example scripts. The documentation
+presents them through <a class="reference internal" href="../../examples.html"><span class="doc">Examples</span></a>, which carries the same categories and
+thumbnails.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"></div></section>
+<section id="cartesian-imaging">
+<h1>Cartesian imaging<a class="headerlink" href="#cartesian-imaging" title="Link to this heading">#</a></h1>
+<p>The pages sphinx-gallery generates from the example scripts. The documentation
+presents them through <a class="reference internal" href="../../examples.html"><span class="doc">Examples</span></a>, which carries the same categories and
+thumbnails.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="An echo-planar train samples the whole phase-encode axis after one excitation, so off-resonance accumulates along that axis instead of across repetitions. A spin at offset \Delta f acquires phase 2\pi \Delta f\, m\, \mathrm{esp} on echo m, which is linear in k_y and therefore a displacement of"><img alt="" src="../../_images/sphx_glr_01-epi-segmentation-and-acceleration_thumb.png" />
+<p><a class="reference internal" href="01-cartesian/01-epi-segmentation-and-acceleration.html"><span class="doc">Echo train length and geometric distortion in EPI</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo train length and geometric distortion in EPI</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition."><img alt="" src="../../_images/sphx_glr_02-fse-train-length-and-point-spread_thumb.png" />
+<p><a class="reference internal" href="01-cartesian/02-fse-train-length-and-point-spread.html"><span class="doc">Echo train length, signal envelope and point spread</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
+</div></div></section>
+<section id="non-cartesian-trajectories">
+<h1>Non-Cartesian trajectories<a class="headerlink" href="#non-cartesian-trajectories" title="Link to this heading">#</a></h1>
+<p>The pages sphinx-gallery generates from the example scripts. The documentation
+presents them through <a class="reference internal" href="../../examples.html"><span class="doc">Examples</span></a>, which carries the same categories and
+thumbnails.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../../_images/sphx_glr_01-spiral-design-under-hardware-limits_thumb.png" />
+<p><a class="reference internal" href="02-non-cartesian/01-spiral-design-under-hardware-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
+</div></div></section>
+<section id="rf-pulse-design">
+<h1>RF pulse design<a class="headerlink" href="#rf-pulse-design" title="Link to this heading">#</a></h1>
+<p>The pages sphinx-gallery generates from the example scripts. The documentation
+presents them through <a class="reference internal" href="../../examples.html"><span class="doc">Examples</span></a>, which carries the same categories and
+thumbnails.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A slice-selective SLR pulse is specified by three numbers: the flip angle, the slice thickness and the time-bandwidth product. The duration is a fourth, and it is not independent of the rest, because the selection gradient has to place the pulse&#x27;s bandwidth across the slice:"><img alt="" src="../../_images/sphx_glr_01-slice-profile-and-time-bandwidth_thumb.png" />
+<p><a class="reference internal" href="03-rf-pulses/01-slice-profile-and-time-bandwidth.html"><span class="doc">Time-bandwidth product, slice profile and pulse duration</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Time-bandwidth product, slice profile and pulse duration</div>
+</div></div><div class="toctree-wrapper compound">
 </div>
+<div class="sphx-glr-footer sphx-glr-footer-gallery docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/cdc31e7bd23169555b3ec3b263b4bd95/gallery_python.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">gallery_python.zip</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/4d0f9700cff432310cc72bef94df7cdd/gallery_jupyter.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">gallery_jupyter.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
 </section>
 
 
@@ -555,30 +590,33 @@ restating it.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="../../explanations/safety/sar.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Specific absorption rate</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="01-cartesian/index.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Cartesian imaging</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Gallery source pages</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-imaging">Cartesian imaging</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#non-cartesian-trajectories">Non-Cartesian trajectories</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-pulse-design">RF pulse design</a></li>
+</ul>
+
+  </nav></div>
+
+</div></div>
               
             
           </div>

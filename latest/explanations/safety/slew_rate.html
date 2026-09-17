@@ -270,12 +270,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +286,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -593,15 +588,14 @@ the triangular one, whose peak amplitude is <span class="math notranslate nohigh
 \[
 T_{\min} = 2\sqrt{A/S}.
 \]</div>
-<p>No amplitude solves the same area in less time, and once <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> exceeds
-<code class="docutils literal notranslate"><span class="pre">max_grad</span></code> the waveform has a flat top and takes longer still. A prewinder or a
-phase-encode blip shortened by a factor of two therefore costs a factor of four
-in slew rate, which is why echo spacing in an echo-planar train is bounded by
-the slew limit rather than by the amplitude limit. The gradient factories solve
-this relation from the system limits, which is why
-<a class="reference internal" href="../../generated/pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_trapezoid()</span></code></a> raises for an <code class="docutils literal notranslate"><span class="pre">area</span></code> and a <code class="docutils literal notranslate"><span class="pre">duration</span></code> that
-cannot be satisfied together, rather than returning a waveform that would fail
-this check.</p>
+<p>No amplitude delivers the same area in less time, and once <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> exceeds
+<code class="docutils literal notranslate"><span class="pre">max_grad</span></code> the waveform acquires a flat top and takes longer still. Halving the
+duration of a prewinder or a phase-encode blip therefore requires four times
+the slew rate, so the echo spacing of an echo-planar train is bounded by the
+slew limit rather than by the amplitude limit. The gradient factories solve this
+relation from the system limits, so <a class="reference internal" href="../../generated/pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_trapezoid()</span></code></a> raises
+for an <code class="docutils literal notranslate"><span class="pre">area</span></code> and a <code class="docutils literal notranslate"><span class="pre">duration</span></code> that cannot be satisfied together rather than
+returning a waveform that would fail this check.</p>
 </section>
 <section id="derating">
 <h2>Derating<a class="headerlink" href="#derating" title="Link to this heading">#</a></h2>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Echo train length, distortion and volume time &#8212; pypulseqpp documentation</title>
+    <title>Echo train length and geometric distortion in EPI &#8212; pypulseqpp documentation</title>
   
   
   
@@ -65,8 +65,6 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/01-cartesian/01-epi-segmentation-and-acceleration.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Echo train length, signal envelope and point spread" href="02-fse-train-length-and-point-spread.html" />
-    <link rel="prev" title="Cartesian imaging" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -269,13 +267,8 @@
 </details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="reference internal" href="index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -512,7 +505,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Echo train length, distortion and volume time</h1>
+    <h1>Echo train length and geometric distortion in EPI</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -540,8 +533,8 @@
 <p><a class="reference internal" href="#sphx-glr-download-generated-gallery-01-cartesian-01-epi-segmentation-and-acceleration-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
-<section class="sphx-glr-example-title" id="echo-train-length-distortion-and-volume-time">
-<span id="sphx-glr-generated-gallery-01-cartesian-01-epi-segmentation-and-acceleration-py"></span><h1>Echo train length, distortion and volume time<a class="headerlink" href="#echo-train-length-distortion-and-volume-time" title="Link to this heading">#</a></h1>
+<section class="sphx-glr-example-title" id="echo-train-length-and-geometric-distortion-in-epi">
+<span id="sphx-glr-generated-gallery-01-cartesian-01-epi-segmentation-and-acceleration-py"></span><h1>Echo train length and geometric distortion in EPI<a class="headerlink" href="#echo-train-length-and-geometric-distortion-in-epi" title="Link to this heading">#</a></h1>
 <p>An echo-planar train samples the whole phase-encode axis after one excitation,
 so off-resonance accumulates along that axis instead of across repetitions. A
 spin at offset <span class="math notranslate nohighlight">\(\Delta f\)</span> acquires phase <span class="math notranslate nohighlight">\(2\pi \Delta f\, m\,
@@ -550,9 +543,9 @@ displacement of</p>
 <div class="math notranslate nohighlight">
 \[\delta y = \Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}\]</div>
 <p>pixels in the reconstructed image, whatever k-space step the train takes. The
-echo train length is what the design controls: interleaving the lines over
-several shots and undersampling the phase encode both shorten it, and they
-differ in what else they change.</p>
+The design controls the echo train length: interleaving the lines over several
+shots and undersampling the phase encode both shorten it, and the two differ in
+what else they change.</p>
 <p>This example designs the configurations, reads the echo spacing and the train
 length back from each designed sequence, and places them on the plane of
 geometric distortion against volume acquisition time.</p>
@@ -574,7 +567,7 @@ which makes the reported duration a property of the sampling rather than a
 prescription.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">design_2d</span><span class="p">(</span><span class="n">n_shots</span><span class="p">,</span> <span class="n">ry</span><span class="p">)</span><span class="p">:</span><span class="w">
 </span><span class="w">    </span><span class="sd">&quot;&quot;&quot;A five-slice echo-planar sequence at the common geometry.&quot;&quot;&quot;</span><span class="w">
-</span>    <span class="k">return</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span><span class="p">(</span><span class="w">
+</span>    <span class="k">return</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span></a><span class="p">(</span><span class="w">
 </span>        <span class="n">fov_x</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">FOV</span></a><span class="p">,</span><span class="w">
 </span>        <span class="n">fov_y</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">FOV</span></a><span class="p">,</span><span class="w">
 </span>        <span class="n">n_x</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">MATRIX</span></a><span class="p">,</span><span class="w">
@@ -671,7 +664,7 @@ lie as far apart as possible (Stirnberg and Stöcker, Magn Reson Med 2021,
 doi:10.1002/mrm.28486).</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">design_3d</span><span class="p">(</span><span class="n">n_shots</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">rz</span><span class="p">)</span><span class="p">:</span><span class="w">
 </span><span class="w">    </span><span class="sd">&quot;&quot;&quot;A slab-selective volumetric echo-planar sequence.&quot;&quot;&quot;</span><span class="w">
-</span>    <span class="k">return</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi3D_sequence</span><span class="p">(</span><span class="w">
+</span>    <span class="k">return</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi3D_sequence.html#pypulseqpp.sequences.epi3D_sequence" title="pypulseqpp.sequences.epi3D_sequence"><span class="n">sequences</span><span class="o">.</span><span class="n">epi3D_sequence</span></a><span class="p">(</span><span class="w">
 </span>        <span class="n">fov_x</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">FOV</span></a><span class="p">,</span><span class="w">
 </span>        <span class="n">fov_y</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">FOV</span></a><span class="p">,</span><span class="w">
 </span>        <span class="n">fov_z</span><span class="o">=</span><span class="mf">120e-3</span><span class="p">,</span><span class="w">
@@ -712,7 +705,7 @@ Ry = 3, Rz = 2      32    1.08 ms    34.6 ms     7.9 mm    0.52 s
 therefore independent design variables: <span class="math notranslate nohighlight">\(R_y\)</span> sets the displacement,
 <span class="math notranslate nohighlight">\(R_z\)</span> sets the volume time, and their product sets the signal-to-noise
 loss and the conditioning of the reconstruction.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.661 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.816 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-cartesian-01-epi-segmentation-and-acceleration-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/f0c4bb01bb33afcf40a1b0f6b5a132f5/01-epi-segmentation-and-acceleration.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">01-epi-segmentation-and-acceleration.ipynb</span></code></a></p>
@@ -739,24 +732,6 @@ loss and the conditioning of the reconstruction.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="index.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Cartesian imaging</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="02-fse-train-length-and-point-spread.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Echo train length, signal envelope and point spread</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               

@@ -63,7 +63,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/sequences.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Documentation" href="contributing/documentation.html" />
+    <link rel="next" title="2D Cartesian gradient echo" href="generated/sequences/gre2D_sequence.html" />
     <link rel="prev" title="write_sequence" href="generated/pypulseqpp.cli.write_sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -268,16 +268,11 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="api/sequence.html">Sequence and system limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/gradients.html">Gradient design</a></li>
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,13 +515,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-gradient-echo">Cartesian gradient echo</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-spin-echo">Cartesian spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-echo">Gradient echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spin-echo">Spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fast-spin-echo">Fast spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mprage">MPRAGE</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#balanced-ssfp">Balanced SSFP</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar">Echo planar</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radial">Radial</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spiral">Spiral</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propeller">PROPELLER</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-imaging">Echo-planar imaging</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-echo-time">Zero echo time</a></li>
 </ul>
             </nav>
@@ -541,10 +535,11 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-catalogue">
 <h1>Sequence catalogue<a class="headerlink" href="#sequence-catalogue" title="Link to this heading">#</a></h1>
-<p>Complete sequences shipped with the package, each a <a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>
-subclass in its own module. Import one as an attribute of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>;
-the module is callable as its own <code class="docutils literal notranslate"><span class="pre">main</span></code>, which designs the sequence and returns
-it.</p>
+<p>Complete sequences shipped with the package, grouped by sequence family. Each
+is a <a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> subclass in its own module, and
+each has a reference page giving its prescription and a representative
+configuration. Import one as an attribute of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>; the module
+is callable as its own <code class="docutils literal notranslate"><span class="pre">main</span></code>, which designs the sequence and returns it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 
 <span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">gre2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -557,54 +552,216 @@ the signature and NumPy-style <code class="docutils literal notranslate"><span c
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pypulseqpp.sequences.sequence.gre2D_sequence<span class="w"> </span>--help
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="api/apps.html"><span class="doc">Complete sequences</span></a> for the <a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>
-contract these modules implement, and <a class="reference internal" href="api/modules.html"><span class="doc">Sequence modules</span></a> for the excitation,
-preparation and readout modules they are built from.</p>
-<section id="cartesian-gradient-echo">
-<h2>Cartesian gradient echo<a class="headerlink" href="#cartesian-gradient-echo" title="Link to this heading">#</a></h2>
+<p>Dimensionality and sampling distinguish the variants within a family: a
+gradient echo is the same family whether it samples a Cartesian grid, radial
+spokes or spiral interleaves. See <a class="reference internal" href="api/apps.html"><span class="doc">Complete sequences</span></a> for the
+<a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> contract these modules implement,
+and <a class="reference internal" href="api/modules.html"><span class="doc">Sequence modules</span></a> for the excitation, preparation and readout modules they
+are built from.</p>
+<section id="gradient-echo">
+<h2>Gradient echo<a class="headerlink" href="#gradient-echo" title="Link to this heading">#</a></h2>
+<p>One excitation per repetition with no refocusing pulse, spoiled between
+repetitions.</p>
 <div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre2D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/gre2D_sequence.html"><span class="doc">gre2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Cartesian</p></td>
 <td><p>RF-spoiled, multi-slice 2D Cartesian gradient echo.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gre3D_sequence</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/gre3D_sequence.html"><span class="doc">gre3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian</p></td>
 <td><p>RF-spoiled 3D Cartesian gradient echo.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_multiecho2D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/gre_multiecho2D_sequence.html"><span class="doc">gre_multiecho2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Cartesian</p></td>
 <td><p>RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gre_multiecho3D_sequence</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/gre_multiecho3D_sequence.html"><span class="doc">gre_multiecho3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian</p></td>
 <td><p>RF-spoiled multi-echo 3D Cartesian gradient echo.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage3D_sequence</span></code></p></td>
-<td><p>3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/gre_radial2D_sequence.html"><span class="doc">gre_radial2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Radial</p></td>
+<td><p>RF-spoiled, multi-slice 2D radial gradient echo: one full spoke per repetition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/gre_stack_of_stars3D_sequence.html"><span class="doc">gre_stack_of_stars3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Radial in-plane, Cartesian partitions</p></td>
+<td><p>RF-spoiled 3D stack of stars: radial spokes in-plane, Cartesian partitions along z.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/gre_spiral2D_sequence.html"><span class="doc">gre_spiral2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Spiral</p></td>
+<td><p>RF-spoiled, multi-slice 2D spiral gradient echo: one interleaf per repetition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/gre_stack_of_spirals3D_sequence.html"><span class="doc">gre_stack_of_spirals3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Spiral in-plane, Cartesian partitions</p></td>
+<td><p>RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/gre_propeller2D_sequence.html"><span class="doc">gre_propeller2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>PROPELLER blades</p></td>
+<td><p>RF-spoiled, multi-slice 2D PROPELLER gradient echo: one blade line per repetition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/gre_stack_of_blades3D_sequence.html"><span class="doc">gre_stack_of_blades3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>PROPELLER in-plane, Cartesian partitions</p></td>
+<td><p>RF-spoiled 3D stack of blades: PROPELLER blades in-plane, Cartesian partitions along z.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="cartesian-spin-echo">
-<h2>Cartesian spin echo<a class="headerlink" href="#cartesian-spin-echo" title="Link to this heading">#</a></h2>
+<section id="spin-echo">
+<h2>Spin echo<a class="headerlink" href="#spin-echo" title="Link to this heading">#</a></h2>
+<p>One excitation and one refocusing pulse per repetition, with the acquisition at
+the refocused echo.</p>
 <div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">se2D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/se2D_sequence.html"><span class="doc">se2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Cartesian</p></td>
 <td><p>Multi-slice 2D Cartesian spin echo: one line per excitation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se3D_sequence</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/se3D_sequence.html"><span class="doc">se3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian</p></td>
 <td><p>3D Cartesian spin echo: one <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> view per excitation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fse3D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/se_radial2D_sequence.html"><span class="doc">se_radial2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Radial</p></td>
+<td><p>Multi-slice 2D radial spin echo: one full spoke per excitation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/se_stack_of_stars3D_sequence.html"><span class="doc">se_stack_of_stars3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Radial in-plane, Cartesian partitions</p></td>
+<td><p>3D stack-of-stars spin echo: one spoke at one partition per excitation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/se_spiral2D_sequence.html"><span class="doc">se_spiral2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Spiral</p></td>
+<td><p>Multi-slice 2D spiral spin echo: one interleaf per excitation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/se_stack_of_spirals3D_sequence.html"><span class="doc">se_stack_of_spirals3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Spiral in-plane, Cartesian partitions</p></td>
+<td><p>3D stack-of-spirals spin echo: one interleaf at one partition per excitation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/se_propeller2D_sequence.html"><span class="doc">se_propeller2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>PROPELLER blades</p></td>
+<td><p>Multi-slice 2D PROPELLER spin echo: one blade line per excitation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/se_epi_propeller2D_sequence.html"><span class="doc">se_epi_propeller2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>PROPELLER blades, echo-planar within a blade</p></td>
+<td><p>Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/se_stack_of_blades3D_sequence.html"><span class="doc">se_stack_of_blades3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>PROPELLER in-plane, Cartesian partitions</p></td>
+<td><p>3D stack-of-blades spin echo: one blade line at one partition per excitation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fast-spin-echo">
+<h2>Fast spin echo<a class="headerlink" href="#fast-spin-echo" title="Link to this heading">#</a></h2>
+<p>One excitation followed by a CPMG train of refocusing pulses, with one view
+acquired per echo.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/fse3D_sequence.html"><span class="doc">fse3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian</p></td>
 <td><p>3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="mprage">
+<h2>MPRAGE<a class="headerlink" href="#mprage" title="Link to this heading">#</a></h2>
+<p>An inversion followed by a spoiled gradient-echo train. Each shot inverts once
+and then acquires every sampled in-plane view of a single partition, so the
+partition encode is constant within a shot and the number of shots is the
+number of sampled partitions.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/mprage3D_sequence.html"><span class="doc">mprage3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian</p></td>
+<td><p>3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/mprage_stack_of_stars3D_sequence.html"><span class="doc">mprage_stack_of_stars3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Radial in-plane, Cartesian partitions</p></td>
+<td><p>3D MPRAGE on a stack of stars: one inversion per partition, then its spokes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/mprage_stack_of_spirals3D_sequence.html"><span class="doc">mprage_stack_of_spirals3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Spiral in-plane, Cartesian partitions</p></td>
+<td><p>3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves.</p></td>
 </tr>
 </tbody>
 </table>
@@ -612,121 +769,65 @@ preparation and readout modules they are built from.</p>
 </section>
 <section id="balanced-ssfp">
 <h2>Balanced SSFP<a class="headerlink" href="#balanced-ssfp" title="Link to this heading">#</a></h2>
+<p>Every gradient axis returns to zero moment within each repetition, so the
+steady state depends on the off-resonance accumulated over one repetition time.</p>
 <div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bssfp2D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/bssfp2D_sequence.html"><span class="doc">bssfp2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Cartesian</p></td>
 <td><p>Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bssfp3D_sequence</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/bssfp3D_sequence.html"><span class="doc">bssfp3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective or non-selective</p></td>
+<td><p>Cartesian</p></td>
 <td><p>Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="echo-planar">
-<h2>Echo planar<a class="headerlink" href="#echo-planar" title="Link to this heading">#</a></h2>
+<section id="echo-planar-imaging">
+<h2>Echo-planar imaging<a class="headerlink" href="#echo-planar-imaging" title="Link to this heading">#</a></h2>
+<p>One excitation followed by a train of readout lobes of alternating polarity,
+with phase-encode blips between them.</p>
 <div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">epi2D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/epi2D_sequence.html"><span class="doc">epi2D_sequence</span></a></p></td>
+<td><p>2D, multi-slice</p></td>
+<td><p>Cartesian</p></td>
 <td><p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">epi3D_sequence</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/sequences/epi3D_sequence.html"><span class="doc">epi3D_sequence</span></a></p></td>
+<td><p>3D, slab-selective</p></td>
+<td><p>Cartesian, skipped-CAIPI when undersampled</p></td>
 <td><p>3D gradient-echo EPI: one train per <code class="docutils literal notranslate"><span class="pre">(shot,</span> <span class="pre">shell)</span></code>, skipped-CAIPI sampled.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="radial">
-<h2>Radial<a class="headerlink" href="#radial" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_radial2D_sequence</span></code></p></td>
-<td><p>RF-spoiled, multi-slice 2D radial gradient echo: one full spoke per repetition.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_radial2D_sequence</span></code></p></td>
-<td><p>Multi-slice 2D radial spin echo: one full spoke per excitation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_stack_of_stars3D_sequence</span></code></p></td>
-<td><p>RF-spoiled 3D stack of stars: radial spokes in-plane, Cartesian partitions along z.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_stack_of_stars3D_sequence</span></code></p></td>
-<td><p>3D stack-of-stars spin echo: one spoke at one partition per excitation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage_stack_of_stars3D_sequence</span></code></p></td>
-<td><p>3D MPRAGE on a stack of stars: one inversion per partition, then its spokes.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="spiral">
-<h2>Spiral<a class="headerlink" href="#spiral" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_spiral2D_sequence</span></code></p></td>
-<td><p>RF-spoiled, multi-slice 2D spiral gradient echo: one interleaf per repetition.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_spiral2D_sequence</span></code></p></td>
-<td><p>Multi-slice 2D spiral spin echo: one interleaf per excitation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_stack_of_spirals3D_sequence</span></code></p></td>
-<td><p>RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_stack_of_spirals3D_sequence</span></code></p></td>
-<td><p>3D stack-of-spirals spin echo: one interleaf at one partition per excitation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mprage_stack_of_spirals3D_sequence</span></code></p></td>
-<td><p>3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="propeller">
-<h2>PROPELLER<a class="headerlink" href="#propeller" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gre_propeller2D_sequence</span></code></p></td>
-<td><p>RF-spoiled, multi-slice 2D PROPELLER gradient echo: one blade line per repetition.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">se_propeller2D_sequence</span></code></p></td>
-<td><p>Multi-slice 2D PROPELLER spin echo: one blade line per excitation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">se_epi_propeller2D_sequence</span></code></p></td>
-<td><p>Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gre_stack_of_blades3D_sequence</span></code></p></td>
-<td><p>RF-spoiled 3D stack of blades: PROPELLER blades in-plane, Cartesian partitions along z.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">se_stack_of_blades3D_sequence</span></code></p></td>
-<td><p>3D stack-of-blades spin echo: one blade line at one partition per excitation.</p></td>
 </tr>
 </tbody>
 </table>
@@ -734,18 +835,33 @@ preparation and readout modules they are built from.</p>
 </section>
 <section id="zero-echo-time">
 <h2>Zero echo time<a class="headerlink" href="#zero-echo-time" title="Link to this heading">#</a></h2>
+<p>The readout gradient is at amplitude before the pulse is transmitted, so
+acquisition begins without a ramp and the trajectory starts at the centre of
+k-space.</p>
 <div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 16.0%" />
+<col style="width: 24.0%" />
+<col style="width: 34.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Module</p></th>
+<tr class="row-odd"><th class="head"><p>Sequence</p></th>
+<th class="head"><p>Dimensionality</p></th>
+<th class="head"><p>Sampling</p></th>
 <th class="head"><p>Description</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zte3D_sequence</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/sequences/zte3D_sequence.html"><span class="doc">zte3D_sequence</span></a></p></td>
+<td><p>3D, non-selective</p></td>
+<td><p>Radial half-spokes on a sphere</p></td>
 <td><p>3D zero echo time: hard pulses on a readout gradient held on across each shell.</p></td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="toctree-wrapper compound">
 </div>
 </section>
 </section>
@@ -771,11 +887,11 @@ preparation and readout modules they are built from.</p>
       </div>
     </a>
     <a class="right-next"
-       href="contributing/documentation.html"
+       href="generated/sequences/gre2D_sequence.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Documentation</p>
+        <p class="prev-next-title">2D Cartesian gradient echo</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -797,13 +913,12 @@ preparation and readout modules they are built from.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-gradient-echo">Cartesian gradient echo</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cartesian-spin-echo">Cartesian spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-echo">Gradient echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spin-echo">Spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fast-spin-echo">Fast spin echo</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mprage">MPRAGE</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#balanced-ssfp">Balanced SSFP</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar">Echo planar</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radial">Radial</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spiral">Spiral</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#propeller">PROPELLER</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-imaging">Echo-planar imaging</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-echo-time">Zero echo time</a></li>
 </ul>
   </nav></div>

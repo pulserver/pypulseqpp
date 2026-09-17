@@ -263,12 +263,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -284,9 +279,9 @@
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -641,6 +636,10 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence">bssfp2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/bssfp3D_sequence.html#pypulseqpp.sequences.bssfp3D_sequence">bssfp3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.BssfpReadout2D.html#pypulseqpp.sequences.BssfpReadout2D">BssfpReadout2D (class in pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.BssfpReadout3D.html#pypulseqpp.sequences.BssfpReadout3D">BssfpReadout3D (class in pypulseqpp.sequences)</a>
@@ -831,10 +830,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.enable_trace.html#pypulseqpp.enable_trace">enable_trace() (in module pypulseqpp)</a>
 </li>
-      <li><a href="generated/pypulseqpp.sequences.EpiReadout2D.html#pypulseqpp.sequences.EpiReadout2D">EpiReadout2D (class in pypulseqpp.sequences)</a>
+      <li><a href="generated/sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence">epi2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/epi3D_sequence.html#pypulseqpp.sequences.epi3D_sequence">epi3D_sequence() (in module pypulseqpp.sequences)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.sequences.EpiReadout2D.html#pypulseqpp.sequences.EpiReadout2D">EpiReadout2D (class in pypulseqpp.sequences)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.EpiReadout3D.html#pypulseqpp.sequences.EpiReadout3D">EpiReadout3D (class in pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels">evaluate_labels() (pypulseqpp.Sequence method)</a>
@@ -857,15 +860,17 @@
 </li>
       <li><a href="generated/pypulseqpp.Sequence.find_block_by_time.html#pypulseqpp.Sequence.find_block_by_time">find_block_by_time() (pypulseqpp.Sequence method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.sequences.SpiralNavigator.fit.html#pypulseqpp.sequences.SpiralNavigator.fit">fit() (pypulseqpp.sequences.SpiralNavigator method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.Sequence.flip_grad_axis.html#pypulseqpp.Sequence.flip_grad_axis">flip_grad_axis() (pypulseqpp.Sequence method)</a>
 </li>
       <li><a href="generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand">ForbiddenBand (class in pypulseqpp.safety)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.FrequencySelectiveExcitation.html#pypulseqpp.sequences.FrequencySelectiveExcitation">FrequencySelectiveExcitation (class in pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/fse3D_sequence.html#pypulseqpp.sequences.fse3D_sequence">fse3D_sequence() (in module pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.FseReadout2D.html#pypulseqpp.sequences.FseReadout2D">FseReadout2D (class in pypulseqpp.sequences)</a>
 </li>
@@ -891,6 +896,28 @@
 </li>
       <li><a href="generated/pypulseqpp.safety.VopModel.global_matrix.html#pypulseqpp.safety.VopModel.global_matrix">global_matrix (pypulseqpp.safety.VopModel attribute)</a>
 </li>
+      <li><a href="generated/sequences/gre2D_sequence.html#pypulseqpp.sequences.gre2D_sequence">gre2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre3D_sequence.html#pypulseqpp.sequences.gre3D_sequence">gre3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_multiecho2D_sequence.html#pypulseqpp.sequences.gre_multiecho2D_sequence">gre_multiecho2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_multiecho3D_sequence.html#pypulseqpp.sequences.gre_multiecho3D_sequence">gre_multiecho3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_propeller2D_sequence.html#pypulseqpp.sequences.gre_propeller2D_sequence">gre_propeller2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_radial2D_sequence.html#pypulseqpp.sequences.gre_radial2D_sequence">gre_radial2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_spiral2D_sequence.html#pypulseqpp.sequences.gre_spiral2D_sequence">gre_spiral2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/sequences/gre_stack_of_blades3D_sequence.html#pypulseqpp.sequences.gre_stack_of_blades3D_sequence">gre_stack_of_blades3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_stack_of_spirals3D_sequence.html#pypulseqpp.sequences.gre_stack_of_spirals3D_sequence">gre_stack_of_spirals3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/gre_stack_of_stars3D_sequence.html#pypulseqpp.sequences.gre_stack_of_stars3D_sequence">gre_stack_of_stars3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.Arbitrary.gx.html#pypulseqpp.sequences.Arbitrary.gx">gx (pypulseqpp.sequences.Arbitrary property)</a>
 
       <ul>
@@ -901,8 +928,6 @@
         <li><a href="generated/pypulseqpp.sequences.Spiral.gx.html#pypulseqpp.sequences.Spiral.gx">(pypulseqpp.sequences.Spiral property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.sequences.Arbitrary.gy.html#pypulseqpp.sequences.Arbitrary.gy">gy (pypulseqpp.sequences.Arbitrary property)</a>
 
       <ul>
@@ -1135,12 +1160,12 @@
 </li>
       <li><a href="generated/pypulseqpp.make_label.html#pypulseqpp.make_label">make_label() (in module pypulseqpp)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.make_phase_blip.html#pypulseqpp.make_phase_blip">make_phase_blip() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_phase_encoding.html#pypulseqpp.make_phase_encoding">make_phase_encoding() (in module pypulseqpp)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.make_pins_pulse.html#pypulseqpp.make_pins_pulse">make_pins_pulse() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_ptx_pulse.html#pypulseqpp.make_ptx_pulse">make_ptx_pulse() (in module pypulseqpp)</a>
@@ -1178,6 +1203,12 @@
       <li><a href="generated/pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE">MAX_SLEW_DERATE (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.Sequence.mod_grad_axis.html#pypulseqpp.Sequence.mod_grad_axis">mod_grad_axis() (pypulseqpp.Sequence method)</a>
+</li>
+      <li><a href="generated/sequences/mprage3D_sequence.html#pypulseqpp.sequences.mprage3D_sequence">mprage3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/mprage_stack_of_spirals3D_sequence.html#pypulseqpp.sequences.mprage_stack_of_spirals3D_sequence">mprage_stack_of_spirals3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/mprage_stack_of_stars3D_sequence.html#pypulseqpp.sequences.mprage_stack_of_stars3D_sequence">mprage_stack_of_stars3D_sequence() (in module pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.MtPreparation.html#pypulseqpp.sequences.MtPreparation">MtPreparation (class in pypulseqpp.sequences)</a>
 </li>
@@ -1495,6 +1526,24 @@
 </li>
       <li><a href="generated/pypulseqpp.scale_grad.html#pypulseqpp.scale_grad">scale_grad() (in module pypulseqpp)</a>
 </li>
+      <li><a href="generated/sequences/se2D_sequence.html#pypulseqpp.sequences.se2D_sequence">se2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se3D_sequence.html#pypulseqpp.sequences.se3D_sequence">se3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_epi_propeller2D_sequence.html#pypulseqpp.sequences.se_epi_propeller2D_sequence">se_epi_propeller2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_propeller2D_sequence.html#pypulseqpp.sequences.se_propeller2D_sequence">se_propeller2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_radial2D_sequence.html#pypulseqpp.sequences.se_radial2D_sequence">se_radial2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_spiral2D_sequence.html#pypulseqpp.sequences.se_spiral2D_sequence">se_spiral2D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_stack_of_blades3D_sequence.html#pypulseqpp.sequences.se_stack_of_blades3D_sequence">se_stack_of_blades3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_stack_of_spirals3D_sequence.html#pypulseqpp.sequences.se_stack_of_spirals3D_sequence">se_stack_of_spirals3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+      <li><a href="generated/sequences/se_stack_of_stars3D_sequence.html#pypulseqpp.sequences.se_stack_of_stars3D_sequence">se_stack_of_stars3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.BlochSiegertPreparation.seq.html#pypulseqpp.sequences.BlochSiegertPreparation.seq">seq (pypulseqpp.sequences.BlochSiegertPreparation property)</a>
 
       <ul>
@@ -1732,6 +1781,10 @@
 
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence">zte3D_sequence() (in module pypulseqpp.sequences)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.sequences.ZteReadout.html#pypulseqpp.sequences.ZteReadout">ZteReadout (class in pypulseqpp.sequences)</a>
 </li>

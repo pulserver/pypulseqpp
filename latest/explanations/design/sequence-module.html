@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,10 +515,10 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-problem-the-abstraction-addresses">The problem the abstraction addresses</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-a-module-is">What a module is</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-templates-and-their-consequence">Mutable templates and their consequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-three-families">The three families</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separation-of-layout-from-sampling-order">Separation of layout from sampling order</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-event-templates">Mutable event templates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-families">Module families</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
 </ul>
             </nav>
@@ -540,25 +535,25 @@
 <h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
 <p>A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is a flat list of blocks, and a script that writes one directly
 must solve every timing and gradient-waveform problem inline, in the same loop
-that chooses which view to acquire. A <strong>sequence module</strong> separates the two:
-it solves the layout of one group of blocks once, at construction, and exposes
-the resulting events for a scan loop to place.</p>
-<section id="the-problem-the-abstraction-addresses">
-<h2>The problem the abstraction addresses<a class="headerlink" href="#the-problem-the-abstraction-addresses" title="Link to this heading">#</a></h2>
-<p>Consider a Cartesian gradient-echo repetition. Its readout gradient follows
-from the field of view, the matrix size and the receiver bandwidth. Its
-prewinder must deliver half the readout moment, corrected for the moment
-accumulated on the readout ramp. Its echo time fixes a delay that depends on
-the pulse duration, the rephaser and the acquisition window. None of this
-depends on which phase-encode line is being acquired.</p>
-<p>What does depend on the line is a single scale factor applied to the
+that chooses which view to acquire. A <strong>sequence module</strong> separates the two: it
+solves the layout of one group of blocks once, at construction, and exposes the
+resulting events for a scan loop to place.</p>
+<section id="separation-of-layout-from-sampling-order">
+<h2>Separation of layout from sampling order<a class="headerlink" href="#separation-of-layout-from-sampling-order" title="Link to this heading">#</a></h2>
+<p>In a Cartesian gradient-echo repetition, the readout gradient is determined by
+the field of view, the matrix size and the receiver bandwidth. The prewinder
+delivers half the readout moment, corrected for the moment accumulated on the
+readout ramp. The echo time determines a delay that depends on the pulse
+duration, the rephaser and the acquisition window. None of these quantities
+depends on which phase-encode line is acquired.</p>
+<p>Two quantities do depend on the line: a scale factor applied to the
 phase-encode gradient, and the RF and receiver phases. Solving the first group
-once and varying only the second is both what the file format rewards — one
-definition with one instance per playout, as <a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>
-describes — and what keeps a scan loop legible.</p>
+once and varying only the second corresponds to the file format’s separation of
+definitions from instances, described in
+<a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>, and keeps the scan loop short.</p>
 </section>
-<section id="what-a-module-is">
-<h2>What a module is<a class="headerlink" href="#what-a-module-is" title="Link to this heading">#</a></h2>
+<section id="module-interface">
+<h2>Module interface<a class="headerlink" href="#module-interface" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> is a reusable block layout with
 named, mutable event templates. A subclass builds its blocks in <code class="docutils literal notranslate"><span class="pre">init_module</span></code>,
 and the events assigned there are published both as attributes of the module
@@ -572,40 +567,37 @@ modification can be added to a sequence exactly as it stands.</p>
 Repeated references are deduplicated by identity, so an event that appears in
 several blocks is published once.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">center</span></code></dt><dd><p>The module’s timing reference, in seconds from the start of the module —
-typically an RF pulse centre or an echo. It is what makes intervals between
-modules computable.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">center</span></code></dt><dd><p>The module’s timing reference, in seconds from the start of the module,
+typically an RF pulse centre or an echo.</p>
 </dd>
 </dl>
-<p>The last point is worth stating explicitly, because interval arithmetic between
-modules is otherwise error-prone. An inversion time is defined between two
-pulse centres, not between block boundaries. Composing an inversion module and
-an excitation module at a prescribed inversion time therefore requires the
-delay</p>
+<p>Intervals between modules are computed from <code class="docutils literal notranslate"><span class="pre">center</span></code>. An inversion time is
+defined between two pulse centres rather than between block boundaries, so
+composing an inversion module and an excitation module at a prescribed
+inversion time requires the delay</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">recovery</span> <span class="o">=</span> <span class="n">TI</span> <span class="o">-</span> <span class="p">(</span><span class="n">inversion</span><span class="o">.</span><span class="n">duration</span> <span class="o">-</span> <span class="n">inversion</span><span class="o">.</span><span class="n">center</span><span class="p">)</span> <span class="o">-</span> <span class="n">excitation</span><span class="o">.</span><span class="n">center</span>
 </pre></div>
 </div>
 <p>which subtracts the part of the inversion module that follows its pulse and the
 part of the excitation module that precedes its pulse.</p>
-<p>A module also forwards a small set of analyses to the sequence it built
-internally — <code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code>, <code class="docutils literal notranslate"><span class="pre">check_timing</span></code>, <code class="docutils literal notranslate"><span class="pre">paper_plot</span></code>, <code class="docutils literal notranslate"><span class="pre">test_report</span></code>
-and <code class="docutils literal notranslate"><span class="pre">waveforms_and_times</span></code> — so a module can be inspected before any scan loop
-exists.</p>
+<p>A module forwards <code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code>, <code class="docutils literal notranslate"><span class="pre">check_timing</span></code>, <code class="docutils literal notranslate"><span class="pre">paper_plot</span></code>,
+<code class="docutils literal notranslate"><span class="pre">test_report</span></code> and <code class="docutils literal notranslate"><span class="pre">waveforms_and_times</span></code> to the sequence it built internally, so
+its layout can be inspected before a scan loop exists.</p>
 </section>
-<section id="mutable-templates-and-their-consequence">
-<h2>Mutable templates and their consequence<a class="headerlink" href="#mutable-templates-and-their-consequence" title="Link to this heading">#</a></h2>
+<section id="mutable-event-templates">
+<h2>Mutable event templates<a class="headerlink" href="#mutable-event-templates" title="Link to this heading">#</a></h2>
 <p>The published events are templates, and a scan loop modifies them in place
 between <code class="docutils literal notranslate"><span class="pre">add_block</span></code> calls: it assigns an RF phase offset, or passes a scaled
 copy of a phase-encode gradient through <a class="reference internal" href="../../generated/pypulseqpp.scale_grad.html#pypulseqpp.scale_grad" title="pypulseqpp.scale_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">scale_grad()</span></code></a>.</p>
-<p>This has a consequence worth knowing. <code class="docutils literal notranslate"><span class="pre">blocks</span></code> retains the original event
-objects for replay, so mutating a published event changes what a subsequent
-<code class="docutils literal notranslate"><span class="pre">add_block</span></code> writes, but it does not rewrite blocks already added, and it does
-not rewrite the module’s own stored sequence. Analyses taken from the module
-describe the layout as constructed.</p>
+<p>Mutation has two consequences. A modified event changes what a subsequent
+<code class="docutils literal notranslate"><span class="pre">add_block</span></code> writes, because <code class="docutils literal notranslate"><span class="pre">blocks</span></code> retains the original event objects for
+replay. It does not change blocks that have already been added, nor the
+sequence the module built internally, so analyses taken from the module
+describe the layout as constructed rather than as played.</p>
 </section>
-<section id="the-three-families">
-<h2>The three families<a class="headerlink" href="#the-three-families" title="Link to this heading">#</a></h2>
-<p>Modules divide by what they contribute to a repetition.</p>
+<section id="module-families">
+<h2>Module families<a class="headerlink" href="#module-families" title="Link to this heading">#</a></h2>
+<p>Modules are grouped by what they contribute to a repetition.</p>
 <p><strong>Excitation</strong> modules produce a pulse and the gradients that go with it:
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a> designs an SLR pulse
 with its selection gradient and rephaser, and reports the
@@ -618,14 +610,14 @@ transfer. They deliberately define no recovery interval —
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation" title="pypulseqpp.sequences.InversionPreparation"><code class="xref py py-class docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a> has no inversion time —
 because the interval belongs to the scan loop, and the same module then serves
 a single-shot inversion recovery and a segmented magnetization-prepared train.</p>
-<p><strong>Readout</strong> modules solve the rest of the repetition around a pulse they are
-given. <a class="reference internal" href="../../generated/pypulseqpp.sequences.LineReadout2D.html#pypulseqpp.sequences.LineReadout2D" title="pypulseqpp.sequences.LineReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineReadout2D</span></code></a> takes the excitation’s RF
-event and its selection gradient and rephaser, and returns the prewinder, the
+<p><strong>Readout</strong> modules solve the rest of the repetition around an excitation.
+<a class="reference internal" href="../../generated/pypulseqpp.sequences.LineReadout2D.html#pypulseqpp.sequences.LineReadout2D" title="pypulseqpp.sequences.LineReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineReadout2D</span></code></a> takes the excitation’s RF event,
+its selection gradient and its rephaser, and returns the prewinder, the
 phase-encode template at its largest step, the acquisition window and the
-spoiler. Passing the pulse is what allows the module to measure the echo time
-from the pulse centre; passing the rephaser is what allows it to place the
-rephaser inside an interval the repetition already has to wait out rather than
-appending one.</p>
+spoiler. The echo time is defined from the centre of the excitation pulse, so
+the pulse event is an argument. The rephaser is an argument because the module
+places it within the delay that precedes the readout instead of adding a block
+for it.</p>
 <p>A readout constructed with <code class="docutils literal notranslate"><span class="pre">te=None</span></code> uses the shortest echo time its layout
 admits and reports it as <code class="docutils literal notranslate"><span class="pre">echo_time</span></code>; one given a requested receiver bandwidth
 reports the achieved value as <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code>, which may be lower for the reason
@@ -689,10 +681,10 @@ given in
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-problem-the-abstraction-addresses">The problem the abstraction addresses</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-a-module-is">What a module is</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-templates-and-their-consequence">Mutable templates and their consequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-three-families">The three families</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separation-of-layout-from-sampling-order">Separation of layout from sampling order</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-event-templates">Mutable event templates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-families">Module families</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
 </ul>
   </nav></div>

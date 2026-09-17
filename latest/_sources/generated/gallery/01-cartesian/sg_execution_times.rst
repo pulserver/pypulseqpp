@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:06.638** total execution time for 2 files **from generated/gallery/01-cartesian**:
+**00:05.964** total execution time for 2 files **from generated/gallery/01-cartesian**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_01-cartesian_02-fse-train-length-and-point-spread.py` (``02-fse-train-length-and-point-spread.py``)
-     - 00:05.977
+     - 00:05.148
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-cartesian_01-epi-segmentation-and-acceleration.py` (``01-epi-segmentation-and-acceleration.py``)
-     - 00:00.661
+     - 00:00.816
      - 0.0

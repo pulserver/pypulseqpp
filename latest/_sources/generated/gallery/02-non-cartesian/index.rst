@@ -2,9 +2,9 @@
 
 .. _sphx_glr_generated_gallery_02-non-cartesian:
 
-=====================
-Non-Cartesian imaging
-=====================
+==========================
+Non-Cartesian trajectories
+==========================
 
 .. include:: _gallery_header.md
    :parser: myst_parser.sphinx_
@@ -23,7 +23,7 @@ Non-Cartesian imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A spiral arm is traversed as fast as three ceilings allow. Two of them are the system&#x27;s: the gradient amplitude and the slew rate the hardware will accept. The third comes from the receiver: with a dwell time \Delta t the trajectory may not move further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at">
+    <div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at">
 
 .. only:: html
 
@@ -34,7 +34,7 @@ Non-Cartesian imaging
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Which limit bounds a spiral arm</div>
+      <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
     </div>
 
 

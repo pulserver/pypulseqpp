@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,8 +515,8 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conventions-common-to-the-checks">Conventions common to the checks</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-checks-and-the-data-each-requires">The checks and the data each requires</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-conventions">Common conventions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-required-data">Checks and their required data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-interval">Evaluation interval</a></li>
 </ul>
             </nav>
@@ -547,23 +542,24 @@ stated set of limits, which is the sequence’s own
 <a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> or one passed to the check. They are <strong>design-time
 estimates</strong>. They do not replace the scanner’s own gate before download, nor
 its hardware monitor during the scan, and they do not establish patient safety.</p>
-<section id="conventions-common-to-the-checks">
-<h2>Conventions common to the checks<a class="headerlink" href="#conventions-common-to-the-checks" title="Link to this heading">#</a></h2>
+<section id="common-conventions">
+<h2>Common conventions<a class="headerlink" href="#common-conventions" title="Link to this heading">#</a></h2>
 <p>Every check works on the <strong>physical gradient axes</strong>, after each block’s
-<code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension has been applied, because it is the amplifier driving an
-axis that has to produce the waveform and the nerve or the mechanical mode that
-responds to it. A prescription rotation, given as the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument, is
-applied after the block’s own, so a sequence designed in a logical frame can be
-checked in the orientation it will be prescribed at.</p>
+<code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension has been applied. The amplifier driving an axis produces
+the physical waveform, and a nerve or a mechanical mode responds to the physical
+field, so a limit on either applies in the physical frame. A prescription
+rotation, given as the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument, is applied after the block’s own, so
+a sequence designed in a logical frame can be checked in the orientation it will
+be prescribed at.</p>
 <p>Every check returns the same pair: a boolean verdict and a report naming where
 the extreme was found, with the extreme itself and the limit it was compared
-with. A report is returned whether or not the check passes, so the margin of a
-sequence that passes is readable from the same call that would have refused it.</p>
+with. The report is returned whether or not the check passes, so a passing
+sequence’s margin is readable from the same call.</p>
 <p>Amplitudes in a report are in the file format’s own units, Hz/m and Hz/m/s;
 <code class="docutils literal notranslate"><span class="pre">gamma</span></code> on the system limits converts them to mT/m and T/m/s.</p>
 </section>
-<section id="the-checks-and-the-data-each-requires">
-<h2>The checks and the data each requires<a class="headerlink" href="#the-checks-and-the-data-each-requires" title="Link to this heading">#</a></h2>
+<section id="checks-and-their-required-data">
+<h2>Checks and their required data<a class="headerlink" href="#checks-and-their-required-data" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Check</p></th>
@@ -599,31 +595,33 @@ sequence that passes is readable from the same call that would have refused it.<
 </tbody>
 </table>
 </div>
-<p>The first three need nothing the sequence and the system limits do not already
-record, so they can always run. The last three require site or coil data that
-no sequence file contains — a nerve model’s coefficients, a magnet’s forbidden
-bands, a subject’s VOP model and the transmit chain’s calibration — and must be
-supplied explicitly rather than assumed.</p>
-<p>Timing is a separate question, and a separate call:
-<a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a> establishes that every event time is
-addressable on the raster its event is played on, and that the transmit and
-receive dead times are respected. A sequence whose gradients are within every
-limit can still be unplayable because one delay is off the raster.</p>
+<p>The first three checks read only the sequence and its system limits, so they
+can always run. The last three additionally require site or coil data that no
+sequence file contains — a nerve model’s coefficients, a magnet’s forbidden
+bands, a subject’s VOP model and the transmit chain’s calibration — and this
+data must be supplied explicitly.</p>
+<p>Timing is checked separately, by
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a>, which establishes that every event
+time is addressable on the raster its event is played on and that the transmit
+and receive dead times are respected. A sequence whose gradients are within
+every limit can still be unplayable because one delay is off the raster.</p>
 </section>
 <section id="evaluation-interval">
 <h2>Evaluation interval<a class="headerlink" href="#evaluation-interval" title="Link to this heading">#</a></h2>
 <p>Gradient amplitude, slew rate and continuity are pointwise: every sample of the
-scan is either within the limit or is not, and the worst sample decides.</p>
-<p>The nerve models are dynamic: their response at one sample depends on the
-preceding slew history. The stimulation check is therefore evaluated over the
-whole sequence in one pass, starting from rest, rather than over a
-representative repetition.</p>
+scan is either within the limit or outside it, and the largest value determines
+the verdict.</p>
+<p>The nerve models are dynamic. Their response at one sample depends on the
+preceding slew history, so the stimulation check is evaluated over the whole
+sequence in one pass, starting from rest, rather than over a representative
+repetition.</p>
 <p>The mechanical-resonance and SAR checks are defined over a <strong>window</strong> rather
-than over a sample, because what they bound is a sustained drive: the acoustic
-response to a periodic gradient waveform and the energy deposited per unit
-time. The resonance check slides a window of a stated length along the
-sequence; the SAR check averages over each repetition the block definitions
-repeat with, and the worst repetition decides.</p>
+than over a sample. Both bound a sustained drive — the acoustic response to a
+periodic gradient waveform, and the energy deposited per unit time — and
+neither is determined by any single sample. The resonance check slides a window
+of a stated length along the sequence; the SAR check averages over each
+repetition the block definitions repeat with, and the largest window average
+determines the verdict.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -676,8 +674,8 @@ repeat with, and the worst repetition decides.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conventions-common-to-the-checks">Conventions common to the checks</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-checks-and-the-data-each-requires">The checks and the data each requires</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-conventions">Common conventions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-required-data">Checks and their required data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-interval">Evaluation interval</a></li>
 </ul>
   </nav></div>

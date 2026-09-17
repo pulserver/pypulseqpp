@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Terminology and conventions" href="terminology.html" />
-    <link rel="prev" title="Sequence catalogue" href="../sequences.html" />
+    <link rel="prev" title="3D zero echo time" href="../generated/sequences/zte3D_sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -270,12 +270,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -291,9 +286,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="current nav bd-sidenav">
@@ -537,6 +532,8 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tone">Tone</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-examples-and-gallery-examples">API examples and gallery examples</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-organization-and-navigation">Gallery organization and navigation</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explanation-and-concepts">Explanation and concepts</a><ul class="nav section-nav flex-column">
@@ -705,7 +702,9 @@ A = PFS,
 <li><p><strong>Interface documentation.</strong> Command-line usage, installation, or configuration; this belongs in how-to guides.</p></li>
 <li><p><strong>Collections of configurations whose only result is that they run.</strong> Producing one figure per configuration is not a result if nothing is compared, measured, or concluded.</p></li>
 </ul>
-<p>Each example should have a stated objective and an observable outcome: a quantitative comparison, a measured trade-off, a trajectory or field that can be inspected, a convergence or error curve, a feasibility boundary. Figures must carry the argument rather than decorate it.</p>
+<p>Before writing or revising an example, answer one question: what scientific, numerical or design concept does a reader learn by running this example and examining its output? The answer has to be more specific than how to call an interface, how to construct an object, that a feature exists, or that changing a parameter changes the result.</p>
+<p>Each example should have a stated objective and an observable outcome: a quantitative comparison, a measured trade-off, a trajectory or field that can be inspected, a convergence or error curve, a feasibility boundary. Figures must carry the argument rather than decorate it. If the objective cannot be stated without inventing a contrived experiment, the material belongs in a guide, an explanatory page, or the API reference.</p>
+<p>An example should address one question. Where it compares configurations, hold every parameter that is not under study fixed, so the difference in the output is attributable. Titles should name the concept demonstrated rather than the interface exercised.</p>
 <p>Prefer a small number of strong examples to broad coverage. A gallery is not an inventory of the public interface, and no example is warranted merely because a feature would otherwise go unrepresented.</p>
 <p>An example is <strong>not a conversational tutorial</strong>. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation.</p>
 <p>A substantial example will often include:</p>
@@ -808,6 +807,20 @@ A = PFS,
 <p>The intended result is <strong>a reproducible scientific example with concise methodological annotation</strong>, not a lesson delivered by a narrator.</p>
 <p>When a sentence merely describes what the next line of code does, it can usually be removed.</p>
 </section>
+<section id="api-examples-and-gallery-examples">
+<h4>API examples and gallery examples<a class="headerlink" href="#api-examples-and-gallery-examples" title="Link to this heading">#</a></h4>
+<p>Two kinds of example are legitimate, and they are not interchangeable.</p>
+<p>An <strong>API example</strong> shows how an object is constructed and used. It belongs in the <code class="docutils literal notranslate"><span class="pre">Examples</span></code> section of a docstring or on the reference page for that object, it is a few lines long, and it needs no experiment, sweep or scientific result. Reference material that illustrates one object — including a representative configuration and a figure of its output — belongs here.</p>
+<p>A <strong>gallery example</strong> teaches a scientific, numerical or design concept through an executable workflow and an observable result. It exists because running it produces something worth examining.</p>
+<p>The gallery is therefore not a catalogue of what the library ships. A reference page per object fulfils that role, and an object does not earn a gallery example by being undocumented elsewhere.</p>
+</section>
+<section id="gallery-organization-and-navigation">
+<h4>Gallery organization and navigation<a class="headerlink" href="#gallery-organization-and-navigation" title="Link to this heading">#</a></h4>
+<p>When examples fall into categories, the categories and the example cards belong on the gallery landing page: a reader browses a gallery visually, by scanning titles and thumbnails, rather than by expanding a navigation tree.</p>
+<p>Global navigation should normally contain the gallery itself and nothing below it. Category pages generated by the gallery builder should not become primary navigation entries merely because they exist; individual examples remain reachable from the cards, from cross-references and from the gallery’s own navigation.</p>
+<p>Give each category a name that states what its examples have in common and one or two factual sentences of description. Do not add prose to fill the page.</p>
+<p>Prefer the mechanisms the documentation builder supports — card directives, landing-page construction, navigation depth settings — over hiding generated pages with CSS.</p>
+</section>
 </section>
 <section id="explanation-and-concepts">
 <h3>Explanation and concepts<a class="headerlink" href="#explanation-and-concepts" title="Link to this heading">#</a></h3>
@@ -889,19 +902,26 @@ y = A(x) + \varepsilon
 <div><p>Halving the grid spacing reduces the discretization error by a factor of four for a second-order scheme, and increases the number of stored unknowns by a factor of four in two dimensions.</p>
 </div></blockquote>
 <p>Verbs such as <em>buys</em>, <em>pays</em>, <em>holds</em>, <em>carries</em>, <em>walks</em>, <em>drives</em>, <em>plays</em>, <em>refuses</em>, <em>asks</em>, <em>wants</em>, <em>sits</em>, and <em>spends</em> are the usual vehicles for both failure modes. The rule is semantic, not lexical: use them only with their established technical meaning, and state the relationship directly when the meaning would be figurative. An amplifier drives a load, an iterator walks a tree, a buffer holds samples, a solver takes a step, a field carries energy — these are the conventional terms and are correct. The same words are wrong when they stand in for a relationship that could have been stated.</p>
-<p><strong>Headings name the concept.</strong> A heading is an index entry, so it should be the technical name of what the section establishes, not a description of it or a phrase that only makes sense after reading the section.</p>
+<p><strong>Headings name the concept.</strong> A heading is an index entry and a semantic landmark, so it should normally be a concise noun phrase naming the concept, operation, quantity or task the section establishes. It is not a description of the section, a summary of its conclusion, or a phrase that only makes sense after the section has been read.</p>
+<p>Apply this test: would the heading look ordinary in a well-edited textbook, methods paper, or mature scientific-Python documentation? If not, simplify it.</p>
+<p>Rule out, in particular, miniature prose statements, rhetorical questions, and headings varied for stylistic effect. Sibling headings that name comparable things should be phrased comparably; variation for its own sake makes a contents list harder to scan.</p>
 <p>Avoid:</p>
 <blockquote>
 <div><p class="rubric" id="what-a-residual-really-tells-you">What a residual really tells you</p>
 <p class="rubric" id="the-accuracy-a-finer-grid-buys">The accuracy a finer grid buys</p>
 <p class="rubric" id="what-the-solver-sees">What the solver sees</p>
+<p class="rubric" id="why-the-preconditioner-cannot-be-skipped">Why the preconditioner cannot be skipped</p>
+<p class="rubric" id="the-operator-and-what-it-has-to-provide">The operator, and what it has to provide</p>
 </div></blockquote>
 <p>Prefer:</p>
 <blockquote>
 <div><p class="rubric" id="residual-norm-as-a-convergence-criterion">Residual norm as a convergence criterion</p>
 <p class="rubric" id="discretization-error-and-grid-spacing">Discretization error and grid spacing</p>
 <p class="rubric" id="operator-interface-required-by-the-solver">Operator interface required by the solver</p>
+<p class="rubric" id="preconditioning-requirements">Preconditioning requirements</p>
+<p class="rubric" id="operator-interface">Operator interface</p>
 </div></blockquote>
+<p><strong>Check the replacement, not only the original.</strong> Remediating prose of this kind has a characteristic failure: the rewrite avoids the flagged construction and adopts a milder one. Read the replacement as if it were the original. If it draws attention to its wording, it needs another pass, however defensible its grammar.</p>
 </section>
 <section id="depth">
 <h4>Depth<a class="headerlink" href="#depth" title="Link to this heading">#</a></h4>
@@ -985,10 +1005,14 @@ what the solver applies to the penalty</p>
 <li><p>invented informal terminology;</p></li>
 <li><p>stylistic synonyms for established technical terms;</p></li>
 <li><p>vague words such as “thing”, “stuff”, or “piece”;</p></li>
-<li><p>constructions such as “X is what Y does/takes”;</p></li>
+<li><p>cleft constructions that defer the subject: “X is what Y does”, “which is
+what makes Y possible”, “it is X that determines Y”, “what the format
+rewards is”;</p></li>
 <li><p>“Reach for X…”;</p></li>
 <li><p>“Think of X as…” when a direct definition is available;</p></li>
-<li><p>filler such as “simply”, “just”, “basically”, and “under the hood”.</p></li>
+<li><p>filler such as “simply”, “just”, “basically”, and “under the hood”;</p></li>
+<li><p>commentary on the document itself: “this is worth knowing”, “the last point
+bears stating”, “note that”, “as we will see”.</p></li>
 </ul>
 <p>These apply to every documentation type. Explanatory pages carry more prose than the others and are where they are most often violated, but a heading, a docstring summary line, or a comment in a gallery example is subject to the same rule.</p>
 <p>For example:</p>
@@ -1008,6 +1032,17 @@ what the solver applies to the penalty</p>
 <div><p>Whether each gradient carries on from the block before it.</p>
 </div></blockquote>
 <p>Technical writing need not be deliberately opaque or terse. The objective is clarity through correct terminology and explicit relationships rather than through conversational paraphrase.</p>
+<p>State relationships with the ordinary causal and comparative constructions of scientific prose: <em>X increases Y because…</em>, <em>the algorithm computes…</em>, <em>the constraint applies to…</em>, <em>increasing A reduces B and increases C</em>. Where a sentence would carry several relationships at once, use several sentences. A compressed sentence is not clearer for being shorter.</p>
+<p>Distinguish a mathematical or algorithmic requirement from a narration of the implementation. Stating that a quantity is an input because it appears in the expression being evaluated is documentation; stating that a function “needs” it, “waits for” it, or “is handed” it is narration, and says less.</p>
+<p>Avoid:</p>
+<blockquote>
+<div><p>The readout module is given the pulse so that it can measure the echo time from the pulse centre, and the rephaser so that it can put it in an interval the repetition already waits out.</p>
+</div></blockquote>
+<p>Prefer:</p>
+<blockquote>
+<div><p>The echo time is defined from the centre of the excitation pulse, so the readout module takes the pulse event as an argument. It also takes the slice rephaser, which it places within the delay that precedes the readout rather than appending a separate block.</p>
+</div></blockquote>
+<p>The register is ordinary scientific and technical prose. A sentence that draws attention to its wording should be reconsidered even when it is grammatically correct and free of the constructions listed above.</p>
 </section>
 <section id="units-shapes-and-conventions">
 <h3>Units, shapes, and conventions<a class="headerlink" href="#units-shapes-and-conventions" title="Link to this heading">#</a></h3>
@@ -1162,6 +1197,10 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li><p>Does the example demonstrate recommended public-API usage?</p></li>
 <li><p>Would a short code snippet elsewhere lose essentially nothing?</p></li>
 <li><p>Is there a stated objective and an observable outcome, rather than a set of configurations that merely run?</p></li>
+<li><p>Can the learning objective be stated in one sentence that is more specific than “how to use X”?</p></li>
+<li><p>Does the title name the concept demonstrated rather than the interface exercised?</p></li>
+<li><p>Are parameters not under study held fixed across a comparison?</p></li>
+<li><p>Do the categories and cards appear on the landing page, and is the gallery a single entry in global navigation?</p></li>
 </ul>
 </section>
 <section id="explanation">
@@ -1193,7 +1232,10 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li><p>Are important units and conventions explicit?</p></li>
 <li><p>Is any wording present primarily to sound clever, friendly, vivid, or varied?</p></li>
 <li><p>Is anything personified, and is every figurative verb either removed or used in its established technical sense?</p></li>
-<li><p>Does each heading name the technical concept rather than describe it?</p></li>
+<li><p>Does each heading name the technical concept rather than describe it, and would it look ordinary in a textbook or methods paper?</p></li>
+<li><p>Does any sentence draw attention to its own wording?</p></li>
+<li><p>In revised prose, has one rhetorical construction been replaced by a milder one rather than by a direct statement?</p></li>
+<li><p>Is a stated requirement mathematical or algorithmic, rather than a narration of what the implementation does?</p></li>
 <li><p>Has precision been sacrificed for accessibility?</p></li>
 <li><p>Is the material in the appropriate documentation type?</p></li>
 <li><p>Would removing a sentence lose useful scientific, mathematical, API, or procedural information?</p></li>
@@ -1215,12 +1257,12 @@ Spatial axis along which the finite difference is evaluated.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../sequences.html"
+       href="../generated/sequences/zte3D_sequence.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sequence catalogue</p>
+        <p class="prev-next-title">3D zero echo time</p>
       </div>
     </a>
     <a class="right-next"
@@ -1265,6 +1307,8 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tone">Tone</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-examples-and-gallery-examples">API examples and gallery examples</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-organization-and-navigation">Gallery organization and navigation</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explanation-and-concepts">Explanation and concepts</a><ul class="nav section-nav flex-column">

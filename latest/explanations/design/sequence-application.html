@@ -268,12 +268,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../generated/gallery/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/01-cartesian/index.html">Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/02-non-cartesian/index.html">Non-Cartesian imaging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../generated/gallery/03-advanced-design/index.html">Advanced design</a></li>
-</ul>
-</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -289,9 +284,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -520,7 +515,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-separable-concerns">Three separable concerns</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-sampling-order-and-repetition">Prescription, sampling order and repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-against-settings">Prescription against settings</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-indices">Encoding indices</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans-and-sequence-chains">Prescans and sequence chains</a></li>
@@ -538,13 +533,13 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-applications">
 <h1>Sequence applications<a class="headerlink" href="#sequence-applications" title="Link to this heading">#</a></h1>
-<p>A complete sequence is more than a set of modules. It also has a prescription —
-the parameters a user sets — a sampling order, and a scan loop that plays the
-modules in that order. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> is the
-contract that separates these three concerns, and every sequence implementation
-the package ships is written against it.</p>
-<section id="three-separable-concerns">
-<h2>Three separable concerns<a class="headerlink" href="#three-separable-concerns" title="Link to this heading">#</a></h2>
+<p>A complete sequence is more than a set of modules. It also has a prescription,
+meaning the parameters a user sets; a sampling order; and a scan loop that
+plays the modules in that order. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> is
+the contract that separates these three concerns, and every sequence
+implementation the package ships is written against it.</p>
+<section id="prescription-sampling-order-and-repetition">
+<h2>Prescription, sampling order and repetition<a class="headerlink" href="#prescription-sampling-order-and-repetition" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Concern</p></th>
@@ -574,22 +569,22 @@ repetition. <code class="docutils literal notranslate"><span class="pre">finaliz
 <p>Constructing an application runs <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> and therefore designs it, but
 plays nothing. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">design()</span></code></a> starts a fresh
 sequence, runs <code class="docutils literal notranslate"><span class="pre">loop</span></code>, then <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, and returns the result.</p>
-<p>The separation is not merely tidy. Because <code class="docutils literal notranslate"><span class="pre">kernel</span></code> adds exactly one
+<p>The separation has a practical consequence. Because <code class="docutils literal notranslate"><span class="pre">kernel</span></code> adds exactly one
 repetition, calling the application plays one repetition into the current
-sequence, so a single repetition and a whole scan are written by the same code.
-A caller that needs a chunk of a scan — to inspect it, or to hand it to an
-analysis that does not need the whole thing — is not writing a second code
-path.</p>
+sequence, so a single repetition and a whole scan are produced by the same
+code. A caller that requires only part of a scan, for inspection or for an
+analysis defined over one repetition, uses the same code path as one that
+designs the whole scan.</p>
 </section>
 <section id="prescription-against-settings">
 <h2>Prescription against settings<a class="headerlink" href="#prescription-against-settings" title="Link to this heading">#</a></h2>
-<p>The signature of <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> <em>is</em> the prescription: its keyword parameters,
+<p>The signature of <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> is the prescription: its keyword parameters,
 their defaults and its NumPy-style <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> section are what
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.protocol.html#pypulseqpp.sequences.SequenceApp.protocol" title="pypulseqpp.sequences.SequenceApp.protocol"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol()</span></code></a>, the command line and a
 protocol editor present. Documenting a parameter once therefore documents it
 everywhere it is offered.</p>
 <p>Everything a user does not prescribe is a class attribute. <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and
-<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> — the gradient ceilings the sequence is designed under — have no
+<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>, the gradient ceilings the sequence is designed under, have no
 default, so every concrete application states them; the system limits are
 capped to them at construction. A subclass that changes one class attribute and
 nothing else is the same sequence designed under a different limit:</p>
@@ -597,11 +592,11 @@ nothing else is the same sequence designed under a different limit:</p>
     <span class="n">MAX_SLEW</span> <span class="o">=</span> <span class="mf">60.0</span>
 </pre></div>
 </div>
-<p>This is the mechanism by which a design constraint is imposed from outside the
-prescription. Lowering the slew ceiling lengthens every gradient ramp and
-therefore the echo spacing, which is what makes it an effective control on the
-peripheral-nerve-stimulation estimate of <a class="reference internal" href="../safety/pns.html"><span class="doc">Peripheral nerve stimulation</span></a> — at a cost in
-acquisition time that the redesign makes visible.</p>
+<p>A design constraint is imposed from outside the prescription in this way.
+Lowering the slew ceiling lengthens every gradient ramp and therefore the echo
+spacing, which reduces the peripheral-nerve-stimulation estimate of
+<a class="reference internal" href="../safety/pns.html"><span class="doc">Peripheral nerve stimulation</span></a> at a cost in acquisition time that the redesigned sequence
+reports.</p>
 </section>
 <section id="encoding-indices">
 <h2>Encoding indices<a class="headerlink" href="#encoding-indices" title="Link to this heading">#</a></h2>
@@ -614,7 +609,7 @@ previous change is written as an increment, which a repeating scan reuses as a
 single event; any other change is written as a set.</p>
 <p>The consequence is that the sampling order chosen in <code class="docutils literal notranslate"><span class="pre">loop</span></code> is recoverable from
 the file by <a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> without re-deriving it,
-which is what the echo-ordering example in the gallery reads to plot which view
+which the echo-ordering example in the gallery reads to plot which view
 was acquired at which echo.</p>
 </section>
 <section id="prescans-and-sequence-chains">
@@ -625,7 +620,7 @@ was acquired at which echo.</p>
 main one, each naming the next through the <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> definition described
 in <a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>.</p>
 <p>An interpreter plays the chain as one acquisition, while each file remains a
-single repeating unit — which is what the repetition detection underlying the
+single repeating unit, which the repetition detection underlying the
 SAR check requires, and what would be lost if a prescan and an imaging scan
 shared one file distinguished by a flag.</p>
 </section>
@@ -687,7 +682,7 @@ shared one file distinguished by a flag.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-separable-concerns">Three separable concerns</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-sampling-order-and-repetition">Prescription, sampling order and repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-against-settings">Prescription against settings</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-indices">Encoding indices</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans-and-sequence-chains">Prescans and sequence chains</a></li>
