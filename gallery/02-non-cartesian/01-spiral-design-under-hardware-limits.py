@@ -1,21 +1,21 @@
 r"""
-==================================================
-Which limit bounds a spiral arm
-==================================================
+=======================================================
+Gradient, slew and receiver limits on a spiral readout
+=======================================================
 
-A spiral arm is traversed as fast as three ceilings allow. Two of them are the
-system's: the gradient amplitude and the slew rate the hardware will accept.
-The third comes from the receiver: with a dwell time :math:`\Delta t` the
-trajectory may not move further than :math:`1/\mathrm{FOV}` between samples,
-which caps the gradient amplitude at
+Three limits bound the traversal of a spiral arm. Two are properties of the
+gradient system: the maximum amplitude and the maximum slew rate. The third
+follows from the receiver: with a dwell time :math:`\Delta t` the trajectory
+may not advance further than :math:`1/\mathrm{FOV}` between samples, which
+caps the gradient amplitude at
 
 .. math::
 
     G_\mathrm{bw} = \frac{1}{\gamma\, \Delta t\, \mathrm{FOV}}
 
-whatever the hardware could deliver. The solver takes the lowest of the three,
-so the readout duration responds to the slew rate over part of the design space
-and is indifferent to it over the rest.
+independently of what the gradient system could deliver. The solver applies
+the lowest of the three, so the readout duration depends on the slew rate over
+part of the design space and not over the rest.
 
 This example designs one spiral arm over a grid of slew limits and sampling
 rates, reads the peak amplitude and peak slew back off the designed waveform,
@@ -158,14 +158,14 @@ MATRIX = 128
 MAX_GRAD_MT_M = 40.0
 
 # %%
-# One arm at a set of limits
-# --------------------------
+# Designing one arm
+# -----------------
 #
 # The readout module designs the arm from the prescription and the system
 # limits it is given, so a design is one call and the waveform it produced is
 # an attribute of the result. ``design_interleaves`` sets the pitch of the
-# spiral, which is what the readout duration is being measured against, and not
-# how many arms a scan plays.
+# spiral, against which the readout duration is measured. It is not the number
+# of arms a scan plays.
 
 
 def spiral_arm(max_slew, sampling_rate_hz, interleaves=16):
@@ -303,7 +303,7 @@ waveform_figure(
 # The ceilings are drawn at the system's derated limits rather than at the
 # numbers passed in. A design whose two in-plane axes play together is solved
 # against a per-axis limit reduced by :math:`\sqrt{2}`, so that the vector
-# magnitude drawn here is what respects the scalar limit.
+# magnitude drawn here respects the scalar limit.
 
 # %%
 # Interleaves against arm duration
@@ -339,6 +339,6 @@ interleaf_figure(interleaves)
 # The arm duration falls almost as the reciprocal of the interleaf count while
 # the time for a full set rises less than proportionally, because each
 # repetition carries an excitation and a rewind whose duration does not depend
-# on the pitch. The readout duration is what off-resonance and :math:`T_2^*`
-# act over, so this is the axis to move along once the slew rate has stopped
-# shortening the arm.
+# on the pitch. Off-resonance and :math:`T_2^*` act over the readout duration,
+# so the interleaf count is the remaining way to shorten it once the slew rate
+# no longer does.

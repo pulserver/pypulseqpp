@@ -8,7 +8,7 @@ described in {doc}`../explanations/design/index`; this page is the procedure.
 ## Construct the modules
 
 Each module solves its own timing and gradient waveforms at construction. The
-readout is given the excitation's pulse and gradients, which is what lets it
+readout takes the excitation's pulse and gradients, which lets it
 measure the echo time from the pulse centre and place the rephaser inside an
 interval the repetition already has to wait out.
 

@@ -1,9 +1,10 @@
 # Sequence catalogue
 
-Complete sequences shipped with the package, each a {class}`~pypulseqpp.sequences.SequenceApp`
-subclass in its own module. Import one as an attribute of `pypulseqpp.sequences`;
-the module is callable as its own `main`, which designs the sequence and returns
-it.
+Complete sequences shipped with the package, grouped by sequence family. Each
+is a {class}`~pypulseqpp.sequences.SequenceApp` subclass in its own module, and
+each has a reference page giving its prescription and a representative
+configuration. Import one as an attribute of `pypulseqpp.sequences`; the module
+is callable as its own `main`, which designs the sequence and returns it.
 
 ```python
 from pypulseqpp import sequences
@@ -20,83 +21,79 @@ the signature and NumPy-style `Parameters` section of `init_sequence`, so
 python -m pypulseqpp.sequences.sequence.gre2D_sequence --help
 ```
 
-See {doc}`api/apps` for the {class}`~pypulseqpp.sequences.SequenceApp`
-contract these modules implement, and {doc}`api/modules` for the excitation,
-preparation and readout modules they are built from.
+Dimensionality and sampling distinguish the variants within a family: a
+gradient echo is the same family whether it samples a Cartesian grid, radial
+spokes or spiral interleaves. See {doc}`api/apps` for the
+{class}`~pypulseqpp.sequences.SequenceApp` contract these modules implement,
+and {doc}`api/modules` for the excitation, preparation and readout modules they
+are built from.
 
+## Gradient echo
 
-## Cartesian gradient echo
+One excitation per repetition with no refocusing pulse, spoiled between
+repetitions.
 
-| Module | Description |
-| --- | --- |
-| `gre2D_sequence` | RF-spoiled, multi-slice 2D Cartesian gradient echo. |
-| `gre3D_sequence` | RF-spoiled 3D Cartesian gradient echo. |
-| `gre_multiecho2D_sequence` | RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo. |
-| `gre_multiecho3D_sequence` | RF-spoiled multi-echo 3D Cartesian gradient echo. |
-| `mprage3D_sequence` | 3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines. |
+```{eval-rst}
+.. include:: generated/sequences/tables/gradient-echo.rst
+```
 
+## Spin echo
 
-## Cartesian spin echo
+One excitation and one refocusing pulse per repetition, with the acquisition at
+the refocused echo.
 
-| Module | Description |
-| --- | --- |
-| `se2D_sequence` | Multi-slice 2D Cartesian spin echo: one line per excitation. |
-| `se3D_sequence` | 3D Cartesian spin echo: one ``(line, partition)`` view per excitation. |
-| `fse3D_sequence` | 3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid. |
+```{eval-rst}
+.. include:: generated/sequences/tables/spin-echo.rst
+```
 
+## Fast spin echo
+
+One excitation followed by a CPMG train of refocusing pulses, with one view
+acquired per echo.
+
+```{eval-rst}
+.. include:: generated/sequences/tables/fast-spin-echo.rst
+```
+
+## MPRAGE
+
+An inversion followed by a spoiled gradient-echo train. Each shot inverts once
+and then acquires every sampled in-plane view of a single partition, so the
+partition encode is constant within a shot and the number of shots is the
+number of sampled partitions.
+
+```{eval-rst}
+.. include:: generated/sequences/tables/mprage.rst
+```
 
 ## Balanced SSFP
 
-| Module | Description |
-| --- | --- |
-| `bssfp2D_sequence` | Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated. |
-| `bssfp3D_sequence` | Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip. |
+Every gradient axis returns to zero moment within each repetition, so the
+steady state depends on the off-resonance accumulated over one repetition time.
 
+```{eval-rst}
+.. include:: generated/sequences/tables/balanced-ssfp.rst
+```
 
-## Echo planar
+## Echo-planar imaging
 
-| Module | Description |
-| --- | --- |
-| `epi2D_sequence` | Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband. |
-| `epi3D_sequence` | 3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled. |
+One excitation followed by a train of readout lobes of alternating polarity,
+with phase-encode blips between them.
 
-
-## Radial
-
-| Module | Description |
-| --- | --- |
-| `gre_radial2D_sequence` | RF-spoiled, multi-slice 2D radial gradient echo: one full spoke per repetition. |
-| `se_radial2D_sequence` | Multi-slice 2D radial spin echo: one full spoke per excitation. |
-| `gre_stack_of_stars3D_sequence` | RF-spoiled 3D stack of stars: radial spokes in-plane, Cartesian partitions along z. |
-| `se_stack_of_stars3D_sequence` | 3D stack-of-stars spin echo: one spoke at one partition per excitation. |
-| `mprage_stack_of_stars3D_sequence` | 3D MPRAGE on a stack of stars: one inversion per partition, then its spokes. |
-
-
-## Spiral
-
-| Module | Description |
-| --- | --- |
-| `gre_spiral2D_sequence` | RF-spoiled, multi-slice 2D spiral gradient echo: one interleaf per repetition. |
-| `se_spiral2D_sequence` | Multi-slice 2D spiral spin echo: one interleaf per excitation. |
-| `gre_stack_of_spirals3D_sequence` | RF-spoiled 3D stack of spirals: spiral interleaves in-plane, Cartesian partitions along z. |
-| `se_stack_of_spirals3D_sequence` | 3D stack-of-spirals spin echo: one interleaf at one partition per excitation. |
-| `mprage_stack_of_spirals3D_sequence` | 3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves. |
-
-
-## PROPELLER
-
-| Module | Description |
-| --- | --- |
-| `gre_propeller2D_sequence` | RF-spoiled, multi-slice 2D PROPELLER gradient echo: one blade line per repetition. |
-| `se_propeller2D_sequence` | Multi-slice 2D PROPELLER spin echo: one blade line per excitation. |
-| `se_epi_propeller2D_sequence` | Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation. |
-| `gre_stack_of_blades3D_sequence` | RF-spoiled 3D stack of blades: PROPELLER blades in-plane, Cartesian partitions along z. |
-| `se_stack_of_blades3D_sequence` | 3D stack-of-blades spin echo: one blade line at one partition per excitation. |
-
+```{eval-rst}
+.. include:: generated/sequences/tables/echo-planar-imaging.rst
+```
 
 ## Zero echo time
 
-| Module | Description |
-| --- | --- |
-| `zte3D_sequence` | 3D zero echo time: hard pulses on a readout gradient held on across each shell. |
+The readout gradient is at amplitude before the pulse is transmitted, so
+acquisition begins without a ramp and the trajectory starts at the centre of
+k-space.
 
+```{eval-rst}
+.. include:: generated/sequences/tables/zero-echo-time.rst
+```
+
+```{eval-rst}
+.. include:: generated/sequences/index.rst
+```

@@ -59,15 +59,14 @@ $$
 T_{\min} = 2\sqrt{A/S}.
 $$
 
-No amplitude solves the same area in less time, and once $\sqrt{AS}$ exceeds
-`max_grad` the waveform has a flat top and takes longer still. A prewinder or a
-phase-encode blip shortened by a factor of two therefore costs a factor of four
-in slew rate, which is why echo spacing in an echo-planar train is bounded by
-the slew limit rather than by the amplitude limit. The gradient factories solve
-this relation from the system limits, which is why
-{func}`~pypulseqpp.make_trapezoid` raises for an `area` and a `duration` that
-cannot be satisfied together, rather than returning a waveform that would fail
-this check.
+No amplitude delivers the same area in less time, and once $\sqrt{AS}$ exceeds
+`max_grad` the waveform acquires a flat top and takes longer still. Halving the
+duration of a prewinder or a phase-encode blip therefore requires four times
+the slew rate, so the echo spacing of an echo-planar train is bounded by the
+slew limit rather than by the amplitude limit. The gradient factories solve this
+relation from the system limits, so {func}`~pypulseqpp.make_trapezoid` raises
+for an `area` and a `duration` that cannot be satisfied together rather than
+returning a waveform that would fail this check.
 
 ## Derating
 

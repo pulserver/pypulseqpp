@@ -62,7 +62,7 @@ Sequence-module classes are available from `pypulseqpp.sequences`, and the
 complete example sequences from `pypulseqpp.sequences.<name>`. The
 [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
 groups sequence operations, event design, sampling, modules and checks; the
-[examples](https://pulserver.github.io/pypulseqpp/latest/generated/gallery/index.html)
+[examples](https://pulserver.github.io/pypulseqpp/latest/examples.html)
 build a sequence from events, from modules and from the shipped applications,
 and the
 [explanations](https://pulserver.github.io/pypulseqpp/latest/explanations/index.html)

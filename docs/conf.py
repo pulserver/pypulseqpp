@@ -33,6 +33,10 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "**/_gallery_header.md",
+    # The catalogue includes these by path, so they must not also be built as
+    # pages, which would register the sequence pages under two toctrees.
+    "generated/sequences/index.rst",
+    "generated/sequences/tables/*",
 ]
 
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "linkify"]
@@ -67,7 +71,7 @@ intersphinx_mapping = {
 GALLERY_SECTIONS = [
     "../gallery/01-cartesian",
     "../gallery/02-non-cartesian",
-    "../gallery/03-advanced-design",
+    "../gallery/03-rf-pulses",
 ]
 
 sphinx_gallery_conf = {
@@ -85,14 +89,13 @@ sphinx_gallery_conf = {
     # Left off deliberately: it would strip the ignore flags before the page is
     # written, and _hide_ignored_code_from_the_page_only needs them there.
     "remove_config_comments": False,
-    # Two files have to travel into the output directory: the MyST section
-    # headers, which a generated index.rst pulls in by an include, and our own
-    # root index.rst. Matching `index.rst` here is also what makes
-    # sphinx-gallery use ours: `_get_gallery_header` returns None for a
-    # directory holding an `index.rst` that this pattern matches, and the root
-    # index it would otherwise write is an orphan whose toctree flattens every
-    # example into the top level of the sidebar.
-    "copyfile_regex": r"(.*\.md|index\.rst)",
+    # The Markdown section headers travel into the output directory, where the
+    # generated index.rst of each section pulls one in by an include. The root
+    # index sphinx-gallery writes is left to it: it carries every category and
+    # its thumbnails, and it is an orphan, so the gallery contributes no
+    # navigation entries of its own. `docs/examples.md` is the page the global
+    # navigation points at.
+    "copyfile_regex": r".*\.md",
 }
 
 
@@ -201,11 +204,27 @@ def _draw_explanation_figures(app) -> None:
     render(Path(app.srcdir, "generated", "figures"))
 
 
+def _write_sequence_pages(app) -> None:
+    """Write a reference page and figures for every shipped complete sequence.
+
+    Each page is written before Sphinx reads its sources, from the table in
+    ``sequence_pages.py`` and from the application's own docstring, and its
+    figures are drawn from a sequence designed here.
+    """
+    import sys
+
+    sys.path.insert(0, str(Path(app.srcdir)))
+    from sequence_pages import render
+
+    render(app.srcdir)
+
+
 def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("builder-inited", _draw_explanation_figures)
+    app.connect("builder-inited", _write_sequence_pages)
     handlers = logging.getLogger("sphinx").handlers
     if not handlers:
         print("conf.py: no Sphinx log handler; an inventory outage will fail the build")

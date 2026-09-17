@@ -14,8 +14,8 @@ pulse's bandwidth across the slice:
 
 A shorter pulse at the same thickness and the same time-bandwidth product
 therefore needs a proportionally stronger selection gradient and a
-proportionally larger :math:`B_1`, and the hardware limit on the first of these
-is what bounds the pair.
+proportionally larger :math:`B_1`. The gradient amplitude limit therefore
+bounds the two together.
 
 This example simulates the Bloch response of the pulse each design produces,
 measures the transition width and the ripple of the resulting profile, and maps
@@ -136,8 +136,8 @@ system = pp.Opts(
 # rephaser that unwinds the second half of the selection. Its ``sim_rf``
 # simulates the Bloch response of the pulse it holds across off-resonance,
 # which under a selection gradient of amplitude ``selection_amplitude`` is the
-# slice profile: an off-resonance of ``selection_amplitude * z`` is what a spin
-# at position ``z`` sees.
+# slice profile, because a spin at position ``z`` is off-resonance by
+# ``selection_amplitude * z``.
 
 
 def simulate(time_bw_product, duration_s):
@@ -217,10 +217,10 @@ profile_figure(
 # Above the smallest product the transition width falls close to inversely
 # with it, so their product settles towards a figure set by the slice thickness
 # rather than by the design. The passband ripple falls over the same range and
-# the stopband stays below a percent throughout. The last column is what is
-# exchanged for both: the peak :math:`B_1` rises in proportion to the
-# time-bandwidth product, because the same flip angle is delivered by an
-# envelope with more structure in the same time.
+# the stopband stays below a percent throughout. The last column gives the
+# corresponding increase in transmit amplitude: the peak :math:`B_1` rises in
+# proportion to the time-bandwidth product, because the same flip angle is
+# delivered by an envelope with more structure in the same time.
 
 # %%
 # The duration at a fixed time-bandwidth product
@@ -255,8 +255,8 @@ profile_figure(
 # repetition spends on the excitation.
 
 # %%
-# The region the gradient system admits
-# -------------------------------------
+# Designs admitted by the gradient amplitude limit
+# ------------------------------------------------
 #
 # The two sweeps are two lines through one plane, and the amplitude limit cuts
 # it along :math:`T = \mathrm{TBW} / (\gamma\, \Delta z\, G_\mathrm{max})`. A
@@ -295,7 +295,8 @@ print(f"{len(grid) - rejected} of {len(grid)} designs realizable, {rejected} rej
 # lengthens the ramps on either side of the selection plateau, and so the
 # module, without changing the amplitude the plateau has to reach.
 #
-# Read the other way, a sharper profile at a fixed slice thickness is available
-# at any duration the gradient amplitude supports, and the choice between a long
-# pulse and a strong gradient is a choice about echo time and about :math:`B_1`
-# rather than about the profile.
+# The same plane read along its other axis gives the complementary statement: a
+# sharper profile at a fixed slice thickness is available at any duration the
+# gradient amplitude supports, and choosing between a long pulse and a strong
+# gradient decides the echo time and the peak :math:`B_1` rather than the
+# profile.

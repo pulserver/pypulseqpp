@@ -90,6 +90,7 @@ sdist.include = [
   "/docs/Makefile",
   "/docs/conf.py",
   "/docs/explanation_figures.py",
+  "/docs/sequence_pages.py",
   "/docs/*.md",
   "/docs/api/*.md",
   "/docs/contributing/*.md",

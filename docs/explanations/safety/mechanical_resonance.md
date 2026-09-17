@@ -40,13 +40,13 @@ $$
 A_k = \frac{2\,|X_k|}{\sum_n w_n},
 $$
 
-where $w$ is the taper. The normalization is what makes the reading
+where $w$ is the taper. The normalization makes the reading
 interpretable as a gradient amplitude: a sustained sinusoid of amplitude $A$ at
 a bin frequency reads $A$, so a threshold stated in mT/m is compared with a
 quantity in mT/m rather than with a spectral density.
 
 Mean subtraction removes the constant component of the window, which is not a
-drive at any resonance. Tapering is what keeps a strong low-frequency component
+drive at any resonance. Tapering keeps a strong low-frequency component
 from leaking across the whole spectrum and producing a reading inside a band
 that no gradient in the window put there. Zero-padding does not add
 information; it interpolates the spectrum so that a line falling between bins
@@ -79,9 +79,9 @@ reaches.
 ```
 
 A spiral readout sweeps its instantaneous frequency as the trajectory winds out,
-so it spreads its power over a range instead of concentrating it. Sweeping
-through a band is what a window has to be short enough to resolve, and long
-enough not to mistake for a sustained drive.
+so it spreads its power over a range instead of concentrating it. The window has to be short
+enough to resolve the interval the sweep spends inside a band, and long enough
+that such an interval is not read as a sustained drive.
 
 A conventional Cartesian gradient echo puts most of its gradient power below a
 few hundred hertz and is at zero amplitude for most of each repetition, so it

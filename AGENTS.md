@@ -232,7 +232,7 @@ either; it states the rules most often broken.
 | `docs/explanations/` | Conceptual explanation | Why does this work this way? |
 | `gallery/` | Executable examples, built into `docs/generated/gallery/` | What does a representative scientific workflow look like? |
 | `docs/api/` | Reference | What exactly does this object do? |
-| `docs/sequences.md` | Catalogue of the shipped sequence implementations | Which sequences exist? |
+| `docs/sequences.md` | Catalogue of the shipped sequences, grouped by family, with a reference page each | Which sequences exist, and what does one of them look like? |
 
 Do not transfer the prose style or level of exposition of one type into
 another. Explanations come before examples in the navigation, and an example
@@ -244,6 +244,9 @@ constructor catalogue, a conceptual introduction with incidental code,
 command-line documentation, or a set of configurations whose only result is
 that they run does not belong in the gallery. Prefer few strong examples.
 
+A representative configuration of a shipped sequence, with its diagram, is
+reference material and belongs on that sequence's page, not in the gallery.
+
 ### Mechanics
 
 A gallery script is a `.py` file whose module docstring is the page's title
@@ -253,18 +256,25 @@ figure styling and print formatting — goes between
 without appearing on the page. Every script is executed at build time, so an
 example that cannot run cannot be merged.
 
-Two things keep the gallery's sidebar hierarchy nested. `gallery/index.rst` is
-ours rather than generated: `copyfile_regex` matching `index.rst` is what makes
-sphinx-gallery use it, and without it sphinx-gallery emits an orphan root index
-whose toctree flattens every example into the top level. And each `index.rst`
-and `README.rst` carries its own reStructuredText title above the
-`.. include::` of its Markdown header, because a title that arrives through the
-include leaves the toctree beneath it outside the page's section, which flattens
-it in the same way.
+`docs/examples.md` is the gallery's landing page and the only entry the global
+navigation carries for it. Its cards come from `minigallery` directives over
+the example scripts. The pages sphinx-gallery generates are reached from those
+cards: its root index is an `:orphan:`, the category indexes and example pages
+hang off that root's toctree, and nothing in `docs/index.md` points at them, so
+the tree is reachable without contributing navigation entries. Each
+`README.rst` carries its own reStructuredText title above the `.. include::` of
+its Markdown header, because a title arriving through an include leaves the
+toctree beneath it outside the page's section.
 
-Explanation figures are functions in
-`docs/explanation_figures.py`, registered in its `FIGURES` mapping and drawn
-from the code being built rather than committed as images.
+Two generators run on `builder-inited` and write into `docs/generated/`, which
+is not tracked. `docs/explanation_figures.py` draws the explanation pages'
+figures from the code being built. `docs/sequence_pages.py` writes one
+reference page per shipped complete sequence, plus the catalogue's family
+tables: its `SEQUENCES` table is the single place a sequence's classification,
+its documentation configuration and its figures are stated, every description
+is read from the application's own summary line, and the prescription is
+rendered by `autofunction` from the docstring. A sequence added to
+`examples/sequence/` needs a row there, and nothing else.
 
 ### Terminology, in brief
 
