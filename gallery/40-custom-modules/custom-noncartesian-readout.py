@@ -141,8 +141,8 @@ class TwirlReadout2D(design.NonCartesianReadout):
 
 
 # %%
-# What the twist costs
-# --------------------
+# Readout duration against a spiral
+# ---------------------------------
 #
 # A constant-density spiral designed for the same interleaf count samples the
 # same field of view at the same resolution, and spends longer doing it: the
@@ -177,8 +177,8 @@ print(
 )
 
 # %%
-# The module in a repetition
-# --------------------------
+# One repetition
+# --------------
 
 excitation = design.SpatialSelectiveExcitation(
     system, flip_angle_deg=15.0, thickness_m=5e-3, duration_s=3e-3
@@ -207,8 +207,8 @@ for block in readout.blocks:
 seq.paper_plot(tr=1)
 
 # %%
-# Played by a scan loop
-# ---------------------
+# Scan loop
+# ---------
 #
 # One solved arm is turned per shot by a rotation extension, which the loop
 # adds to every block that drives an in-plane gradient.

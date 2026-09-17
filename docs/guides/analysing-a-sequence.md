@@ -112,8 +112,10 @@ magnetization profile it produces.
 >>> matplotlib.use("Agg")
 >>> import pypulseqpp as pp
 >>> drawn = seq.paper_plot()
->>> drawn.tr
-1
+>>> drawn.tr in range(1, seq.num_blocks + 1)
+True
+>>> len(drawn.underlays)
+16
 >>> figure = pp.plot.plot_kspace(seq, color_by="shot", plot_now=False)
 >>> figure.__class__.__name__
 'Figure'

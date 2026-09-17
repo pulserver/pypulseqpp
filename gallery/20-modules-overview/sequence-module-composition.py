@@ -10,8 +10,8 @@ interface running.
 """
 
 # %%
-# A module is constructed from a prescription
-# -------------------------------------------
+# Constructing a module
+# ---------------------
 #
 # ``SpatialSelectiveExcitation`` designs an SLR pulse, its selection gradient
 # and the rephaser that unwinds the second half of the selection.
@@ -36,8 +36,8 @@ print(f"{len(excitation.blocks)} blocks, {excitation.duration * 1e3:.2f} ms")
 print("events:", ", ".join(sorted(vars(excitation.events))))
 
 # %%
-# Three parts of the interface
-# ----------------------------
+# Blocks, events and timing reference
+# -----------------------------------
 #
 # ``blocks`` returns the block tuples in play order, so a module that needs no
 # per-view modification is added to a sequence as it stands. The named events
@@ -50,8 +50,8 @@ print(
 print(f"selection amplitude {excitation.selection_amplitude * 1e-3:.1f} kHz/m")
 
 # %%
-# Modules compose at prescribed intervals
-# ---------------------------------------
+# Composing modules
+# -----------------
 #
 # Intervals between modules are measured between their timing references. An
 # inversion time runs from one pulse centre to the next, so the recovery delay

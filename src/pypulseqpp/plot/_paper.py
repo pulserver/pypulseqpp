@@ -21,6 +21,20 @@ _FILL = 0.9
 _RF_PARTS = {"abs": np.abs, "real": np.real, "imag": np.imag}
 
 
+def _representative(seq, size, start, repeats, span):
+    """Return the 0-based repetition a diagram should draw solid.
+
+    The repetition that acquires the most, and among those the one whose
+    gradients travel furthest on the axes that differ between repetitions.
+    Ranking on the largest excursion alone would compare every repetition on
+    the readout gradient, which they share, and settle every tie on the first.
+    """
+    adc = np.asarray(seq._native.block_events())[:, 4] != 0
+    acquisitions = adc[start - 1 : start - 1 + repeats * size].reshape(repeats, size)
+    encoding = (span - span.min(axis=0)).sum(axis=1)
+    return np.lexsort((encoding, acquisitions.sum(axis=1)))[-1]
+
+
 def select_trs(seq, tr=None, max_underlays=16):
     """Return the repetitions a diagram draws.
 
@@ -31,8 +45,9 @@ def select_trs(seq, tr=None, max_underlays=16):
     start : int
         1-based block where the first repetition starts.
     main : int or None
-        1-based repetition drawn solid: ``tr`` if given, otherwise the one in
-        which any physical axis reaches its largest magnitude.
+        1-based repetition drawn solid: ``tr`` if given, otherwise the one
+        that acquires most and encodes furthest, as :func:`_representative`
+        ranks them.
     underlays : list of int
         1-based repetitions drawn underneath: every k-th, with k chosen so
         there are at most ``max_underlays`` of them, together with the
@@ -40,6 +55,11 @@ def select_trs(seq, tr=None, max_underlays=16):
         positive value.
     """
     size, start = seq._detect_tr()
+    if size >= seq.num_blocks:
+        # A preparation before the loop, or a rewind after it, keeps the scan
+        # from repeating as a whole; the diagram draws what repeats inside it.
+        size, start = seq._native.repeating_part()
+        start += 1
     repeats = (seq.num_blocks - start + 1) // size if size else 0
     if repeats == 0:
         return 0, 0, None, []
@@ -50,7 +70,7 @@ def select_trs(seq, tr=None, max_underlays=16):
     high = per_tr[..., 1].max(axis=1)
 
     if tr is None:
-        main = int(np.argmax(np.maximum(-low, high).max(axis=1)))
+        main = int(_representative(seq, size, start, repeats, high - low))
     elif 1 <= int(tr) <= repeats:
         main = int(tr) - 1
     else:

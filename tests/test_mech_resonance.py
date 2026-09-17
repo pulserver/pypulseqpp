@@ -420,3 +420,41 @@ def test_a_table_path_can_stand_for_the_bands(system, tmp_path):
     )
 
     assert from_path.bands == from_bands.bands
+
+
+# -- the spectrum a diagram draws -------------------------------------------
+
+
+def test_the_spectrum_reads_the_amplitude_the_check_reports(system):
+    """A diagram of a band and the verdict on it come from the same pass."""
+    sequence = played(system, [sinusoid(system, "x", 12.0, 700.0, 60e-3)])
+    band = ForbiddenBand(axis=None, f_min=650.0, f_max=750.0, tolerance=5.0)
+
+    _, report = safety.check_mech_resonance(sequence, [band], window_width=20e-3)
+    worst = report.bands[0]
+    spectrum = safety.mech_resonance_spectrum(
+        sequence, window=worst.window, window_width=20e-3
+    )
+
+    bin_of_peak = round(worst.frequency / spectrum.frequency_step)
+    assert spectrum.amplitude.shape[0] == 3
+    assert spectrum.frequency[bin_of_peak] == pytest.approx(worst.frequency)
+    assert spectrum.amplitude[:, bin_of_peak].max() == pytest.approx(worst.peak)
+    assert spectrum.window_start == pytest.approx(worst.window_start)
+
+
+def test_a_spectrum_is_read_on_every_axis_whether_a_band_guards_it_or_not(system):
+    sequence = played(system, [sinusoid(system, "z", 9.0, 400.0, 60e-3)])
+
+    spectrum = safety.mech_resonance_spectrum(sequence, window=0, window_width=20e-3)
+
+    loudest = spectrum.amplitude.max(axis=1)
+    assert loudest[2] > loudest[0]
+    assert spectrum.axes == ("x", "y", "z")
+
+
+def test_a_window_the_sequence_does_not_reach_is_refused(system):
+    sequence = played(system, [sinusoid(system, "x", 12.0, 700.0, 60e-3)])
+
+    with pytest.raises(ValueError, match="no window"):
+        safety.mech_resonance_spectrum(sequence, window=99, window_width=20e-3)

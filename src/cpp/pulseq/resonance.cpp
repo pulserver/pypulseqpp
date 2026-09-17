@@ -109,9 +109,15 @@ namespace pulseq
 
         const auto judge = [&](int64_t window) {
             const int64_t start = window * step;
+            const bool capture = window == options.keep_spectrum;
+            if (capture)
+            {
+                out.spectrum.assign(3, std::vector<double>(static_cast<size_t>(nyquist) + 1, 0.0));
+                out.spectrum_start = static_cast<double>(start) * dt;
+            }
             for (int axis = 0; axis < 3; ++axis)
             {
-                if (guards[axis].empty())
+                if (guards[axis].empty() && !capture)
                     continue;
                 const double* x = buffer[axis].data() + (start - base);
                 double mean = 0.0;
@@ -130,6 +136,15 @@ namespace pulseq
                 for (int64_t i = 0; i < width; ++i)
                     tapered[static_cast<size_t>(i)] = (x[i] - mean) * taper[static_cast<size_t>(i)];
                 fft.forward(tapered.data(), spectrum.data());
+
+                if (capture)
+                {
+                    for (int64_t k = 0; k <= nyquist; ++k)
+                    {
+                        out.spectrum[static_cast<size_t>(axis)][static_cast<size_t>(k)] =
+                            std::abs(spectrum[static_cast<size_t>(k)]) * scale;
+                    }
+                }
 
                 for (const Guard& guard : guards[axis])
                 {

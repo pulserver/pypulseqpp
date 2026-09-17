@@ -38,6 +38,8 @@ namespace pulseq
         double rotation[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
         /** MKL runtime library to transform with; empty for pocketfft. */
         std::string mkl_runtime;
+        /** Window whose spectrum to keep, for a diagnostic; -1 keeps none. */
+        int64_t keep_spectrum = -1;
     };
 
     /** One forbidden band on one axis: its worst window and its violation count. */
@@ -65,6 +67,10 @@ namespace pulseq
         double stride = 0.0;
         double frequency_step = 0.0;
         std::string backend;
+        /** With `keep_spectrum`: that window's amplitude per axis and bin, in
+         * Hz/m, and where it starts, in seconds. Empty without it. */
+        std::vector<std::vector<double>> spectrum;
+        double spectrum_start = 0.0;
     };
 
     /**

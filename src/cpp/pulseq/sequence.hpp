@@ -1137,6 +1137,15 @@ namespace pulseq
          */
         Repetition repetition();
 
+        /** The longest repeating run of the scan, as (size, start) in blocks.
+
+         * repetition() answers what the scan repeats as a whole, which a
+         * preparation before the loop or a rewind after it makes the whole
+         * table. This answers what repeats in the middle of it, which is what
+         * a diagram draws; it never disagrees when the scan does repeat.
+         */
+        Repetition repeating_part();
+
         /**
          * A known period, verified: @p size, if it is shorter than the
          * sequence, divides it, and every block repeats the one @p size
@@ -1597,6 +1606,9 @@ namespace pulseq
         std::vector<int32_t> adc_def_;          /**< by ADC id - 1 */
         std::vector<int32_t> instance_def_;     /**< by block - 1 */
         /** The repeating unit, once someone has asked for it. */
+        /** Per-block key of duration and which channels play, for detection. */
+        std::vector<int32_t> structure_stream() const;
+
         Repetition repetition_;
         bool repetition_known_ = false;
         std::vector<int32_t> instance_adc_def_; /**< by block - 1 */

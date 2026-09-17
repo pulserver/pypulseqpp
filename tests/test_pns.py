@@ -290,3 +290,43 @@ def test_nothing_played_stimulates_nothing(system):
     assert ok
     assert report.samples == 0
     assert report.peak.value == 0.0
+
+
+# -- the response a diagram draws -------------------------------------------
+
+
+def test_the_trace_is_the_response_the_peak_is_taken_from(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=2000, system=system))
+    sequence.add_block(pp.make_trapezoid("y", area=-2000, system=system))
+
+    ok, report = safety.check_pns(sequence, CHRONAXIE, trace=True)
+
+    assert report.response.size == report.samples
+    assert report.time.size == report.samples
+    assert report.response.max() == pytest.approx(report.peak.value)
+    assert report.time[report.response.argmax()] == pytest.approx(report.peak.time)
+    assert ok == (report.peak.value < 1.0)
+
+
+def test_each_axis_carries_its_own_response(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=2000, system=system))
+
+    _, report = safety.check_pns(sequence, CHRONAXIE, trace=True)
+
+    for axis in report.axes:
+        assert axis.response.size == report.samples
+        assert axis.response.max() == pytest.approx(axis.value)
+    combined = np.sqrt(sum(axis.response**2 for axis in report.axes))
+    assert np.allclose(combined, report.response)
+
+
+def test_the_response_is_not_carried_unless_it_is_asked_for(system):
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_trapezoid("x", area=2000, system=system))
+
+    _, report = safety.check_pns(sequence, CHRONAXIE)
+
+    assert not hasattr(report, "response")
+    assert not hasattr(report.axes[0], "response")

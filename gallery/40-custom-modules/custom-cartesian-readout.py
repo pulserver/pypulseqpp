@@ -55,8 +55,8 @@ def sampling_figure(k_read, spacing, nyquist):
 # sphinx_gallery_end_ignore
 
 # %%
-# The contract
-# ------------
+# Required interface
+# -------------------
 #
 # ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 # sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -183,8 +183,8 @@ class RampSampledLineReadout(design.SequenceModule):
 
 
 # %%
-# What the ramps buy
-# ------------------
+# Readout duration
+# ----------------
 #
 # Both designs sample the same extent of k-space, so both resolve the same
 # matrix over the same field of view. The flat-top design carries that extent
@@ -220,8 +220,8 @@ for name, lobe in (("ramp-sampled", ramp_sampled), ("flat top only", flat_topped
     )
 
 # %%
-# The module in a repetition
-# --------------------------
+# One repetition
+# --------------
 
 excitation = design.SpatialSelectiveExcitation(
     system, flip_angle_deg=12.0, thickness_m=5e-3, duration_s=3e-3
@@ -246,8 +246,8 @@ print(
 )
 
 # %%
-# Where the samples land
-# ----------------------
+# Sample spacing along the line
+# -----------------------------
 #
 # ``calculate_kspace`` is one of the analyses a module forwards to the sequence
 # it built, so the sample positions come from the events themselves rather than
@@ -269,8 +269,8 @@ print(
 sampling_figure(k_read, spacing, 1 / FOV)
 
 # %%
-# Played by a scan loop
-# ---------------------
+# Scan loop
+# ---------
 #
 # The loop scales the published phase encode per line and labels the
 # acquisition; the rest of the layout is played as the module laid it out.

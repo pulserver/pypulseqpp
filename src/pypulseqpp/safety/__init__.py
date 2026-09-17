@@ -10,7 +10,12 @@ from types import SimpleNamespace
 
 from .. import _ext as _cxx
 from ._pns import ChronaxieModel, check_pns, read_safe_model
-from ._resonance import ForbiddenBand, check_mech_resonance, read_forbidden_bands
+from ._resonance import (
+    ForbiddenBand,
+    check_mech_resonance,
+    mech_resonance_spectrum,
+    read_forbidden_bands,
+)
 from ._sar import VopModel, check_sar, example_vops, read_vops
 
 __all__ = [
@@ -24,6 +29,7 @@ __all__ = [
     "check_pns",
     "check_sar",
     "example_vops",
+    "mech_resonance_spectrum",
     "read_forbidden_bands",
     "read_safe_model",
     "read_vops",

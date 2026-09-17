@@ -6,14 +6,12 @@ accumulates along it.
 
 | Example | What it covers |
 | --- | --- |
-| {doc}`/generated/gallery/15-epi/epi2D_sequence` | One blipped echo train per excitation. |
-| {doc}`/generated/gallery/15-epi/epi3D_sequence` | One blipped echo train per (shot, shell), skipped-CAIPI when undersampled. |
-| {doc}`/generated/gallery/15-epi/epi-segmentation-and-acceleration` | Echo train length against geometric distortion and volume acquisition time, over segmentation and in-plane acceleration. |
+| {doc}`/generated/gallery/15-epi/epi2D_sequence` | One blipped echo train per excitation, with segmentation and in-plane acceleration against the train length and the distortion it implies. |
+| {doc}`/generated/gallery/15-epi/epi3D_sequence` | The skipped-CAIPI lattice and the traversal through it, blipped and segmented. |
 
 ```{toctree}
 :hidden:
 
 /generated/gallery/15-epi/epi2D_sequence
 /generated/gallery/15-epi/epi3D_sequence
-/generated/gallery/15-epi/epi-segmentation-and-acceleration
 ```
