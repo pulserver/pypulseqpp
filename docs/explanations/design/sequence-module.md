@@ -104,7 +104,7 @@ reports the achieved value as `bandwidth_hz`, which may be lower for the reason
 given in
 {doc}`../pulseq/timing-and-rasterization`.
 
-## Related pages
+## See also
 
 * {doc}`sequence-application` — the loop and prescription layer above modules.
 * {doc}`../../api/modules` — the module classes and their parameters.

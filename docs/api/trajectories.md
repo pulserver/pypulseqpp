@@ -12,7 +12,6 @@ limits and returns the gradient and slew-rate waveforms.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    calc_radial_trajectory

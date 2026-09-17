@@ -17,7 +17,6 @@ publication diagram, overlaid on the others.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    plot
@@ -33,7 +32,6 @@ or off-resonance, or over a plane.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    plot_kspace

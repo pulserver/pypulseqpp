@@ -29,5 +29,7 @@ data/
 
 docs/build/
 docs/generated/
-# Written by sphinx-gallery into the source directory as the pages are built.
+# Written into the source directory as the pages are built: the autosummary
+# holder by conf.py, the timings by sphinx-gallery.
+docs/api_objects.rst
 docs/sg_execution_times.rst

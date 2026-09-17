@@ -269,34 +269,60 @@ def _make_main(cls: type[SequenceApp]):
     main.__qualname__ = "main"
     main.write_to = write_to
 
-    summary, _, rest = (inspect.getdoc(cls) or "").partition("\n\n")
+    summary, description, sections = _split_sections(inspect.getdoc(cls) or "")
+    parameters = "\n".join(
+        filter(None, (_MAIN_PARAMETERS, _section(cls.init_sequence, "Parameters")))
+    )
+    raises = _section(cls.init_sequence, "Raises")
     main.__doc__ = "\n\n".join(
         part
         for part in (
             summary,
-            "Parameters\n----------\n"
-            + "\n".join(
-                filter(None, (_MAIN_PARAMETERS, _parameters(cls.init_sequence)))
+            description,
+            _numpy_section("Parameters", parameters),
+            _numpy_section(
+                "Returns", "pypulseqpp.Sequence\n    The designed sequence."
             ),
-            "Returns\n-------\npypulseqpp.Sequence\n    The designed sequence.",
-            rest,
+            _numpy_section("Raises", raises),
+            *(_numpy_section(name, body) for name, body in sections),
         )
         if part
     )
     return main
 
 
-def _parameters(function: Any) -> str:
-    """Return the entries of ``function``'s NumPy ``Parameters`` section, dedented."""
-    lines = (inspect.getdoc(function) or "").splitlines()
-    for i, line in enumerate(lines[:-1]):
-        if line.strip() == "Parameters" and set(lines[i + 1].strip()) == {"-"}:
-            body = lines[i + 2 :]
-            break
-    else:
-        return ""
-    for j, line in enumerate(body[:-1]):
-        if line and not line[0].isspace() and set(body[j + 1].strip()) == {"-"}:
-            body = body[:j]
-            break
-    return "\n".join(body).strip()
+def _numpy_section(name: str, body: str) -> str:
+    """``body`` under a NumPy section heading, or the empty string if it is empty."""
+    return f"{name}\n{'-' * len(name)}\n{body}" if body.strip() else ""
+
+
+def _split_sections(doc: str) -> tuple[str, str, list[tuple[str, str]]]:
+    """Split a NumPy docstring into its summary, its description and its sections.
+
+    The sections are returned in the order they appear, each as its heading and
+    its body. Text before the first heading that is not the summary is the
+    extended description, which belongs between the summary and ``Parameters``
+    rather than after ``Returns``.
+    """
+    lines = doc.splitlines()
+    headings = [
+        (i, line.strip())
+        for i, line in enumerate(lines[:-1])
+        if line.strip() and line.strip() == line and set(lines[i + 1].strip()) == {"-"}
+    ]
+    bounds = [i for i, _ in headings] + [len(lines)]
+    sections = [
+        (name, "\n".join(lines[start + 2 : stop]).strip("\n"))
+        for (start, name), stop in zip(headings, bounds[1:], strict=True)
+    ]
+    head = "\n".join(lines[: bounds[0]]).strip()
+    summary, _, description = head.partition("\n\n")
+    return summary, description.strip(), sections
+
+
+def _section(function: Any, name: str) -> str:
+    """Return the body of ``function``'s NumPy ``name`` section, dedented."""
+    for heading, body in _split_sections(inspect.getdoc(function) or "")[2]:
+        if heading == name:
+            return body
+    return ""

@@ -99,3 +99,6 @@ Plotting
 
    ~Sequence.plot
    ~Sequence.paper_plot
+
+.. minigallery:: {{ module }}.{{ objname }}
+   :add-heading: Examples using ``{{ objname }}``

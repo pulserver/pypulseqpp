@@ -40,6 +40,7 @@ separately from the MIT core.
 | `gallery/` | sphinx-gallery example scripts, executed when the pages are built |
 | `tests/` | API, numerical, format-parity and invariant tests |
 | `docs/guides/` | Task-oriented how-to guides |
+| `docs/examples/` | The gallery's landing pages, one per gallery directory |
 | `docs/explanations/` | Conceptual explanation pages and their build-time figures |
 | `docs/api/` | API reference pages; autosummary writes the stubs under `docs/generated/` |
 | `docs/contributing/` | The documentation guide and the project terminology conventions |
@@ -256,25 +257,38 @@ figure styling and print formatting — goes between
 without appearing on the page. Every script is executed at build time, so an
 example that cannot run cannot be merged.
 
-`docs/examples.md` is the gallery's landing page and the only entry the global
-navigation carries for it. Its cards come from `minigallery` directives over
-the example scripts. The pages sphinx-gallery generates are reached from those
-cards: its root index is an `:orphan:`, the category indexes and example pages
-hang off that root's toctree, and nothing in `docs/index.md` points at them, so
-the tree is reachable without contributing navigation entries. Each
+`sphinx_gallery.gen_gallery` reads one level of subdirectories and no more, so
+`gallery/` is flat: one directory per landing page, listed in `GALLERY_SECTIONS`.
+The hierarchy a reader navigates is built by the pages under `docs/examples/`,
+each of which carries a table of what is below it and a hidden toctree over the
+same entries. Those toctrees are what nests the sidebar, which `max_navbar_depth`
+renders to three levels. The tree sphinx-gallery writes is reachable through its
+own root index, an `:orphan:`, so it contributes no navigation entries of its
+own; a page being in both trees is a Sphinx info message, not a warning. Each
 `README.rst` carries its own reStructuredText title above the `.. include::` of
 its Markdown header, because a title arriving through an include leaves the
 toctree beneath it outside the page's section.
 
-Two generators run on `builder-inited` and write into `docs/generated/`, which
-is not tracked. `docs/explanation_figures.py` draws the explanation pages'
-figures from the code being built. `docs/sequence_pages.py` writes one
-reference page per shipped complete sequence, plus the catalogue's family
-tables: its `SEQUENCES` table is the single place a sequence's classification,
-its documentation configuration and its figures are stated, every description
-is read from the application's own summary line, and the prescription is
-rendered by `autofunction` from the docstring. A sequence added to
-`examples/sequence/` needs a row there, and nothing else.
+Three generators run on `builder-inited` and write into `docs/generated/`, which
+is not tracked.
+
+`docs/explanation_figures.py` draws the explanation pages' figures from the code
+being built.
+
+`docs/sequence_reference.py` writes one reference page per shipped complete
+sequence, plus the catalogue's family tables: its `SEQUENCES` table is the
+single place a sequence's classification is stated, every description is read
+from the application's own summary line, the prescription is rendered by
+`autofunction` from the docstring, and a `minigallery` links the gallery page
+that designs and draws it. A sequence added to `examples/sequence/` needs a row
+there, a gallery script named after it in its family's directory, and a row in
+that family's page under `docs/examples/built-in-sequences/`.
+
+`docs/api_objects.py` collects the `autosummary` blocks of `docs/api/*.md` into
+one `:orphan:` holder that owns their `:toctree:`. The API pages themselves
+carry the object tables and no toctree, so the generated per-object stubs are
+reachable and documented without every method and attribute landing in the
+navigation tree.
 
 ### Terminology, in brief
 

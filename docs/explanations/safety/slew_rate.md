@@ -82,7 +82,7 @@ A sequence that fails only under a derate is not repaired by the check. Its
 gradients have to be redesigned at the lower limit, which lengthens every ramp
 and, through the ramps, the echo spacing.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_max_slew` — the call and its report.
 * {doc}`gradient_continuity` — the same inequality across a block boundary.

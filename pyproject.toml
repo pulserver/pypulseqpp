@@ -89,11 +89,13 @@ sdist.include = [
   "/gallery/**/*.md",
   "/docs/Makefile",
   "/docs/conf.py",
+  "/docs/api_objects.py",
   "/docs/explanation_figures.py",
-  "/docs/sequence_pages.py",
+  "/docs/sequence_reference.py",
   "/docs/*.md",
   "/docs/api/*.md",
   "/docs/contributing/*.md",
+  "/docs/examples/**/*.md",
   "/docs/explanations/**/*.md",
   "/docs/guides/**/*.md",
   "/docs/misc/*.md",
@@ -181,8 +183,9 @@ ignore = [
 "src/pypulseqpp/sequences/**" = ["D102"]
 # A gallery script's module docstring is the page's reStructuredText title
 # block, which no docstring convention describes, and its imports are placed
-# where the page introduces them rather than all at the top.
-"gallery/**" = ["D205", "D400", "D401", "E402"]
+# where the page introduces them rather than all at the top. A module it
+# defines documents its constructor on the class, as the shipped ones do.
+"gallery/**" = ["D102", "D205", "D400", "D401", "E402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

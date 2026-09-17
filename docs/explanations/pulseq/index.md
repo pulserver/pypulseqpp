@@ -7,8 +7,8 @@ interface — in the units amplitudes are reported in, in the rasters event time
 are quantized to, and in the distinction between an event and the block that
 plays it.
 
-These pages describe the representation itself. What the package adds on top of
-it is in {doc}`../design/index`.
+What the package adds on top of the representation is in
+{doc}`../design/index`.
 
 {doc}`events-and-blocks`
 : The block as the unit of playout, the event kinds and their fields, the

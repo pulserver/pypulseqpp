@@ -105,16 +105,35 @@ def _adc_samples(system, n_samples):
     return max(divisor, int(n_samples) // divisor * divisor)
 
 
+def _sampled_span(system, read_duration):
+    """Return the part of a readout an ADC may occupy: its span less a dead time at each end.
+
+    The window opens a dead time after the readout gradient starts and closes a
+    dead time before it ends, so the block the two share lasts exactly as long
+    as the gradient, and the waveform reaches the next block at the amplitude
+    it was designed to.
+    """
+    return read_duration - 2 * system.adc_dead_time
+
+
 def _make_adc(system, n_samples, read_duration):
     """Make an ADC that fits inside ``read_duration`` on the ADC raster."""
     n_samples = _adc_samples(system, n_samples)
     dwell = (
-        math.floor(read_duration / n_samples / system.adc_raster_time + 1e-10)
+        math.floor(
+            _sampled_span(system, read_duration) / n_samples / system.adc_raster_time
+            + 1e-10
+        )
         * system.adc_raster_time
     )
     if dwell < system.adc_raster_time:
         raise ValueError("readout is too short for the requested ADC oversampling")
-    return pp.make_adc(num_samples=n_samples, dwell=dwell, system=system)
+    return pp.make_adc(
+        num_samples=n_samples,
+        dwell=dwell,
+        delay=system.adc_dead_time,
+        system=system,
+    )
 
 
 def _sample_gradient_trajectory(gradient, raster, adc):
@@ -793,8 +812,16 @@ class Spiral(NonCartesianGradient):
             float(system.adc_raster_time),
             math.floor(dwell / system.adc_raster_time + 1e-12) * system.adc_raster_time,
         )
-        n_adc = _adc_samples(system, max(2, math.floor(read_duration / dwell + 1e-12)))
-        adc = pp.make_adc(num_samples=n_adc, dwell=dwell, system=system)
+        n_adc = _adc_samples(
+            system,
+            max(2, math.floor(_sampled_span(system, read_duration) / dwell + 1e-12)),
+        )
+        adc = pp.make_adc(
+            num_samples=n_adc,
+            dwell=dwell,
+            delay=system.adc_dead_time,
+            system=system,
+        )
         super().__init__(
             system=system,
             gradients=gradients,
@@ -949,9 +976,17 @@ class Rosette(NonCartesianGradient):
             * system.adc_raster_time
         )
         dwell = max(float(system.adc_raster_time), dwell)
-        samples_per_petal = max(1, math.floor(read_duration / petals / dwell + 1e-12))
+        samples_per_petal = max(
+            1,
+            math.floor(_sampled_span(system, read_duration) / petals / dwell + 1e-12),
+        )
         n_adc = _adc_samples(system, petals * samples_per_petal)
-        adc = pp.make_adc(num_samples=n_adc, dwell=dwell, system=system)
+        adc = pp.make_adc(
+            num_samples=n_adc,
+            dwell=dwell,
+            delay=system.adc_dead_time,
+            system=system,
+        )
         acquired_trajectory = _sample_gradient_trajectory(gradient, raster, adc)
         gradients = _make_grad_events(
             system, gradient, axes, first=np.zeros(2), last=np.zeros(2)
