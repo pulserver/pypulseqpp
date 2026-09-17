@@ -34,8 +34,7 @@ exclude_patterns = [
     ".DS_Store",
     "**/_gallery_header.md",
     # The catalogue includes these by path, so they must not also be built as
-    # pages, which would register the sequence pages under two toctrees.
-    "generated/sequences/index.rst",
+    # pages, which would give every table a page of its own.
     "generated/sequences/tables/*",
 ]
 
@@ -67,11 +66,25 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
-#: The gallery's sections, in the order a reader should meet them.
+#: The gallery's subsections, in the order sphinx-gallery writes them. One
+#: directory per landing page under ``docs/examples``; sphinx-gallery nests one
+#: level only, so the hierarchy a reader navigates is built by those pages.
 GALLERY_SECTIONS = [
-    "../gallery/01-cartesian",
-    "../gallery/02-non-cartesian",
-    "../gallery/03-rf-pulses",
+    "../gallery/01-getting-started",
+    "../gallery/20-modules-overview",
+    "../gallery/21-modules-rf",
+    "../gallery/22-modules-preparation",
+    "../gallery/23-modules-cartesian",
+    "../gallery/24-modules-noncartesian",
+    "../gallery/10-gradient-echo",
+    "../gallery/11-spin-echo",
+    "../gallery/13-fast-spin-echo",
+    "../gallery/12-mprage",
+    "../gallery/14-bssfp",
+    "../gallery/15-epi",
+    "../gallery/16-zte",
+    "../gallery/30-building-sequences",
+    "../gallery/40-custom-modules",
 ]
 
 sphinx_gallery_conf = {
@@ -93,8 +106,9 @@ sphinx_gallery_conf = {
     # generated index.rst of each section pulls one in by an include. The root
     # index sphinx-gallery writes is left to it: it carries every category and
     # its thumbnails, and it is an orphan, so the gallery contributes no
-    # navigation entries of its own. `docs/examples.md` is the page the global
-    # navigation points at.
+    # navigation entries of its own. `docs/examples/index.md` is the page the
+    # global navigation points at, and the landing pages under it own the
+    # example pages in hidden toctrees, which is what nests them in the sidebar.
     "copyfile_regex": r".*\.md",
 }
 
@@ -220,16 +234,15 @@ def _write_api_object_index(app) -> None:
 
 
 def _write_sequence_pages(app) -> None:
-    """Write a reference page and figures for every shipped complete sequence.
+    """Write a reference page for every shipped complete sequence.
 
     Each page is written before Sphinx reads its sources, from the table in
-    ``sequence_pages.py`` and from the application's own docstring, and its
-    figures are drawn from a sequence designed here.
+    ``sequence_reference.py`` and from the application's own docstring.
     """
     import sys
 
     sys.path.insert(0, str(Path(app.srcdir)))
-    from sequence_pages import render
+    from sequence_reference import render
 
     render(app.srcdir)
 
@@ -239,8 +252,11 @@ def setup(app):
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("builder-inited", _draw_explanation_figures)
-    app.connect("builder-inited", _write_api_object_index)
-    app.connect("builder-inited", _write_sequence_pages)
+    # Ahead of autosummary's own handler, which reads the sources for the
+    # objects it writes stubs for: a page written after it would only be read
+    # on the next build, and its stubs would be a build behind the templates.
+    app.connect("builder-inited", _write_api_object_index, priority=100)
+    app.connect("builder-inited", _write_sequence_pages, priority=100)
     handlers = logging.getLogger("sphinx").handlers
     if not handlers:
         print("conf.py: no Sphinx log handler; an inventory outage will fail the build")
@@ -282,7 +298,7 @@ html_theme_options = {
     # down to its sequence families, and the API reference down to its
     # category pages. Individual examples are reached from the tables on the
     # landing pages, and individual objects from the tables on the API pages,
-    # whose stubs are generated from `generated/api_objects.rst` and so never
+    # whose stubs are generated from `docs/api_objects.rst` and so never
     # enter this tree.
     "max_navbar_depth": 3,
     "show_navbar_depth": 1,

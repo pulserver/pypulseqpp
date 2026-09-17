@@ -13,8 +13,7 @@ displacement of
 
     \delta y = \Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}
 
-pixels in the reconstructed image, whatever k-space step the train takes. The
-The design controls the echo train length: interleaving the lines over several
+pixels in the reconstructed image, whatever k-space step the train takes. The design controls the echo train length: interleaving the lines over several
 shots and undersampling the phase encode both shorten it, and the two differ in
 what else they change.
 

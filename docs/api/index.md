@@ -1,7 +1,7 @@
 # API reference
 
 Conceptual background is in {doc}`../explanations/index` and complete workflows
-in the {doc}`examples <../examples>`.
+in the {doc}`examples <../examples/index>`.
 
 | Page | Contents |
 | --- | --- |

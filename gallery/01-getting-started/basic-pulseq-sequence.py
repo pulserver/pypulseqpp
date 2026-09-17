@@ -1,7 +1,7 @@
 """
-======================
+=======================
 A basic Pulseq sequence
-======================
+=======================
 
 The shortest complete workflow: system limits, events, blocks, a sequence, and
 the file it is written to. Two repetitions of a slice-selective gradient echo
@@ -97,8 +97,11 @@ seq.paper_plot(tr=1)
 # The definitions a reconstruction reads are written beside the block table.
 
 from pathlib import Path
+from tempfile import mkdtemp
 
 seq.set_definition("FOV", [fov, fov, thickness])
 seq.set_definition("Name", "basic_gre")
-seq.write("basic_gre.seq")
-print(Path("basic_gre.seq").read_text().splitlines()[0])
+
+path = Path(mkdtemp()) / "basic_gre.seq"
+seq.write(str(path))
+print(path.read_text().splitlines()[0])

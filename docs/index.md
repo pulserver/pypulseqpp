@@ -25,7 +25,7 @@ explanations/safety/index
 :maxdepth: 2
 :caption: Examples
 
-examples
+examples/index
 ```
 
 ```{toctree}

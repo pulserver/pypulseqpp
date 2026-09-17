@@ -51,7 +51,67 @@ def test_the_description_precedes_the_parameters(entry_point):
 def test_the_docstring_parses_as_numpy(entry_point):
     """Napoleon turns each section into its own field list rather than one blob."""
     rendered = str(NumpyDocstring(entry_point.__doc__ or "", Config()))
-    assert ":returns: **pypulseqpp.Sequence" in rendered or ":returns:" in rendered
+    returns = rendered.partition(":returns:")[2].partition("\n:")[0]
+    assert "The designed sequence." in returns
+    assert ">>>" not in returns
+    assert ":rtype: pypulseqpp.Sequence" in rendered
     if "Raises" in dict(_split_sections(entry_point.__doc__ or "")[2]):
         assert ":raises" in rendered
-    assert ".. rubric:: Examples" in rendered or "Examples\n" in rendered
+    assert ".. rubric:: Examples" in rendered
+
+
+def test_a_section_the_class_adds_stays_a_section_of_its_own():
+    """Notes and References are the class's, and belong after Raises, not inside it."""
+
+    class NotedApp(sequences.SequenceApp):
+        """One line.
+
+        An extended description.
+
+        Notes
+        -----
+        What the implementation does that the summary leaves open.
+
+        References
+        ----------
+        .. [1] Someone, Journal, 2026.
+        """
+
+        MAX_GRAD = 40.0
+        MAX_SLEW = 150.0
+
+        def init_sequence(self, n: int = 4) -> None:
+            """Design it.
+
+            Parameters
+            ----------
+            n : int, optional
+                How many.
+
+            Raises
+            ------
+            ValueError
+                If ``n`` is negative.
+            """
+
+        def kernel(self) -> None:
+            """Play one repetition."""
+
+        def loop(self) -> None:
+            """Play the scan."""
+
+    summary, description, sections = _split_sections(NotedApp.main.__doc__ or "")
+    assert summary == "One line."
+    assert description == "An extended description."
+    assert [name for name, _ in sections] == [
+        "Parameters",
+        "Returns",
+        "Raises",
+        "Notes",
+        "References",
+    ]
+    body = dict(sections)
+    assert body["Returns"] == RETURNS
+    assert body["Raises"].startswith("ValueError")
+    assert body["Notes"].startswith("What the implementation does")
+    assert body["References"].startswith(".. [1]")

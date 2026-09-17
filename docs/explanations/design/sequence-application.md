@@ -82,7 +82,7 @@ single repeating unit, which the repetition detection underlying the
 SAR check requires, and what would be lost if a prescan and an imaging scan
 shared one file distinguished by a flag.
 
-## Related pages
+## See also
 
 * {doc}`sequence-module` — the layer the applications are built from.
 * {doc}`../../api/apps` — the `SequenceApp` interface.

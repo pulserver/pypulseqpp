@@ -1,9 +1,7 @@
 # Storage, deduplication and file revisions
 
 The block table of {doc}`events-and-blocks` refers to events by id, and the
-events refer to shapes by id. This page describes what that
-indirection makes possible, how the package collapses redundancy in it, and
-which parts of the representation each file revision can express.
+events refer to shapes by id.
 
 ## Definitions and instances
 
@@ -107,7 +105,7 @@ content in a different encoding: records are little-endian, times are integer
 picoseconds and shape samples are float32. Both forms support an optional MD5
 signature.
 
-## Related pages
+## See also
 
 * {doc}`events-and-blocks` — the block table and the event kinds.
 * {doc}`timing-and-rasterization` — quantization of event times.

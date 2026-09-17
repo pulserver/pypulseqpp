@@ -55,9 +55,10 @@ def render(blocks: list[tuple[str, list[str], list[str]]]) -> str:
         "API object index",
         "================",
         "",
-        "The stub page of every documented object. The API pages link here; this",
-        "page exists so that the stubs are generated without entering the",
-        "navigation tree.",
+        "The stub page of every documented object. The API pages carry the same",
+        "object lists as tables, each entry linking the stub this page writes;",
+        "writing them here keeps them out of the toctree the sidebar is built",
+        "from.",
         "",
     ]
     module = None
@@ -66,17 +67,20 @@ def render(blocks: list[tuple[str, list[str], list[str]]]) -> str:
             module = owner
             lines += [f".. currentmodule:: {module}", ""]
         kept = [option for option in options if not option.startswith(":toctree:")]
-        lines += [".. autosummary::", "   :toctree: /generated"]
+        lines += [".. autosummary::", "   :toctree: generated"]
         lines += [f"   {option}" for option in kept]
         lines += [""] + [f"   {name}" for name in names] + [""]
     return "\n".join(lines) + "\n"
 
 
 def write(into: str | Path) -> int:
-    """Write the holder page under ``into``; return the number of objects."""
+    """Write the holder page under ``into``; return the number of objects.
+
+    The page sits at the top of the source directory so that its ``:toctree:``
+    resolves to ``generated/``, where the stubs the API pages link already are.
+    """
     root = Path(into)
     blocks = collect(root / "api")
-    generated = root / "generated"
-    generated.mkdir(parents=True, exist_ok=True)
-    (generated / "api_objects.rst").write_text(render(blocks), encoding="utf-8")
+    (root / "generated").mkdir(parents=True, exist_ok=True)
+    (root / "api_objects.rst").write_text(render(blocks), encoding="utf-8")
     return sum(len(names) for _, _, names in blocks)

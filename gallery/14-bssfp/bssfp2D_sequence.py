@@ -29,9 +29,12 @@ print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 # Sequence diagram
 # ----------------
 #
-# One repetition, with the others drawn underneath in grey.
+# Structural repetition detection reports the whole train as this sequence's
+# repeating unit, so the window drawn here is one repetition time from the
+# middle of the scan rather than a repetition index.
 
-seq.paper_plot(tr=48)
+repetition_time = seq.get_definition("TR")[0]
+seq.paper_plot(time_range=(96 * repetition_time, 97 * repetition_time))
 
 # %%
 # Acquisition order

@@ -81,7 +81,7 @@ bandwidth and doubles the gradient amplitude required. A readout that exceeds
 `max_grad` therefore encodes its resolution faster than the amplifier allows,
 and lengthening the acquisition window is the direct remedy.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_max_grad` — the call and its report.
 * {func}`~pypulseqpp.apply_system_derates` and {func}`~pypulseqpp.cap_system` —

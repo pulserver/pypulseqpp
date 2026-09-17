@@ -112,7 +112,7 @@ established as quiet or as within any acoustic-noise regulation. What it
 establishes is that the sequence does not sustain gradient amplitude inside a
 frequency range the table identifies as forbidden.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_mech_resonance`,
   {func}`~pypulseqpp.safety.read_forbidden_bands` and
