@@ -79,8 +79,8 @@ gradient event played with the pulse; it is not part of the RF event.
 bandwidth* is `1 / dwell`; *bandwidth per pixel* is `1 / (num_samples * dwell)`.
 State which of the two a value is.
 
-**Encoding.** A *gradient waveform* is what the hardware plays. A *k-space
-trajectory* is its time integral, in 1/m. *ADC sampling locations* are the
+**Encoding.** A *gradient waveform* is the amplitude the hardware plays against
+time. A *k-space trajectory* is its time integral, in 1/m. *ADC sampling locations* are the
 points of that trajectory at the ADC sample times. A gradient waveform is not
 a trajectory, and a trajectory is not a set of sampling locations.
 
@@ -95,13 +95,14 @@ gradient axes* are the scanner's, reached by applying each block's rotation
 and any prescription rotation. Every amplitude, slew, PNS, resonance or
 k-space statement must say which frame it is in.
 
-**Layers.** The *Pulseq representation* is what a `.seq` file holds — blocks,
-event libraries, shapes, definitions and extensions. The *pypulseqpp
-abstraction* is what this package adds on top: compiled event objects,
+**Layers.** The *Pulseq representation* is the content of a `.seq` file:
+blocks, event libraries, shapes, definitions and extensions. The *pypulseqpp
+abstraction* is the layer this package adds above it: compiled event objects,
 sequence modules, designers and checks. *PyPulseq compatibility* means a
 supported upstream signature and event convention is preserved. *Scanner
-execution* is what an interpreter does on the hardware, and belongs to
-Pulserver, not here. Do not attribute a property of one layer to another.
+execution* is the behaviour of an interpreter on the hardware, and belongs to
+Pulserver rather than here. Do not attribute a property of one layer to
+another.
 
 ### Fixed vocabulary
 

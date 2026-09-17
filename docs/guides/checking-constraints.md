@@ -152,7 +152,7 @@ Absolute SAR is only as good as the calibration behind it. Passing `reference=`
 a second sequence evaluated under the same model and calibration reports ratios
 instead, in which the scale of the drive and of the VOPs cancels.
 
-## What to do with a failing check
+## Responses to a failing check
 
 A sequence over a threshold is redesigned, not re-checked. The gradient
 constraints are relieved by lowering the amplitude or lengthening a ramp; the

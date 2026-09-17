@@ -1,7 +1,7 @@
 # Explanations
 
 Conceptual background for the interfaces documented in {doc}`../api/index` and
-applied in the {doc}`examples <../generated/gallery/index>`. These pages
+applied in the {doc}`examples <../examples>`. These pages
 establish the vocabulary, the models and the conventions that the rest of the
 documentation assumes.
 

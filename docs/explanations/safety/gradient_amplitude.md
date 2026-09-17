@@ -76,10 +76,10 @@ G = \frac{\Delta k}{T}
 $$
 
 in the file format's Hz/m, or $\Delta k/(\gamma T)$ in T/m. At a fixed field of
-view and matrix size, halving the acquisition window — doubling the receiver
-bandwidth — therefore doubles the gradient amplitude required. A sequence that exceeds `max_grad` on the readout axis is asking for
-resolution faster than the amplifier can encode it, and lengthening the
-acquisition window is the direct remedy.
+view and matrix size, halving the acquisition window doubles the receiver
+bandwidth and doubles the gradient amplitude required. A readout that exceeds
+`max_grad` therefore encodes its resolution faster than the amplifier allows,
+and lengthening the acquisition window is the direct remedy.
 
 ## Related pages
 

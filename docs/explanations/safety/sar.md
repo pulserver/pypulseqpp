@@ -49,7 +49,7 @@ $b$ is the waveform in Hz, resampled every microsecond as
 `default_shim` where a single-channel pulse defines none. A single-channel pulse
 is treated as the same waveform on every channel, weighted by the shim.
 
-## The averaging window
+## Averaging window
 
 SAR is defined per unit time, so the check needs an interval to average over.
 It uses the repetitions the sequence's own block definitions repeat with: the
@@ -74,8 +74,8 @@ Comparing two sequences under the *same* model and calibration is much more
 robust, because the scale of `drive_per_hz` and of the VOPs cancels in the
 ratio.
 
-`reference` takes a second sequence — a CP-mode free induction decay is the
-usual choice — or the report of an earlier call, and the report then states
+`reference` takes a second sequence, usually a CP-mode free induction decay, or
+the report of an earlier call. The report then states
 `sar_ratio`, the largest ratio over windows and VOPs of a VOP's SAR to the same
 VOP's in the reference, and `energy_ratio`, that ratio weighted by the window
 durations. With a reference lasting its own minimum repetition time,

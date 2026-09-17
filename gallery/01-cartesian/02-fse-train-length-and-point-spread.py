@@ -157,10 +157,9 @@ envelope_figure(envelopes, esp_ms)
 # ------------------------------------------
 #
 # The view labels record which line and partition each acquisition read and at
-# which echo, so the weighting follows from the sequence without restating the
-# ordering. Radial ordering sorts views by their distance from the centre of
-# k-space, which turns the envelope into a radially symmetric filter; the
-# shuffled ordering draws each echo's views from the whole of k-space instead.
+# which echo, so the weighting is assembled from the sequence rather than from
+# the ordering rule. Radial ordering sorts views by their distance from the
+# centre of k-space, which makes the weighting a radially symmetric filter.
 
 
 def weighting(seq, amplitude):
@@ -191,12 +190,16 @@ weighting_figure(orderings)
 # sphinx_gallery_end_ignore
 
 # %%
-# The elliptical edge is the corner of k-space the design leaves unsampled.
-# Under radial ordering the weighting decreases outward and one point-spread
-# function describes the whole image. Under shuffling the centre of k-space is
-# read at many different echoes, so the decay is a dimension a reconstruction
-# can separate rather than a filter applied to a single image, and the
-# point-spread measurement below does not apply to it.
+# The weighting decreases outward from the centre, and the elliptical edge is
+# the corner of k-space the design leaves unsampled.
+#
+# The measurement below assumes a weighting of this shape, so it applies to
+# distance ordering and not to every ordering the design offers. Under
+# ``ordering="shuffling"`` the centre of k-space is read at many different
+# echoes, and no single amplitude weights it; the printed echo indices below
+# show the difference. A shuffled acquisition is reconstructed jointly over the
+# decay rather than as one image with one point-spread function, which is a
+# different subject from this one.
 
 # sphinx_gallery_start_ignore
 radial_echoes = reference.evaluate_labels(evolution="adc")
