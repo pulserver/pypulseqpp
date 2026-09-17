@@ -48,7 +48,13 @@ doc = [
   "myst-parser>=4.0",
   "linkify-it-py>=2.0",
   "sphinx-copybutton>=0.5",
+  "sphinx-gallery>=0.18",
+  "matplotlib>=3.7",
 ]
+# What the gallery's example scripts need beyond the documentation toolchain.
+# Every script is executed while the pages are built, and the fast spin echo
+# designs its refocusing train with torchsim.
+examples = ["pypulseqpp[doc,design]"]
 dev = [
   "pypulseqpp[doc]",
   "pytest>=8",
@@ -78,11 +84,16 @@ sdist.include = [
   "src/**",
   "examples/**/*.py",
   "tests/**",
+  "/gallery/**/*.py",
+  "/gallery/**/*.rst",
+  "/gallery/**/*.md",
   "/docs/Makefile",
   "/docs/conf.py",
+  "/docs/explanation_figures.py",
   "/docs/*.md",
   "/docs/api/*.md",
-  "/docs/examples/*.md",
+  "/docs/explanations/**/*.md",
+  "/docs/guides/**/*.md",
   "/docs/misc/*.md",
   "/docs/_templates/**/*.rst",
   "/README.md",
@@ -166,6 +177,10 @@ ignore = [
 # A module's init_module is the constructor its class docstring documents,
 # argument for argument; a docstring of its own would restate that.
 "src/pypulseqpp/sequences/**" = ["D102"]
+# A gallery script's module docstring is the page's reStructuredText title
+# block, which no docstring convention describes, and its imports are placed
+# where the page introduces them rather than all at the top.
+"gallery/**" = ["D205", "D400", "D401", "E402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

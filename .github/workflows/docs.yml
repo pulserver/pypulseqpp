@@ -62,9 +62,11 @@ jobs:
       - name: Install
         # Into the CMake build directory build_docs.sh uses, so the build it
         # makes for Sphinx reuses these objects rather than compiling twice.
+        # The `examples` extra is what the gallery scripts need: every one of
+        # them is executed while the pages are built.
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -Cbuild-dir="$PWD/docs/build/cmake" '.[doc]'
+          python -m pip install -Cbuild-dir="$PWD/docs/build/cmake" '.[examples]'
 
       - name: Build
         env:

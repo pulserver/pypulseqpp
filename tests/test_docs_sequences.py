@@ -1,4 +1,4 @@
-"""The examples page lists every shipped sequence with its own summary line."""
+"""The catalogue lists every shipped sequence with its own summary line."""
 
 import importlib
 import re
@@ -8,7 +8,7 @@ import pytest
 
 import pypulseqpp.sequences as sequences
 
-PAGE = Path(__file__).parents[1] / "docs/examples/index.md"
+PAGE = Path(__file__).parents[1] / "docs/sequences.md"
 
 _ROW = re.compile(r"^\| `(\w+)` \| (.+?) \|$", re.M)
 

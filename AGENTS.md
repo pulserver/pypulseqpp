@@ -37,8 +37,9 @@ separately from the MIT core.
 | `src/pypulseqpp/cli/` | Signature-driven command-line parsing and sequence writing |
 | `src/pypulseqpp/plot/` | Figures: SeqEyes view, publication diagram, k-space and RF profiles |
 | `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
+| `gallery/` | sphinx-gallery example scripts, executed when the pages are built |
 | `tests/` | API, numerical, format-parity and invariant tests |
-| `docs/` | Markdown/Sphinx documentation and generated API reference |
+| `docs/` | Markdown/Sphinx documentation, explanation pages and generated API reference |
 | `viewer/` | Separate `pypulseqpp-seqeyes` package; excluded from the core distribution |
 
 Do not edit vendored submodule contents as part of core maintenance.
@@ -210,6 +211,19 @@ test compares the remaining columns explicitly.
 guide for both contributors and agents. Read and follow it before creating or
 substantially modifying documentation, docstrings, examples, tutorials, or
 explanatory material.
+
+The documentation has four parts, and they are not interchangeable:
+`docs/api/` is reference, `docs/explanations/` is conceptual explanation,
+`gallery/` holds the executable examples sphinx-gallery builds into
+`docs/generated/gallery/`, and `docs/sequences.md` catalogues the shipped
+sequences. A gallery script is a `.py` file whose module docstring is the
+page's title and opening; `# %%` starts a text cell, and code a reader would
+not type — figure styling and print formatting — goes between
+`# sphinx_gallery_start_ignore` and `# sphinx_gallery_end_ignore` so it runs
+without appearing on the page. Every script is executed at build time, so an
+example that cannot run cannot be merged. Explanation figures are functions in
+`docs/explanation_figures.py`, registered in its `FIGURES` mapping and drawn
+from the code being built rather than committed as images.
 
 Treat its distinction between API reference, gallery examples, conceptual
 explanation, and tutorials/how-to guides as a requirement. Do not transfer the

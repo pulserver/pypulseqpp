@@ -1,5 +1,8 @@
 # API reference
 
+Conceptual background is in {doc}`../explanations/index` and complete workflows
+in the {doc}`examples <../generated/gallery/index>`.
+
 | Page | Contents |
 | --- | --- |
 | {doc}`sequence` | `pypulseqpp`: the sequence container, system limits and field-of-view transforms |

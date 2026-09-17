@@ -1,4 +1,4 @@
-# Example sequences
+# Sequence catalogue
 
 Complete sequences shipped with the package, each a {class}`~pypulseqpp.sequences.SequenceApp`
 subclass in its own module. Import one as an attribute of `pypulseqpp.sequences`;
@@ -20,8 +20,8 @@ the signature and NumPy-style `Parameters` section of `init_sequence`, so
 python -m pypulseqpp.sequences.sequence.gre2D_sequence --help
 ```
 
-See {doc}`../api/apps` for the {class}`~pypulseqpp.sequences.SequenceApp`
-contract these modules implement, and {doc}`../api/modules` for the excitation,
+See {doc}`api/apps` for the {class}`~pypulseqpp.sequences.SequenceApp`
+contract these modules implement, and {doc}`api/modules` for the excitation,
 preparation and readout modules they are built from.
 
 
