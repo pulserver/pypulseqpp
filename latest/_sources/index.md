@@ -4,10 +4,8 @@
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Guides
+:caption: Contributing
 
-user_guide
-developer_guide
 guides/developer/documentation
 documentation_style
 ```
@@ -15,9 +13,17 @@ documentation_style
 ```{toctree}
 :hidden:
 :maxdepth: 2
+:caption: Explanations
+
+explanations/index
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 2
 :caption: Examples
 
-examples/index
+generated/gallery/index
 ```
 
 ```{toctree}
@@ -25,6 +31,7 @@ examples/index
 :caption: API Reference
 
 api/index
+sequences
 ```
 
 ```{toctree}

@@ -13,7 +13,7 @@ scan `loop`, one `kernel` call per repetition. Prescans listed by
 {meth}`~SequenceApp.prescans` are written by {meth}`~SequenceApp.write` as
 separate files linked through `NextSequence`. Each example sequence reached as
 `sequences.<name>` defines one subclass. The sequences themselves are listed
-under {doc}`../examples/index`.
+under {doc}`../sequences`.
 
 ```{eval-rst}
 .. autosummary::

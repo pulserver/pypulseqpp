@@ -33,6 +33,10 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -45,6 +49,7 @@
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <script>
@@ -58,7 +63,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/index.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="User Guide" href="user_guide.html" />
+    <link rel="next" title="Documentation" href="guides/developer/documentation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -227,16 +232,44 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guides/developer/documentation.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation_style.html">Documentation style guide</a></li>
 </ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanations</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="explanations/pulseq.html">The Pulseq file format</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="explanations/safety/index.html">Safety and hardware checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/gradient_amplitude.html">Gradient amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/slew_rate.html">Slew rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/gradient_continuity.html">Gradient continuity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/sar.html">Specific absorption rate</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Example sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/index.html">Examples</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/01-basics/index.html">Pulseq basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/01-basics/01-events-and-blocks.html">Events, blocks and a file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/01-basics/02-analysis-and-checks.html">Analysis and safety checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/02-modules/index.html">Sequence modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/02-modules/01-modules.html">Excitation, preparation, readout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/02-modules/02-sequence-applications.html">Sequence applications and the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/03-applications/index.html">Complete sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/03-applications/01-gradient-echo-families.html">Gradient-echo families</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/03-applications/02-echo-planar-imaging.html">Echo-planar structural and fMRI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/03-applications/03-fast-spin-echo.html">Three-dimensional fast spin echo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/gallery/03-applications/04-non-cartesian.html">Non-Cartesian trajectories</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="nav bd-sidenav">
@@ -906,6 +939,7 @@
 </details></li>
 </ul>
 </details></li>
+<li class="toctree-l1"><a class="reference internal" href="sequences.html">Sequence catalogue</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
@@ -1202,21 +1236,28 @@ PyPulseq; the native core is included in platform wheels.</p>
 <p>Sequence-module classes are available from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>, and the
 complete example sequences from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences.&lt;name&gt;</span></code>. The
 <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/api/index.html">API reference</a>
-groups sequence operations, event design, sampling, modules and checks.</p>
+groups sequence operations, event design, sampling, modules and checks; the
+<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/index.html">examples</a>
+build a sequence from events, from modules and from the shipped applications,
+and the
+<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/explanations/index.html">explanations</a>
+cover the file format and each of the hardware checks.</p>
 </section>
 <section id="development-and-documentation">
 <h2>Development and documentation<a class="headerlink" href="#development-and-documentation" title="Link to this heading">#</a></h2>
 <p>See the <a class="reference external" href="https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md">contribution guide</a>
 for installation and checks. Build the local Markdown/Sphinx documentation with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[doc]'</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[examples]'</span>
 bash<span class="w"> </span>scripts/build_docs.sh
 </pre></div>
 </div>
 <p>The script compiles the checkout into <code class="docutils literal notranslate"><span class="pre">docs/build/site</span></code> and generates the pages
-from that build.</p>
-<p>Open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code>. The API reference and the example-sequence
-index are populated; the user and developer guides are scaffolds.
-Documentation contributions follow <code class="docutils literal notranslate"><span class="pre">docs/documentation_style.md</span></code>.</p>
+from that build. Every example script under <code class="docutils literal notranslate"><span class="pre">gallery/</span></code> is executed as the pages
+are built, which is what the <code class="docutils literal notranslate"><span class="pre">examples</span></code> extra covers beyond <code class="docutils literal notranslate"><span class="pre">doc</span></code>.</p>
+<p>Open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code>. Documentation contributions follow
+<code class="docutils literal notranslate"><span class="pre">docs/guides/developer/documentation.md</span></code>.</p>
+<div class="toctree-wrapper compound">
+</div>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
@@ -1240,11 +1281,11 @@ Documentation contributions follow <code class="docutils literal notranslate"><s
                   
 <div class="prev-next-area">
     <a class="right-next"
-       href="user_guide.html"
+       href="guides/developer/documentation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">User Guide</p>
+        <p class="prev-next-title">Documentation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

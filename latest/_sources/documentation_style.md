@@ -1,6 +1,8 @@
 # Documentation style guide
 
-This guide governs every docstring, documentation page, code comment and
+{doc}`guides/developer/documentation` is the authoritative guide, and states
+what belongs in each form of documentation. This page is its terminology and
+prose companion, and governs every docstring, documentation page, code comment and
 user-facing diagnostic string in this repository, including the C++ doc
 comments under `src/cpp/`. It is binding on human contributors and on
 automated agents alike; `AGENTS.md` requires compliance with it.
