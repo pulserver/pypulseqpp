@@ -1,7 +1,7 @@
 """
-=====================
+========================
 3D echo-planar imaging
-=====================
+========================
 
 One excitation per shot, followed by a train of readout lobes of alternating
 polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA

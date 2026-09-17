@@ -1,7 +1,7 @@
 """
-=====================
+========================
 2D echo-planar imaging
-=====================
+========================
 
 One excitation followed by a train of readout lobes of alternating polarity,
 with a phase-encode blip between them, so the whole phase-encode axis is
