@@ -61,7 +61,12 @@ seq.write("example.seq")
 Sequence-module classes are available from `pypulseqpp.sequences`, and the
 complete example sequences from `pypulseqpp.sequences.<name>`. The
 [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
-groups sequence operations, event design, sampling, modules and checks.
+groups sequence operations, event design, sampling, modules and checks; the
+[examples](https://pulserver.github.io/pypulseqpp/latest/generated/gallery/index.html)
+build a sequence from events, from modules and from the shipped applications,
+and the
+[explanations](https://pulserver.github.io/pypulseqpp/latest/explanations/index.html)
+cover the file format and each of the hardware checks.
 
 ## Development and documentation
 
@@ -69,13 +74,13 @@ See the [contribution guide](https://github.com/pulserver/pypulseqpp/blob/main/C
 for installation and checks. Build the local Markdown/Sphinx documentation with:
 
 ```bash
-pip install -e '.[doc]'
+pip install -e '.[examples]'
 bash scripts/build_docs.sh
 ```
 
 The script compiles the checkout into `docs/build/site` and generates the pages
-from that build.
+from that build. Every example script under `gallery/` is executed as the pages
+are built, which is what the `examples` extra covers beyond `doc`.
 
-Open `docs/build/html/index.html`. The API reference and the example-sequence
-index are populated; the user and developer guides are scaffolds.
-Documentation contributions follow `docs/documentation_style.md`.
+Open `docs/build/html/index.html`. Documentation contributions follow
+`docs/guides/developer/documentation.md`.

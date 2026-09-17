@@ -29,3 +29,5 @@ data/
 
 docs/build/
 docs/generated/
+# Written by sphinx-gallery into the source directory as the pages are built.
+docs/sg_execution_times.rst

@@ -9,7 +9,9 @@
 #   bash scripts/build_docs.sh            # docs/build/html/index.html
 #   bash scripts/build_docs.sh -E         # extra arguments go to sphinx-build
 #
-# Needs the documentation tools: pip install '.[doc]' (or '.[dev]').
+# Needs the documentation tools: pip install '.[doc]' (or '.[dev]'). Every
+# gallery script under gallery/ is executed as the pages are built, and the
+# fast spin echo needs the `examples` extra, which brings torchsim.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -21,7 +23,7 @@ out="$PWD/docs/build/html"
 # otherwise, which would make the build cache part of the published site.
 doctrees="$PWD/docs/build/doctrees"
 
-if ! "$PYTHON_BIN" -c "import sphinx, myst_parser, sphinx_book_theme, sphinx_copybutton, linkify_it" 2>/dev/null; then
+if ! "$PYTHON_BIN" -c "import sphinx, myst_parser, sphinx_book_theme, sphinx_copybutton, linkify_it, sphinx_gallery, matplotlib" 2>/dev/null; then
     echo "build_docs.sh: the documentation tools are missing; install them with pip install '.[doc]'" >&2
     exit 1
 fi

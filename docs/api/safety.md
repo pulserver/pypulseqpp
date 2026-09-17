@@ -6,6 +6,8 @@ and a VOP SAR model. Every check applies each block's rotation and evaluates
 the three physical gradient axes, and takes its limits from the sequence's own
 {class}`pypulseqpp.Opts` or from one passed to it. They are estimates, not a
 complete scanner or patient-safety assessment.
+{doc}`../explanations/safety/index` covers what each one computes and the
+criterion it applies.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.safety
