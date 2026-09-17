@@ -3,9 +3,8 @@
 [Pulseq](https://pulseq.github.io) is an open file format for MR pulse
 sequences. A `.seq` file states what is played, on which channel and for how
 long: the complete prescription of an acquisition, portable between sites and
-vendors. `pypulseqpp` builds, analyses and writes that description, and the
-sections below define what a block contains and which of the format's
-conventions the Python interface preserves.
+vendors. `pypulseqpp` builds, analyses and writes that description, and its
+Python interface preserves the format's conventions.
 
 The authoritative definition is the [Pulseq
 specification](https://pulseq.github.io/specification.pdf) and the MATLAB
@@ -114,7 +113,7 @@ block's `EXT` id refers to a linked list of typed rows.
 `SOFT_DELAY`
 : A delay whose duration is adjusted at the console without rewriting the file.
 
-## Related pages
+## See also
 
 * {doc}`libraries-and-shapes` — how events are stored, deduplicated and written.
 * {doc}`timing-and-rasterization` — the rasters every event time is quantized to.

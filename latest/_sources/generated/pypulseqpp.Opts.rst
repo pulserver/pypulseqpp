@@ -26,3 +26,7 @@
    :nosignatures:
 
    ~Opts.default
+
+
+.. minigallery:: pypulseqpp.Opts
+   :add-heading: Examples using ``Opts``

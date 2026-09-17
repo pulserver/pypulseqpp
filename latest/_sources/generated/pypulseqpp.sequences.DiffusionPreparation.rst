@@ -31,3 +31,7 @@
    ~DiffusionPreparation.blocks
    ~DiffusionPreparation.duration
    ~DiffusionPreparation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.DiffusionPreparation
+   :add-heading: Examples using ``DiffusionPreparation``

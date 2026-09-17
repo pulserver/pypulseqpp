@@ -92,7 +92,7 @@ scanner's own predownload assessment or its transmit monitor, and it does not
 make a statement about any particular patient. What it establishes is whether
 the sequence, under a stated model and calibration, is within a stated limit.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_sar`,
   {func}`~pypulseqpp.safety.read_vops` and

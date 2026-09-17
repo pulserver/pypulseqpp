@@ -16,41 +16,11 @@ Prescription
 
 .. autofunction:: bssfp2D_sequence
 
-Representative configuration for documentation
-----------------------------------------------
+.. minigallery:: pypulseqpp.sequences.bssfp2D_sequence
+   :add-heading: Designed and drawn
 
-The configuration below is chosen to make the structure of the sequence
-legible at the size of this page: the matrix is small, delays that would
-otherwise dominate the diagram are short, and the figures are drawn from
-the sequence this call designs. It is not a protocol recommendation.
-
-.. code-block:: python
-
-    from pypulseqpp import sequences
-
-    seq = sequences.bssfp2D_sequence(
-        n_x=64,
-        n_y=16,
-        n_slices=1,
-        n_phases=1,
-        tr=None,
-        n_dummy=4,
-        readout_oversampling=1.0,
-        readout_bandwidth_hz=80000.0,
-    )
-
-.. figure:: /generated/sequences/bssfp2D_sequence-repetition.png
-   :width: 100%
-
-   One repetition. The remaining repetitions are drawn underneath in grey, so an event that changes between them appears as a band.
-
-.. figure:: /generated/sequences/bssfp2D_sequence-train.png
-   :width: 100%
-
-   Consecutive repetitions. Every gradient axis returns to zero moment within each repetition.
-
-Related sequences
------------------
+See also
+--------
 
 Other balanced ssfp sequences: :doc:`bssfp3D_sequence <bssfp3D_sequence>`.
 

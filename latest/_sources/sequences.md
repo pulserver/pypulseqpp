@@ -2,9 +2,9 @@
 
 Complete sequences shipped with the package, grouped by sequence family. Each
 is a {class}`~pypulseqpp.sequences.SequenceApp` subclass in its own module, and
-each has a reference page giving its prescription and a representative
-configuration. Import one as an attribute of `pypulseqpp.sequences`; the module
-is callable as its own `main`, which designs the sequence and returns it.
+each has a reference page giving the prescription it accepts. Import one as an
+attribute of `pypulseqpp.sequences`; the module is callable as its own `main`,
+which designs the sequence and returns it.
 
 ```python
 from pypulseqpp import sequences
@@ -26,7 +26,8 @@ gradient echo is the same family whether it samples a Cartesian grid, radial
 spokes or spiral interleaves. See {doc}`api/apps` for the
 {class}`~pypulseqpp.sequences.SequenceApp` contract these modules implement,
 and {doc}`api/modules` for the excitation, preparation and readout modules they
-are built from.
+are built from. Each sequence is designed and drawn at a representative
+prescription under {doc}`examples/built-in-sequences/index`.
 
 ## Gradient echo
 
@@ -92,8 +93,4 @@ k-space.
 
 ```{eval-rst}
 .. include:: generated/sequences/tables/zero-echo-time.rst
-```
-
-```{eval-rst}
-.. include:: generated/sequences/index.rst
 ```

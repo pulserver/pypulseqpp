@@ -2,10 +2,7 @@
 
 A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
-in a `.seq` file is quantized before it is written. The sections below define
-which grid applies to which time, the constraint that follows when two grids
-apply to the same interval, and what
-{meth}`~pypulseqpp.Sequence.check_timing` establishes.
+in a `.seq` file is quantized before it is written.
 
 ## The four rasters
 
@@ -91,7 +88,7 @@ can still be unplayable because one delay is off the raster. The constraint
 checks of {doc}`../safety/index` and `check_timing` establish different
 properties and are separate calls.
 
-## Related pages
+## See also
 
 * {doc}`events-and-blocks` — what a block contains.
 * {doc}`../../api/timing` — the quantization and ADC timing helpers.

@@ -30,3 +30,7 @@
    ~MultibandExcitation.blocks
    ~MultibandExcitation.duration
    ~MultibandExcitation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.MultibandExcitation
+   :add-heading: Examples using ``MultibandExcitation``

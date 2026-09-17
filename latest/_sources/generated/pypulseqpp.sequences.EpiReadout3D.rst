@@ -29,3 +29,7 @@
    ~EpiReadout3D.blocks
    ~EpiReadout3D.duration
    ~EpiReadout3D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.EpiReadout3D
+   :add-heading: Examples using ``EpiReadout3D``

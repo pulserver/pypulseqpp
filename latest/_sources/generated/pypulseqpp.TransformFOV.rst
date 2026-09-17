@@ -19,3 +19,7 @@
    ~TransformFOV.trajectories
 
 
+
+
+.. minigallery:: pypulseqpp.TransformFOV
+   :add-heading: Examples using ``TransformFOV``

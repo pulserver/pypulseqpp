@@ -63,8 +63,6 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.Sequence.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Sequence.add_block" href="pypulseqpp.Sequence.add_block.html" />
-    <link rel="prev" title="Sequence and system limits" href="../api/sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -268,12 +266,46 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../api/index.html">API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
@@ -523,7 +555,10 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveforms-and-k-space">Waveforms and k-space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-reports">Checks and reports</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-edits">Gradient edits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -748,6 +783,123 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 </tbody>
 </table>
 </div>
+<section id="examples-using-sequence">
+<h3>Examples using <code class="docutils literal notranslate"><span class="pre">Sequence</span></code><a class="headerlink" href="#examples-using-sequence" title="Link to this heading">#</a></h3>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The shortest complete workflow: system limits, events, blocks, a sequence, and the file it is written to. Two repetitions of a slice-selective gradient echo are enough to show every step."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html"><span class="doc">A basic Pulseq sequence</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One phase-encode line is read per repetition and the transverse magnetisation is spoiled between them, so the signal is a steady state of the flip angle, the repetition time and T1."><img alt="" src="../_images/sphx_glr_gre2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre2D_sequence.html"><span class="doc">2D Cartesian gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D Cartesian gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation replaces the slice-selective one and the second phase encode samples the partition axis, so one repetition reads one (line, partition) view."><img alt="" src="../_images/sphx_glr_gre3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre3D_sequence.html"><span class="doc">3D Cartesian gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D Cartesian gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Each excitation is followed by several readout lobes, so one phase-encode line is sampled at several echo times and the decay across them measures T2*."><img alt="" src="../_images/sphx_glr_gre_multiecho2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_multiecho2D_sequence.html"><span class="doc">2D Cartesian multi-echo gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D Cartesian multi-echo gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout of the two-dimensional sequence over a slab-selective excitation and a partition encode."><img alt="" src="../_images/sphx_glr_gre_multiecho3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_multiecho3D_sequence.html"><span class="doc">3D Cartesian multi-echo gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D Cartesian multi-echo gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot reads a rectangular blade of Cartesian lines and the blades are rotated to cover k-space. Every blade samples the centre, so the shots can be registered against each other before reconstruction."><img alt="" src="../_images/sphx_glr_gre_propeller2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_propeller2D_sequence.html"><span class="doc">2D PROPELLER gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D PROPELLER gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Every repetition reads a full spoke through the centre of k-space, so the low spatial frequencies are sampled once per repetition rather than once per scan."><img alt="" src="../_images/sphx_glr_gre_radial2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_radial2D_sequence.html"><span class="doc">2D radial gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D radial gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read per repetition, designed from the prescription rather than from a fixed shape, and rotated to each of n_shots angles."><img alt="" src="../_images/sphx_glr_gre_spiral2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_spiral2D_sequence.html"><span class="doc">2D spiral gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D spiral gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and a Cartesian partition encode along z."><img alt="" src="../_images/sphx_glr_gre_stack_of_blades3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-blades gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and a Cartesian partition encode along z."><img alt="" src="../_images/sphx_glr_gre_stack_of_spirals3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and a Cartesian partition encode along z. The in-plane interleaf is one waveform for the whole scan, rotated per shot."><img alt="" src="../_images/sphx_glr_gre_stack_of_stars3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars gradient echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-stars gradient echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A refocusing pulse between the excitation and the readout recovers the dephasing from static field inhomogeneity, so the acquired echo is weighted by T2 rather than by T2*."><img alt="" src="../_images/sphx_glr_se2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se2D_sequence.html"><span class="doc">2D Cartesian spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D Cartesian spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One (line, partition) view is read per excitation, at a refocused echo."><img alt="" src="../_images/sphx_glr_se3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se3D_sequence.html"><span class="doc">3D Cartesian spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D Cartesian spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A whole blade is read after one excitation as an echo-planar train, so a PROPELLER coverage is acquired in as many shots as there are blades."><img alt="" src="../_images/sphx_glr_se_epi_propeller2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_epi_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo with echo-planar blades</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo with echo-planar blades</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotated blade is read at the refocused echo of each excitation."><img alt="" src="../_images/sphx_glr_se_propeller2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A full spoke through the centre of k-space is read at the refocused echo of each excitation."><img alt="" src="../_images/sphx_glr_se_radial2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_radial2D_sequence.html"><span class="doc">2D radial spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D radial spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf is read at the refocused echo of each excitation."><img alt="" src="../_images/sphx_glr_se_spiral2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_spiral2D_sequence.html"><span class="doc">2D spiral spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D spiral spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../_images/sphx_glr_se_stack_of_blades3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-blades spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../_images/sphx_glr_se_stack_of_spirals3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane, a Cartesian partition encode along z, and a refocused echo per view."><img alt="" src="../_images/sphx_glr_se_stack_of_stars3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-stars spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads every sampled line of a single partition as a spoiled gradient-echo train, so the partition encode is constant within a shot."><img alt="" src="../_images/sphx_glr_mprage3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/12-mprage/mprage3D_sequence.html"><span class="doc">3D Cartesian MPRAGE</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D Cartesian MPRAGE</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the interleaves of a single partition."><img alt="" src="../_images/sphx_glr_mprage_stack_of_spirals3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/12-mprage/mprage_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals MPRAGE</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals MPRAGE</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Each shot applies one inversion and then reads the spokes of a single partition."><img alt="" src="../_images/sphx_glr_mprage_stack_of_stars3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/12-mprage/mprage_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars MPRAGE</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D stack-of-stars MPRAGE</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A three-dimensional fast spin echo reads one (line, partition) view per refocused echo, so the amplitude the train has left at echo m becomes the weight of whichever view that echo reads. The ordering is the map from echo index to k-space position, and the weighting it produces is a filter applied to the image: its inverse Fourier transform is the point-spread function of the acquisition."><img alt="" src="../_images/sphx_glr_fse-echo-ordering-and-point-spread_thumb.png" />
+<p><a class="reference internal" href="gallery/13-fast-spin-echo/fse-echo-ordering-and-point-spread.html"><span class="doc">Echo train length, signal envelope and point spread</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo train length, signal envelope and point spread</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a CPMG train of refocusing pulses, and one (line, partition) view is read at each echo. The amplitude left at an echo weights whichever view that echo reads."><img alt="" src="../_images/sphx_glr_fse3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the steady state depends on the off-resonance accumulated over one repetition time."><img alt="" src="../_images/sphx_glr_bssfp2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/14-bssfp/bssfp2D_sequence.html"><span class="doc">2D balanced SSFP</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D balanced SSFP</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure of the two-dimensional sequence over a partition-encoded slab, with each train opened by a half flip."><img alt="" src="../_images/sphx_glr_bssfp3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/14-bssfp/bssfp3D_sequence.html"><span class="doc">3D balanced SSFP</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D balanced SSFP</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation is followed by a train of readout lobes of alternating polarity with phase-encode blips between them, so the whole phase-encode axis is covered in one or a few shots."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
+  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and a partition encode over the echo-planar train, with the skipped-CAIPI lattice available when both encoded axes are undersampled."><img alt="" src="../_images/sphx_glr_epi3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/15-epi/epi3D_sequence.html"><span class="doc">3D echo-planar imaging</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D echo-planar imaging</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins without a ramp and the trajectory starts at the centre of k-space."><img alt="" src="../_images/sphx_glr_zte3D_sequence_thumb.png" />
+<p><a class="reference internal" href="gallery/16-zte/zte3D_sequence.html"><span class="doc">3D zero echo time</span></a></p>
+  <div class="sphx-glr-thumbnail-title">3D zero echo time</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A sequence module solves the layout of one group of blocks at construction and exposes the resulting events for a scan loop to place. The architecture is described in /explanations/design/sequence-module; this page shows the interface running."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
+<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">What a sequence module publishes</span></a></p>
+  <div class="sphx-glr-thumbnail-title">What a sequence module publishes</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The excitation family produces one RF pulse and the gradients that go with it. Every member reports the events it built and, through sim_rf, the Bloch response of the pulse it holds."><img alt="" src="../_images/sphx_glr_excitation-modules_thumb.png" />
+<p><a class="reference internal" href="gallery/21-modules-rf/excitation-modules.html"><span class="doc">Excitation modules</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Excitation modules</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition."><img alt="" src="../_images/sphx_glr_preparation-modules_thumb.png" />
+<p><a class="reference internal" href="gallery/22-modules-preparation/preparation-modules.html"><span class="doc">Preparation modules</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Preparation modules</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A readout module solves the rest of the repetition around an excitation it is given: the prewinders, the phase-encode template at its largest step, the acquisition window and the spoiler. The Cartesian family differs in how many views one excitation reads."><img alt="" src="../_images/sphx_glr_cartesian-readout-modules_thumb.png" />
+<p><a class="reference internal" href="gallery/23-modules-cartesian/cartesian-readout-modules.html"><span class="doc">Cartesian readout modules</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Cartesian readout modules</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence separates three things: the prescription a user sets, the order the views are sampled in, and the blocks of one repetition. SequenceApp is the contract that keeps them apart, and every sequence the package ships is written against it. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
+<p><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html"><span class="doc">A SequenceApp from scratch</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, at the price of samples that are no longer equally spaced in k and a reconstruction that has to regrid them."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
+<p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates the energy at the end instead, which shortens the interval between the pulse and the echo at the same duration and time-bandwidth product, at the cost of a higher peak B_1 and a slice-profile phase that is no longer linear."><img alt="" src="../_images/sphx_glr_custom-excitation-module_thumb.png" />
+<p><a class="reference internal" href="gallery/40-custom-modules/custom-excitation-module.html"><span class="doc">A minimum-phase excitation module</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A minimum-phase excitation module</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A radial spoke samples the centre of k-space far more densely than the periphery: at radius k, adjacent spokes of an N-interleaf set are 2\pi k / N apart, which exceeds the Nyquist spacing 1/\mathrm{FOV} beyond a transition radius"><img alt="" src="../_images/sphx_glr_custom-noncartesian-readout_thumb.png" />
+<p><a class="reference internal" href="gallery/40-custom-modules/custom-noncartesian-readout.html"><span class="doc">A twisting radial readout module</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A twisting radial readout module</div>
+</div></div></section>
 </section>
 </section>
 
@@ -762,24 +914,6 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="../api/sequence.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sequence and system limits</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="pypulseqpp.Sequence.add_block.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Sequence.add_block</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -806,7 +940,10 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveforms-and-k-space">Waveforms and k-space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-reports">Checks and reports</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-edits">Gradient edits</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

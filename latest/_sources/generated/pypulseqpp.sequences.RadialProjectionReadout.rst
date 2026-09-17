@@ -30,3 +30,7 @@
    ~RadialProjectionReadout.blocks
    ~RadialProjectionReadout.duration
    ~RadialProjectionReadout.seq
+
+
+.. minigallery:: pypulseqpp.sequences.RadialProjectionReadout
+   :add-heading: Examples using ``RadialProjectionReadout``

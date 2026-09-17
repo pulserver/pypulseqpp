@@ -30,3 +30,7 @@
    ~OffResonanceSaturation.blocks
    ~OffResonanceSaturation.duration
    ~OffResonanceSaturation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.OffResonanceSaturation
+   :add-heading: Examples using ``OffResonanceSaturation``

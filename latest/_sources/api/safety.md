@@ -27,7 +27,6 @@ that magnitude is not the norm of independently attained axis peaks.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    check_max_grad
@@ -46,7 +45,6 @@ otherwise.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    check_mech_resonance
@@ -64,7 +62,6 @@ upstream's `safe_example_hw()` or a Siemens `.asc` file read by
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    check_pns
@@ -85,7 +82,6 @@ for a sequence.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    check_sar

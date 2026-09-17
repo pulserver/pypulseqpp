@@ -30,3 +30,7 @@
    ~InversionPreparation.blocks
    ~InversionPreparation.duration
    ~InversionPreparation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.InversionPreparation
+   :add-heading: Examples using ``InversionPreparation``

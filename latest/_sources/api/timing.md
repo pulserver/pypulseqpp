@@ -13,7 +13,6 @@ bandwidth per pixel is `1 / (num_samples * dwell)`.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    calc_adc_segments

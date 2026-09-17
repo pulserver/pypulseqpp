@@ -30,3 +30,7 @@
    ~RadialReadout2D.blocks
    ~RadialReadout2D.duration
    ~RadialReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.RadialReadout2D
+   :add-heading: Examples using ``RadialReadout2D``

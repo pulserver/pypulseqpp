@@ -28,3 +28,7 @@
    ~ChronaxieModel.alpha
    ~ChronaxieModel.chronaxie
    ~ChronaxieModel.rheobase
+
+
+.. minigallery:: pypulseqpp.safety.ChronaxieModel
+   :add-heading: Examples using ``ChronaxieModel``

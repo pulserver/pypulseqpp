@@ -270,7 +270,41 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -521,7 +555,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-duration-against-event-extent">Block duration against event extent</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coupling-between-the-adc-and-gradient-rasters">Coupling between the ADC and gradient rasters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dead-times-and-ringdown">Dead times and ringdown</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
             </nav>
         </div>
@@ -537,10 +571,7 @@
 <h1>Timing and rasterization<a class="headerlink" href="#timing-and-rasterization" title="Link to this heading">#</a></h1>
 <p>A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
-in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized before it is written. The sections below define
-which grid applies to which time, the constraint that follows when two grids
-apply to the same interval, and what
-<a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a> establishes.</p>
+in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized before it is written.</p>
 <section id="the-four-rasters">
 <h2>The four rasters<a class="headerlink" href="#the-four-rasters" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">[DEFINITIONS]</span></code> declares four raster periods, and each class of time is
@@ -632,8 +663,8 @@ can still be unplayable because one delay is off the raster. The constraint
 checks of <a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> and <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> establish different
 properties and are separate calls.</p>
 </section>
-<section id="related-pages">
-<h2>Related pages<a class="headerlink" href="#related-pages" title="Link to this heading">#</a></h2>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="events-and-blocks.html"><span class="doc">Events and blocks</span></a> — what a block contains.</p></li>
 <li><p><a class="reference internal" href="../../api/timing.html"><span class="doc">Timing and rasterization</span></a> — the quantization and ADC timing helpers.</p></li>
@@ -694,7 +725,7 @@ sequence.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-duration-against-event-extent">Block duration against event extent</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coupling-between-the-adc-and-gradient-rasters">Coupling between the ADC and gradient rasters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dead-times-and-ringdown">Dead times and ringdown</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
   </nav></div>
 

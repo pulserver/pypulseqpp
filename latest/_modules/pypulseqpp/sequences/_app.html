@@ -263,7 +263,41 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -752,37 +786,63 @@
     <span class="n">main</span><span class="o">.</span><span class="vm">__qualname__</span> <span class="o">=</span> <span class="s2">"main"</span>
     <span class="n">main</span><span class="o">.</span><span class="n">write_to</span> <span class="o">=</span> <span class="n">write_to</span>
 
-    <span class="n">summary</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">summary</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">sections</span> <span class="o">=</span> <span class="n">_split_sections</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">_MAIN_PARAMETERS</span><span class="p">,</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Parameters"</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="n">raises</span> <span class="o">=</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Raises"</span><span class="p">)</span>
     <span class="n">main</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="n">part</span>
         <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="n">summary</span><span class="p">,</span>
-            <span class="s2">"Parameters</span><span class="se">\n</span><span class="s2">----------</span><span class="se">\n</span><span class="s2">"</span>
-            <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">_MAIN_PARAMETERS</span><span class="p">,</span> <span class="n">_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)))</span>
+            <span class="n">description</span><span class="p">,</span>
+            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Parameters"</span><span class="p">,</span> <span class="n">parameters</span><span class="p">),</span>
+            <span class="n">_numpy_section</span><span class="p">(</span>
+                <span class="s2">"Returns"</span><span class="p">,</span> <span class="s2">"pypulseqpp.Sequence</span><span class="se">\n</span><span class="s2">    The designed sequence."</span>
             <span class="p">),</span>
-            <span class="s2">"Returns</span><span class="se">\n</span><span class="s2">-------</span><span class="se">\n</span><span class="s2">pypulseqpp.Sequence</span><span class="se">\n</span><span class="s2">    The designed sequence."</span><span class="p">,</span>
-            <span class="n">rest</span><span class="p">,</span>
+            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Raises"</span><span class="p">,</span> <span class="n">raises</span><span class="p">),</span>
+            <span class="o">*</span><span class="p">(</span><span class="n">_numpy_section</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">part</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">main</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_parameters</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return the entries of ``function``'s NumPy ``Parameters`` section, dedented."""</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">function</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"Parameters"</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"-"</span><span class="p">}:</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:]</span>
-            <span class="k">break</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">""</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">body</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">line</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isspace</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"-"</span><span class="p">}:</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="n">body</span><span class="p">[:</span><span class="n">j</span><span class="p">]</span>
-            <span class="k">break</span>
-    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_numpy_section</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``body`` under a NumPy section heading, or the empty string if it is empty."""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">'-'</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">body</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">body</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="s2">""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_split_sections</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Split a NumPy docstring into its summary, its description and its sections.</span>
+
+<span class="sd">    The sections are returned in the order they appear, each as its heading and</span>
+<span class="sd">    its body. Text before the first heading that is not the summary is the</span>
+<span class="sd">    extended description, which belongs between the summary and ``Parameters``</span>
+<span class="sd">    rather than after ``Returns``.</span>
+<span class="sd">    """</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="n">headings</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">line</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"-"</span><span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">headings</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)]</span>
+    <span class="n">sections</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">start</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">stop</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="n">stop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">headings</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">summary</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summary</span><span class="p">,</span> <span class="n">description</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">sections</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_section</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the body of ``function``'s NumPy ``name`` section, dedented."""</span>
+    <span class="k">for</span> <span class="n">heading</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">_split_sections</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">function</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)[</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">heading</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">body</span>
+    <span class="k">return</span> <span class="s2">""</span>
 </pre></div>
 
                 </article>

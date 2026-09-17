@@ -18,7 +18,6 @@ structure and checks its timing, over the compiled core.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
    :template: autosummary/sequence.rst
 
@@ -35,7 +34,6 @@ doubles the field of view along it.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    TransformFOV
@@ -50,7 +48,6 @@ leave the caller's limits unchanged.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    Opts

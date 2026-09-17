@@ -30,3 +30,7 @@
    ~NonCartesianReadout.blocks
    ~NonCartesianReadout.duration
    ~NonCartesianReadout.seq
+
+
+.. minigallery:: pypulseqpp.sequences.NonCartesianReadout
+   :add-heading: Examples using ``NonCartesianReadout``

@@ -63,8 +63,8 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/sequences.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="2D Cartesian gradient echo" href="generated/sequences/gre2D_sequence.html" />
-    <link rel="prev" title="write_sequence" href="generated/pypulseqpp.cli.write_sequence.html" />
+    <link rel="next" title="Documentation" href="contributing/documentation.html" />
+    <link rel="prev" title="Command-line helpers" href="api/cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -268,7 +268,41 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current nav bd-sidenav">
@@ -537,9 +571,9 @@
 <h1>Sequence catalogue<a class="headerlink" href="#sequence-catalogue" title="Link to this heading">#</a></h1>
 <p>Complete sequences shipped with the package, grouped by sequence family. Each
 is a <a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> subclass in its own module, and
-each has a reference page giving its prescription and a representative
-configuration. Import one as an attribute of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>; the module
-is callable as its own <code class="docutils literal notranslate"><span class="pre">main</span></code>, which designs the sequence and returns it.</p>
+each has a reference page giving the prescription it accepts. Import one as an
+attribute of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>; the module is callable as its own <code class="docutils literal notranslate"><span class="pre">main</span></code>,
+which designs the sequence and returns it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 
 <span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">gre2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -557,7 +591,8 @@ gradient echo is the same family whether it samples a Cartesian grid, radial
 spokes or spiral interleaves. See <a class="reference internal" href="api/apps.html"><span class="doc">Complete sequences</span></a> for the
 <a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> contract these modules implement,
 and <a class="reference internal" href="api/modules.html"><span class="doc">Sequence modules</span></a> for the excitation, preparation and readout modules they
-are built from.</p>
+are built from. Each sequence is designed and drawn at a representative
+prescription under <a class="reference internal" href="examples/built-in-sequences/index.html"><span class="doc">Built-in sequences</span></a>.</p>
 <section id="gradient-echo">
 <h2>Gradient echo<a class="headerlink" href="#gradient-echo" title="Link to this heading">#</a></h2>
 <p>One excitation per repetition with no refocusing pulse, spoiled between
@@ -861,8 +896,6 @@ k-space.</p>
 </tbody>
 </table>
 </div>
-<div class="toctree-wrapper compound">
-</div>
 </section>
 </section>
 
@@ -878,20 +911,20 @@ k-space.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="generated/pypulseqpp.cli.write_sequence.html"
+       href="api/cli.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">write_sequence</p>
+        <p class="prev-next-title">Command-line helpers</p>
       </div>
     </a>
     <a class="right-next"
-       href="generated/sequences/gre2D_sequence.html"
+       href="contributing/documentation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">2D Cartesian gradient echo</p>
+        <p class="prev-next-title">Documentation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

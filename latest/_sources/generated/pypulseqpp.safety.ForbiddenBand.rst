@@ -29,3 +29,7 @@
    ~ForbiddenBand.f_max
    ~ForbiddenBand.f_min
    ~ForbiddenBand.tolerance
+
+
+.. minigallery:: pypulseqpp.safety.ForbiddenBand
+   :add-heading: Examples using ``ForbiddenBand``

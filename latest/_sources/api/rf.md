@@ -16,7 +16,6 @@ half-passage pair.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_adiabatic_pulse
@@ -31,7 +30,6 @@ half-passage pair.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_slr_pulse
@@ -48,7 +46,6 @@ gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_gslider_pulse
@@ -63,7 +60,6 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_b1_selective_pulse
@@ -81,7 +77,6 @@ one channel after another over a shared time base.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_ptx_pulse
@@ -94,7 +89,6 @@ one channel after another over a shared time base.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    calc_rf_bandwidth

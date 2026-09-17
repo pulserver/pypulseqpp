@@ -29,3 +29,7 @@
    ~BssfpReadout2D.blocks
    ~BssfpReadout2D.duration
    ~BssfpReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.BssfpReadout2D
+   :add-heading: Examples using ``BssfpReadout2D``

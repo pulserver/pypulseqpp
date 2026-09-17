@@ -30,3 +30,7 @@
    ~BlochSiegertPreparation.blocks
    ~BlochSiegertPreparation.duration
    ~BlochSiegertPreparation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.BlochSiegertPreparation
+   :add-heading: Examples using ``BlochSiegertPreparation``

@@ -30,3 +30,7 @@
    ~Spiral.gz
    ~Spiral.has_prewinder
    ~Spiral.has_rewinder
+
+
+.. minigallery:: pypulseqpp.sequences.Spiral
+   :add-heading: Examples using ``Spiral``

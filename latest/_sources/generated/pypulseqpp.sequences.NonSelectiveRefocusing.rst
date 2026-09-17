@@ -30,3 +30,7 @@
    ~NonSelectiveRefocusing.blocks
    ~NonSelectiveRefocusing.duration
    ~NonSelectiveRefocusing.seq
+
+
+.. minigallery:: pypulseqpp.sequences.NonSelectiveRefocusing
+   :add-heading: Examples using ``NonSelectiveRefocusing``

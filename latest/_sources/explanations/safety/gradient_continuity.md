@@ -65,7 +65,7 @@ is the index {meth}`~pypulseqpp.Sequence.get_block` takes and the one
 {func}`~pypulseqpp.plot.plot_kspace` accept as a `block_range`, so a reported
 boundary can be looked at directly.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_grad_continuity` — the call and its report.
 * {doc}`slew_rate` — the same inequality inside a waveform.

@@ -29,3 +29,7 @@
    ~PropellerReadout2D.blocks
    ~PropellerReadout2D.duration
    ~PropellerReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.PropellerReadout2D
+   :add-heading: Examples using ``PropellerReadout2D``

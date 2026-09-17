@@ -30,3 +30,7 @@
    ~RosetteStackReadout.blocks
    ~RosetteStackReadout.duration
    ~RosetteStackReadout.seq
+
+
+.. minigallery:: pypulseqpp.sequences.RosetteStackReadout
+   :add-heading: Examples using ``RosetteStackReadout``

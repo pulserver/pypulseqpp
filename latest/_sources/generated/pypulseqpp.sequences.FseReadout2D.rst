@@ -29,3 +29,7 @@
    ~FseReadout2D.blocks
    ~FseReadout2D.duration
    ~FseReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.FseReadout2D
+   :add-heading: Examples using ``FseReadout2D``

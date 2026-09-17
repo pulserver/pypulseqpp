@@ -4,3 +4,6 @@
 .. currentmodule:: pypulseqpp
 
 .. autofunction:: make_b1_hadamard_pulse
+
+.. minigallery:: pypulseqpp.make_b1_hadamard_pulse
+   :add-heading: Examples using ``make_b1_hadamard_pulse``

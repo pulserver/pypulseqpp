@@ -30,3 +30,7 @@
    ~IhMtPreparation.blocks
    ~IhMtPreparation.duration
    ~IhMtPreparation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.IhMtPreparation
+   :add-heading: Examples using ``IhMtPreparation``

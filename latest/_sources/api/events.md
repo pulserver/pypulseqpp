@@ -13,7 +13,6 @@ their own.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_adc
@@ -30,7 +29,6 @@ their own.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    align
@@ -43,7 +41,6 @@ their own.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    get_supported_labels
@@ -60,7 +57,6 @@ each way.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    interoperating

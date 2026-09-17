@@ -30,3 +30,7 @@
    ~RosetteReadout2D.blocks
    ~RosetteReadout2D.duration
    ~RosetteReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.RosetteReadout2D
+   :add-heading: Examples using ``RosetteReadout2D``

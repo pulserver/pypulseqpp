@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Terminology and conventions" href="terminology.html" />
-    <link rel="prev" title="3D zero echo time" href="../generated/sequences/zte3D_sequence.html" />
+    <link rel="prev" title="Sequence catalogue" href="../sequences.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -270,7 +270,41 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -810,16 +844,16 @@ A = PFS,
 <section id="api-examples-and-gallery-examples">
 <h4>API examples and gallery examples<a class="headerlink" href="#api-examples-and-gallery-examples" title="Link to this heading">#</a></h4>
 <p>Two kinds of example are legitimate, and they are not interchangeable.</p>
-<p>An <strong>API example</strong> shows how an object is constructed and used. It belongs in the <code class="docutils literal notranslate"><span class="pre">Examples</span></code> section of a docstring or on the reference page for that object, it is a few lines long, and it needs no experiment, sweep or scientific result. Reference material that illustrates one object — including a representative configuration and a figure of its output — belongs here.</p>
+<p>An <strong>API example</strong> shows how an object is constructed and used. It belongs in the <code class="docutils literal notranslate"><span class="pre">Examples</span></code> section of a docstring or on the reference page for that object, it is a few lines long, and it needs no experiment, sweep or scientific result. Reference material that illustrates one object belongs here; where an executed configuration and the figures it produces are large enough to be a page of their own, the reference page links the gallery example that carries them rather than repeating it.</p>
 <p>A <strong>gallery example</strong> teaches a scientific, numerical or design concept through an executable workflow and an observable result. It exists because running it produces something worth examining.</p>
 <p>The gallery is therefore not a catalogue of what the library ships. A reference page per object fulfils that role, and an object does not earn a gallery example by being undocumented elsewhere.</p>
 </section>
 <section id="gallery-organization-and-navigation">
 <h4>Gallery organization and navigation<a class="headerlink" href="#gallery-organization-and-navigation" title="Link to this heading">#</a></h4>
-<p>When examples fall into categories, the categories and the example cards belong on the gallery landing page: a reader browses a gallery visually, by scanning titles and thumbnails, rather than by expanding a navigation tree.</p>
-<p>Global navigation should normally contain the gallery itself and nothing below it. Category pages generated by the gallery builder should not become primary navigation entries merely because they exist; individual examples remain reachable from the cards, from cross-references and from the gallery’s own navigation.</p>
-<p>Give each category a name that states what its examples have in common and one or two factual sentences of description. Do not add prose to fill the page.</p>
-<p>Prefer the mechanisms the documentation builder supports — card directives, landing-page construction, navigation depth settings — over hiding generated pages with CSS.</p>
+<p>When examples fall into categories, each category gets a landing page the documentation owns, carrying one or two factual sentences and a table of what is below it. A table is preferred to a wall of thumbnails once a category holds more than a handful of examples, because a reader looking for one sequence or one module reads names rather than pictures.</p>
+<p>Global navigation carries the gallery and its categories, to the depth at which a category is still something a reader would look for on its own. Below that depth, an example is reached from the table on its category’s page and from cross-references, not from the navigation tree.</p>
+<p>Give each category a name that states what its examples have in common. Do not add prose to fill the page.</p>
+<p>Prefer the mechanisms the documentation builder supports — landing-page construction, hidden toctrees, navigation depth settings — over hiding generated pages with CSS.</p>
 </section>
 </section>
 <section id="explanation-and-concepts">
@@ -1257,12 +1291,12 @@ Spatial axis along which the finite difference is evaluated.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../generated/sequences/zte3D_sequence.html"
+       href="../sequences.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">3D zero echo time</p>
+        <p class="prev-next-title">Sequence catalogue</p>
       </div>
     </a>
     <a class="right-next"

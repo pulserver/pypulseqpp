@@ -30,3 +30,7 @@
    ~MtPreparation.blocks
    ~MtPreparation.duration
    ~MtPreparation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.MtPreparation
+   :add-heading: Examples using ``MtPreparation``

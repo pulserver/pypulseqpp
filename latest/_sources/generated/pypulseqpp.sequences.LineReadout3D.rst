@@ -29,3 +29,7 @@
    ~LineReadout3D.blocks
    ~LineReadout3D.duration
    ~LineReadout3D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.LineReadout3D
+   :add-heading: Examples using ``LineReadout3D``

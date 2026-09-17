@@ -100,3 +100,6 @@ Plotting
 
    ~Sequence.plot
    ~Sequence.paper_plot
+
+.. minigallery:: pypulseqpp.Sequence
+   :add-heading: Examples using ``Sequence``

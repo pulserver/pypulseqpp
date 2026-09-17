@@ -30,3 +30,7 @@
    ~SpiralReadout2D.blocks
    ~SpiralReadout2D.duration
    ~SpiralReadout2D.seq
+
+
+.. minigallery:: pypulseqpp.sequences.SpiralReadout2D
+   :add-heading: Examples using ``SpiralReadout2D``

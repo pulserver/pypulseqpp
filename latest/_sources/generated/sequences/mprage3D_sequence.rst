@@ -9,7 +9,7 @@
 
 3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
 
-Each shot applies one inversion and then acquires every sampled in-plane view of a single partition, so the partition encode is constant within a shot and the number of shots equals the number of sampled partitions. The inversion time is measured from the centre of the inversion pulse to the centre of the first excitation of the train, and the repetition time is the interval between successive inversions.
+Each shot applies one inversion and then acquires every sampled in- plane view of a single partition, so the partition encode is constant within a shot and the number of shots equals the number of sampled partitions. The inversion time is measured from the centre of the inversion pulse to the centre of the first excitation of the train, and the repetition time is the interval between successive inversions.
 
 Prescription
 ------------
@@ -18,40 +18,11 @@ Prescription
 
 .. autofunction:: mprage3D_sequence
 
-Representative configuration for documentation
-----------------------------------------------
+.. minigallery:: pypulseqpp.sequences.mprage3D_sequence
+   :add-heading: Designed and drawn
 
-The configuration below is chosen to make the structure of the sequence
-legible at the size of this page: the matrix is small, delays that would
-otherwise dominate the diagram are short, and the figures are drawn from
-the sequence this call designs. It is not a protocol recommendation.
-
-.. code-block:: python
-
-    from pypulseqpp import sequences
-
-    seq = sequences.mprage3D_sequence(
-        n_x=64,
-        n_y=16,
-        n_z=8,
-        ti=0.015,
-        tr=0.11,
-        n_dummy=0,
-        readout_oversampling=1.0,
-    )
-
-.. figure:: /generated/sequences/mprage3D_sequence-shot.png
-   :width: 100%
-
-   One shot: the inversion pulse and its crusher, the inversion delay, the gradient-echo train, and the recovery that completes the inversion-to-inversion interval.
-
-.. figure:: /generated/sequences/mprage3D_sequence-echoes.png
-   :width: 100%
-
-   The first repetitions of the train, at the raster the events are played on.
-
-Related sequences
------------------
+See also
+--------
 
 Other mprage sequences: :doc:`mprage_stack_of_stars3D_sequence <mprage_stack_of_stars3D_sequence>`, :doc:`mprage_stack_of_spirals3D_sequence <mprage_stack_of_spirals3D_sequence>`.
 

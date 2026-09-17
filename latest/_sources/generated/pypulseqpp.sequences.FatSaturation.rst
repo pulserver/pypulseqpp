@@ -30,3 +30,7 @@
    ~FatSaturation.blocks
    ~FatSaturation.duration
    ~FatSaturation.seq
+
+
+.. minigallery:: pypulseqpp.sequences.FatSaturation
+   :add-heading: Examples using ``FatSaturation``

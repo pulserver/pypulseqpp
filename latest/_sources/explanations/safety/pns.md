@@ -114,7 +114,7 @@ Because the estimate is a fraction of a stated model's threshold and not a
 measurement, a sequence close to 1 is a sequence whose verdict depends on which
 description it was checked with.
 
-## Related pages
+## See also
 
 * {func}`~pypulseqpp.safety.check_pns` and
   {func}`~pypulseqpp.safety.read_safe_model` — the calls.

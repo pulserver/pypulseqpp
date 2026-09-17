@@ -30,3 +30,7 @@
    ~SpatialSelectiveRefocusing.blocks
    ~SpatialSelectiveRefocusing.duration
    ~SpatialSelectiveRefocusing.seq
+
+
+.. minigallery:: pypulseqpp.sequences.SpatialSelectiveRefocusing
+   :add-heading: Examples using ``SpatialSelectiveRefocusing``

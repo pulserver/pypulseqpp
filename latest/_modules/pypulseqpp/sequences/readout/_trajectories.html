@@ -263,7 +263,41 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Examples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/sequence-modules/composition.html">Composing modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="nav bd-sidenav">
@@ -555,16 +589,35 @@
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">divisor</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">//</span> <span class="n">divisor</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_sampled_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">read_duration</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the part of a readout an ADC may occupy: its span less a dead time at each end.</span>
+
+<span class="sd">    The window opens a dead time after the readout gradient starts and closes a</span>
+<span class="sd">    dead time before it ends, so the block the two share lasts exactly as long</span>
+<span class="sd">    as the gradient, and the waveform reaches the next block at the amplitude</span>
+<span class="sd">    it was designed to.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">read_duration</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_make_adc</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">read_duration</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Make an ADC that fits inside ``read_duration`` on the ADC raster."""</span>
     <span class="n">n_samples</span> <span class="o">=</span> <span class="n">_adc_samples</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
     <span class="n">dwell</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">read_duration</span> <span class="o">/</span> <span class="n">n_samples</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span>
+        <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+            <span class="n">_sampled_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">read_duration</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_samples</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span>
+            <span class="o">+</span> <span class="mf">1e-10</span>
+        <span class="p">)</span>
         <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">dwell</span> <span class="o">&lt;</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"readout is too short for the requested ADC oversampling"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
+        <span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+        <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
+        <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sample_gradient_trajectory</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="n">adc</span><span class="p">):</span>
@@ -1254,8 +1307,16 @@
             <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">),</span>
             <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">dwell</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">n_adc</span> <span class="o">=</span> <span class="n">_adc_samples</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">read_duration</span> <span class="o">/</span> <span class="n">dwell</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)))</span>
-        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">n_adc</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">n_adc</span> <span class="o">=</span> <span class="n">_adc_samples</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">_sampled_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">read_duration</span><span class="p">)</span> <span class="o">/</span> <span class="n">dwell</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
+            <span class="n">num_samples</span><span class="o">=</span><span class="n">n_adc</span><span class="p">,</span>
+            <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
+            <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
             <span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">,</span>
@@ -1413,9 +1474,17 @@
             <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span>
         <span class="p">)</span>
         <span class="n">dwell</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">),</span> <span class="n">dwell</span><span class="p">)</span>
-        <span class="n">samples_per_petal</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">read_duration</span> <span class="o">/</span> <span class="n">petals</span> <span class="o">/</span> <span class="n">dwell</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">))</span>
+        <span class="n">samples_per_petal</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span>
+            <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">_sampled_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">read_duration</span><span class="p">)</span> <span class="o">/</span> <span class="n">petals</span> <span class="o">/</span> <span class="n">dwell</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">n_adc</span> <span class="o">=</span> <span class="n">_adc_samples</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">petals</span> <span class="o">*</span> <span class="n">samples_per_petal</span><span class="p">)</span>
-        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">n_adc</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
+            <span class="n">num_samples</span><span class="o">=</span><span class="n">n_adc</span><span class="p">,</span>
+            <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
+            <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">acquired_trajectory</span> <span class="o">=</span> <span class="n">_sample_gradient_trajectory</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="n">adc</span><span class="p">)</span>
         <span class="n">gradients</span> <span class="o">=</span> <span class="n">_make_grad_events</span><span class="p">(</span>
             <span class="n">system</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">last</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>

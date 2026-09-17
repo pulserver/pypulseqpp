@@ -29,3 +29,7 @@
    ~SequenceModule.blocks
    ~SequenceModule.duration
    ~SequenceModule.seq
+
+
+.. minigallery:: pypulseqpp.sequences.SequenceModule
+   :add-heading: Examples using ``SequenceModule``

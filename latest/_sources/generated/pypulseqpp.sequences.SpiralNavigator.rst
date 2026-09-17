@@ -30,3 +30,7 @@
    ~SpiralNavigator.blocks
    ~SpiralNavigator.duration
    ~SpiralNavigator.seq
+
+
+.. minigallery:: pypulseqpp.sequences.SpiralNavigator
+   :add-heading: Examples using ``SpiralNavigator``
