@@ -45,7 +45,7 @@ def safety_table(rows):
 import pypulseqpp as pp
 from pypulseqpp.sequences import zte3D_sequence
 
-baseline = zte3D_sequence(n_x=96, n_dummy=0)
+baseline = zte3D_sequence(n_x=64, n_views=300, n_dummy=0)
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 print(
     f"{int(baseline.get_definition('NumShots')[0])} shots, "
@@ -72,10 +72,11 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # -----------
 #
 # ``n_views`` sets how many half-spokes are played. Fewer of them shortens the
-# scan and undersamples the surface of the sphere, which shows as streaks
-# rather than as aliasing.
+# scan and undersamples the surface of the sphere, which shows as streaks rather
+# than as aliasing. Both configurations here play far fewer views than the
+# matrix asks for, so that the individual spokes stay visible on the page.
 
-alternative = zte3D_sequence(n_x=96, n_views=2000, n_dummy=0)
+alternative = zte3D_sequence(n_x=64, n_views=120, n_dummy=0)
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
