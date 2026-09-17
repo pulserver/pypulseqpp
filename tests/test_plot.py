@@ -49,6 +49,49 @@ def _read(text, tmp_path):
     return sequence
 
 
+# -- which repetition a diagram draws ---------------------------------------
+
+
+def test_the_diagram_draws_a_repetition_that_acquires():
+    """A shot that plays the layout but acquires nothing, as a partition
+    outside an elliptical shutter does, has no ADC and no encoding to show."""
+    from pypulseqpp.plot._paper import select_trs
+
+    sequence = pp.Sequence(pp.Opts())
+    pulse, select, rephase = pp.make_sinc_pulse(
+        flip_angle=math.pi / 12,
+        duration=1e-3,
+        slice_thickness=3e-3,
+        use="excitation",
+        return_gz=True,
+    )
+    read = pp.make_trapezoid("x", area=1000, duration=2e-3)
+    window = pp.make_adc(num_samples=64, duration=2e-3)
+    encode = pp.make_trapezoid("y", area=500, duration=1e-3)
+    for line in range(8):
+        sequence.add_block(pulse, select)
+        sequence.add_block(pp.scale_grad(encode, (line / 8) or 1e-9), rephase)
+        sequence.add_block(read, *([] if line == 0 else [window]))
+
+    size, _, main, _ = select_trs(sequence, None, 16)
+
+    assert size == 3
+    assert main != 1
+
+
+def test_the_diagram_prefers_the_repetition_that_encodes_furthest(gradient_echo):
+    """Every repetition reaches the same readout amplitude, so ranking on the
+    largest excursion of any axis would settle every comparison on the first."""
+    from pypulseqpp.plot._paper import select_trs
+
+    sequence = gradient_echo(lines=8, prologue=0)
+
+    _, _, main, _ = select_trs(sequence, None, 16)
+
+    # the encode grows with the line index, so the last shot encodes furthest
+    assert main == 8
+
+
 # -- which blocks a range names ---------------------------------------------
 
 

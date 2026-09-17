@@ -11,6 +11,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import NamedTuple
 
+import numpy as np
+
 from .. import _ext as _cxx
 from ._physical import _gamma, _prescription
 
@@ -153,6 +155,91 @@ def _axis_index(axis) -> int:
         raise ValueError(
             f"unknown gradient axis {axis!r}; use 'x', 'y', 'z' or None"
         ) from None
+
+
+def mech_resonance_spectrum(
+    seq,
+    *,
+    window: int = 0,
+    window_width: float = 40e-3,
+    stride: float | None = None,
+    frequency_oversampling: int = 3,
+    rotation=None,
+    system=None,
+) -> SimpleNamespace:
+    """Return the gradient amplitude spectrum of one window, per physical axis.
+
+    The window is taken, tapered and transformed by
+    :func:`check_mech_resonance`'s own pass, so a diagram of a band and the
+    verdict on it read the same numbers.
+
+    Parameters
+    ----------
+    seq : Sequence
+        Sequence to read.
+    window : int, optional
+        Which window, counted from zero. A report names the worst window of
+        each band as ``window``.
+    window_width : float, optional
+        Window length (s). Give the width the report was made with.
+    stride : float, optional
+        Step between window starts (s); half the width by default.
+    frequency_oversampling : int, optional
+        Transform length as a multiple of the window's sample count.
+    rotation : array_like, optional
+        3x3 prescription rotation from logical to physical axes.
+    system : pypulseqpp.Opts, optional
+        Source of the gyromagnetic ratio; the sequence's own by default.
+
+    Returns
+    -------
+    SimpleNamespace
+        ``frequency`` (Hz), one per bin; ``amplitude``, ``(3, bins)`` in mT/m
+        for x, y and z; ``axes``, the names in that order; ``window``,
+        ``window_start`` (s), ``window_width`` (s) and ``frequency_step`` (Hz).
+
+    Raises
+    ------
+    ValueError
+        If a width, stride or oversampling is out of range, or the sequence
+        has no window of that index.
+    """
+    if window_width <= 0.0:
+        raise ValueError("window_width must be positive")
+    stride = 0.5 * window_width if stride is None else stride
+    if stride <= 0.0:
+        raise ValueError("stride must be positive")
+    if int(frequency_oversampling) < 1:
+        raise ValueError("frequency_oversampling must be at least 1")
+    if int(window) < 0:
+        raise ValueError("window must be at least 0")
+
+    to_hz = 1e-3 * _gamma(seq, system)
+    found = _cxx.mech_resonance(
+        seq._native,
+        [],
+        window=float(window_width),
+        stride=float(stride),
+        oversampling=int(frequency_oversampling),
+        rotation=_prescription(rotation).tolist(),
+        mkl_runtime=_mkl_runtime(),
+        keep_spectrum=int(window),
+    )
+    if "spectrum" not in found:
+        raise ValueError(
+            f"the sequence has {found['windows']} windows of "
+            f"{found['window'] * 1e3:.1f} ms, so there is no window {int(window)}"
+        )
+    amplitude = np.asarray(found["spectrum"]) / to_hz
+    return SimpleNamespace(
+        frequency=np.arange(amplitude.shape[1]) * found["frequency_step"],
+        amplitude=amplitude,
+        axes=("x", "y", "z"),
+        window=int(window),
+        window_start=found["spectrum_start"],
+        window_width=found["window"],
+        frequency_step=found["frequency_step"],
+    )
 
 
 def check_mech_resonance(

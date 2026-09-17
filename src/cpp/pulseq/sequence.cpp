@@ -820,6 +820,57 @@ namespace pulseq
             return blocks;
         }
 
+        /** The longest run @p period holds over, as (first block, whole copies). */
+        std::array<int, 2> periodic_run(const std::vector<int32_t>& keys, int period)
+        {
+            const int blocks = static_cast<int>(keys.size());
+            if (period <= 0 || period >= blocks)
+                return {0, 0};
+
+            int best_start = 0;
+            int best_length = 0;
+            int run_start = 0;
+            for (int i = 0; i <= blocks - period; ++i)
+            {
+                if (keys[static_cast<size_t>(i)] != keys[static_cast<size_t>(i + period)])
+                {
+                    run_start = i + 1;
+                    continue;
+                }
+                const int length = i - run_start + 1 + period;
+                if (length > best_length)
+                {
+                    best_length = length;
+                    best_start = run_start;
+                }
+            }
+            return {best_start, best_length / period};
+        }
+
+        /** The period governing the middle of @p keys, and the run it holds over.
+
+         * The period is sought from the middle rather than from either end, so
+         * that a preparation before the loop and a rewind after it both fall
+         * outside it. Size is 0 when it does not repeat whole twice, which is
+         * the least a diagram can draw one of and summarise the rest with.
+         */
+        Repetition repeating_part_of(const std::vector<int32_t>& keys)
+        {
+            Repetition found;
+            const int blocks = static_cast<int>(keys.size());
+            if (blocks < 4)
+                return found;
+
+            const std::vector<int32_t> middle(keys.begin() + blocks / 2, keys.end());
+            const std::array<int, 2> run = periodic_run(keys, first_repeat(middle));
+            if (run[1] >= 2)
+            {
+                found.size = first_repeat(middle);
+                found.start = run[0];
+            }
+            return found;
+        }
+
     } // namespace
 
     Repetition Sequence::locate_repetition(int size) const
@@ -828,6 +879,26 @@ namespace pulseq
         if (size < static_cast<int>(instance_def_.size()) && period_holds(instance_def_, size))
             found.size = size;
         return found;
+    }
+
+    std::vector<int32_t> Sequence::structure_stream() const
+    {
+        const int blocks = static_cast<int>(instance_def_.size());
+        std::map<std::array<int64_t, 2>, int32_t> seen;
+        std::vector<int32_t> structure(static_cast<size_t>(blocks));
+        for (int i = 0; i < blocks; ++i)
+        {
+            const int32_t* row = blocks_->data() + static_cast<size_t>(i) * BLOCK_WIDTH;
+            int64_t plays = 0;
+            for (int column = 0; column < 5; ++column)
+                plays |= static_cast<int64_t>(row[column] > 0) << column;
+            const int64_t duration =
+                plays ? std::llround(durations_->data()[i] * 1e9) : -1;
+            const auto found = seen.emplace(
+                std::array<int64_t, 2>{duration, plays}, static_cast<int32_t>(seen.size()));
+            structure[static_cast<size_t>(i)] = found.first->second;
+        }
+        return structure;
     }
 
     Repetition Sequence::repetition()
@@ -857,20 +928,7 @@ namespace pulseq
         /* Shots whose events differ in shape but not in timing -- a pulse
          * per shot -- repeat by their structure: duration, and which of RF,
          * Gx, Gy, Gz and ADC they play. A pure delay is any pure delay. */
-        std::map<std::array<int64_t, 2>, int32_t> seen;
-        std::vector<int32_t> structure(static_cast<size_t>(blocks));
-        for (int i = 0; i < blocks; ++i)
-        {
-            const int32_t* row = blocks_->data() + static_cast<size_t>(i) * BLOCK_WIDTH;
-            int64_t plays = 0;
-            for (int column = 0; column < 5; ++column)
-                plays |= static_cast<int64_t>(row[column] > 0) << column;
-            const int64_t duration =
-                plays ? std::llround(durations_->data()[i] * 1e9) : -1;
-            const auto found = seen.emplace(
-                std::array<int64_t, 2>{duration, plays}, static_cast<int32_t>(seen.size()));
-            structure[static_cast<size_t>(i)] = found.first->second;
-        }
+        const std::vector<int32_t> structure = structure_stream();
         for (int candidate = 1; candidate <= blocks / 2; ++candidate)
         {
             if (period_holds(structure, candidate))
@@ -880,9 +938,29 @@ namespace pulseq
             }
         }
 
-        // Nothing repeats, so the whole sequence is its one repetition.
+        /* Nothing repeats from the first block. A preparation is its own
+         * subsequence or part of a hyper-TR, so within one table the whole
+         * sequence is the repetition; repeating_part() is what a diagram
+         * draws when that is so. */
         repetition_.size = blocks;
         return repetition_;
+    }
+
+    Repetition Sequence::repeating_part()
+    {
+        const Repetition whole = repetition();
+        if (whole.size < static_cast<int>(instance_def_.size()))
+            return whole;
+
+        const std::vector<int32_t> structure = structure_stream();
+        const std::vector<const std::vector<int32_t>*> streams{&instance_def_, &structure};
+        for (const std::vector<int32_t>* keys : streams)
+        {
+            const Repetition part = repeating_part_of(*keys);
+            if (part.size > 0)
+                return part;
+        }
+        return whole;
     }
 
     int Sequence::detect_rf_uses(double b0, double gamma)

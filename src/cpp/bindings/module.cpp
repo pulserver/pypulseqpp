@@ -699,6 +699,15 @@ PYBIND11_MODULE(_ext, module)
             "The repeating unit of the scan as (size, start), in blocks; a "
             "size of 0 when the sequence does not repeat.")
         .def(
+            "repeating_part",
+            [](Sequence& self) {
+                const pulseq::Repetition found = self.repeating_part();
+                return py::make_tuple(found.size, found.start);
+            },
+            "The longest repeating run as (size, start), in blocks: what a "
+            "diagram draws when a preparation or a rewind keeps the scan from "
+            "repeating as a whole.")
+        .def(
             "locate_repetition",
             [](const Sequence& self, int size) {
                 const pulseq::Repetition found = self.locate_repetition(size);
@@ -1124,7 +1133,7 @@ PYBIND11_MODULE(_ext, module)
            const std::vector<std::tuple<int, double, double, double>>& bands,
            double window, double stride, int oversampling,
            const std::array<std::array<double, 3>, 3>& rotation,
-           const std::string& mkl_runtime) {
+           const std::string& mkl_runtime, int64_t keep_spectrum) {
             std::vector<pulseq::ForbiddenBand> guarded;
             guarded.reserve(bands.size());
             for (const auto& band : bands)
@@ -1144,6 +1153,7 @@ PYBIND11_MODULE(_ext, module)
                 for (int j = 0; j < 3; ++j)
                     options.rotation[i][j] = rotation[i][j];
             options.mkl_runtime = mkl_runtime;
+            options.keep_spectrum = keep_spectrum;
 
             pulseq::ResonanceReport found;
             {
@@ -1172,10 +1182,16 @@ PYBIND11_MODULE(_ext, module)
             out["stride"] = found.stride;
             out["frequency_step"] = found.frequency_step;
             out["backend"] = found.backend;
+            if (!found.spectrum.empty())
+            {
+                out["spectrum"] = found.spectrum;
+                out["spectrum_start"] = found.spectrum_start;
+            }
             return out;
         },
         py::arg("sequence"), py::arg("bands"), py::arg("window"), py::arg("stride"),
         py::arg("oversampling"), py::arg("rotation"), py::arg("mkl_runtime") = "",
+        py::arg("keep_spectrum") = -1,
         "Windowed physical-axis gradient spectrum against forbidden bands "
         "(axis, f_min, f_max, threshold in Hz/m); amplitudes in Hz/m.");
 

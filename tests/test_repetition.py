@@ -65,6 +65,31 @@ def test_blocks_played_once_before_the_loop_make_the_whole_sequence_one(
     assert sequence._detect_tr() == (27, 1)
 
 
+def test_a_prologue_is_outside_the_run_a_diagram_draws(gradient_echo):
+    """What the scan repeats as a whole and what repeats inside it differ here:
+    the preparation belongs to the first, and a diagram wants the second."""
+    sequence = gradient_echo(lines=8, prologue=3)
+
+    assert sequence._detect_tr() == (27, 1)
+    assert sequence._native.repeating_part() == (3, 3)
+
+
+def test_the_run_a_diagram_draws_is_the_scan_unit_when_the_scan_repeats(gradient_echo):
+    sequence = gradient_echo(lines=8)
+
+    assert sequence._native.repeating_part() == (3, 0)
+
+
+def test_a_rewind_after_the_loop_is_outside_the_run_a_diagram_draws(gradient_echo):
+    sequence = gradient_echo(lines=8)
+    sequence.add_block(pp.make_trapezoid("y", area=-500, duration=1e-3))
+
+    size, start = sequence._native.repeating_part()
+
+    assert (size, start) == (3, 0)
+    assert (len(sequence) - start) // size == 8
+
+
 def test_a_sequence_in_which_nothing_repeats_is_one_repetition(gradient_echo):
     assert gradient_echo(lines=1)._detect_tr() == (3, 1)
 

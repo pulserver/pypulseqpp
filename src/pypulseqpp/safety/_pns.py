@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from types import SimpleNamespace
 from typing import NamedTuple
 
+import numpy as np
+
 from .. import _ext as _cxx
 from ._physical import _gamma, _prescription
 
@@ -91,7 +93,7 @@ def _pns(seq, model, rotation, system, keep_trace):
 
 
 def check_pns(
-    seq, model, *, rotation=None, system=None
+    seq, model, *, rotation=None, system=None, trace=False
 ) -> tuple[bool, SimpleNamespace]:
     """Check peripheral nerve stimulation against a SAFE or chronaxie model.
 
@@ -108,6 +110,10 @@ def check_pns(
         each block's own rotation; identity (axial) by default.
     system : pypulseqpp.Opts, optional
         Source of the gyromagnetic ratio; the sequence's own by default.
+    trace : bool, optional
+        Also return the response over time, which a diagnostic plot draws.
+        The trace is one value per gradient raster interval over the whole
+        sequence, so it costs four arrays of ``samples`` each.
 
     Returns
     -------
@@ -119,7 +125,9 @@ def check_pns(
         ``samples``, ``peak``, the largest root-sum-square response, and
         ``axes``, the largest response of each of x, y and z. A peak carries
         ``value`` as a fraction of threshold, the sample ``time`` (s) and the
-        1-based ``block`` that plays it.
+        1-based ``block`` that plays it. Under ``trace``, ``time`` (s),
+        ``response`` -- the root-sum-square, as a fraction of threshold -- and
+        each axis's own ``response``, all of length ``samples``.
 
     Notes
     -----
@@ -129,7 +137,7 @@ def check_pns(
     The response is evaluated over the whole sequence in one pass, carrying
     each model's memory, in bounded storage.
     """
-    kind, found = _pns(seq, model, rotation, system, keep_trace=False)
+    kind, found = _pns(seq, model, rotation, system, keep_trace=trace)
     report = SimpleNamespace(
         model=kind,
         raster=found["raster"],
@@ -140,4 +148,9 @@ def check_pns(
             for name, peak in zip("xyz", found["axes"], strict=True)
         ],
     )
+    if trace:
+        report.response = np.asarray(found["trace_norm"])
+        report.time = (np.arange(report.response.size) + 0.5) * report.raster
+        for axis, response in zip(report.axes, found["trace_axes"], strict=True):
+            axis.response = np.asarray(response)
     return report.peak.value < 1.0, report
