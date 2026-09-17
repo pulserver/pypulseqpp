@@ -204,9 +204,13 @@ safety_table(
         (
             "gradient amplitude",
             grad_ok,
-            f"{grad.vector.value / single.system.gamma * 1e3:.1f} mT/m",
+            f"{grad.per_axis.value / single.system.gamma * 1e3:.1f} mT/m",
         ),
-        ("slew rate", slew_ok, f"{slew.vector.value / single.system.gamma:.0f} T/m/s"),
+        (
+            "slew rate",
+            slew_ok,
+            f"{slew.per_axis.value / single.system.gamma:.0f} T/m/s",
+        ),
         ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
         ("mechanical resonance", mech_ok, f"{mech.bands[0].peak:.1f} mT/m in band"),
     ]

@@ -106,12 +106,12 @@ safety_table(
         (
             "gradient amplitude",
             grad_ok,
-            f"{grad.vector.value / baseline.system.gamma * 1e3:.1f} mT/m",
+            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
         ),
         (
             "slew rate",
             slew_ok,
-            f"{slew.vector.value / baseline.system.gamma:.0f} T/m/s",
+            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
         ),
         (
             "gradient continuity",
