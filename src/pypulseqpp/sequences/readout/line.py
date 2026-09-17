@@ -55,7 +55,10 @@ class _LineReadout(SequenceModule):
     gx : GradEvent
         Readout lobe. A spoiler is bridged onto it when there is one echo: the
         lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or
-        ``gx_spoil`` plays instead.
+        ``gx_spoil`` plays instead. Where the spoiler is bridged onto the end,
+        the plateau is held to the end of the acquisition block, past the last
+        sample by the ADC dead time, so that the spoiler has a plateau to leave
+        from; ``gx_spoil`` carries correspondingly less area.
     gx_spoil : GradEvent
         Closes the TR on the read axis: rewinds the part of the line after the
         echo and, under ``spoiling_position='post'``, adds the spoiler.
@@ -309,9 +312,22 @@ class _LineReadout(SequenceModule):
             gx_pre = pp.make_trapezoid(channel="x", area=area, system=system)
             flat_top_start = rise_time
 
+        hold = 0.0
         if spoiling_position == "post" and bridged:
+            # The lobe bridged onto the end leaves from the plateau, so the
+            # plateau has to reach the end of its block -- and the block runs
+            # past the last sample by the receiver's dead time, then on to the
+            # block raster. Holding it winds k of its own, which the spoiler
+            # takes back so the residual is the spoiling that was asked for.
+            sampled = flat_top_start + readout_duration
+            hold = (
+                pp.ceil_to_raster(
+                    sampled + system.adc_dead_time, system.block_duration_raster
+                )
+                - sampled
+            )
             gx_spoil = pp.make_extended_trapezoid_area(
-                area=post_area + spoil_area,
+                area=post_area + spoil_area - hold * amplitude,
                 channel="x",
                 grad_start=amplitude,
                 grad_end=0.0,
@@ -326,7 +342,11 @@ class _LineReadout(SequenceModule):
         # A bridge already supplies the ramp on the side it joins.
         if bridged:
             gx = _reshape_readout(
-                system, gx, spoiling_position == "pre", spoiling_position == "post"
+                system,
+                gx,
+                spoiling_position == "pre",
+                spoiling_position == "post",
+                hold=hold,
             )
 
         adc = pp.make_adc(
@@ -482,12 +502,19 @@ def _area(event) -> float:
     return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
 
 
-def _reshape_readout(system, gx, bridged_start: bool, bridged_end: bool):
-    """Drop whichever ramp a bridged spoiler has already provided."""
+def _reshape_readout(
+    system, gx, bridged_start: bool, bridged_end: bool, hold: float = 0.0
+):
+    """Drop whichever ramp a bridged spoiler has already provided.
+
+    ``hold`` extends the plateau past the last sample, in seconds, so that a
+    lobe bridged onto the end has a plateau to leave from at the boundary of a
+    block the receiver's dead time runs past.
+    """
     amplitude = gx.amplitude
     spans = [
         0.0 if bridged_start else gx.rise_time,
-        gx.flat_time,
+        gx.flat_time + hold,
         0.0 if bridged_end else gx.fall_time,
     ]
     amplitudes = [
