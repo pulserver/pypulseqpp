@@ -65,9 +65,9 @@ intersphinx_mapping = {
 
 #: The gallery's sections, in the order a reader should meet them.
 GALLERY_SECTIONS = [
-    "../gallery/01-basics",
-    "../gallery/02-modules",
-    "../gallery/03-applications",
+    "../gallery/01-cartesian",
+    "../gallery/02-non-cartesian",
+    "../gallery/03-advanced-design",
 ]
 
 sphinx_gallery_conf = {
@@ -85,9 +85,14 @@ sphinx_gallery_conf = {
     # Left off deliberately: it would strip the ignore flags before the page is
     # written, and _hide_ignored_code_from_the_page_only needs them there.
     "remove_config_comments": False,
-    # The section headers are written in MyST and pulled into the generated
-    # index.rst by an include, so the file has to be copied beside it.
-    "copyfile_regex": r".*\.md",
+    # Two files have to travel into the output directory: the MyST section
+    # headers, which a generated index.rst pulls in by an include, and our own
+    # root index.rst. Matching `index.rst` here is also what makes
+    # sphinx-gallery use ours: `_get_gallery_header` returns None for a
+    # directory holding an `index.rst` that this pattern matches, and the root
+    # index it would otherwise write is an orphan whose toctree flattens every
+    # example into the top level of the sidebar.
+    "copyfile_regex": r"(.*\.md|index\.rst)",
 }
 
 
@@ -238,6 +243,13 @@ html_theme_options = {
     },
     "check_switcher": False,
     "show_version_warning_banner": True,
+    # The sidebar carries the hierarchy, not every leaf: sections and the
+    # pages under them, and no deeper. Individual examples are reached from
+    # the gallery's category pages, and individual functions, classes and
+    # methods from the tables on the API pages and from each page's own
+    # contents list.
+    "max_navbar_depth": 2,
+    "show_navbar_depth": 1,
 }
 
 #: The theme's own sidebar, with the version switcher under the title.

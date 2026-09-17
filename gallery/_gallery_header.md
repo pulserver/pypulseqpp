@@ -1,21 +1,22 @@
-# Examples
+Executable sequence-design studies. Each page states a design question, varies
+the parameters that decide it, and reports a result that can be read off a
+figure or a table.
 
-Executable examples, grouped by the level at which a sequence is described.
+{doc}`Cartesian imaging </generated/gallery/01-cartesian/index>`
+: Echo-planar and fast-spin-echo acquisitions, where the readout lies on a
+  regular grid and the design freedom is in how the phase-encoded axes are
+  covered.
 
-**Pulseq basics** works at the level of the file format: system limits, RF,
-gradient and ADC events, the blocks that play them, and the analyses and
-hardware checks a finished sequence is inspected with.
+{doc}`Non-Cartesian imaging </generated/gallery/02-non-cartesian/index>`
+: Trajectory design for readouts that do not lie on a grid, where the
+  achievable trajectory is bounded by the gradient system and the receiver.
 
-**Sequence modules** works at the level of a reusable block layout. A module
-solves the timing and gradient waveforms of an excitation, a preparation or a
-readout once and exposes the resulting events; a
-{class}`~pypulseqpp.sequences.SequenceApp` adds the sampling order and the scan
-loop that plays them.
+{doc}`Advanced design </generated/gallery/03-advanced-design/index>`
+: Design parameters chosen against a simulated response or a computed
+  feasibility bound rather than prescribed.
 
-**Complete sequences** works at the level of a prescription. Each page takes
-one of the sequences the package ships and varies the parameters that separate
-its applications, showing what changes in the timing diagram, in the sampling
-pattern and in the scan duration.
-
-Conceptual background is in {doc}`../../explanations/index`, and the exhaustive
-interface semantics in {doc}`../../api/index`.
+The conceptual material these examples rely on — the Pulseq representation,
+the sequence-design abstractions, and the gradient, stimulation and SAR
+constraints — is in {doc}`/explanations/index`, and the interfaces they call
+are in {doc}`/api/index`. A page here assumes that material rather than
+restating it.

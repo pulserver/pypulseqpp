@@ -108,6 +108,22 @@ Gallery examples show complete, representative scientific uses of the library.
 
 The example galleries of MRpro, MRI-NUFFT, and DeepInv are useful models: executable scientific workflows accompanied by concise methodological explanation.
 
+#### What belongs in the gallery
+
+A gallery example should exist because executing the workflow and examining its output demonstrates something scientifically or computationally useful. If replacing it with a short code snippet in the API reference or an explanatory page would lose essentially nothing, it probably does not belong in the gallery.
+
+The following do not qualify on their own:
+
+* **API demonstrations.** Calling a function to show that it can be called.
+* **Constructor catalogues.** Instantiating several classes of a family to show that they exist.
+* **Conceptual introductions with incidental code.** Material whose value is the prose; this belongs in explanatory documentation.
+* **Interface documentation.** Command-line usage, installation, or configuration; this belongs in how-to guides.
+* **Collections of configurations whose only result is that they run.** Producing one figure per configuration is not a result if nothing is compared, measured, or concluded.
+
+Each example should have a stated objective and an observable outcome: a quantitative comparison, a measured trade-off, a trajectory or field that can be inspected, a convergence or error curve, a feasibility boundary. Figures must carry the argument rather than decorate it.
+
+Prefer a small number of strong examples to broad coverage. A gallery is not an inventory of the public interface, and no example is warranted merely because a feature would otherwise go unrepresented.
+
 An example is **not a conversational tutorial**. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation.
 
 A substantial example will often include:
@@ -227,9 +243,20 @@ When a sentence merely describes what the next line of code does, it can usually
 
 Explanatory documentation answers questions about concepts, theory, terminology, relationships between methods, architecture, and design rationale.
 
-Pyxu's conceptual introductions to inverse problems and proximal optimization are a useful model for the desired depth and register.
+Pyxu's conceptual introductions to inverse problems and proximal optimization, and MRI-NUFFT's discussion of non-uniform sampling and its operators, are useful models for the desired depth and register.
 
 This is the appropriate place for material that would be too pedagogical for API reference or too general for an example.
+
+#### Organization of an explanatory page
+
+An explanatory page is usually clearest in this order:
+
+1. **The concept or problem.** What physical, mathematical, or computational situation is being described, in standard terminology.
+2. **The formal model or criterion.** The equation, definition, or decision rule that makes the concept precise, with its symbols, units, and assumptions stated.
+3. **Consequences and trade-offs.** What the model implies for the quantities a user controls, including limiting cases and what is given up to gain something else.
+4. **The software abstraction.** How the library represents the concept, and which interface corresponds to which part of the model.
+
+The order matters: a page that opens with the class name and works outward teaches the interface rather than the subject. Sections need not carry these four labels, and a short page may cover several in one section, but a page that never reaches the formal model is under-specified, and one that never reaches the software abstraction belongs somewhere other than this project's documentation.
 
 Explanatory documentation may:
 
@@ -279,6 +306,49 @@ Avoid:
 Once a term has been introduced, use it consistently. Do not repeatedly substitute descriptive phrases for it.
 
 Explanatory prose may be more discursive than API reference, but it should remain scientific prose. Explanation is not a license for conversational, literary, or promotional writing.
+
+(pedagogical-register)=
+#### Pedagogical register
+
+Explanatory documentation is expected to teach. Teaching is done by stating mechanisms, consequences, and trade-offs explicitly, in conventional scientific prose. It is not done by metaphor, analogy in place of definition, or compressed rhetorical sentences that leave the reader to reconstruct the technical relationship.
+
+Being pedagogical therefore does not license literary writing. The two failure modes to watch for are personification and rhetorical compression.
+
+**Do not personify.** Algorithms, sequences, parameters, constraints, data structures, waveforms, files, and physical quantities do not want, ask for, know, decide, refuse, or agree. They have values, satisfy or violate conditions, and stand in defined relationships to one another.
+
+Avoid:
+
+> The solver asks the preconditioner for a better starting point, and the step size refuses anything the line search will not accept.
+
+Prefer:
+
+> The preconditioner supplies the initial iterate. The line search rejects step sizes that do not satisfy the Armijo condition, so the accepted step is the largest tested value that does.
+
+**State the relationship rather than compressing it.** A sentence that gestures at a mechanism is not shorter than one that states it; it is less useful at the same length.
+
+Avoid:
+
+> Finer discretization buys accuracy and pays for it in memory.
+
+Prefer:
+
+> Halving the grid spacing reduces the discretization error by a factor of four for a second-order scheme, and increases the number of stored unknowns by a factor of four in two dimensions.
+
+Verbs such as *buys*, *pays*, *holds*, *carries*, *walks*, *drives*, *plays*, *refuses*, *asks*, *wants*, *sits*, and *spends* are the usual vehicles for both failure modes. The rule is semantic, not lexical: use them only with their established technical meaning, and state the relationship directly when the meaning would be figurative. An amplifier drives a load, an iterator walks a tree, a buffer holds samples, a solver takes a step, a field carries energy — these are the conventional terms and are correct. The same words are wrong when they stand in for a relationship that could have been stated.
+
+**Headings name the concept.** A heading is an index entry, so it should be the technical name of what the section establishes, not a description of it or a phrase that only makes sense after reading the section.
+
+Avoid:
+
+> ## What a residual really tells you
+> ## The accuracy a finer grid buys
+> ## What the solver sees
+
+Prefer:
+
+> ## Residual norm as a convergence criterion
+> ## Discretization error and grid spacing
+> ## Operator interface required by the solver
 
 #### Depth
 
@@ -363,7 +433,9 @@ Complete sentences are generally preferable to rhetorical fragments. Concision i
 
 Avoid:
 
-* metaphors and personification for technical objects;
+* metaphors and personification for technical objects, as described under
+  {ref}`pedagogical-register`;
+* rhetorical compression in place of an explicit statement of the relationship;
 * taglines;
 * promotional or journalistic prose;
 * conversational narration;
@@ -374,6 +446,8 @@ Avoid:
 * "Reach for X...";
 * "Think of X as..." when a direct definition is available;
 * filler such as "simply", "just", "basically", and "under the hood".
+
+These apply to every documentation type. Explanatory pages carry more prose than the others and are where they are most often violated, but a heading, a docstring summary line, or a comment in a gallery example is subject to the same rule.
 
 For example:
 
@@ -566,6 +640,8 @@ A successful documentation build establishes that the documentation can be rende
 * Is theoretical background limited to what the example needs?
 * Are results interpreted concretely and conservatively?
 * Does the example demonstrate recommended public-API usage?
+* Would a short code snippet elsewhere lose essentially nothing?
+* Is there a stated objective and an observable outcome, rather than a set of configurations that merely run?
 
 ### Explanation
 
@@ -574,6 +650,8 @@ A successful documentation build establishes that the documentation can be rende
 * Are motivation, relationships, assumptions, and design choices clear?
 * Is the material accessible without sacrificing technical terminology?
 * Does the depth remain relevant to the software?
+* Does the page reach a formal model or criterion, and then the software abstraction?
+* Are mechanisms and trade-offs stated explicitly rather than compressed into a rhetorical sentence?
 
 ### Tutorials and how-to guides
 
@@ -588,6 +666,8 @@ A successful documentation build establishes that the documentation can be rende
 * Is terminology conventional and consistent?
 * Are important units and conventions explicit?
 * Is any wording present primarily to sound clever, friendly, vivid, or varied?
+* Is anything personified, and is every figurative verb either removed or used in its established technical sense?
+* Does each heading name the technical concept rather than describe it?
 * Has precision been sacrificed for accessibility?
 * Is the material in the appropriate documentation type?
 * Would removing a sentence lose useful scientific, mathematical, API, or procedural information?

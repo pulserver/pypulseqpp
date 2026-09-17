@@ -1,11 +1,12 @@
-# Documentation style guide
+# Terminology and conventions
 
-{doc}`guides/developer/documentation` is the authoritative guide, and states
-what belongs in each form of documentation. This page is its terminology and
-prose companion, and governs every docstring, documentation page, code comment and
-user-facing diagnostic string in this repository, including the C++ doc
-comments under `src/cpp/`. It is binding on human contributors and on
-automated agents alike; `AGENTS.md` requires compliance with it.
+{doc}`documentation` is the generic guide, and states what belongs in each
+form of documentation and how it should be written. This page holds the
+conventions specific to pypulseqpp, and governs every docstring, documentation
+page, code comment and user-facing diagnostic string in this repository,
+including the C++ doc comments under `src/cpp/`. It is binding on human
+contributors and on automated agents alike; `AGENTS.md` requires compliance
+with both.
 
 The target register is reference documentation for MRI researchers and
 sequence developers, in the tradition of NumPy, SciPy and Pulseq. The reader
