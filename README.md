@@ -83,4 +83,4 @@ from that build. Every example script under `gallery/` is executed as the pages
 are built, which is what the `examples` extra covers beyond `doc`.
 
 Open `docs/build/html/index.html`. Documentation contributions follow
-`docs/guides/developer/documentation.md`.
+`docs/contributing/documentation.md` and `docs/contributing/terminology.md`.

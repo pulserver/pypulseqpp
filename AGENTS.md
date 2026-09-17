@@ -39,7 +39,10 @@ separately from the MIT core.
 | `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
 | `gallery/` | sphinx-gallery example scripts, executed when the pages are built |
 | `tests/` | API, numerical, format-parity and invariant tests |
-| `docs/` | Markdown/Sphinx documentation, explanation pages and generated API reference |
+| `docs/guides/` | Task-oriented how-to guides |
+| `docs/explanations/` | Conceptual explanation pages and their build-time figures |
+| `docs/api/` | API reference pages; autosummary writes the stubs under `docs/generated/` |
+| `docs/contributing/` | The documentation guide and the project terminology conventions |
 | `viewer/` | Separate `pypulseqpp-seqeyes` package; excluded from the core distribution |
 
 Do not edit vendored submodule contents as part of core maintenance.
@@ -207,45 +210,112 @@ test compares the remaining columns explicitly.
 
 ## Documentation
 
-`docs/guides/developer/documentation.md` is the authoritative documentation
-guide for both contributors and agents. Read and follow it before creating or
-substantially modifying documentation, docstrings, examples, tutorials, or
-explanatory material.
+Two documents govern documentation, and both are binding:
 
-The documentation has four parts, and they are not interchangeable:
-`docs/api/` is reference, `docs/explanations/` is conceptual explanation,
-`gallery/` holds the executable examples sphinx-gallery builds into
-`docs/generated/gallery/`, and `docs/sequences.md` catalogues the shipped
-sequences. A gallery script is a `.py` file whose module docstring is the
-page's title and opening; `# %%` starts a text cell, and code a reader would
-not type — figure styling and print formatting — goes between
+- `docs/contributing/documentation.md` — the generic guide. What belongs in
+  each form of documentation (API reference, gallery examples, conceptual
+  explanation, tutorials and how-to guides) and how each should be written.
+- `docs/contributing/terminology.md` — the pypulseqpp conventions. Terminology,
+  register, units, frames, rasters, safety language and source-of-truth rules.
+
+Read both before creating or substantially modifying documentation,
+docstrings, examples, tutorials or explanatory material. Where they differ,
+the project page governs terminology and conventions and the generic guide
+governs documentation type and register. The summary below does not replace
+either; it states the rules most often broken.
+
+### The documentation types are not interchangeable
+
+| Location | Type | Answers |
+|---|---|---|
+| `docs/guides/` | Task-oriented how-to | How do I accomplish this task? |
+| `docs/explanations/` | Conceptual explanation | Why does this work this way? |
+| `gallery/` | Executable examples, built into `docs/generated/gallery/` | What does a representative scientific workflow look like? |
+| `docs/api/` | Reference | What exactly does this object do? |
+| `docs/sequences.md` | Catalogue of the shipped sequence implementations | Which sequences exist? |
+
+Do not transfer the prose style or level of exposition of one type into
+another. Explanations come before examples in the navigation, and an example
+links to conceptual material rather than restating it.
+
+A gallery example exists because running it and examining its output shows
+something scientifically or computationally useful. An API demonstration, a
+constructor catalogue, a conceptual introduction with incidental code,
+command-line documentation, or a set of configurations whose only result is
+that they run does not belong in the gallery. Prefer few strong examples.
+
+### Mechanics
+
+A gallery script is a `.py` file whose module docstring is the page's title
+and opening; `# %%` starts a text cell, and code a reader would not type —
+figure styling and print formatting — goes between
 `# sphinx_gallery_start_ignore` and `# sphinx_gallery_end_ignore` so it runs
 without appearing on the page. Every script is executed at build time, so an
-example that cannot run cannot be merged. Explanation figures are functions in
+example that cannot run cannot be merged.
+
+Two things keep the gallery's sidebar hierarchy nested. `gallery/index.rst` is
+ours rather than generated: `copyfile_regex` matching `index.rst` is what makes
+sphinx-gallery use it, and without it sphinx-gallery emits an orphan root index
+whose toctree flattens every example into the top level. And each `index.rst`
+and `README.rst` carries its own reStructuredText title above the
+`.. include::` of its Markdown header, because a title that arrives through the
+include leaves the toctree beneath it outside the page's section, which flattens
+it in the same way.
+
+Explanation figures are functions in
 `docs/explanation_figures.py`, registered in its `FIGURES` mapping and drawn
 from the code being built rather than committed as images.
 
-Treat its distinction between API reference, gallery examples, conceptual
-explanation, and tutorials/how-to guides as a requirement. Do not transfer the
-prose style or level of exposition of one documentation type into another.
+### Terminology, in brief
 
-Project-specific terminology and conventions take precedence over generic
-examples in the guide.
+- Use conventional MRI and Pulseq terminology. Do not replace an established
+  term with a paraphrase of what it does.
+- Keep these distinct: gradient *waveform*, gradient *event*, *amplitude*,
+  *slew rate*, *area*/*moment*, and *k-space trajectory*. A waveform is not a
+  trajectory, and a trajectory is not a set of ADC sampling locations.
+- Keep these distinct: *RF waveform*, *RF event*, *flip angle*, and the
+  playout parameters (frequency and phase offsets). An *ADC event* is the
+  acquisition window; *samples*, *dwell time*, *receiver bandwidth* and
+  *bandwidth per pixel* are separate quantities.
+- Units, frames and rasters are API semantics, not incidental detail. State
+  them.
+- *interleaf* / *interleaves* are the count nouns for one shot of a multi-shot
+  non-Cartesian trajectory.
+- Four layers, never conflated: the **Pulseq representation** (what a `.seq`
+  file holds), the **pypulseqpp abstraction** (compiled events, sequence
+  modules, designers, checks), **PyPulseq interoperability** (a preserved
+  upstream signature or event convention), and **scanner execution** (what an
+  interpreter does on hardware, which belongs to Pulserver). Do not attribute
+  a property of one layer to another.
+- This package computes checks and estimates. A passing check does not
+  establish that a sequence is safe to run on a scanner or on a subject.
+  Never write "safe", "validated", "compliant" or "approved" of a sequence
+  that passed one. Preserve the existing disclaimers verbatim.
+- Write dry, declarative technical prose. Do not personify sequences,
+  parameters, constraints, waveforms or files, and do not use a figurative
+  verb where the technical relationship can be stated directly. Headings name
+  the concept.
+
+### Verification and revision
+
+Verify substantive semantics against the implementation, the tests, the
+`.seq` format authority (`pypulseq-matlab-like`), upstream PyPulseq, and the
+Pulseq specification or primary literature — in that order. Existing prose is
+not evidence.
 
 When modifying existing documentation:
 
-* verify substantive semantics against implementation, tests, authoritative
-  upstream specifications/libraries, and literature where appropriate;
-* do not treat existing prose as authoritative;
-* preserve technically good documentation and avoid unrelated stylistic churn;
-* flag unresolved semantic discrepancies rather than guessing;
-* when useful material is in the wrong documentation type, move or develop it
-  in the appropriate location rather than automatically deleting it.
+* preserve technically good material and avoid unrelated stylistic churn;
+* move misplaced material to the correct documentation type rather than
+  deleting it;
+* rewrite only what is inaccurate, redundant, misplaced or stylistically
+  inappropriate;
+* flag unresolved semantic discrepancies rather than guessing.
 
-When auditing or refactoring documentation, explicitly check for
-conversational or literary LLM prose, paraphrastic replacements for
-established technical terminology, personification, taglines, code narration,
-and technically imprecise attempts at accessibility.
+When auditing documentation, check explicitly for conversational or literary
+prose, paraphrastic replacements for established terminology, personification,
+taglines, code narration, and technically imprecise attempts at accessibility.
 
-After substantial documentation work, build the documentation, run relevant
-documentation tests/examples, and inspect the rendered output.
+After substantial documentation work, build the documentation, run the
+documentation tests and the executed examples, and inspect the rendered
+output, including the sidebar hierarchy.

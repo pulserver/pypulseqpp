@@ -92,6 +92,7 @@ sdist.include = [
   "/docs/explanation_figures.py",
   "/docs/*.md",
   "/docs/api/*.md",
+  "/docs/contributing/*.md",
   "/docs/explanations/**/*.md",
   "/docs/guides/**/*.md",
   "/docs/misc/*.md",

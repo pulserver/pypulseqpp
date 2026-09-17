@@ -5,7 +5,7 @@ nonzero amplitude and is followed by a block whose gradient starts at a
 different amplitude is asking the amplifier for a step, and the hardware has to
 slew it like any other change.
 {func}`~pypulseqpp.safety.check_grad_continuity` finds those steps, and
-establishes that the sequence leaves every axis at zero.
+establishes that every axis ends the sequence at zero amplitude.
 
 ## The criterion
 
@@ -30,22 +30,22 @@ and is not reported; the right one could not.
 ```
 
 A discontinuity is therefore not a second physical constraint alongside the
-slew limit. It is the slew limit applied where no waveform exists to carry the
-change, and the report states it as a step, naming the block, the axis, the
+slew limit. It is the slew limit applied where no waveform exists to realize
+the change, and the report states it as a step, naming the block, the axis, the
 amplitudes on either side and the slew rate the step implies — the form that
 says which pair of blocks to fix rather than which number to lower.
 
-## Ending at zero
+## Final gradient amplitude
 
-The report also carries `ends_at_zero`: whether the last block leaves every
-physical axis at zero amplitude. A sequence that ends with a gradient still on
-leaves the amplifier in a state the next scan does not expect, and the verdict
-is false whether or not any boundary step was found.
+The report also states `ends_at_zero`: whether the last block ends every
+physical axis at zero amplitude. A sequence that ends with a gradient still at
+a nonzero amplitude begins the next acquisition from an unknown state, and the
+verdict is false whether or not any boundary step was found.
 
-## Why both endpoints need their own rotation
+## Rotation of the endpoint amplitudes
 
 Each block's `ROTATIONS` extension applies to that block's gradients. Two
-consecutive blocks under different rotations can hold identical logical
+consecutive blocks under different rotations can contain identical logical
 waveforms and still present a step to the amplifiers, because the same logical
 vector resolves onto different physical axes on either side of the boundary.
 
@@ -56,7 +56,7 @@ non-Cartesian readout that returns to zero between shots is unaffected; one
 that runs continuously across the boundary has to be designed so that the
 rotated endpoints meet.
 
-## Reading the report
+## Contents of the report
 
 The blocks a discontinuity names are 1-based indices into the sequence, which
 is what {meth}`~pypulseqpp.Sequence.get_block` takes and what
@@ -64,7 +64,7 @@ is what {meth}`~pypulseqpp.Sequence.get_block` takes and what
 {func}`~pypulseqpp.plot.plot_kspace` accept as a `block_range`, so a reported
 boundary can be looked at directly.
 
-## Related
+## Related pages
 
 * {func}`~pypulseqpp.safety.check_grad_continuity` — the call and its report.
 * {doc}`slew_rate` — the same inequality inside a waveform.

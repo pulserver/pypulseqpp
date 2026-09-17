@@ -37,11 +37,19 @@ builds and tests. If `pre-commit` rewrites a file, review and stage it again.
 
 ## Comments and documentation
 
-[`docs/documentation_style.md`](docs/documentation_style.md) is the
-documentation style guide. Read it before changing a docstring, a page under
-`docs/`, a code comment or a user-facing diagnostic string. It sets the
-terminology, the register, the unit, frame and raster conventions, the
-safety-language rules and what has to be verified against which source.
+Two documents govern this, and both are binding. Read them before changing a
+docstring, a page under `docs/`, a code comment or a user-facing diagnostic
+string.
+
+[`docs/contributing/documentation.md`](docs/contributing/documentation.md) is
+the documentation guide: what belongs in reference, in an explanation, in a
+gallery example and in a how-to guide, and the register each is written in.
+
+[`docs/contributing/terminology.md`](docs/contributing/terminology.md) is the
+project's terminology and conventions: the established MRI and Pulseq terms,
+the unit, frame and raster conventions, the four layers a statement can be
+about, the safety-language rules and what has to be verified against which
+source.
 
 In short: use the established MRI and Pulseq term rather than a paraphrase of
 it; document units, coordinate frames, composition order and rasters as part of
@@ -64,9 +72,10 @@ bash scripts/build_docs.sh
 It compiles the checkout into `docs/build/site` and runs Sphinx against that
 build, with warnings as errors; extra arguments are passed to `sphinx-build`.
 
-Open `docs/build/html/index.html`. API pages live in `docs/api/`, the example
-sequences are indexed in `docs/examples/`, and the documentation style guide is
-`docs/documentation_style.md`. The user and developer guides remain scaffolds.
+Open `docs/build/html/index.html`. How-to guides live in `docs/guides/`,
+conceptual pages in `docs/explanations/`, the API reference in `docs/api/`, the
+executable examples in `gallery/`, and the shipped sequences are catalogued in
+`docs/sequences.md`.
 
 ## Releasing
 
