@@ -41,7 +41,11 @@ exclude_patterns = [
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "linkify"]
 myst_footnote_transition = False
 
-autosummary_generate = True
+# Named, not True: with True the pages to read are taken from the environment
+# left by the previous build, which is empty on a clean checkout, and no stub is
+# written at all. `api_objects.rst` carries every object list and is written
+# ahead of autosummary's own handler.
+autosummary_generate = ["api_objects.rst"]
 autodoc_inherit_docstrings = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "none"
