@@ -35,6 +35,15 @@ def _first_line(module):
     return k_traj_adc[:, :count], np.asarray(t_adc)[:count], float(t_excitation[0])
 
 
+def _acquisition_block(module):
+    """The 1-based index of the block the ADC is played in."""
+    return next(
+        index
+        for index, block in enumerate(module.blocks, start=1)
+        if any(getattr(event, "type", None) == "adc" for event in block)
+    )
+
+
 # ----------------------------------------------------------------------
 # Layout
 # ----------------------------------------------------------------------
@@ -218,6 +227,63 @@ def test_the_spoiler_rides_the_readout_lobe_rather_than_waiting_for_it(system, s
     assert spoiled.gx_spoil.type == "grad"
     assert spoiled.gx_spoil.first == pytest.approx(spoiled.gx.amplitude, rel=1e-6)
     assert spoiled.gx_spoil.last == pytest.approx(0.0, abs=1e-6)
+
+
+@pytest.mark.parametrize("adc_dead_time", [0.0, 10e-6, 30e-6])
+def test_a_bridged_lobe_holds_its_plateau_to_the_end_of_the_block(adc_dead_time):
+    """The spoiler leaves from the plateau, so the plateau must still be there.
+
+    The acquisition block runs past the last sample by the receiver's dead
+    time, and on to the block raster. A lobe that stopped at the last sample
+    would leave the gradient undefined over that gap at a nonzero amplitude,
+    which is what the gradient the next block bridges onto starts from.
+    """
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=150,
+        slew_unit="T/m/s",
+        adc_dead_time=adc_dead_time,
+    )
+    slab = design.SpatialSelectiveExcitation(system, 8.0, FOV[2], is_slab=True)
+    readout = readout3d(system, slab, spoiling_cycles=4.0)
+
+    block = readout.seq.get_block(_acquisition_block(readout))
+    assert pp.calc_duration(readout.gx) == pytest.approx(block.block_duration)
+    assert readout.check_timing()[0]
+
+
+@pytest.mark.parametrize("adc_dead_time", [0.0, 10e-6, 30e-6])
+def test_the_spoiler_takes_back_the_k_the_plateau_hold_wound(adc_dead_time):
+    """Holding the plateau winds k, and what the TR leaves behind is the spoiling.
+
+    The dead time is the receiver's, so it may not move the trajectory: the
+    residual on the read axis is the spoiling that was asked for, whatever the
+    acquisition block is padded out to.
+    """
+    cycles, voxel = 4.0, 1e-3
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=150,
+        slew_unit="T/m/s",
+        adc_dead_time=adc_dead_time,
+    )
+    slab = design.SpatialSelectiveExcitation(system, 8.0, FOV[2], is_slab=True)
+    readout = readout3d(system, slab, spoiling_cycles=cycles, voxel_size_m=voxel)
+
+    residual = readout.calculate_kspace()[1][0][-1]
+    assert residual == pytest.approx(cycles / voxel, rel=1e-6)
+
+
+def test_a_system_without_a_dead_time_holds_nothing(system, slab):
+    """The hold is the dead time's, so a system declaring none pays for none.
+
+    Without one the lobe ends where the samples do.
+    """
+    assert system.adc_dead_time == 0.0
+    readout = readout3d(system, slab, spoiling_cycles=4.0)
+    assert pp.calc_duration(readout.gx) == pytest.approx(pp.calc_duration(readout.adc))
 
 
 def test_the_default_voxel_is_the_readout_resolution(system, slab):
