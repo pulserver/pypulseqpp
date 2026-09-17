@@ -2,13 +2,14 @@
 
 A changing gradient field induces an electric field in the body, and above a
 threshold that field depolarizes peripheral nerves. The sensation reported is a
-tapping or twitching at the extremities, and in a sequence that switches its
-gradients hard this constraint commonly binds before the amplifier's own limits
-do.
+tapping or twitching at the extremities. In a sequence with rapid gradient
+switching this constraint is commonly reached at a lower slew rate than the
+amplifier's own limit, so it, rather than the hardware, determines the
+shortest usable echo spacing.
 {func}`~pypulseqpp.safety.check_pns` estimates the response of a stated nerve
 model to the sequence's slew and compares it with that model's threshold.
 
-## The quantity that is bounded
+## Strength-duration relation
 
 Nerve excitation is not a function of the instantaneous rate of change alone.
 A membrane integrates the stimulus over a time constant, so a brief, intense
@@ -39,11 +40,12 @@ approach their own asymptotes. A sequence's verdict therefore depends on the
 duration of its transitions, not on its peak slew rate alone.
 ```
 
-## The two model families
+## Nerve model families
 
 {class}`~pypulseqpp.safety.ChronaxieModel` states the relation above directly,
 with one coefficient set for all three physical axes: a `chronaxie` in seconds,
-a `rheobase` in T/m/s, and a dimensionless `alpha` carrying the coil geometry.
+a `rheobase` in T/m/s, and a dimensionless `alpha` representing the coil
+geometry.
 The response is normalized by `rheobase / alpha`, so a rectangular slew $S$ held
 for $\tau$ reaches
 
@@ -63,7 +65,7 @@ practice. The description is either shaped like upstream PyPulseq's
 The response computation is upstream PyPulseq's `calc_pns`, so a script that
 used it gets the same numbers.
 
-## What the check evaluates
+## Evaluation over the sequence
 
 The gradient is sampled at the centres of the sequence's own gradient raster,
 starting from rest, and the slew is the difference between neighbouring
@@ -79,17 +81,18 @@ sequence passes when $R(t) < 1$ at every sample. The report names the peak, the
 time and block it was found in, and the largest response of each axis on its
 own.
 
-Because the models carry memory, the check runs over the whole sequence in one
-pass rather than over a representative repetition: a response built up over a
-long echo train is not visible in any single repetition of it. The pass keeps
-only the model state, so its storage does not grow with the sequence.
+Because the response at one sample depends on the preceding slew history, the
+check runs over the whole sequence in one pass rather than over a
+representative repetition: a response accumulated over a long echo train is not
+visible in any single repetition of it. The pass retains only the model state,
+so its storage does not grow with the sequence.
 
-## Orientation
+## Dependence on prescription orientation
 
 With a chronaxie model, whose three axes share one coefficient set, the
 combined response is unchanged by a rotation: the per-axis responses are linear
-in the per-axis slew, so rotating redistributes the components and leaves the
-root-sum-square where it was.
+in the per-axis slew, so a rotation redistributes the components without
+changing the root-sum-square.
 
 With a SAFE description it is not. The axes have different thresholds and
 different time constants, so an oblique prescription that moves a fast-switching
@@ -100,21 +103,21 @@ the worst orientation rather than by the one it was designed at.
 
 ## Design consequences
 
-The three ways a sequence reduces its stimulation estimate all lengthen it.
+The three ways to reduce a stimulation estimate all lengthen the acquisition.
 Lowering the slew rate lengthens every ramp, and with it the echo spacing.
 Lengthening the acquisition window lowers the readout gradient's amplitude and
-therefore its ramps. Splitting a single-shot train into several shots reduces
-neither the slew rate nor the amplitude, but shortens the run over which the
-model's memory accumulates.
+therefore the duration of its ramps. Splitting a single-shot train into several
+shots changes neither the slew rate nor the amplitude, but shortens the
+interval over which the response accumulates.
 
 Because the estimate is a fraction of a stated model's threshold and not a
 measurement, a sequence close to 1 is a sequence whose verdict depends on which
 description it was checked with.
 
-## Related
+## Related pages
 
 * {func}`~pypulseqpp.safety.check_pns` and
   {func}`~pypulseqpp.safety.read_safe_model` — the calls.
 * {doc}`slew_rate` — the amplifier's own bound on switching.
-* {doc}`../../generated/gallery/01-basics/02-analysis-and-checks` — the check
-  run on an echo-planar sequence.
+* {doc}`../../guides/checking-constraints` — running the check over a
+  sequence and reading its report.

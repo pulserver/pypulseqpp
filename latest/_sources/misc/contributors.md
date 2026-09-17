@@ -6,5 +6,5 @@ The full list of contributors is the commit history of the
 
 See the [contribution guide](https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md)
 for how to set up a checkout, which checks a pull request has to pass, and the
-release process. Documentation contributions additionally follow the
-{doc}`../documentation_style`.
+release process. Documentation contributions additionally follow
+{doc}`../contributing/documentation` and {doc}`../contributing/terminology`.

@@ -4,10 +4,9 @@
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Contributing
+:caption: Guides
 
-guides/developer/documentation
-documentation_style
+guides/index
 ```
 
 ```{toctree}
@@ -16,6 +15,9 @@ documentation_style
 :caption: Explanations
 
 explanations/index
+explanations/pulseq/index
+explanations/design/index
+explanations/safety/index
 ```
 
 ```{toctree}
@@ -28,10 +30,20 @@ generated/gallery/index
 
 ```{toctree}
 :hidden:
-:caption: API Reference
+:maxdepth: 2
+:caption: API reference
 
 api/index
 sequences
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 2
+:caption: Contributing
+
+contributing/documentation
+contributing/terminology
 ```
 
 ```{toctree}

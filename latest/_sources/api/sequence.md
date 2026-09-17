@@ -9,7 +9,7 @@ under, and the geometry transforms applied to it.
 
 ## Sequence container
 
-{doc}`../explanations/pulseq` describes the format these objects represent.
+{doc}`../explanations/pulseq/index` describes the format these objects represent.
 
 {class}`Sequence` holds the event libraries, block table, definitions and
 system limits of one Pulseq sequence. It builds, reads and writes the sequence,
