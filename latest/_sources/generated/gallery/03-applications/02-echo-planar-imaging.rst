@@ -92,7 +92,7 @@ image.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f7097dfea20>, tr=1, underlays=[3, 5, 7, 9, 11, 13, 15, 17, 19])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18afc8560>, tr=1, underlays=[3, 5, 7, 9, 11, 13, 15, 17, 19])
 
 
 
@@ -142,7 +142,7 @@ played, each carrying its own ``REP`` counter.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a7d5d790>, tr=1, underlays=[4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa1ab7ae510>, tr=1, underlays=[4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46])
 
 
 
@@ -215,7 +215,7 @@ phase-encoded rather than excited slice by slice.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a7cb39e0>, tr=1, underlays=[9, 17, 25, 32, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b0eeba0>, tr=1, underlays=[9, 17, 25, 32, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
 
 
 
@@ -266,7 +266,7 @@ milliseconds.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a7a7c350>, tr=1, underlays=[9, 12, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18a590e00>, tr=1, underlays=[9, 12, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113])
 
 
 
@@ -327,7 +327,7 @@ bound, not two measurements of the same quantity.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.386 seconds)
+   **Total running time of the script:** (0 minutes 1.397 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-applications_02-echo-planar-imaging.py:

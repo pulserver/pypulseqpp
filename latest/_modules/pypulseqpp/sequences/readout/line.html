@@ -1152,7 +1152,10 @@
 <span class="sd">    gx : GradEvent</span>
 <span class="sd">        Readout lobe. A spoiler is bridged onto it when there is one echo: the</span>
 <span class="sd">        lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or</span>
-<span class="sd">        ``gx_spoil`` plays instead.</span>
+<span class="sd">        ``gx_spoil`` plays instead. Where the spoiler is bridged onto the end,</span>
+<span class="sd">        the plateau is held to the end of the acquisition block, past the last</span>
+<span class="sd">        sample by the ADC dead time, so that the spoiler has a plateau to leave</span>
+<span class="sd">        from; ``gx_spoil`` carries correspondingly less area.</span>
 <span class="sd">    gx_spoil : GradEvent</span>
 <span class="sd">        Closes the TR on the read axis: rewinds the part of the line after the</span>
 <span class="sd">        echo and, under ``spoiling_position='post'``, adds the spoiler.</span>
@@ -1406,9 +1409,22 @@
             <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
             <span class="n">flat_top_start</span> <span class="o">=</span> <span class="n">rise_time</span>
 
+        <span class="n">hold</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span> <span class="ow">and</span> <span class="n">bridged</span><span class="p">:</span>
+            <span class="c1"># The lobe bridged onto the end leaves from the plateau, so the</span>
+            <span class="c1"># plateau has to reach the end of its block -- and the block runs</span>
+            <span class="c1"># past the last sample by the receiver's dead time, then on to the</span>
+            <span class="c1"># block raster. Holding it winds k of its own, which the spoiler</span>
+            <span class="c1"># takes back so the residual is the spoiling that was asked for.</span>
+            <span class="n">sampled</span> <span class="o">=</span> <span class="n">flat_top_start</span> <span class="o">+</span> <span class="n">readout_duration</span>
+            <span class="n">hold</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+                    <span class="n">sampled</span> <span class="o">+</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
+                <span class="p">)</span>
+                <span class="o">-</span> <span class="n">sampled</span>
+            <span class="p">)</span>
             <span class="n">gx_spoil</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
-                <span class="n">area</span><span class="o">=</span><span class="n">post_area</span> <span class="o">+</span> <span class="n">spoil_area</span><span class="p">,</span>
+                <span class="n">area</span><span class="o">=</span><span class="n">post_area</span> <span class="o">+</span> <span class="n">spoil_area</span> <span class="o">-</span> <span class="n">hold</span> <span class="o">*</span> <span class="n">amplitude</span><span class="p">,</span>
                 <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
                 <span class="n">grad_start</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
                 <span class="n">grad_end</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
@@ -1423,7 +1439,11 @@
         <span class="c1"># A bridge already supplies the ramp on the side it joins.</span>
         <span class="k">if</span> <span class="n">bridged</span><span class="p">:</span>
             <span class="n">gx</span> <span class="o">=</span> <span class="n">_reshape_readout</span><span class="p">(</span>
-                <span class="n">system</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span><span class="p">,</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span>
+                <span class="n">system</span><span class="p">,</span>
+                <span class="n">gx</span><span class="p">,</span>
+                <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span><span class="p">,</span>
+                <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"post"</span><span class="p">,</span>
+                <span class="n">hold</span><span class="o">=</span><span class="n">hold</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
@@ -1579,12 +1599,19 @@
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">waveform</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">tt</span><span class="p">)))</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_reshape_readout</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">bridged_start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">bridged_end</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Drop whichever ramp a bridged spoiler has already provided."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_reshape_readout</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">bridged_start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">bridged_end</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">hold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Drop whichever ramp a bridged spoiler has already provided.</span>
+
+<span class="sd">    ``hold`` extends the plateau past the last sample, in seconds, so that a</span>
+<span class="sd">    lobe bridged onto the end has a plateau to leave from at the boundary of a</span>
+<span class="sd">    block the receiver's dead time runs past.</span>
+<span class="sd">    """</span>
     <span class="n">amplitude</span> <span class="o">=</span> <span class="n">gx</span><span class="o">.</span><span class="n">amplitude</span>
     <span class="n">spans</span> <span class="o">=</span> <span class="p">[</span>
         <span class="mf">0.0</span> <span class="k">if</span> <span class="n">bridged_start</span> <span class="k">else</span> <span class="n">gx</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span>
-        <span class="n">gx</span><span class="o">.</span><span class="n">flat_time</span><span class="p">,</span>
+        <span class="n">gx</span><span class="o">.</span><span class="n">flat_time</span> <span class="o">+</span> <span class="n">hold</span><span class="p">,</span>
         <span class="mf">0.0</span> <span class="k">if</span> <span class="n">bridged_end</span> <span class="k">else</span> <span class="n">gx</span><span class="o">.</span><span class="n">fall_time</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">amplitudes</span> <span class="o">=</span> <span class="p">[</span>

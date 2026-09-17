@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:47.945** total execution time for 8 files **from all galleries**:
+**00:48.511** total execution time for 8 files **from all galleries**:
 
 .. container::
 
@@ -33,26 +33,26 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_03-applications_03-fast-spin-echo.py` (``../gallery/03-applications/03-fast-spin-echo.py``)
-     - 00:26.947
+     - 00:27.126
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-applications_01-gradient-echo-families.py` (``../gallery/03-applications/01-gradient-echo-families.py``)
-     - 00:14.165
+     - 00:14.419
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-applications_04-non-cartesian.py` (``../gallery/03-applications/04-non-cartesian.py``)
-     - 00:02.338
+     - 00:02.398
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-applications_02-echo-planar-imaging.py` (``../gallery/03-applications/02-echo-planar-imaging.py``)
-     - 00:01.386
+     - 00:01.397
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-modules_02-sequence-applications.py` (``../gallery/02-modules/02-sequence-applications.py``)
-     - 00:01.007
+     - 00:01.023
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-modules_01-modules.py` (``../gallery/02-modules/01-modules.py``)
-     - 00:00.857
+     - 00:00.870
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-basics_02-analysis-and-checks.py` (``../gallery/01-basics/02-analysis-and-checks.py``)
-     - 00:00.783
+     - 00:00.815
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-basics_01-events-and-blocks.py` (``../gallery/01-basics/01-events-and-blocks.py``)
-     - 00:00.462
+     - 00:00.463
      - 0.0

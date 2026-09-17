@@ -1249,7 +1249,10 @@ the pulse.</p></li>
 spoiler under <code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>.</p></li>
 <li><p><strong>gx</strong> (<em>GradEvent</em>) – Readout lobe. A spoiler is bridged onto it when there is one echo: the
 lobe then lacks the ramp on the spoiler’s side, which <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code> or
-<code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> plays instead.</p></li>
+<code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> plays instead. Where the spoiler is bridged onto the end,
+the plateau is held to the end of the acquisition block, past the last
+sample by the ADC dead time, so that the spoiler has a plateau to leave
+from; <code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> carries correspondingly less area.</p></li>
 <li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Closes the TR on the read axis: rewinds the part of the line after the
 echo and, under <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.
 Left-aligned with <code class="docutils literal notranslate"><span class="pre">gy_rew</span></code>.</p></li>

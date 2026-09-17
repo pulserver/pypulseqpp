@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.245** total execution time for 2 files **from generated/gallery/01-basics**:
+**00:01.278** total execution time for 2 files **from generated/gallery/01-basics**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_01-basics_02-analysis-and-checks.py` (``02-analysis-and-checks.py``)
-     - 00:00.783
+     - 00:00.815
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-basics_01-events-and-blocks.py` (``01-events-and-blocks.py``)
-     - 00:00.462
+     - 00:00.463
      - 0.0

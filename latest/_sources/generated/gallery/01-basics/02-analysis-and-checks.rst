@@ -213,7 +213,7 @@ between echoes while the phase-encode blips step through k-space.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f7097dfc800>, tr=1, underlays=[2, 3])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa17aa33d10>, tr=1, underlays=[2, 3])
 
 
 
@@ -553,7 +553,7 @@ dropping the fields that revision has no column for.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.783 seconds)
+   **Total running time of the script:** (0 minutes 0.815 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-basics_02-analysis-and-checks.py:

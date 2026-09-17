@@ -31,7 +31,7 @@ resulting events under names the scan loop addresses them by. The loop chooses
 the views, scales the encoding events and adds the blocks; nothing about the
 sampling order is fixed by the module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 15-46
+.. GENERATED FROM PYTHON SOURCE LINES 15-52
 
 .. code-block:: Python
 
@@ -41,7 +41,13 @@ sampling order is fixed by the module.
     import pypulseqpp as pp
     from pypulseqpp import sequences
 
-    system = pp.Opts(max_grad=32.0, grad_unit="mT/m", max_slew=130.0, slew_unit="T/m/s")
+    system = pp.Opts(
+        max_grad=32.0,
+        grad_unit="mT/m",
+        max_slew=130.0,
+        slew_unit="T/m/s",
+        adc_dead_time=10e-6,
+    )
 
     FOV = (220e-3, 220e-3)
     MATRIX = (128, 96)
@@ -54,7 +60,7 @@ sampling order is fixed by the module.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-56
+.. GENERATED FROM PYTHON SOURCE LINES 53-62
 
 Excitation
 ----------
@@ -66,7 +72,7 @@ half. Its ``selection_amplitude`` is the plateau of the selection lobe, which
 a slice offset is converted against: ``freq_offset = selection_amplitude *
 position``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-67
+.. GENERATED FROM PYTHON SOURCE LINES 62-73
 
 .. code-block:: Python
 
@@ -95,14 +101,14 @@ position``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-72
+.. GENERATED FROM PYTHON SOURCE LINES 74-78
 
 The time-bandwidth product trades profile sharpness against pulse duration at
 a fixed slice thickness. :meth:`~pypulseqpp.sequences.RfModule.sim_rf`
 simulates the Bloch response of the module's own pulse across off-resonance,
 which for a selective pulse is the slice profile.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-114
+.. GENERATED FROM PYTHON SOURCE LINES 78-120
 
 
 
@@ -122,7 +128,7 @@ which for a selective pulse is the slice profile.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-125
+.. GENERATED FROM PYTHON SOURCE LINES 121-131
 
 Readout
 -------
@@ -135,7 +141,7 @@ in an interval the repetition already has to wait out. ``te=None`` asks for
 the shortest echo time the readout admits, which the module reports as
 ``echo_time``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-141
+.. GENERATED FROM PYTHON SOURCE LINES 131-147
 
 .. code-block:: Python
 
@@ -163,14 +169,14 @@ the shortest echo time the readout admits, which the module reports as
 
  .. code-block:: none
 
-    TE 2.86 ms over 6.76 ms
+    TE 2.86 ms over 6.78 ms
     receiver bandwidth 100 kHz
     published events: adc, gx, gx_pre, gx_spoil, gy_pre, gy_rew, gz, gz_reph, lobe, rf
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-150
+.. GENERATED FROM PYTHON SOURCE LINES 148-156
 
 Preparation
 -----------
@@ -181,7 +187,7 @@ inversion and the first excitation belongs to the scan loop, which is what
 lets the same module serve a single-shot inversion recovery and a segmented
 magnetization-prepared train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-156
+.. GENERATED FROM PYTHON SOURCE LINES 156-162
 
 .. code-block:: Python
 
@@ -204,7 +210,7 @@ magnetization-prepared train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 157-170
+.. GENERATED FROM PYTHON SOURCE LINES 163-176
 
 The scan loop
 -------------
@@ -220,7 +226,7 @@ recovery interval is therefore the inversion time less what remains of the
 inversion module after its pulse and less what precedes the excitation pulse
 in its own module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 170-214
+.. GENERATED FROM PYTHON SOURCE LINES 176-220
 
 .. code-block:: Python
 
@@ -282,11 +288,11 @@ in its own module.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 215-216
+.. GENERATED FROM PYTHON SOURCE LINES 221-222
 
 The inversion, the recovery interval and the first repetitions of one shot:
 
-.. GENERATED FROM PYTHON SOURCE LINES 216-219
+.. GENERATED FROM PYTHON SOURCE LINES 222-225
 
 .. code-block:: Python
 
@@ -307,18 +313,18 @@ The inversion, the recovery interval and the first repetitions of one shot:
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a82f3530>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa17afe53a0>, tr=None, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 220-224
+.. GENERATED FROM PYTHON SOURCE LINES 226-230
 
 The interval the design asked for, against the one the block table plays.
 :meth:`~pypulseqpp.Sequence.rf_times` with ``compat=False`` returns every
 pulse's centre time with the ``use`` it is tagged with, which is what
 separates the inversion from the excitations that follow it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 224-231
+.. GENERATED FROM PYTHON SOURCE LINES 230-237
 
 .. code-block:: Python
 
@@ -342,7 +348,7 @@ separates the inversion from the excitations that follow it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 232-233
+.. GENERATED FROM PYTHON SOURCE LINES 238-239
 
 .. code-block:: Python
 
@@ -368,7 +374,7 @@ separates the inversion from the excitations that follow it.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.857 seconds)
+   **Total running time of the script:** (0 minutes 0.870 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-modules_01-modules.py:

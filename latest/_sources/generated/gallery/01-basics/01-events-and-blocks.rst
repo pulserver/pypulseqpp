@@ -369,7 +369,7 @@ not.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a8656540>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b4763f0>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
 
 
 
@@ -453,7 +453,7 @@ anything downstream needs goes there before the file is written.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.462 seconds)
+   **Total running time of the script:** (0 minutes 0.463 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-basics_01-events-and-blocks.py:

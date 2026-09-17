@@ -37,7 +37,13 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import sequences
 
-system = pp.Opts(max_grad=32.0, grad_unit="mT/m", max_slew=130.0, slew_unit="T/m/s")
+system = pp.Opts(
+    max_grad=32.0,
+    grad_unit="mT/m",
+    max_slew=130.0,
+    slew_unit="T/m/s",
+    adc_dead_time=10e-6,
+)
 
 FOV = (220e-3, 220e-3)
 MATRIX = (128, 96)

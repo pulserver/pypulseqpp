@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.864** total execution time for 2 files **from generated/gallery/02-modules**:
+**00:01.893** total execution time for 2 files **from generated/gallery/02-modules**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_02-modules_02-sequence-applications.py` (``02-sequence-applications.py``)
-     - 00:01.007
+     - 00:01.023
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-modules_01-modules.py` (``01-modules.py``)
-     - 00:00.857
+     - 00:00.870
      - 0.0

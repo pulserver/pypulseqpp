@@ -97,7 +97,7 @@ deposition, and its usable length is bounded by T2 decay.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a7c53a40>, tr=1, underlays=[8, 15, 22, 28, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 99, 106, 111])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b0bd1c0>, tr=1, underlays=[8, 15, 22, 28, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 99, 106, 111])
 
 
 
@@ -263,7 +263,7 @@ how long each one waits.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 26.947 seconds)
+   **Total running time of the script:** (0 minutes 27.126 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-applications_03-fast-spin-echo.py:

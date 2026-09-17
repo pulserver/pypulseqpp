@@ -89,7 +89,7 @@ than of the slice.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a831ec30>, tr=1, underlays=[22, 43, 49, 64, 85, 106, 127, 148, 169, 190, 211, 232, 253, 274, 295, 316])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa17a282ab0>, tr=1, underlays=[22, 43, 49, 64, 85, 106, 127, 148, 169, 190, 211, 232, 253, 274, 295, 316])
 
 
 
@@ -139,7 +139,7 @@ even/odd trajectory difference for the reconstruction to correct.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f7097d2dfa0>, tr=1, underlays=[9, 51, 101, 151, 201, 251, 301, 351, 395, 401, 451, 501, 551, 601, 651, 701, 751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa17a9c5b80>, tr=1, underlays=[9, 51, 101, 151, 201, 251, 301, 351, 395, 401, 451, 501, 551, 601, 651, 701, 751])
 
 
 
@@ -186,7 +186,7 @@ together with the train length, not from ``ti`` alone.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a8304350>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b0cb770>, tr=None, underlays=[])
 
 
 
@@ -237,7 +237,7 @@ covered over as many heartbeats as it has segments.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a8654500>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b14e150>, tr=1, underlays=[])
 
 
 
@@ -273,7 +273,7 @@ gated sequences pay a recovery or a cardiac interval per train.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 14.165 seconds)
+   **Total running time of the script:** (0 minutes 14.419 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-applications_01-gradient-echo-families.py:

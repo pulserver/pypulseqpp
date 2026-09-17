@@ -153,7 +153,7 @@ is what makes the family tolerant of motion between shots.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a7f479e0>, tr=1, underlays=[11, 17, 21, 31, 41, 51, 61, 65, 71, 81, 91, 101, 111, 121, 131, 141, 145, 151])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18ab62ab0>, tr=1, underlays=[11, 17, 21, 31, 41, 51, 61, 65, 71, 81, 91, 101, 111, 121, 131, 141, 145, 151])
 
 
 
@@ -273,7 +273,7 @@ are themselves the shape, and the library grows with the view count.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.338 seconds)
+   **Total running time of the script:** (0 minutes 2.398 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-applications_04-non-cartesian.py:

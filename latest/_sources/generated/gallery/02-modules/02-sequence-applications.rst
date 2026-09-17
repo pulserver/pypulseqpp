@@ -223,7 +223,7 @@ runs the loop and then ``finalize``.
     timing: ok
     TE 2.86 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f70a8422ba0>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa18b4a0170>, tr=None, underlays=[])
 
 
 
@@ -406,7 +406,7 @@ which is ``init_sequence``'s, and the help text from that method's
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.007 seconds)
+   **Total running time of the script:** (0 minutes 1.023 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-modules_02-sequence-applications.py:
