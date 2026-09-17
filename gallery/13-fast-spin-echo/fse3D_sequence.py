@@ -46,7 +46,9 @@ def order_figure(seq, n_y, n_z):
     """The echo index and the shot index of every view, side by side."""
     line, partition, echo, shot = _views(seq, n_y, n_z)
     figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.6), sharey=True)
-    for axis, value, label in zip(axes, (echo, shot), ("Echo index", "Shot index")):
+    for axis, value, label in zip(
+        axes, (echo, shot), ("Echo index", "Shot index"), strict=True
+    ):
         drawn = axis.scatter(line, partition, c=value, cmap="turbo", s=9, linewidth=0)
         figure.colorbar(drawn, ax=axis, label=label, pad=0.02)
         axis.set_xlabel("$k_y$ (lines from centre)")
@@ -74,6 +76,7 @@ def envelope_figure(envelopes, esp_ms, weighting):
 
 
 def safety_table(rows):
+    """Print a check, its verdict and its peak, one per line."""
     print(f"{'check':26} {'result':8} {'peak':>22}")
     for name, ok, peak in rows:
         print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
@@ -89,17 +92,24 @@ def safety_table(rows):
 # ``(line, partition)`` views of one train are chosen so that the early echoes
 # land at the centre of k-space.
 
-import numpy as np
 
-import pypulseqpp as pp
 from pypulseqpp.sequences import fse3D_sequence
 
-PRESCRIPTION = {"n_x": 128, "n_y": 96, "n_z": 16, "fov_x": 0.2, "fov_y": 0.2, "fov_z": 0.1}
+PRESCRIPTION = {
+    "n_x": 128,
+    "n_y": 96,
+    "n_z": 16,
+    "fov_x": 0.2,
+    "fov_y": 0.2,
+    "fov_z": 0.1,
+}
 
 baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=0.6, n_dummy=0)
-print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
-      f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
-      f"TE {baseline.get_definition('TE')[0] * 1e3:.1f} ms")
+print(
+    f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
+    f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
+    f"TE {baseline.get_definition('TE')[0] * 1e3:.1f} ms"
+)
 
 # %%
 # Sequence diagram
@@ -134,9 +144,11 @@ long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=0.6, n_dummy=0)
 print(f"{'':10} {'ETL':>5} {'shots':>7} {'scan (s)':>10} {'train (ms)':>12}")
 for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
     _, _, echo, shot = _views(seq, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
-    print(f"{name:10} {int(echo.max()) + 1:5d} {int(shot.max()) + 1:7d} "
-          f"{seq.duration()[0]:10.1f} "
-          f"{(int(echo.max()) + 1) * seq.get_definition('EchoSpacing')[0] * 1e3:12.1f}")
+    print(
+        f"{name:10} {int(echo.max()) + 1:5d} {int(shot.max()) + 1:7d} "
+        f"{seq.duration()[0]:10.1f} "
+        f"{(int(echo.max()) + 1) * seq.get_definition('EchoSpacing')[0] * 1e3:12.1f}"
+    )
 # sphinx_gallery_end_ignore
 
 # %%
@@ -196,9 +208,21 @@ pns_ok, pns = safety.check_pns(baseline, model)
 # sphinx_gallery_start_ignore
 safety_table(
     [
-        ("gradient amplitude", grad_ok, f"{grad.vector.value / baseline.system.gamma * 1e3:.1f} mT/m"),
-        ("slew rate", slew_ok, f"{slew.vector.value / baseline.system.gamma:.0f} T/m/s"),
-        ("gradient continuity", cont_ok, f"{len(cont.discontinuities)} discontinuities"),
+        (
+            "gradient amplitude",
+            grad_ok,
+            f"{grad.vector.value / baseline.system.gamma * 1e3:.1f} mT/m",
+        ),
+        (
+            "slew rate",
+            slew_ok,
+            f"{slew.vector.value / baseline.system.gamma:.0f} T/m/s",
+        ),
+        (
+            "gradient continuity",
+            cont_ok,
+            f"{len(cont.discontinuities)} discontinuities",
+        ),
         ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
     ]
 )

@@ -39,7 +39,7 @@ def _views(seq, n_y):
     starts = np.flatnonzero(imaging & ~np.roll(imaging, 1))
     stops = np.append(starts[1:], len(lin))
     out = []
-    for a, b in zip(starts, stops):
+    for a, b in zip(starts, stops, strict=True):
         keep = imaging[a:b]
         lines = lin[a:b][keep]
         out.append((int(seg[a]), np.arange(len(lines)), lines))
@@ -48,10 +48,8 @@ def _views(seq, n_y):
 
 def traversal_figure(designs, n_y):
     """Line read against echo index, one panel per design."""
-    figure, axes = plt.subplots(
-        1, len(designs), figsize=(PAGE_WIDTH, 3.0), sharey=True
-    )
-    for axis, (title, seq) in zip(np.atleast_1d(axes), designs.items()):
+    figure, axes = plt.subplots(1, len(designs), figsize=(PAGE_WIDTH, 3.0), sharey=True)
+    for axis, (title, seq) in zip(np.atleast_1d(axes), designs.items(), strict=True):
         trains = _views(seq, n_y)
         colours = plt.get_cmap("turbo")(
             np.linspace(0.1, 0.9, max(len({shot for shot, _, _ in trains}), 2))
@@ -70,10 +68,15 @@ def traversal_figure(designs, n_y):
 def coverage_figure(designs, n_y):
     """Which lines each design acquires, as a row per design."""
     figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 1.1 + 0.4 * len(designs)))
-    for row, (title, seq) in enumerate(designs.items()):
+    for row, seq in enumerate(designs.values()):
         lines = np.concatenate([line for _, _, line in _views(seq, n_y)])
-        axis.plot(np.sort(lines), np.full(lines.size, row), "|", ms=9,
-                  color=plt.get_cmap("turbo")(0.15 + 0.35 * row))
+        axis.plot(
+            np.sort(lines),
+            np.full(lines.size, row),
+            "|",
+            ms=9,
+            color=plt.get_cmap("turbo")(0.15 + 0.35 * row),
+        )
     axis.set_yticks(range(len(designs)), list(designs))
     axis.set_xlabel("$k_y$ (lines from centre)")
     axis.set_ylim(-0.6, len(designs) - 0.4)
@@ -83,6 +86,7 @@ def coverage_figure(designs, n_y):
 
 
 def safety_table(rows):
+    """Print a check, its verdict and its peak, one per line."""
     print(f"{'check':26} {'result':8} {'peak':>22}")
     for name, ok, peak in rows:
         print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
@@ -98,12 +102,13 @@ def safety_table(rows):
 # long as the matrix, and the echo spacing times the train length is what a
 # spin at a given off-resonance is displaced by.
 
-import pypulseqpp as pp
 from pypulseqpp.sequences import epi2D_sequence
 
 single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
-print(f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
-      f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms")
+print(
+    f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
+    f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms"
+)
 
 # %%
 # Sequence diagram
@@ -134,16 +139,20 @@ designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
 # A spin at offset df gains 2*pi*df*esp of phase per echo, which is linear in
 # k_y and so a displacement of df * esp * etl pixels, whatever step the train
 # takes. The last column is that displacement per hertz of off-resonance.
-print(f"{'':10} {'echoes':>7} {'trains':>7} {'per train':>10} {'TE (ms)':>9} "
-      f"{'scan (ms)':>10} {'px per Hz':>10}")
+print(
+    f"{'':10} {'echoes':>7} {'trains':>7} {'per train':>10} {'TE (ms)':>9} "
+    f"{'scan (ms)':>10} {'px per Hz':>10}"
+)
 for title, seq in designs.items():
     trains = _views(seq, 96)
     echoes = sum(len(line) for _, _, line in trains)
     per_train = echoes / len(trains)
     esp = seq.get_definition("EchoSpacing")[0]
-    print(f"{title:10} {echoes:7d} {len(trains):7d} {per_train:10.1f} "
-          f"{seq.get_definition('TE')[0] * 1e3:9.2f} {seq.duration()[0] * 1e3:10.1f} "
-          f"{esp * per_train:10.3f}")
+    print(
+        f"{title:10} {echoes:7d} {len(trains):7d} {per_train:10.1f} "
+        f"{seq.get_definition('TE')[0] * 1e3:9.2f} {seq.duration()[0] * 1e3:10.1f} "
+        f"{esp * per_train:10.3f}"
+    )
 # sphinx_gallery_end_ignore
 
 # %%
@@ -192,7 +201,11 @@ mech_ok, mech = safety.check_mech_resonance(single, bands, window_width=20e-3)
 # sphinx_gallery_start_ignore
 safety_table(
     [
-        ("gradient amplitude", grad_ok, f"{grad.vector.value / single.system.gamma * 1e3:.1f} mT/m"),
+        (
+            "gradient amplitude",
+            grad_ok,
+            f"{grad.vector.value / single.system.gamma * 1e3:.1f} mT/m",
+        ),
         ("slew rate", slew_ok, f"{slew.vector.value / single.system.gamma:.0f} T/m/s"),
         ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
         ("mechanical resonance", mech_ok, f"{mech.bands[0].peak:.1f} mT/m in band"),
@@ -215,7 +228,7 @@ spectrum = safety.mech_resonance_spectrum(
 
 # sphinx_gallery_start_ignore
 figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
-for name, amplitude in zip(spectrum.axes, spectrum.amplitude):
+for name, amplitude in zip(spectrum.axes, spectrum.amplitude, strict=True):
     axis.plot(spectrum.frequency, amplitude, lw=0.9, label=f"$G_{name}$")
 band = mech.bands[0]
 axis.axvspan(band.f_min, band.f_max, color="tab:red", alpha=0.15, lw=0)

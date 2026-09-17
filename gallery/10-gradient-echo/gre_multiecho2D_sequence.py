@@ -1,40 +1,128 @@
 """
-=====================================
+=======================================
 2D Cartesian multi-echo gradient echo
-=====================================
+=======================================
 
-Each excitation is followed by several readout lobes, so one phase-encode line
-is sampled at several echo times and the decay across them measures T2*.
+One excitation per repetition, with the line read again at several echo
+times. The signal decays between echoes at a rate the tissue's apparent
+transverse relaxation sets, so one repetition measures the decay rather
+than one point on it.
 """
 
+# sphinx_gallery_start_ignore
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+plt.rcParams.update(
+    {
+        "figure.dpi": 110,
+        "savefig.dpi": 110,
+        "font.size": 10,
+        "axes.titlesize": 11,
+        "axes.labelsize": 10,
+    }
+)
+
+
+def safety_table(rows):
+    """Print a check, its verdict and its peak, one per line."""
+    print(f"{'check':26} {'result':8} {'peak':>22}")
+    for name, ok, peak in rows:
+        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
+
+
+# sphinx_gallery_end_ignore
+
 # %%
-# The sequence is designed by one call. Every parameter of the prescription is
-# documented on its :doc:`API page </generated/sequences/gre_multiecho2D_sequence>`.
+# Baseline
+# --------
+#
+# Four echoes after one excitation, read in alternating directions.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_multiecho2D_sequence
 
-seq = gre_multiecho2D_sequence(
-    n_x=192,
-    n_y=192,
-    n_slices=1,
-    n_echoes=4,
-    te=None,
-    tr=None,
-    n_dummy=0,
+baseline = gre_multiecho2D_sequence(
+    n_x=192, n_y=192, n_slices=1, n_echoes=4, te=None, tr=None, n_dummy=0
 )
-print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
+print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+print("TE", [round(t * 1e3, 2) for t in baseline.get_definition("TE")], "ms")
 
 # %%
 # Sequence diagram
 # ----------------
-#
-# One repetition, with the others drawn underneath in grey.
 
-seq.paper_plot(tr=48)
+baseline.paper_plot()
 
 # %%
-# Acquisition order
-# -----------------
+# Sampling order
+# --------------
+#
+# Colouring by echo index separates the echoes of one excitation; colouring by
+# shot separates the excitations.
 
-pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
+pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
+
+# %%
+# A longer echo train
+# -------------------
+#
+# More echoes sample the decay further into it, at the cost of a longer
+# repetition and a later last echo.
+
+alternative = gre_multiecho2D_sequence(
+    n_x=192, n_y=192, n_slices=1, n_echoes=8, te=None, tr=None, n_dummy=0
+)
+
+# sphinx_gallery_start_ignore
+print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
+for name, seq in (("4 echoes", baseline), ("8 echoes", alternative)):
+    print(
+        f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
+        f"{seq._native.num_adc():13d}"
+    )
+# sphinx_gallery_end_ignore
+
+# %%
+pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+
+# %%
+# Safety checks
+# -------------
+#
+# A passing check does not establish that a sequence is safe to run on a
+# scanner or on a subject. The nerve model below is a demonstration, not a
+# scanner's.
+
+from pypulseqpp import safety
+
+model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+grad_ok, grad = safety.check_max_grad(baseline)
+slew_ok, slew = safety.check_max_slew(baseline)
+cont_ok, cont = safety.check_grad_continuity(baseline)
+pns_ok, pns = safety.check_pns(baseline, model)
+
+# sphinx_gallery_start_ignore
+safety_table(
+    [
+        (
+            "gradient amplitude",
+            grad_ok,
+            f"{grad.vector.value / baseline.system.gamma * 1e3:.1f} mT/m",
+        ),
+        (
+            "slew rate",
+            slew_ok,
+            f"{slew.vector.value / baseline.system.gamma:.0f} T/m/s",
+        ),
+        (
+            "gradient continuity",
+            cont_ok,
+            f"{len(cont.discontinuities)} discontinuities",
+        ),
+        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
+    ],
+)
+# sphinx_gallery_end_ignore

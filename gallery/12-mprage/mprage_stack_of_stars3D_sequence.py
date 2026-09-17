@@ -47,7 +47,10 @@ def order_figure(seq, n_z):
     figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.4), sharey=True)
     arm, partition, index, cycle = _views(seq, n_z)
     for axis, value, label in zip(
-        axes, (index, cycle), ("Readout index in train", "Inversion cycle")
+        axes,
+        (index, cycle),
+        ("Readout index in train", "Inversion cycle"),
+        strict=True,
     ):
         drawn = axis.scatter(arm, partition, c=value, cmap="turbo", s=10, linewidth=0)
         figure.colorbar(drawn, ax=axis, label=label, pad=0.02)
@@ -59,6 +62,7 @@ def order_figure(seq, n_z):
 
 
 def safety_table(rows):
+    """Print a check, its verdict and its peak, one per line."""
     print(f"{'check':26} {'result':8} {'peak':>22}")
     for name, ok, peak in rows:
         print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
@@ -77,10 +81,14 @@ def safety_table(rows):
 import pypulseqpp as pp
 from pypulseqpp.sequences import mprage_stack_of_stars3D_sequence
 
-compact = mprage_stack_of_stars3D_sequence(n=96, n_z=8, ry=8, ti=0.06, tr=0.205, n_dummy=0)
-print(f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
-      f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
-      f"TR {compact.get_definition('TR')[0] * 1e3:.0f} ms")
+compact = mprage_stack_of_stars3D_sequence(
+    n=96, n_z=8, ry=8, ti=0.06, tr=0.205, n_dummy=0
+)
+print(
+    f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
+    f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
+    f"TR {compact.get_definition('TR')[0] * 1e3:.0f} ms"
+)
 
 # %%
 compact.paper_plot()
@@ -95,7 +103,9 @@ compact.paper_plot()
 # one partition to the next so that the spokes of neighbouring partitions do
 # not coincide.
 
-protocol = mprage_stack_of_stars3D_sequence(n=192, n_z=16, ry=4, ti=0.9, tr=2.3, n_dummy=0)
+protocol = mprage_stack_of_stars3D_sequence(
+    n=192, n_z=16, ry=4, ti=0.9, tr=2.3, n_dummy=0
+)
 
 # sphinx_gallery_start_ignore
 order_figure(protocol, 16)
@@ -128,9 +138,21 @@ pns_ok, pns = safety.check_pns(protocol, model)
 # sphinx_gallery_start_ignore
 safety_table(
     [
-        ("gradient amplitude", grad_ok, f"{grad.vector.value / protocol.system.gamma * 1e3:.1f} mT/m"),
-        ("slew rate", slew_ok, f"{slew.vector.value / protocol.system.gamma:.0f} T/m/s"),
-        ("gradient continuity", cont_ok, f"{len(cont.discontinuities)} discontinuities"),
+        (
+            "gradient amplitude",
+            grad_ok,
+            f"{grad.vector.value / protocol.system.gamma * 1e3:.1f} mT/m",
+        ),
+        (
+            "slew rate",
+            slew_ok,
+            f"{slew.vector.value / protocol.system.gamma:.0f} T/m/s",
+        ),
+        (
+            "gradient continuity",
+            cont_ok,
+            f"{len(cont.discontinuities)} discontinuities",
+        ),
         ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
     ]
 )
