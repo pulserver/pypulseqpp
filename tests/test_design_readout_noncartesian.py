@@ -640,6 +640,46 @@ def test_the_dwell_always_lands_on_the_adc_raster(system, excitation):
         assert steps == pytest.approx(round(steps)), bandwidth
 
 
+@pytest.mark.parametrize(
+    ("cls", "kwargs"),
+    [
+        (design.RadialReadout2D, {}),
+        (design.SpiralReadout2D, {"design_interleaves": 16}),
+        (design.RosetteReadout2D, {"petals": 5}),
+    ],
+    ids=["radial", "spiral", "rosette"],
+)
+def test_the_acquisition_ends_a_dead_time_before_the_readout_gradient_does(cls, kwargs):
+    """A window outlasting the waveform would stretch the acquisition block past
+    it, and the gradient would reach the next block at an amplitude that block
+    does not continue."""
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=150,
+        slew_unit="T/m/s",
+        adc_dead_time=10e-6,
+    )
+    excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+    readout = _readout(cls, system, excitation, **kwargs)
+
+    adc = readout.adc
+    acquisition = next(
+        block for block in readout.blocks if any(event is adc for event in block)
+    )
+    waveforms = [
+        event for event in acquisition if getattr(event, "channel", None) in ("x", "y")
+    ]
+    sampled = float(adc.delay) + int(adc.num_samples) * float(adc.dwell)
+
+    assert float(adc.delay) >= system.adc_dead_time
+    assert (
+        sampled + system.adc_dead_time
+        <= max(pp.calc_duration(waveform) for waveform in waveforms) + 1e-12
+    )
+    assert readout.check_timing()[0]
+
+
 def test_oversampling_a_spiral_samples_the_same_arm_more_densely(system, excitation):
     plain = _readout(design.SpiralReadout2D, system, excitation, design_interleaves=16)
     dense = _readout(

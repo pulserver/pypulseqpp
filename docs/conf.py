@@ -204,6 +204,21 @@ def _draw_explanation_figures(app) -> None:
     render(Path(app.srcdir, "generated", "figures"))
 
 
+def _write_api_object_index(app) -> None:
+    """Generate every object's stub page from a page outside the navigation tree.
+
+    The API pages list their objects without ``:toctree:``; this collects the
+    same lists into an orphan page that writes the stubs, so the sidebar can
+    show the Examples hierarchy without also showing every method stub.
+    """
+    import sys
+
+    sys.path.insert(0, str(Path(app.srcdir)))
+    from api_objects import write
+
+    write(app.srcdir)
+
+
 def _write_sequence_pages(app) -> None:
     """Write a reference page and figures for every shipped complete sequence.
 
@@ -224,6 +239,7 @@ def setup(app):
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("builder-inited", _draw_explanation_figures)
+    app.connect("builder-inited", _write_api_object_index)
     app.connect("builder-inited", _write_sequence_pages)
     handlers = logging.getLogger("sphinx").handlers
     if not handlers:
@@ -262,12 +278,13 @@ html_theme_options = {
     },
     "check_switcher": False,
     "show_version_warning_banner": True,
-    # The sidebar carries the hierarchy, not every leaf: sections and the
-    # pages under them, and no deeper. Individual examples are reached from
-    # the gallery's category pages, and individual functions, classes and
-    # methods from the tables on the API pages and from each page's own
-    # contents list.
-    "max_navbar_depth": 2,
+    # The sidebar carries the hierarchy, not every leaf: the Examples tree
+    # down to its sequence families, and the API reference down to its
+    # category pages. Individual examples are reached from the tables on the
+    # landing pages, and individual objects from the tables on the API pages,
+    # whose stubs are generated from `generated/api_objects.rst` and so never
+    # enter this tree.
+    "max_navbar_depth": 3,
     "show_navbar_depth": 1,
 }
 

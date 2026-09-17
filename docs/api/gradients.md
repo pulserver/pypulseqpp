@@ -16,7 +16,6 @@ wave-CAIPI corkscrew trajectory.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    make_arbitrary_grad
@@ -37,7 +36,6 @@ states how the operation changes the event's timing.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    add_gradients

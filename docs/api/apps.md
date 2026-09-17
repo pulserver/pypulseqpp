@@ -17,7 +17,6 @@ under {doc}`../sequences`.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    SequenceApp

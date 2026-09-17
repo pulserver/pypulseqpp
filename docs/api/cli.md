@@ -11,7 +11,6 @@ signed Pulseq text or in the binary form.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    run

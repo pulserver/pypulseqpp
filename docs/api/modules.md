@@ -18,7 +18,6 @@ A {class}`SequenceModule` lays its blocks out in `init_module`; an
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    SequenceModule
@@ -29,7 +28,6 @@ A {class}`SequenceModule` lays its blocks out in `init_module`; an
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    NonSelectiveExcitation
@@ -47,7 +45,6 @@ A {class}`SequenceModule` lays its blocks out in `init_module`; an
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    InversionPreparation
@@ -65,7 +62,6 @@ A {class}`SequenceModule` lays its blocks out in `init_module`; an
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    LineReadout2D
@@ -88,7 +84,6 @@ The spiral and rosette readouts design theirs from the prescription.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    NonCartesianReadout
@@ -114,7 +109,6 @@ gradients to and from k = 0. The scan loop rotates it per shot.
 
 ```{eval-rst}
 .. autosummary::
-   :toctree: ../generated
    :nosignatures:
 
    NonCartesianGradient

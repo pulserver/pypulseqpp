@@ -27,3 +27,6 @@
    ~{{ name }}.{{ item }}
 {%- endfor %}
 {% endif %}
+
+.. minigallery:: {{ module }}.{{ objname }}
+   :add-heading: Examples using ``{{ objname }}``
