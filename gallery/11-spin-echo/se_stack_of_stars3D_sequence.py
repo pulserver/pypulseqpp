@@ -42,7 +42,7 @@ def safety_table(rows):
 import pypulseqpp as pp
 from pypulseqpp.sequences import se_stack_of_stars3D_sequence
 
-baseline = se_stack_of_stars3D_sequence(n=192, n_z=16, te=None, tr=None, n_dummy=0)
+baseline = se_stack_of_stars3D_sequence(n=96, n_z=8, te=None, tr=None, n_dummy=0)
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
 
@@ -56,9 +56,9 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The spokes of the stack projected onto the plane.
+# The spokes of every partition, over the three k-space axes.
 
-pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+pp.plot.plot_kspace(baseline, color_by="shot")
 
 # %%
 # Angular undersampling
@@ -67,7 +67,7 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # One spoke in four, which shortens the scan fourfold.
 
 alternative = se_stack_of_stars3D_sequence(
-    n=192, n_z=16, ry=4, te=None, tr=None, n_dummy=0
+    n=96, n_z=8, ry=4, te=None, tr=None, n_dummy=0
 )
 
 # sphinx_gallery_start_ignore
@@ -80,7 +80,7 @@ for name, seq in (("Nyquist", baseline), ("ry = 4", alternative)):
 # sphinx_gallery_end_ignore
 
 # %%
-pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
 # Safety checks

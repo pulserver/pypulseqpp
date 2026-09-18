@@ -1897,10 +1897,12 @@ class Sequence:
         """Draw a publication-style diagram of one repetition, using mrsd.
 
         Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn
-        from the waveform the sequence plays and scaled to its row: the three
-        gradient rows share one scale. The other repetitions are drawn
-        underneath in ``underlay_color``, which shows what changes from one to
-        the next, and a TR interval is marked below.
+        from the waveform the sequence plays. Every row carries its own scale,
+        set by the largest magnitude that channel reaches over the repetitions
+        drawn, so heights are comparable within a row and not between rows. The
+        other repetitions are drawn underneath in ``underlay_color``, which
+        shows what changes from one to the next, and a TR interval is marked
+        below.
 
         Parameters
         ----------

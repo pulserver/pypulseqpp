@@ -188,3 +188,19 @@ def test_the_diagram_can_be_drawn_into_given_axes(system):
     drawn = encoded(system, 10).paper_plot(ax=ax)
 
     assert drawn.diagram.plot is ax
+
+
+def test_each_gradient_row_is_scaled_by_its_own_peak(system):
+    # The readout on x is weaker than the encode on y, which is weaker than the
+    # spoiler on z, so one scale over the three would leave the x row a sliver.
+    seq = encoded(system, 4)
+
+    drawn = seq.paper_plot(max_underlays=0)
+
+    traces = [
+        patch for patch in drawn.diagram.plot.patches if type(patch).__name__ == "Trace"
+    ]
+    assert len(traces) == 4  # RF and the three gradient axes
+    for trace in traces:
+        reach = float(np.abs(trace.get_path().vertices[:, 1]).max())
+        assert reach == pytest.approx(0.9)
