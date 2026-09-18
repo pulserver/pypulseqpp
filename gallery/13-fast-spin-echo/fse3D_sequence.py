@@ -114,8 +114,13 @@ print(
 # %%
 # Sequence diagram
 # ----------------
+#
+# The excitation, the CPMG train with a crusher pair around every refocusing
+# pulse, and the phase and partition encodes that are wound before each
+# readout and unwound after it. The window covers the train; the rest of the
+# repetition time is recovery, and drawing it would leave the train a sliver.
 
-baseline.paper_plot()
+baseline.paper_plot(time_range=(0, 16 * baseline.get_definition("EchoSpacing")[0]))
 
 # %%
 # Echo order and shot order

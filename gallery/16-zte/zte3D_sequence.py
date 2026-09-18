@@ -55,17 +55,23 @@ print(
 # %%
 # Sequence diagram
 # ----------------
+#
+# Every half-spoke carries its own gradient direction, so the repeating unit
+# the diagram would otherwise draw is a whole set of directions. A window of a
+# few milliseconds shows the unit that matters: the gradient is already on when
+# the hard pulse plays, the ADC opens as soon as the transmitter has settled,
+# and the amplitude steps to the next direction between spokes.
 
-baseline.paper_plot()
+baseline.paper_plot(time_range=(0, 2e-3))
 
 # %%
 # Sampling order
 # --------------
 #
-# The half-spokes projected onto a plane. Each starts at the centre of
-# k-space and runs outward.
+# The half-spokes over the three k-space axes. Each starts at the centre of
+# k-space and runs outward to the surface of the sampled sphere.
 
-pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+pp.plot.plot_kspace(baseline, color_by="shot")
 
 # %%
 # Fewer views
@@ -88,7 +94,7 @@ for name, seq in (("Nyquist", baseline), ("half the views", alternative)):
 # sphinx_gallery_end_ignore
 
 # %%
-pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
 # Safety checks

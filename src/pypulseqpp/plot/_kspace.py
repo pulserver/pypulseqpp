@@ -43,6 +43,21 @@ def _frame(axis, points: np.ndarray) -> None:
         setter(low - margin, high + margin)
 
 
+def _within(path: np.ndarray, points: np.ndarray) -> np.ndarray:
+    """Return ``path`` with the samples outside the box around ``points`` set to NaN.
+
+    A 3D axis draws a line beyond its own limits, so a prewinder or a spoiler
+    that leaves the sampled volume would set the apparent scale of the figure.
+    Breaking the polyline there leaves the trajectory between the sampling
+    locations and nothing else.
+    """
+    low = points.min(axis=1)[:, None]
+    high = points.max(axis=1)[:, None]
+    margin = 0.05 * np.maximum(high - low, 1e-12)
+    outside = ((path < low - margin) | (path > high + margin)).any(axis=0)
+    return np.where(outside, np.nan, path)
+
+
 def _readout_trains(seq, first: int, last: int):
     """Return samples per readout, the pulses opening each echo train, and their mapping.
 
@@ -181,7 +196,8 @@ def plot_kspace(
         if plane is None:
             axis = figure.add_subplot(1, len(panels), column, projection="3d")
             if path is not None:
-                axis.plot(path[0], path[1], path[2], lw=0.4, color="0.7")
+                inside = _within(path[:3], adc)
+                axis.plot(inside[0], inside[1], inside[2], lw=0.4, color="0.7")
             drawn = axis.scatter(adc[0], adc[1], adc[2], **shared)
             axis.set_xlabel(_AXES["x"][1])
             axis.set_ylabel(_AXES["y"][1])

@@ -123,12 +123,10 @@ def _pieces(wave, scale, lift=0.0):
     ]
 
 
-def _largest(drawn, names):
+def _largest(drawn, name):
+    """Return the peak magnitude one channel reaches over every range drawn."""
     values = [
-        np.abs(rows[name][1]).max()
-        for rows, _, _ in drawn
-        for name in names
-        if rows[name].shape[1]
+        np.abs(rows[name][1]).max() for rows, _, _ in drawn if rows[name].shape[1]
     ]
     return max(values, default=0.0)
 
@@ -186,10 +184,7 @@ def paper_plot(
             ]
     drawn = [_played(seq, first, last, rf_plot) for first, last in ranges]
 
-    scales = {"RF": _largest(drawn, ("RF",))}
-    scales.update(
-        dict.fromkeys(("Gx", "Gy", "Gz"), _largest(drawn, ("Gx", "Gy", "Gz")))
-    )
+    scales = {name: _largest(drawn, name) for name in ("RF", "Gx", "Gy", "Gz")}
     colors = {"RF": rf_color, "Gx": gx_color, "Gy": gy_color, "Gz": gz_color}
 
     if ax is None:

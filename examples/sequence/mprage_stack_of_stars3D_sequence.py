@@ -139,8 +139,8 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         flip_angle_deg: float = 9.0,
         te: float | None = None,
         esp: float | None = None,
-        ti: float = 900e-3,
-        tr: float = 2300e-3,
+        ti: float | None = 900e-3,
+        tr: float | None = 2300e-3,
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         rz: int = 1,
@@ -174,11 +174,13 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         esp : float | None, optional
             Spacing of successive spoke excitations (s). ``None`` is as short
             as the readout admits.
-        ti : float, optional
+        ti : float | None, optional
             Inversion time (s), from the inversion pulse's centre to the first
-            spoke's excitation.
-        tr : float, optional
-            Inversion-to-inversion interval (s).
+            spoke's excitation. ``None`` is as short as the inversion module
+            admits.
+        tr : float | None, optional
+            Inversion-to-inversion interval (s). ``None`` leaves one raster of
+            recovery after the train.
         readout_bandwidth_hz : float, optional
             Requested receiver bandwidth (Hz).
         ry : int, optional
@@ -235,7 +237,6 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         self.fov, self.matrix, self.fov_z = fov, (n, n, n_z), fov_z
         self.excitation = excitation
         self.partition_angle_shift = partition_angle_shift
-        self.ti, self.repetition_time = ti, tr
         self.inv = sequences.InversionPreparation(
             system, voxel_size_m=min(fov / n, fov_z / n_z)
         )
@@ -273,19 +274,25 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
             self.inv.rf_prep.delay + self.inv.rf_prep.center
         )
         ti_floor = inversion_tail + ro.rf.delay + ro.rf.center
-        if ti < ti_floor + raster - 1e-9:
+        if ti is None:
+            ti = ti_floor + raster
+        elif ti < ti_floor + raster - 1e-9:
             raise ValueError(
                 f"the requested TI of {ti * 1e3:.3f} ms is shorter than the "
                 f"{(ti_floor + raster) * 1e3:.3f} ms the inversion takes"
             )
         self.wait_ti = pp.make_delay(pp.round_to_raster(ti - ti_floor, raster))
+        self.ti = ti
         body = self.inv.duration + self.wait_ti.delay + len(self.spokes) * self.esp
+        if tr is None:
+            tr = body + raster
         recovery = tr - body
         if recovery < raster - 1e-9:
             raise ValueError(
                 f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
                 f"{(body + raster) * 1e3:.3f} ms one shot takes"
             )
+        self.repetition_time = tr
         # Navigators ride in the recovery, where they cost no scan time.
         self.navigator, self.n_navigators, navigating = None, 0, 0.0
         if navigator:
