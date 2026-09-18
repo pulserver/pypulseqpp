@@ -104,7 +104,7 @@ PRESCRIPTION = {
     "fov_z": 0.1,
 }
 
-baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=0.6, n_dummy=0)
+baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=None, n_dummy=0)
 print(
     f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
     f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
@@ -115,12 +115,12 @@ print(
 # Sequence diagram
 # ----------------
 #
-# The excitation, the CPMG train with a crusher pair around every refocusing
-# pulse, and the phase and partition encodes that are wound before each
-# readout and unwound after it. The window covers the train; the rest of the
-# repetition time is recovery, and drawing it would leave the train a sliver.
+# The automatically detected repetition contains the excitation, the CPMG
+# train with a crusher pair around every refocusing pulse, and the phase and
+# partition encodes before and after each readout. The solid trace is a
+# representative train; the shaded traces retain the range of encodes.
 
-baseline.paper_plot(time_range=(0, 16 * baseline.get_definition("EchoSpacing")[0]))
+baseline.paper_plot()
 
 # %%
 # Echo order and shot order
@@ -143,7 +143,7 @@ order_figure(baseline, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
 # A longer train acquires the volume in fewer excitations and reaches further
 # into the decay, so the weight it applies to the outer lines is smaller.
 
-long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=0.6, n_dummy=0)
+long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=None, n_dummy=0)
 
 # sphinx_gallery_start_ignore
 print(f"{'':10} {'ETL':>5} {'shots':>7} {'scan (s)':>10} {'train (ms)':>12}")

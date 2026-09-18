@@ -56,13 +56,12 @@ print(
 # Sequence diagram
 # ----------------
 #
-# Every half-spoke carries its own gradient direction, so the repeating unit
-# the diagram would otherwise draw is a whole set of directions. A window of a
-# few milliseconds shows the unit that matters: the gradient is already on when
-# the hard pulse plays, the ADC opens as soon as the transmitter has settled,
-# and the amplitude steps to the next direction between spokes.
+# The automatically detected repetition contains one complete set of
+# half-spoke directions. The gradient is already on when each hard pulse plays,
+# and the ADC window opens after the transmit dead time. The solid trace is a
+# representative repetition; shaded traces show other gradient encodes.
 
-baseline.paper_plot(time_range=(0, 2e-3))
+baseline.paper_plot()
 
 # %%
 # Sampling order

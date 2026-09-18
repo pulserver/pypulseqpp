@@ -490,7 +490,6 @@ class Fse3DApp(sequences.SequenceApp):
         ):
             if not 0.75 <= fraction <= 1.0:
                 raise ValueError(f"{name} must lie in [0.75, 1], got {fraction}")
-        tr_periphery = tr if tr_periphery is None else tr_periphery
         etl_periphery = etl if etl_periphery is None else etl_periphery
         for name, count in (
             ("ry", ry),
@@ -502,20 +501,12 @@ class Fse3DApp(sequences.SequenceApp):
                 raise ValueError(f"{name} must be at least 1, got {count}")
         if not 0 <= caipi_shift < rz:
             raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
-        self.individual = tr_periphery != tr or etl_periphery != etl
-        if self.individual and ordering != "radial":
-            raise ValueError(
-                "individually parameterized trains need the radial order, which "
-                "places each view by its distance from the prescription"
-            )
-
         system = self.system
         self.fov = (fov_x, fov_y, fov_z)
         self.matrix = (n_x, n_y, n_z)
         self.excitation, self.ordering = excitation, ordering
         self.flip_modulation = flip_modulation
         self.refocusing_angle_deg = refocusing_angle_deg
-        self.repetition_time, self.tr_periphery = tr, tr_periphery
         self.etl, self.etl_periphery = etl, etl_periphery
         etl_max = max(etl, etl_periphery)
 
@@ -581,6 +572,17 @@ class Fse3DApp(sequences.SequenceApp):
                 f"a train of {min(etl, etl_periphery)} echoes ends before echo "
                 f"{self.te_echo + 1}, which the TE of {te * 1e3:.1f} ms falls on"
             )
+
+        minimum_tr = fse.duration + system.block_duration_raster
+        tr = minimum_tr if tr is None else tr
+        tr_periphery = tr if tr_periphery is None else tr_periphery
+        self.individual = tr_periphery != tr or etl_periphery != etl
+        if self.individual and ordering != "radial":
+            raise ValueError(
+                "individually parameterized trains need the radial order, which "
+                "places each view by its distance from the prescription"
+            )
+        self.repetition_time, self.tr_periphery = tr, tr_periphery
 
         views, self.calibration = sampled_views(
             (n_y, n_z),

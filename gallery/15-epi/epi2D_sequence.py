@@ -159,10 +159,10 @@ for title, seq in designs.items():
 # Echo traversal
 # --------------
 #
-# The line each echo reads, against its index in the train. A single shot walks
-# the axis one line at a time; a segmented acquisition walks it in steps of
-# ``n_shots``, each shot starting one line further on; acceleration walks it in
-# steps of ``ry`` and stops there.
+# The line each echo reads, against its index in the train. A single shot
+# traverses the axis one line at a time; a segmented acquisition traverses it
+# in steps of ``n_shots``, with each shot starting one line further on;
+# acceleration traverses it in steps of ``ry`` and stops there.
 
 # sphinx_gallery_start_ignore
 traversal_figure(designs, 96)
