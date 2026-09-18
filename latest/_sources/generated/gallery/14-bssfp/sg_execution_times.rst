@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:25.479** total execution time for 2 files **from generated/gallery/14-bssfp**:
+**00:25.472** total execution time for 2 files **from generated/gallery/14-bssfp**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp3D_sequence.py` (``bssfp3D_sequence.py``)
-     - 00:24.052
+     - 00:24.035
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp2D_sequence.py` (``bssfp2D_sequence.py``)
-     - 00:01.427
+     - 00:01.438
      - 0.0

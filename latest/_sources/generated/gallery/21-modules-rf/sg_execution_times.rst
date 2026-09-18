@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.674** total execution time for 2 files **from generated/gallery/21-modules-rf**:
+**00:01.673** total execution time for 2 files **from generated/gallery/21-modules-rf**:
 
 .. container::
 
@@ -36,5 +36,5 @@ Computation times
      - 00:01.352
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_21-modules-rf_excitation-modules.py` (``excitation-modules.py``)
-     - 00:00.322
+     - 00:00.321
      - 0.0

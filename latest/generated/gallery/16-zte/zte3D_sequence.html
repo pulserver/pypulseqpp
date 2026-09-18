@@ -598,17 +598,22 @@ are the price of it.</p>
 </section>
 <section id="sequence-diagram">
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+<p>Every half-spoke carries its own gradient direction, so the repeating unit
+the diagram would otherwise draw is a whole set of directions. A window of a
+few milliseconds shows the unit that matters: the gradient is already on when
+the hard pulse plays, the ADC opens as soon as the transmitter has settled,
+and the amplitude steps to the next direction between spokes.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">time_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_zte3D_sequence_001.png" srcset="../../../_images/sphx_glr_zte3D_sequence_001.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f448873f560&gt;, tr=28, underlays=[1, 7, 14, 27, 40, 53, 66, 79, 92, 105, 106, 118, 131, 144, 152, 157, 170, 183, 196])
+<img src="../../../_images/sphx_glr_zte3D_sequence_001.png" srcset="../../../_images/sphx_glr_zte3D_sequence_001.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f1918272870&gt;, tr=None, underlays=[])
 </pre></div>
 </div>
 </section>
 <section id="sampling-order">
 <h2>Sampling order<a class="headerlink" href="#sampling-order" title="Link to this heading">#</a></h2>
-<p>The half-spokes projected onto a plane. Each starts at the centre of
-k-space and runs outward.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+<p>The half-spokes over the three k-space axes. Each starts at the centre of
+k-space and runs outward to the surface of the sampled sphere.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_zte3D_sequence_002.png" srcset="../../../_images/sphx_glr_zte3D_sequence_002.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 605x550 with 2 Axes&gt;
 </pre></div>
@@ -627,7 +632,7 @@ Nyquist            118998         38.03         59400
 half the views      47718         15.22         23760
 </pre></div>
 </div>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_zte3D_sequence_003.png" srcset="../../../_images/sphx_glr_zte3D_sequence_003.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 605x550 with 2 Axes&gt;
 </pre></div>
@@ -653,7 +658,7 @@ gradient continuity        pass          0 discontinuities
 peripheral nerve stimulation pass          0.35 of threshold
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 20.413 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 31.061 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-16-zte-zte3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/6cfc1d5d44130deb0bbbdfb53d454950/zte3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">zte3D_sequence.ipynb</span></code></a></p>

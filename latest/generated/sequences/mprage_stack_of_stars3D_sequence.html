@@ -618,9 +618,11 @@ are acquired too, marked <code class="docutils literal notranslate"><span class=
 as possible.</p></li>
 <li><p><strong>esp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Spacing of successive spoke excitations (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short
 as the readout admits.</p></li>
-<li><p><strong>ti</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Inversion time (s), from the inversion pulse’s centre to the first
-spoke’s excitation.</p></li>
-<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Inversion-to-inversion interval (s).</p></li>
+<li><p><strong>ti</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Inversion time (s), from the inversion pulse’s centre to the first
+spoke’s excitation. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as the inversion module
+admits.</p></li>
+<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Inversion-to-inversion interval (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> leaves one raster of
+recovery after the train.</p></li>
 <li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Requested receiver bandwidth (Hz).</p></li>
 <li><p><strong>ry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Angular undersampling: one spoke in every <code class="docutils literal notranslate"><span class="pre">ry</span></code> of the Nyquist set
 is played.</p></li>

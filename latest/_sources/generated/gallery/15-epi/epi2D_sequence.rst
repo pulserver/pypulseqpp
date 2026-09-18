@@ -98,7 +98,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0df23c0>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f708770>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
 
 
 
@@ -279,7 +279,7 @@ those lines falls in is driven for as long as the train lasts.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.454 seconds)
+   **Total running time of the script:** (0 minutes 0.470 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

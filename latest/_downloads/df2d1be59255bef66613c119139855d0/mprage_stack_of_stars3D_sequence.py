@@ -75,14 +75,16 @@ def safety_table(rows):
 # ----------------
 #
 # The inversion, the inversion time, the spoke train over one partition, and
-# the recovery. The configuration below shortens the preparation and the train
-# so that all of it stays visible at the width of this page.
+# the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
+# recovery the modules admit, and an angular undersampling that leaves four
+# spokes per partition makes a train short enough to read at the width of this
+# page.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import mprage_stack_of_stars3D_sequence
 
 compact = mprage_stack_of_stars3D_sequence(
-    n=96, n_z=8, ry=8, ti=0.06, tr=0.205, n_dummy=0
+    n=64, n_z=4, ry=32, ti=None, tr=None, n_dummy=0
 )
 print(
     f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
@@ -115,9 +117,9 @@ order_figure(protocol, 16)
 # Trajectory
 # ----------
 #
-# The spokes of the whole volume projected onto the plane, coloured by shot.
+# The spokes of every partition, over the three k-space axes, coloured by shot.
 
-pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+pp.plot.plot_kspace(protocol, color_by="shot")
 
 # %%
 # Safety checks

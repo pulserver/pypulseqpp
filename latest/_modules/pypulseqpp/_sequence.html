@@ -2476,10 +2476,12 @@
 <span class="w">        </span><span class="sd">"""Draw a publication-style diagram of one repetition, using mrsd.</span>
 
 <span class="sd">        Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn</span>
-<span class="sd">        from the waveform the sequence plays and scaled to its row: the three</span>
-<span class="sd">        gradient rows share one scale. The other repetitions are drawn</span>
-<span class="sd">        underneath in ``underlay_color``, which shows what changes from one to</span>
-<span class="sd">        the next, and a TR interval is marked below.</span>
+<span class="sd">        from the waveform the sequence plays. Every row carries its own scale,</span>
+<span class="sd">        set by the largest magnitude that channel reaches over the repetitions</span>
+<span class="sd">        drawn, so heights are comparable within a row and not between rows. The</span>
+<span class="sd">        other repetitions are drawn underneath in ``underlay_color``, which</span>
+<span class="sd">        shows what changes from one to the next, and a TR interval is marked</span>
+<span class="sd">        below.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

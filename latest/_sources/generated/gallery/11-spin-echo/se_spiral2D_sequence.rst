@@ -93,7 +93,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a881ba40>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ee8ba40>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
@@ -235,7 +235,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.411 seconds)
+   **Total running time of the script:** (0 minutes 1.414 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

@@ -43,7 +43,7 @@ import pypulseqpp as pp
 from pypulseqpp.sequences import se_stack_of_blades3D_sequence
 
 baseline = se_stack_of_blades3D_sequence(
-    n=192, n_z=16, blade_width=16, te=None, tr=None, n_dummy=0
+    n=96, n_z=8, blade_width=16, te=None, tr=None, n_dummy=0
 )
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
@@ -58,9 +58,9 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The blades of the stack projected onto the plane.
+# The blades of every partition, over the three k-space axes.
 
-pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+pp.plot.plot_kspace(baseline, color_by="shot")
 
 # %%
 # Wider blades
@@ -69,7 +69,7 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Fewer, wider blades, each sampling more of the centre.
 
 alternative = se_stack_of_blades3D_sequence(
-    n=192, n_z=16, blade_width=32, te=None, tr=None, n_dummy=0
+    n=96, n_z=8, blade_width=32, te=None, tr=None, n_dummy=0
 )
 
 # sphinx_gallery_start_ignore
@@ -82,7 +82,7 @@ for name, seq in (("16 lines", baseline), ("32 lines", alternative)):
 # sphinx_gallery_end_ignore
 
 # %%
-pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
 # Safety checks

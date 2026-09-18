@@ -36,25 +36,26 @@ train is part of the sequence rather than a reconstruction choice.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-81
+.. GENERATED FROM PYTHON SOURCE LINES 73-82
 
 Timing structure
 ----------------
 
 The inversion, its crusher, the inversion time, the gradient-echo train and
-the recovery that closes the cycle. The configuration below shortens the
-preparation and the train so that all of it stays visible at the width of
-this page; a protocol uses an inversion time of several hundred milliseconds
-and a train of a hundred or more readouts.
+the recovery that closes the cycle. ``ti=None`` and ``tr=None`` take the
+shortest inversion time and recovery the modules admit, and four lines per
+partition make a train short enough to read at the width of this page; a
+protocol uses an inversion time of several hundred milliseconds and a train
+of a hundred or more readouts.
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-91
+.. GENERATED FROM PYTHON SOURCE LINES 82-92
 
 .. code-block:: Python
 
 
     from pypulseqpp.sequences import mprage3D_sequence
 
-    compact = mprage3D_sequence(n_x=128, n_y=32, n_z=8, ti=0.06, tr=0.305, n_dummy=0)
+    compact = mprage3D_sequence(n_x=128, n_y=4, n_z=4, ti=None, tr=None, n_dummy=0)
     print(
         f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
         f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "
@@ -69,12 +70,12 @@ and a train of a hundred or more readouts.
 
  .. code-block:: none
 
-    1056 blocks, 2.44 s, TI 60 ms, TR 305 ms
+    80 blocks, 0.16 s, TI 8 ms, TR 41 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-94
+.. GENERATED FROM PYTHON SOURCE LINES 93-95
 
 .. code-block:: Python
 
@@ -94,11 +95,11 @@ and a train of a hundred or more readouts.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a85e5dc0>, tr=5, underlays=[1, 2, 3, 4, 6, 7, 8])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1918273ad0>, tr=3, underlays=[1, 2, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 95-104
+.. GENERATED FROM PYTHON SOURCE LINES 96-105
 
 Sampling order
 --------------
@@ -110,7 +111,7 @@ k-space is therefore read at the start of a train, one inversion time after
 the inversion, which is what sets the contrast; the periphery is read later,
 as the magnetisation continues to recover.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-116
+.. GENERATED FROM PYTHON SOURCE LINES 105-117
 
 .. code-block:: Python
 
@@ -142,7 +143,7 @@ as the magnetisation continues to recover.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-127
+.. GENERATED FROM PYTHON SOURCE LINES 118-128
 
 Accelerated sampling
 --------------------
@@ -155,7 +156,7 @@ further into k-space. The scan time does not follow: it is the number of
 inversion cycles times the repetition time, and with the calibration region
 fully sampled every partition is still visited.
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-143
+.. GENERATED FROM PYTHON SOURCE LINES 128-144
 
 .. code-block:: Python
 
@@ -186,7 +187,7 @@ fully sampled every partition is still visited.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 144-150
+.. GENERATED FROM PYTHON SOURCE LINES 145-151
 
 Safety checks
 -------------
@@ -195,7 +196,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-181
+.. GENERATED FROM PYTHON SOURCE LINES 151-182
 
 .. code-block:: Python
 
@@ -228,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.504 seconds)
+   **Total running time of the script:** (0 minutes 3.590 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

@@ -37,16 +37,18 @@ central lines.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-80
+.. GENERATED FROM PYTHON SOURCE LINES 74-82
 
 Timing structure
 ----------------
 
 The inversion, the inversion time, the spoke train over one partition, and
-the recovery. The configuration below shortens the preparation and the train
-so that all of it stays visible at the width of this page.
+the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
+recovery the modules admit, and an angular undersampling that leaves four
+spokes per partition makes a train short enough to read at the width of this
+page.
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-93
+.. GENERATED FROM PYTHON SOURCE LINES 82-95
 
 .. code-block:: Python
 
@@ -55,7 +57,7 @@ so that all of it stays visible at the width of this page.
     from pypulseqpp.sequences import mprage_stack_of_stars3D_sequence
 
     compact = mprage_stack_of_stars3D_sequence(
-        n=96, n_z=8, ry=8, ti=0.06, tr=0.205, n_dummy=0
+        n=64, n_z=4, ry=32, ti=None, tr=None, n_dummy=0
     )
     print(
         f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
@@ -71,12 +73,12 @@ so that all of it stays visible at the width of this page.
 
  .. code-block:: none
 
-    640 blocks, 1.64 s, TI 60 ms, TR 205 ms
+    80 blocks, 0.14 s, TI 7 ms, TR 35 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-96
+.. GENERATED FROM PYTHON SOURCE LINES 96-98
 
 .. code-block:: Python
 
@@ -96,11 +98,11 @@ so that all of it stays visible at the width of this page.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0d075f0>, tr=1, underlays=[2, 3, 4, 5, 6, 7, 8])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f686240>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-105
+.. GENERATED FROM PYTHON SOURCE LINES 99-107
 
 Sampling order
 --------------
@@ -111,7 +113,7 @@ the order they are played, and ``partition_angle_shift`` turns the set from
 one partition to the next so that the spokes of neighbouring partitions do
 not coincide.
 
-.. GENERATED FROM PYTHON SOURCE LINES 105-114
+.. GENERATED FROM PYTHON SOURCE LINES 107-116
 
 .. code-block:: Python
 
@@ -139,19 +141,19 @@ not coincide.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-119
+.. GENERATED FROM PYTHON SOURCE LINES 117-121
 
 Trajectory
 ----------
 
-The spokes of the whole volume projected onto the plane, coloured by shot.
+The spokes of every partition, over the three k-space axes, coloured by shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-122
+.. GENERATED FROM PYTHON SOURCE LINES 121-124
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+    pp.plot.plot_kspace(protocol, color_by="shot")
 
 
 
@@ -171,7 +173,7 @@ The spokes of the whole volume projected onto the plane, coloured by shot.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 123-129
+.. GENERATED FROM PYTHON SOURCE LINES 125-131
 
 Safety checks
 -------------
@@ -180,7 +182,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-160
+.. GENERATED FROM PYTHON SOURCE LINES 131-162
 
 .. code-block:: Python
 
@@ -213,7 +215,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.071 seconds)
+   **Total running time of the script:** (0 minutes 10.382 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

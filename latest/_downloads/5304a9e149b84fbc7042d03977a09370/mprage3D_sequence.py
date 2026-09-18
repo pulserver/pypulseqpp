@@ -74,14 +74,15 @@ def safety_table(rows):
 # ----------------
 #
 # The inversion, its crusher, the inversion time, the gradient-echo train and
-# the recovery that closes the cycle. The configuration below shortens the
-# preparation and the train so that all of it stays visible at the width of
-# this page; a protocol uses an inversion time of several hundred milliseconds
-# and a train of a hundred or more readouts.
+# the recovery that closes the cycle. ``ti=None`` and ``tr=None`` take the
+# shortest inversion time and recovery the modules admit, and four lines per
+# partition make a train short enough to read at the width of this page; a
+# protocol uses an inversion time of several hundred milliseconds and a train
+# of a hundred or more readouts.
 
 from pypulseqpp.sequences import mprage3D_sequence
 
-compact = mprage3D_sequence(n_x=128, n_y=32, n_z=8, ti=0.06, tr=0.305, n_dummy=0)
+compact = mprage3D_sequence(n_x=128, n_y=4, n_z=4, ti=None, tr=None, n_dummy=0)
 print(
     f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
     f"TI {compact.get_definition('TI')[0] * 1e3:.0f} ms, "

@@ -83,17 +83,22 @@ land at the centre of k-space.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-117
+.. GENERATED FROM PYTHON SOURCE LINES 115-122
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-120
+The excitation, the CPMG train with a crusher pair around every refocusing
+pulse, and the phase and partition encodes that are wound before each
+readout and unwound after it. The window covers the train; the rest of the
+repetition time is recovery, and drawing it would leave the train a sliver.
+
+.. GENERATED FROM PYTHON SOURCE LINES 122-125
 
 .. code-block:: Python
 
 
-    baseline.paper_plot()
+    baseline.paper_plot(time_range=(0, 16 * baseline.get_definition("EchoSpacing")[0]))
 
 
 
@@ -109,11 +114,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0df1040>, tr=62, underlays=[1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e72c410>, tr=None, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 121-129
+.. GENERATED FROM PYTHON SOURCE LINES 126-134
 
 Echo order and shot order
 -------------------------
@@ -124,7 +129,7 @@ the centre, which puts the largest amplitudes on the lines that carry the
 image contrast. The shot index says which train read it, and so which views
 share an excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-134
+.. GENERATED FROM PYTHON SOURCE LINES 134-139
 
 
 
@@ -144,7 +149,7 @@ share an excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-140
+.. GENERATED FROM PYTHON SOURCE LINES 140-145
 
 Train length
 ------------
@@ -152,7 +157,7 @@ Train length
 A longer train acquires the volume in fewer excitations and reaches further
 into the decay, so the weight it applies to the outer lines is smaller.
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-154
+.. GENERATED FROM PYTHON SOURCE LINES 145-159
 
 .. code-block:: Python
 
@@ -175,7 +180,7 @@ into the decay, so the weight it applies to the outer lines is smaller.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-162
+.. GENERATED FROM PYTHON SOURCE LINES 160-167
 
 The weight the ordering applies
 -------------------------------
@@ -185,7 +190,7 @@ so the envelope is simulated from what will be played. Each line's weight is
 the envelope at the echo index that read it, averaged over the partitions it
 was read at.
 
-.. GENERATED FROM PYTHON SOURCE LINES 162-187
+.. GENERATED FROM PYTHON SOURCE LINES 167-192
 
 .. code-block:: Python
 
@@ -231,7 +236,7 @@ was read at.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 188-199
+.. GENERATED FROM PYTHON SOURCE LINES 193-204
 
 The centre of k-space keeps nearly the excitation's amplitude under either
 train length, because the ordering reads it first. What lengthening the train
@@ -245,7 +250,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 199-230
+.. GENERATED FROM PYTHON SOURCE LINES 204-235
 
 .. code-block:: Python
 
@@ -278,7 +283,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.691 seconds)
+   **Total running time of the script:** (0 minutes 6.673 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

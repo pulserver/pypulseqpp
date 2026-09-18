@@ -74,14 +74,15 @@ def safety_table(rows):
 # ----------------
 #
 # The inversion, the inversion time, the interleaf train over one partition, and
-# the recovery. The configuration below shortens the preparation and the train
-# so that all of it stays visible at the width of this page.
+# the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
+# recovery the modules admit, and four interleaves per partition make a train
+# short enough to read at the width of this page.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import mprage_stack_of_spirals3D_sequence
 
 compact = mprage_stack_of_spirals3D_sequence(
-    n=96, n_z=8, n_shots=8, ti=0.06, tr=0.2, n_dummy=0
+    n=96, n_z=4, n_shots=4, ti=None, tr=None, n_dummy=0
 )
 print(
     f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
@@ -113,10 +114,10 @@ order_figure(protocol, 16)
 # Trajectory
 # ----------
 #
-# The interleaves projected onto the plane, coloured by shot. Each one is
-# turned from the last so that the set covers the plane.
+# The interleaves of every partition, over the three k-space axes, coloured by
+# shot. Each one is turned from the last so that the set covers the plane.
 
-pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+pp.plot.plot_kspace(protocol, color_by="shot")
 
 # %%
 # Safety checks

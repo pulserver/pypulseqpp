@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a0debb60>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f32ffe0>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -232,7 +232,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.771 seconds)
+   **Total running time of the script:** (0 minutes 24.573 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

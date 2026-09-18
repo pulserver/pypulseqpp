@@ -42,7 +42,7 @@ Baseline
 
 Sixteen interleaves at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-52
+.. GENERATED FROM PYTHON SOURCE LINES 42-50
 
 .. code-block:: Python
 
@@ -50,9 +50,7 @@ Sixteen interleaves at every partition.
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_stack_of_spirals3D_sequence
 
-    baseline = gre_stack_of_spirals3D_sequence(
-        n=192, n_z=16, n_shots=16, tr=None, n_dummy=0
-    )
+    baseline = gre_stack_of_spirals3D_sequence(n=96, n_z=8, n_shots=16, tr=None, n_dummy=0)
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
 
@@ -64,17 +62,17 @@ Sixteen interleaves at every partition.
 
  .. code-block:: none
 
-    1024 blocks, 3.77 s
+    512 blocks, 0.91 s
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-55
+.. GENERATED FROM PYTHON SOURCE LINES 51-53
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-58
+.. GENERATED FROM PYTHON SOURCE LINES 53-56
 
 .. code-block:: Python
 
@@ -95,23 +93,23 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a9de4ad0>, tr=97, underlays=[1, 17, 33, 49, 65, 81, 113, 129, 145, 161, 177, 193, 209, 225, 241])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f66b530>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-63
+.. GENERATED FROM PYTHON SOURCE LINES 57-61
 
 Sampling order
 --------------
 
-The interleaves of the whole stack projected onto the plane.
+The interleaves of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-66
+.. GENERATED FROM PYTHON SOURCE LINES 61-64
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot")
 
 
 
@@ -131,7 +129,7 @@ The interleaves of the whole stack projected onto the plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-72
+.. GENERATED FROM PYTHON SOURCE LINES 65-70
 
 Fewer interleaves
 -----------------
@@ -139,13 +137,13 @@ Fewer interleaves
 Halving the interleaf count halves the repetitions and doubles the pitch
 of each arm, so the disc is sampled below the Nyquist spacing at its edge.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-86
+.. GENERATED FROM PYTHON SOURCE LINES 70-84
 
 .. code-block:: Python
 
 
     alternative = gre_stack_of_spirals3D_sequence(
-        n=192, n_z=16, n_shots=8, tr=None, n_dummy=0
+        n=96, n_z=8, n_shots=8, tr=None, n_dummy=0
     )
 
 
@@ -158,17 +156,17 @@ of each arm, so the disc is sampled below the Nyquist spacing at its edge.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 interleaves       1024          3.77           256
-    8 interleaves         512          3.02           128
+    16 interleaves        512          0.91           128
+    8 interleaves         256          0.61            64
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-89
+.. GENERATED FROM PYTHON SOURCE LINES 85-87
 
 .. code-block:: Python
 
-    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(alternative, color_by="shot")
 
 
 
@@ -188,7 +186,7 @@ of each arm, so the disc is sampled below the Nyquist spacing at its edge.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-96
+.. GENERATED FROM PYTHON SOURCE LINES 88-94
 
 Safety checks
 -------------
@@ -197,7 +195,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-127
+.. GENERATED FROM PYTHON SOURCE LINES 94-125
 
 .. code-block:: Python
 
@@ -222,7 +220,7 @@ scanner's.
     gradient amplitude         pass                  39.4 mT/m
     slew rate                  pass                  164 T/m/s
     gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
+    peripheral nerve stimulation FAIL          1.24 of threshold
 
 
 
@@ -230,7 +228,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 18.049 seconds)
+   **Total running time of the script:** (0 minutes 3.229 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

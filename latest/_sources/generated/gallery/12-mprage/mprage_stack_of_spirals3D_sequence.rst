@@ -36,16 +36,17 @@ whole train sits close behind the inversion.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-79
+.. GENERATED FROM PYTHON SOURCE LINES 73-80
 
 Timing structure
 ----------------
 
 The inversion, the inversion time, the interleaf train over one partition, and
-the recovery. The configuration below shortens the preparation and the train
-so that all of it stays visible at the width of this page.
+the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
+recovery the modules admit, and four interleaves per partition make a train
+short enough to read at the width of this page.
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-92
+.. GENERATED FROM PYTHON SOURCE LINES 80-93
 
 .. code-block:: Python
 
@@ -54,7 +55,7 @@ so that all of it stays visible at the width of this page.
     from pypulseqpp.sequences import mprage_stack_of_spirals3D_sequence
 
     compact = mprage_stack_of_spirals3D_sequence(
-        n=96, n_z=8, n_shots=8, ti=0.06, tr=0.2, n_dummy=0
+        n=96, n_z=4, n_shots=4, ti=None, tr=None, n_dummy=0
     )
     print(
         f"{compact.num_blocks} blocks, {compact.duration()[0]:.2f} s, "
@@ -70,12 +71,12 @@ so that all of it stays visible at the width of this page.
 
  .. code-block:: none
 
-    288 blocks, 1.60 s, TI 60 ms, TR 200 ms
+    80 blocks, 0.27 s, TI 8 ms, TR 67 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-95
+.. GENERATED FROM PYTHON SOURCE LINES 94-96
 
 .. code-block:: Python
 
@@ -95,11 +96,11 @@ so that all of it stays visible at the width of this page.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44887c4e30>, tr=1, underlays=[2, 3, 4, 5, 6, 7, 8])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f19181731d0>, tr=2, underlays=[1, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-103
+.. GENERATED FROM PYTHON SOURCE LINES 97-104
 
 Sampling order
 --------------
@@ -109,7 +110,7 @@ is constant along each row. With an interleaf per readout the train is a
 few tens of readouts long rather than a few hundred, and every view is read
 within a short interval of the inversion time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 103-112
+.. GENERATED FROM PYTHON SOURCE LINES 104-113
 
 .. code-block:: Python
 
@@ -137,20 +138,20 @@ within a short interval of the inversion time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 113-118
+.. GENERATED FROM PYTHON SOURCE LINES 114-119
 
 Trajectory
 ----------
 
-The interleaves projected onto the plane, coloured by shot. Each one is
-turned from the last so that the set covers the plane.
+The interleaves of every partition, over the three k-space axes, coloured by
+shot. Each one is turned from the last so that the set covers the plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-121
+.. GENERATED FROM PYTHON SOURCE LINES 119-122
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(protocol, plane="xy", color_by="shot", show_trajectory=True)
+    pp.plot.plot_kspace(protocol, color_by="shot")
 
 
 
@@ -170,7 +171,7 @@ turned from the last so that the set covers the plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 122-128
+.. GENERATED FROM PYTHON SOURCE LINES 123-129
 
 Safety checks
 -------------
@@ -179,7 +180,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-159
+.. GENERATED FROM PYTHON SOURCE LINES 129-160
 
 .. code-block:: Python
 
@@ -212,7 +213,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.159 seconds)
+   **Total running time of the script:** (0 minutes 13.203 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

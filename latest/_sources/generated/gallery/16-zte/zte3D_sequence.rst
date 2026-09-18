@@ -73,17 +73,23 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-58
+.. GENERATED FROM PYTHON SOURCE LINES 56-64
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+Every half-spoke carries its own gradient direction, so the repeating unit
+the diagram would otherwise draw is a whole set of directions. A window of a
+few milliseconds shows the unit that matters: the gradient is already on when
+the hard pulse plays, the ADC opens as soon as the transmitter has settled,
+and the amplitude steps to the next direction between spokes.
+
+.. GENERATED FROM PYTHON SOURCE LINES 64-67
 
 .. code-block:: Python
 
 
-    baseline.paper_plot()
+    baseline.paper_plot(time_range=(0, 2e-3))
 
 
 
@@ -99,24 +105,24 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448873f560>, tr=28, underlays=[1, 7, 14, 27, 40, 53, 66, 79, 92, 105, 106, 118, 131, 144, 152, 157, 170, 183, 196])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1918272870>, tr=None, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 68-73
 
 Sampling order
 --------------
 
-The half-spokes projected onto a plane. Each starts at the centre of
-k-space and runs outward.
+The half-spokes over the three k-space axes. Each starts at the centre of
+k-space and runs outward to the surface of the sampled sphere.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-70
+.. GENERATED FROM PYTHON SOURCE LINES 73-76
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot")
 
 
 
@@ -136,7 +142,7 @@ k-space and runs outward.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-78
+.. GENERATED FROM PYTHON SOURCE LINES 77-84
 
 Fewer views
 -----------
@@ -146,7 +152,7 @@ scan and undersamples the surface of the sphere, which shows as streaks rather
 than as aliasing. Both configurations here play far fewer views than the
 matrix asks for, so that the individual spokes stay visible on the page.
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-90
+.. GENERATED FROM PYTHON SOURCE LINES 84-96
 
 .. code-block:: Python
 
@@ -169,11 +175,11 @@ matrix asks for, so that the individual spokes stay visible on the page.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-93
+.. GENERATED FROM PYTHON SOURCE LINES 97-99
 
 .. code-block:: Python
 
-    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(alternative, color_by="shot")
 
 
 
@@ -193,7 +199,7 @@ matrix asks for, so that the individual spokes stay visible on the page.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-100
+.. GENERATED FROM PYTHON SOURCE LINES 100-106
 
 Safety checks
 -------------
@@ -202,7 +208,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-131
+.. GENERATED FROM PYTHON SOURCE LINES 106-137
 
 .. code-block:: Python
 
@@ -235,7 +241,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 20.413 seconds)
+   **Total running time of the script:** (1 minutes 31.061 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

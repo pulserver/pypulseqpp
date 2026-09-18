@@ -194,14 +194,14 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a8e86d50>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e4dad50>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.192 seconds)
+   **Total running time of the script:** (0 minutes 0.196 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_20-modules-overview_sequence-module-composition.py:

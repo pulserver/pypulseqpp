@@ -398,7 +398,7 @@ One repetition of the module.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f448c80bf20>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f32d6a0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 

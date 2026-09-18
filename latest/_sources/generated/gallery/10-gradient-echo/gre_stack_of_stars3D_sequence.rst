@@ -51,7 +51,7 @@ to the next.
     import pypulseqpp as pp
     from pypulseqpp.sequences import gre_stack_of_stars3D_sequence
 
-    baseline = gre_stack_of_stars3D_sequence(n=192, n_z=16, tr=None, n_dummy=0)
+    baseline = gre_stack_of_stars3D_sequence(n=96, n_z=8, tr=None, n_dummy=0)
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
 
@@ -63,7 +63,7 @@ to the next.
 
  .. code-block:: none
 
-    19328 blocks, 51.41 s
+    4832 blocks, 8.84 s
 
 
 
@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a9dc3740>, tr=3633, underlays=[1, 303, 605, 907, 1209, 1511, 1813, 2115, 2417, 2719, 3021, 3323, 3625, 3927, 4229, 4531, 4817])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e6993d0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -103,14 +103,14 @@ Sequence diagram
 Sampling order
 --------------
 
-The spokes of the whole stack projected onto the plane.
+The spokes of every partition, over the three k-space axes.
 
 .. GENERATED FROM PYTHON SOURCE LINES 62-65
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot")
 
 
 
@@ -143,7 +143,7 @@ of each partition fully sampled.
 .. code-block:: Python
 
 
-    alternative = gre_stack_of_stars3D_sequence(n=192, n_z=16, ry=4, tr=None, n_dummy=0)
+    alternative = gre_stack_of_stars3D_sequence(n=96, n_z=8, ry=4, tr=None, n_dummy=0)
 
 
 
@@ -155,8 +155,8 @@ of each partition fully sampled.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    Nyquist             19328         51.41          4832
-    ry = 4               4864         12.94          1216
+    Nyquist              4832          8.84          1208
+    ry = 4               1216          2.23           304
 
 
 
@@ -165,7 +165,7 @@ of each partition fully sampled.
 
 .. code-block:: Python
 
-    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(alternative, color_by="shot")
 
 
 
@@ -216,10 +216,10 @@ scanner's.
  .. code-block:: none
 
     check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
+    gradient amplitude         pass                  39.4 mT/m
     slew rate                  pass                  164 T/m/s
     gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.00 of threshold
+    peripheral nerve stimulation pass          0.96 of threshold
 
 
 
@@ -227,7 +227,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 37.901 seconds)
+   **Total running time of the script:** (0 minutes 5.833 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

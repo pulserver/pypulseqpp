@@ -50,7 +50,7 @@ Sixteen interleaves at every partition.
     from pypulseqpp.sequences import se_stack_of_spirals3D_sequence
 
     baseline = se_stack_of_spirals3D_sequence(
-        n=192, n_z=16, n_shots=16, te=None, tr=None, n_dummy=0
+        n=96, n_z=8, n_shots=16, te=None, tr=None, n_dummy=0
     )
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
@@ -63,7 +63,7 @@ Sixteen interleaves at every partition.
 
  .. code-block:: none
 
-    2048 blocks, 5.73 s
+    1024 blocks, 1.90 s
 
 
 
@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44a88884a0>, tr=97, underlays=[1, 17, 33, 49, 65, 81, 113, 129, 145, 161, 177, 193, 209, 225, 241])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ef41790>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -103,14 +103,14 @@ Sequence diagram
 Sampling order
 --------------
 
-The interleaves of the stack projected onto the plane.
+The interleaves of every partition, over the three k-space axes.
 
 .. GENERATED FROM PYTHON SOURCE LINES 62-65
 
 .. code-block:: Python
 
 
-    pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(baseline, color_by="shot")
 
 
 
@@ -144,7 +144,7 @@ below the Nyquist spacing.
 
 
     alternative = se_stack_of_spirals3D_sequence(
-        n=192, n_z=16, n_shots=8, te=None, tr=None, n_dummy=0
+        n=96, n_z=8, n_shots=8, te=None, tr=None, n_dummy=0
     )
 
 
@@ -157,8 +157,8 @@ below the Nyquist spacing.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 interleaves       2048          5.73           256
-    8 interleaves        1024          4.00           128
+    16 interleaves       1024          1.90           128
+    8 interleaves         512          1.10            64
 
 
 
@@ -167,7 +167,7 @@ below the Nyquist spacing.
 
 .. code-block:: Python
 
-    pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
+    pp.plot.plot_kspace(alternative, color_by="shot")
 
 
 
@@ -221,7 +221,7 @@ scanner's.
     gradient amplitude         pass                  39.5 mT/m
     slew rate                  pass                  164 T/m/s
     gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
+    peripheral nerve stimulation FAIL          1.23 of threshold
 
 
 
@@ -229,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 18.172 seconds)
+   **Total running time of the script:** (0 minutes 3.291 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

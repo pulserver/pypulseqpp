@@ -103,7 +103,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f44884f3140>, tr=2, underlays=[1])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1918cfaff0>, tr=2, underlays=[1])
 
 
 
@@ -280,7 +280,7 @@ returns the response it took its peak from.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.660 seconds)
+   **Total running time of the script:** (0 minutes 0.663 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:
