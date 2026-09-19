@@ -4,10 +4,10 @@
 ========================
 
 One excitation per shot, followed by a train of readout lobes of alternating
-polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA
-lattice: line ``y`` is read when ``(y - n_y // 2) % ry == 0``, and the partition
-it is read at advances by the CAIPI shift from one lattice line to the next.
-A shot reads every ``n_shots``-th lattice line, which is skipped-CAIPI sampling
+polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA
+lattice. Phase-encode lines satisfy ``(y - n_y // 2) % ry == 0``; the partition
+index advances by the CAIPI shift between adjacent lattice lines. Each shot
+acquires every ``n_shots``-th lattice line, defining skipped-CAIPI sampling
 (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot
 per shell is blipped-CAIPI.
 """
@@ -177,9 +177,8 @@ baseline.paper_plot()
 # -----------------------
 #
 # Each cell of the lattice is one ``(line, partition)`` view, white where it is
-# sampled. The path is the order the echoes of one train read those views,
-# connected directly in acquired order, with an arrow for every inter-echo
-# step. No line joins separate shots. The partition jumps between consecutive
+# sampled. Lines and arrows connect consecutive echoes within each train. No
+# line joins separate shots. The partition jumps between consecutive
 # echoes are the CAIPI blips: they alternate between
 # amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
 # :math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z`, and the pattern repeats every
@@ -196,8 +195,8 @@ figure.tight_layout()
 # Single-shot comparison
 # ----------------------
 #
-# Reducing ``n_shots`` to one puts the same lattice in one longer train per
-# shell. Three shots shorten the readout window and the geometric distortion
+# With ``n_shots=1``, one longer echo train acquires the same lattice for
+# each shell. Three shots shorten the readout window and the geometric distortion
 # along the phase-encode axis; the inter-echo jumps grow because each shot
 # steps three sampled lattice lines at a time.
 
@@ -241,8 +240,8 @@ figure.tight_layout()
 # In-plane acceleration
 # ---------------------
 #
-# ``ry`` skips lines, which shortens the train further and widens the lattice
-# along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
+# ``ry`` subsamples phase-encode lines, reducing echo-train length and
+# increasing lattice spacing along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
 # where the CAIPI shift puts them.
 
 accelerated = epi3D_sequence(
@@ -271,8 +270,8 @@ figure.tight_layout()
 #
 # A passing check does not establish that a sequence is safe to run on a
 # scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's. This configuration exceeds its threshold, which is what an
-# echo-planar train at a short echo spacing does on a body gradient system.
+# scanner's. This short-echo-spacing configuration exceeds the demonstration model's
+# threshold.
 
 from pypulseqpp import safety
 
@@ -309,8 +308,8 @@ safety_table(
 # Peripheral nerve stimulation
 # ----------------------------
 #
-# The readout train drives one axis hard and repetitively, so the response
-# reaches its peak within the first echoes and stays there. ``check_pns``
+# The repeated readout-gradient reversals produce a rapid rise in the PNS
+# response during the first echoes. ``check_pns``
 # returns the response it took its peak from.
 
 # sphinx_gallery_start_ignore

@@ -1,12 +1,12 @@
 """
-============================================
+===========================
 Sequence module composition
 ===========================
 
-A sequence module solves the layout of one group of blocks at construction and
-exposes the resulting events for a scan loop to place. This example composes
-an inversion preparation, a prescribed inversion delay and a Cartesian
-readout, then verifies the pulse-centre interval in the resulting sequence.
+A sequence module contains a reusable block layout and named event templates.
+The composition below combines inversion preparation, a prescribed inversion
+delay and a Cartesian readout, then verifies the resulting pulse-centre
+interval.
 The object model is described in
 :doc:`/explanations/design/sequence-module`.
 """

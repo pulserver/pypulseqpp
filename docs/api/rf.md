@@ -1,8 +1,8 @@
 # RF pulse design
 
 `pypulseqpp`: RF events, from the basic factories to designed pulses, and their
-analysis. A design function returns an RF event and, depending on its options,
-the slice-selection gradient and rephaser played with it, and design metadata.
+analysis. A design function returns an RF event and, depending on its options, a slice-selection gradient, rephasing gradient and
+design metadata.
 RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in radians.
 
 ```{eval-rst}

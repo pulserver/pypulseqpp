@@ -2,8 +2,8 @@
 
 The rate at which a gradient amplifier can change its output is bounded by the
 voltage available across the coil's inductance.
-{func}`~pypulseqpp.safety.check_max_slew` establishes whether the sequence ever
-establishes whether any axis changes faster than `max_slew`.
+{func}`~pypulseqpp.safety.check_max_slew` determines whether any physical
+gradient axis exceeds `max_slew`.
 
 ## Quantity compared with the limit
 

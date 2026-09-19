@@ -1,5 +1,5 @@
 """
-==============================
+==========================
 Sequence constraint checks
 ==========================
 
@@ -45,8 +45,8 @@ def summary(rows):
 # sphinx_gallery_end_ignore
 
 # %%
-# The sequence
-# ------------
+# Echo-planar test sequence
+# -------------------------
 #
 # A single-shot echo-planar readout provides high slew rates and a periodic
 # gradient waveform, making both PNS and mechanical-resonance diagnostics
@@ -230,8 +230,8 @@ summary(
 # sphinx_gallery_end_ignore
 
 # %%
-# This configuration exceeds the nerve model's threshold, which is what an
-# echo-planar train at a short echo spacing does on a body gradient system.
+# This short-echo-spacing echo-planar train exceeds the demonstration nerve
+# model's threshold.
 # Lengthening the echo spacing, reducing the echo-train length or lowering the
 # prescribed slew limit changes the response. These design parameters are
 # compared in the

@@ -4,7 +4,7 @@ Every repetition holds one excitation and no refocusing pulse, and the
 transverse magnetisation left at the end of it is spoiled. The family varies in
 how k-space is covered between repetitions.
 
-| Example | What it covers |
+| Example | Scope |
 | --- | --- |
 | {doc}`/generated/gallery/10-gradient-echo/gre2D_sequence` | One phase-encode line per repetition, RF-spoiled. |
 | {doc}`/generated/gallery/10-gradient-echo/gre3D_sequence` | One (line, partition) view per repetition, RF-spoiled. |

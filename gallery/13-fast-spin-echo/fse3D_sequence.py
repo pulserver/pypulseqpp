@@ -4,10 +4,10 @@
 ==================
 
 One excitation followed by a CPMG train of refocusing pulses, with one
-``(line, partition)`` view acquired per echo. The train amplitude at echo
-:math:`m` becomes the weight of whichever view that echo reads, so the map from
-echo index to k-space position is a filter applied to the image, and the
-ordering is what chooses it.
+``(line, partition)`` view acquired per echo. Signal amplitude at echo
+:math:`m` weights the corresponding k-space view.
+Echo ordering therefore determines the modulation transfer function and
+point-spread function.
 """
 
 # sphinx_gallery_start_ignore
@@ -155,11 +155,11 @@ for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
 # sphinx_gallery_end_ignore
 
 # %%
-# The weight the ordering applies
-# -------------------------------
+# T2 weighting
+# ------------
 #
-# The refocusing schedule and the echo spacing are written into the sequence,
-# so the envelope is simulated from what will be played. Each line's weight is
+# The simulated signal envelope uses the stored refocusing-angle schedule and
+# echo spacing. Each line's weight is
 # the envelope at the echo index that read it, averaged over the partitions it
 # was read at.
 

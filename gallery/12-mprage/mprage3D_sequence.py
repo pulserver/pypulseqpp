@@ -4,9 +4,9 @@
 ====================
 
 One inversion per shot, an inversion time, and then a spoiled gradient-echo
-train that reads the views of one partition. The contrast follows from where in
-the recovery the centre of k-space is acquired, so the ordering within the
-train is part of the sequence rather than a reconstruction choice.
+train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse
+determines the dominant inversion-recovery contrast. View ordering therefore
+defines the contrast weighting across k-space.
 """
 
 # sphinx_gallery_start_ignore
@@ -73,12 +73,12 @@ def safety_table(rows):
 # Timing structure
 # ----------------
 #
-# The inversion, its crusher, the inversion time, the gradient-echo train and
-# the recovery that closes the cycle. ``ti=None`` and ``tr=None`` take the
-# shortest inversion time and recovery the modules admit, and four lines per
-# partition make a train short enough to read at the width of this page; a
-# protocol uses an inversion time of several hundred milliseconds and a train
-# of a hundred or more readouts.
+# Each cycle comprises inversion, crusher, inversion delay, spoiled
+# gradient-echo train and recovery interval. ``ti=None`` and ``tr=None`` take the
+# shortest inversion time and recovery supported by the modules. Four lines per
+# partition provide a compact timing diagram. Clinical matrices typically
+# require inversion times of several hundred milliseconds and much
+# longer readout trains.
 
 from pypulseqpp.sequences import mprage3D_sequence
 
@@ -120,13 +120,12 @@ order_figure(protocol, 128, 24)
 # Accelerated sampling
 # --------------------
 #
-# ``ry`` and ``rz`` skip lines and partitions, and ``caipi_shift`` moves each
-# line's partitions so that the aliases land away from one another. The train
-# shortens with the number of lines each partition keeps, reducing the interval
-# over which inversion recovery weights k-space. The scan time does not follow:
-# it is the number of
-# inversion cycles times the repetition time, and with the calibration region
-# fully sampled every partition is still visited.
+# ``ry`` and ``rz`` subsample the line and partition axes. ``caipi_shift``
+# offsets the sampled partitions between adjacent lines to control the alias
+# distribution. Fewer lines per partition reduce both train duration and the
+# range of inversion-recovery weighting. Scan duration equals the number of
+# inversion cycles multiplied by TR; the fully sampled calibration region still
+# requires every partition.
 
 accelerated = mprage3D_sequence(
     n_x=192, n_y=128, n_z=24, ry=2, rz=2, caipi_shift=1, ti=0.9, tr=2.3, n_dummy=0

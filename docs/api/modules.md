@@ -1,8 +1,8 @@
 # Sequence modules
 
-`pypulseqpp.sequences`: modules that solve the timing and gradient waveforms of
-a group of blocks once and expose the resulting events to a scan loop, together
-with the non-Cartesian interleaves the readout modules play.
+`pypulseqpp.sequences`: reusable block layouts with solved timing and gradient
+waveforms and named event templates for scan-loop encoding, together
+with the non-Cartesian interleaves used by the readout modules.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences

@@ -68,9 +68,9 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Variable density
 # ----------------
 #
-# ``density='dual'`` designs the pitch so that the centre keeps the Nyquist
-# spacing while the periphery is sampled more sparsely, which shortens the
-# arm at the cost of aliasing that a reconstruction has to handle.
+# ``density='dual'`` preserves the Nyquist spacing near the origin and
+# increases the pitch at larger radii. The shorter readout requires a
+# reconstruction that accounts for peripheral undersampling.
 
 alternative = gre_spiral2D_sequence(
     n=192,

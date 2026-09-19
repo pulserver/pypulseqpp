@@ -66,8 +66,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Fewer interleaves
 # -----------------
 #
-# Half the interleaves at twice the pitch, so the edge of the disc is sampled
-# below the Nyquist spacing.
+# Halving the interleaf count doubles the pitch and undersamples the
+# peripheral k-space disc.
 
 alternative = se_stack_of_spirals3D_sequence(
     n=96, n_z=8, n_shots=8, te=None, tr=None, n_dummy=0

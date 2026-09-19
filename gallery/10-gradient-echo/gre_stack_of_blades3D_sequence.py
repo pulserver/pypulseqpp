@@ -65,8 +65,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Wider blades
 # ------------
 #
-# Fewer, wider blades cover the disc with fewer turns, and each one samples
-# more of the centre.
+# Increasing blade width reduces the number of blade orientations and
+# increases the shared central-k-space region.
 
 alternative = gre_stack_of_blades3D_sequence(
     n=96, n_z=8, blade_width=32, tr=None, n_dummy=0

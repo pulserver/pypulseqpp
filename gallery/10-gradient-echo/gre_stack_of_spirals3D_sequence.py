@@ -65,8 +65,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Fewer interleaves
 # -----------------
 #
-# Halving the interleaf count halves the repetitions and doubles the pitch
-# of each arm, so the disc is sampled below the Nyquist spacing at its edge.
+# Halving the interleaf count halves the number of repetitions and doubles
+# the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 alternative = gre_stack_of_spirals3D_sequence(
     n=96, n_z=8, n_shots=8, tr=None, n_dummy=0

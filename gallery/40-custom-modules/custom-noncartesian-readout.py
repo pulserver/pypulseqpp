@@ -13,7 +13,7 @@ are :math:`2\pi k / N` apart, which exceeds the Nyquist spacing
     k_t = \frac{N}{2\pi\,\mathrm{FOV}}.
 
 A twisting radial line (Jackson, Nishimura and Macovski, Magn Reson Med 1992,
-doi:10.1002/mrm.1910280209) leaves the spoke there and turns as it goes out, so
+doi:10.1002/mrm.1910280209) departs from the spoke beyond that radius and accumulates azimuth with radius, so
 that the perpendicular distance between neighbouring interleaves stays at the
 Nyquist spacing. Writing the arm as a k-space path and solving it under the
 gradient limits gives
@@ -24,8 +24,8 @@ gradient limits gives
       = \frac{1}{k}\sqrt{\left(\frac{2\pi\,\mathrm{FOV}\,k}{N}\right)^2 - 1},
     \qquad k > k_t.
 
-This example designs that path, wraps it in the interleaf and readout classes
-the package already provides, and plays it in a scan loop.
+The path is solved under the gradient constraints, wrapped as an interleaf
+and used in a complete non-Cartesian readout module.
 """
 
 # %%
@@ -111,7 +111,7 @@ class TwirlReadout2D(design.NonCartesianReadout):
     matrix : int
         In-plane matrix size.
     interleaves : int
-        Arms the pitch is designed for, which is what sets the transition
+        Number of arms used to set the pitch and transition
         radius. The loop may acquire any number of rotated copies.
     readout_bandwidth_hz : float, optional
         Requested ADC sampling rate (Hz).

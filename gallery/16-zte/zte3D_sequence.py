@@ -5,9 +5,9 @@
 
 The readout gradient is already at amplitude when the hard pulse is
 transmitted, so acquisition begins as soon as the receiver is available and
-the echo time is a few tens of microseconds. What the pulse cannot excite
-during the gradient, and what the dead time costs at the centre of k-space,
-are the price of it.
+the echo time is a few tens of microseconds. Concurrent excitation and
+gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive
+dead time leaves a central k-space gap.
 """
 
 # sphinx_gallery_start_ignore
@@ -57,8 +57,8 @@ print(
 # ----------------
 #
 # The automatically detected repetition contains one complete set of
-# half-spoke directions. The gradient is already on when each hard pulse plays,
-# and the ADC window opens after the transmit dead time. The solid trace is a
+# half-spoke directions. The readout gradient precedes the hard RF event, and the ADC window starts
+# after the transmit/receive dead time. The solid trace is a
 # representative repetition; shaded traces show other gradient encodes.
 
 baseline.paper_plot()

@@ -70,10 +70,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # Partial Fourier
 # ---------------
 #
-# ``partial_fourier_y`` omits the lines furthest from the centre on one side
-# and leaves the reconstruction to use the conjugate symmetry of k-space to
-# replace them, which shortens the scan at the cost of noise and of
-# sensitivity to the phase the object carries.
+# ``partial_fourier_y`` omits high-spatial-frequency lines on one side of
+# k-space. Partial-Fourier reconstruction uses conjugate symmetry and requires
+# a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 alternative = se2D_sequence(
     n_x=192, n_y=192, n_slices=1, partial_fourier_y=0.75, te=None, tr=None, n_dummy=0

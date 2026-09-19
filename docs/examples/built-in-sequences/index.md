@@ -1,14 +1,12 @@
 # Built-in sequences
 
-Every complete sequence the package ships, designed and drawn at a
-representative prescription. A page states the prescription, prints what the
-design produced, and shows the sequence diagram and the order the acquisition
-covers k-space in.
+Each shipped sequence is presented with a representative prescription,
+resulting timing, sequence diagram, sampling geometry and acquisition order.
 
 The prescription each application accepts, parameter by parameter, is on its
 reference page in the {doc}`catalogue </sequences>`.
 
-| Family | What the repetition holds |
+| Family | Acquisition |
 | --- | --- |
 | {doc}`/examples/built-in-sequences/gradient-echo` | One excitation, no refocusing pulse, spoiled between repetitions. |
 | {doc}`/examples/built-in-sequences/spin-echo` | One excitation and one refocusing pulse, acquired at the refocused echo. |
