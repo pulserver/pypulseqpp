@@ -103,7 +103,8 @@ compact.paper_plot()
 # constant along each row. The index within the train runs over the spokes in
 # the order they are played, and ``partition_angle_shift`` turns the set from
 # one partition to the next so that the spokes of neighbouring partitions do
-# not coincide.
+# not coincide. ``TI`` ends at the first excitation-pulse centre; the centre of
+# k-space on its spoke is sampled at ``TI + TE``.
 
 protocol = mprage_stack_of_stars3D_sequence(
     n=192, n_z=16, ry=4, ti=0.9, tr=2.3, n_dummy=0

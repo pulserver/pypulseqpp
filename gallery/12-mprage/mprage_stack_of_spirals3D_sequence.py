@@ -100,7 +100,8 @@ compact.paper_plot()
 # One inversion reads the interleaves of one partition, so the inversion cycle
 # is constant along each row. With an interleaf per readout the train is a
 # few tens of readouts long rather than a few hundred, and every view is read
-# within a short interval of the inversion time.
+# within a short interval. ``TI`` ends at the first excitation-pulse centre;
+# the first interleaf reaches the centre of k-space at ``TI + TE``.
 
 protocol = mprage_stack_of_spirals3D_sequence(
     n=192, n_z=16, n_shots=16, ti=0.9, tr=2.3, n_dummy=0

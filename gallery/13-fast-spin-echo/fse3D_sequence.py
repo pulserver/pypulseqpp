@@ -88,9 +88,8 @@ def safety_table(rows):
 # Baseline
 # --------
 #
-# A short train keeps the echo amplitudes near the excitation's, and the
-# ``(line, partition)`` views of one train are chosen so that the early echoes
-# land at the centre of k-space.
+# A short train limits T2 weighting across the train. Centre-out view ordering
+# assigns the earliest echoes to the centre of k-space.
 
 
 from pypulseqpp.sequences import fse3D_sequence
@@ -126,11 +125,10 @@ baseline.paper_plot()
 # Echo order and shot order
 # -------------------------
 #
-# Two different quantities. The echo index says where in the train a view was
-# read, and so how much the train had decayed when it was: it runs outward from
-# the centre, which puts the largest amplitudes on the lines that carry the
-# image contrast. The shot index says which train read it, and so which views
-# share an excitation.
+# Echo index identifies the position of a view within one CPMG train and thus
+# its T2 weighting. Shot index identifies the excitation and repetition that
+# acquired the view. Centre-out ordering assigns the least attenuated echoes
+# to central k-space.
 
 # sphinx_gallery_start_ignore
 order_figure(baseline, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
@@ -140,8 +138,8 @@ order_figure(baseline, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
 # Train length
 # ------------
 #
-# A longer train acquires the volume in fewer excitations and reaches further
-# into the decay, so the weight it applies to the outer lines is smaller.
+# A longer train requires fewer excitations but samples later points of the T2
+# decay, increasing attenuation toward the edge of k-space.
 
 long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=None, n_dummy=0)
 
@@ -190,10 +188,9 @@ envelope_figure(envelopes, 1e3 * baseline.get_definition("EchoSpacing")[0], weig
 # sphinx_gallery_end_ignore
 
 # %%
-# The centre of k-space keeps nearly the excitation's amplitude under either
-# train length, because the ordering reads it first. What lengthening the train
-# costs is at the edges, where the weight falls further; the image is blurred
-# along the phase-encode axes in proportion.
+# Central k-space receives nearly the same weight for both train lengths because
+# it is acquired first. The longer train attenuates outer k-space more strongly,
+# increasing the point-spread width along the phase-encode axes.
 #
 # Safety checks
 # -------------

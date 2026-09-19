@@ -99,15 +99,17 @@ compact.paper_plot()
 # At a protocol matrix, one inversion reads the sampled lines of one partition:
 # the inversion cycle is constant along each row of the map, and the index
 # within the train runs outward from the centre of the line axis. The centre of
-# k-space is therefore read at the start of a train, one inversion time after
-# the inversion, which is what sets the contrast; the periphery is read later,
-# as the magnetisation continues to recover.
+# k-space is therefore the first view in a train. ``TI`` is measured from the
+# inversion-pulse centre to that view's excitation-pulse centre; the central
+# ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
+# acquired later in the recovery.
 
 protocol = mprage3D_sequence(n_x=192, n_y=128, n_z=24, ti=0.9, tr=2.3, n_dummy=0)
 print(
     f"{protocol.duration()[0]:.1f} s, "
     f"{int(np.asarray(protocol.evaluate_labels(evolution='adc')['ECO']).max()) + 1} "
-    "readouts in the longest train"
+    "readouts in the longest train, "
+    f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
 )
 
 # sphinx_gallery_start_ignore
@@ -120,9 +122,9 @@ order_figure(protocol, 128, 24)
 #
 # ``ry`` and ``rz`` skip lines and partitions, and ``caipi_shift`` moves each
 # line's partitions so that the aliases land away from one another. The train
-# shortens with the number of lines each partition keeps, so every view is read
-# closer to the inversion and the contrast the inversion time sets is carried
-# further into k-space. The scan time does not follow: it is the number of
+# shortens with the number of lines each partition keeps, reducing the interval
+# over which inversion recovery weights k-space. The scan time does not follow:
+# it is the number of
 # inversion cycles times the repetition time, and with the calibration region
 # fully sampled every partition is still visited.
 

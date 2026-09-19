@@ -122,9 +122,9 @@ single.paper_plot()
 #
 # Both shorten the train, and they differ in what else they change.
 # ``n_shots`` interleaves the lines over several excitations, so every line is
-# still acquired and the scan takes proportionally longer. ``ry`` skips lines
-# instead, which leaves the scan time alone and needs a parallel-imaging
-# reconstruction to fill what was skipped. A spin at offset :math:`\Delta f`
+# still acquired. ``ry`` skips lines within one excitation and requires a
+# parallel-imaging reconstruction for the omitted lines. Both reduce the
+# echo-train duration. A spin at offset :math:`\Delta f`
 # gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
 # linear in :math:`k_y` and therefore a displacement of
 # :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both

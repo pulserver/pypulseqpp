@@ -45,7 +45,7 @@ def safety_table(rows):
 import pypulseqpp as pp
 from pypulseqpp.sequences import zte3D_sequence
 
-baseline = zte3D_sequence(n_x=64, n_views=300, n_dummy=0)
+baseline = zte3D_sequence(n_x=64, n_views=None, n_dummy=0)
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 print(
     f"{int(baseline.get_definition('NumShots')[0])} shots, "
@@ -76,16 +76,16 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Fewer views
 # -----------
 #
-# ``n_views`` sets how many half-spokes are played. Fewer of them shortens the
-# scan and undersamples the surface of the sphere, which shows as streaks rather
-# than as aliasing. Both configurations here play far fewer views than the
-# matrix asks for, so that the individual spokes stay visible on the page.
+# ``n_views`` sets the half-spokes per shell. The default balances their angular
+# spacing against the spacing between shells for the requested matrix. Halving
+# this count shortens the scan and undersamples one angular direction, producing
+# streaking rather than Cartesian aliasing.
 
-alternative = zte3D_sequence(n_x=64, n_views=120, n_dummy=0)
+alternative = zte3D_sequence(n_x=64, n_views=33, n_dummy=0)
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
-for name, seq in (("Nyquist", baseline), ("half the views", alternative)):
+for name, seq in (("balanced", baseline), ("half the views", alternative)):
     print(
         f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
         f"{seq._native.num_adc():13d}"
