@@ -62,7 +62,8 @@ print(f"EPI echo spacing {epi.esp * 1e6:.0f} us over {epi.etl} echoes")
 # The published events
 # --------------------
 #
-# A loop scales the phase encode per view and leaves the rest as designed.
+# A scan loop scales the phase-encoding event for each view; the remaining
+# events are unchanged.
 
 print("LineReadout2D events:", ", ".join(sorted(vars(line.events))))
 

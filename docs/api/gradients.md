@@ -10,9 +10,8 @@ on them. Amplitudes are in Hz/m, slew rates in Hz/m/s and gradient areas in
 
 ## Gradient factories
 
-Trapezoidal, extended-trapezoid and arbitrary gradient events, and the
-wave-encoding gradients played under a readout's flat top, which trace the
-wave-CAIPI corkscrew trajectory.
+Trapezoidal, extended-trapezoid and arbitrary gradient events, and wave-encoding gradients superposed on a readout plateau for a wave-CAIPI
+trajectory.
 
 ```{eval-rst}
 .. autosummary::

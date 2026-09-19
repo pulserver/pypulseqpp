@@ -4,9 +4,8 @@
 =======================================
 
 One excitation per repetition, with the line read again at several echo
-times. The signal decays between echoes at a rate the tissue's apparent
-transverse relaxation sets, so one repetition measures the decay rather
-than one point on it.
+times. Signal amplitude across the echo train follows apparent transverse
+relaxation, providing multiple points on the decay curve per excitation.
 """
 
 # sphinx_gallery_start_ignore
@@ -69,8 +68,8 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # A longer echo train
 # -------------------
 #
-# More echoes sample the decay further into it, at the cost of a longer
-# repetition and a later last echo.
+# Additional echoes extend the sampled decay curve and increase the minimum
+# repetition time and final echo time.
 
 alternative = gre_multiecho2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_echoes=8, te=None, tr=None, n_dummy=0

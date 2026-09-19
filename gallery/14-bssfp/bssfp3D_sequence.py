@@ -64,9 +64,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # Acceleration on both encoded axes
 # ---------------------------------
 #
-# Skipping lines and partitions shortens the scan without disturbing the
-# steady state, which depends on the repetition time and the flip angle
-# rather than on which view is read.
+# Subsampling the line and partition axes reduces the number of repetitions.
+# For fixed TR and flip angle, the RF and gradient phase cycling that establishes
+# the steady state is unchanged.
 
 alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
 

@@ -1,12 +1,14 @@
 """
-============================================
-What a sequence module publishes
-============================================
+===========================
+Sequence module composition
+===========================
 
-A sequence module solves the layout of one group of blocks at construction and
-exposes the resulting events for a scan loop to place. The architecture is
-described in :doc:`/explanations/design/sequence-module`; this page shows the
-interface running.
+A sequence module contains a reusable block layout and named event templates.
+The composition below combines inversion preparation, a prescribed inversion
+delay and a Cartesian readout, then verifies the resulting pulse-centre
+interval.
+The object model is described in
+:doc:`/explanations/design/sequence-module`.
 """
 
 # %%
@@ -60,7 +62,7 @@ print(f"selection amplitude {excitation.selection_amplitude * 1e-3:.1f} kHz/m")
 
 inversion = design.InversionPreparation(system, duration_s=10e-3, bandwidth_hz=40e3)
 
-inversion_time = 300e-3
+inversion_time = 30e-3
 recovery = pp.make_delay(
     pp.round_to_raster(
         inversion_time - (inversion.duration - inversion.center) - excitation.center,

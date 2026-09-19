@@ -37,12 +37,12 @@ for name, module in (
     print(f"{name:22} {len(module.blocks):2d} blocks, {module.duration * 1e3:6.2f} ms")
 
 # %%
-# Each is a block layout the loop places
-# --------------------------------------
+# Block layouts
+# -------------
 #
-# A preparation is added as it stands, followed by whatever interval the
-# prescription asks for. The diagram below plays the three in turn, which is
-# not a protocol: it shows what each contributes to a repetition.
+# A scan loop inserts a preparation's blocks before the readout and defines
+# any subsequent recovery interval. Five-millisecond separators keep the three
+# block layouts distinct in this comparison; they are not part of the modules.
 
 seq = pp.Sequence(system=system)
 for module in (fat_sat, t2_prep, inversion):

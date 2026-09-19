@@ -5,13 +5,12 @@ A ramp-sampled readout module
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
 the ramps carry area that is never sampled. Sampling through the ramps as well
-covers the same extent of k-space in a shorter lobe, at the price of samples
-that are no longer equally spaced in k and a reconstruction that has to regrid
-them.
+covers the same extent of k-space in a shorter lobe, with nonuniform ADC
+sampling locations that require regridding.
 
-This example implements a ramp-sampled line readout against the
-:class:`~pypulseqpp.sequences.SequenceModule` contract, measures both sides of
-that trade, and plays it in a scan loop.
+The implementation follows the
+:class:`~pypulseqpp.sequences.SequenceModule` contract and compares its duration
+and ADC sampling locations with a flat-top readout.
 """
 
 # sphinx_gallery_start_ignore
@@ -55,8 +54,8 @@ def sampling_figure(k_read, spacing, nyquist):
 # sphinx_gallery_end_ignore
 
 # %%
-# Required interface
-# -------------------
+# Module interface
+# -----------------
 #
 # ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 # sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -252,11 +251,11 @@ print(
 # ``calculate_kspace`` is one of the analyses a module forwards to the sequence
 # it built, so the sample positions come from the events themselves rather than
 # from the design arithmetic. The spacing is finest on the ramps, where the
-# gradient is weakest, and largest on the plateau, where it stays inside the
-# Nyquist spacing the field of view asks for. The
+# gradient is weakest, and largest on the plateau, where it remains below the
+# Nyquist spacing for the prescribed field of view. The
 # first and last samples, taken while the gradient is still near zero, are
-# almost coincident in k: ramp sampling buys its shorter lobe with redundancy
-# at the edges of the line and a regridding step in the reconstruction.
+# almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
+# regridding during reconstruction.
 
 k_adc = readout.calculate_kspace()[0]
 k_read = k_adc[0]

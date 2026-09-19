@@ -1,5 +1,6 @@
 """Every shipped sequence is classified once and documented from its own docstring."""
 
+import ast
 import importlib
 import sys
 from pathlib import Path
@@ -49,3 +50,34 @@ def test_every_sequence_has_a_gallery_page_that_designs_it(doc):
     """The reference page links its example by name, so the two have to match."""
     scripts = sorted(GALLERY.rglob(f"{doc.module}.py"))
     assert len(scripts) == 1, scripts
+
+
+@pytest.mark.parametrize(
+    "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
+)
+def test_every_sequence_gallery_uses_the_automatic_paper_plot_selection(doc):
+    """Built-in tours exercise the plotting default rather than hiding its defects."""
+    script = next(GALLERY.rglob(f"{doc.module}.py"))
+    tree = ast.parse(script.read_text())
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "paper_plot"
+    ]
+
+    assert len(calls) == 1
+    assert not calls[0].args
+    assert not calls[0].keywords
+
+
+@pytest.mark.parametrize(
+    "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
+)
+def test_every_sequence_gallery_has_a_compact_safety_summary(doc):
+    script = next(GALLERY.rglob(f"{doc.module}.py"))
+    source = script.read_text()
+
+    assert "# Safety checks\n" in source
+    assert "safety_table(" in source
