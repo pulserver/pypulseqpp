@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -550,7 +550,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#required-interface">Required interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration">Readout duration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-spacing-along-the-line">Sample spacing along the line</a></li>
@@ -575,14 +575,13 @@ to download the full example code.</p>
 <span id="sphx-glr-generated-gallery-40-custom-modules-custom-cartesian-readout-py"></span><h1>A ramp-sampled readout module<a class="headerlink" href="#a-ramp-sampled-readout-module" title="Link to this heading">#</a></h1>
 <p>The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
 the ramps carry area that is never sampled. Sampling through the ramps as well
-covers the same extent of k-space in a shorter lobe, at the price of samples
-that are no longer equally spaced in k and a reconstruction that has to regrid
-them.</p>
-<p>This example implements a ramp-sampled line readout against the
-<a class="reference internal" href="../../pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> contract, measures both sides of
-that trade, and plays it in a scan loop.</p>
-<section id="required-interface">
-<h2>Required interface<a class="headerlink" href="#required-interface" title="Link to this heading">#</a></h2>
+covers the same extent of k-space in a shorter lobe, with nonuniform ADC
+sampling locations that require regridding.</p>
+<p>The implementation follows the
+<a class="reference internal" href="../../pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> contract and compares its duration
+and ADC sampling locations with a flat-top readout.</p>
+<section id="module-interface">
+<h2>Module interface<a class="headerlink" href="#module-interface" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">init_module</span></code> assigns <code class="docutils literal notranslate"><span class="pre">self.seq</span></code>, adds the blocks of the layout to it and
 sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">center</span></code>, which for a readout
 is the interval from the start of the module to the echo. Events bound to
@@ -781,11 +780,11 @@ TE 2.520 ms over a 6.600 ms repetition
 <p><code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code> is one of the analyses a module forwards to the sequence
 it built, so the sample positions come from the events themselves rather than
 from the design arithmetic. The spacing is finest on the ramps, where the
-gradient is weakest, and largest on the plateau, where it stays inside the
-Nyquist spacing the field of view asks for. The
+gradient is weakest, and largest on the plateau, where it remains below the
+Nyquist spacing for the prescribed field of view. The
 first and last samples, taken while the gradient is still near zero, are
-almost coincident in k: ramp sampling buys its shorter lobe with redundancy
-at the edges of the line and a regridding step in the reconstruction.</p>
+almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
+regridding during reconstruction.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">k_adc</span></a> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">calculate_kspace</span><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w">
 </span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">k_read</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">k_adc</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w">
 </span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">spacing</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.diff.html#numpy.diff" title="numpy.diff"><span class="n">np</span><span class="o">.</span><span class="n">diff</span></a><span class="p">(</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">k_read</span></a><span class="p">)</span><span class="w">
@@ -824,10 +823,10 @@ acquisition; the rest of the layout is played as the module laid it out.</p>
 <p>One repetition of the module.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_custom-cartesian-readout_002.png" srcset="../../../_images/sphx_glr_custom-cartesian-readout_002.png" alt="custom cartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f193f32d6a0&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+<img src="../../../_images/sphx_glr_custom-cartesian-readout_002.png" srcset="../../../_images/sphx_glr_custom-cartesian-readout_002.png" alt="custom cartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6ae98c60c0&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.260 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.266 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-40-custom-modules-custom-cartesian-readout-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/51dbe49219a316e5451f598a305017eb/custom-cartesian-readout.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">custom-cartesian-readout.ipynb</span></code></a></p>
@@ -890,7 +889,7 @@ acquisition; the rest of the layout is played as the module laid it out.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#required-interface">Required interface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration">Readout duration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-spacing-along-the-line">Sample spacing along the line</a></li>

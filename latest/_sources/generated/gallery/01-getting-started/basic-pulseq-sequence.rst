@@ -22,14 +22,13 @@
 A basic Pulseq sequence
 =======================
 
-The shortest complete workflow: system limits, events, blocks, a sequence, and
-the file it is written to. Two repetitions of a slice-selective gradient echo
-are enough to show every step.
+A two-repetition slice-selective gradient-echo sequence illustrates system
+limits, event construction, block timing, sequence assembly and Pulseq output.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 15-20
+.. GENERATED FROM PYTHON SOURCE LINES 14-19
 
 System limits
 -------------
@@ -37,7 +36,7 @@ System limits
 Every factory solves its waveforms against a set of limits, and every event
 time is quantized to the rasters they declare.
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-35
+.. GENERATED FROM PYTHON SOURCE LINES 19-34
 
 .. code-block:: Python
 
@@ -63,7 +62,7 @@ time is quantized to the rasters they declare.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-42
+.. GENERATED FROM PYTHON SOURCE LINES 35-41
 
 Events
 ------
@@ -72,7 +71,7 @@ An RF pulse with its slice-selection gradient and rephaser, a readout
 gradient with its prewinder, a phase-encode gradient at its largest step, and
 an acquisition window.
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-65
+.. GENERATED FROM PYTHON SOURCE LINES 41-64
 
 .. code-block:: Python
 
@@ -113,7 +112,7 @@ an acquisition window.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-73
+.. GENERATED FROM PYTHON SOURCE LINES 65-72
 
 Blocks
 ------
@@ -123,7 +122,7 @@ together. Blocks are played back to back, so a block longer than its events
 is a delay. One repetition is four blocks; the phase encode is scaled per
 line.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-81
+.. GENERATED FROM PYTHON SOURCE LINES 72-80
 
 .. code-block:: Python
 
@@ -142,7 +141,7 @@ line.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-87
+.. GENERATED FROM PYTHON SOURCE LINES 81-86
 
 Timing and inspection
 ---------------------
@@ -150,7 +149,7 @@ Timing and inspection
 ``check_timing`` establishes that every event time is addressable on the
 raster its event is played on and that the dead times are respected.
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-93
+.. GENERATED FROM PYTHON SOURCE LINES 86-92
 
 .. code-block:: Python
 
@@ -175,18 +174,18 @@ raster its event is played on and that the dead times are respected.
 
     timing: True, 0 errors, 8 blocks
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f28b8c0>, tr=1, underlays=[2])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b080f90d0>, tr=1, underlays=[2])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-98
+.. GENERATED FROM PYTHON SOURCE LINES 93-97
 
 Writing the file
 ----------------
 
 The definitions a reconstruction reads are written beside the block table.
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-108
+.. GENERATED FROM PYTHON SOURCE LINES 97-107
 
 .. code-block:: Python
 
@@ -216,7 +215,7 @@ The definitions a reconstruction reads are written beside the block table.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.105 seconds)
+   **Total running time of the script:** (0 minutes 0.106 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-getting-started_basic-pulseq-sequence.py:

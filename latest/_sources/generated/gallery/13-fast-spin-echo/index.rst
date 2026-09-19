@@ -23,7 +23,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. The train amplitude at echo m becomes the weight of whichever view that echo reads, so the map from echo index to k-space position is a filter applied to the image, and the ordering is what chooses it.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function.">
 
 .. only:: html
 

@@ -81,12 +81,12 @@ Inversion, fat saturation and T2 preparation
 
 .. GENERATED FROM PYTHON SOURCE LINES 40-46
 
-Each is a block layout the loop places
---------------------------------------
+Block layouts
+-------------
 
-A preparation is added as it stands, followed by whatever interval the
-prescription asks for. The diagram below plays the three in turn, which is
-not a protocol: it shows what each contributes to a repetition.
+A scan loop inserts a preparation's blocks before the readout and defines
+any subsequent recovery interval. Five-millisecond separators keep the three
+block layouts distinct in this comparison; they are not part of the modules.
 
 .. GENERATED FROM PYTHON SOURCE LINES 46-55
 
@@ -116,14 +116,14 @@ not a protocol: it shows what each contributes to a repetition.
 
     15 blocks, 99.38 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193eee3530>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afa86b260>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.503 seconds)
+   **Total running time of the script:** (0 minutes 0.510 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_22-modules-preparation_preparation-modules.py:

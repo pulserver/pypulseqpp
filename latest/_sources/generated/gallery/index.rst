@@ -46,7 +46,7 @@ Getting started
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The shortest complete workflow: system limits, events, blocks, a sequence, and the file it is written to. Two repetitions of a slice-selective gradient echo are enough to show every step.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output.">
 
 .. only:: html
 
@@ -63,7 +63,7 @@ Getting started
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The package computes five checks over a finished sequence: the gradient amplitude and slew rate the hardware is asked for, the continuity of the gradient waveform across block boundaries, the nerve response the slew implies, the gradient spectrum inside a scanner&#x27;s forbidden bands, and the power a transmit array deposits. Each returns a verdict and a report, and this page runs all of them over one sequence.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it.">
 
 .. only:: html
 
@@ -74,7 +74,7 @@ Getting started
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Checking a sequence for safety</div>
+      <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
     </div>
 
 
@@ -105,7 +105,7 @@ Sequence module composition
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A sequence module solves the layout of one group of blocks at construction and exposes the resulting events for a scan loop to place. The architecture is described in /explanations/design/sequence-module; this page shows the interface running.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module.">
 
 .. only:: html
 
@@ -116,7 +116,7 @@ Sequence module composition
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">What a sequence module publishes</div>
+      <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
     </div>
 
 
@@ -290,7 +290,7 @@ Non-Cartesian readout modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. One interleaf in the gradient library therefore serves the whole scan, however many angles it is played at.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. The gradient library stores one interleaf; per-shot rotation extensions define its physical orientation.">
 
 .. only:: html
 
@@ -349,7 +349,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. The workhorse of the family, and the sequence the other Cartesian variants are read against.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. This is the reference implementation for the Cartesian gradient-echo variants.">
 
 .. only:: html
 
@@ -383,7 +383,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. The signal decays between echoes at a rate the tissue&#x27;s apparent transverse relaxation sets, so one repetition measures the decay rather than one point on it.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. Signal amplitude across the echo train follows apparent transverse relaxation, providing multiple points on the decay curve per excitation.">
 
 .. only:: html
 
@@ -434,7 +434,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the centre, so the acquisition is insensitive to motion between repetitions in a way a Cartesian one is not, and undersampling shows as streaks rather than as aliasing.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the k-space origin. Angular undersampling produces streak artefacts rather than coherent Cartesian aliasing.">
 
 .. only:: html
 
@@ -502,7 +502,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane acquisition keeps the motion behaviour of a radial one; the partition axis keeps the efficiency of Cartesian encoding.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane trajectory retains radial sampling properties, with Cartesian encoding along the partition axis.">
 
 .. only:: html
 
@@ -722,7 +722,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. The train amplitude at echo m becomes the weight of whichever view that echo reads, so the map from echo index to k-space position is a filter applied to the image, and the ordering is what chooses it.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function.">
 
 .. only:: html
 
@@ -764,7 +764,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The contrast follows from where in the recovery the centre of k-space is acquired, so the ordering within the train is part of the sequence rather than a reconstruction choice.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse determines the dominant inversion-recovery contrast. View ordering therefore defines the contrast weighting across k-space.">
 
 .. only:: html
 
@@ -899,7 +899,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encode blip between them, so the whole phase-encode axis is covered after a single pulse. Off-resonance then accumulates along that axis instead of across repetitions, and the train length is what decides how far it displaces the image.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis.">
 
 .. only:: html
 
@@ -916,7 +916,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The views sampled form a CAIPIRINHA lattice: line y is read when (y - n_y // 2) % ry == 0, and the partition it is read at advances by the CAIPI shift from one lattice line to the next. A shot reads every n_shots-th lattice line, which is skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
+    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA lattice. Phase-encode lines satisfy (y - n_y // 2) % ry == 0; the partition index advances by the CAIPI shift between adjacent lattice lines. Each shot acquires every n_shots-th lattice line, defining skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
 
 .. only:: html
 
@@ -958,7 +958,7 @@ Zero echo time
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. What the pulse cannot excite during the gradient, and what the dead time costs at the centre of k-space, are the price of it.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. Concurrent excitation and gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive dead time leaves a central k-space gap.">
 
 .. only:: html
 
@@ -1000,7 +1000,7 @@ Building sequences
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A complete sequence separates three things: the prescription a user sets, the order the views are sampled in, and the blocks of one repetition. SequenceApp is the contract that keeps them apart, and every sequence the package ships is written against it. The architecture is described in /explanations/design/sequence-application.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application.">
 
 .. only:: html
 
@@ -1042,7 +1042,7 @@ Custom sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, at the price of samples that are no longer equally spaced in k and a reconstruction that has to regrid them.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding.">
 
 .. only:: html
 
@@ -1059,7 +1059,7 @@ Custom sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates the energy at the end instead, which shortens the interval between the pulse and the echo at the same duration and time-bandwidth product, at the cost of a higher peak B_1 and a slice-profile phase that is no longer linear.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates RF energy near the end of the waveform. For fixed duration and time-bandwidth product, this reduces the interval to the echo but increases peak B_1 and introduces nonlinear slice-profile phase.">
 
 .. only:: html
 

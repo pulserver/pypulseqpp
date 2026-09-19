@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ef41790>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bbfbda0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -135,8 +135,8 @@ The interleaves of every partition, over the three k-space axes.
 Fewer interleaves
 -----------------
 
-Half the interleaves at twice the pitch, so the edge of the disc is sampled
-below the Nyquist spacing.
+Halving the interleaf count doubles the pitch and undersamples the
+peripheral k-space disc.
 
 .. GENERATED FROM PYTHON SOURCE LINES 71-85
 
@@ -229,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.291 seconds)
+   **Total running time of the script:** (0 minutes 3.254 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

@@ -18,16 +18,18 @@
 .. _sphx_glr_generated_gallery_20-modules-overview_sequence-module-composition.py:
 
 
-============================================
-What a sequence module publishes
-============================================
+===========================
+Sequence module composition
+===========================
 
-A sequence module solves the layout of one group of blocks at construction and
-exposes the resulting events for a scan loop to place. The architecture is
-described in :doc:`/explanations/design/sequence-module`; this page shows the
-interface running.
+A sequence module contains a reusable block layout and named event templates.
+The composition below combines inversion preparation, a prescribed inversion
+delay and a Cartesian readout, then verifies the resulting pulse-centre
+interval.
+The object model is described in
+:doc:`/explanations/design/sequence-module`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-18
+.. GENERATED FROM PYTHON SOURCE LINES 15-20
 
 Constructing a module
 ---------------------
@@ -35,7 +37,7 @@ Constructing a module
 ``SpatialSelectiveExcitation`` designs an SLR pulse, its selection gradient
 and the rephaser that unwinds the second half of the selection.
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-38
+.. GENERATED FROM PYTHON SOURCE LINES 20-40
 
 .. code-block:: Python
 
@@ -75,7 +77,7 @@ and the rephaser that unwinds the second half of the selection.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-46
+.. GENERATED FROM PYTHON SOURCE LINES 41-48
 
 Blocks, events and timing reference
 -----------------------------------
@@ -85,7 +87,7 @@ per-view modification is added to a sequence as it stands. The named events
 are the individual events a loop scales or offsets. ``center`` is the
 module's timing reference, in seconds from its start.
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-52
+.. GENERATED FROM PYTHON SOURCE LINES 48-54
 
 .. code-block:: Python
 
@@ -109,7 +111,7 @@ module's timing reference, in seconds from its start.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-60
+.. GENERATED FROM PYTHON SOURCE LINES 55-62
 
 Composing modules
 -----------------
@@ -119,14 +121,14 @@ inversion time runs from one pulse centre to the next, so the recovery delay
 subtracts the part of the inversion module after its pulse and the part of
 the excitation module before its own.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-93
+.. GENERATED FROM PYTHON SOURCE LINES 62-95
 
 .. code-block:: Python
 
 
     inversion = design.InversionPreparation(system, duration_s=10e-3, bandwidth_hz=40e3)
 
-    inversion_time = 300e-3
+    inversion_time = 30e-3
     recovery = pp.make_delay(
         pp.round_to_raster(
             inversion_time - (inversion.duration - inversion.center) - excitation.center,
@@ -164,17 +166,17 @@ the excitation module before its own.
 
  .. code-block:: none
 
-    prescribed TI 300.0 ms, played 300.0 ms
+    prescribed TI 30.0 ms, played 30.0 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-96
+.. GENERATED FROM PYTHON SOURCE LINES 96-98
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-98
+.. GENERATED FROM PYTHON SOURCE LINES 98-100
 
 .. code-block:: Python
 
@@ -194,14 +196,14 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e4dad50>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bc43260>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.196 seconds)
+   **Total running time of the script:** (0 minutes 0.195 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_20-modules-overview_sequence-module-composition.py:

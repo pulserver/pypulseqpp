@@ -269,7 +269,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -573,9 +573,9 @@ analytically and assigned the answer.</p>
 
 <section id="examples-using-inversionpreparation-duration">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">InversionPreparation.duration</span></code><a class="headerlink" href="#examples-using-inversionpreparation-duration" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module solves the layout of one group of blocks at construction and exposes the resulting events for a scan loop to place. The architecture is described in /explanations/design/sequence-module; this page shows the interface running."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">What a sequence module publishes</span></a></p>
-  <div class="sphx-glr-thumbnail-title">What a sequence module publishes</div>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
+<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition."><img alt="" src="../_images/sphx_glr_preparation-modules_thumb.png" />
 <p><a class="reference internal" href="gallery/22-modules-preparation/preparation-modules.html"><span class="doc">Preparation modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Preparation modules</div>

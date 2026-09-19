@@ -93,7 +93,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f66be30>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b080f8260>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
 
 
 
@@ -1334,8 +1334,8 @@ The blades of every partition, over the three k-space axes.
 Wider blades
 ------------
 
-Fewer, wider blades cover the disc with fewer turns, and each one samples
-more of the centre.
+Increasing blade width reduces the number of blade orientations and
+increases the shared central-k-space region.
 
 .. GENERATED FROM PYTHON SOURCE LINES 70-84
 
@@ -1428,7 +1428,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.321 seconds)
+   **Total running time of the script:** (0 minutes 9.184 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py:

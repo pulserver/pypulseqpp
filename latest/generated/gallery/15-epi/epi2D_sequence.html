@@ -273,7 +273,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -578,15 +578,14 @@ to download the full example code.</p>
 <section class="sphx-glr-example-title" id="d-echo-planar-imaging">
 <span id="sphx-glr-generated-gallery-15-epi-epi2d-sequence-py"></span><h1>2D echo-planar imaging<a class="headerlink" href="#d-echo-planar-imaging" title="Link to this heading">#</a></h1>
 <p>One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encode blip between them, so the whole phase-encode axis is
-covered after a single pulse. Off-resonance then accumulates along that axis
-instead of across repetitions, and the train length is what decides how far it
-displaces the image.</p>
+with a phase-encoding blip between successive readouts. A single-shot train
+acquires the complete phase-encode axis after one excitation. Off-resonance
+phase accumulates across the train and produces displacement along that axis.</p>
 <section id="baseline-single-shot">
 <h2>Baseline: single shot<a class="headerlink" href="#baseline-single-shot" title="Link to this heading">#</a></h2>
-<p>One excitation reads every line of the phase-encode axis. The train is as
-long as the matrix, and the echo spacing times the train length is what a
-spin at a given off-resonance is displaced by.</p>
+<p>One excitation acquires the complete phase-encode axis. Echo-train length
+equals the number of acquired lines and determines the accumulated
+off-resonance phase across k-space.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">single</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_shots</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
@@ -603,17 +602,17 @@ spin at a given off-resonance is displaced by.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">single</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi2D_sequence_001.png" srcset="../../../_images/sphx_glr_epi2D_sequence_001.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f195f708770&gt;, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
+<img src="../../../_images/sphx_glr_epi2D_sequence_001.png" srcset="../../../_images/sphx_glr_epi2D_sequence_001.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b2bc43e90&gt;, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
 </pre></div>
 </div>
 </section>
 <section id="segmentation-and-in-plane-acceleration">
 <h2>Segmentation and in-plane acceleration<a class="headerlink" href="#segmentation-and-in-plane-acceleration" title="Link to this heading">#</a></h2>
-<p>Both shorten the train, and they differ in what else they change.
+<p>Segmentation and in-plane acceleration both reduce echo-train length.
 <code class="docutils literal notranslate"><span class="pre">n_shots</span></code> interleaves the lines over several excitations, so every line is
-still acquired and the scan takes proportionally longer. <code class="docutils literal notranslate"><span class="pre">ry</span></code> skips lines
-instead, which leaves the scan time alone and needs a parallel-imaging
-reconstruction to fill what was skipped. A spin at offset <span class="math notranslate nohighlight">\(\Delta f\)</span>
+still acquired. <code class="docutils literal notranslate"><span class="pre">ry</span></code> skips lines within one excitation and requires a
+parallel-imaging reconstruction for the omitted lines. Both reduce the
+echo-train duration. A spin at offset <span class="math notranslate nohighlight">\(\Delta f\)</span>
 gains <span class="math notranslate nohighlight">\(2\pi \Delta f\, \mathrm{esp}\)</span> of phase per echo, which is
 linear in <span class="math notranslate nohighlight">\(k_y\)</span> and therefore a displacement of
 <span class="math notranslate nohighlight">\(\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}\)</span> pixels: both
@@ -632,10 +631,11 @@ ry = 3          32       1       32.0     23.44       43.1      0.035
 </section>
 <section id="echo-traversal">
 <h2>Echo traversal<a class="headerlink" href="#echo-traversal" title="Link to this heading">#</a></h2>
-<p>The line each echo reads, against its index in the train. A single shot walks
-the axis one line at a time; a segmented acquisition walks it in steps of
-<code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, each shot starting one line further on; acceleration walks it in
-steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code> and stops there.</p>
+<p>The ordinate gives the phase-encode line acquired at each echo index. A
+single shot
+traverses the axis one line at a time; a segmented acquisition traverses it
+in steps of <code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, with each shot starting one line further on;
+acceleration traverses it in steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code> and stops there.</p>
 <img src="../../../_images/sphx_glr_epi2D_sequence_002.png" srcset="../../../_images/sphx_glr_epi2D_sequence_002.png" alt="1 shot, 3 shots, ry = 3" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 946x330 with 3 Axes&gt;
 </pre></div>
 </div>
@@ -682,7 +682,7 @@ those lines falls in is driven for as long as the train lasts.
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">single</span></a><span class="p">,</span> <span class="n">window</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">mech</span><span class="o">.</span><span class="n">bands</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mf">20e-3</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="forbidden band shaded, its threshold dashed" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.470 seconds)</p>
+<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="forbidden band shaded, its threshold dashed" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.464 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-15-epi-epi2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/c9e8aa9b184b941e594f4acea72303f7/epi2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">epi2D_sequence.ipynb</span></code></a></p>

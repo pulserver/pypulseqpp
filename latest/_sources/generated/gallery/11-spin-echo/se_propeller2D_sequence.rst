@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e699c40>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4b91f0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
@@ -103,7 +103,7 @@ Sequence diagram
 Sampling order
 --------------
 
-The blades in the order they are played.
+Colour encodes blade acquisition order.
 
 .. GENERATED FROM PYTHON SOURCE LINES 62-65
 
@@ -229,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.294 seconds)
+   **Total running time of the script:** (0 minutes 4.248 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

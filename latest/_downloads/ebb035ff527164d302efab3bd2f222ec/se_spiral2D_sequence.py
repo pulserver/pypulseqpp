@@ -65,8 +65,8 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Variable density
 # ----------------
 #
-# A dual-density arm keeps the Nyquist spacing at the centre and samples the
-# periphery more sparsely, which shortens the readout.
+# A dual-density arm retains the Nyquist spacing near the origin and increases
+# the pitch at larger radii, reducing the readout duration.
 
 alternative = se_spiral2D_sequence(
     n=192,

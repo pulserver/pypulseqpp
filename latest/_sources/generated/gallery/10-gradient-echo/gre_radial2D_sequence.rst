@@ -22,13 +22,11 @@
 2D radial gradient echo
 =========================
 
-One full spoke through the centre of k-space per repetition. Every
-readout crosses the centre, so the acquisition is insensitive to motion
-between repetitions in a way a Cartesian one is not, and undersampling
-shows as streaks rather than as aliasing.
+One full spoke through the centre of k-space per repetition. Every readout
+crosses the k-space origin. Angular undersampling produces
+streak artefacts rather than coherent Cartesian aliasing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
+.. GENERATED FROM PYTHON SOURCE LINES 10-37
 
 
 
@@ -36,14 +34,15 @@ shows as streaks rather than as aliasing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+.. GENERATED FROM PYTHON SOURCE LINES 38-42
 
 Baseline
 --------
 
 Enough spokes to sample the outer radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-51
+.. GENERATED FROM PYTHON SOURCE LINES 42-50
 
 .. code-block:: Python
 
@@ -68,12 +67,12 @@ Enough spokes to sample the outer radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-54
+.. GENERATED FROM PYTHON SOURCE LINES 51-53
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-57
+.. GENERATED FROM PYTHON SOURCE LINES 53-56
 
 .. code-block:: Python
 
@@ -94,19 +93,19 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193e72dbb0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afaf5d8e0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-63
+.. GENERATED FROM PYTHON SOURCE LINES 57-62
 
 Sampling order
 --------------
 
-The spokes, coloured by the order they are played in. Consecutive spokes
-are spread over the disc rather than played side by side.
+Colour encodes spoke acquisition order. Consecutive spokes use a
+distributed angular ordering rather than adjacent angles.
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-66
+.. GENERATED FROM PYTHON SOURCE LINES 62-65
 
 .. code-block:: Python
 
@@ -131,15 +130,15 @@ are spread over the disc rather than played side by side.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-72
+.. GENERATED FROM PYTHON SOURCE LINES 66-71
 
 Angular undersampling
 ---------------------
 
-``ry`` plays one spoke in three. The centre of k-space stays fully
-sampled, because every spoke crosses it; what thins out is the periphery.
+``ry=3`` retains one third of the spoke angles. Every spoke crosses the
+origin, whereas angular sampling density decreases with k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-86
+.. GENERATED FROM PYTHON SOURCE LINES 71-85
 
 .. code-block:: Python
 
@@ -164,7 +163,7 @@ sampled, because every spoke crosses it; what thins out is the periphery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-89
+.. GENERATED FROM PYTHON SOURCE LINES 86-88
 
 .. code-block:: Python
 
@@ -188,7 +187,7 @@ sampled, because every spoke crosses it; what thins out is the periphery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-96
+.. GENERATED FROM PYTHON SOURCE LINES 89-95
 
 Safety checks
 -------------
@@ -197,7 +196,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-127
+.. GENERATED FROM PYTHON SOURCE LINES 95-126
 
 .. code-block:: Python
 
@@ -230,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.863 seconds)
+   **Total running time of the script:** (0 minutes 2.830 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

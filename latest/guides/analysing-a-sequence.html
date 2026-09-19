@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -568,11 +568,10 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="analyse-a-finished-sequence">
 <h1>Analyse a finished sequence<a class="headerlink" href="#analyse-a-finished-sequence" title="Link to this heading">#</a></h1>
-<p>This guide covers what a sequence can be asked about once it has been built or
-read from a file: its structure, its timing, the waveforms it plays and the
-k-space trajectory it samples.</p>
-<p>The sequence used here is one of the shipped implementations; the same calls
-apply to a sequence assembled by hand or read with
+<p>Inspect the structure, timing, physical waveforms, k-space trajectory and ADC
+sampling locations of a constructed or imported sequence.</p>
+<p>The same analysis methods apply to shipped sequences, manually assembled
+sequences and files imported with
 <a class="reference internal" href="../generated/pypulseqpp.Sequence.read.html#pypulseqpp.Sequence.read" title="pypulseqpp.Sequence.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">gre2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>

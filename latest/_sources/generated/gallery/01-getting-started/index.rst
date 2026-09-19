@@ -23,7 +23,7 @@ Getting started
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The shortest complete workflow: system limits, events, blocks, a sequence, and the file it is written to. Two repetitions of a slice-selective gradient echo are enough to show every step.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Getting started
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The package computes five checks over a finished sequence: the gradient amplitude and slew rate the hardware is asked for, the continuity of the gradient waveform across block boundaries, the nerve response the slew implies, the gradient spectrum inside a scanner&#x27;s forbidden bands, and the power a transmit array deposits. Each returns a verdict and a report, and this page runs all of them over one sequence.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it.">
 
 .. only:: html
 
@@ -51,7 +51,7 @@ Getting started
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Checking a sequence for safety</div>
+      <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
     </div>
 
 

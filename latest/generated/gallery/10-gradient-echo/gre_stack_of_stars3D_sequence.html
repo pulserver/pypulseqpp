@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -574,8 +574,8 @@ to download the full example code.</p>
 <section class="sphx-glr-example-title" id="d-stack-of-stars-gradient-echo">
 <span id="sphx-glr-generated-gallery-10-gradient-echo-gre-stack-of-stars3d-sequence-py"></span><h1>3D stack-of-stars gradient echo<a class="headerlink" href="#d-stack-of-stars-gradient-echo" title="Link to this heading">#</a></h1>
 <p>Radial spokes in the plane and Cartesian encoding along the slab axis.
-The in-plane acquisition keeps the motion behaviour of a radial one; the
-partition axis keeps the efficiency of Cartesian encoding.</p>
+The in-plane trajectory retains radial sampling properties, with Cartesian
+encoding along the partition axis.</p>
 <section id="baseline">
 <h2>Baseline<a class="headerlink" href="#baseline" title="Link to this heading">#</a></h2>
 <p>A spoke at every partition, with the spoke set turned from one partition
@@ -594,7 +594,7 @@ to the next.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_001.png" alt="gre stack of stars3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f192e6993d0&gt;, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+<img src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_001.png" alt="gre stack of stars3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b0b39ce30&gt;, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 </pre></div>
 </div>
 </section>
@@ -609,8 +609,8 @@ to the next.</p>
 </section>
 <section id="angular-undersampling">
 <h2>Angular undersampling<a class="headerlink" href="#angular-undersampling" title="Link to this heading">#</a></h2>
-<p>Playing one spoke in four shortens the scan fourfold and leaves the centre
-of each partition fully sampled.</p>
+<p>Retaining one spoke angle in four reduces the number of repetitions
+fourfold. Every acquired spoke samples the origin of its partition.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/gre_stack_of_stars3D_sequence.html#pypulseqpp.sequences.gre_stack_of_stars3D_sequence" title="pypulseqpp.sequences.gre_stack_of_stars3D_sequence"><span class="n">gre_stack_of_stars3D_sequence</span></a><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ry</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>                   blocks  duration (s)  acquisitions
@@ -644,7 +644,7 @@ gradient continuity        pass          0 discontinuities
 peripheral nerve stimulation pass          0.96 of threshold
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.833 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.830 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-10-gradient-echo-gre-stack-of-stars3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/3f07c4cd5ebe0c1d964b1ccf16aec93a/gre_stack_of_stars3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gre_stack_of_stars3D_sequence.ipynb</span></code></a></p>

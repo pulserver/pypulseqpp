@@ -24,16 +24,14 @@ A ramp-sampled readout module
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
 the ramps carry area that is never sampled. Sampling through the ramps as well
-covers the same extent of k-space in a shorter lobe, at the price of samples
-that are no longer equally spaced in k and a reconstruction that has to regrid
-them.
+covers the same extent of k-space in a shorter lobe, with nonuniform ADC
+sampling locations that require regridding.
 
-This example implements a ramp-sampled line readout against the
-:class:`~pypulseqpp.sequences.SequenceModule` contract, measures both sides of
-that trade, and plays it in a scan loop.
+The implementation follows the
+:class:`~pypulseqpp.sequences.SequenceModule` contract and compares its duration
+and ADC sampling locations with a flat-top readout.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-57
-
+.. GENERATED FROM PYTHON SOURCE LINES 15-56
 
 
 
@@ -41,10 +39,11 @@ that trade, and plays it in a scan loop.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-72
 
-Required interface
--------------------
+.. GENERATED FROM PYTHON SOURCE LINES 57-71
+
+Module interface
+-----------------
 
 ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -58,7 +57,7 @@ The acquisition window is centred on the lobe and sampled at a fixed rate:
 equal steps in time over a gradient that is not constant are unequal steps in
 k.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-185
+.. GENERATED FROM PYTHON SOURCE LINES 71-184
 
 .. code-block:: Python
 
@@ -182,7 +181,7 @@ k.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 186-192
+.. GENERATED FROM PYTHON SOURCE LINES 185-191
 
 Readout duration
 ----------------
@@ -191,7 +190,7 @@ Both designs sample the same extent of k-space, so both resolve the same
 matrix over the same field of view. The flat-top design carries that extent
 on its plateau alone, and its ramps add duration without adding samples.
 
-.. GENERATED FROM PYTHON SOURCE LINES 192-222
+.. GENERATED FROM PYTHON SOURCE LINES 191-221
 
 .. code-block:: Python
 
@@ -239,12 +238,12 @@ on its plateau alone, and its ramps add duration without adding samples.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 223-225
+.. GENERATED FROM PYTHON SOURCE LINES 222-224
 
 One repetition
 --------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 225-248
+.. GENERATED FROM PYTHON SOURCE LINES 224-247
 
 .. code-block:: Python
 
@@ -288,7 +287,7 @@ One repetition
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 249-260
+.. GENERATED FROM PYTHON SOURCE LINES 248-259
 
 Sample spacing along the line
 -----------------------------
@@ -296,13 +295,13 @@ Sample spacing along the line
 ``calculate_kspace`` is one of the analyses a module forwards to the sequence
 it built, so the sample positions come from the events themselves rather than
 from the design arithmetic. The spacing is finest on the ramps, where the
-gradient is weakest, and largest on the plateau, where it stays inside the
-Nyquist spacing the field of view asks for. The
+gradient is weakest, and largest on the plateau, where it remains below the
+Nyquist spacing for the prescribed field of view. The
 first and last samples, taken while the gradient is still near zero, are
-almost coincident in k: ramp sampling buys its shorter lobe with redundancy
-at the edges of the line and a regridding step in the reconstruction.
+almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
+regridding during reconstruction.
 
-.. GENERATED FROM PYTHON SOURCE LINES 260-271
+.. GENERATED FROM PYTHON SOURCE LINES 259-270
 
 .. code-block:: Python
 
@@ -336,7 +335,7 @@ at the edges of the line and a regridding step in the reconstruction.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 272-277
+.. GENERATED FROM PYTHON SOURCE LINES 271-276
 
 Scan loop
 ---------
@@ -344,7 +343,7 @@ Scan loop
 The loop scales the published phase encode per line and labels the
 acquisition; the rest of the layout is played as the module laid it out.
 
-.. GENERATED FROM PYTHON SOURCE LINES 277-290
+.. GENERATED FROM PYTHON SOURCE LINES 276-289
 
 .. code-block:: Python
 
@@ -374,11 +373,11 @@ acquisition; the rest of the layout is played as the module laid it out.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 291-292
+.. GENERATED FROM PYTHON SOURCE LINES 290-291
 
 One repetition of the module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 292-294
+.. GENERATED FROM PYTHON SOURCE LINES 291-293
 
 .. code-block:: Python
 
@@ -398,14 +397,14 @@ One repetition of the module.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f32d6a0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6ae98c60c0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.260 seconds)
+   **Total running time of the script:** (0 minutes 0.266 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-cartesian-readout.py:

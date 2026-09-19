@@ -66,7 +66,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Wider blades
 # ------------
 #
-# Fewer, wider blades, each sampling more of the centre.
+# Increasing blade width reduces the number of orientations and increases
+# the shared central-k-space region.
 
 alternative = se_stack_of_blades3D_sequence(
     n=96, n_z=8, blade_width=32, te=None, tr=None, n_dummy=0

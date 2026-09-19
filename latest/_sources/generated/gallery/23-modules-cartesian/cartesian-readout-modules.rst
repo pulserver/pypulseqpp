@@ -99,14 +99,15 @@ One view per excitation, and a whole train
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-66
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 The published events
 --------------------
 
-A loop scales the phase encode per view and leaves the rest as designed.
+A scan loop scales the phase-encoding event for each view; the remaining
+events are unchanged.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-69
+.. GENERATED FROM PYTHON SOURCE LINES 67-70
 
 .. code-block:: Python
 
@@ -126,12 +127,12 @@ A loop scales the phase encode per view and leaves the rest as designed.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-72
+.. GENERATED FROM PYTHON SOURCE LINES 71-73
 
 One repetition of each
 ----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-78
+.. GENERATED FROM PYTHON SOURCE LINES 73-79
 
 .. code-block:: Python
 
@@ -155,15 +156,15 @@ One repetition of each
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193eee6150>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afa672d50>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-80
+.. GENERATED FROM PYTHON SOURCE LINES 80-81
 
 The echo-planar readout, which covers the same axis in one shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-85
+.. GENERATED FROM PYTHON SOURCE LINES 81-86
 
 .. code-block:: Python
 
@@ -186,7 +187,7 @@ The echo-planar readout, which covers the same axis in one shot.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f69d640>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b5004a0>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
 
 
 

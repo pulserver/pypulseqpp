@@ -55,7 +55,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The spokes in the order they are played.
+# Colour encodes spoke acquisition order.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 
@@ -63,7 +63,8 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Angular undersampling
 # ---------------------
 #
-# One spoke in three, which thins the periphery and leaves the centre alone.
+# Retaining one spoke angle in three reduces peripheral angular sampling;
+# every acquired spoke still crosses the k-space origin.
 
 alternative = se_radial2D_sequence(n=192, n_slices=1, ry=3, te=None, tr=None, n_dummy=0)
 

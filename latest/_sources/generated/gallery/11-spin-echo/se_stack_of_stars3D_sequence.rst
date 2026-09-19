@@ -92,7 +92,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ee8be30>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aecb3e0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -128,14 +128,15 @@ The spokes of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-68
+.. GENERATED FROM PYTHON SOURCE LINES 64-69
 
 Angular undersampling
 ---------------------
 
-One spoke in four, which shortens the scan fourfold.
+Retaining one spoke angle in four reduces the number of repetitions
+fourfold while preserving samples at each partition's k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-82
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
 
 .. code-block:: Python
 
@@ -160,7 +161,7 @@ One spoke in four, which shortens the scan fourfold.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
 
 .. code-block:: Python
 
@@ -184,7 +185,7 @@ One spoke in four, which shortens the scan fourfold.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-92
+.. GENERATED FROM PYTHON SOURCE LINES 87-93
 
 Safety checks
 -------------
@@ -193,7 +194,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-123
+.. GENERATED FROM PYTHON SOURCE LINES 93-124
 
 .. code-block:: Python
 
@@ -226,7 +227,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.249 seconds)
+   **Total running time of the script:** (0 minutes 6.177 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

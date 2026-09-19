@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -600,7 +600,7 @@ TE 13.12 ms, TR 18.64 ms
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_se2D_sequence_001.png" srcset="../../../_images/sphx_glr_se2D_sequence_001.png" alt="se2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f193edaf920&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+<img src="../../../_images/sphx_glr_se2D_sequence_001.png" srcset="../../../_images/sphx_glr_se2D_sequence_001.png" alt="se2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b0b3d15b0&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 </pre></div>
 </div>
 </section>
@@ -615,10 +615,9 @@ TE 13.12 ms, TR 18.64 ms
 </section>
 <section id="partial-fourier">
 <h2>Partial Fourier<a class="headerlink" href="#partial-fourier" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> omits the lines furthest from the centre on one side
-and leaves the reconstruction to use the conjugate symmetry of k-space to
-replace them, which shortens the scan at the cost of noise and of
-sensitivity to the phase the object carries.</p>
+<p><code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> omits high-spatial-frequency lines on one side of
+k-space. Partial-Fourier reconstruction uses conjugate symmetry and requires
+a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/se2D_sequence.html#pypulseqpp.sequences.se2D_sequence" title="pypulseqpp.sequences.se2D_sequence"><span class="n">se2D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">partial_fourier_y</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="w">
 </span><span class="p">)</span><span class="w">
@@ -654,7 +653,7 @@ gradient continuity        pass          0 discontinuities
 peripheral nerve stimulation FAIL          1.37 of threshold
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.470 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.455 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-11-spin-echo-se2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/d6ac71c454a99fe4b004fd48570772e7/se2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">se2D_sequence.ipynb</span></code></a></p>

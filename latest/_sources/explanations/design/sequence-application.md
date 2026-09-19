@@ -1,18 +1,17 @@
 # Sequence applications
 
-A complete sequence is more than a set of modules. It also has a prescription,
-meaning the parameters a user sets; a sampling order; and a scan loop that
-plays the modules in that order. {class}`~pypulseqpp.sequences.SequenceApp` is
+A complete sequence combines a prescription, sampling order and scan loop with
+its constituent modules. {class}`~pypulseqpp.sequences.SequenceApp` is
 the contract that separates these three concerns, and every sequence
 implementation the package ships is written against it.
 
 ## Prescription, sampling order and repetition
 
-| Concern | Where it lives | Question it answers |
+| Concern | Method | Responsibility |
 |---|---|---|
-| Prescription | `init_sequence` | What is being acquired? |
-| Sampling order | `loop` | In what order are the repetitions played? |
-| One repetition | `kernel` | What blocks does a single repetition contain? |
+| Prescription | `init_sequence` | Design modules and sampling schedule |
+| Sampling order | `loop` | Iterate over repetitions and encoding states |
+| Repetition | `kernel` | Add the blocks for one repetition |
 
 `init_sequence` receives the prescription as keyword arguments and designs the
 modules and the sampling order from it. `loop` calls `kernel` once per
@@ -22,12 +21,9 @@ Constructing an application runs `init_sequence` and therefore designs it, but
 plays nothing. {meth}`~pypulseqpp.sequences.SequenceApp.design` starts a fresh
 sequence, runs `loop`, then `finalize`, and returns the result.
 
-The separation has a practical consequence. Because `kernel` adds exactly one
-repetition, calling the application plays one repetition into the current
-sequence, so a single repetition and a whole scan are produced by the same
-code. A caller that requires only part of a scan, for inspection or for an
-analysis defined over one repetition, uses the same code path as one that
-designs the whole scan.
+Because `kernel` adds exactly one repetition, the same implementation supports
+complete acquisition design and repetition-level inspection. Calling the
+application directly appends one repetition to the current sequence.
 
 ## Prescription against settings
 

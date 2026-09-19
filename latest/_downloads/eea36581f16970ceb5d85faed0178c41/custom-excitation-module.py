@@ -5,12 +5,14 @@ A minimum-phase excitation module
 
 The shipped excitation modules design linear-phase SLR pulses, whose energy is
 symmetric about the middle of the pulse. A minimum-phase design concentrates
-the energy at the end instead, which shortens the interval between the pulse
-and the echo at the same duration and time-bandwidth product, at the cost of a
-higher peak :math:`B_1` and a slice-profile phase that is no longer linear.
+RF energy near the end of the waveform.
+For fixed duration and time-bandwidth product, this reduces the interval to the
+echo but increases peak :math:`B_1` and introduces nonlinear slice-profile
+phase.
 
-This example implements that design as a module against the
-:class:`~pypulseqpp.sequences.RfModule` contract, and measures what it buys.
+The implementation follows the
+:class:`~pypulseqpp.sequences.RfModule` contract and compares echo time, RF
+envelope and slice profile with a linear-phase design.
 """
 
 # sphinx_gallery_start_ignore
@@ -58,8 +60,8 @@ def design_figure(designs, thickness_m):
 # sphinx_gallery_end_ignore
 
 # %%
-# Required interface
-# -------------------
+# Module interface
+# -----------------
 #
 # A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 # of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -72,8 +74,7 @@ def design_figure(designs, thickness_m):
 # :meth:`~pypulseqpp.sequences.RfModule.sim_rf`, which simulates the module's
 # pulse against off-resonance.
 #
-# ``center_pos`` is what makes the design a short-TE one: it places the
-# effective centre of the pulse, which sets both the rephasing area
+# ``center_pos`` places the effective RF centre, which sets both the rephasing area
 # :func:`~pypulseqpp.make_slr_pulse` returns and the instant a readout module
 # measures its echo time from. A minimum-phase pulse is used at
 # ``center_pos=1.0``, its own end.
@@ -186,7 +187,8 @@ for name, module in (("linear", linear_phase), ("minimum", minimum_phase)):
     )
 
 # %%
-# The rephaser carries the selection area played after the effective centre.
+# The rephaser compensates the slice-selection moment accumulated after the
+# effective RF centre.
 # At ``center_pos=1.0`` that is the fall ramp alone, so the rephaser block
 # collapses to its shortest and the pulse ends a gradient raster or two before
 # the encoding starts.
@@ -218,8 +220,9 @@ design_figure(designs, THICKNESS_M)
 # ---------
 #
 # A readout module takes the pulse, its selection gradient and its rephaser,
-# and measures the echo time from the pulse's effective centre. Handing it each
-# excitation in turn prices the design in echo time.
+# and measures the echo time from the pulse's effective centre. Applying the
+# same readout to each excitation isolates the resulting
+# difference in echo time.
 
 readouts = {
     name: design.LineReadout2D(

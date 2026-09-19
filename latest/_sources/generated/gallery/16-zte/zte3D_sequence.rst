@@ -24,9 +24,9 @@
 
 The readout gradient is already at amplitude when the hard pulse is
 transmitted, so acquisition begins as soon as the receiver is available and
-the echo time is a few tens of microseconds. What the pulse cannot excite
-during the gradient, and what the dead time costs at the centre of k-space,
-are the price of it.
+the echo time is a few tens of microseconds. Concurrent excitation and
+gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive
+dead time leaves a central k-space gap.
 
 .. GENERATED FROM PYTHON SOURCE LINES 12-39
 
@@ -52,7 +52,7 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
     import pypulseqpp as pp
     from pypulseqpp.sequences import zte3D_sequence
 
-    baseline = zte3D_sequence(n_x=64, n_views=300, n_dummy=0)
+    baseline = zte3D_sequence(n_x=64, n_views=None, n_dummy=0)
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
     print(
         f"{int(baseline.get_definition('NumShots')[0])} shots, "
@@ -67,29 +67,28 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
 
  .. code-block:: none
 
-    118998 blocks, 38.03 s
+    25938 blocks, 8.25 s
     198 shots, TR 640 us
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-64
+.. GENERATED FROM PYTHON SOURCE LINES 56-63
 
 Sequence diagram
 ----------------
 
-Every half-spoke carries its own gradient direction, so the repeating unit
-the diagram would otherwise draw is a whole set of directions. A window of a
-few milliseconds shows the unit that matters: the gradient is already on when
-the hard pulse plays, the ADC opens as soon as the transmitter has settled,
-and the amplitude steps to the next direction between spokes.
+The automatically detected repetition contains one complete set of
+half-spoke directions. The readout gradient precedes the hard RF event, and the ADC window starts
+after the transmit/receive dead time. The solid trace is a
+representative repetition; shaded traces show other gradient encodes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-67
+.. GENERATED FROM PYTHON SOURCE LINES 63-66
 
 .. code-block:: Python
 
 
-    baseline.paper_plot(time_range=(0, 2e-3))
+    baseline.paper_plot()
 
 
 
@@ -105,11 +104,11 @@ and the amplitude steps to the next direction between spokes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1918272870>, tr=None, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e23f0>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-73
+.. GENERATED FROM PYTHON SOURCE LINES 67-72
 
 Sampling order
 --------------
@@ -117,7 +116,7 @@ Sampling order
 The half-spokes over the three k-space axes. Each starts at the centre of
 k-space and runs outward to the surface of the sampled sphere.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-76
+.. GENERATED FROM PYTHON SOURCE LINES 72-75
 
 .. code-block:: Python
 
@@ -142,22 +141,22 @@ k-space and runs outward to the surface of the sampled sphere.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-84
+.. GENERATED FROM PYTHON SOURCE LINES 76-83
 
 Fewer views
 -----------
 
-``n_views`` sets how many half-spokes are played. Fewer of them shortens the
-scan and undersamples the surface of the sphere, which shows as streaks rather
-than as aliasing. Both configurations here play far fewer views than the
-matrix asks for, so that the individual spokes stay visible on the page.
+``n_views`` sets the half-spokes per shell. The default balances their angular
+spacing against the spacing between shells for the requested matrix. Halving
+this count shortens the scan and undersamples one angular direction, producing
+streaking rather than Cartesian aliasing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-96
+.. GENERATED FROM PYTHON SOURCE LINES 83-95
 
 .. code-block:: Python
 
 
-    alternative = zte3D_sequence(n_x=64, n_views=120, n_dummy=0)
+    alternative = zte3D_sequence(n_x=64, n_views=33, n_dummy=0)
 
 
 
@@ -169,13 +168,13 @@ matrix asks for, so that the individual spokes stay visible on the page.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    Nyquist            118998         38.03         59400
-    half the views      47718         15.22         23760
+    balanced            25938          8.25         12870
+    half the views      13266          4.19          6534
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-99
+.. GENERATED FROM PYTHON SOURCE LINES 96-98
 
 .. code-block:: Python
 
@@ -199,7 +198,7 @@ matrix asks for, so that the individual spokes stay visible on the page.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-106
+.. GENERATED FROM PYTHON SOURCE LINES 99-105
 
 Safety checks
 -------------
@@ -208,7 +207,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-137
+.. GENERATED FROM PYTHON SOURCE LINES 105-136
 
 .. code-block:: Python
 
@@ -241,7 +240,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 31.061 seconds)
+   **Total running time of the script:** (0 minutes 20.847 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -578,8 +578,8 @@ slab. The second phase-encode axis replaces slice selection, so the slab is
 resolved by encoding rather than by the pulse.</p>
 <section id="baseline">
 <h2>Baseline<a class="headerlink" href="#baseline" title="Link to this heading">#</a></h2>
-<p>A full Cartesian sampling of the slab, inside an elliptical shutter that
-leaves the corners of the phase-encode plane unread.</p>
+<p>A full Cartesian sampling of the slab, with elliptical sampling of the
+phase-encode plane.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
 </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/gre3D_sequence.html#pypulseqpp.sequences.gre3D_sequence" title="pypulseqpp.sequences.gre3D_sequence"><span class="n">gre3D_sequence</span></a><span class="w">
 </span><span class="w">
@@ -596,7 +596,7 @@ TR 6.70 ms
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_gre3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre3D_sequence_001.png" alt="gre3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f193f32ffe0&gt;, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+<img src="../../../_images/sphx_glr_gre3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre3D_sequence_001.png" alt="gre3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b0b39cdd0&gt;, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 </pre></div>
 </div>
 </section>
@@ -612,9 +612,9 @@ partition before moving to the next.</p>
 </section>
 <section id="acceleration-on-both-encoded-axes">
 <h2>Acceleration on both encoded axes<a class="headerlink" href="#acceleration-on-both-encoded-axes" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ry</span></code> and <code class="docutils literal notranslate"><span class="pre">rz</span></code> skip lines and partitions independently, so the volume is
-acquired in a quarter of the repetitions with the calibration region kept
-at the centre.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ry</span></code> and <code class="docutils literal notranslate"><span class="pre">rz</span></code> subsample the line and partition axes independently.
+With <code class="docutils literal notranslate"><span class="pre">ry=rz=2</span></code>, the outer phase-encode plane requires approximately one
+quarter as many repetitions; the central calibration region remains fully sampled.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/gre3D_sequence.html#pypulseqpp.sequences.gre3D_sequence" title="pypulseqpp.sequences.gre3D_sequence"><span class="n">gre3D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">ry</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rz</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="w">
 </span><span class="p">)</span><span class="w">
@@ -650,7 +650,7 @@ gradient continuity        pass          0 discontinuities
 peripheral nerve stimulation FAIL          1.26 of threshold
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 24.573 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 24.599 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-10-gradient-echo-gre3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/8b7187ec3e34b2733a7abd6a803b254f/gre3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gre3D_sequence.ipynb</span></code></a></p>

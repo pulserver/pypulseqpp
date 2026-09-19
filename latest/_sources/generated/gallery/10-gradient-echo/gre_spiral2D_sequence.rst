@@ -96,7 +96,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193e86c680>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bbf80e0>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
@@ -137,9 +137,9 @@ Each interleaf is the same solved arm turned to its own angle.
 Variable density
 ----------------
 
-``density='dual'`` designs the pitch so that the centre keeps the Nyquist
-spacing while the periphery is sampled more sparsely, which shortens the
-arm at the cost of aliasing that a reconstruction has to handle.
+``density='dual'`` preserves the Nyquist spacing near the origin and
+increases the pitch at larger radii. The shorter readout requires a
+reconstruction that accounts for peripheral undersampling.
 
 .. GENERATED FROM PYTHON SOURCE LINES 74-95
 
@@ -239,7 +239,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.363 seconds)
+   **Total running time of the script:** (0 minutes 1.349 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

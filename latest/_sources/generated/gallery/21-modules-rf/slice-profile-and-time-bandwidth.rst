@@ -36,9 +36,9 @@ therefore needs a proportionally stronger selection gradient and a
 proportionally larger :math:`B_1`. The gradient amplitude limit therefore
 bounds the two together.
 
-This example simulates the Bloch response of the pulse each design produces,
-measures the transition width and the ripple of the resulting profile, and maps
-the region of the time-bandwidth and duration plane the gradient system admits.
+Bloch simulations quantify transition width and passband/stopband ripple. A
+sweep over time-bandwidth product and duration identifies designs compatible
+with the prescribed gradient-amplitude limit.
 
 .. GENERATED FROM PYTHON SOURCE LINES 24-131
 
@@ -219,8 +219,8 @@ delivered by an envelope with more structure in the same time.
 The duration at a fixed time-bandwidth product
 ----------------------------------------------
 
-Holding the time-bandwidth product and varying the duration separates the
-profile from the price of producing it.
+Varying duration at fixed time-bandwidth product separates slice-profile
+properties from gradient amplitude and peak :math:`B_1` requirements.
 
 .. GENERATED FROM PYTHON SOURCE LINES 231-248
 
@@ -335,7 +335,7 @@ profile.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.352 seconds)
+   **Total running time of the script:** (0 minutes 1.359 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_21-modules-rf_slice-profile-and-time-bandwidth.py:

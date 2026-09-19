@@ -269,7 +269,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -572,9 +572,9 @@
 
 <section id="examples-using-sequencemodule-blocks">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">SequenceModule.blocks</span></code><a class="headerlink" href="#examples-using-sequencemodule-blocks" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module solves the layout of one group of blocks at construction and exposes the resulting events for a scan loop to place. The architecture is described in /explanations/design/sequence-module; this page shows the interface running."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">What a sequence module publishes</span></a></p>
-  <div class="sphx-glr-thumbnail-title">What a sequence module publishes</div>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
+<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="The excitation family produces one RF pulse and the gradients that go with it. Every member reports the events it built and, through sim_rf, the Bloch response of the pulse it holds."><img alt="" src="../_images/sphx_glr_excitation-modules_thumb.png" />
 <p><a class="reference internal" href="gallery/21-modules-rf/excitation-modules.html"><span class="doc">Excitation modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Excitation modules</div>
@@ -584,7 +584,7 @@
 </div><div class="sphx-glr-thumbcontainer" tooltip="A readout module solves the rest of the repetition around an excitation it is given: the prewinders, the phase-encode template at its largest step, the acquisition window and the spoiler. The Cartesian family differs in how many views one excitation reads."><img alt="" src="../_images/sphx_glr_cartesian-readout-modules_thumb.png" />
 <p><a class="reference internal" href="gallery/23-modules-cartesian/cartesian-readout-modules.html"><span class="doc">Cartesian readout modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Cartesian readout modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. One interleaf in the gradient library therefore serves the whole scan, however many angles it is played at."><img alt="" src="../_images/sphx_glr_noncartesian-readout-modules_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. The gradient library stores one interleaf; per-shot rotation extensions define its physical orientation."><img alt="" src="../_images/sphx_glr_noncartesian-readout-modules_thumb.png" />
 <p><a class="reference internal" href="gallery/24-modules-noncartesian/noncartesian-readout-modules.html"><span class="doc">Non-Cartesian readout modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Non-Cartesian readout modules</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="A radial spoke samples the centre of k-space far more densely than the periphery: at radius k, adjacent spokes of an N-interleaf set are 2\pi k / N apart, which exceeds the Nyquist spacing 1/\mathrm{FOV} beyond a transition radius"><img alt="" src="../_images/sphx_glr_custom-noncartesian-readout_thumb.png" />

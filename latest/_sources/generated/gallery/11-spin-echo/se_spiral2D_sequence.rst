@@ -93,7 +93,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ee8ba40>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b5592b0>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
@@ -134,8 +134,8 @@ Each interleaf is the solved arm turned to its own angle.
 Variable density
 ----------------
 
-A dual-density arm keeps the Nyquist spacing at the centre and samples the
-periphery more sparsely, which shortens the readout.
+A dual-density arm retains the Nyquist spacing near the origin and increases
+the pitch at larger radii, reducing the readout duration.
 
 .. GENERATED FROM PYTHON SOURCE LINES 70-91
 
@@ -235,7 +235,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.414 seconds)
+   **Total running time of the script:** (0 minutes 1.407 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

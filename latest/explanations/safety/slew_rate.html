@@ -273,7 +273,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -572,8 +572,8 @@
 <h1>Slew rate<a class="headerlink" href="#slew-rate" title="Link to this heading">#</a></h1>
 <p>The rate at which a gradient amplifier can change its output is bounded by the
 voltage available across the coil’s inductance.
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> establishes whether the sequence ever
-establishes whether any axis changes faster than <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p>
+<a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> determines whether any physical
+gradient axis exceeds <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p>
 <section id="quantity-compared-with-the-limit">
 <h2>Quantity compared with the limit<a class="headerlink" href="#quantity-compared-with-the-limit" title="Link to this heading">#</a></h2>
 <p>The check evaluates the slew rate <strong>within each block</strong>, on the physical axes

@@ -5,8 +5,8 @@
 
 One excitation and one phase-encode line per repetition, with the
 transverse magnetisation spoiled by a gradient and by a quadratic RF phase
-increment before the next excitation. The workhorse of the family, and the
-sequence the other Cartesian variants are read against.
+increment before the next excitation. This is the reference implementation
+for the Cartesian gradient-echo variants.
 """
 
 # sphinx_gallery_start_ignore
@@ -61,8 +61,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The lines are dealt so that the centre of k-space is read near the middle
-# of the scan, which is what the colour by acquisition order shows.
+# The acquisition order places central k-space near the temporal midpoint of
+# the scan. Colour encodes repetition index.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
 

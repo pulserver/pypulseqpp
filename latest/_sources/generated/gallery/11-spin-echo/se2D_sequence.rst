@@ -99,7 +99,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193edaf920>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b3d15b0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -135,17 +135,16 @@ The lines in the order they are read.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-77
+.. GENERATED FROM PYTHON SOURCE LINES 70-76
 
 Partial Fourier
 ---------------
 
-``partial_fourier_y`` omits the lines furthest from the centre on one side
-and leaves the reconstruction to use the conjugate symmetry of k-space to
-replace them, which shortens the scan at the cost of noise and of
-sensitivity to the phase the object carries.
+``partial_fourier_y`` omits high-spatial-frequency lines on one side of
+k-space. Partial-Fourier reconstruction uses conjugate symmetry and requires
+a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-91
+.. GENERATED FROM PYTHON SOURCE LINES 76-90
 
 .. code-block:: Python
 
@@ -170,7 +169,7 @@ sensitivity to the phase the object carries.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-94
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
 
 .. code-block:: Python
 
@@ -194,7 +193,7 @@ sensitivity to the phase the object carries.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 95-101
+.. GENERATED FROM PYTHON SOURCE LINES 94-100
 
 Safety checks
 -------------
@@ -203,7 +202,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 101-132
+.. GENERATED FROM PYTHON SOURCE LINES 100-131
 
 .. code-block:: Python
 
@@ -236,7 +235,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.470 seconds)
+   **Total running time of the script:** (0 minutes 2.455 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

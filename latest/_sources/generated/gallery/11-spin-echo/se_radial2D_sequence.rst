@@ -91,7 +91,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ee9b530>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b081325a0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
@@ -100,7 +100,7 @@ Sequence diagram
 Sampling order
 --------------
 
-The spokes in the order they are played.
+Colour encodes spoke acquisition order.
 
 .. GENERATED FROM PYTHON SOURCE LINES 59-62
 
@@ -127,14 +127,15 @@ The spokes in the order they are played.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-67
+.. GENERATED FROM PYTHON SOURCE LINES 63-68
 
 Angular undersampling
 ---------------------
 
-One spoke in three, which thins the periphery and leaves the centre alone.
+Retaining one spoke angle in three reduces peripheral angular sampling;
+every acquired spoke still crosses the k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-79
+.. GENERATED FROM PYTHON SOURCE LINES 68-80
 
 .. code-block:: Python
 
@@ -157,7 +158,7 @@ One spoke in three, which thins the periphery and leaves the centre alone.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 81-83
 
 .. code-block:: Python
 
@@ -181,7 +182,7 @@ One spoke in three, which thins the periphery and leaves the centre alone.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-89
+.. GENERATED FROM PYTHON SOURCE LINES 84-90
 
 Safety checks
 -------------
@@ -190,7 +191,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-120
+.. GENERATED FROM PYTHON SOURCE LINES 90-121
 
 .. code-block:: Python
 
@@ -223,7 +224,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.041 seconds)
+   **Total running time of the script:** (0 minutes 3.005 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

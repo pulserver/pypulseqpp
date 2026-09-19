@@ -4,10 +4,9 @@
 ========================
 
 One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encode blip between them, so the whole phase-encode axis is
-covered after a single pulse. Off-resonance then accumulates along that axis
-instead of across repetitions, and the train length is what decides how far it
-displaces the image.
+with a phase-encoding blip between successive readouts. A single-shot train
+acquires the complete phase-encode axis after one excitation. Off-resonance
+phase accumulates across the train and produces displacement along that axis.
 """
 
 # sphinx_gallery_start_ignore
@@ -98,9 +97,9 @@ def safety_table(rows):
 # Baseline: single shot
 # ---------------------
 #
-# One excitation reads every line of the phase-encode axis. The train is as
-# long as the matrix, and the echo spacing times the train length is what a
-# spin at a given off-resonance is displaced by.
+# One excitation acquires the complete phase-encode axis. Echo-train length
+# equals the number of acquired lines and determines the accumulated
+# off-resonance phase across k-space.
 
 from pypulseqpp.sequences import epi2D_sequence
 
@@ -120,11 +119,11 @@ single.paper_plot()
 # Segmentation and in-plane acceleration
 # --------------------------------------
 #
-# Both shorten the train, and they differ in what else they change.
+# Segmentation and in-plane acceleration both reduce echo-train length.
 # ``n_shots`` interleaves the lines over several excitations, so every line is
-# still acquired and the scan takes proportionally longer. ``ry`` skips lines
-# instead, which leaves the scan time alone and needs a parallel-imaging
-# reconstruction to fill what was skipped. A spin at offset :math:`\Delta f`
+# still acquired. ``ry`` skips lines within one excitation and requires a
+# parallel-imaging reconstruction for the omitted lines. Both reduce the
+# echo-train duration. A spin at offset :math:`\Delta f`
 # gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
 # linear in :math:`k_y` and therefore a displacement of
 # :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
@@ -136,9 +135,8 @@ accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_
 designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
 
 # sphinx_gallery_start_ignore
-# A spin at offset df gains 2*pi*df*esp of phase per echo, which is linear in
-# k_y and so a displacement of df * esp * etl pixels, whatever step the train
-# takes. The last column is that displacement per hertz of off-resonance.
+# The final column reports displacement per hertz of off-resonance, calculated
+# as echo spacing multiplied by echo-train length.
 print(
     f"{'':10} {'echoes':>7} {'trains':>7} {'per train':>10} {'TE (ms)':>9} "
     f"{'scan (ms)':>10} {'px per Hz':>10}"
@@ -159,10 +157,11 @@ for title, seq in designs.items():
 # Echo traversal
 # --------------
 #
-# The line each echo reads, against its index in the train. A single shot walks
-# the axis one line at a time; a segmented acquisition walks it in steps of
-# ``n_shots``, each shot starting one line further on; acceleration walks it in
-# steps of ``ry`` and stops there.
+# The ordinate gives the phase-encode line acquired at each echo index. A
+# single shot
+# traverses the axis one line at a time; a segmented acquisition traverses it
+# in steps of ``n_shots``, with each shot starting one line further on;
+# acceleration traverses it in steps of ``ry`` and stops there.
 
 # sphinx_gallery_start_ignore
 traversal_figure(designs, 96)

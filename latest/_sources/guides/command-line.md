@@ -1,8 +1,8 @@
 # Run a sequence from the command line
 
-Every sequence implementation the package ships is a command-line entry point
-as well as an importable module. This guide covers both, and how a sequence of
-your own acquires the same interface.
+Each shipped sequence is available as both an importable module and a
+command-line entry point. Custom {class}`~pypulseqpp.sequences.SequenceApp`
+classes use the same interface.
 
 ## Run a shipped sequence
 

@@ -267,7 +267,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -550,16 +550,14 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="built-in-sequences">
 <h1>Built-in sequences<a class="headerlink" href="#built-in-sequences" title="Link to this heading">#</a></h1>
-<p>Every complete sequence the package ships, designed and drawn at a
-representative prescription. A page states the prescription, prints what the
-design produced, and shows the sequence diagram and the order the acquisition
-covers k-space in.</p>
+<p>Each shipped sequence is presented with a representative prescription,
+resulting timing, sequence diagram, sampling geometry and acquisition order.</p>
 <p>The prescription each application accepts, parameter by parameter, is on its
 reference page in the <a class="reference internal" href="../../sequences.html"><span class="doc">catalogue</span></a>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Family</p></th>
-<th class="head"><p>What the repetition holds</p></th>
+<th class="head"><p>Acquisition</p></th>
 </tr>
 </thead>
 <tbody>

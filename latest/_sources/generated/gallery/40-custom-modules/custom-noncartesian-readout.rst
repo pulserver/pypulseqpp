@@ -32,7 +32,7 @@ are :math:`2\pi k / N` apart, which exceeds the Nyquist spacing
     k_t = \frac{N}{2\pi\,\mathrm{FOV}}.
 
 A twisting radial line (Jackson, Nishimura and Macovski, Magn Reson Med 1992,
-doi:10.1002/mrm.1910280209) leaves the spoke there and turns as it goes out, so
+doi:10.1002/mrm.1910280209) departs from the spoke beyond that radius and accumulates azimuth with radius, so
 that the perpendicular distance between neighbouring interleaves stays at the
 Nyquist spacing. Writing the arm as a k-space path and solving it under the
 gradient limits gives
@@ -43,8 +43,8 @@ gradient limits gives
       = \frac{1}{k}\sqrt{\left(\frac{2\pi\,\mathrm{FOV}\,k}{N}\right)^2 - 1},
     \qquad k > k_t.
 
-This example designs that path, wraps it in the interleaf and readout classes
-the package already provides, and plays it in a scan loop.
+The path is solved under the gradient constraints, wrapped as an interleaf
+and used in a complete non-Cartesian readout module.
 
 .. GENERATED FROM PYTHON SOURCE LINES 32-40
 
@@ -161,7 +161,7 @@ shipped spiral and rosette readouts are written.
         matrix : int
             In-plane matrix size.
         interleaves : int
-            Arms the pitch is designed for, which is what sets the transition
+            Number of arms used to set the pitch and transition
             radius. The loop may acquire any number of rotated copies.
         readout_bandwidth_hz : float, optional
             Requested ADC sampling rate (Hz).
@@ -308,7 +308,7 @@ One repetition
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193ee1f170>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aee2870>, tr=1, underlays=[])
 
 
 
@@ -386,7 +386,7 @@ The arms the loop acquired.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.252 seconds)
+   **Total running time of the script:** (0 minutes 0.254 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-noncartesian-readout.py:

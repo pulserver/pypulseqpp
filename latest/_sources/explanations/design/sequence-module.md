@@ -1,10 +1,8 @@
 # Sequence modules
 
-A `.seq` file is a flat list of blocks, and a script that writes one directly
-must solve every timing and gradient-waveform problem inline, in the same loop
-that chooses which view to acquire. A **sequence module** separates the two: it
-solves the layout of one group of blocks once, at construction, and exposes the
-resulting events for a scan loop to place.
+A **sequence module** is a reusable block layout with solved timing and gradient
+waveforms. It separates repetition design from the scan loop that assigns
+encoding states. The resulting `.seq` file remains a flat block list.
 
 ## Separation of layout from sampling order
 
@@ -19,7 +17,8 @@ Two quantities do depend on the line: a scale factor applied to the
 phase-encode gradient, and the RF and receiver phases. Solving the first group
 once and varying only the second corresponds to the file format's separation of
 definitions from instances, described in
-{doc}`../pulseq/libraries-and-shapes`, and keeps the scan loop short.
+{doc}`../pulseq/libraries-and-shapes`, and limits per-view work to event scaling and phase
+updates.
 
 ## Module interface
 

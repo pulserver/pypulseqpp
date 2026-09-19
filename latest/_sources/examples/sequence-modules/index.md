@@ -2,9 +2,9 @@
 
 A sequence module designs one group of blocks once and publishes its events for
 a scan loop to place per view. These pages construct the shipped modules, print
-what each publishes, and draw the layout it produces.
+their published event templates and resulting block layouts.
 
-| Group | What the modules design |
+| Group | Module type |
 | --- | --- |
 | {doc}`/examples/sequence-modules/composition` | The module interface itself, and the interval two modules compose at. |
 | {doc}`/examples/sequence-modules/rf` | One RF pulse and the gradients that select with it. |

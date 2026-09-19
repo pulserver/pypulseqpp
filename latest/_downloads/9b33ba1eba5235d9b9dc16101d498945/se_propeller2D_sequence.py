@@ -58,7 +58,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The blades in the order they are played.
+# Colour encodes blade acquisition order.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 

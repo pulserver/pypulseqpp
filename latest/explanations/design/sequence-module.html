@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -568,11 +568,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-modules">
 <h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
-<p>A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is a flat list of blocks, and a script that writes one directly
-must solve every timing and gradient-waveform problem inline, in the same loop
-that chooses which view to acquire. A <strong>sequence module</strong> separates the two: it
-solves the layout of one group of blocks once, at construction, and exposes the
-resulting events for a scan loop to place.</p>
+<p>A <strong>sequence module</strong> is a reusable block layout with solved timing and gradient
+waveforms. It separates repetition design from the scan loop that assigns
+encoding states. The resulting <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file remains a flat block list.</p>
 <section id="separation-of-layout-from-sampling-order">
 <h2>Separation of layout from sampling order<a class="headerlink" href="#separation-of-layout-from-sampling-order" title="Link to this heading">#</a></h2>
 <p>In a Cartesian gradient-echo repetition, the readout gradient is determined by
@@ -585,7 +583,8 @@ depends on which phase-encode line is acquired.</p>
 phase-encode gradient, and the RF and receiver phases. Solving the first group
 once and varying only the second corresponds to the file format’s separation of
 definitions from instances, described in
-<a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>, and keeps the scan loop short.</p>
+<a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>, and limits per-view work to event scaling and phase
+updates.</p>
 </section>
 <section id="module-interface">
 <h2>Module interface<a class="headerlink" href="#module-interface" title="Link to this heading">#</a></h2>

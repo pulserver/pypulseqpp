@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e387a70>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e1be0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -133,17 +133,16 @@ The lines in the order they are read, in segments of ``views_per_segment``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-75
+.. GENERATED FROM PYTHON SOURCE LINES 68-74
 
 Cine
 ----
 
-``n_phases`` reads the same segment of lines at several points after the
-trigger, so one breath-hold resolves the cardiac cycle. The segment length
-is what trades temporal resolution against the number of heartbeats the
-scan takes.
+``n_phases`` acquires each line segment at multiple cardiac phases after the
+trigger. Segment length controls the temporal footprint per phase and the
+number of cardiac cycles required for complete sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 75-89
+.. GENERATED FROM PYTHON SOURCE LINES 74-88
 
 .. code-block:: Python
 
@@ -168,7 +167,7 @@ scan takes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-92
+.. GENERATED FROM PYTHON SOURCE LINES 89-91
 
 .. code-block:: Python
 
@@ -192,7 +191,7 @@ scan takes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-99
+.. GENERATED FROM PYTHON SOURCE LINES 92-98
 
 Safety checks
 -------------
@@ -201,7 +200,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-130
+.. GENERATED FROM PYTHON SOURCE LINES 98-129
 
 .. code-block:: Python
 
@@ -234,7 +233,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.438 seconds)
+   **Total running time of the script:** (0 minutes 1.440 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

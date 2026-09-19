@@ -267,7 +267,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -551,8 +551,8 @@
   <section class="tex2jax_ignore mathjax_ignore" id="trajectory-design">
 <h1>Trajectory design<a class="headerlink" href="#trajectory-design" title="Link to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code>: k-space trajectories in 1/m, that is cycles per metre, and the
-gradient waveforms that trace them. Each function returns one base interleaf
-as a polyline, describing where the trajectory goes but not when;
+gradient waveforms that trace them. Each function returns the geometry of one base interleaf as a polyline without
+a time parameterization;
 <code class="xref py py-func docutils literal notranslate"><span class="pre">traj_to_grad()</span></code> assigns the timing within the gradient amplitude and slew
 limits and returns the gradient and slew-rate waveforms.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">

@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:06.673** total execution time for 1 file **from generated/gallery/13-fast-spin-echo**:
+**00:05.119** total execution time for 1 file **from generated/gallery/13-fast-spin-echo**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_sequence.py` (``fse3D_sequence.py``)
-     - 00:06.673
+     - 00:05.119
      - 0.0

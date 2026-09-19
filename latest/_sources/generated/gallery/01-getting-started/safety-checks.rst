@@ -18,24 +18,23 @@
 .. _sphx_glr_generated_gallery_01-getting-started_safety-checks.py:
 
 
-==============================
-Checking a sequence for safety
-==============================
+==========================
+Sequence constraint checks
+==========================
 
-The package computes five checks over a finished sequence: the gradient
-amplitude and slew rate the hardware is asked for, the continuity of the
-gradient waveform across block boundaries, the nerve response the slew implies,
-the gradient spectrum inside a scanner's forbidden bands, and the power a
-transmit array deposits. Each returns a verdict and a report, and this page
-runs all of them over one sequence.
+The package computes timing and six constraint checks over a finished sequence:
+event timing, gradient amplitude, slew rate, gradient continuity across block
+boundaries, peripheral nerve stimulation (PNS), mechanical resonance and
+specific absorption rate (SAR). Each check returns a verdict and the quantities
+used to determine it.
 
 A passing check does not establish that a sequence is safe to run on a scanner
-or on a subject. The models used here are demonstrations: a scanner applies its
-own, and its predownload gate and hardware monitor run whatever these say. The
-physics behind each check is in
+or on a subject. The PNS, mechanical-resonance and SAR models used here are
+synthetic demonstrations. Scanner-specific checks and hardware monitoring are
+separate. The physical models are described in
 :doc:`/explanations/safety/index`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 19-48
+.. GENERATED FROM PYTHON SOURCE LINES 18-47
 
 
 
@@ -44,13 +43,14 @@ physics behind each check is in
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-54
+.. GENERATED FROM PYTHON SOURCE LINES 48-54
 
-The sequence
-------------
+Echo-planar test sequence
+-------------------------
 
-An echo-planar readout, which drives one gradient axis hard and repetitively
-and so has something to say to every check.
+A single-shot echo-planar readout provides high slew rates and a periodic
+gradient waveform, making both PNS and mechanical-resonance diagnostics
+informative.
 
 .. GENERATED FROM PYTHON SOURCE LINES 54-61
 
@@ -76,25 +76,27 @@ and so has something to say to every check.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-73
+.. GENERATED FROM PYTHON SOURCE LINES 62-74
 
-Gradient hardware
------------------
+Timing and gradient hardware
+----------------------------
 
+``check_timing`` verifies raster alignment, dead times and event placement.
 The amplitude and slew checks compare the physical, rotated waveform against
 the system limits the sequence was designed under. They report the largest
 per-axis reading and the largest vector reading, which is not the norm of the
 per-axis peaks: two axes reach their own peaks at different times.
 The verdict is on the per-axis reading, which is what the hardware limits;
 the vector reading is reported beside it. ``check_grad_continuity`` looks for
-steps between blocks, which a scanner would have to slew through in no time
-at all.
+discontinuities between adjacent blocks. A discontinuity corresponds to an
+undefined instantaneous slew in the Pulseq waveform.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-84
+.. GENERATED FROM PYTHON SOURCE LINES 74-86
 
 .. code-block:: Python
 
 
+    timing_ok, timing_errors = seq.check_timing()
     grad_ok, grad = safety.check_max_grad(seq)
     slew_ok, slew = safety.check_max_slew(seq)
     cont_ok, cont = safety.check_grad_continuity(seq)
@@ -118,13 +120,13 @@ at all.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-96
+.. GENERATED FROM PYTHON SOURCE LINES 87-98
 
 Peripheral nerve stimulation
 ----------------------------
 
 A changing gradient induces an electric field in the subject, and the nerve
-model turns the slew on each axis into a response as a fraction of the
+model converts the slew on each axis into a response as a fraction of the
 threshold at which stimulation is reported. The axes are combined as a
 root sum of squares, and the check passes while that stays below one.
 
@@ -132,7 +134,7 @@ The chronaxie model below takes its three coefficients from the
 strength-duration relationship; a scanner supplies a SAFE model instead,
 which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-106
+.. GENERATED FROM PYTHON SOURCE LINES 98-108
 
 .. code-block:: Python
 
@@ -160,12 +162,12 @@ which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 107-109
+.. GENERATED FROM PYTHON SOURCE LINES 109-111
 
 ``trace=True`` returns the response the peak was taken from, so a diagram of
 it is the check's own calculation rather than a second one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-124
+.. GENERATED FROM PYTHON SOURCE LINES 111-126
 
 
 
@@ -179,17 +181,16 @@ it is the check's own calculation rather than a second one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-132
+.. GENERATED FROM PYTHON SOURCE LINES 127-133
 
 Mechanical resonance
 --------------------
 
-A gradient coil has mechanical modes, and driving one of them shakes the
-magnet. A scanner declares the frequency ranges to stay out of and how much
-amplitude it tolerates in each. The check takes the gradient spectrum in
-overlapping windows and reads the largest amplitude inside each band.
+Gradient-coil mechanical modes define forbidden frequency bands and amplitude
+tolerances. The check computes the gradient spectrum in overlapping windows
+and reports the largest amplitude within each band.
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-146
+.. GENERATED FROM PYTHON SOURCE LINES 133-147
 
 .. code-block:: Python
 
@@ -221,14 +222,14 @@ overlapping windows and reads the largest amplitude inside each band.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 147-151
+.. GENERATED FROM PYTHON SOURCE LINES 148-152
 
 ``mech_resonance_spectrum`` returns one window's spectrum through the same
 windowed pass, so the figure and the verdict read the same numbers. The
 readout train is periodic, so its spectrum is a comb at the echo-spacing
 frequency and its harmonics.
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-176
+.. GENERATED FROM PYTHON SOURCE LINES 152-177
 
 .. code-block:: Python
 
@@ -250,7 +251,7 @@ frequency and its harmonics.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-186
+.. GENERATED FROM PYTHON SOURCE LINES 178-187
 
 Specific absorption rate
 ------------------------
@@ -262,7 +263,7 @@ circularly polarised shim: it is shaped like a real one and its numbers mean
 nothing about any coil or any subject. A scanner's model is read from a file
 with :func:`~pypulseqpp.safety.read_vops`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 186-201
+.. GENERATED FROM PYTHON SOURCE LINES 187-202
 
 .. code-block:: Python
 
@@ -295,12 +296,12 @@ with :func:`~pypulseqpp.safety.read_vops`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 202-204
+.. GENERATED FROM PYTHON SOURCE LINES 203-205
 
 Every verdict together
 ----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 204-230
+.. GENERATED FROM PYTHON SOURCE LINES 205-232
 
 
 
@@ -311,6 +312,7 @@ Every verdict together
  .. code-block:: none
 
     check                          result                    reading
+    event timing                   pass                     0 errors
     gradient amplitude             pass                    39.8 mT/m
     slew rate                      pass                    166 T/m/s
     gradient continuity            pass            0 discontinuities
@@ -321,19 +323,19 @@ Every verdict together
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 231-237
+.. GENERATED FROM PYTHON SOURCE LINES 233-239
 
-This configuration exceeds the nerve model's threshold, which is what an
-echo-planar train at a short echo spacing does on a body gradient system.
-Lengthening the echo spacing, reading fewer lines per train or lowering the
-slew rate the readout is designed under all move it; the notebook on
-:doc:`echo-planar imaging </generated/gallery/15-epi/epi2D_sequence>` shows
-what each of those costs.
+This short-echo-spacing echo-planar train exceeds the demonstration nerve
+model's threshold.
+Lengthening the echo spacing, reducing the echo-train length or lowering the
+prescribed slew limit changes the response. These design parameters are
+compared in the
+:doc:`echo-planar imaging example </generated/gallery/15-epi/epi2D_sequence>`.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.444 seconds)
+   **Total running time of the script:** (0 minutes 0.470 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-getting-started_safety-checks.py:

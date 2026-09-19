@@ -24,26 +24,28 @@ A minimum-phase excitation module
 
 The shipped excitation modules design linear-phase SLR pulses, whose energy is
 symmetric about the middle of the pulse. A minimum-phase design concentrates
-the energy at the end instead, which shortens the interval between the pulse
-and the echo at the same duration and time-bandwidth product, at the cost of a
-higher peak :math:`B_1` and a slice-profile phase that is no longer linear.
+RF energy near the end of the waveform.
+For fixed duration and time-bandwidth product, this reduces the interval to the
+echo but increases peak :math:`B_1` and introduces nonlinear slice-profile
+phase.
 
-This example implements that design as a module against the
-:class:`~pypulseqpp.sequences.RfModule` contract, and measures what it buys.
+The implementation follows the
+:class:`~pypulseqpp.sequences.RfModule` contract and compares echo time, RF
+envelope and slice profile with a linear-phase design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 15-60
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 17-62
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-80
 
-Required interface
--------------------
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-81
+
+Module interface
+-----------------
 
 A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -56,13 +58,12 @@ Subclassing :class:`~pypulseqpp.sequences.RfModule` rather than
 :meth:`~pypulseqpp.sequences.RfModule.sim_rf`, which simulates the module's
 pulse against off-resonance.
 
-``center_pos`` is what makes the design a short-TE one: it places the
-effective centre of the pulse, which sets both the rephasing area
+``center_pos`` places the effective RF centre, which sets both the rephasing area
 :func:`~pypulseqpp.make_slr_pulse` returns and the instant a readout module
 measures its echo time from. A minimum-phase pulse is used at
 ``center_pos=1.0``, its own end.
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-157
+.. GENERATED FROM PYTHON SOURCE LINES 81-158
 
 .. code-block:: Python
 
@@ -150,12 +151,12 @@ measures its echo time from. A minimum-phase pulse is used at
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 158-160
+.. GENERATED FROM PYTHON SOURCE LINES 159-161
 
 Published events
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 160-188
+.. GENERATED FROM PYTHON SOURCE LINES 161-189
 
 .. code-block:: Python
 
@@ -204,9 +205,10 @@ Published events
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-199
+.. GENERATED FROM PYTHON SOURCE LINES 190-201
 
-The rephaser carries the selection area played after the effective centre.
+The rephaser compensates the slice-selection moment accumulated after the
+effective RF centre.
 At ``center_pos=1.0`` that is the fall ramp alone, so the rephaser block
 collapses to its shortest and the pulse ends a gradient raster or two before
 the encoding starts.
@@ -217,7 +219,7 @@ Pulse envelope and slice profile
 ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 selection amplitude reads the result as a position.
 
-.. GENERATED FROM PYTHON SOURCE LINES 199-216
+.. GENERATED FROM PYTHON SOURCE LINES 201-218
 
 .. code-block:: Python
 
@@ -258,16 +260,17 @@ selection amplitude reads the result as a position.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 217-223
+.. GENERATED FROM PYTHON SOURCE LINES 219-226
 
 Echo time
 ---------
 
 A readout module takes the pulse, its selection gradient and its rephaser,
-and measures the echo time from the pulse's effective centre. Handing it each
-excitation in turn prices the design in echo time.
+and measures the echo time from the pulse's effective centre. Applying the
+same readout to each excitation isolates the resulting
+difference in echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 223-246
+.. GENERATED FROM PYTHON SOURCE LINES 226-249
 
 .. code-block:: Python
 
@@ -308,11 +311,11 @@ excitation in turn prices the design in echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 247-248
+.. GENERATED FROM PYTHON SOURCE LINES 250-251
 
 One repetition of the short-TE design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 248-253
+.. GENERATED FROM PYTHON SOURCE LINES 251-256
 
 .. code-block:: Python
 
@@ -335,14 +338,14 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f32c920>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6ae99f9af0>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.759 seconds)
+   **Total running time of the script:** (0 minutes 0.765 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-excitation-module.py:

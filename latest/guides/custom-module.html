@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -568,16 +568,15 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="build-a-sequence-from-modules">
 <h1>Build a sequence from modules<a class="headerlink" href="#build-a-sequence-from-modules" title="Link to this heading">#</a></h1>
-<p>This guide assembles an inversion-prepared gradient echo from excitation,
-preparation and readout modules, and then turns the assembly into a
-<a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>. The abstractions themselves are
-described in <a class="reference internal" href="../explanations/design/index.html"><span class="doc">Sequence design in pypulseqpp</span></a>; this page is the procedure.</p>
+<p>Assemble an inversion-prepared gradient-echo sequence from excitation,
+preparation and readout modules, then package the scan loop as a
+<a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>. Module and application semantics are
+described in <a class="reference internal" href="../explanations/design/index.html"><span class="doc">Sequence design in pypulseqpp</span></a>.</p>
 <section id="construct-the-modules">
 <h2>Construct the modules<a class="headerlink" href="#construct-the-modules" title="Link to this heading">#</a></h2>
-<p>Each module solves its own timing and gradient waveforms at construction. The
-readout takes the excitation’s pulse and gradients, which lets it
-measure the echo time from the pulse centre and place the rephaser inside an
-interval the repetition already has to wait out.</p>
+<p>Each module solves its own timing and gradient waveforms at construction. The readout receives the RF event, slice-selection gradient and rephaser. It
+measures echo time relative to the RF centre and incorporates the rephaser into
+the prephasing interval.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>

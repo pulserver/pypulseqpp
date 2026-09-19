@@ -22,20 +22,19 @@
 A SequenceApp from scratch
 ==============================
 
-A complete sequence separates three things: the prescription a user sets, the
-order the views are sampled in, and the blocks of one repetition.
-:class:`~pypulseqpp.sequences.SequenceApp` is the contract that keeps them
-apart, and every sequence the package ships is written against it. The
+A complete sequence defines a prescription, sampling order and repetition
+kernel. :class:`~pypulseqpp.sequences.SequenceApp` separates these
+responsibilities and provides the base class for the shipped sequences. The
 architecture is described in
 :doc:`/explanations/design/sequence-application`.
 
-This page implements a slice-selective, RF-spoiled two-dimensional gradient
-echo against that contract.
+The implementation below defines a slice-selective, RF-spoiled 2D gradient-
+echo acquisition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-26
+.. GENERATED FROM PYTHON SOURCE LINES 17-25
 
-The three methods
------------------
+Application methods
+-------------------
 
 ``init_sequence`` receives the prescription and designs the modules and the
 sampling order from it. ``loop`` calls ``kernel`` once per repetition.
@@ -43,7 +42,7 @@ sampling order from it. ``loop`` calls ``kernel`` once per repetition.
 does not prescribe are class attributes, and ``MAX_GRAD`` and ``MAX_SLEW``
 have no default, so every application states them.
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-119
+.. GENERATED FROM PYTHON SOURCE LINES 25-118
 
 .. code-block:: Python
 
@@ -147,13 +146,14 @@ have no default, so every application states them.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 120-125
+.. GENERATED FROM PYTHON SOURCE LINES 119-125
 
-Designing it
-------------
+Sequence construction
+---------------------
 
-Constructing the application runs ``init_sequence`` and therefore designs it;
-``design`` starts a fresh sequence, runs ``loop``, then ``finalize``.
+Construction calls ``init_sequence`` to prepare the modules and sampling
+order. ``design`` creates a new sequence, executes ``loop`` and records the
+reconstruction definitions in ``finalize``.
 
 .. GENERATED FROM PYTHON SOURCE LINES 125-132
 
@@ -207,7 +207,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f191cfedd00>, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6ae9878680>, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
 
 
 
@@ -246,7 +246,7 @@ played is read back from the sequence rather than reconstructed.
 
 .. GENERATED FROM PYTHON SOURCE LINES 148-154
 
-The command line follows from the signature
+Command-line interface
 -------------------------------------------
 
 ``main`` is derived from the class, and its parameters are those of
@@ -276,7 +276,7 @@ declaring one.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.460 seconds)
+   **Total running time of the script:** (0 minutes 0.462 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_30-building-sequences_sequence-app-from-scratch.py:

@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -575,37 +575,36 @@ to download the full example code.</p>
 <span id="sphx-glr-generated-gallery-16-zte-zte3d-sequence-py"></span><h1>3D zero echo time<a class="headerlink" href="#d-zero-echo-time" title="Link to this heading">#</a></h1>
 <p>The readout gradient is already at amplitude when the hard pulse is
 transmitted, so acquisition begins as soon as the receiver is available and
-the echo time is a few tens of microseconds. What the pulse cannot excite
-during the gradient, and what the dead time costs at the centre of k-space,
-are the price of it.</p>
+the echo time is a few tens of microseconds. Concurrent excitation and
+gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive
+dead time leaves a central k-space gap.</p>
 <section id="baseline">
 <h2>Baseline<a class="headerlink" href="#baseline" title="Link to this heading">#</a></h2>
 <p>Half-spokes turned over a sphere, at enough views to sample its surface.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
 </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="w">
 </span><span class="w">
-</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_views</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_views</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="o">.</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> blocks, </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><span class="n">baseline</span><span class="o">.</span><span class="n">duration</span></a><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span><span class="nb">print</span><span class="p">(</span><span class="w">
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">baseline</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">NumShots</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2"> shots, </span><span class="s2">&quot;</span><span class="w">
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">TR </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">baseline</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">TR</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> us</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>118998 blocks, 38.03 s
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>25938 blocks, 8.25 s
 198 shots, TR 640 us
 </pre></div>
 </div>
 </section>
 <section id="sequence-diagram">
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
-<p>Every half-spoke carries its own gradient direction, so the repeating unit
-the diagram would otherwise draw is a whole set of directions. A window of a
-few milliseconds shows the unit that matters: the gradient is already on when
-the hard pulse plays, the ADC opens as soon as the transmitter has settled,
-and the amplitude steps to the next direction between spokes.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">time_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span><span class="p">)</span><span class="w">
+<p>The automatically detected repetition contains one complete set of
+half-spoke directions. The readout gradient precedes the hard RF event, and the ADC window starts
+after the transmit/receive dead time. The solid trace is a
+representative repetition; shaded traces show other gradient encodes.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_zte3D_sequence_001.png" srcset="../../../_images/sphx_glr_zte3D_sequence_001.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f1918272870&gt;, tr=None, underlays=[])
+<img src="../../../_images/sphx_glr_zte3D_sequence_001.png" srcset="../../../_images/sphx_glr_zte3D_sequence_001.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6af05e23f0&gt;, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 </pre></div>
 </div>
 </section>
@@ -621,15 +620,15 @@ k-space and runs outward to the surface of the sampled sphere.</p>
 </section>
 <section id="fewer-views">
 <h2>Fewer views<a class="headerlink" href="#fewer-views" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">n_views</span></code> sets how many half-spokes are played. Fewer of them shortens the
-scan and undersamples the surface of the sphere, which shows as streaks rather
-than as aliasing. Both configurations here play far fewer views than the
-matrix asks for, so that the individual spokes stay visible on the page.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_views</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
+<p><code class="docutils literal notranslate"><span class="pre">n_views</span></code> sets the half-spokes per shell. The default balances their angular
+spacing against the spacing between shells for the requested matrix. Halving
+this count shortens the scan and undersamples one angular direction, producing
+streaking rather than Cartesian aliasing.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_views</span><span class="o">=</span><span class="mi">33</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>                   blocks  duration (s)  acquisitions
-Nyquist            118998         38.03         59400
-half the views      47718         15.22         23760
+balanced            25938          8.25         12870
+half the views      13266          4.19          6534
 </pre></div>
 </div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
@@ -658,7 +657,7 @@ gradient continuity        pass          0 discontinuities
 peripheral nerve stimulation pass          0.35 of threshold
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 31.061 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 20.847 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-16-zte-zte3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/6cfc1d5d44130deb0bbbdfb53d454950/zte3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">zte3D_sequence.ipynb</span></code></a></p>

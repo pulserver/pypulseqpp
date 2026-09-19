@@ -93,7 +93,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f66b530>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4b3350>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -134,8 +134,8 @@ The interleaves of every partition, over the three k-space axes.
 Fewer interleaves
 -----------------
 
-Halving the interleaf count halves the repetitions and doubles the pitch
-of each arm, so the disc is sampled below the Nyquist spacing at its edge.
+Halving the interleaf count halves the number of repetitions and doubles
+the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 .. GENERATED FROM PYTHON SOURCE LINES 70-84
 
@@ -228,7 +228,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.229 seconds)
+   **Total running time of the script:** (0 minutes 3.208 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

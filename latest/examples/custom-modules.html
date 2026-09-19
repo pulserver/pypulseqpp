@@ -267,7 +267,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -557,18 +557,18 @@ package.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Example</p></th>
-<th class="head"><p>What it covers</p></th>
+<th class="head"><p>Scope</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-excitation-module.html"><span class="doc">A minimum-phase excitation module</span></a></p></td>
-<td><p>A minimum-phase selective excitation, and the echo time its effective centre buys.</p></td>
+<td><p>Minimum-phase selective excitation and its effect on echo time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p></td>
 <td><p>A Cartesian line acquired across the whole readout lobe, and the non-uniform k-space spacing that follows.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/40-custom-modules/custom-noncartesian-readout.html"><span class="doc">A twisting radial readout module</span></a></p></td>
-<td><p>A twisting radial arm designed as a k-space path, solved as an interleaf and played as a readout module.</p></td>
+<td><p>A twisting radial k-space path solved under gradient constraints and implemented as a readout module.</p></td>
 </tr>
 </tbody>
 </table>

@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -567,9 +567,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="run-a-sequence-from-the-command-line">
 <h1>Run a sequence from the command line<a class="headerlink" href="#run-a-sequence-from-the-command-line" title="Link to this heading">#</a></h1>
-<p>Every sequence implementation the package ships is a command-line entry point
-as well as an importable module. This guide covers both, and how a sequence of
-your own acquires the same interface.</p>
+<p>Each shipped sequence is available as both an importable module and a
+command-line entry point. Custom <a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>
+classes use the same interface.</p>
 <section id="run-a-shipped-sequence">
 <h2>Run a shipped sequence<a class="headerlink" href="#run-a-shipped-sequence" title="Link to this heading">#</a></h2>
 <p>Each module under <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences.sequence</span></code> exposes <code class="docutils literal notranslate"><span class="pre">main</span></code>, and is

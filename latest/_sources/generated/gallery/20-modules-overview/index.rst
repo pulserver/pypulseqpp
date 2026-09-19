@@ -23,7 +23,7 @@ Sequence module composition
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A sequence module solves the layout of one group of blocks at construction and exposes the resulting events for a scan loop to place. The architecture is described in /explanations/design/sequence-module; this page shows the interface running.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module.">
 
 .. only:: html
 
@@ -34,7 +34,7 @@ Sequence module composition
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">What a sequence module publishes</div>
+      <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
     </div>
 
 

@@ -273,7 +273,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -584,9 +584,9 @@ pulse’s bandwidth across the slice:</p>
 therefore needs a proportionally stronger selection gradient and a
 proportionally larger <span class="math notranslate nohighlight">\(B_1\)</span>. The gradient amplitude limit therefore
 bounds the two together.</p>
-<p>This example simulates the Bloch response of the pulse each design produces,
-measures the transition width and the ripple of the resulting profile, and maps
-the region of the time-bandwidth and duration plane the gradient system admits.</p>
+<p>Bloch simulations quantify transition width and passband/stopband ripple. A
+sweep over time-bandwidth product and duration identifies designs compatible
+with the prescribed gradient-amplitude limit.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="w">
 </span><span class="w">
 </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
@@ -691,8 +691,8 @@ delivered by an envelope with more structure in the same time.</p>
 </section>
 <section id="the-duration-at-a-fixed-time-bandwidth-product">
 <h2>The duration at a fixed time-bandwidth product<a class="headerlink" href="#the-duration-at-a-fixed-time-bandwidth-product" title="Link to this heading">#</a></h2>
-<p>Holding the time-bandwidth product and varying the duration separates the
-profile from the price of producing it.</p>
+<p>Varying duration at fixed time-bandwidth product separates slice-profile
+properties from gradient amplitude and peak <span class="math notranslate nohighlight">\(B_1\)</span> requirements.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">DURATIONS</span></a> <span class="o">=</span> <span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">,</span> <span class="mf">3e-3</span><span class="p">,</span> <span class="mf">5e-3</span><span class="p">,</span> <span class="mf">8e-3</span><span class="p">)</span><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">by_duration</span></a> <span class="o">=</span> <span class="p">[</span><span class="n">describe</span><span class="p">(</span><span class="n">simulate</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">duration</span></a><span class="p">)</span><span class="p">)</span> <span class="k">for</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">duration</span></a> <span class="ow">in</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">DURATIONS</span></a><span class="p">]</span><span class="w">
@@ -752,7 +752,7 @@ sharper profile at a fixed slice thickness is available at any duration the
 gradient amplitude supports, and choosing between a long pulse and a strong
 gradient decides the echo time and the peak <span class="math notranslate nohighlight">\(B_1\)</span> rather than the
 profile.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.352 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.359 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-21-modules-rf-slice-profile-and-time-bandwidth-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/acea0b6331e94c3bc95661050a62f4ec/slice-profile-and-time-bandwidth.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">slice-profile-and-time-bandwidth.ipynb</span></code></a></p>

@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -572,9 +572,9 @@ to download the full example code.</p>
 <span id="sphx-glr-generated-gallery-24-modules-noncartesian-noncartesian-readout-modules-py"></span><h1>Non-Cartesian readout modules<a class="headerlink" href="#non-cartesian-readout-modules" title="Link to this heading">#</a></h1>
 <p>A non-Cartesian readout designs one base interleaf — its acquisition window and
 the gradients that prewind to and rewind from the centre of k-space — and the
-scan loop rotates it per shot with a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension. One interleaf in
-the gradient library therefore serves the whole scan, however many angles it is
-played at.</p>
+scan loop rotates it per shot with a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension. The gradient
+library stores one interleaf; per-shot rotation extensions define
+its physical orientation.</p>
 <section id="radial-spiral-and-propeller-interleaves">
 <h2>Radial, spiral and PROPELLER interleaves<a class="headerlink" href="#radial-spiral-and-propeller-interleaves" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
@@ -619,9 +619,9 @@ PropellerReadout2D   19 blocks,  36.28 ms
 </section>
 <section id="the-solved-interleaf">
 <h2>The solved interleaf<a class="headerlink" href="#the-solved-interleaf" title="Link to this heading">#</a></h2>
-<p>A spiral arm is solved against the gradient system rather than taken from a
-fixed shape, so the module reports what it achieved rather than what was
-requested: the receiver bandwidth, the sample count and the duration of the
+<p>A spiral arm is solved under the gradient-system constraints. The module
+reports the resulting receiver bandwidth, sample count and acquisition
+duration: the receiver bandwidth, the sample count and the duration of the
 acquisition window.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">for</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="str"><span class="n">name</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.PropellerReadout2D.html#pypulseqpp.sequences.PropellerReadout2D" title="pypulseqpp.sequences.PropellerReadout2D"><span class="n">module</span></a> <span class="ow">in</span> <span class="p">(</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">radial</span><span class="s2">&quot;</span><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.RadialReadout2D.html#pypulseqpp.sequences.RadialReadout2D" title="pypulseqpp.sequences.RadialReadout2D"><span class="n">radial</span></a><span class="p">)</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;</span><span class="s2">spiral</span><span class="s2">&quot;</span><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D"><span class="n">spiral</span></a><span class="p">)</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;</span><span class="s2">blade</span><span class="s2">&quot;</span><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.PropellerReadout2D.html#pypulseqpp.sequences.PropellerReadout2D" title="pypulseqpp.sequences.PropellerReadout2D"><span class="n">blade</span></a><span class="p">)</span><span class="p">)</span><span class="p">:</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">window</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">module</span><span class="o">.</span><span class="n">n_samples</span></a> <span class="o">/</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">module</span><span class="o">.</span><span class="n">bandwidth_hz</span></a><span class="w">

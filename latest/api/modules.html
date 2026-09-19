@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -569,9 +569,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-modules">
 <h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>: modules that solve the timing and gradient waveforms of
-a group of blocks once and expose the resulting events to a scan loop, together
-with the non-Cartesian interleaves the readout modules play.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>: reusable block layouts with solved timing and gradient
+waveforms and named event templates for scan-loop encoding, together
+with the non-Cartesian interleaves used by the readout modules.</p>
 <section id="base-classes">
 <h2>Base classes<a class="headerlink" href="#base-classes" title="Link to this heading">#</a></h2>
 <p>A module is a reusable block layout with named, mutable event templates. The

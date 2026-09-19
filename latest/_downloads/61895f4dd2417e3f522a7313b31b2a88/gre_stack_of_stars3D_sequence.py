@@ -4,8 +4,8 @@
 =================================
 
 Radial spokes in the plane and Cartesian encoding along the slab axis.
-The in-plane acquisition keeps the motion behaviour of a radial one; the
-partition axis keeps the efficiency of Cartesian encoding.
+The in-plane trajectory retains radial sampling properties, with Cartesian
+encoding along the partition axis.
 """
 
 # sphinx_gallery_start_ignore
@@ -66,8 +66,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Angular undersampling
 # ---------------------
 #
-# Playing one spoke in four shortens the scan fourfold and leaves the centre
-# of each partition fully sampled.
+# Retaining one spoke angle in four reduces the number of repetitions
+# fourfold. Every acquired spoke samples the origin of its partition.
 
 alternative = gre_stack_of_stars3D_sequence(n=96, n_z=8, ry=4, tr=None, n_dummy=0)
 

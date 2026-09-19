@@ -23,12 +23,10 @@
 =======================================
 
 One excitation per repetition, with the line read again at several echo
-times. The signal decays between echoes at a rate the tissue's apparent
-transverse relaxation sets, so one repetition measures the decay rather
-than one point on it.
+times. Signal amplitude across the echo train follows apparent transverse
+relaxation, providing multiple points on the decay curve per excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
+.. GENERATED FROM PYTHON SOURCE LINES 10-37
 
 
 
@@ -36,14 +34,15 @@ than one point on it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+.. GENERATED FROM PYTHON SOURCE LINES 38-42
 
 Baseline
 --------
 
 Four echoes after one excitation, read in alternating directions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-53
+.. GENERATED FROM PYTHON SOURCE LINES 42-52
 
 .. code-block:: Python
 
@@ -71,12 +70,12 @@ Four echoes after one excitation, read in alternating directions.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-56
+.. GENERATED FROM PYTHON SOURCE LINES 53-55
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 55-58
 
 .. code-block:: Python
 
@@ -97,11 +96,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193e8afc20>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bc6ae40>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 59-64
 
 Sampling order
 --------------
@@ -109,7 +108,7 @@ Sampling order
 Colouring by echo index separates the echoes of one excitation; colouring by
 shot separates the excitations.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-68
+.. GENERATED FROM PYTHON SOURCE LINES 64-67
 
 .. code-block:: Python
 
@@ -134,15 +133,15 @@ shot separates the excitations.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-74
+.. GENERATED FROM PYTHON SOURCE LINES 68-73
 
 A longer echo train
 -------------------
 
-More echoes sample the decay further into it, at the cost of a longer
-repetition and a later last echo.
+Additional echoes extend the sampled decay curve and increase the minimum
+repetition time and final echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-88
+.. GENERATED FROM PYTHON SOURCE LINES 73-87
 
 .. code-block:: Python
 
@@ -167,7 +166,7 @@ repetition and a later last echo.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-91
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
 
 .. code-block:: Python
 
@@ -191,7 +190,7 @@ repetition and a later last echo.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-98
+.. GENERATED FROM PYTHON SOURCE LINES 91-97
 
 Safety checks
 -------------
@@ -200,7 +199,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-129
+.. GENERATED FROM PYTHON SOURCE LINES 97-128
 
 .. code-block:: Python
 
@@ -233,7 +232,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.735 seconds)
+   **Total running time of the script:** (0 minutes 24.656 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:

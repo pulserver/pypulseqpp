@@ -24,8 +24,8 @@
 
 One excitation and one phase-encode line per repetition, with the
 transverse magnetisation spoiled by a gradient and by a quadratic RF phase
-increment before the next excitation. The workhorse of the family, and the
-sequence the other Cartesian variants are read against.
+increment before the next excitation. This is the reference implementation
+for the Cartesian gradient-echo variants.
 
 .. GENERATED FROM PYTHON SOURCE LINES 11-38
 
@@ -98,7 +98,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193e72c800>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aee2d80>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -107,8 +107,8 @@ Sequence diagram
 Sampling order
 --------------
 
-The lines are dealt so that the centre of k-space is read near the middle
-of the scan, which is what the colour by acquisition order shows.
+The acquisition order places central k-space near the temporal midpoint of
+the scan. Colour encodes repetition index.
 
 .. GENERATED FROM PYTHON SOURCE LINES 66-69
 
@@ -235,7 +235,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.059 seconds)
+   **Total running time of the script:** (0 minutes 2.067 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

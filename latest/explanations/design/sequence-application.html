@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -568,9 +568,8 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-applications">
 <h1>Sequence applications<a class="headerlink" href="#sequence-applications" title="Link to this heading">#</a></h1>
-<p>A complete sequence is more than a set of modules. It also has a prescription,
-meaning the parameters a user sets; a sampling order; and a scan loop that
-plays the modules in that order. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> is
+<p>A complete sequence combines a prescription, sampling order and scan loop with
+its constituent modules. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> is
 the contract that separates these three concerns, and every sequence
 implementation the package ships is written against it.</p>
 <section id="prescription-sampling-order-and-repetition">
@@ -578,22 +577,22 @@ implementation the package ships is written against it.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Concern</p></th>
-<th class="head"><p>Where it lives</p></th>
-<th class="head"><p>Question it answers</p></th>
+<th class="head"><p>Method</p></th>
+<th class="head"><p>Responsibility</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Prescription</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">init_sequence</span></code></p></td>
-<td><p>What is being acquired?</p></td>
+<td><p>Design modules and sampling schedule</p></td>
 </tr>
 <tr class="row-odd"><td><p>Sampling order</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">loop</span></code></p></td>
-<td><p>In what order are the repetitions played?</p></td>
+<td><p>Iterate over repetitions and encoding states</p></td>
 </tr>
-<tr class="row-even"><td><p>One repetition</p></td>
+<tr class="row-even"><td><p>Repetition</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">kernel</span></code></p></td>
-<td><p>What blocks does a single repetition contain?</p></td>
+<td><p>Add the blocks for one repetition</p></td>
 </tr>
 </tbody>
 </table>
@@ -604,12 +603,9 @@ repetition. <code class="docutils literal notranslate"><span class="pre">finaliz
 <p>Constructing an application runs <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> and therefore designs it, but
 plays nothing. <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">design()</span></code></a> starts a fresh
 sequence, runs <code class="docutils literal notranslate"><span class="pre">loop</span></code>, then <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, and returns the result.</p>
-<p>The separation has a practical consequence. Because <code class="docutils literal notranslate"><span class="pre">kernel</span></code> adds exactly one
-repetition, calling the application plays one repetition into the current
-sequence, so a single repetition and a whole scan are produced by the same
-code. A caller that requires only part of a scan, for inspection or for an
-analysis defined over one repetition, uses the same code path as one that
-designs the whole scan.</p>
+<p>Because <code class="docutils literal notranslate"><span class="pre">kernel</span></code> adds exactly one repetition, the same implementation supports
+complete acquisition design and repetition-level inspection. Calling the
+application directly appends one repetition to the current sequence.</p>
 </section>
 <section id="prescription-against-settings">
 <h2>Prescription against settings<a class="headerlink" href="#prescription-against-settings" title="Link to this heading">#</a></h2>

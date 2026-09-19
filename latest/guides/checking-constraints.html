@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -571,12 +571,10 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="check-a-sequence-against-hardware-constraints">
 <h1>Check a sequence against hardware constraints<a class="headerlink" href="#check-a-sequence-against-hardware-constraints" title="Link to this heading">#</a></h1>
-<p>This guide runs the six constraint checks over a finished sequence and shows
-how to read their reports. What each check computes, the criterion it applies
-and what it does not establish are in
-<a class="reference internal" href="../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>; that page also states the limits of these
-checks, which are design-time estimates and not a scanner or patient safety
-assessment.</p>
+<p>Apply the gradient-amplitude, slew-rate, gradient-continuity, PNS, mechanical-
+resonance and SAR checks to a completed sequence. The criteria and limitations
+are described in <a class="reference internal" href="../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>. These design-time
+estimates do not constitute a scanner or patient-safety assessment.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span><span class="p">,</span> <span class="n">sequences</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">fat_saturation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span>
@@ -584,9 +582,8 @@ assessment.</p>
 
 </pre></div>
 </div>
-<p>Every check returns a verdict and a report, and the report is returned whether
-or not the check passes, so the margin of a passing sequence is readable from
-the same call.</p>
+<p>Every check returns a Boolean verdict and a report. Reports include the peak
+quantity and limit regardless of the verdict.</p>
 <section id="gradient-amplitude-slew-rate-and-continuity">
 <h2>Gradient amplitude, slew rate and continuity<a class="headerlink" href="#gradient-amplitude-slew-rate-and-continuity" title="Link to this heading">#</a></h2>
 <p>These three require nothing beyond the sequence and its system limits.</p>

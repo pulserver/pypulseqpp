@@ -23,9 +23,9 @@
 ====================
 
 One inversion per shot, an inversion time, and then a spoiled gradient-echo
-train that reads the views of one partition. The contrast follows from where in
-the recovery the centre of k-space is acquired, so the ordering within the
-train is part of the sequence rather than a reconstruction choice.
+train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse
+determines the dominant inversion-recovery contrast. View ordering therefore
+defines the contrast weighting across k-space.
 
 .. GENERATED FROM PYTHON SOURCE LINES 11-72
 
@@ -41,12 +41,12 @@ train is part of the sequence rather than a reconstruction choice.
 Timing structure
 ----------------
 
-The inversion, its crusher, the inversion time, the gradient-echo train and
-the recovery that closes the cycle. ``ti=None`` and ``tr=None`` take the
-shortest inversion time and recovery the modules admit, and four lines per
-partition make a train short enough to read at the width of this page; a
-protocol uses an inversion time of several hundred milliseconds and a train
-of a hundred or more readouts.
+Each cycle comprises inversion, crusher, inversion delay, spoiled
+gradient-echo train and recovery interval. ``ti=None`` and ``tr=None`` take the
+shortest inversion time and recovery supported by the modules. Four lines per
+partition provide a compact timing diagram. Clinical matrices typically
+require inversion times of several hundred milliseconds and much
+longer readout trains.
 
 .. GENERATED FROM PYTHON SOURCE LINES 82-92
 
@@ -95,11 +95,11 @@ of a hundred or more readouts.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1918273ad0>, tr=3, underlays=[1, 2, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b444ad0>, tr=3, underlays=[1, 2, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-105
+.. GENERATED FROM PYTHON SOURCE LINES 96-106
 
 Sampling order
 --------------
@@ -107,11 +107,12 @@ Sampling order
 At a protocol matrix, one inversion reads the sampled lines of one partition:
 the inversion cycle is constant along each row of the map, and the index
 within the train runs outward from the centre of the line axis. The centre of
-k-space is therefore read at the start of a train, one inversion time after
-the inversion, which is what sets the contrast; the periphery is read later,
-as the magnetisation continues to recover.
+k-space is therefore the first view in a train. ``TI`` is measured from the
+inversion-pulse centre to that view's excitation-pulse centre; the central
+ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
+acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 105-117
+.. GENERATED FROM PYTHON SOURCE LINES 106-119
 
 .. code-block:: Python
 
@@ -120,7 +121,8 @@ as the magnetisation continues to recover.
     print(
         f"{protocol.duration()[0]:.1f} s, "
         f"{int(np.asarray(protocol.evaluate_labels(evolution='adc')['ECO']).max()) + 1} "
-        "readouts in the longest train"
+        "readouts in the longest train, "
+        f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
     )
 
 
@@ -137,26 +139,25 @@ as the magnetisation continues to recover.
 
  .. code-block:: none
 
-    55.2 s, 128 readouts in the longest train
+    55.2 s, 128 readouts in the longest train, central ADC at 904.0 ms
 
     <Figure size 946x396 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-128
+.. GENERATED FROM PYTHON SOURCE LINES 120-129
 
 Accelerated sampling
 --------------------
 
-``ry`` and ``rz`` skip lines and partitions, and ``caipi_shift`` moves each
-line's partitions so that the aliases land away from one another. The train
-shortens with the number of lines each partition keeps, so every view is read
-closer to the inversion and the contrast the inversion time sets is carried
-further into k-space. The scan time does not follow: it is the number of
-inversion cycles times the repetition time, and with the calibration region
-fully sampled every partition is still visited.
+``ry`` and ``rz`` subsample the line and partition axes. ``caipi_shift``
+offsets the sampled partitions between adjacent lines to control the alias
+distribution. Fewer lines per partition reduce both train duration and the
+range of inversion-recovery weighting. Scan duration equals the number of
+inversion cycles multiplied by TR; the fully sampled calibration region still
+requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-144
+.. GENERATED FROM PYTHON SOURCE LINES 129-145
 
 .. code-block:: Python
 
@@ -187,7 +188,7 @@ fully sampled every partition is still visited.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 145-151
+.. GENERATED FROM PYTHON SOURCE LINES 146-152
 
 Safety checks
 -------------
@@ -196,7 +197,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-182
+.. GENERATED FROM PYTHON SOURCE LINES 152-183
 
 .. code-block:: Python
 
@@ -229,7 +230,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.590 seconds)
+   **Total running time of the script:** (0 minutes 3.553 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

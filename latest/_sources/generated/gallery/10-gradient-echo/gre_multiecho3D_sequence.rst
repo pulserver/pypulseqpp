@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193e887260>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4bb320>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -103,7 +103,7 @@ Sequence diagram
 Sampling order
 --------------
 
-The phase-encode plane, coloured by position in the acquisition.
+Colour encodes acquisition order in the phase-encode plane.
 
 .. GENERATED FROM PYTHON SOURCE LINES 62-65
 
@@ -130,16 +130,15 @@ The phase-encode plane, coloured by position in the acquisition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-72
+.. GENERATED FROM PYTHON SOURCE LINES 66-71
 
 Acceleration on both encoded axes
 ---------------------------------
 
-Skipping lines and partitions shortens a multi-echo acquisition in the
-same proportion as a single-echo one, because the echo train sits inside
-one repetition.
+Subsampling both phase-encode axes reduces the number of repetitions. The
+complete echo train remains within each retained repetition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-86
+.. GENERATED FROM PYTHON SOURCE LINES 71-85
 
 .. code-block:: Python
 
@@ -164,7 +163,7 @@ one repetition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-89
+.. GENERATED FROM PYTHON SOURCE LINES 86-88
 
 .. code-block:: Python
 
@@ -188,7 +187,7 @@ one repetition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-96
+.. GENERATED FROM PYTHON SOURCE LINES 89-95
 
 Safety checks
 -------------
@@ -197,7 +196,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-127
+.. GENERATED FROM PYTHON SOURCE LINES 95-126
 
 .. code-block:: Python
 
@@ -230,7 +229,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (3 minutes 2.724 seconds)
+   **Total running time of the script:** (3 minutes 0.452 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py:

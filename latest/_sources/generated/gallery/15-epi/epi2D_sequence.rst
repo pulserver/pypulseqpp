@@ -23,13 +23,11 @@
 ========================
 
 One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encode blip between them, so the whole phase-encode axis is
-covered after a single pulse. Off-resonance then accumulates along that axis
-instead of across repetitions, and the train length is what decides how far it
-displaces the image.
+with a phase-encoding blip between successive readouts. A single-shot train
+acquires the complete phase-encode axis after one excitation. Off-resonance
+phase accumulates across the train and produces displacement along that axis.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-97
-
+.. GENERATED FROM PYTHON SOURCE LINES 11-96
 
 
 
@@ -37,16 +35,17 @@ displaces the image.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-104
+
+.. GENERATED FROM PYTHON SOURCE LINES 97-103
 
 Baseline: single shot
 ---------------------
 
-One excitation reads every line of the phase-encode axis. The train is as
-long as the matrix, and the echo spacing times the train length is what a
-spin at a given off-resonance is displaced by.
+One excitation acquires the complete phase-encode axis. Echo-train length
+equals the number of acquired lines and determines the accumulated
+off-resonance phase across k-space.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-113
+.. GENERATED FROM PYTHON SOURCE LINES 103-112
 
 .. code-block:: Python
 
@@ -72,12 +71,12 @@ spin at a given off-resonance is displaced by.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-116
+.. GENERATED FROM PYTHON SOURCE LINES 113-115
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-119
+.. GENERATED FROM PYTHON SOURCE LINES 115-118
 
 .. code-block:: Python
 
@@ -98,26 +97,26 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f708770>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bc43e90>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 120-132
+.. GENERATED FROM PYTHON SOURCE LINES 119-131
 
 Segmentation and in-plane acceleration
 --------------------------------------
 
-Both shorten the train, and they differ in what else they change.
+Segmentation and in-plane acceleration both reduce echo-train length.
 ``n_shots`` interleaves the lines over several excitations, so every line is
-still acquired and the scan takes proportionally longer. ``ry`` skips lines
-instead, which leaves the scan time alone and needs a parallel-imaging
-reconstruction to fill what was skipped. A spin at offset :math:`\Delta f`
+still acquired. ``ry`` skips lines within one excitation and requires a
+parallel-imaging reconstruction for the omitted lines. Both reduce the
+echo-train duration. A spin at offset :math:`\Delta f`
 gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
 linear in :math:`k_y` and therefore a displacement of
 :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
 routes shorten the train, and both shorten the distortion with it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-158
+.. GENERATED FROM PYTHON SOURCE LINES 131-156
 
 .. code-block:: Python
 
@@ -144,17 +143,18 @@ routes shorten the train, and both shorten the distortion with it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-166
+.. GENERATED FROM PYTHON SOURCE LINES 157-165
 
 Echo traversal
 --------------
 
-The line each echo reads, against its index in the train. A single shot walks
-the axis one line at a time; a segmented acquisition walks it in steps of
-``n_shots``, each shot starting one line further on; acceleration walks it in
-steps of ``ry`` and stops there.
+The ordinate gives the phase-encode line acquired at each echo index. A
+single shot
+traverses the axis one line at a time; a segmented acquisition traverses it
+in steps of ``n_shots``, with each shot starting one line further on;
+acceleration traverses it in steps of ``ry`` and stops there.
 
-.. GENERATED FROM PYTHON SOURCE LINES 166-171
+.. GENERATED FROM PYTHON SOURCE LINES 165-170
 
 
 
@@ -174,7 +174,7 @@ steps of ``ry`` and stops there.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-178
+.. GENERATED FROM PYTHON SOURCE LINES 171-177
 
 Which lines are acquired
 ------------------------
@@ -183,7 +183,7 @@ Segmentation and acceleration produce the same train length from different
 sets of lines: the segmented acquisition covers the axis, the accelerated one
 leaves two lines in three unread.
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-183
+.. GENERATED FROM PYTHON SOURCE LINES 177-182
 
 
 
@@ -203,7 +203,7 @@ leaves two lines in three unread.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 184-190
+.. GENERATED FROM PYTHON SOURCE LINES 183-189
 
 Safety checks
 -------------
@@ -212,7 +212,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model and the forbidden bands below are
 demonstrations, not a scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 190-220
+.. GENERATED FROM PYTHON SOURCE LINES 189-219
 
 .. code-block:: Python
 
@@ -245,7 +245,7 @@ demonstrations, not a scanner's.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 221-228
+.. GENERATED FROM PYTHON SOURCE LINES 220-227
 
 Mechanical resonance
 --------------------
@@ -255,7 +255,7 @@ at the echo-spacing frequency and its harmonics. A forbidden band that one of
 those lines falls in is driven for as long as the train lasts.
 ``mech_resonance_spectrum`` returns the windowed spectrum the check reads.
 
-.. GENERATED FROM PYTHON SOURCE LINES 228-247
+.. GENERATED FROM PYTHON SOURCE LINES 227-246
 
 .. code-block:: Python
 
@@ -279,7 +279,7 @@ those lines falls in is driven for as long as the train lasts.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.470 seconds)
+   **Total running time of the script:** (0 minutes 0.464 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

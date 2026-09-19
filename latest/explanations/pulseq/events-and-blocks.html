@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -569,9 +569,8 @@
   <section class="tex2jax_ignore mathjax_ignore" id="events-and-blocks">
 <h1>Events and blocks<a class="headerlink" href="#events-and-blocks" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://pulseq.github.io">Pulseq</a> is an open file format for MR pulse
-sequences. A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file states what is played, on which channel and for how
-long: the complete prescription of an acquisition, portable between sites and
-vendors. <code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code> builds, analyses and writes that description, and its
+sequences. A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file specifies event timing and channel assignment for a complete,
+portable acquisition. <code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code> builds, analyses and writes that description, and its
 Python interface preserves the format’s conventions.</p>
 <p>The authoritative definition is the <a class="reference external" href="https://pulseq.github.io/specification.pdf">Pulseq
 specification</a> and the MATLAB
@@ -587,8 +586,8 @@ one ADC window, and a chain of extensions.</p>
 the start of the block.</p></li>
 <li><p>Blocks are played back to back, with no gap between them.</p></li>
 </ol>
-<p>There is no nesting, no loop and no branch. The file is the flattened playout
-order; a scan loop exists only in the script that wrote the file.</p>
+<p>The file contains a flattened event schedule without loops, branches or nested
+blocks. Scan-loop control exists only in the authoring program.</p>
 <p>A block whose duration exceeds the extent of its events is therefore a delay,
 and this is how a repetition time is realized. A two-dimensional gradient-echo
 repetition, for example, is six blocks: the pulse with its slice-selection

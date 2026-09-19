@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Checking a sequence for safety &#8212; pypulseqpp documentation</title>
+    <title>Sequence constraint checks &#8212; pypulseqpp documentation</title>
   
   
   
@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Checking a sequence for safety</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -540,7 +540,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Checking a sequence for safety</h1>
+    <h1>Sequence constraint checks</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -550,8 +550,8 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sequence">The sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-hardware">Gradient hardware</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-test-sequence">Echo-planar test sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-and-gradient-hardware">Timing and gradient hardware</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>
@@ -572,23 +572,23 @@
 <p><a class="reference internal" href="#sphx-glr-download-generated-gallery-01-getting-started-safety-checks-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
-<section class="sphx-glr-example-title" id="checking-a-sequence-for-safety">
-<span id="sphx-glr-generated-gallery-01-getting-started-safety-checks-py"></span><h1>Checking a sequence for safety<a class="headerlink" href="#checking-a-sequence-for-safety" title="Link to this heading">#</a></h1>
-<p>The package computes five checks over a finished sequence: the gradient
-amplitude and slew rate the hardware is asked for, the continuity of the
-gradient waveform across block boundaries, the nerve response the slew implies,
-the gradient spectrum inside a scanner’s forbidden bands, and the power a
-transmit array deposits. Each returns a verdict and a report, and this page
-runs all of them over one sequence.</p>
+<section class="sphx-glr-example-title" id="sequence-constraint-checks">
+<span id="sphx-glr-generated-gallery-01-getting-started-safety-checks-py"></span><h1>Sequence constraint checks<a class="headerlink" href="#sequence-constraint-checks" title="Link to this heading">#</a></h1>
+<p>The package computes timing and six constraint checks over a finished sequence:
+event timing, gradient amplitude, slew rate, gradient continuity across block
+boundaries, peripheral nerve stimulation (PNS), mechanical resonance and
+specific absorption rate (SAR). Each check returns a verdict and the quantities
+used to determine it.</p>
 <p>A passing check does not establish that a sequence is safe to run on a scanner
-or on a subject. The models used here are demonstrations: a scanner applies its
-own, and its predownload gate and hardware monitor run whatever these say. The
-physics behind each check is in
+or on a subject. The PNS, mechanical-resonance and SAR models used here are
+synthetic demonstrations. Scanner-specific checks and hardware monitoring are
+separate. The physical models are described in
 <a class="reference internal" href="../../../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>.</p>
-<section id="the-sequence">
-<h2>The sequence<a class="headerlink" href="#the-sequence" title="Link to this heading">#</a></h2>
-<p>An echo-planar readout, which drives one gradient axis hard and repetitively
-and so has something to say to every check.</p>
+<section id="echo-planar-test-sequence">
+<h2>Echo-planar test sequence<a class="headerlink" href="#echo-planar-test-sequence" title="Link to this heading">#</a></h2>
+<p>A single-shot echo-planar readout provides high slew rates and a periodic
+gradient waveform, making both PNS and mechanical-resonance diagnostics
+informative.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span><span class="w">
 </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="w">
 </span><span class="w">
@@ -599,17 +599,19 @@ and so has something to say to every check.</p>
 </pre></div>
 </div>
 </section>
-<section id="gradient-hardware">
-<h2>Gradient hardware<a class="headerlink" href="#gradient-hardware" title="Link to this heading">#</a></h2>
-<p>The amplitude and slew checks compare the physical, rotated waveform against
+<section id="timing-and-gradient-hardware">
+<h2>Timing and gradient hardware<a class="headerlink" href="#timing-and-gradient-hardware" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">check_timing</span></code> verifies raster alignment, dead times and event placement.
+The amplitude and slew checks compare the physical, rotated waveform against
 the system limits the sequence was designed under. They report the largest
 per-axis reading and the largest vector reading, which is not the norm of the
 per-axis peaks: two axes reach their own peaks at different times.
 The verdict is on the per-axis reading, which is what the hardware limits;
 the vector reading is reported beside it. <code class="docutils literal notranslate"><span class="pre">check_grad_continuity</span></code> looks for
-steps between blocks, which a scanner would have to slew through in no time
-at all.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">grad_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">grad</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_grad</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
+discontinuities between adjacent blocks. A discontinuity corresponds to an
+undefined instantaneous slew in the Pulseq waveform.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">timing_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">timing_errors</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">grad_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">grad</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_grad</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">slew_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">slew</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_slew</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">cont_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">cont</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><span class="n">safety</span><span class="o">.</span><span class="n">check_grad_continuity</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
 </span><span class="w">
@@ -626,7 +628,7 @@ at all.</p>
 <section id="peripheral-nerve-stimulation">
 <h2>Peripheral nerve stimulation<a class="headerlink" href="#peripheral-nerve-stimulation" title="Link to this heading">#</a></h2>
 <p>A changing gradient induces an electric field in the subject, and the nerve
-model turns the slew on each axis into a response as a fraction of the
+model converts the slew on each axis into a response as a fraction of the
 threshold at which stimulation is reported. The axes are combined as a
 root sum of squares, and the check passes while that stays below one.</p>
 <p>The chronaxie model below takes its three coefficients from the
@@ -650,10 +652,9 @@ it is the check’s own calculation rather than a second one.</p>
 <img src="../../../_images/sphx_glr_safety-checks_001.png" srcset="../../../_images/sphx_glr_safety-checks_001.png" alt="threshold dashed, peak marked" class = "sphx-glr-single-img"/></section>
 <section id="mechanical-resonance">
 <h2>Mechanical resonance<a class="headerlink" href="#mechanical-resonance" title="Link to this heading">#</a></h2>
-<p>A gradient coil has mechanical modes, and driving one of them shakes the
-magnet. A scanner declares the frequency ranges to stay out of and how much
-amplitude it tolerates in each. The check takes the gradient spectrum in
-overlapping windows and reads the largest amplitude inside each band.</p>
+<p>Gradient-coil mechanical modes define forbidden frequency bands and amplitude
+tolerances. The check computes the gradient spectrum in overlapping windows
+and reports the largest amplitude within each band.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">bands</span></a> <span class="o">=</span> <span class="p">[</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><span class="n">safety</span><span class="o">.</span><span class="n">ForbiddenBand</span></a><span class="p">(</span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="matplotlib.axes.Axes"><span class="n">axis</span></a><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">550.0</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">650.0</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">6.0</span><span class="p">)</span><span class="p">,</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><span class="n">safety</span><span class="o">.</span><span class="n">ForbiddenBand</span></a><span class="p">(</span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="matplotlib.axes.Axes"><span class="n">axis</span></a><span class="o">=</span><span class="s2">&quot;</span><span class="s2">y</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">1100.0</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">1300.0</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span><span class="p">,</span><span class="w">
@@ -710,6 +711,7 @@ worst local 0.39 W/kg against 10.0 W/kg, worst global 0.21 W/kg against 3.2 W/kg
 <section id="every-verdict-together">
 <h2>Every verdict together<a class="headerlink" href="#every-verdict-together" title="Link to this heading">#</a></h2>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>check                          result                    reading
+event timing                   pass                     0 errors
 gradient amplitude             pass                    39.8 mT/m
 slew rate                      pass                    166 T/m/s
 gradient continuity            pass            0 discontinuities
@@ -718,13 +720,13 @@ mechanical resonance           pass               0 windows over
 specific absorption rate       pass              0.39 W/kg local
 </pre></div>
 </div>
-<p>This configuration exceeds the nerve model’s threshold, which is what an
-echo-planar train at a short echo spacing does on a body gradient system.
-Lengthening the echo spacing, reading fewer lines per train or lowering the
-slew rate the readout is designed under all move it; the notebook on
-<a class="reference internal" href="../15-epi/epi2D_sequence.html"><span class="doc">echo-planar imaging</span></a> shows
-what each of those costs.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.444 seconds)</p>
+<p>This short-echo-spacing echo-planar train exceeds the demonstration nerve
+model’s threshold.
+Lengthening the echo spacing, reducing the echo-train length or lowering the
+prescribed slew limit changes the response. These design parameters are
+compared in the
+<a class="reference internal" href="../15-epi/epi2D_sequence.html"><span class="doc">echo-planar imaging example</span></a>.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.470 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-getting-started-safety-checks-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/35573e2b80868d4226aa85712eda5aa1/safety-checks.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">safety-checks.ipynb</span></code></a></p>
@@ -787,8 +789,8 @@ what each of those costs.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sequence">The sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-hardware">Gradient hardware</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-test-sequence">Echo-planar test sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-and-gradient-hardware">Timing and gradient hardware</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>

@@ -23,7 +23,7 @@ Building sequences
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A complete sequence separates three things: the prescription a user sets, the order the views are sampled in, and the blocks of one repetition. SequenceApp is the contract that keeps them apart, and every sequence the package ships is written against it. The architecture is described in /explanations/design/sequence-application.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application.">
 
 .. only:: html
 

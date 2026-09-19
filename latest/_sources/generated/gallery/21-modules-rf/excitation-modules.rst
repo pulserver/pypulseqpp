@@ -34,7 +34,7 @@ Slice-selective, non-selective and spectrally selective
 
 The slice-selective module designs an SLR pulse with its selection gradient
 and rephaser, and reports the ``selection_amplitude`` a slice offset is
-converted against. The non-selective module plays a pulse alone. The
+converted against. The non-selective module contains only an RF event. The
 spectral-spatial module selects a band in frequency as well as in space.
 
 .. GENERATED FROM PYTHON SOURCE LINES 20-50
@@ -176,14 +176,14 @@ frequency offset of ``selection_amplitude * position`` on the pulse.
       made = factory(*args, **kwargs)
     SmsExcitation 2 blocks, 4.66 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f702900>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b472a80>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.321 seconds)
+   **Total running time of the script:** (0 minutes 0.318 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_21-modules-rf_excitation-modules.py:

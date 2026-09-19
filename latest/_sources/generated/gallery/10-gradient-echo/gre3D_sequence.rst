@@ -40,8 +40,8 @@ resolved by encoding rather than by the pulse.
 Baseline
 --------
 
-A full Cartesian sampling of the slab, inside an elliptical shutter that
-leaves the corners of the phase-encode plane unread.
+A full Cartesian sampling of the slab, with elliptical sampling of the
+phase-encode plane.
 
 .. GENERATED FROM PYTHON SOURCE LINES 43-51
 
@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f193f32ffe0>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b39cdd0>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -137,9 +137,9 @@ partition before moving to the next.
 Acceleration on both encoded axes
 ---------------------------------
 
-``ry`` and ``rz`` skip lines and partitions independently, so the volume is
-acquired in a quarter of the repetitions with the calibration region kept
-at the centre.
+``ry`` and ``rz`` subsample the line and partition axes independently.
+With ``ry=rz=2``, the outer phase-encode plane requires approximately one
+quarter as many repetitions; the central calibration region remains fully sampled.
 
 .. GENERATED FROM PYTHON SOURCE LINES 73-87
 
@@ -232,7 +232,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.573 seconds)
+   **Total running time of the script:** (0 minutes 24.599 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

@@ -41,10 +41,10 @@ whole train sits close behind the inversion.
 Timing structure
 ----------------
 
-The inversion, the inversion time, the interleaf train over one partition, and
-the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
-recovery the modules admit, and four interleaves per partition make a train
-short enough to read at the width of this page.
+Each cycle comprises inversion, inversion delay, an interleaf train at one
+partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
+shortest timing supported by the modules. Four interleaves per partition
+produce a compact timing diagram.
 
 .. GENERATED FROM PYTHON SOURCE LINES 80-93
 
@@ -96,21 +96,22 @@ short enough to read at the width of this page.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f19181731d0>, tr=2, underlays=[1, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6ae98c4ad0>, tr=2, underlays=[1, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-104
+.. GENERATED FROM PYTHON SOURCE LINES 97-105
 
 Sampling order
 --------------
 
 One inversion reads the interleaves of one partition, so the inversion cycle
-is constant along each row. With an interleaf per readout the train is a
-few tens of readouts long rather than a few hundred, and every view is read
-within a short interval of the inversion time.
+is constant along each row. The interleaf train contains substantially fewer
+readouts than an equivalent Cartesian line train, reducing the range of
+inversion-recovery weighting. ``TI`` ends at the first excitation-pulse
+centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-113
+.. GENERATED FROM PYTHON SOURCE LINES 105-114
 
 .. code-block:: Python
 
@@ -138,7 +139,7 @@ within a short interval of the inversion time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-119
+.. GENERATED FROM PYTHON SOURCE LINES 115-120
 
 Trajectory
 ----------
@@ -146,7 +147,7 @@ Trajectory
 The interleaves of every partition, over the three k-space axes, coloured by
 shot. Each one is turned from the last so that the set covers the plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-122
+.. GENERATED FROM PYTHON SOURCE LINES 120-123
 
 .. code-block:: Python
 
@@ -171,7 +172,7 @@ shot. Each one is turned from the last so that the set covers the plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 123-129
+.. GENERATED FROM PYTHON SOURCE LINES 124-130
 
 Safety checks
 -------------
@@ -180,7 +181,7 @@ A passing check does not establish that a sequence is safe to run on a
 scanner or on a subject. The nerve model below is a demonstration, not a
 scanner's.
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-160
+.. GENERATED FROM PYTHON SOURCE LINES 130-161
 
 .. code-block:: Python
 
@@ -213,7 +214,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.203 seconds)
+   **Total running time of the script:** (0 minutes 13.129 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

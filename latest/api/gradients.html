@@ -271,7 +271,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -570,9 +570,8 @@ on them. Amplitudes are in Hz/m, slew rates in Hz/m/s and gradient areas in
 1/m, except where a docstring states otherwise.</p>
 <section id="gradient-factories">
 <h2>Gradient factories<a class="headerlink" href="#gradient-factories" title="Link to this heading">#</a></h2>
-<p>Trapezoidal, extended-trapezoid and arbitrary gradient events, and the
-wave-encoding gradients played under a readout’s flat top, which trace the
-wave-CAIPI corkscrew trajectory.</p>
+<p>Trapezoidal, extended-trapezoid and arbitrary gradient events, and wave-encoding gradients superposed on a readout plateau for a wave-CAIPI
+trajectory.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_grad.html#pypulseqpp.make_arbitrary_grad" title="pypulseqpp.make_arbitrary_grad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_arbitrary_grad</span></code></a></p></td>

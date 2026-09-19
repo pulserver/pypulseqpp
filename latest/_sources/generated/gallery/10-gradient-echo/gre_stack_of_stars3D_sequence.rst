@@ -23,8 +23,8 @@
 =================================
 
 Radial spokes in the plane and Cartesian encoding along the slab axis.
-The in-plane acquisition keeps the motion behaviour of a radial one; the
-partition axis keeps the efficiency of Cartesian encoding.
+The in-plane trajectory retains radial sampling properties, with Cartesian
+encoding along the partition axis.
 
 .. GENERATED FROM PYTHON SOURCE LINES 10-37
 
@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f192e6993d0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b39ce30>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -135,8 +135,8 @@ The spokes of every partition, over the three k-space axes.
 Angular undersampling
 ---------------------
 
-Playing one spoke in four shortens the scan fourfold and leaves the centre
-of each partition fully sampled.
+Retaining one spoke angle in four reduces the number of repetitions
+fourfold. Every acquired spoke samples the origin of its partition.
 
 .. GENERATED FROM PYTHON SOURCE LINES 71-83
 
@@ -227,7 +227,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.833 seconds)
+   **Total running time of the script:** (0 minutes 5.830 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

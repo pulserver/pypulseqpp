@@ -269,7 +269,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -593,13 +593,13 @@ through PyPulseq’s own function and comes back as an event.</p>
 
 <section id="examples-using-scale-grad">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">scale_grad</span></code><a class="headerlink" href="#examples-using-scale-grad" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The shortest complete workflow: system limits, events, blocks, a sequence, and the file it is written to. Two repetitions of a slice-selective gradient echo are enough to show every step."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
 <p><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html"><span class="doc">A basic Pulseq sequence</span></a></p>
   <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence separates three things: the prescription a user sets, the order the views are sampled in, and the blocks of one repetition. SequenceApp is the contract that keeps them apart, and every sequence the package ships is written against it. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
 <p><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html"><span class="doc">A SequenceApp from scratch</span></a></p>
   <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, at the price of samples that are no longer equally spaced in k and a reconstruction that has to regrid them."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
 <p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
   <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
 </div></div></section>

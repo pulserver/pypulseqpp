@@ -37,18 +37,17 @@ central lines.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-82
+.. GENERATED FROM PYTHON SOURCE LINES 74-81
 
 Timing structure
 ----------------
 
-The inversion, the inversion time, the spoke train over one partition, and
-the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
-recovery the modules admit, and an angular undersampling that leaves four
-spokes per partition makes a train short enough to read at the width of this
-page.
+Each cycle comprises inversion, inversion delay, a spoke train at one
+partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
+shortest timing supported by the modules. Angular undersampling leaves four
+spokes per partition and produces a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-95
+.. GENERATED FROM PYTHON SOURCE LINES 81-94
 
 .. code-block:: Python
 
@@ -78,7 +77,7 @@ page.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-98
+.. GENERATED FROM PYTHON SOURCE LINES 95-97
 
 .. code-block:: Python
 
@@ -98,20 +97,21 @@ page.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f195f686240>, tr=1, underlays=[2, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e1d00>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-107
+.. GENERATED FROM PYTHON SOURCE LINES 98-107
 
 Sampling order
 --------------
 
 One inversion reads the spokes of one partition, so the inversion cycle is
-constant along each row. The index within the train runs over the spokes in
-the order they are played, and ``partition_angle_shift`` turns the set from
-one partition to the next so that the spokes of neighbouring partitions do
-not coincide.
+constant along each row. Readout index specifies spoke order within the train.
+``partition_angle_shift`` rotates the spoke set between partitions to avoid
+coincident angles in neighbouring partitions. ``TI`` ends at the first
+excitation-pulse centre; the centre of
+k-space on its spoke is sampled at ``TI + TE``.
 
 .. GENERATED FROM PYTHON SOURCE LINES 107-116
 
@@ -215,7 +215,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.382 seconds)
+   **Total running time of the script:** (0 minutes 10.289 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

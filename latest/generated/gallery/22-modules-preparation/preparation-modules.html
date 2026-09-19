@@ -271,7 +271,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Checking a sequence for safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -551,7 +551,7 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inversion-fat-saturation-and-t2-preparation">Inversion, fat saturation and T2 preparation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#each-is-a-block-layout-the-loop-places">Each is a block layout the loop places</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-layouts">Block layouts</a></li>
 </ul>
             </nav>
         </div>
@@ -609,11 +609,11 @@ T2Preparation           8 blocks,  60.82 ms
 </pre></div>
 </div>
 </section>
-<section id="each-is-a-block-layout-the-loop-places">
-<h2>Each is a block layout the loop places<a class="headerlink" href="#each-is-a-block-layout-the-loop-places" title="Link to this heading">#</a></h2>
-<p>A preparation is added as it stands, followed by whatever interval the
-prescription asks for. The diagram below plays the three in turn, which is
-not a protocol: it shows what each contributes to a repetition.</p>
+<section id="block-layouts">
+<h2>Block layouts<a class="headerlink" href="#block-layouts" title="Link to this heading">#</a></h2>
+<p>A scan loop inserts a preparation’s blocks before the readout and defines
+any subsequent recovery interval. Five-millisecond separators keep the three
+block layouts distinct in this comparison; they are not part of the modules.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="o">=</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">)</span><span class="w">
 </span><span class="k">for</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation" title="pypulseqpp.sequences.InversionPreparation"><span class="n">module</span></a> <span class="ow">in</span> <span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.FatSaturation.html#pypulseqpp.sequences.FatSaturation" title="pypulseqpp.sequences.FatSaturation"><span class="n">fat_sat</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.T2Preparation.html#pypulseqpp.sequences.T2Preparation" title="pypulseqpp.sequences.T2Preparation"><span class="n">t2_prep</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation" title="pypulseqpp.sequences.InversionPreparation"><span class="n">inversion</span></a><span class="p">)</span><span class="p">:</span><span class="w">
 </span>    <span class="k">for</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">block</span></a> <span class="ow">in</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-property reference internal" href="../../pypulseqpp.sequences.InversionPreparation.blocks.html#pypulseqpp.sequences.InversionPreparation.blocks" title="pypulseqpp.sequences.InversionPreparation.blocks"><span class="n">module</span><span class="o">.</span><span class="n">blocks</span></a><span class="p">:</span><span class="w">
@@ -625,10 +625,10 @@ not a protocol: it shows what each contributes to a repetition.</p>
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_preparation-modules_001.png" srcset="../../../_images/sphx_glr_preparation-modules_001.png" alt="preparation modules" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>15 blocks, 99.38 ms
 
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f193eee3530&gt;, tr=1, underlays=[])
+namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6afa86b260&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.503 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.510 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-22-modules-preparation-preparation-modules-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/913c6b72a9e8e37821af78b992a5e945/preparation-modules.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">preparation-modules.ipynb</span></code></a></p>
@@ -692,7 +692,7 @@ namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f193eee3530&gt;, tr=1, u
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inversion-fat-saturation-and-t2-preparation">Inversion, fat saturation and T2 preparation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#each-is-a-block-layout-the-loop-places">Each is a block layout the loop places</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#block-layouts">Block layouts</a></li>
 </ul>
   </nav></div>
 
