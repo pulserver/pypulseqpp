@@ -5,5 +5,3 @@ SpiralNavigator.seq
 
 .. autoproperty:: SpiralNavigator.seq
 
-.. minigallery:: pypulseqpp.sequences.SpiralNavigator.seq
-   :add-heading: Examples using ``SpiralNavigator.seq``

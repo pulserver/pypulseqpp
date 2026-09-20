@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -598,12 +598,12 @@
 <span class="sd">        A :class:`ChronaxieModel` or a mapping of its fields; a SAFE</span>
 <span class="sd">        description shaped like upstream's ``safe_example_hw()``; or a ``.asc``</span>
 <span class="sd">        file for :func:`read_safe_model`.</span>
-<span class="sd">    rotation : array_like, optional</span>
+<span class="sd">    rotation : array_like, default=None</span>
 <span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
 <span class="sd">        each block's own rotation; identity (axial) by default.</span>
-<span class="sd">    system : pypulseqpp.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, default=None</span>
 <span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
-<span class="sd">    trace : bool, optional</span>
+<span class="sd">    trace : bool, default=False</span>
 <span class="sd">        Also return the response over time, which a diagnostic plot draws.</span>
 <span class="sd">        The trace is one value per gradient raster interval over the whole</span>
 <span class="sd">        sequence, so it costs four arrays of ``samples`` each.</span>

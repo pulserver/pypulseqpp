@@ -5,5 +5,3 @@ FseReadout2D.blocks
 
 .. autoproperty:: FseReadout2D.blocks
 
-.. minigallery:: pypulseqpp.sequences.FseReadout2D.blocks
-   :add-heading: Examples using ``FseReadout2D.blocks``

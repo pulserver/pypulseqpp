@@ -116,14 +116,14 @@ block layouts distinct in this comparison; they are not part of the modules.
 
     15 blocks, 99.38 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afa86b260>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598ae8ce30>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.510 seconds)
+   **Total running time of the script:** (0 minutes 0.353 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_22-modules-preparation_preparation-modules.py:

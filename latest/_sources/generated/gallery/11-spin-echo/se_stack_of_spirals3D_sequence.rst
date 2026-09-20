@@ -22,26 +22,29 @@
 3D stack-of-spirals spin echo
 ===============================
 
-Spiral interleaves in the plane and Cartesian encoding along the slab
-axis, read at the refocused echo.
+A slab-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a spiral interleaf with Cartesian partition encoding. Spoilers
+suppress unwanted coherence between repetitions. TE controls T2 weighting;
+off-resonance affects the spiral readout. This sequence supports rapid 3D
+T2-weighted imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-36
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen interleaves at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -68,12 +71,12 @@ Sixteen interleaves at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-54
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-57
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -94,18 +97,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bbfbda0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5988563ef0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-62
+.. GENERATED FROM PYTHON SOURCE LINES 54-58
 
 Sampling order
 --------------
 
 The interleaves of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-65
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -130,7 +133,7 @@ The interleaves of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-71
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Fewer interleaves
 -----------------
@@ -138,7 +141,7 @@ Fewer interleaves
 Halving the interleaf count doubles the pitch and undersamples the
 peripheral k-space disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-85
+.. GENERATED FROM PYTHON SOURCE LINES 67-81
 
 .. code-block:: Python
 
@@ -163,7 +166,7 @@ peripheral k-space disc.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-88
+.. GENERATED FROM PYTHON SOURCE LINES 82-84
 
 .. code-block:: Python
 
@@ -187,49 +190,10 @@ peripheral k-space disc.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-95
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 95-126
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.5 mT/m
-    slew rate                  pass                  164 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.23 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.254 seconds)
+   **Total running time of the script:** (0 minutes 2.507 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

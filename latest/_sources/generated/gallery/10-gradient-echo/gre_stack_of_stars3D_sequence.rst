@@ -22,20 +22,22 @@
 3D stack-of-stars gradient echo
 =================================
 
-Radial spokes in the plane and Cartesian encoding along the slab axis.
-The in-plane trajectory retains radial sampling properties, with Cartesian
-encoding along the partition axis.
+A slab-selective spoiled excitation is followed by one radial spoke with
+Cartesian partition encoding. Gradient and RF spoiling suppress residual
+transverse coherence between repetitions. TR and flip angle primarily
+determine T1 weighting. Stack-of-stars SPGR is used for motion-robust 3D
+structural and dynamic imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-43
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
 Baseline
 --------
@@ -43,7 +45,7 @@ Baseline
 A spoke at every partition, with the spoke set turned from one partition
 to the next.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-51
+.. GENERATED FROM PYTHON SOURCE LINES 38-46
 
 .. code-block:: Python
 
@@ -68,12 +70,12 @@ to the next.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-54
+.. GENERATED FROM PYTHON SOURCE LINES 47-49
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-57
+.. GENERATED FROM PYTHON SOURCE LINES 49-52
 
 .. code-block:: Python
 
@@ -94,18 +96,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b39ce30>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598ae14aa0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-62
+.. GENERATED FROM PYTHON SOURCE LINES 53-57
 
 Sampling order
 --------------
 
 The spokes of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-65
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -130,7 +132,7 @@ The spokes of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-71
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Angular undersampling
 ---------------------
@@ -138,7 +140,7 @@ Angular undersampling
 Retaining one spoke angle in four reduces the number of repetitions
 fourfold. Every acquired spoke samples the origin of its partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-83
+.. GENERATED FROM PYTHON SOURCE LINES 66-78
 
 .. code-block:: Python
 
@@ -161,7 +163,7 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 79-81
 
 .. code-block:: Python
 
@@ -185,49 +187,10 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-93
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 93-124
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.4 mT/m
-    slew rate                  pass                  164 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation pass          0.96 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.830 seconds)
+   **Total running time of the script:** (0 minutes 4.297 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

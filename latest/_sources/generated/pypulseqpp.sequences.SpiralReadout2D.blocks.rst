@@ -5,5 +5,3 @@ SpiralReadout2D.blocks
 
 .. autoproperty:: SpiralReadout2D.blocks
 
-.. minigallery:: pypulseqpp.sequences.SpiralReadout2D.blocks
-   :add-heading: Examples using ``SpiralReadout2D.blocks``

@@ -5,5 +5,3 @@ OffResonanceSaturation.init\_module
 
 .. automethod:: OffResonanceSaturation.init_module
 
-.. minigallery:: pypulseqpp.sequences.OffResonanceSaturation.init_module
-   :add-heading: Examples using ``OffResonanceSaturation.init_module``

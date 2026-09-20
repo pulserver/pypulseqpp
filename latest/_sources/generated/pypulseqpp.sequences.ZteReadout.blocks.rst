@@ -5,5 +5,3 @@ ZteReadout.blocks
 
 .. autoproperty:: ZteReadout.blocks
 
-.. minigallery:: pypulseqpp.sequences.ZteReadout.blocks
-   :add-heading: Examples using ``ZteReadout.blocks``

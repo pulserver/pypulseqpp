@@ -5,5 +5,3 @@ RadialStackReadout.arm
 
 .. automethod:: RadialStackReadout.arm
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout.arm
-   :add-heading: Examples using ``RadialStackReadout.arm``

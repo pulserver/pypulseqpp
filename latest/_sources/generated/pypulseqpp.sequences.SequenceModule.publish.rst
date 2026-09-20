@@ -5,5 +5,3 @@ SequenceModule.publish
 
 .. automethod:: SequenceModule.publish
 
-.. minigallery:: pypulseqpp.sequences.SequenceModule.publish
-   :add-heading: Examples using ``SequenceModule.publish``

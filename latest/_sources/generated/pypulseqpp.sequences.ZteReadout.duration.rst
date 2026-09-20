@@ -5,5 +5,3 @@ ZteReadout.duration
 
 .. autoproperty:: ZteReadout.duration
 
-.. minigallery:: pypulseqpp.sequences.ZteReadout.duration
-   :add-heading: Examples using ``ZteReadout.duration``

@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -515,23 +515,23 @@
 <span class="sd">        Nominal flip angle (degrees).</span>
 <span class="sd">    thickness_m : float</span>
 <span class="sd">        Slice or slab thickness (m).</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.003</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    is_slab : bool, optional</span>
+<span class="sd">    is_slab : bool, default=False</span>
 <span class="sd">        Merge the rephaser into the selection gradient, as above.</span>
-<span class="sd">    rephase : bool, optional</span>
+<span class="sd">    rephase : bool, default=True</span>
 <span class="sd">        Include a slice rephaser.</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product. Higher is a squarer profile and a longer pulse</span>
 <span class="sd">        at the same bandwidth.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Selection axis.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        SLR design family. ``"ex"`` for a large-tip excitation, ``"se"`` for a</span>
 <span class="sd">        refocusing pulse.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
-<span class="sd">    passband_ripple, stopband_ripple : float, optional</span>
+<span class="sd">    passband_ripple, stopband_ripple : float, default=0.01</span>
 <span class="sd">        Ripple allowed in each band of the slice profile.</span>
 
 <span class="sd">    Attributes</span>
@@ -647,25 +647,25 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    thickness_m : float</span>
 <span class="sd">        Slice thickness (m).</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=180.0</span>
 <span class="sd">        Nominal flip angle (degrees).</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.003</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero</span>
 <span class="sd">        leaves the bare selection lobe.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Selection axis; the crushers share it.</span>
-<span class="sd">    phase_offset_rad : float, optional</span>
+<span class="sd">    phase_offset_rad : float, default=np.pi / 2</span>
 <span class="sd">        RF phase. The CPMG quarter turn by default.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='refocusing'</span>
 <span class="sd">        What the pulse is for; the trajectory core negates accumulated k at a</span>
 <span class="sd">        refocusing pulse.</span>
-<span class="sd">    passband_ripple, stopband_ripple : float, optional</span>
+<span class="sd">    passband_ripple, stopband_ripple : float, default=0.01</span>
 <span class="sd">        Ripple allowed in each band of the slice profile.</span>
 
 <span class="sd">    Attributes</span>

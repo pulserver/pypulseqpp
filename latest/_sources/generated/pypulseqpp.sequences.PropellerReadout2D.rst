@@ -31,5 +31,3 @@
    ~PropellerReadout2D.seq
 
 
-.. minigallery:: pypulseqpp.sequences.PropellerReadout2D
-   :add-heading: Examples using ``PropellerReadout2D``

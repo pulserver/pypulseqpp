@@ -22,28 +22,30 @@
 2D Cartesian gradient echo
 ============================
 
-One excitation and one phase-encode line per repetition, with the
-transverse magnetisation spoiled by a gradient and by a quadratic RF phase
-increment before the next excitation. This is the reference implementation
-for the Cartesian gradient-echo variants.
+A spoiled gradient-echo (SPGR) acquisition applies one low-flip-angle
+slice-selective excitation before an unbalanced Cartesian readout in each TR.
+Gradient spoiling and quadratic RF/receiver phase cycling suppress coherent
+residual transverse magnetisation. TR and flip angle primarily determine T1
+weighting, with T2* decay during TE. SPGR is widely used for T1-weighted
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 13-33
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-38
 
 Baseline
 --------
 
 A full Cartesian sampling of one slice.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-54
+.. GENERATED FROM PYTHON SOURCE LINES 38-49
 
 .. code-block:: Python
 
@@ -72,12 +74,12 @@ A full Cartesian sampling of one slice.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-57
+.. GENERATED FROM PYTHON SOURCE LINES 50-52
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 52-55
 
 .. code-block:: Python
 
@@ -98,11 +100,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aee2d80>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598adb0aa0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 56-61
 
 Sampling order
 --------------
@@ -110,7 +112,7 @@ Sampling order
 The acquisition order places central k-space near the temporal midpoint of
 the scan. Colour encodes repetition index.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-69
+.. GENERATED FROM PYTHON SOURCE LINES 61-64
 
 .. code-block:: Python
 
@@ -135,7 +137,7 @@ the scan. Colour encodes repetition index.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-76
+.. GENERATED FROM PYTHON SOURCE LINES 65-71
 
 In-plane acceleration
 ---------------------
@@ -144,7 +146,7 @@ In-plane acceleration
 the centre, which a parallel-imaging reconstruction needs to estimate the
 coil sensitivities from.
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-90
+.. GENERATED FROM PYTHON SOURCE LINES 71-85
 
 .. code-block:: Python
 
@@ -169,7 +171,7 @@ coil sensitivities from.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-93
+.. GENERATED FROM PYTHON SOURCE LINES 86-88
 
 .. code-block:: Python
 
@@ -193,49 +195,10 @@ coil sensitivities from.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-100
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 100-131
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.63 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.067 seconds)
+   **Total running time of the script:** (0 minutes 1.447 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

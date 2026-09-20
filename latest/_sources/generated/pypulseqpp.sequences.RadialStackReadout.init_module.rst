@@ -5,5 +5,3 @@ RadialStackReadout.init\_module
 
 .. automethod:: RadialStackReadout.init_module
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout.init_module
-   :add-heading: Examples using ``RadialStackReadout.init_module``

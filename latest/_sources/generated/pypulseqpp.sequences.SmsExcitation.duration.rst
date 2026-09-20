@@ -5,5 +5,3 @@ SmsExcitation.duration
 
 .. autoproperty:: SmsExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.SmsExcitation.duration
-   :add-heading: Examples using ``SmsExcitation.duration``

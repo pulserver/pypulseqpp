@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -564,7 +564,7 @@
 <h1>SpspExcitation.shift<a class="headerlink" href="#spspexcitation-shift" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.SpspExcitation.shift">
-<span class="sig-prename descclassname"><span class="pre">SpspExcitation.</span></span><span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/spectral.html#SpspExcitation.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation.shift" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SpspExcitation.</span></span><span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/spectral.html#SpspExcitation.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation.shift" title="Link to this definition">#</a></dt>
 <dd><p>Move the selected slice to <code class="docutils literal notranslate"><span class="pre">position</span></code> (m) and return the pulse.</p>
 <p>The designed waveform is modulated by <code class="docutils literal notranslate"><span class="pre">2π</span> <span class="pre">position</span> <span class="pre">(K(t)</span> <span class="pre">-</span> <span class="pre">K(t_c))</span></code>,
 with <code class="docutils literal notranslate"><span class="pre">K</span></code> the selection gradient’s area since the pulse began and

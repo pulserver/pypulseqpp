@@ -5,5 +5,3 @@ EpiReadout2D.blocks
 
 .. autoproperty:: EpiReadout2D.blocks
 
-.. minigallery:: pypulseqpp.sequences.EpiReadout2D.blocks
-   :add-heading: Examples using ``EpiReadout2D.blocks``

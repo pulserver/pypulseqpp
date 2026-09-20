@@ -5,5 +5,3 @@ Spiral.gz
 
 .. autoproperty:: Spiral.gz
 
-.. minigallery:: pypulseqpp.sequences.Spiral.gz
-   :add-heading: Examples using ``Spiral.gz``

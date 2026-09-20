@@ -5,5 +5,3 @@ SpiralReadout2D.seq
 
 .. autoproperty:: SpiralReadout2D.seq
 
-.. minigallery:: pypulseqpp.sequences.SpiralReadout2D.seq
-   :add-heading: Examples using ``SpiralReadout2D.seq``

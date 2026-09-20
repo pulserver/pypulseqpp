@@ -22,25 +22,29 @@
 2D radial spin echo
 =====================
 
-One full spoke per excitation, read at the refocused echo.
+A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a radial spoke through k-space centre. Spoilers suppress unwanted
+coherence before the next TR. TE controls T2 weighting and TR controls
+longitudinal recovery. Radial spin echo supports motion-robust structural
+imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-35
-
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-40
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Enough spokes to sample the outer radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-48
+.. GENERATED FROM PYTHON SOURCE LINES 37-45
 
 .. code-block:: Python
 
@@ -65,12 +69,12 @@ Enough spokes to sample the outer radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-51
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-54
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -91,18 +95,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b081325a0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5988831b80>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-59
+.. GENERATED FROM PYTHON SOURCE LINES 52-56
 
 Sampling order
 --------------
 
 Colour encodes spoke acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
@@ -127,7 +131,7 @@ Colour encodes spoke acquisition order.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-68
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
 Angular undersampling
 ---------------------
@@ -135,7 +139,7 @@ Angular undersampling
 Retaining one spoke angle in three reduces peripheral angular sampling;
 every acquired spoke still crosses the k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-80
+.. GENERATED FROM PYTHON SOURCE LINES 65-77
 
 .. code-block:: Python
 
@@ -158,7 +162,7 @@ every acquired spoke still crosses the k-space origin.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-83
+.. GENERATED FROM PYTHON SOURCE LINES 78-80
 
 .. code-block:: Python
 
@@ -182,49 +186,10 @@ every acquired spoke still crosses the k-space origin.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-90
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 90-121
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.05 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.005 seconds)
+   **Total running time of the script:** (0 minutes 2.092 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

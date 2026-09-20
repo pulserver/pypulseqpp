@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -605,83 +605,83 @@
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse that opens the repetition. A refocusing pulse builds the</span>
 <span class="sd">        readout half of a spin-echo EPI.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        The rephaser that unwinds ``gz``.</span>
 <span class="sd">    fov : float | Sequence[float]</span>
 <span class="sd">        Field of view (m), per encoded axis, readout first.</span>
 <span class="sd">    matrix : int | Sequence[int]</span>
 <span class="sd">        Matrix size, per encoded axis.</span>
-<span class="sd">    order : ArrayLike, optional</span>
+<span class="sd">    order : ArrayLike, default=None</span>
 <span class="sd">        ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one</span>
 <span class="sd">        row per line. Supplying one silences the generator arguments below; the</span>
 <span class="sd">        default takes a train from ``calc_epi_order``.</span>
-<span class="sd">    etl : int, optional</span>
+<span class="sd">    etl : int, default=None</span>
 <span class="sd">        Lines per repetition. Defaults to what one shot of the requested</span>
 <span class="sd">        scheme needs to cross the phase-encode matrix.</span>
-<span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, optional</span>
+<span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'</span>
 <span class="sd">        Which built-in ordering to generate. ``'linear'`` steps by</span>
 <span class="sd">        ``segments * acceleration`` every line and never leaves its</span>
 <span class="sd">        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;</span>
 <span class="sd">        ``'zigzag'`` traverses up and down a phase-encode segment instead of</span>
 <span class="sd">        across the whole matrix.</span>
-<span class="sd">    acceleration : int, optional</span>
+<span class="sd">    acceleration : int, default=1</span>
 <span class="sd">        Phase-encode undersampling, ``Ry``: lines the blip skips.</span>
-<span class="sd">    segments : int, optional</span>
+<span class="sd">    segments : int, default=1</span>
 <span class="sd">        Shots the train is interleaved across, ``S``. The blip becomes</span>
 <span class="sd">        ``S * Ry``, which shortens the train without changing the lattice</span>
 <span class="sd">        sampled.</span>
-<span class="sd">    partition_acceleration : int, optional</span>
+<span class="sd">    partition_acceleration : int, default=1</span>
 <span class="sd">        Partition undersampling ``Rz``, the height of the CAIPI cycle.</span>
 <span class="sd">        ``'caipi'`` only.</span>
-<span class="sd">    caipi_shift : int, optional</span>
+<span class="sd">    caipi_shift : int, default=1</span>
 <span class="sd">        Partitions the pattern climbs per acquired line. ``'caipi'`` only.</span>
-<span class="sd">    extent : int, optional</span>
+<span class="sd">    extent : int, default=None</span>
 <span class="sd">        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused</span>
 <span class="sd">        by the others.</span>
-<span class="sd">    te : float, optional</span>
+<span class="sd">    te : float, default=None</span>
 <span class="sd">        Excitation isodelay to the echo of train line ``te_line`` (s). ``None``</span>
 <span class="sd">        is as short as possible; every echo is ``esp`` from the next, and</span>
 <span class="sd">        ``echo_times`` lists them.</span>
-<span class="sd">    te_line : float, optional</span>
+<span class="sd">    te_line : float, default=0.0</span>
 <span class="sd">        Train line, counted from zero and possibly fractional, that ``te`` is</span>
 <span class="sd">        timed to.</span>
-<span class="sd">    tr : float, optional</span>
+<span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s), over the whole module. It includes the longest</span>
 <span class="sd">        echo shift.</span>
-<span class="sd">    navigator_lines : int, optional</span>
+<span class="sd">    navigator_lines : int, default=0</span>
 <span class="sd">        Lines read without blips between the read and the phase-encode</span>
 <span class="sd">        prewinders, for odd-even phase correction. Refused with ``flyback``.</span>
-<span class="sd">    echo_shifts : int, optional</span>
+<span class="sd">    echo_shifts : int, default=1</span>
 <span class="sd">        Shots whose trains are delayed by successive multiples of</span>
 <span class="sd">        ``esp / echo_shifts``, so the echo time grows smoothly across the</span>
 <span class="sd">        interleaved lines. The module plays no shift; the loop lengthens</span>
 <span class="sd">        ``wait_shift``.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        Read oversampling: ``delta_kx`` shrinks and the sampled read field of</span>
 <span class="sd">        view grows, while resolution is fixed by ``fov`` and ``matrix``.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=500000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    ramp_sampling : bool, optional</span>
+<span class="sd">    ramp_sampling : bool, default=True</span>
 <span class="sd">        Sample across the read ramps as well as the plateau, which is what</span>
 <span class="sd">        makes the echo spacing short. Turn it off for a rectangular window at</span>
 <span class="sd">        the cost of a longer train.</span>
-<span class="sd">    flyback : bool, optional</span>
+<span class="sd">    flyback : bool, default=False</span>
 <span class="sd">        Read every line in the same direction, rewinding between them, instead</span>
 <span class="sd">        of alternating polarity. It costs a rewind per line and buys away the</span>
 <span class="sd">        odd-even inconsistency that a bipolar train leaves behind.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Read-axis spoiling at the end of the repetition, in cycles across</span>
 <span class="sd">        ``voxel_size_m``.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=None</span>
 <span class="sd">        Length the spoiling is counted over (m). The read resolution by</span>
 <span class="sd">        default.</span>
-<span class="sd">    labels : Sequence[str], optional</span>
+<span class="sd">    labels : Sequence[str], default=None</span>
 <span class="sd">        Counters for the encoded axes, phase encode first. Two names for a 3D</span>
 <span class="sd">        train, one for 2D.</span>
-<span class="sd">    trigger : TriggerEvent, optional</span>
+<span class="sd">    trigger : TriggerEvent, default=None</span>
 <span class="sd">        A trigger or digital output armed on the prewinder block.</span>
 
 <span class="sd">    Raises</span>

@@ -5,5 +5,3 @@ RfModule.publish
 
 .. automethod:: RfModule.publish
 
-.. minigallery:: pypulseqpp.sequences.RfModule.publish
-   :add-heading: Examples using ``RfModule.publish``

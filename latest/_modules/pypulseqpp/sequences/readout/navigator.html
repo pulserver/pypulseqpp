@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -526,23 +526,23 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    fov : float, optional</span>
+<span class="sd">    fov : float, default=0.32</span>
 <span class="sd">        In-plane field of view (m). Wide enough to contain the head.</span>
-<span class="sd">    matrix : int, optional</span>
+<span class="sd">    matrix : int, default=32</span>
 <span class="sd">        Acquired in-plane matrix. Coarse on purpose.</span>
-<span class="sd">    thickness_m : float, optional</span>
+<span class="sd">    thickness_m : float, default=0.01</span>
 <span class="sd">        Slab thickness (m).</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=8.0</span>
 <span class="sd">        Nominal flip angle (degrees). See above.</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Excitation pulse duration (s).</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested sample spacing along the arm.</span>
-<span class="sd">    navigator_tr : float, optional</span>
+<span class="sd">    navigator_tr : float, default=None</span>
 <span class="sd">        Repetition time of one three-plane navigator (s). ``None`` packs the</span>
 <span class="sd">        planes back to back. A longer one leaves room for the reconstruction</span>
 <span class="sd">        and the pose estimate to come back before the next navigator.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Spoiler moment at the end of each plane, in cycles across the slab.</span>
 
 <span class="sd">    Attributes</span>
@@ -658,10 +658,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        window : float</span>
 <span class="sd">            Dead time available (s).</span>
-<span class="sd">        requested : int or str, optional</span>
+<span class="sd">        requested : int or str, default='auto'</span>
 <span class="sd">            ``"auto"`` takes as many as fit, up to ``limit``; an integer asks</span>
 <span class="sd">            for exactly that many and is refused if they do not fit.</span>
-<span class="sd">        limit : int, optional</span>
+<span class="sd">        limit : int, default=None</span>
 <span class="sd">            Ceiling on the ``"auto"`` count. Ignored for an explicit request,</span>
 <span class="sd">            which is the caller saying it has already decided.</span>
 

@@ -5,5 +5,3 @@ SpspExcitation.blocks
 
 .. autoproperty:: SpspExcitation.blocks
 
-.. minigallery:: pypulseqpp.sequences.SpspExcitation.blocks
-   :add-heading: Examples using ``SpspExcitation.blocks``

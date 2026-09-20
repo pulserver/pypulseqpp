@@ -31,5 +31,3 @@
    ~PropellerStackReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.PropellerStackReadout
-   :add-heading: Examples using ``PropellerStackReadout``

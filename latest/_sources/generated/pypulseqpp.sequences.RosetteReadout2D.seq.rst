@@ -5,5 +5,3 @@ RosetteReadout2D.seq
 
 .. autoproperty:: RosetteReadout2D.seq
 
-.. minigallery:: pypulseqpp.sequences.RosetteReadout2D.seq
-   :add-heading: Examples using ``RosetteReadout2D.seq``

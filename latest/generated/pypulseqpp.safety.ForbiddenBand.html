@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.ForbiddenBand"><code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-forbiddenband">Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>ForbiddenBand<a class="headerlink" href="#forbiddenband" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.safety.ForbiddenBand">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">ForbiddenBand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#ForbiddenBand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.ForbiddenBand" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">ForbiddenBand</span></span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#ForbiddenBand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.ForbiddenBand" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
 <p>A forbidden gradient band: a frequency range on one physical axis.</p>
 <p><code class="docutils literal notranslate"><span class="pre">axis</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code> or None for every axis; <code class="docutils literal notranslate"><span class="pre">f_min</span></code> and
@@ -603,15 +602,6 @@ allowed inside the band, in mT/m, and 0 where the table states none.</p>
 </tbody>
 </table>
 </div>
-<section id="examples-using-forbiddenband">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code><a class="headerlink" href="#examples-using-forbiddenband" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Sequence constraint checks</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
-</div></div></section>
 </section>
 
 
@@ -644,7 +634,6 @@ allowed inside the band, in mT/m, and 0 where the table states none.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.ForbiddenBand"><code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-forbiddenband">Examples using <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></li>
 </ul>
   </nav></div>
 

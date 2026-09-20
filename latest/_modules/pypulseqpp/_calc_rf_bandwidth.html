@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -583,15 +583,15 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rf : SimpleNamespace or RfEvent</span>
 <span class="sd">        The RF event.</span>
-<span class="sd">    cutoff : float, optional</span>
+<span class="sd">    cutoff : float, default=0.5</span>
 <span class="sd">        Fraction of the peak the flanks are measured at.</span>
-<span class="sd">    return_axis : bool, optional</span>
+<span class="sd">    return_axis : bool, default=False</span>
 <span class="sd">        Also return the frequency axis.</span>
-<span class="sd">    return_spectrum : bool, optional</span>
+<span class="sd">    return_spectrum : bool, default=False</span>
 <span class="sd">        Also return the spectrum.</span>
-<span class="sd">    dw : float, optional</span>
+<span class="sd">    dw : float, default=10</span>
 <span class="sd">        Spectral resolution, in Hz.</span>
-<span class="sd">    dt : float, optional</span>
+<span class="sd">    dt : float, default=None</span>
 <span class="sd">        Sampling step, in seconds. The default system's RF raster when</span>
 <span class="sd">        omitted.</span>
 

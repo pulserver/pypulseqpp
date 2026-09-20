@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.InversionPreparation"><code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-inversionpreparation">Examples using <code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>InversionPreparation<a class="headerlink" href="#inversionpreparation" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.InversionPreparation">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">InversionPreparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">spoiling_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size_m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pulse_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hypsec'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabaticity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/inversion.html#InversionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.InversionPreparation" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">InversionPreparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/inversion.html#InversionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.InversionPreparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Non-selective adiabatic inversion, followed by an optional crusher.</p>
 <p>The acquisition loop supplies the inversion-time delay.</p>
@@ -573,17 +572,17 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Inversion pulse duration (s). Adiabaticity is a condition on sweeping
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Inversion pulse duration (s). Adiabaticity is a condition on sweeping
 slowly enough, so this is not free to shorten.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Cycles of dephasing the crusher winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing the crusher winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero
 omits the crusher.</p></li>
-<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Length the dephasing is counted over (m) — the smallest voxel
+<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m) — the smallest voxel
 dimension, since that is the one that has to be spoiled.</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>optional</em>) – Crusher axis.</p></li>
-<li><p><strong>pulse_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Adiabatic sweep family.</p></li>
-<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Frequency width of the sweep (Hz).</p></li>
-<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Sweep-rate margin over the adiabatic condition.</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Counters emitted on the inversion block. An inversion is where a shot
+<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Crusher axis.</p></li>
+<li><p><strong>pulse_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default='hypsec'</em>) – Adiabatic sweep family.</p></li>
+<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=40000.0</em>) – Frequency width of the sweep (Hz).</p></li>
+<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=4</em>) – Sweep-rate margin over the adiabatic condition.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the inversion block. An inversion is where a shot
 begins, so it is the natural place to say which shot this is; the loop
 writes the values, this only makes the slots.</p></li>
 </ul>
@@ -648,15 +647,6 @@ empty, and a bare event rather than a list when there is one.</p></li>
 </tbody>
 </table>
 </div>
-<section id="examples-using-inversionpreparation">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code><a class="headerlink" href="#examples-using-inversionpreparation" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition."><img alt="" src="../_images/sphx_glr_preparation-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/22-modules-preparation/preparation-modules.html"><span class="doc">Preparation modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Preparation modules</div>
-</div></div></section>
 </section>
 
 
@@ -689,7 +679,6 @@ empty, and a bare event rather than a list when there is one.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.InversionPreparation"><code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-inversionpreparation">Examples using <code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a></li>
 </ul>
   </nav></div>
 

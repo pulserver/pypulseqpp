@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -567,21 +567,21 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    rotation : ArrayLike | Rotation, optional</span>
+<span class="sd">    rotation : ArrayLike | Rotation, default=None</span>
 <span class="sd">        Prescription orientation as a 3-by-3 matrix or SciPy rotation.</span>
 <span class="sd">        Composed after the rotation already attached to each block.</span>
-<span class="sd">    translation : Sequence[float], optional</span>
+<span class="sd">    translation : Sequence[float], default=None</span>
 <span class="sd">        Three offsets in logical coordinates, in metres.</span>
-<span class="sd">    scale : Sequence[float], optional</span>
+<span class="sd">    scale : Sequence[float], default=None</span>
 <span class="sd">        Gradient amplitude multipliers along the three logical axes.</span>
 <span class="sd">        A factor of zero disables encoding on that axis.</span>
-<span class="sd">    transform : ArrayLike, optional</span>
+<span class="sd">    transform : ArrayLike, default=None</span>
 <span class="sd">        4-by-4 homogeneous matrix, mutually exclusive with ``rotation`` and</span>
 <span class="sd">        ``translation``. Its translation is in the output frame and is</span>
 <span class="sd">        converted to logical coordinates using the transpose of its rotation.</span>
-<span class="sd">    use_rotation_extension : bool, default True</span>
+<span class="sd">    use_rotation_extension : bool, default=True</span>
 <span class="sd">        Must be True; waveform-baked rotation is not implemented.</span>
-<span class="sd">    system : Opts, optional</span>
+<span class="sd">    system : Opts, default=None</span>
 <span class="sd">        Stored for compatibility; not used to validate transformed events.</span>
 
 <span class="sd">    Attributes</span>
@@ -681,13 +681,13 @@
 <span class="sd">        ----------</span>
 <span class="sd">        seq : Sequence</span>
 <span class="sd">            Sequence to transform.</span>
-<span class="sd">        time_range : Sequence[float], optional</span>
+<span class="sd">        time_range : Sequence[float], default=None</span>
 <span class="sd">            Start and end times in seconds; selects all blocks they touch.</span>
-<span class="sd">        block_range : Sequence[int], optional</span>
+<span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Inclusive, 1-based block range; mutually exclusive with ``time_range``.</span>
 <span class="sd">            Translation starts from this object's stored state, not from a scan</span>
 <span class="sd">            of preceding blocks.</span>
-<span class="sd">        in_place : bool, default False</span>
+<span class="sd">        in_place : bool, default False, default=False</span>
 <span class="sd">            Modify ``seq`` rather than a copy. Nonzero translation updates this object's</span>
 <span class="sd">            state in either case.</span>
 
@@ -758,7 +758,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        seq : Sequence</span>
 <span class="sd">            Sequence to sample.</span>
-<span class="sd">        block_range : Sequence[int], optional</span>
+<span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Inclusive, 1-based range; defaults to the whole sequence.</span>
 
 <span class="sd">        Returns</span>

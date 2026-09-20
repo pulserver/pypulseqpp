@@ -5,5 +5,3 @@ SequenceModule.blocks
 
 .. autoproperty:: SequenceModule.blocks
 
-.. minigallery:: pypulseqpp.sequences.SequenceModule.blocks
-   :add-heading: Examples using ``SequenceModule.blocks``

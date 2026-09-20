@@ -32,5 +32,3 @@
    ~NonCartesianReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianReadout
-   :add-heading: Examples using ``NonCartesianReadout``

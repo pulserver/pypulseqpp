@@ -5,5 +5,3 @@ OffResonanceSaturation.blocks
 
 .. autoproperty:: OffResonanceSaturation.blocks
 
-.. minigallery:: pypulseqpp.sequences.OffResonanceSaturation.blocks
-   :add-heading: Examples using ``OffResonanceSaturation.blocks``

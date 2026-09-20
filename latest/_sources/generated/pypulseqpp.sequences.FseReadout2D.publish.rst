@@ -5,5 +5,3 @@ FseReadout2D.publish
 
 .. automethod:: FseReadout2D.publish
 
-.. minigallery:: pypulseqpp.sequences.FseReadout2D.publish
-   :add-heading: Examples using ``FseReadout2D.publish``

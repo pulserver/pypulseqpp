@@ -5,5 +5,3 @@ FatSaturation.sim\_rf
 
 .. automethod:: FatSaturation.sim_rf
 
-.. minigallery:: pypulseqpp.sequences.FatSaturation.sim_rf
-   :add-heading: Examples using ``FatSaturation.sim_rf``

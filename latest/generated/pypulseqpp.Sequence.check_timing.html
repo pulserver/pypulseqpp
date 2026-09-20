@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.check_timing"><code class="docutils literal notranslate"><span class="pre">Sequence.check_timing()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-check-timing">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.check_timing</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,11 +564,11 @@
 <h1>Sequence.check_timing<a class="headerlink" href="#sequence-check-timing" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.check_timing">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">check_timing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.check_timing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.check_timing" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">check_timing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.check_timing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.check_timing" title="Link to this definition">#</a></dt>
 <dd><p>Check timing, gradient continuity and the stored total duration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>print_errors</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default False</em>) – Print the report as well as returning it.</p>
+<dd class="field-odd"><p><strong>print_errors</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default False</em><em>, </em><em>default=False</em>) – Print the report as well as returning it.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
@@ -594,24 +593,6 @@
 </div>
 </dd></dl>
 
-<section id="examples-using-sequence-check-timing">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.check_timing</span></code><a class="headerlink" href="#examples-using-sequence-check-timing" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html"><span class="doc">A basic Pulseq sequence</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Sequence constraint checks</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
-<p><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html"><span class="doc">A SequenceApp from scratch</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A radial spoke samples the centre of k-space far more densely than the periphery: at radius k, adjacent spokes of an N-interleaf set are 2\pi k / N apart, which exceeds the Nyquist spacing 1/\mathrm{FOV} beyond a transition radius"><img alt="" src="../_images/sphx_glr_custom-noncartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-noncartesian-readout.html"><span class="doc">A twisting radial readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A twisting radial readout module</div>
-</div></div></section>
 </section>
 
 
@@ -644,7 +625,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.check_timing"><code class="docutils literal notranslate"><span class="pre">Sequence.check_timing()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-check-timing">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.check_timing</span></code></a></li>
 </ul>
   </nav></div>
 

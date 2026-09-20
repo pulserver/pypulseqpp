@@ -22,20 +22,23 @@
 3D Cartesian gradient echo
 ============================
 
-One excitation and one ``(line, partition)`` view per repetition over a
-slab. The second phase-encode axis replaces slice selection, so the slab is
-resolved by encoding rather than by the pulse.
+A 3D spoiled gradient-echo (SPGR) acquisition applies a low-flip-angle slab
+excitation before one Cartesian ``(line, partition)`` readout per TR. Gradient
+spoiling and quadratic RF/receiver phase cycling suppress coherent residual
+transverse magnetisation. TR, flip angle, and TE determine the T1 and T2*
+weighting. This sequence is used for high-resolution T1-weighted structural
+imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 13-33
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-43
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-39
 
 Baseline
 --------
@@ -43,7 +46,7 @@ Baseline
 A full Cartesian sampling of the slab, with elliptical sampling of the
 phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-51
+.. GENERATED FROM PYTHON SOURCE LINES 39-47
 
 .. code-block:: Python
 
@@ -69,12 +72,12 @@ phase-encode plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-54
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-57
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -95,11 +98,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b39cdd0>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f599c652c90>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-63
+.. GENERATED FROM PYTHON SOURCE LINES 54-59
 
 Sampling order
 --------------
@@ -107,7 +110,7 @@ Sampling order
 Both phase-encode axes are shown. The order runs over the lines of one
 partition before moving to the next.
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-66
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
@@ -132,7 +135,7 @@ partition before moving to the next.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-73
+.. GENERATED FROM PYTHON SOURCE LINES 63-69
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -141,7 +144,7 @@ Acceleration on both encoded axes
 With ``ry=rz=2``, the outer phase-encode plane requires approximately one
 quarter as many repetitions; the central calibration region remains fully sampled.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-87
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
 
 .. code-block:: Python
 
@@ -166,7 +169,7 @@ quarter as many repetitions; the central calibration region remains fully sample
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
 
 .. code-block:: Python
 
@@ -190,49 +193,10 @@ quarter as many repetitions; the central calibration region remains fully sample
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-97
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 97-128
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.1 mT/m
-    slew rate                  pass                  167 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.599 seconds)
+   **Total running time of the script:** (0 minutes 16.987 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

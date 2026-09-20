@@ -349,7 +349,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. This is the reference implementation for the Cartesian gradient-echo variants.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled gradient-echo (SPGR) acquisition applies one low-flip-angle slice-selective excitation before an unbalanced Cartesian readout in each TR. Gradient spoiling and quadratic RF/receiver phase cycling suppress coherent residual transverse magnetisation. TR and flip angle primarily determine T1 weighting, with T2* decay during TE. SPGR is widely used for T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -366,7 +366,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A 3D spoiled gradient-echo (SPGR) acquisition applies a low-flip-angle slab excitation before one Cartesian (line, partition) readout per TR. Gradient spoiling and quadratic RF/receiver phase cycling suppress coherent residual transverse magnetisation. TR, flip angle, and TE determine the T1 and T2* weighting. This sequence is used for high-resolution T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -383,7 +383,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. Signal amplitude across the echo train follows apparent transverse relaxation, providing multiple points on the decay curve per excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by several Cartesian gradient echoes of the same phase-encode line. Gradient and RF spoiling suppress residual transverse coherence before the next TR. The echo train samples T2 decay while TR and flip angle determine the T1 weighting. Multi-echo GRE is used for T2/R2* mapping, susceptibility mapping, and structural imaging.">
 
 .. only:: html
 
@@ -400,7 +400,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by several gradient echoes of one Cartesian (line, partition) view. Gradient and RF spoiling suppress residual transverse coherence between repetitions. The multiple echo times sample T2 decay; TR and flip angle determine the T1 weighting. Applications include high-resolution structural imaging, R2 mapping, and QSM.">
 
 .. only:: html
 
@@ -417,7 +417,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one Cartesian line from a rotating PROPELLER blade. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR, flip angle, and TE determine contrast. The overlapping central k-space region supports motion estimation in structural imaging.">
 
 .. only:: html
 
@@ -434,7 +434,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the k-space origin. Angular undersampling produces streak artefacts rather than coherent Cartesian aliasing.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one radial spoke through k-space centre. Gradient and RF spoiling suppress residual transverse coherence before the next TR. TR and flip angle primarily determine T1 weighting, with T2* decay during TE. Radial SPGR is used for motion-robust dynamic and structural imaging.">
 
 .. only:: html
 
@@ -451,7 +451,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one spiral interleaf. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR and flip angle primarily determine T1 weighting; off-resonance and T2* decay affect the spiral readout. Spiral SPGR supports rapid dynamic and structural imaging.">
 
 .. only:: html
 
@@ -468,7 +468,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one line from a rotating in-plane PROPELLER blade with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence. TR, flip angle, and TE determine contrast. The overlapping blade centres support motion-robust 3D structural imaging.">
 
 .. only:: html
 
@@ -485,7 +485,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one spiral interleaf with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR, flip angle, and TE determine contrast. Stack-of-spirals SPGR supports rapid 3D structural and dynamic imaging.">
 
 .. only:: html
 
@@ -502,7 +502,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane trajectory retains radial sampling properties, with Cartesian encoding along the partition axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one radial spoke with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR and flip angle primarily determine T1 weighting. Stack-of-stars SPGR is used for motion-robust 3D structural and dynamic imaging.">
 
 .. only:: html
 
@@ -544,7 +544,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per repetition, with the line read at the refocused echo. Refocusing undoes the dephasing that static field inhomogeneity causes, so the contrast follows the true transverse relaxation rather than the apparent one.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a Cartesian readout. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting and TR controls longitudinal recovery. Spin echo is used for conventional T1-, T2-, and proton-density-weighted structural imaging.">
 
 .. only:: html
 
@@ -561,7 +561,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per (line, partition) view over a slab.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a Cartesian (line, partition) readout. Spoilers suppress unwanted coherence before the next TR. TE and TR determine T2 and longitudinal recovery weighting. 3D spin echo supports high-resolution structural imaging.">
 
 .. only:: html
 
@@ -578,7 +578,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One whole blade per excitation, read as an echo-planar train. The blade is acquired in one shot rather than a line at a time, so the scan is far shorter than a line-by-line PROPELLER and the blade carries the off-resonance behaviour of an echo-planar readout.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form a spin echo, followed by an echo-planar readout of one rotating PROPELLER blade. Spoilers suppress unwanted coherence between shots. TE controls T2 weighting, while the EPI train introduces off-resonance sensitivity. This sequence supports rapid, motion-robust structural imaging.">
 
 .. only:: html
 
@@ -595,7 +595,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per excitation, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, which reads one line of a rotating PROPELLER blade. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting and TR controls longitudinal recovery. The overlapping blade centres support motion-robust structural imaging.">
 
 .. only:: html
 
@@ -612,7 +612,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke per excitation, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a radial spoke through k-space centre. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting and TR controls longitudinal recovery. Radial spin echo supports motion-robust structural imaging.">
 
 .. only:: html
 
@@ -629,7 +629,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per excitation, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a spiral interleaf. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting; off-resonance affects the spiral readout. Spiral spin echo supports rapid T2-weighted structural imaging.">
 
 .. only:: html
 
@@ -646,7 +646,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a PROPELLER line with Cartesian partition encoding. Spoilers suppress unwanted coherence between repetitions. TE and TR determine T2 and longitudinal recovery weighting. The overlapping blade centres support motion-robust 3D structural imaging.">
 
 .. only:: html
 
@@ -663,7 +663,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a spiral interleaf with Cartesian partition encoding. Spoilers suppress unwanted coherence between repetitions. TE controls T2 weighting; off-resonance affects the spiral readout. This sequence supports rapid 3D T2-weighted imaging.">
 
 .. only:: html
 
@@ -680,7 +680,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis, read at the refocused echo.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation and 180-degree refocusing pulse form one spin echo, followed by a radial spoke with Cartesian partition encoding. Spoilers suppress unwanted coherence between repetitions. TE and TR determine T2 and longitudinal recovery weighting. Stack-of-stars spin echo supports motion-robust 3D structural imaging.">
 
 .. only:: html
 
@@ -722,7 +722,24 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to central and peripheral k-space. The refocusing schedules and radial view order vary smoothly between these limits. This coupling can reduce scan time while retaining a prescribed central-k-space contrast for high-resolution structural imaging.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/13-fast-spin-echo/images/thumb/sphx_glr_fse3D_adaptive_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/13-fast-spin-echo/fse3D_adaptive`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Individually optimized 3D fast spin echo</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Variable refocusing angles control stimulated-echo pathways and T2-dependent signal evolution. Radial view ordering assigns this evolution to k-space and therefore determines the modulation transfer function and image blurring. 3D FSE is used for T2- and proton-density-weighted structural imaging.">
 
 .. only:: html
 
@@ -733,7 +750,24 @@ Fast spin echo
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
+      <div class="sphx-glr-thumbnail-title">Conventional 3D fast spin echo</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same optimized refocusing train as conventional FSE, but distributes echo times over a variable-density Poisson-disc sampling pattern. The resulting incoherent contrast distribution can support echo-resolved or subspace reconstruction; no reconstruction is performed here.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/13-fast-spin-echo/images/thumb/sphx_glr_fse3D_shuffling_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/13-fast-spin-echo/fse3D_shuffling`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Shuffled echo-resolved 3D FSE</div>
     </div>
 
 
@@ -764,7 +798,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse determines the dominant inversion-recovery contrast. View ordering therefore defines the contrast weighting across k-space.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed after the prescribed inversion delay by a train of low-flip-angle spoiled Cartesian gradient echoes. The inversion time is measured to the first excitation centre; the corresponding central ADC sample occurs one TE later. The ordering assigns recovery times within each inversion cycle to (line, partition) views. MPRAGE is used for high-resolution 3D T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -781,7 +815,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed by a train of low-flip-angle spoiled spiral gradient echoes with Cartesian partition encoding. Interleaf and partition order determine the recovery time of the acquired data within and between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted 3D structural imaging.">
 
 .. only:: html
 
@@ -798,7 +832,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed by a train of low-flip-angle spoiled radial gradient echoes with Cartesian partition encoding. Each spoke crosses in-plane k-space centre; spoke and partition order determine the recovery time of the acquired data within and between inversion cycles. Stack-of-stars MPRAGE provides T1-weighted 3D structural imaging with radial sampling.">
 
 .. only:: html
 
@@ -840,7 +874,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the magnetisation reaches a steady state that carries both relaxation times. The train opens with a half flip, which places the magnetisation on the axis the steady state oscillates about.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging.">
 
 .. only:: html
 
@@ -857,7 +891,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure over a partition-encoded slab, with each train opened by a half flip.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective low-flip-angle excitation and balanced Cartesian readout repeat with alternating RF phase and zero net gradient moment in every TR. The preserved transverse coherence establishes a high-SNR steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 3D bSSFP is used for high-SNR structural imaging.">
 
 .. only:: html
 
@@ -899,7 +933,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation is followed by alternating readout gradients and phase-encode blips that acquire multiple Cartesian lines in one echo train. Spoilers suppress residual transverse coherence between repetitions. Off-resonance phase accumulates during the train and produces geometric distortion along the phase-encode axis. EPI supports rapid structural imaging and functional MRI.">
 
 .. only:: html
 
@@ -916,7 +950,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA lattice. Phase-encode lines satisfy (y - n_y // 2) % ry == 0; the partition index advances by the CAIPI shift between adjacent lattice lines. Each shot acquires every n_shots-th lattice line, defining skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by alternating readout gradients with phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes a three-dimensional Cartesian lattice among shots. Spoilers suppress residual transverse coherence between repetitions; off-resonance accumulates during each echo train. 3D EPI supports rapid structural and functional imaging.">
 
 .. only:: html
 
@@ -958,7 +992,7 @@ Zero echo time
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. Concurrent excitation and gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive dead time leaves a central k-space gap.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A short non-selective excitation is applied while the radial readout gradient is already at amplitude. Acquisition begins after the transmit/receive dead time, without gradient-echo formation; spoiling suppresses residual transverse magnetisation between repetitions. Contrast depends on TR, flip angle, RF bandwidth, and very short-T2 decay. ZTE is used for anatomical imaging of short-T2 tissues and other minimal-TE applications.">
 
 .. only:: html
 

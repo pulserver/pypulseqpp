@@ -5,5 +5,3 @@ ChronaxieModel.chronaxie
 
 .. autoattribute:: ChronaxieModel.chronaxie
 
-.. minigallery:: pypulseqpp.safety.ChronaxieModel.chronaxie
-   :add-heading: Examples using ``ChronaxieModel.chronaxie``

@@ -5,5 +5,3 @@ SpiralNavigator.duration
 
 .. autoproperty:: SpiralNavigator.duration
 
-.. minigallery:: pypulseqpp.sequences.SpiralNavigator.duration
-   :add-heading: Examples using ``SpiralNavigator.duration``

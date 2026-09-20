@@ -32,5 +32,3 @@
    ~NonCartesianGradient.has_rewinder
 
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianGradient
-   :add-heading: Examples using ``NonCartesianGradient``

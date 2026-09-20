@@ -5,5 +5,3 @@ LineReadout2D.register
 
 .. automethod:: LineReadout2D.register
 
-.. minigallery:: pypulseqpp.sequences.LineReadout2D.register
-   :add-heading: Examples using ``LineReadout2D.register``

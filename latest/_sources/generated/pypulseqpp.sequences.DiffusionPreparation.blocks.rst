@@ -5,5 +5,3 @@ DiffusionPreparation.blocks
 
 .. autoproperty:: DiffusionPreparation.blocks
 
-.. minigallery:: pypulseqpp.sequences.DiffusionPreparation.blocks
-   :add-heading: Examples using ``DiffusionPreparation.blocks``

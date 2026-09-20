@@ -5,5 +5,3 @@ EpiReadout2D.register
 
 .. automethod:: EpiReadout2D.register
 
-.. minigallery:: pypulseqpp.sequences.EpiReadout2D.register
-   :add-heading: Examples using ``EpiReadout2D.register``

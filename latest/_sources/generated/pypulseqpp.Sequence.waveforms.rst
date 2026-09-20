@@ -5,5 +5,3 @@ Sequence.waveforms
 
 .. automethod:: Sequence.waveforms
 
-.. minigallery:: pypulseqpp.Sequence.waveforms
-   :add-heading: Examples using ``Sequence.waveforms``

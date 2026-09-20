@@ -5,5 +5,3 @@ SpiralProjectionReadout.publish
 
 .. automethod:: SpiralProjectionReadout.publish
 
-.. minigallery:: pypulseqpp.sequences.SpiralProjectionReadout.publish
-   :add-heading: Examples using ``SpiralProjectionReadout.publish``

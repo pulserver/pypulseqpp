@@ -5,5 +5,3 @@ NonCartesianGradient.gz
 
 .. autoproperty:: NonCartesianGradient.gz
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianGradient.gz
-   :add-heading: Examples using ``NonCartesianGradient.gz``

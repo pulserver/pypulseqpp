@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.evaluate_labels"><code class="docutils literal notranslate"><span class="pre">Sequence.evaluate_labels()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-evaluate-labels">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.evaluate_labels</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,19 +564,19 @@
 <h1>Sequence.evaluate_labels<a class="headerlink" href="#sequence-evaluate-labels" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.evaluate_labels">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">evaluate_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.evaluate_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.evaluate_labels" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">evaluate_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.evaluate_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.evaluate_labels" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate running label values in block order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>init</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – Initial value of each label before evaluation begins. A label named here is
+<li><p><strong>init</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Initial value of each label before evaluation begins. A label named here is
 reported whether or not the blocks touch it, which is what makes
 evaluating a sequence a piece at a time work.</p></li>
-<li><p><strong>evolution</strong> (<em>{'none'</em><em>, </em><em>'blocks'</em><em>, </em><em>'adc'</em><em>, </em><em>'label'}</em><em>, </em><em>default 'none'</em>) – Where to record a value: at the end, at every block, at every
+<li><p><strong>evolution</strong> (<em>{'none'</em><em>, </em><em>'blocks'</em><em>, </em><em>'adc'</em><em>, </em><em>'label'}</em><em>, </em><em>default 'none'</em><em>, </em><em>default='none'</em>) – Where to record a value: at the end, at every block, at every
 block that acquires, or at every block that sets or increments
 one.</p></li>
-<li><p><strong>time_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>optional</em>) – Two times in seconds; only the blocks they touch are walked.</p></li>
-<li><p><strong>block_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – Two 1-based block indices. Not with <code class="docutils literal notranslate"><span class="pre">time_range</span></code>.</p></li>
+<li><p><strong>time_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Two times in seconds; only the blocks they touch are walked.</p></li>
+<li><p><strong>block_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Two 1-based block indices. Not with <code class="docutils literal notranslate"><span class="pre">time_range</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -606,21 +605,6 @@ scalars, with zero for an empty record.</p>
 </div>
 </dd></dl>
 
-<section id="examples-using-sequence-evaluate-labels">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.evaluate_labels</span></code><a class="headerlink" href="#examples-using-sequence-evaluate-labels" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse determines the dominant inversion-recovery contrast. View ordering therefore defines the contrast weighting across k-space."><img alt="" src="../_images/sphx_glr_mprage3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/12-mprage/mprage3D_sequence.html"><span class="doc">3D Cartesian MPRAGE</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D Cartesian MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function."><img alt="" src="../_images/sphx_glr_fse3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA lattice. Phase-encode lines satisfy (y - n_y // 2) % ry == 0; the partition index advances by the CAIPI shift between adjacent lattice lines. Each shot acquires every n_shots-th lattice line, defining skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI."><img alt="" src="../_images/sphx_glr_epi3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi3D_sequence.html"><span class="doc">3D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D echo-planar imaging</div>
-</div></div></section>
 </section>
 
 
@@ -653,7 +637,6 @@ scalars, with zero for an empty record.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.evaluate_labels"><code class="docutils literal notranslate"><span class="pre">Sequence.evaluate_labels()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-evaluate-labels">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.evaluate_labels</span></code></a></li>
 </ul>
   </nav></div>
 

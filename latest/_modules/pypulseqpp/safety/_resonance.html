@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -668,18 +668,18 @@
 <span class="sd">    ----------</span>
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to read.</span>
-<span class="sd">    window : int, optional</span>
+<span class="sd">    window : int, default=0</span>
 <span class="sd">        Which window, counted from zero. A report names the worst window of</span>
 <span class="sd">        each band as ``window``.</span>
-<span class="sd">    window_width : float, optional</span>
+<span class="sd">    window_width : float, default=0.04</span>
 <span class="sd">        Window length (s). Give the width the report was made with.</span>
-<span class="sd">    stride : float, optional</span>
+<span class="sd">    stride : float, default=None</span>
 <span class="sd">        Step between window starts (s); half the width by default.</span>
-<span class="sd">    frequency_oversampling : int, optional</span>
+<span class="sd">    frequency_oversampling : int, default=3</span>
 <span class="sd">        Transform length as a multiple of the window's sample count.</span>
-<span class="sd">    rotation : array_like, optional</span>
+<span class="sd">    rotation : array_like, default=None</span>
 <span class="sd">        3x3 prescription rotation from logical to physical axes.</span>
-<span class="sd">    system : pypulseqpp.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, default=None</span>
 <span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
 
 <span class="sd">    Returns</span>
@@ -755,18 +755,18 @@
 <span class="sd">    bands : iterable of ForbiddenBand, or path</span>
 <span class="sd">        Bands as ``(axis, f_min, f_max, tolerance)``, or a table for</span>
 <span class="sd">        :func:`read_forbidden_bands`.</span>
-<span class="sd">    window_width : float</span>
+<span class="sd">    window_width : float, default=0.04</span>
 <span class="sd">        Window length in seconds.</span>
-<span class="sd">    stride : float, optional</span>
+<span class="sd">    stride : float, default=None</span>
 <span class="sd">        Step between window starts in seconds; ``window_width / 2`` by default.</span>
-<span class="sd">    frequency_oversampling : int</span>
+<span class="sd">    frequency_oversampling : int, default=3</span>
 <span class="sd">        Zero-padded transform length, in window lengths.</span>
-<span class="sd">    min_threshold : float</span>
+<span class="sd">    min_threshold : float, default=10.0</span>
 <span class="sd">        Threshold in mT/m for a band whose tolerance is 0.</span>
-<span class="sd">    rotation : array_like, optional</span>
+<span class="sd">    rotation : array_like, default=None</span>
 <span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
 <span class="sd">        each block's own rotation; identity (axial) by default.</span>
-<span class="sd">    system : pypulseqpp.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, default=None</span>
 <span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
 
 <span class="sd">    Returns</span>

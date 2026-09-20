@@ -5,5 +5,3 @@ FrequencySelectiveExcitation.duration
 
 .. autoproperty:: FrequencySelectiveExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.FrequencySelectiveExcitation.duration
-   :add-heading: Examples using ``FrequencySelectiveExcitation.duration``

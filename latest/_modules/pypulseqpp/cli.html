@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -518,7 +518,7 @@
 <span class="sd">        Sequence to write; not modified.</span>
 <span class="sd">    output_path : str</span>
 <span class="sd">        Destination path.</span>
-<span class="sd">    offline : bool, default True</span>
+<span class="sd">    offline : bool, default True, default=True</span>
 <span class="sd">        True writes signed text with timing warnings. False writes binary</span>
 <span class="sd">        using write_binary's default signature setting, without a timing check.</span>
 
@@ -637,13 +637,13 @@
 <span class="sd">    ----------</span>
 <span class="sd">    main : callable</span>
 <span class="sd">        The script's entry point. Returns the sequence.</span>
-<span class="sd">    argv : list of str, optional</span>
+<span class="sd">    argv : list of str, default=None</span>
 <span class="sd">        The arguments, without the program name. ``sys.argv[1:]`` when</span>
 <span class="sd">        omitted.</span>
-<span class="sd">    description : str, optional</span>
+<span class="sd">    description : str, default=None</span>
 <span class="sd">        What ``--help`` says the script does. The first line of ``main``'s</span>
 <span class="sd">        docstring when omitted.</span>
-<span class="sd">    default_output : str, optional</span>
+<span class="sd">    default_output : str, default='sequence.seq'</span>
 <span class="sd">        Where to write when ``--output`` is not given.</span>
 
 <span class="sd">    Returns</span>

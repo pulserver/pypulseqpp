@@ -5,5 +5,3 @@ RosetteReadout2D.blocks
 
 .. autoproperty:: RosetteReadout2D.blocks
 
-.. minigallery:: pypulseqpp.sequences.RosetteReadout2D.blocks
-   :add-heading: Examples using ``RosetteReadout2D.blocks``

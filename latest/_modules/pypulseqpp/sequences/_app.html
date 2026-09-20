@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -499,15 +499,15 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceApp"</span><span class="p">]</span>
 
 <span class="n">_MAIN_PARAMETERS</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
-<span class="s2">plot : bool, optional</span>
+<span class="s2">plot : bool, default=False</span>
 <span class="s2">    Draw the finished sequence in SeqEyes.</span>
-<span class="s2">test_report : bool, optional</span>
+<span class="s2">test_report : bool, default=False</span>
 <span class="s2">    Print a report on the finished sequence.</span>
-<span class="s2">write_seq : bool, optional</span>
+<span class="s2">write_seq : bool, default=False</span>
 <span class="s2">    Write the sequence to a .seq file.</span>
-<span class="s2">seq_filename : str, optional</span>
+<span class="s2">seq_filename : str, default=None</span>
 <span class="s2">    Where to write it; ``&lt;NAME&gt;.seq`` when omitted.</span>
-<span class="s2">system : pypulseqpp.Opts, optional</span>
+<span class="s2">system : pypulseqpp.Opts, default=None</span>
 <span class="s2">    System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""</span>
 
 

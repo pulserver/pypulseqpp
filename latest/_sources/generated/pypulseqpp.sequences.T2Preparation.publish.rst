@@ -5,5 +5,3 @@ T2Preparation.publish
 
 .. automethod:: T2Preparation.publish
 
-.. minigallery:: pypulseqpp.sequences.T2Preparation.publish
-   :add-heading: Examples using ``T2Preparation.publish``

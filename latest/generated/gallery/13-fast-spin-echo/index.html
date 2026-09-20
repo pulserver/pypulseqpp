@@ -279,7 +279,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,9 +549,15 @@
   <section id="fast-spin-echo">
 <span id="sphx-glr-generated-gallery-13-fast-spin-echo"></span><h1>Fast spin echo<a class="headerlink" href="#fast-spin-echo" title="Link to this heading">#</a></h1>
 <p>One excitation followed by a CPMG train, with one view acquired per echo.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function."><img alt="" src="../../../_images/sphx_glr_fse3D_sequence_thumb.png" />
-<p><a class="reference internal" href="fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to central and peripheral k-space. The refocusing schedules and radial view order vary smoothly between these limits. This coupling can reduce scan time while retaining a prescribed central-k-space contrast for high-resolution structural imaging."><img alt="" src="../../../_images/sphx_glr_fse3D_adaptive_thumb.png" />
+<p><a class="reference internal" href="fse3D_adaptive.html"><span class="doc">Individually optimized 3D fast spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Individually optimized 3D fast spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Variable refocusing angles control stimulated-echo pathways and T2-dependent signal evolution. Radial view ordering assigns this evolution to k-space and therefore determines the modulation transfer function and image blurring. 3D FSE is used for T2- and proton-density-weighted structural imaging."><img alt="" src="../../../_images/sphx_glr_fse3D_sequence_thumb.png" />
+<p><a class="reference internal" href="fse3D_sequence.html"><span class="doc">Conventional 3D fast spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Conventional 3D fast spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same optimized refocusing train as conventional FSE, but distributes echo times over a variable-density Poisson-disc sampling pattern. The resulting incoherent contrast distribution can support echo-resolved or subspace reconstruction; no reconstruction is performed here."><img alt="" src="../../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
+<p><a class="reference internal" href="fse3D_shuffling.html"><span class="doc">Shuffled echo-resolved 3D FSE</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Shuffled echo-resolved 3D FSE</div>
 </div></div><div class="toctree-wrapper compound">
 </div>
 </section>

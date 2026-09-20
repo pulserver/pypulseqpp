@@ -5,5 +5,3 @@ NonSelectiveRefocusing.publish
 
 .. automethod:: NonSelectiveRefocusing.publish
 
-.. minigallery:: pypulseqpp.sequences.NonSelectiveRefocusing.publish
-   :add-heading: Examples using ``NonSelectiveRefocusing.publish``

@@ -5,5 +5,3 @@ PropellerStackReadout.seq
 
 .. autoproperty:: PropellerStackReadout.seq
 
-.. minigallery:: pypulseqpp.sequences.PropellerStackReadout.seq
-   :add-heading: Examples using ``PropellerStackReadout.seq``

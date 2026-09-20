@@ -134,7 +134,7 @@ loop rotates these interleaves onto are shown on the sequence pages under
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.017 seconds)
+   **Total running time of the script:** (0 minutes 0.014 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_24-modules-noncartesian_noncartesian-readout-modules.py:

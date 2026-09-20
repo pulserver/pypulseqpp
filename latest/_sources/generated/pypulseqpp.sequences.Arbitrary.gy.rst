@@ -5,5 +5,3 @@ Arbitrary.gy
 
 .. autoproperty:: Arbitrary.gy
 
-.. minigallery:: pypulseqpp.sequences.Arbitrary.gy
-   :add-heading: Examples using ``Arbitrary.gy``

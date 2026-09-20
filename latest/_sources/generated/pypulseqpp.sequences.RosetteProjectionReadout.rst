@@ -32,5 +32,3 @@
    ~RosetteProjectionReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.RosetteProjectionReadout
-   :add-heading: Examples using ``RosetteProjectionReadout``

@@ -5,5 +5,3 @@ NonCartesianGradient.has\_rewinder
 
 .. autoproperty:: NonCartesianGradient.has_rewinder
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianGradient.has_rewinder
-   :add-heading: Examples using ``NonCartesianGradient.has_rewinder``

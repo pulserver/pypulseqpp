@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianGradient"><code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-noncartesiangradient">Examples using <code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>NonCartesianGradient<a class="headerlink" href="#noncartesiangradient" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.NonCartesianGradient">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">NonCartesianGradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_interleaves</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recommended_rotations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prewinders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewinders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/readout/_trajectories.html#NonCartesianGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianGradient" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">NonCartesianGradient</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/readout/_trajectories.html#NonCartesianGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.NonCartesianGradient" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One canonical non-Cartesian base interleaf, independent of its acquisition schedule.</p>
 <p>A prewinder carries the trajectory from k = 0, at zero gradient amplitude,
@@ -581,13 +580,13 @@ events designed elsewhere.</p>
 <li><p><strong>gradients</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><em>GradEvent</em><em>]</em>) – The readout waveform, one event per channel it drives.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window under <code class="docutils literal notranslate"><span class="pre">gradients</span></code>.</p></li>
 <li><p><strong>trajectory</strong> (<em>ArrayLike</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> k-space path (1/m).</p></li>
-<li><p><strong>design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Interleaf count the path’s pitch was designed for.</p></li>
-<li><p><strong>recommended_rotations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Rotated copies that sample the path’s disc at Nyquist.</p></li>
-<li><p><strong>prewinders</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><em>GradEvent</em><em>]</em><em>, </em><em>optional</em>) – Prewinding gradients from k = 0 to the path’s start, and rewinding
+<li><p><strong>design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=None</em>) – Interleaf count the path’s pitch was designed for.</p></li>
+<li><p><strong>recommended_rotations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=None</em>) – Rotated copies that sample the path’s disc at Nyquist.</p></li>
+<li><p><strong>prewinders</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><em>GradEvent</em><em>]</em><em>, </em><em>default=</em><em>(</em><em>)</em>) – Prewinding gradients from k = 0 to the path’s start, and rewinding
 gradients from its end back to k = 0, one event per channel.</p></li>
-<li><p><strong>rewinders</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><em>GradEvent</em><em>]</em><em>, </em><em>optional</em>) – Prewinding gradients from k = 0 to the path’s start, and rewinding
+<li><p><strong>rewinders</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><em>GradEvent</em><em>]</em><em>, </em><em>default=</em><em>(</em><em>)</em>) – Prewinding gradients from k = 0 to the path’s start, and rewinding
 gradients from its end back to k = 0, one event per channel.</p></li>
-<li><p><strong>kind</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Name of the interleaf family.</p></li>
+<li><p><strong>kind</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Name of the interleaf family.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -595,10 +594,10 @@ gradients from its end back to k = 0, one event per channel.</p></li>
 <li><p><strong>trajectory</strong> (<em>NDArray[np.float64]</em>) – <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> path in 1/m: the design polyline, or for
 <a class="reference internal" href="pypulseqpp.sequences.Rosette.html#pypulseqpp.sequences.Rosette" title="pypulseqpp.sequences.Rosette"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rosette</span></code></a> the k-space at the ADC samples.</p></li>
 <li><p><strong>bandwidth_hz_px</strong> (<em>float</em>) – <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">adc.dwell</span></code> (Hz), the full receiver bandwidth despite the name.</p></li>
-<li><p><strong>design_interleaves</strong> (<em>int | None</em>) – Interleaf count the spiral pitch was designed for.</p></li>
-<li><p><strong>recommended_rotations</strong> (<em>int | None</em>) – Full spokes for Nyquist sampling at <code class="docutils literal notranslate"><span class="pre">kmax</span></code>, <code class="docutils literal notranslate"><span class="pre">ceil(pi</span> <span class="pre">*</span> <span class="pre">matrix</span> <span class="pre">/</span> <span class="pre">2)</span></code>,
+<li><p><strong>design_interleaves</strong> (<em>int | None, default=None</em>) – Interleaf count the spiral pitch was designed for.</p></li>
+<li><p><strong>recommended_rotations</strong> (<em>int | None, default=None</em>) – Full spokes for Nyquist sampling at <code class="docutils literal notranslate"><span class="pre">kmax</span></code>, <code class="docutils literal notranslate"><span class="pre">ceil(pi</span> <span class="pre">*</span> <span class="pre">matrix</span> <span class="pre">/</span> <span class="pre">2)</span></code>,
 for a radial spoke; <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
-<li><p><strong>kind</strong> (<em>str</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;arbitrary&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code> (radial), <code class="docutils literal notranslate"><span class="pre">&quot;spiral&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;rosette&quot;</span></code>.</p></li>
+<li><p><strong>kind</strong> (<em>str, default=None</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;arbitrary&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code> (radial), <code class="docutils literal notranslate"><span class="pre">&quot;spiral&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;rosette&quot;</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -647,12 +646,6 @@ for a radial spoke; <code class="docutils literal notranslate"><span class="pre"
 </tbody>
 </table>
 </div>
-<section id="examples-using-noncartesiangradient">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code><a class="headerlink" href="#examples-using-noncartesiangradient" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A radial spoke samples the centre of k-space far more densely than the periphery: at radius k, adjacent spokes of an N-interleaf set are 2\pi k / N apart, which exceeds the Nyquist spacing 1/\mathrm{FOV} beyond a transition radius"><img alt="" src="../_images/sphx_glr_custom-noncartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-noncartesian-readout.html"><span class="doc">A twisting radial readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A twisting radial readout module</div>
-</div></div></section>
 </section>
 
 
@@ -685,7 +678,6 @@ for a radial spoke; <code class="docutils literal notranslate"><span class="pre"
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.NonCartesianGradient"><code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-noncartesiangradient">Examples using <code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></li>
 </ul>
   </nav></div>
 

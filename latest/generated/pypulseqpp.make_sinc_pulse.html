@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.make_sinc_pulse"><code class="docutils literal notranslate"><span class="pre">make_sinc_pulse()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-make-sinc-pulse">Examples using <code class="docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>make_sinc_pulse<a class="headerlink" href="#make-sinc-pulse" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.make_sinc_pulse">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_sinc_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flip_angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apodization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4e-3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_slew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_gz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_bw_product</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'undefined'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_ppm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_ppm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/make_sinc_pulse.html#make_sinc_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_sinc_pulse" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_sinc_pulse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/make_sinc_pulse.html#make_sinc_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_sinc_pulse" title="Link to this definition">#</a></dt>
 <dd><p>Creates a radio-frequency sinc pulse event and optionally accompanying slice select and slice select rephasing
 trapezoidal gradient events.</p>
 <dl class="field-list simple">
@@ -612,12 +611,6 @@ Must be one of ‘excitation’, ‘refocusing’, ‘inversion’,
 its fields in slots.</p>
 </dd></dl>
 
-<section id="examples-using-make-sinc-pulse">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code><a class="headerlink" href="#examples-using-make-sinc-pulse" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html"><span class="doc">A basic Pulseq sequence</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
-</div></div></section>
 </section>
 
 
@@ -650,7 +643,6 @@ its fields in slots.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.make_sinc_pulse"><code class="docutils literal notranslate"><span class="pre">make_sinc_pulse()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-make-sinc-pulse">Examples using <code class="docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Fast spin echoes &#8212; pypulseqpp documentation</title>
+    <title>Fast spin echo &#8212; pypulseqpp documentation</title>
   
   
   
@@ -63,7 +63,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/examples/built-in-sequences/fast-spin-echo.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="3D fast spin echo" href="../../generated/gallery/13-fast-spin-echo/fse3D_sequence.html" />
+    <link rel="next" title="Conventional 3D fast spin echo" href="../../generated/gallery/13-fast-spin-echo/fse3D_sequence.html" />
     <link rel="prev" title="3D stack-of-blades spin echo" href="../../generated/gallery/11-spin-echo/se_stack_of_blades3D_sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -281,7 +281,7 @@
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Built-in sequences</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Fast spin echoes</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="epi.html">Echo-planar imaging</a></li>
@@ -534,7 +534,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Fast spin echoes</h1>
+    <h1>Fast spin echo</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -548,20 +548,25 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="fast-spin-echoes">
-<h1>Fast spin echoes<a class="headerlink" href="#fast-spin-echoes" title="Link to this heading">#</a></h1>
-<p>One excitation followed by a CPMG train of refocusing pulses, with one view
-acquired per echo. The order in which the train covers k-space decides the
-weighting the image carries.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="fast-spin-echo">
+<h1>Fast spin echo<a class="headerlink" href="#fast-spin-echo" title="Link to this heading">#</a></h1>
+<p>A CPMG refocusing train acquires one Cartesian view per echo. Refocusing-angle
+modulation and view ordering jointly determine the k-space weighting.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Example</p></th>
-<th class="head"><p>Scope</p></th>
+<th class="head"><p>Acquisition</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p></td>
-<td><p>One CPMG train per excitation, with the echo order, the shot order and the weight the ordering applies to k-space.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">Conventional 3D fast spin echo</span></a></p></td>
+<td><p>Fixed optimized train with radial view ordering and its k-space modulation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../generated/gallery/13-fast-spin-echo/fse3D_adaptive.html"><span class="doc">Individually optimized 3D fast spin echo</span></a></p></td>
+<td><p>Individually optimized train length, TR, and adaptive radial ordering.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/13-fast-spin-echo/fse3D_shuffling.html"><span class="doc">Shuffled echo-resolved 3D FSE</span></a></p></td>
+<td><p>Variable-density shuffled sampling for echo-resolved reconstruction.</p></td>
 </tr>
 </tbody>
 </table>
@@ -595,7 +600,7 @@ weighting the image carries.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">3D fast spin echo</p>
+        <p class="prev-next-title">Conventional 3D fast spin echo</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

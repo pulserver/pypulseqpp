@@ -5,5 +5,3 @@ SpiralProjectionReadout.blocks
 
 .. autoproperty:: SpiralProjectionReadout.blocks
 
-.. minigallery:: pypulseqpp.sequences.SpiralProjectionReadout.blocks
-   :add-heading: Examples using ``SpiralProjectionReadout.blocks``

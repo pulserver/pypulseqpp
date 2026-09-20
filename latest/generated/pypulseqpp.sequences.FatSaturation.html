@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-fatsaturation">Examples using <code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>FatSaturation<a class="headerlink" href="#fatsaturation" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">FatSaturation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_offset_ppm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-3.45</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip_angle_deg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">110.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">250.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_bw_product</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness_m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_rotation_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spoiling_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size_m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/fatsat.html#FatSaturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">FatSaturation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/fatsat.html#FatSaturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>SLR fat saturation with a three-axis spoiler and optional spatial selection.</p>
 <p>Position and orientation place the selection band at construction.
@@ -576,26 +575,26 @@ millimetres; the RF frequency offset remains in ppm.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>freq_offset_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Fat offset from water (ppm). Carried on the pulse as a ppm offset
+<li><p><strong>freq_offset_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=FAT_SHIFT_PPM</em>) – Fat offset from water (ppm). Carried on the pulse as a ppm offset
 rather than as hertz, so the interpreter resolves it against the
 field the scan actually runs at.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Saturation flip angle (degrees).</p></li>
-<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Spectral passband (Hz). With <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> it fixes the pulse
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=110.0</em>) – Saturation flip angle (degrees).</p></li>
+<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=250.0</em>) – Spectral passband (Hz). With <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> it fixes the pulse
 duration, which is <code class="docutils literal notranslate"><span class="pre">time_bw_product</span> <span class="pre">/</span> <span class="pre">bandwidth_hz</span></code>.</p></li>
-<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Time-bandwidth product.</p></li>
-<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Band thickness (m). <code class="docutils literal notranslate"><span class="pre">None</span></code> saturates the whole transmit volume,
+<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Time-bandwidth product.</p></li>
+<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Band thickness (m). <code class="docutils literal notranslate"><span class="pre">None</span></code> saturates the whole transmit volume,
 which is the usual fat saturation and the only form that needs no
 gradient.</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>optional</em>) – Band normal, before <code class="docutils literal notranslate"><span class="pre">orientation</span></code> turns it.</p></li>
-<li><p><strong>position_mm</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">(dx,</span> <span class="pre">dy,</span> <span class="pre">dz)</span></code> offset of the band from the isocentre, in the logical
+<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Band normal, before <code class="docutils literal notranslate"><span class="pre">orientation</span></code> turns it.</p></li>
+<li><p><strong>position_mm</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(dx,</span> <span class="pre">dy,</span> <span class="pre">dz)</span></code> offset of the band from the isocentre, in the logical
 frame, in millimetres. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
-<li><p><strong>orientation</strong> (<em>array_like</em><em> or </em><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html#scipy.spatial.transform.Rotation" title="(in SciPy v1.18.0)"><em>scipy.spatial.transform.Rotation</em></a><em>, </em><em>optional</em>) – A <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix, or a rotation, taking the logical frame to the one
+<li><p><strong>orientation</strong> (<em>array_like</em><em> or </em><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html#scipy.spatial.transform.Rotation" title="(in SciPy v1.18.0)"><em>scipy.spatial.transform.Rotation</em></a><em>, </em><em>default=None</em>) – A <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix, or a rotation, taking the logical frame to the one
 the band lies on. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
-<li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – Carry the orientation as a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension rather than baking
+<li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Carry the orientation as a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension rather than baking
 it into new waveforms. Only <code class="docutils literal notranslate"><span class="pre">True</span></code> is implemented; see
 <a class="reference internal" href="pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a>.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Cycles of dephasing each spoiler axis winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
-<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Length the dephasing is counted over (m).</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each spoiler axis winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
+<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -606,7 +605,7 @@ for the logical axis whatever <code class="docutils literal notranslate"><span c
 <li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
 <li><p><strong>prep_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>, set on the first block.</p></li>
 <li><p><strong>reset_labels</strong> (<em>list of LabelSetEvent</em>) – The same two cleared, on the last.</p></li>
-<li><p><strong>freq_offset_ppm</strong> (<em>float</em>) – The fat offset the pulse carries (ppm).</p></li>
+<li><p><strong>freq_offset_ppm</strong> (<em>float, default=FAT_SHIFT_PPM</em>) – The fat offset the pulse carries (ppm).</p></li>
 <li><p><strong>freq_offset_hz</strong> (<em>float</em>) – What that comes to at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz), for reference; the pulse
 itself is field-independent.</p></li>
 </ul>
@@ -664,12 +663,6 @@ itself is field-independent.</p></li>
 </tbody>
 </table>
 </div>
-<section id="examples-using-fatsaturation">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code><a class="headerlink" href="#examples-using-fatsaturation" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition."><img alt="" src="../_images/sphx_glr_preparation-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/22-modules-preparation/preparation-modules.html"><span class="doc">Preparation modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Preparation modules</div>
-</div></div></section>
 </section>
 
 
@@ -702,7 +695,6 @@ itself is field-independent.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.FatSaturation"><code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-fatsaturation">Examples using <code class="docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></li>
 </ul>
   </nav></div>
 

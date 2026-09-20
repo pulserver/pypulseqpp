@@ -5,5 +5,3 @@ RadialStackReadout.duration
 
 .. autoproperty:: RadialStackReadout.duration
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout.duration
-   :add-heading: Examples using ``RadialStackReadout.duration``

@@ -5,5 +5,3 @@ SpatialSelectiveExcitation.blocks
 
 .. autoproperty:: SpatialSelectiveExcitation.blocks
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation.blocks
-   :add-heading: Examples using ``SpatialSelectiveExcitation.blocks``

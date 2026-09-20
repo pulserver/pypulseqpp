@@ -5,5 +5,3 @@ RfModule.blocks
 
 .. autoproperty:: RfModule.blocks
 
-.. minigallery:: pypulseqpp.sequences.RfModule.blocks
-   :add-heading: Examples using ``RfModule.blocks``

@@ -22,25 +22,29 @@
 3D stack-of-blades gradient echo
 ==================================
 
-PROPELLER blades in the plane and Cartesian encoding along the slab axis.
+A slab-selective spoiled excitation is followed by one line from a rotating
+in-plane PROPELLER blade with Cartesian partition encoding. Gradient and RF
+spoiling suppress residual transverse coherence. TR, flip angle, and TE
+determine contrast. The overlapping blade centres support motion-robust 3D
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-35
-
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-40
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen lines to a blade, at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-50
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -67,12 +71,12 @@ Sixteen lines to a blade, at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-53
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-56
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -93,18 +97,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b080f8260>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5999f0efc0>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-61
+.. GENERATED FROM PYTHON SOURCE LINES 54-58
 
 Sampling order
 --------------
 
 The blades of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-64
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -1329,7 +1333,7 @@ The blades of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-70
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Wider blades
 ------------
@@ -1337,7 +1341,7 @@ Wider blades
 Increasing blade width reduces the number of blade orientations and
 increases the shared central-k-space region.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-84
+.. GENERATED FROM PYTHON SOURCE LINES 67-81
 
 .. code-block:: Python
 
@@ -1362,7 +1366,7 @@ increases the shared central-k-space region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-87
+.. GENERATED FROM PYTHON SOURCE LINES 82-84
 
 .. code-block:: Python
 
@@ -1386,49 +1390,10 @@ increases the shared central-k-space region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-94
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 94-125
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  29.4 mT/m
-    slew rate                  pass                  162 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation pass          0.88 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.184 seconds)
+   **Total running time of the script:** (0 minutes 7.043 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py:

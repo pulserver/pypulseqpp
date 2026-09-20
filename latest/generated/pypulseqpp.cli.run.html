@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -564,7 +564,7 @@
 <h1>run<a class="headerlink" href="#run" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.cli.run">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.cli.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">main</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sequence.seq'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/cli.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.cli.run" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.cli.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/cli.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.cli.run" title="Link to this definition">#</a></dt>
 <dd><p>Run a sequence script’s <code class="docutils literal notranslate"><span class="pre">main</span></code> from the command line.</p>
 <p>Every keyword parameter of <code class="docutils literal notranslate"><span class="pre">main</span></code> annotated with a scalar becomes an
 option, described by what <code class="docutils literal notranslate"><span class="pre">main</span></code>’s own docstring says about it. Five
@@ -575,11 +575,11 @@ prescription, and <code class="docutils literal notranslate"><span class="pre">s
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>main</strong> (<em>callable</em>) – The script’s entry point. Returns the sequence.</p></li>
-<li><p><strong>argv</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – The arguments, without the program name. <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code> when
+<li><p><strong>argv</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – The arguments, without the program name. <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code> when
 omitted.</p></li>
-<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – What <code class="docutils literal notranslate"><span class="pre">--help</span></code> says the script does. The first line of <code class="docutils literal notranslate"><span class="pre">main</span></code>’s
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – What <code class="docutils literal notranslate"><span class="pre">--help</span></code> says the script does. The first line of <code class="docutils literal notranslate"><span class="pre">main</span></code>’s
 docstring when omitted.</p></li>
-<li><p><strong>default_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Where to write when <code class="docutils literal notranslate"><span class="pre">--output</span></code> is not given.</p></li>
+<li><p><strong>default_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default='sequence.seq'</em>) – Where to write when <code class="docutils literal notranslate"><span class="pre">--output</span></code> is not given.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

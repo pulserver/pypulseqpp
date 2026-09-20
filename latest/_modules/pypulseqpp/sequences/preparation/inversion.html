@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -507,24 +507,24 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.01</span>
 <span class="sd">        Inversion pulse duration (s). Adiabaticity is a condition on sweeping</span>
 <span class="sd">        slowly enough, so this is not free to shorten.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing the crusher winds across ``voxel_size_m``. Zero</span>
 <span class="sd">        omits the crusher.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m) — the smallest voxel</span>
 <span class="sd">        dimension, since that is the one that has to be spoiled.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Crusher axis.</span>
-<span class="sd">    pulse_type : str, optional</span>
+<span class="sd">    pulse_type : str, default='hypsec'</span>
 <span class="sd">        Adiabatic sweep family.</span>
-<span class="sd">    bandwidth_hz : float, optional</span>
+<span class="sd">    bandwidth_hz : float, default=40000.0</span>
 <span class="sd">        Frequency width of the sweep (Hz).</span>
-<span class="sd">    adiabaticity : int, optional</span>
+<span class="sd">    adiabaticity : int, default=4</span>
 <span class="sd">        Sweep-rate margin over the adiabatic condition.</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the inversion block. An inversion is where a shot</span>
 <span class="sd">        begins, so it is the natural place to say which shot this is; the loop</span>
 <span class="sd">        writes the values, this only makes the slots.</span>

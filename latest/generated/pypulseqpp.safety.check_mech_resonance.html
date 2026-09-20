@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_mech_resonance"><code class="docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-check-mech-resonance">Examples using <code class="docutils literal notranslate"><span class="pre">check_mech_resonance</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>check_mech_resonance<a class="headerlink" href="#check-mech-resonance" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.safety.check_mech_resonance">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">check_mech_resonance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40e-3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_oversampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#check_mech_resonance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.check_mech_resonance" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">check_mech_resonance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#check_mech_resonance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.check_mech_resonance" title="Link to this definition">#</a></dt>
 <dd><p>Check the gradient amplitude spectrum against forbidden gradient bands.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -573,13 +572,13 @@
 <li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to check.</p></li>
 <li><p><strong>bands</strong> (<em>iterable</em><em> of </em><a class="reference internal" href="pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><em>ForbiddenBand</em></a><em>, or </em><em>path</em>) – Bands as <code class="docutils literal notranslate"><span class="pre">(axis,</span> <span class="pre">f_min,</span> <span class="pre">f_max,</span> <span class="pre">tolerance)</span></code>, or a table for
 <a class="reference internal" href="pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a>.</p></li>
-<li><p><strong>window_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Window length in seconds.</p></li>
-<li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Step between window starts in seconds; <code class="docutils literal notranslate"><span class="pre">window_width</span> <span class="pre">/</span> <span class="pre">2</span></code> by default.</p></li>
-<li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Zero-padded transform length, in window lengths.</p></li>
-<li><p><strong>min_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Threshold in mT/m for a band whose tolerance is 0.</p></li>
-<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>optional</em>) – 3x3 prescription rotation from logical to physical axes, applied after
+<li><p><strong>window_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.04</em>) – Window length in seconds.</p></li>
+<li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Step between window starts in seconds; <code class="docutils literal notranslate"><span class="pre">window_width</span> <span class="pre">/</span> <span class="pre">2</span></code> by default.</p></li>
+<li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=3</em>) – Zero-padded transform length, in window lengths.</p></li>
+<li><p><strong>min_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=10.0</em>) – Threshold in mT/m for a band whose tolerance is 0.</p></li>
+<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes, applied after
 each block’s own rotation; identity (axial) by default.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>optional</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -608,15 +607,6 @@ positive and <code class="docutils literal notranslate"><span class="pre">min_th
 <code class="docutils literal notranslate"><span class="pre">mkl</span></code> package is installed, and pocketfft otherwise.</p>
 </dd></dl>
 
-<section id="examples-using-check-mech-resonance">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">check_mech_resonance</span></code><a class="headerlink" href="#examples-using-check-mech-resonance" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Sequence constraint checks</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
-</div></div></section>
 </section>
 
 
@@ -649,7 +639,6 @@ positive and <code class="docutils literal notranslate"><span class="pre">min_th
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_mech_resonance"><code class="docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-check-mech-resonance">Examples using <code class="docutils literal notranslate"><span class="pre">check_mech_resonance</span></code></a></li>
 </ul>
   </nav></div>
 

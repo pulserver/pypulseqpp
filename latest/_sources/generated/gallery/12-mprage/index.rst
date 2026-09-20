@@ -23,7 +23,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse determines the dominant inversion-recovery contrast. View ordering therefore defines the contrast weighting across k-space.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed after the prescribed inversion delay by a train of low-flip-angle spoiled Cartesian gradient echoes. The inversion time is measured to the first excitation centre; the corresponding central ADC sample occurs one TE later. The ordering assigns recovery times within each inversion cycle to (line, partition) views. MPRAGE is used for high-resolution 3D T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed by a train of low-flip-angle spoiled spiral gradient echoes with Cartesian partition encoding. Interleaf and partition order determine the recovery time of the acquired data within and between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted 3D structural imaging.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ MPRAGE
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines.">
+    <div class="sphx-glr-thumbcontainer" tooltip="An inversion preparation is followed by a train of low-flip-angle spoiled radial gradient echoes with Cartesian partition encoding. Each spoke crosses in-plane k-space centre; spoke and partition order determine the recovery time of the acquired data within and between inversion cycles. Stack-of-stars MPRAGE provides T1-weighted 3D structural imaging with radial sampling.">
 
 .. only:: html
 

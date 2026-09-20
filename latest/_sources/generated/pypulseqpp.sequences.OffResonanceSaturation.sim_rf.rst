@@ -5,5 +5,3 @@ OffResonanceSaturation.sim\_rf
 
 .. automethod:: OffResonanceSaturation.sim_rf
 
-.. minigallery:: pypulseqpp.sequences.OffResonanceSaturation.sim_rf
-   :add-heading: Examples using ``OffResonanceSaturation.sim_rf``

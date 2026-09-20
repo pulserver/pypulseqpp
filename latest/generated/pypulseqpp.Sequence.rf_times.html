@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.rf_times"><code class="docutils literal notranslate"><span class="pre">Sequence.rf_times()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-rf-times">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.rf_times</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,13 +564,13 @@
 <h1>Sequence.rf_times<a class="headerlink" href="#sequence-rf-times" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.rf_times">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">rf_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">compat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.rf_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.rf_times" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">rf_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.rf_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.rf_times" title="Link to this definition">#</a></dt>
 <dd><p>Return RF pulse centre times with their frequency and phase offsets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>time_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>optional</em>) – Two times in seconds; only the blocks they touch are expanded.</p></li>
-<li><p><strong>compat</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default True</em>) – Return upstream’s four values, which describe two of Pulseq’s
+<li><p><strong>time_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Two times in seconds; only the blocks they touch are expanded.</p></li>
+<li><p><strong>compat</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default True</em><em>, </em><em>default=True</em>) – Return upstream’s four values, which describe two of Pulseq’s
 seven RF uses. False returns a named result covering all seven.</p></li>
 </ul>
 </dd>
@@ -599,12 +598,6 @@ carrying <code class="docutils literal notranslate"><span class="pre">t</span></
 </div>
 </dd></dl>
 
-<section id="examples-using-sequence-rf-times">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.rf_times</span></code><a class="headerlink" href="#examples-using-sequence-rf-times" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-</div></div></section>
 </section>
 
 
@@ -637,7 +630,6 @@ carrying <code class="docutils literal notranslate"><span class="pre">t</span></
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.rf_times"><code class="docutils literal notranslate"><span class="pre">Sequence.rf_times()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-sequence-rf-times">Examples using <code class="docutils literal notranslate"><span class="pre">Sequence.rf_times</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -5,5 +5,3 @@ SequenceModule.duration
 
 .. autoproperty:: SequenceModule.duration
 
-.. minigallery:: pypulseqpp.sequences.SequenceModule.duration
-   :add-heading: Examples using ``SequenceModule.duration``

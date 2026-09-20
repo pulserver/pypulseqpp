@@ -22,26 +22,29 @@
 2D PROPELLER spin echo
 ========================
 
-One line of one rotating blade per excitation, read at the refocused
-echo.
+A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
+which reads one line of a rotating PROPELLER blade. Spoilers suppress unwanted
+coherence before the next TR. TE controls T2 weighting and TR controls
+longitudinal recovery. The overlapping blade centres support motion-robust
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-36
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen lines to a blade.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -68,12 +71,12 @@ Sixteen lines to a blade.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-54
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-57
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -94,18 +97,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4b91f0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f59ab614ad0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-62
+.. GENERATED FROM PYTHON SOURCE LINES 54-58
 
 Sampling order
 --------------
 
 Colour encodes blade acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-65
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -130,7 +133,7 @@ Colour encodes blade acquisition order.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-71
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Wider blades
 ------------
@@ -138,7 +141,7 @@ Wider blades
 A wider blade needs fewer turns to cover the disc and samples more of the
 centre in each.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-85
+.. GENERATED FROM PYTHON SOURCE LINES 67-81
 
 .. code-block:: Python
 
@@ -163,7 +166,7 @@ centre in each.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-88
+.. GENERATED FROM PYTHON SOURCE LINES 82-84
 
 .. code-block:: Python
 
@@ -187,49 +190,10 @@ centre in each.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-95
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 95-126
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  40.0 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.05 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.248 seconds)
+   **Total running time of the script:** (0 minutes 3.077 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

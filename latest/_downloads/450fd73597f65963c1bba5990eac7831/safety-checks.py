@@ -118,9 +118,11 @@ axis.axhline(1.0, color="tab:red", ls="--", lw=1.0)
 axis.plot(pns.peak.time * 1e3, pns.peak.value, "o", color="tab:red", ms=5)
 axis.set_xlabel("time (ms)")
 axis.set_ylabel("response, fraction of threshold")
-axis.set_title("threshold dashed, peak marked")
-axis.legend(frameon=False, ncol=4, fontsize=9)
-figure.tight_layout()
+axis.set_title("Peripheral nerve stimulation response")
+axis.legend(
+    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
+)
+figure.tight_layout(rect=(0, 0, 0.82, 1))
 # sphinx_gallery_end_ignore
 
 # %%
@@ -167,11 +169,13 @@ axis.set_xlim(0, 2500)
 axis.set_xlabel("frequency (Hz)")
 axis.set_ylabel("amplitude (mT/m)")
 axis.set_title(
-    f"window {spectrum.window} at {spectrum.window_start * 1e3:.0f} ms; "
-    "forbidden bands shaded, their thresholds dashed"
+    f"Mechanical-resonance spectrum, window {spectrum.window} "
+    f"at {spectrum.window_start * 1e3:.0f} ms"
 )
-axis.legend(frameon=False, ncol=3, fontsize=9)
-figure.tight_layout()
+axis.legend(
+    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
+)
+figure.tight_layout(rect=(0, 0, 0.84, 1))
 # sphinx_gallery_end_ignore
 
 # %%

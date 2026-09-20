@@ -5,5 +5,3 @@ MultibandExcitation.register
 
 .. automethod:: MultibandExcitation.register
 
-.. minigallery:: pypulseqpp.sequences.MultibandExcitation.register
-   :add-heading: Examples using ``MultibandExcitation.register``

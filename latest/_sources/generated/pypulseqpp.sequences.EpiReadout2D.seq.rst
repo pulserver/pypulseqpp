@@ -5,5 +5,3 @@ EpiReadout2D.seq
 
 .. autoproperty:: EpiReadout2D.seq
 
-.. minigallery:: pypulseqpp.sequences.EpiReadout2D.seq
-   :add-heading: Examples using ``EpiReadout2D.seq``

@@ -5,5 +5,3 @@ RosetteStackReadout.register
 
 .. automethod:: RosetteStackReadout.register
 
-.. minigallery:: pypulseqpp.sequences.RosetteStackReadout.register
-   :add-heading: Examples using ``RosetteStackReadout.register``

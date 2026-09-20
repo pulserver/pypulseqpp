@@ -5,5 +5,3 @@ NonSelectiveRefocusing.register
 
 .. automethod:: NonSelectiveRefocusing.register
 
-.. minigallery:: pypulseqpp.sequences.NonSelectiveRefocusing.register
-   :add-heading: Examples using ``NonSelectiveRefocusing.register``

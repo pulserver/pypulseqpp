@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.RfModule.blocks"><code class="docutils literal notranslate"><span class="pre">RfModule.blocks</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-rfmodule-blocks">Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.blocks</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -570,18 +569,6 @@
 <p>The list is a copy; event mutations are shared with published templates.</p>
 </dd></dl>
 
-<section id="examples-using-rfmodule-blocks">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.blocks</span></code><a class="headerlink" href="#examples-using-rfmodule-blocks" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The excitation family produces one RF pulse and the gradients that go with it. Every member reports the events it built and, through sim_rf, the Bloch response of the pulse it holds."><img alt="" src="../_images/sphx_glr_excitation-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/21-modules-rf/excitation-modules.html"><span class="doc">Excitation modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Excitation modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition."><img alt="" src="../_images/sphx_glr_preparation-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/22-modules-preparation/preparation-modules.html"><span class="doc">Preparation modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Preparation modules</div>
-</div></div></section>
 </section>
 
 
@@ -614,7 +601,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.RfModule.blocks"><code class="docutils literal notranslate"><span class="pre">RfModule.blocks</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-rfmodule-blocks">Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.blocks</span></code></a></li>
 </ul>
   </nav></div>
 

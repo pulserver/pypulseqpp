@@ -5,5 +5,3 @@ NonSelectiveExcitation.duration
 
 .. autoproperty:: NonSelectiveExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.NonSelectiveExcitation.duration
-   :add-heading: Examples using ``NonSelectiveExcitation.duration``

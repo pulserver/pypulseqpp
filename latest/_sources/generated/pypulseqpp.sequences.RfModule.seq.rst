@@ -5,5 +5,3 @@ RfModule.seq
 
 .. autoproperty:: RfModule.seq
 
-.. minigallery:: pypulseqpp.sequences.RfModule.seq
-   :add-heading: Examples using ``RfModule.seq``

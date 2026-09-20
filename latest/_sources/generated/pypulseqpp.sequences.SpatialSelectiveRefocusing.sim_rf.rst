@@ -5,5 +5,3 @@ SpatialSelectiveRefocusing.sim\_rf
 
 .. automethod:: SpatialSelectiveRefocusing.sim_rf
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveRefocusing.sim_rf
-   :add-heading: Examples using ``SpatialSelectiveRefocusing.sim_rf``

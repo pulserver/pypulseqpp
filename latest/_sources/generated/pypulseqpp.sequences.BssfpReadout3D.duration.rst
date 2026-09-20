@@ -5,5 +5,3 @@ BssfpReadout3D.duration
 
 .. autoproperty:: BssfpReadout3D.duration
 
-.. minigallery:: pypulseqpp.sequences.BssfpReadout3D.duration
-   :add-heading: Examples using ``BssfpReadout3D.duration``

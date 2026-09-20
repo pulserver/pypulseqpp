@@ -5,5 +5,3 @@ RadialReadout2D.publish
 
 .. automethod:: RadialReadout2D.publish
 
-.. minigallery:: pypulseqpp.sequences.RadialReadout2D.publish
-   :add-heading: Examples using ``RadialReadout2D.publish``

@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -567,28 +567,28 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The excitation.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        Its selection gradient without a rephaser, played in the excitation</span>
 <span class="sd">        block. ``None`` for a hard pulse.</span>
 <span class="sd">    fov : float or sequence of float</span>
 <span class="sd">        Field of view (m), per encoded axis, readout first.</span>
 <span class="sd">    matrix : int or sequence of int</span>
 <span class="sd">        Matrix size, per encoded axis.</span>
-<span class="sd">    tr : float, optional</span>
+<span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s). ``None`` is as short as possible; a longer one is</span>
 <span class="sd">        padded evenly either side of the echo, so TE stays at TR/2.</span>
-<span class="sd">    half_flip_prep : bool, optional</span>
+<span class="sd">    half_flip_prep : bool, default=True</span>
 <span class="sd">        Publish ``wait_prep``. This requires the acquisition block after the</span>
 <span class="sd">        echo to be at least as long as the excitation block after the pulse</span>
 <span class="sd">        centre. Turn it off to ramp the train in with dummy repetitions.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        Read oversampling.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the acquisition block.</span>
-<span class="sd">    trigger : event, optional</span>
+<span class="sd">    trigger : event, default=None</span>
 <span class="sd">        A trigger or digital output armed on the rewind block.</span>
 
 <span class="sd">    Raises</span>

@@ -5,5 +5,3 @@ Sequence.write\_binary
 
 .. automethod:: Sequence.write_binary
 
-.. minigallery:: pypulseqpp.Sequence.write_binary
-   :add-heading: Examples using ``Sequence.write_binary``

@@ -5,5 +5,3 @@ RosetteReadout2D.publish
 
 .. automethod:: RosetteReadout2D.publish
 
-.. minigallery:: pypulseqpp.sequences.RosetteReadout2D.publish
-   :add-heading: Examples using ``RosetteReadout2D.publish``

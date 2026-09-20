@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -532,7 +532,7 @@
 <span class="sd">        Its rows define the positions.</span>
 <span class="sd">    dt : float</span>
 <span class="sd">        Step, in s.</span>
-<span class="sd">    initial : array_like, optional</span>
+<span class="sd">    initial : array_like, default=None</span>
 <span class="sd">        Starting magnetisation, ``(3,)`` or ``(P, 3)``; ``+z`` by default.</span>
 
 <span class="sd">    Returns</span>
@@ -604,21 +604,21 @@
 <span class="sd">    rf : SimpleNamespace or RfEvent</span>
 <span class="sd">        Its ``freq_ppm`` and ``phase_ppm`` are converted with the default</span>
 <span class="sd">        system's gamma and B0, with a warning.</span>
-<span class="sd">    rephase_factor : float, optional</span>
+<span class="sd">    rephase_factor : float, default=None</span>
 <span class="sd">        Free precession after the pulse, as a signed fraction of its</span>
 <span class="sd">        duration. Defaults to zero when ``rf.use == "refocusing"`` and to</span>
 <span class="sd">        ``-(shape_dur - center) / shape_dur``, the slice-select rephaser,</span>
 <span class="sd">        otherwise.</span>
-<span class="sd">    prephase_factor : float, optional</span>
+<span class="sd">    prephase_factor : float, default=0.0</span>
 <span class="sd">        The same, before the pulse.</span>
-<span class="sd">    df : float, optional</span>
+<span class="sd">    df : float, default=1.0</span>
 <span class="sd">        In Hz: the axis holds ``round(bandwidth / df)`` points, so their</span>
 <span class="sd">        spacing is about ``bandwidth_multiplier * df``.</span>
-<span class="sd">    bandwidth_multiplier : float, optional</span>
+<span class="sd">    bandwidth_multiplier : float, default=4.0</span>
 <span class="sd">        Width of the frequency axis, in bandwidths. The bandwidth is</span>
 <span class="sd">        :func:`calc_rf_bandwidth` at half maximum plus ``|freq_offset|``;</span>
 <span class="sd">        the axis is centred on ``freq_offset``.</span>
-<span class="sd">    dt : float, optional</span>
+<span class="sd">    dt : float, default=None</span>
 <span class="sd">        Simulation raster, in s. Chosen from the bandwidth when omitted.</span>
 
 <span class="sd">    Returns</span>

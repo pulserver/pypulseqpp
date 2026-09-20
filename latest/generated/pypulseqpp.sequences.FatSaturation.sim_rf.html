@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -564,12 +564,12 @@
 <h1>FatSaturation.sim_rf<a class="headerlink" href="#fatsaturation-sim-rf" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation.sim_rf">
-<span class="sig-prename descclassname"><span class="pre">FatSaturation.</span></span><span class="sig-name descname"><span class="pre">sim_rf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pulse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.sim_rf" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">FatSaturation.</span></span><span class="sig-name descname"><span class="pre">sim_rf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation.sim_rf" title="Link to this definition">#</a></dt>
 <dd><p>Simulate this module’s pulse across off-resonance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pulse</strong> (<em>RfEvent</em><em>, </em><em>optional</em>) – Pulse to simulate; defaults to the first RF event in block order.</p></li>
+<li><p><strong>pulse</strong> (<em>RfEvent</em><em>, </em><em>default=None</em>) – Pulse to simulate; defaults to the first RF event in block order.</p></li>
 <li><p><strong>**kwargs</strong> – Forwarded to <a class="reference internal" href="pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.sim_rf()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">rephase_factor</span></code>,
 <code class="docutils literal notranslate"><span class="pre">df</span></code>, <code class="docutils literal notranslate"><span class="pre">bandwidth_multiplier</span></code>, <code class="docutils literal notranslate"><span class="pre">dt</span></code>).</p></li>
 </ul>

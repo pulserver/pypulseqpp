@@ -32,5 +32,3 @@
    ~SpiralStackReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.SpiralStackReadout
-   :add-heading: Examples using ``SpiralStackReadout``

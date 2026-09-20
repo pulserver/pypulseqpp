@@ -5,5 +5,3 @@ RosetteProjectionReadout.arm
 
 .. automethod:: RosetteProjectionReadout.arm
 
-.. minigallery:: pypulseqpp.sequences.RosetteProjectionReadout.arm
-   :add-heading: Examples using ``RosetteProjectionReadout.arm``

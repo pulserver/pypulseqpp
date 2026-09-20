@@ -5,5 +5,3 @@ BlochSiegertPreparation.seq
 
 .. autoproperty:: BlochSiegertPreparation.seq
 
-.. minigallery:: pypulseqpp.sequences.BlochSiegertPreparation.seq
-   :add-heading: Examples using ``BlochSiegertPreparation.seq``

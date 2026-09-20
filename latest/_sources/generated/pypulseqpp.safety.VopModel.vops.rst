@@ -5,5 +5,3 @@ VopModel.vops
 
 .. autoattribute:: VopModel.vops
 
-.. minigallery:: pypulseqpp.safety.VopModel.vops
-   :add-heading: Examples using ``VopModel.vops``

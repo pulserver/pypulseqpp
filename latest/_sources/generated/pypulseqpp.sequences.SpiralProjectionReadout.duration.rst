@@ -5,5 +5,3 @@ SpiralProjectionReadout.duration
 
 .. autoproperty:: SpiralProjectionReadout.duration
 
-.. minigallery:: pypulseqpp.sequences.SpiralProjectionReadout.duration
-   :add-heading: Examples using ``SpiralProjectionReadout.duration``

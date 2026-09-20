@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -624,7 +624,10 @@
 <span class="sd">    ----------</span>
 <span class="sd">    opts : Opts</span>
 <span class="sd">        System limits. Not modified.</span>
-<span class="sd">    grad_derate, slew_derate : float, optional</span>
+<span class="sd">    grad_derate : float, default=MAX_GRAD_DERATE</span>
+<span class="sd">        Fraction of the base ``max_grad`` / ``max_slew`` to allow.</span>
+
+<span class="sd">    slew_derate : float, default=MAX_SLEW_DERATE</span>
 <span class="sd">        Fraction of the base ``max_grad`` / ``max_slew`` to allow.</span>
 
 <span class="sd">    Returns</span>
@@ -679,11 +682,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    opts : Opts</span>
 <span class="sd">        System limits. Not modified.</span>
-<span class="sd">    max_grad : float, optional</span>
+<span class="sd">    max_grad : float, default=None</span>
 <span class="sd">        Amplitude ceiling, in ``grad_unit``.</span>
-<span class="sd">    max_slew : float, optional</span>
+<span class="sd">    max_slew : float, default=None</span>
 <span class="sd">        Slew ceiling, in ``slew_unit``.</span>
-<span class="sd">    grad_unit, slew_unit : str, optional</span>
+<span class="sd">    grad_unit : str, default='mT/m'</span>
+<span class="sd">        The units those two are given in.</span>
+
+<span class="sd">    slew_unit : str, default='T/m/s'</span>
 <span class="sd">        The units those two are given in.</span>
 
 <span class="sd">    Returns</span>

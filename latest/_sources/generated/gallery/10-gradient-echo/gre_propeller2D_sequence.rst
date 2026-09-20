@@ -22,28 +22,29 @@
 2D PROPELLER gradient echo
 ============================
 
-One line of one rotating blade per repetition. A blade is a narrow band
-of parallel lines through the centre of k-space, and the blades are turned
-so that between them they cover the disc; each blade samples the centre, so
-a blade corrupted by motion can be detected and rejected.
+A spoiled low-flip-angle excitation is followed by one Cartesian line from a
+rotating PROPELLER blade. Gradient and RF spoiling suppress residual transverse
+coherence between repetitions. TR, flip angle, and TE determine contrast. The
+overlapping central k-space region supports motion estimation in structural
+imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen lines to a blade, at enough blades to cover the disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-53
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -70,12 +71,12 @@ Sixteen lines to a blade, at enough blades to cover the disc.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-56
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -96,11 +97,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afaa32150>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5981fdcaa0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 54-59
 
 Sampling order
 --------------
@@ -108,7 +109,7 @@ Sampling order
 The colour encodes blade acquisition order. Each blade is a band
 of parallel lines; the bands overlap at the centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-68
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
@@ -133,7 +134,7 @@ of parallel lines; the bands overlap at the centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-75
+.. GENERATED FROM PYTHON SOURCE LINES 63-69
 
 Wider blades
 ------------
@@ -142,7 +143,7 @@ Increasing the blade width reduces the number of blade orientations and
 increases the duration of each blade. The larger shared central-k-space
 region provides additional data for motion estimation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 75-89
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
 
 .. code-block:: Python
 
@@ -167,7 +168,7 @@ region provides additional data for motion estimation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-92
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
 
 .. code-block:: Python
 
@@ -191,49 +192,10 @@ region provides additional data for motion estimation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-99
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 99-130
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  40.0 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.38 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.140 seconds)
+   **Total running time of the script:** (0 minutes 3.062 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

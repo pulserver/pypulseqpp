@@ -31,5 +31,3 @@
    ~FseReadout2D.seq
 
 
-.. minigallery:: pypulseqpp.sequences.FseReadout2D
-   :add-heading: Examples using ``FseReadout2D``

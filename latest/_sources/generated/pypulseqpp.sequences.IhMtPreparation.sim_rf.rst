@@ -5,5 +5,3 @@ IhMtPreparation.sim\_rf
 
 .. automethod:: IhMtPreparation.sim_rf
 
-.. minigallery:: pypulseqpp.sequences.IhMtPreparation.sim_rf
-   :add-heading: Examples using ``IhMtPreparation.sim_rf``

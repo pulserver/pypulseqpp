@@ -5,5 +5,3 @@ SpiralNavigator.init\_module
 
 .. automethod:: SpiralNavigator.init_module
 
-.. minigallery:: pypulseqpp.sequences.SpiralNavigator.init_module
-   :add-heading: Examples using ``SpiralNavigator.init_module``

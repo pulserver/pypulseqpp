@@ -39,5 +39,6 @@
    ~SequenceApp.MAX_SLEW
 
 
+
 .. minigallery:: pypulseqpp.sequences.SequenceApp
    :add-heading: Examples using ``SequenceApp``

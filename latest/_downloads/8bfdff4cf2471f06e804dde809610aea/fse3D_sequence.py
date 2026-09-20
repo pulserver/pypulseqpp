@@ -1,13 +1,14 @@
 """
-==================
-3D fast spin echo
-==================
+==============================
+Conventional 3D fast spin echo
+==============================
 
-One excitation followed by a CPMG train of refocusing pulses, with one
-``(line, partition)`` view acquired per echo. Signal amplitude at echo
-:math:`m` weights the corresponding k-space view.
-Echo ordering therefore determines the modulation transfer function and
-point-spread function.
+A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing
+train, with one Cartesian ``(line, partition)`` view acquired at each echo.
+Variable refocusing angles control stimulated-echo pathways and T2-dependent
+signal evolution. Radial view ordering assigns this evolution to k-space and
+therefore determines the modulation transfer function and image blurring. 3D
+FSE is used for T2- and proton-density-weighted structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -17,215 +18,123 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "savefig.dpi": 110,
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
-    }
-)
+PAGE_WIDTH = 8.6
+plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 
 
-def _views(seq, n_y, n_z):
-    """Every acquisition as (line, partition, echo index, shot index)."""
+def views(seq, ny, nz):
+    """Return acquired coordinates, echo indices, and shot indices."""
     labels = seq.evaluate_labels(evolution="adc")
     echo = np.asarray(labels["ECO"])
     return (
-        np.asarray(labels["LIN"]) - n_y // 2,
-        np.asarray(labels["PAR"]) - n_z // 2,
+        np.asarray(labels["LIN"]) - ny // 2,
+        np.asarray(labels["PAR"]) - nz // 2,
         echo,
         np.cumsum(echo == 0) - 1,
     )
 
 
-def order_figure(seq, n_y, n_z):
-    """The echo index and the shot index of every view, side by side."""
-    line, partition, echo, shot = _views(seq, n_y, n_z)
-    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.6), sharey=True)
-    for axis, value, label in zip(
+def order_figure(seq, ny, nz):
+    """Plot echo and shot indices on the acquired ky-kz grid."""
+    ky, kz, echo, shot = views(seq, ny, nz)
+    fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.5), sharey=True)
+    for ax, value, label in zip(
         axes, (echo, shot), ("Echo index", "Shot index"), strict=True
     ):
-        drawn = axis.scatter(line, partition, c=value, cmap="turbo", s=9, linewidth=0)
-        figure.colorbar(drawn, ax=axis, label=label, pad=0.02)
-        axis.set_xlabel("$k_y$ (lines from centre)")
-        axis.grid(alpha=0.2, lw=0.4)
-    axes[0].set_ylabel("$k_z$ (partitions from centre)")
-    figure.tight_layout()
-    return figure
-
-
-def envelope_figure(envelopes, esp_ms, weighting):
-    """The echo amplitudes, and the weight they give each line."""
-    figure, (left, right) = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.0))
-    for name, amplitude in envelopes.items():
-        left.plot(np.arange(len(amplitude)) * esp_ms, amplitude, lw=1.3, label=name)
-    left.set_xlabel("time in the train (ms)")
-    left.set_ylabel("echo amplitude")
-    left.legend(frameon=False, fontsize=9)
-    for name, (offsets, weight) in weighting.items():
-        right.plot(offsets, weight, lw=1.3, label=name)
-    right.set_xlabel("$k_y$ (lines from centre)")
-    right.set_ylabel("weight")
-    right.legend(frameon=False, fontsize=9)
-    figure.tight_layout()
-    return figure
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
+        art = ax.scatter(ky, kz, c=value, cmap="turbo", s=12, linewidth=0)
+        fig.colorbar(art, ax=ax, label=label, pad=0.02)
+        ax.set_xlabel(r"$k_y$ (lines from centre)")
+        ax.grid(alpha=0.2)
+    axes[0].set_ylabel(r"$k_z$ (partitions from centre)")
+    fig.tight_layout()
+    return fig
 
 
 # sphinx_gallery_end_ignore
 
-# %%
-# Baseline
-# --------
-#
-# A short train limits T2 weighting across the train. Centre-out view ordering
-# assigns the earliest echoes to the centre of k-space.
+from pypulseqpp import sequences
 
+Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
-from pypulseqpp.sequences import fse3D_sequence
-
-PRESCRIPTION = {
-    "n_x": 128,
-    "n_y": 96,
+P = {
+    "n_x": 96,
+    "n_y": 48,
     "n_z": 16,
-    "fov_x": 0.2,
-    "fov_y": 0.2,
-    "fov_z": 0.1,
+    "fov_x": 0.20,
+    "fov_y": 0.20,
+    "fov_z": 0.12,
+    "etl": 16,
+    "te": 48e-3,
+    "tr": 0.5,
+    "n_dummy": 0,
+    "ordering": "radial",
+    "flip_modulation": "optimized",
+    "wave_amplitude": 0.0,
 }
-
-baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=None, n_dummy=0)
+app = Fse3DApp(**P)
+seq = app.design()
 print(
-    f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
-    f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
-    f"TE {baseline.get_definition('TE')[0] * 1e3:.1f} ms"
+    f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
+    f"{seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
 )
 
 # %%
 # Sequence diagram
 # ----------------
 #
-# The automatically detected repetition contains the excitation, the CPMG
-# train with a crusher pair around every refocusing pulse, and the phase and
-# partition encodes before and after each readout. The solid trace is a
-# representative train; the shaded traces retain the range of encodes.
-
-baseline.paper_plot()
+# Each echo comprises a variable-angle refocusing pulse, phase and partition
+# prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
+# is the echo assigned to k-space centre.
+seq.paper_plot()
 
 # %%
-# Echo order and shot order
-# -------------------------
+# Refocusing schedule and echo signal
+# -----------------------------------
 #
-# Echo index identifies the position of a view within one CPMG train and thus
-# its T2 weighting. Shot index identifies the excitation and repetition that
-# acquired the view. Centre-out ordering assigns the least attenuated echoes
-# to central k-space.
-
-# sphinx_gallery_start_ignore
-order_figure(baseline, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
-# sphinx_gallery_end_ignore
-
-# %%
-# Train length
-# ------------
-#
-# A longer train requires fewer excitations but samples later points of the T2
-# decay, increasing attenuation toward the edge of k-space.
-
-long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=None, n_dummy=0)
-
-# sphinx_gallery_start_ignore
-print(f"{'':10} {'ETL':>5} {'shots':>7} {'scan (s)':>10} {'train (ms)':>12}")
-for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
-    _, _, echo, shot = _views(seq, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
-    print(
-        f"{name:10} {int(echo.max()) + 1:5d} {int(shot.max()) + 1:7d} "
-        f"{seq.duration()[0]:10.1f} "
-        f"{(int(echo.max()) + 1) * seq.get_definition('EchoSpacing')[0] * 1e3:12.1f}"
-    )
-# sphinx_gallery_end_ignore
-
-# %%
-# T2 weighting
-# ------------
-#
-# The simulated signal envelope uses the stored refocusing-angle schedule and
-# echo spacing. Each line's weight is
-# the envelope at the echo index that read it, averaged over the partitions it
-# was read at.
-
+# The optimized schedule is obtained with ``torchsim``'s configuration-state
+# FSE simulator. The objective balances signal at the effective TE, peripheral
+# k-space signal, and RF power for the tissue models defined by the sequence.
+# The same simulator evaluates the resulting T2-dependent echo envelope.
 import torchsim
 
-#: Relaxation times (ms) of the tissue the envelopes are simulated for.
-T1_MS, T2_MS = 1200.0, 60.0
-
-envelopes, weighting = {}, {}
-for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
-    angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
-    esp_ms = 1e3 * seq.get_definition("EchoSpacing")[0]
-    amplitude = np.abs(
-        np.asarray(torchsim.fse_sim(flip=angles, ESP=esp_ms, T1=T1_MS, T2=T2_MS))
-    )
-    line, _, echo, _ = _views(seq, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
-    offsets = np.unique(line)
-    weighting[name] = (
-        offsets,
-        np.array([amplitude[echo[line == offset]].mean() for offset in offsets]),
-    )
-    envelopes[name] = amplitude
-
+angles = np.asarray(app.flips[0, : app.lengths[0]])
+time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
+signal = np.abs(
+    np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
+)
 # sphinx_gallery_start_ignore
-envelope_figure(envelopes, 1e3 * baseline.get_definition("EchoSpacing")[0], weighting)
+fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.0))
+axes[0].plot(np.arange(1, len(angles) + 1), angles)
+axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")
+axes[1].plot(time_ms, signal)
+axes[1].set(xlabel="Echo time (ms)", ylabel="Relative echo amplitude")
+fig.tight_layout()
 # sphinx_gallery_end_ignore
 
 # %%
-# Central k-space receives nearly the same weight for both train lengths because
-# it is acquired first. The longer train attenuates outer k-space more strongly,
-# increasing the point-spread width along the phase-encode axes.
+# Echo and shot order
+# -------------------
 #
-# Safety checks
-# -------------
+# Radial ordering assigns views near k-space centre to the effective-TE echo
+# and progressively larger radii to echoes farther from it. Echo index records
+# position within a train; shot index identifies views acquired after the same
+# excitation.
+order_figure(seq, P["n_y"], P["n_z"])
+
+# %%
+# K-space weighting
+# -----------------
 #
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
+# The echo envelope weights each acquired view according to its echo index.
+# Radial assignment converts temporal signal evolution into a predominantly
+# radial modulation transfer function; its Fourier transform contributes to
+# image blurring along both phase-encode axes.
+ky, kz, echo, _ = views(seq, P["n_y"], P["n_z"])
 # sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ]
-)
+fig, ax = plt.subplots(figsize=(5.4, 4.1))
+art = ax.scatter(ky, kz, c=signal[echo], cmap="viridis", s=16, linewidth=0)
+fig.colorbar(art, ax=ax, label="Relative echo amplitude")
+ax.set(xlabel=r"$k_y$ (lines from centre)", ylabel=r"$k_z$ (partitions from centre)")
+ax.set_aspect("equal")
+fig.tight_layout()
 # sphinx_gallery_end_ignore

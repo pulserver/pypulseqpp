@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -564,7 +564,7 @@
 <h1>sim_bloch<a class="headerlink" href="#sim-bloch" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sim_bloch">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">sim_bloch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b1_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bz_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sim_rf.html#sim_bloch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sim_bloch" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">sim_bloch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sim_rf.html#sim_bloch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sim_bloch" title="Link to this definition">#</a></dt>
 <dd><p>Simulate the Bloch equation without relaxation, in hard-pulse steps.</p>
 <p>Each step rotates the magnetisation right-handedly about
 <code class="docutils literal notranslate"><span class="pre">(Re</span> <span class="pre">b1,</span> <span class="pre">Im</span> <span class="pre">b1,</span> <span class="pre">bz)</span></code> by <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">pi</span> <span class="pre">dt</span></code> times that vector’s length.</p>
@@ -577,7 +577,7 @@ through their B1 maps).</p></li>
 <li><p><strong>bz_hz</strong> (<em>array_like</em>) – Longitudinal field, in Hz: <code class="docutils literal notranslate"><span class="pre">(P,</span> <span class="pre">T)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(P,</span> <span class="pre">1)</span></code> held throughout.
 Its rows define the positions.</p></li>
 <li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Step, in s.</p></li>
-<li><p><strong>initial</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Starting magnetisation, <code class="docutils literal notranslate"><span class="pre">(3,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(P,</span> <span class="pre">3)</span></code>; <code class="docutils literal notranslate"><span class="pre">+z</span></code> by default.</p></li>
+<li><p><strong>initial</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – Starting magnetisation, <code class="docutils literal notranslate"><span class="pre">(3,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(P,</span> <span class="pre">3)</span></code>; <code class="docutils literal notranslate"><span class="pre">+z</span></code> by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

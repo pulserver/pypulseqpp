@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -587,9 +587,9 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The excitation that opens the repetition.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        The rephaser that unwinds ``gz``. A slab excitation</span>
 <span class="sd">        (``is_slab=True``) has already merged it into ``gz`` and passes</span>
 <span class="sd">        nothing.</span>
@@ -599,7 +599,7 @@
 <span class="sd">        for a selective train,</span>
 <span class="sd">        :class:`~pypulseqpp.sequences.NonSelectiveRefocusing`'s for a</span>
 <span class="sd">        hard-pulse train.</span>
-<span class="sd">    gz_ref : GradEvent, optional</span>
+<span class="sd">    gz_ref : GradEvent, default=None</span>
 <span class="sd">        Selection gradient for ``rf_ref`` with its crushers, as one event</span>
 <span class="sd">        played in the pulse's block: the ``gz`` of</span>
 <span class="sd">        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`. A</span>
@@ -610,45 +610,45 @@
 <span class="sd">    matrix : int or sequence of int</span>
 <span class="sd">        Matrix size per encoded axis, used to set gradient areas. The scan</span>
 <span class="sd">        loop controls the number and order of acquired lines.</span>
-<span class="sd">    etl : int, optional</span>
+<span class="sd">    etl : int, default=8</span>
 <span class="sd">        Echo train length: refocusing pulses, and encoded lines, per</span>
 <span class="sd">        repetition.</span>
-<span class="sd">    esp : float, optional</span>
+<span class="sd">    esp : float, default=None</span>
 <span class="sd">        Echo spacing (s). ``None`` is as short as possible.</span>
-<span class="sd">    esp_first : float, optional</span>
+<span class="sd">    esp_first : float, default=None</span>
 <span class="sd">        Spacing of the first echo (s). ``None`` is the shortest that</span>
 <span class="sd">        accommodates the excitation, which is ``esp`` whenever the excitation</span>
 <span class="sd">        fits in half of one. Rounded so that ``esp_first - esp`` is a multiple</span>
 <span class="sd">        of twice the block raster.</span>
-<span class="sd">    tr : float, optional</span>
+<span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s), over the whole module. ``None`` is as short as</span>
 <span class="sd">        possible.</span>
-<span class="sd">    partial_echo : float, optional</span>
+<span class="sd">    partial_echo : float, default=1.0</span>
 <span class="sd">        Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the</span>
 <span class="sd">        samples before the echo.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        Read oversampling: ``delta_kx`` shrinks and the sampled field of view</span>
 <span class="sd">        grows, while resolution is fixed by ``fov`` and ``matrix``.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Read-axis crushing each side of every acquisition, in cycles across</span>
 <span class="sd">        ``voxel_size_m``.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=None</span>
 <span class="sd">        Length the crushing is counted over (m). The read resolution by</span>
 <span class="sd">        default.</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the acquisition block. The loop writes the values.</span>
-<span class="sd">    trigger : event, optional</span>
+<span class="sd">    trigger : event, default=None</span>
 <span class="sd">        A trigger or digital output armed on the prephaser block.</span>
-<span class="sd">    wave : {'phase', 'partition', 'both'}, optional</span>
+<span class="sd">    wave : {'phase', 'partition', 'both'}, default=None</span>
 <span class="sd">        Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine</span>
 <span class="sd">        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``</span>
 <span class="sd">        is zero, which builds no wave-encoding gradients.</span>
-<span class="sd">    wave_cycles : int, optional</span>
+<span class="sd">    wave_cycles : int, default=8</span>
 <span class="sd">        Wave periods across the sampling window.</span>
-<span class="sd">    wave_amplitude : float, optional</span>
+<span class="sd">    wave_amplitude : float, default=0.008</span>
 <span class="sd">        Requested peak wave-encoding gradient amplitude, in T/m rather than the</span>
 <span class="sd">        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the</span>
 <span class="sd">        module's ``wave_amplitude`` attribute reports the amplitude built.</span>

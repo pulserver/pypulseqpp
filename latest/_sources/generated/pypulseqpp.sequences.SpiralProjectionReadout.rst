@@ -32,5 +32,3 @@
    ~SpiralProjectionReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.SpiralProjectionReadout
-   :add-heading: Examples using ``SpiralProjectionReadout``

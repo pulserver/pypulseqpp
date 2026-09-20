@@ -32,5 +32,3 @@
    ~NonSelectiveExcitation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.NonSelectiveExcitation
-   :add-heading: Examples using ``NonSelectiveExcitation``

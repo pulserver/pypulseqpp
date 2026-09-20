@@ -32,5 +32,3 @@
    ~Arbitrary.has_rewinder
 
 
-.. minigallery:: pypulseqpp.sequences.Arbitrary
-   :add-heading: Examples using ``Arbitrary``

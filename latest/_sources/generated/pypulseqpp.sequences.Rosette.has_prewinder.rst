@@ -5,5 +5,3 @@ Rosette.has\_prewinder
 
 .. autoproperty:: Rosette.has_prewinder
 
-.. minigallery:: pypulseqpp.sequences.Rosette.has_prewinder
-   :add-heading: Examples using ``Rosette.has_prewinder``

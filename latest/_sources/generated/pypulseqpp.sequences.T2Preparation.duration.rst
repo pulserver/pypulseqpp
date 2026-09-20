@@ -5,5 +5,3 @@ T2Preparation.duration
 
 .. autoproperty:: T2Preparation.duration
 
-.. minigallery:: pypulseqpp.sequences.T2Preparation.duration
-   :add-heading: Examples using ``T2Preparation.duration``

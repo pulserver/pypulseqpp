@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -717,33 +717,33 @@
 <span class="sd">    source : Sequence, sequence module or RF event</span>
 <span class="sd">        Source of the RF event. From a sequence, only the pulse's own block is</span>
 <span class="sd">        simulated unless a range is given.</span>
-<span class="sd">    pulse : RF event or str, optional</span>
+<span class="sd">    pulse : RF event or str, default=None</span>
 <span class="sd">        Which pulse of ``source``: an event, or the ``use`` it is tagged with</span>
 <span class="sd">        (``"refocusing"`` finds a spin echo's refocusing pulse). The first</span>
 <span class="sd">        pulse by default.</span>
-<span class="sd">    time_range, block_range : sequence, optional</span>
+<span class="sd">    time_range, block_range : sequence, default=None</span>
 <span class="sd">        Blocks of a sequence to simulate over, where the profile needs more</span>
 <span class="sd">        than the pulse's own block.</span>
-<span class="sd">    plane : str, optional</span>
+<span class="sd">    plane : str, default=None</span>
 <span class="sd">        One of ``x``, ``y``, ``z`` and ``f`` (off-resonance) for a profile, or</span>
 <span class="sd">        two for a plane drawn as ``|Mxy|`` and ``Mz`` heatmaps. By default the</span>
 <span class="sd">        axis the pulse is selective along, or ``f`` without a gradient.</span>
-<span class="sd">    kind : {"excitation", "refocusing", "inversion", "saturation"}, optional</span>
+<span class="sd">    kind : {"excitation", "refocusing", "inversion", "saturation"}, default=None</span>
 <span class="sd">        Which response a profile draws; the pulse's ``use`` by default.</span>
-<span class="sd">    extent, span : float or pair of float, optional</span>
+<span class="sd">    extent, span : float or pair of float, default=None</span>
 <span class="sd">        Limits of the first and second axis: a half-width about zero or a</span>
 <span class="sd">        ``(low, high)`` pair, in mm for a position and Hz for off-resonance.</span>
-<span class="sd">    samples : int, default 401</span>
+<span class="sd">    samples : int, default 401, default=401</span>
 <span class="sd">        Points per axis; a plane caps at 91 a side.</span>
-<span class="sd">    dt : float, default 8e-6</span>
+<span class="sd">    dt : float, default 8e-6, default=8e-06</span>
 <span class="sd">        Integration step in seconds, wherever the window is integrated rather</span>
 <span class="sd">        than the pulse alone.</span>
-<span class="sd">    whole : bool, default False</span>
+<span class="sd">    whole : bool, default False, default=False</span>
 <span class="sd">        Integrate everything in the window -- every pulse, gradient and the</span>
 <span class="sd">        precession between them -- rather than the pulse alone. A plane is</span>
 <span class="sd">        always integrated this way.</span>
-<span class="sd">    title : str, optional</span>
-<span class="sd">    plot_now : bool, default True</span>
+<span class="sd">    title : str, default=None</span>
+<span class="sd">    plot_now : bool, default True, default=True</span>
 <span class="sd">        Show the figure before returning.</span>
 
 <span class="sd">    Returns</span>

@@ -5,5 +5,3 @@ SpspExcitation.publish
 
 .. automethod:: SpspExcitation.publish
 
-.. minigallery:: pypulseqpp.sequences.SpspExcitation.publish
-   :add-heading: Examples using ``SpspExcitation.publish``

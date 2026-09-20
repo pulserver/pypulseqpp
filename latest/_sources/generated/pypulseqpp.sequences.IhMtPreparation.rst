@@ -32,5 +32,3 @@
    ~IhMtPreparation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.IhMtPreparation
-   :add-heading: Examples using ``IhMtPreparation``

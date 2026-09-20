@@ -5,5 +5,3 @@ BssfpReadout3D.seq
 
 .. autoproperty:: BssfpReadout3D.seq
 
-.. minigallery:: pypulseqpp.sequences.BssfpReadout3D.seq
-   :add-heading: Examples using ``BssfpReadout3D.seq``

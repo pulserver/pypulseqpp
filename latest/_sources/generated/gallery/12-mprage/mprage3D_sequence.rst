@@ -22,21 +22,23 @@
 3D Cartesian MPRAGE
 ====================
 
-One inversion per shot, an inversion time, and then a spoiled gradient-echo
-train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse
-determines the dominant inversion-recovery contrast. View ordering therefore
-defines the contrast weighting across k-space.
+An inversion preparation is followed after the prescribed inversion delay by a
+train of low-flip-angle spoiled Cartesian gradient echoes. The inversion time
+is measured to the first excitation centre; the corresponding central ADC
+sample occurs one TE later. The ordering assigns recovery times within each
+inversion cycle to ``(line, partition)`` views. MPRAGE is used for
+high-resolution 3D T1-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-72
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 13-67
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-82
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 68-77
 
 Timing structure
 ----------------
@@ -48,7 +50,7 @@ partition provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-92
+.. GENERATED FROM PYTHON SOURCE LINES 77-87
 
 .. code-block:: Python
 
@@ -75,7 +77,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-95
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
 
 .. code-block:: Python
 
@@ -95,11 +97,11 @@ longer readout trains.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b444ad0>, tr=3, underlays=[1, 2, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a9b95cd0>, tr=3, underlays=[1, 2, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-106
+.. GENERATED FROM PYTHON SOURCE LINES 91-101
 
 Sampling order
 --------------
@@ -112,7 +114,7 @@ inversion-pulse centre to that view's excitation-pulse centre; the central
 ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
 acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-119
+.. GENERATED FROM PYTHON SOURCE LINES 101-114
 
 .. code-block:: Python
 
@@ -145,7 +147,7 @@ acquired later in the recovery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 120-129
+.. GENERATED FROM PYTHON SOURCE LINES 115-124
 
 Accelerated sampling
 --------------------
@@ -157,7 +159,7 @@ range of inversion-recovery weighting. Scan duration equals the number of
 inversion cycles multiplied by TR; the fully sampled calibration region still
 requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-145
+.. GENERATED FROM PYTHON SOURCE LINES 124-140
 
 .. code-block:: Python
 
@@ -188,49 +190,10 @@ requires every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 146-152
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 152-183
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(protocol)
-    slew_ok, slew = safety.check_max_slew(protocol)
-    cont_ok, cont = safety.check_grad_continuity(protocol)
-    pns_ok, pns = safety.check_pns(protocol, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.6 mT/m
-    slew rate                  pass                  168 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.12 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.553 seconds)
+   **Total running time of the script:** (0 minutes 0.533 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

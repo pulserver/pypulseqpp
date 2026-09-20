@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -541,9 +541,9 @@
 <span class="sd">    subslice : int</span>
 <span class="sd">        Encoded sub-slice, in ``[0, num_subslices)``, counted from the most</span>
 <span class="sd">        negative position under a positive selection gradient.</span>
-<span class="sd">    subslice_phase : float, optional</span>
+<span class="sd">    subslice_phase : float, default=np.pi</span>
 <span class="sd">        Phase of the encoded sub-slice relative to the rest of the slab, in rad.</span>
-<span class="sd">    slice_thickness : float, optional</span>
+<span class="sd">    slice_thickness : float, default=0.0</span>
 <span class="sd">        Whole slab, in m; required when ``return_gz``.</span>
 
 <span class="sd">    Returns</span>
@@ -630,7 +630,7 @@
 <span class="sd">    row : int</span>
 <span class="sd">        Encoding, in ``[0, order)``; row 0 is the plain slab. Sub-slices are</span>
 <span class="sd">        counted from the most negative position under a positive gradient.</span>
-<span class="sd">    slice_thickness : float, optional</span>
+<span class="sd">    slice_thickness : float, default=0.0</span>
 <span class="sd">        Whole slab, in m; required when ``return_gz``.</span>
 
 <span class="sd">    Returns</span>
@@ -749,37 +749,37 @@
 <span class="sd">        Thickness of each slice (m).</span>
 <span class="sd">    slice_separation : float</span>
 <span class="sd">        Distance between slice centres (m); must exceed ``slice_thickness``.</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product of the envelope.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Small-tip, excitation, spin-echo, inversion or saturation envelope.</span>
-<span class="sd">    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, optional</span>
+<span class="sd">    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'</span>
 <span class="sd">        FIR design method of the envelope.</span>
-<span class="sd">    passband_ripple : float, optional</span>
+<span class="sd">    passband_ripple : float, default=0.01</span>
 <span class="sd">        Ripple allowed in the passband.</span>
-<span class="sd">    stopband_ripple : float, optional</span>
+<span class="sd">    stopband_ripple : float, default=0.01</span>
 <span class="sd">        Ripple allowed in the stopband.</span>
-<span class="sd">    max_b1 : float, optional</span>
+<span class="sd">    max_b1 : float, default=1.8e-05</span>
 <span class="sd">        Peak B1, in T; each subpulse is the shortest, on the gradient raster,</span>
 <span class="sd">        that stays within it.</span>
-<span class="sd">    delay : float, optional</span>
+<span class="sd">    delay : float, default=0.0</span>
 <span class="sd">        Delay before the pulse (s).</span>
-<span class="sd">    freq_offset : float, optional</span>
+<span class="sd">    freq_offset : float, default=0.0</span>
 <span class="sd">        Frequency offset (Hz).</span>
-<span class="sd">    phase_offset : float, optional</span>
+<span class="sd">    phase_offset : float, default=0.0</span>
 <span class="sd">        Phase offset (rad).</span>
-<span class="sd">    max_grad : float, optional</span>
+<span class="sd">    max_grad : float, default=0.0</span>
 <span class="sd">        Gradient limit for the blips and the rephaser, in place of the</span>
 <span class="sd">        system's.</span>
-<span class="sd">    max_slew : float, optional</span>
+<span class="sd">    max_slew : float, default=0.0</span>
 <span class="sd">        Slew limit for the blips and the rephaser, in place of the system's.</span>
-<span class="sd">    system : Opts, optional</span>
+<span class="sd">    system : Opts, default=None</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq ``use`` tag.</span>
-<span class="sd">    freq_ppm : float, optional</span>
+<span class="sd">    freq_ppm : float, default=0.0</span>
 <span class="sd">        Field-strength-relative frequency offset.</span>
-<span class="sd">    phase_ppm : float, optional</span>
+<span class="sd">    phase_ppm : float, default=0.0</span>
 <span class="sd">        Field-strength-relative phase offset.</span>
 
 <span class="sd">    Returns</span>

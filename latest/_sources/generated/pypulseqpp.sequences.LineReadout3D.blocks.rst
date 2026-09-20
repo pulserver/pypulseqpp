@@ -5,5 +5,3 @@ LineReadout3D.blocks
 
 .. autoproperty:: LineReadout3D.blocks
 
-.. minigallery:: pypulseqpp.sequences.LineReadout3D.blocks
-   :add-heading: Examples using ``LineReadout3D.blocks``

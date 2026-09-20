@@ -5,5 +5,3 @@ SpatialSelectiveRefocusing.duration
 
 .. autoproperty:: SpatialSelectiveRefocusing.duration
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveRefocusing.duration
-   :add-heading: Examples using ``SpatialSelectiveRefocusing.duration``

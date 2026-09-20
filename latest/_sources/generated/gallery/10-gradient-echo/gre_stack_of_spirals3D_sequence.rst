@@ -22,27 +22,29 @@
 3D stack-of-spirals gradient echo
 ===================================
 
-Spiral interleaves in the plane and Cartesian encoding along the slab
-axis, which is the most efficient of the stacks: a partition is covered by
-a few interleaves rather than by a few hundred lines.
+A slab-selective spoiled excitation is followed by one spiral interleaf with
+Cartesian partition encoding. Gradient and RF spoiling suppress residual
+transverse coherence between repetitions. TR, flip angle, and TE determine
+contrast. Stack-of-spirals SPGR supports rapid 3D structural and dynamic
+imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-42
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen interleaves at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-50
+.. GENERATED FROM PYTHON SOURCE LINES 37-45
 
 .. code-block:: Python
 
@@ -67,12 +69,12 @@ Sixteen interleaves at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-53
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-56
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -93,18 +95,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4b3350>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5988908b30>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-61
+.. GENERATED FROM PYTHON SOURCE LINES 52-56
 
 Sampling order
 --------------
 
 The interleaves of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-64
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
@@ -129,7 +131,7 @@ The interleaves of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-70
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
 Fewer interleaves
 -----------------
@@ -137,7 +139,7 @@ Fewer interleaves
 Halving the interleaf count halves the number of repetitions and doubles
 the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-84
+.. GENERATED FROM PYTHON SOURCE LINES 65-79
 
 .. code-block:: Python
 
@@ -162,7 +164,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-87
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
 
 .. code-block:: Python
 
@@ -186,49 +188,10 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-94
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 94-125
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.4 mT/m
-    slew rate                  pass                  164 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.24 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.208 seconds)
+   **Total running time of the script:** (0 minutes 2.508 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

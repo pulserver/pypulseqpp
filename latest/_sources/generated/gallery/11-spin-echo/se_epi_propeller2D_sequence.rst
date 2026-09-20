@@ -22,28 +22,29 @@
 2D PROPELLER spin echo with echo-planar blades
 ================================================
 
-One whole blade per excitation, read as an echo-planar train. The blade
-is acquired in one shot rather than a line at a time, so the scan is far
-shorter than a line-by-line PROPELLER and the blade carries the off-resonance
-behaviour of an echo-planar readout.
+A slice-selective excitation and 180-degree refocusing pulse form a spin echo,
+followed by an echo-planar readout of one rotating PROPELLER blade. Spoilers
+suppress unwanted coherence between shots. TE controls T2 weighting, while the
+EPI train introduces off-resonance sensitivity. This sequence supports rapid,
+motion-robust structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Sixteen lines to a blade, each blade read after one excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-53
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -70,12 +71,12 @@ Sixteen lines to a blade, each blade read after one excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-56
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -96,11 +97,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afaa32540>, tr=15, underlays=[1, 3, 5, 7, 9, 10, 11, 13, 17, 19])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598ae15370>, tr=15, underlays=[1, 3, 5, 7, 9, 10, 11, 13, 17, 19])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 54-59
 
 Sampling order
 --------------
@@ -108,7 +109,7 @@ Sampling order
 Colour encodes blade acquisition order. All lines within one blade are
 acquired in a single echo train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-68
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
@@ -133,7 +134,7 @@ acquired in a single echo train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-74
+.. GENERATED FROM PYTHON SOURCE LINES 63-68
 
 Wider blades
 ------------
@@ -141,7 +142,7 @@ Wider blades
 A wider blade is a longer echo-planar train, so the blade covers more of
 the disc and accumulates more off-resonance phase across itself.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-88
+.. GENERATED FROM PYTHON SOURCE LINES 68-82
 
 .. code-block:: Python
 
@@ -166,7 +167,7 @@ the disc and accumulates more off-resonance phase across itself.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-91
+.. GENERATED FROM PYTHON SOURCE LINES 83-85
 
 .. code-block:: Python
 
@@ -190,49 +191,10 @@ the disc and accumulates more off-resonance phase across itself.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-98
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 98-129
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.7 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.04 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.252 seconds)
+   **Total running time of the script:** (0 minutes 1.675 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

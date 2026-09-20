@@ -5,5 +5,3 @@ MtPreparation.seq
 
 .. autoproperty:: MtPreparation.seq
 
-.. minigallery:: pypulseqpp.sequences.MtPreparation.seq
-   :add-heading: Examples using ``MtPreparation.seq``

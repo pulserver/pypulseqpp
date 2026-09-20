@@ -5,5 +5,3 @@ NonCartesianGradient.rotated
 
 .. automethod:: NonCartesianGradient.rotated
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianGradient.rotated
-   :add-heading: Examples using ``NonCartesianGradient.rotated``

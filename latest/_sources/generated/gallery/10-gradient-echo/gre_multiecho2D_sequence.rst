@@ -22,27 +22,29 @@
 2D Cartesian multi-echo gradient echo
 =======================================
 
-One excitation per repetition, with the line read again at several echo
-times. Signal amplitude across the echo train follows apparent transverse
-relaxation, providing multiple points on the decay curve per excitation.
+A spoiled low-flip-angle excitation is followed by several Cartesian gradient
+echoes of the same phase-encode line. Gradient and RF spoiling suppress
+residual transverse coherence before the next TR. The echo train samples T2*
+decay while TR and flip angle determine the T1 weighting. Multi-echo GRE is
+used for T2*/R2* mapping, susceptibility mapping, and structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-42
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Four echoes after one excitation, read in alternating directions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -70,12 +72,12 @@ Four echoes after one excitation, read in alternating directions.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-55
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-58
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -96,11 +98,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bc6ae40>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598b08aff0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-64
+.. GENERATED FROM PYTHON SOURCE LINES 54-59
 
 Sampling order
 --------------
@@ -108,7 +110,7 @@ Sampling order
 Colouring by echo index separates the echoes of one excitation; colouring by
 shot separates the excitations.
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-67
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
@@ -133,7 +135,7 @@ shot separates the excitations.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-73
+.. GENERATED FROM PYTHON SOURCE LINES 63-68
 
 A longer echo train
 -------------------
@@ -141,7 +143,7 @@ A longer echo train
 Additional echoes extend the sampled decay curve and increase the minimum
 repetition time and final echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-87
+.. GENERATED FROM PYTHON SOURCE LINES 68-82
 
 .. code-block:: Python
 
@@ -166,7 +168,7 @@ repetition time and final echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 83-85
 
 .. code-block:: Python
 
@@ -190,49 +192,10 @@ repetition time and final echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-97
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 97-128
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.63 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.656 seconds)
+   **Total running time of the script:** (0 minutes 18.256 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:

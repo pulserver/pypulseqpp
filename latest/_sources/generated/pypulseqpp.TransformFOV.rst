@@ -21,5 +21,3 @@
 
 
 
-.. minigallery:: pypulseqpp.TransformFOV
-   :add-heading: Examples using ``TransformFOV``

@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -514,18 +514,18 @@
 <span class="sd">        Nominal flip angle (degrees).</span>
 <span class="sd">    bandwidth_hz : float</span>
 <span class="sd">        Spectral passband (Hz).</span>
-<span class="sd">    freq_offset_ppm : float, optional</span>
+<span class="sd">    freq_offset_ppm : float, default=0.0</span>
 <span class="sd">        Centre of the band, relative to water (ppm). Water itself by default.</span>
-<span class="sd">    freq_offset_hz : float, optional</span>
+<span class="sd">    freq_offset_hz : float, default=0.0</span>
 <span class="sd">        Centre of the band as a frequency offset (Hz), added to the offset</span>
 <span class="sd">        ``freq_offset_ppm`` specifies.</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product. Higher is a squarer band and a longer pulse.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        SLR design family.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
-<span class="sd">    passband_ripple, stopband_ripple : float, optional</span>
+<span class="sd">    passband_ripple, stopband_ripple : float, default=0.01</span>
 <span class="sd">        Ripple allowed in each band of the spectral profile.</span>
 
 <span class="sd">    Attributes</span>
@@ -624,21 +624,21 @@
 <span class="sd">    spectral_bandwidth_hz : float</span>
 <span class="sd">        Spectral passband (Hz). With ``spectral_time_bw_product`` it fixes the</span>
 <span class="sd">        total duration.</span>
-<span class="sd">    freq_offset_hz : float, optional</span>
+<span class="sd">    freq_offset_hz : float, default=0.0</span>
 <span class="sd">        Centre of the spectral band (Hz).</span>
-<span class="sd">    is_slab : bool, optional</span>
+<span class="sd">    is_slab : bool, default=False</span>
 <span class="sd">        Merge any rephaser into the selection gradient rather than a second block.</span>
-<span class="sd">    rephase : bool, optional</span>
+<span class="sd">    rephase : bool, default=True</span>
 <span class="sd">        Include a slice rephaser.</span>
-<span class="sd">    spatial_time_bw_product : float, optional</span>
+<span class="sd">    spatial_time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product of each spatial subpulse.</span>
-<span class="sd">    spectral_time_bw_product : float, optional</span>
+<span class="sd">    spectral_time_bw_product : float, default=3.0</span>
 <span class="sd">        Time-bandwidth product of the spectral envelope.</span>
-<span class="sd">    n_subpulses : int, optional</span>
+<span class="sd">    n_subpulses : int, default=10</span>
 <span class="sd">        Subpulses in the train.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Selection axis.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
 
 <span class="sd">    Attributes</span>

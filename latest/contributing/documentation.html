@@ -287,7 +287,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -656,11 +656,19 @@
 </table>
 </div>
 <p>These forms may link extensively to one another, but they should not be collapsed into a single style of documentation.</p>
+<p>The three principal modes have distinct levels of detail:</p>
+<ul class="simple">
+<li><p><strong>Explanation</strong> is concise scientific prose organised around equations, figures, tables, schematics, or explicit criteria. Each object is introduced and interpreted briefly.</p></li>
+<li><p><strong>Examples</strong> are executable MRI workflows that connect sequence physics, acquisition strategy, and application to observable output.</p></li>
+<li><p><strong>API reference</strong> is terse and exhaustive. Accurate NumPy-style docstrings carry interface semantics, units, types, and defaults.</p></li>
+</ul>
+<p>Cross-link these modes rather than repeating the same account in all three.</p>
 <section id="api-reference">
 <h3>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">#</a></h3>
 <p>API reference defines the public interface and its precise semantics.</p>
 <p>The intended reader is technically competent and reasonably familiar with the relevant scientific domain. Standard domain concepts should be named directly rather than replaced by informal explanations.</p>
 <p>Mature scientific Python projects such as MRpro, PyLops, PyProximal, Pyxu, DeepInv, and SigPy provide useful examples of the desired reference-documentation register. Domain-specific authoritative libraries and specifications should additionally guide terminology and conventions.</p>
+<p>Every parameter with a Python default records it in the Parameters entry as <code class="docutils literal notranslate"><span class="pre">default=&lt;repr&gt;</span></code>; <code class="docutils literal notranslate"><span class="pre">optional</span></code> alone is insufficient. Required parameters do not claim defaults. The documented value must match the callable signature. Individual object pages use compact headings, leaving types and defaults to the Parameters section.</p>
 <p>A public function, class, method, or operator should document, where relevant:</p>
 <ol class="arabic simple">
 <li><p>the mathematical, scientific, or computational object represented;</p></li>

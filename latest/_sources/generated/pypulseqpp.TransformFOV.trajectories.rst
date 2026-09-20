@@ -5,5 +5,3 @@ TransformFOV.trajectories
 
 .. automethod:: TransformFOV.trajectories
 
-.. minigallery:: pypulseqpp.TransformFOV.trajectories
-   :add-heading: Examples using ``TransformFOV.trajectories``

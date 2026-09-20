@@ -22,26 +22,28 @@
 3D Cartesian spin echo
 ========================
 
-One excitation and one refocusing pulse per ``(line, partition)`` view
-over a slab.
+A slab-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a Cartesian ``(line, partition)`` readout. Spoilers suppress
+unwanted coherence before the next TR. TE and TR determine T2 and longitudinal
+recovery weighting. 3D spin echo supports high-resolution structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-36
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 11-31
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 32-36
 
 Baseline
 --------
 
 A full Cartesian sampling of the slab.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-49
+.. GENERATED FROM PYTHON SOURCE LINES 36-44
 
 .. code-block:: Python
 
@@ -66,12 +68,12 @@ A full Cartesian sampling of the slab.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-52
+.. GENERATED FROM PYTHON SOURCE LINES 45-47
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-55
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
 .. code-block:: Python
 
@@ -92,18 +94,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afaf14620>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598a797c50>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-60
+.. GENERATED FROM PYTHON SOURCE LINES 51-55
 
 Sampling order
 --------------
 
 The phase-encode plane in the order it is read.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 55-58
 
 .. code-block:: Python
 
@@ -128,7 +130,7 @@ The phase-encode plane in the order it is read.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-69
+.. GENERATED FROM PYTHON SOURCE LINES 59-64
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -136,7 +138,7 @@ Acceleration on both encoded axes
 Skipping lines and partitions reduces the number of repetitions by four.
 Every acquired view retains the prescribed spin-echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-83
+.. GENERATED FROM PYTHON SOURCE LINES 64-78
 
 .. code-block:: Python
 
@@ -161,7 +163,7 @@ Every acquired view retains the prescribed spin-echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 79-81
 
 .. code-block:: Python
 
@@ -185,49 +187,10 @@ Every acquired view retains the prescribed spin-echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-93
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 93-124
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.5 mT/m
-    slew rate                  pass                  167 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 25.939 seconds)
+   **Total running time of the script:** (0 minutes 17.468 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

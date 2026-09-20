@@ -31,5 +31,3 @@
    ~ForbiddenBand.tolerance
 
 
-.. minigallery:: pypulseqpp.safety.ForbiddenBand
-   :add-heading: Examples using ``ForbiddenBand``

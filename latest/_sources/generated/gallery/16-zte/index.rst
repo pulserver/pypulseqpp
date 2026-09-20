@@ -23,7 +23,7 @@ Zero echo time
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. Concurrent excitation and gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive dead time leaves a central k-space gap.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A short non-selective excitation is applied while the radial readout gradient is already at amplitude. Acquisition begins after the transmit/receive dead time, without gradient-echo formation; spoiling suppresses residual transverse magnetisation between repetitions. Contrast depends on TR, flip angle, RF bandwidth, and very short-T2 decay. ZTE is used for anatomical imaging of short-T2 tissues and other minimal-TE applications.">
 
 .. only:: html
 

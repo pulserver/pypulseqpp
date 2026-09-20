@@ -32,5 +32,3 @@
    ~RfModule.seq
 
 
-.. minigallery:: pypulseqpp.sequences.RfModule
-   :add-heading: Examples using ``RfModule``

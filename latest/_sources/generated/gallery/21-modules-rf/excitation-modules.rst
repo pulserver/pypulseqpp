@@ -176,14 +176,14 @@ frequency offset of ``selection_amplitude * position`` on the pulse.
       made = factory(*args, **kwargs)
     SmsExcitation 2 blocks, 4.66 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b472a80>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598b088530>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.318 seconds)
+   **Total running time of the script:** (0 minutes 0.241 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_21-modules-rf_excitation-modules.py:

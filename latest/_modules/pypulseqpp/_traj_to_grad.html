@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -518,15 +518,15 @@
 <span class="sd">    k : numpy.ndarray</span>
 <span class="sd">        K-space trajectory, **time last**: shape ``(n,)``, ``(2, n)`` or</span>
 <span class="sd">        ``(3, n)``, in 1/m.</span>
-<span class="sd">    raster_time : float, optional</span>
+<span class="sd">    raster_time : float, default=None</span>
 <span class="sd">        Gradient raster (s). Defaults to the system's.</span>
-<span class="sd">    time_optimal : bool, optional</span>
+<span class="sd">    time_optimal : bool, default=True</span>
 <span class="sd">        Re-parameterise the path within the limits rather than differentiate it.</span>
-<span class="sd">    system : pypulseqpp.Opts, optional</span>
+<span class="sd">    system : pypulseqpp.Opts, default=None</span>
 <span class="sd">        System limits; supplies ``max_grad``, ``max_slew`` and the raster.</span>
-<span class="sd">    oversampling : int, optional</span>
+<span class="sd">    oversampling : int, default=8</span>
 <span class="sd">        Path-resampling factor the solver works at.</span>
-<span class="sd">    start_at_zero, end_at_zero : bool, optional</span>
+<span class="sd">    start_at_zero, end_at_zero : bool, default=True</span>
 <span class="sd">        Ramp the waveform up from and back down to zero amplitude.</span>
 
 <span class="sd">    Returns</span>

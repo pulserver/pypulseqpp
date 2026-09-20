@@ -5,5 +5,3 @@ MultibandExcitation.blocks
 
 .. autoproperty:: MultibandExcitation.blocks
 
-.. minigallery:: pypulseqpp.sequences.MultibandExcitation.blocks
-   :add-heading: Examples using ``MultibandExcitation.blocks``

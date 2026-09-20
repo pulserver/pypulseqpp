@@ -5,5 +5,3 @@ ChronaxieModel.rheobase
 
 .. autoattribute:: ChronaxieModel.rheobase
 
-.. minigallery:: pypulseqpp.safety.ChronaxieModel.rheobase
-   :add-heading: Examples using ``ChronaxieModel.rheobase``

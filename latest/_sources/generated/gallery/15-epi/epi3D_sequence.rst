@@ -22,15 +22,13 @@
 3D echo-planar imaging
 ========================
 
-One excitation per shot, followed by a train of readout lobes of alternating
-polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA
-lattice. Phase-encode lines satisfy ``(y - n_y // 2) % ry == 0``; the partition
-index advances by the CAIPI shift between adjacent lattice lines. Each shot
-acquires every ``n_shots``-th lattice line, defining skipped-CAIPI sampling
-(Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot
-per shell is blipped-CAIPI.
+A slab-selective excitation is followed by alternating readout gradients with
+phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes
+a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
+transverse coherence between repetitions; off-resonance accumulates during
+each echo train. 3D EPI supports rapid structural and functional imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-142
+.. GENERATED FROM PYTHON SOURCE LINES 12-133
 
 
 
@@ -39,7 +37,7 @@ per shell is blipped-CAIPI.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 143-150
+.. GENERATED FROM PYTHON SOURCE LINES 134-141
 
 Accelerated acquisition
 -----------------------
@@ -49,7 +47,7 @@ and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 successive echoes therefore contain both the skipped-line displacement and
 the partition jump.
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-169
+.. GENERATED FROM PYTHON SOURCE LINES 141-160
 
 .. code-block:: Python
 
@@ -86,12 +84,12 @@ the partition jump.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 170-172
+.. GENERATED FROM PYTHON SOURCE LINES 161-163
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-175
+.. GENERATED FROM PYTHON SOURCE LINES 163-166
 
 .. code-block:: Python
 
@@ -112,11 +110,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b4a4680>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a8d934d0>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 176-187
+.. GENERATED FROM PYTHON SOURCE LINES 167-178
 
 Skipped-CAIPI traversal
 -----------------------
@@ -130,7 +128,7 @@ amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
 :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 187-194
+.. GENERATED FROM PYTHON SOURCE LINES 178-185
 
 
 
@@ -144,7 +142,7 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 195-202
+.. GENERATED FROM PYTHON SOURCE LINES 186-193
 
 Single-shot comparison
 ----------------------
@@ -154,7 +152,7 @@ each shell. Three shots shorten the readout window and the geometric distortion
 along the phase-encode axis; the inter-echo jumps grow because each shot
 steps three sampled lattice lines at a time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 202-239
+.. GENERATED FROM PYTHON SOURCE LINES 193-230
 
 .. code-block:: Python
 
@@ -191,7 +189,7 @@ steps three sampled lattice lines at a time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 240-246
+.. GENERATED FROM PYTHON SOURCE LINES 231-237
 
 In-plane acceleration
 ---------------------
@@ -200,7 +198,7 @@ In-plane acceleration
 increasing lattice spacing along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
 where the CAIPI shift puts them.
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-267
+.. GENERATED FROM PYTHON SOURCE LINES 237-258
 
 .. code-block:: Python
 
@@ -238,74 +236,10 @@ where the CAIPI shift puts them.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 268-275
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's. This short-echo-spacing configuration exceeds the demonstration model's
-threshold.
-
-.. GENERATED FROM PYTHON SOURCE LINES 275-307
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model, trace=True)
-
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.7 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.05 of threshold
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 308-314
-
-Peripheral nerve stimulation
-----------------------------
-
-The repeated readout-gradient reversals produce a rapid rise in the PNS
-response during the first echoes. ``check_pns``
-returns the response it took its peak from.
-
-.. GENERATED FROM PYTHON SOURCE LINES 314-328
-
-
-
-
-.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_005.png
-   :alt: threshold dashed
-   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi3D_sequence_005.png
-   :class: sphx-glr-single-img
-
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.765 seconds)
+   **Total running time of the script:** (0 minutes 0.356 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

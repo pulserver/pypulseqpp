@@ -5,5 +5,3 @@ SpatialSelective2DExcitation.duration
 
 .. autoproperty:: SpatialSelective2DExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelective2DExcitation.duration
-   :add-heading: Examples using ``SpatialSelective2DExcitation.duration``

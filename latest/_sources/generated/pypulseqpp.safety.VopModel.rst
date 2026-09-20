@@ -29,5 +29,3 @@
    ~VopModel.vops
 
 
-.. minigallery:: pypulseqpp.safety.VopModel
-   :add-heading: Examples using ``VopModel``

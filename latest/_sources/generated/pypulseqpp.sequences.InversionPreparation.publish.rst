@@ -5,5 +5,3 @@ InversionPreparation.publish
 
 .. automethod:: InversionPreparation.publish
 
-.. minigallery:: pypulseqpp.sequences.InversionPreparation.publish
-   :add-heading: Examples using ``InversionPreparation.publish``

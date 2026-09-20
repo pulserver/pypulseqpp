@@ -23,7 +23,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation is followed by alternating readout gradients and phase-encode blips that acquire multiple Cartesian lines in one echo train. Spoilers suppress residual transverse coherence between repetitions. Off-resonance phase accumulates during the train and produces geometric distortion along the phase-encode axis. EPI supports rapid structural imaging and functional MRI.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA lattice. Phase-encode lines satisfy (y - n_y // 2) % ry == 0; the partition index advances by the CAIPI shift between adjacent lattice lines. Each shot acquires every n_shots-th lattice line, defining skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by alternating readout gradients with phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes a three-dimensional Cartesian lattice among shots. Spoilers suppress residual transverse coherence between repetitions; off-resonance accumulates during each echo train. 3D EPI supports rapid structural and functional imaging.">
 
 .. only:: html
 

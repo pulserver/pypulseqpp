@@ -5,5 +5,3 @@ LineReadout3D.init\_module
 
 .. automethod:: LineReadout3D.init_module
 
-.. minigallery:: pypulseqpp.sequences.LineReadout3D.init_module
-   :add-heading: Examples using ``LineReadout3D.init_module``

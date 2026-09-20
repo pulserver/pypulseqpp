@@ -5,5 +5,3 @@ SpatialSelective2DExcitation.register
 
 .. automethod:: SpatialSelective2DExcitation.register
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelective2DExcitation.register
-   :add-heading: Examples using ``SpatialSelective2DExcitation.register``

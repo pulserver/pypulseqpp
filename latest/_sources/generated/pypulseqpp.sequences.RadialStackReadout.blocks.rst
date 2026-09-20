@@ -5,5 +5,3 @@ RadialStackReadout.blocks
 
 .. autoproperty:: RadialStackReadout.blocks
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout.blocks
-   :add-heading: Examples using ``RadialStackReadout.blocks``

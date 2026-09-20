@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -522,9 +522,9 @@
 <span class="sd">        K-space path, ``(n, 2)`` or ``(n, 3)``, in 1/m.</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    oversampling : int, optional</span>
+<span class="sd">    oversampling : int, default=8</span>
 <span class="sd">        Path-resampling factor the solver works at.</span>
-<span class="sd">    start_at_zero, end_at_zero : bool, optional</span>
+<span class="sd">    start_at_zero, end_at_zero : bool, default=True</span>
 <span class="sd">        Ramp up from and back down to zero amplitude. Disable an endpoint</span>
 <span class="sd">        where a prewinder or rewinder meets the readout at non-zero amplitude.</span>
 
@@ -704,14 +704,14 @@
 <span class="sd">        The acquisition window under ``gradients``.</span>
 <span class="sd">    trajectory : ArrayLike</span>
 <span class="sd">        ``(n, 2)`` or ``(n, 3)`` k-space path (1/m).</span>
-<span class="sd">    design_interleaves : int, optional</span>
+<span class="sd">    design_interleaves : int, default=None</span>
 <span class="sd">        Interleaf count the path's pitch was designed for.</span>
-<span class="sd">    recommended_rotations : int, optional</span>
+<span class="sd">    recommended_rotations : int, default=None</span>
 <span class="sd">        Rotated copies that sample the path's disc at Nyquist.</span>
-<span class="sd">    prewinders, rewinders : Sequence[GradEvent], optional</span>
+<span class="sd">    prewinders, rewinders : Sequence[GradEvent], default=()</span>
 <span class="sd">        Prewinding gradients from k = 0 to the path's start, and rewinding</span>
 <span class="sd">        gradients from its end back to k = 0, one event per channel.</span>
-<span class="sd">    kind : str, optional</span>
+<span class="sd">    kind : str, default=None</span>
 <span class="sd">        Name of the interleaf family.</span>
 
 <span class="sd">    Attributes</span>
@@ -721,12 +721,12 @@
 <span class="sd">        :class:`Rosette` the k-space at the ADC samples.</span>
 <span class="sd">    bandwidth_hz_px : float</span>
 <span class="sd">        ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.</span>
-<span class="sd">    design_interleaves : int | None</span>
+<span class="sd">    design_interleaves : int | None, default=None</span>
 <span class="sd">        Interleaf count the spiral pitch was designed for.</span>
-<span class="sd">    recommended_rotations : int | None</span>
+<span class="sd">    recommended_rotations : int | None, default=None</span>
 <span class="sd">        Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``,</span>
 <span class="sd">        for a radial spoke; ``None`` otherwise.</span>
-<span class="sd">    kind : str</span>
+<span class="sd">    kind : str, default=None</span>
 <span class="sd">        ``"arbitrary"``, ``"full"`` (radial), ``"spiral"`` or ``"rosette"``.</span>
 
 <span class="sd">    Examples</span>
@@ -950,16 +950,16 @@
 <span class="sd">    matrix : int</span>
 <span class="sd">        Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,</span>
 <span class="sd">        rounded down to ``system.adc_samples_divisor``.</span>
-<span class="sd">    bandwidth_hz_px : float, optional</span>
+<span class="sd">    bandwidth_hz_px : float, default=250000.0</span>
 <span class="sd">        Requested ``1 / dwell`` (Hz).</span>
-<span class="sd">    oversamp : float, optional</span>
+<span class="sd">    oversamp : float, default=1.0</span>
 <span class="sd">        ADC oversampling, at least one.</span>
-<span class="sd">    axes : Sequence[str], optional</span>
+<span class="sd">    axes : Sequence[str], default=None</span>
 <span class="sd">        Channel per path component; the first two or three of x, y, z by</span>
 <span class="sd">        default.</span>
-<span class="sd">    solver_oversampling : int, optional</span>
+<span class="sd">    solver_oversampling : int, default=8</span>
 <span class="sd">        Path-resampling factor of the time-optimal solver.</span>
-<span class="sd">    derate : bool, optional</span>
+<span class="sd">    derate : bool, default=True</span>
 <span class="sd">        Apply :func:`pypulseqpp.apply_system_derates` first.</span>
 
 <span class="sd">    Raises</span>
@@ -1150,29 +1150,32 @@
 <span class="sd">    design_interleaves : int</span>
 <span class="sd">        Interleaf count the pitch is designed for, not the number of arms</span>
 <span class="sd">        acquired.</span>
-<span class="sd">    direction : {'outward', 'inward', 'in_out'}, optional</span>
+<span class="sd">    direction : {'outward', 'inward', 'in_out'}, default='outward'</span>
 <span class="sd">        Traversal, as above.</span>
-<span class="sd">    density : {'constant', 'variable', 'dual'}, optional</span>
+<span class="sd">    density : {'constant', 'variable', 'dual'}, default='constant'</span>
 <span class="sd">        Constant pitch, a radial power-law transition, or a logistic</span>
 <span class="sd">        transition.</span>
-<span class="sd">    inner_design_interleaves, outer_design_interleaves : float, optional</span>
+<span class="sd">    inner_design_interleaves, outer_design_interleaves : float, default=None</span>
 <span class="sd">        Local pitch at the centre and at the edge.</span>
-<span class="sd">    variable_density_power : float, optional</span>
+<span class="sd">    variable_density_power : float, default=2.0</span>
 <span class="sd">        Exponent of the normalised radius, for variable density.</span>
-<span class="sd">    transition_radius, transition_speed : float, optional</span>
+<span class="sd">    transition_radius : float, default=0.5</span>
 <span class="sd">        Normalised radius and logistic steepness of the dual-density</span>
 <span class="sd">        transition.</span>
-<span class="sd">    num_points : int, optional</span>
+<span class="sd">    transition_speed : float, default=12.0</span>
+<span class="sd">        Normalised radius and logistic steepness of the dual-density</span>
+<span class="sd">        transition.</span>
+<span class="sd">    num_points : int, default=1024</span>
 <span class="sd">        Path samples given to the solver, not ADC samples.</span>
-<span class="sd">    bandwidth_hz_px : float, optional</span>
+<span class="sd">    bandwidth_hz_px : float, default=250000.0</span>
 <span class="sd">        Requested ``1 / dwell`` (Hz).</span>
-<span class="sd">    oversamp : float, optional</span>
+<span class="sd">    oversamp : float, default=1.0</span>
 <span class="sd">        ADC oversampling; tightens the step limit.</span>
-<span class="sd">    axes : tuple[str, str], optional</span>
+<span class="sd">    axes : tuple[str, str], default=('x', 'y')</span>
 <span class="sd">        Channels for the path's two components.</span>
-<span class="sd">    solver_oversampling : int, optional</span>
+<span class="sd">    solver_oversampling : int, default=8</span>
 <span class="sd">        Path-resampling factor of the time-optimal solver.</span>
-<span class="sd">    derate : bool, optional</span>
+<span class="sd">    derate : bool, default=True</span>
 <span class="sd">        Apply :func:`pypulseqpp.apply_system_derates` first.</span>
 
 <span class="sd">    Raises</span>
@@ -1356,28 +1359,28 @@
 <span class="sd">        adjacent ADC samples to ``1 / (oversamp * fov)``.</span>
 <span class="sd">    matrix : int or array-like</span>
 <span class="sd">        Isotropic matrix size.</span>
-<span class="sd">    petals : int, optional</span>
+<span class="sd">    petals : int, default=5</span>
 <span class="sd">        Centre-to-centre lobes within this one interleaf, not rotated shots.</span>
-<span class="sd">    angular_frequency_ratio : float, optional</span>
+<span class="sd">    angular_frequency_ratio : float, default=3.0 / 5.0</span>
 <span class="sd">        Angular over radial frequency: below one the petals are open, one is</span>
 <span class="sd">        the circular limit, above one they wind more tightly.</span>
-<span class="sd">    echo_spacing_s : float, optional</span>
+<span class="sd">    echo_spacing_s : float, default=None</span>
 <span class="sd">        Mean centre-to-centre petal duration (s); ``None`` is the minimum the</span>
 <span class="sd">        limits allow, and a longer value stretches the waveform uniformly.</span>
 <span class="sd">        The ramps at each end can make the first and last crossing intervals</span>
 <span class="sd">        differ slightly from the mean.</span>
-<span class="sd">    bandwidth_hz_px : float, optional</span>
+<span class="sd">    bandwidth_hz_px : float, default=250000.0</span>
 <span class="sd">        Requested ``1 / dwell`` (Hz). The dwell is also bounded by the step</span>
 <span class="sd">        limit and floored to the ADC raster, so the realised bandwidth can be</span>
 <span class="sd">        higher.</span>
-<span class="sd">    oversamp : float, optional</span>
+<span class="sd">    oversamp : float, default=1.0</span>
 <span class="sd">        ADC oversampling; tightens the step limit without changing the</span>
 <span class="sd">        gradient.</span>
-<span class="sd">    axes : tuple[str, str], optional</span>
+<span class="sd">    axes : tuple[str, str], default=('x', 'y')</span>
 <span class="sd">        Channels for the path's two components.</span>
-<span class="sd">    solver_oversampling : int, optional</span>
+<span class="sd">    solver_oversampling : int, default=8</span>
 <span class="sd">        Path-resampling factor of the time-optimal solver.</span>
-<span class="sd">    derate : bool, optional</span>
+<span class="sd">    derate : bool, default=True</span>
 <span class="sd">        Apply :func:`pypulseqpp.apply_system_derates` first.</span>
 
 <span class="sd">    Raises</span>

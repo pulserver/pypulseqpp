@@ -5,5 +5,3 @@ SequenceApp.init\_sequence
 
 .. automethod:: SequenceApp.init_sequence
 
-.. minigallery:: pypulseqpp.sequences.SequenceApp.init_sequence
-   :add-heading: Examples using ``SequenceApp.init_sequence``

@@ -5,5 +5,3 @@ SpatialSelectiveExcitation.publish
 
 .. automethod:: SpatialSelectiveExcitation.publish
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation.publish
-   :add-heading: Examples using ``SpatialSelectiveExcitation.publish``

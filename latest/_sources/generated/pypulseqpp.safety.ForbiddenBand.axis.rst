@@ -5,5 +5,3 @@ ForbiddenBand.axis
 
 .. autoattribute:: ForbiddenBand.axis
 
-.. minigallery:: pypulseqpp.safety.ForbiddenBand.axis
-   :add-heading: Examples using ``ForbiddenBand.axis``

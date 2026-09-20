@@ -5,5 +5,3 @@ RfModule.duration
 
 .. autoproperty:: RfModule.duration
 
-.. minigallery:: pypulseqpp.sequences.RfModule.duration
-   :add-heading: Examples using ``RfModule.duration``

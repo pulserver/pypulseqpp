@@ -5,5 +5,3 @@ NonCartesianReadout.arm
 
 .. automethod:: NonCartesianReadout.arm
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianReadout.arm
-   :add-heading: Examples using ``NonCartesianReadout.arm``

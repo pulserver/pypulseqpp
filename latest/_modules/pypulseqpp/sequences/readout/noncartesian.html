@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -599,9 +599,9 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse that opens the repetition.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        The rephaser that unwinds ``gz``. Carried left-aligned in the first</span>
 <span class="sd">        block after the pulse -- the TE wait when there is one, otherwise</span>
 <span class="sd">        alongside the prephaser at the head of the spoke, where it costs no</span>
@@ -612,35 +612,35 @@
 <span class="sd">        Isotropic in-plane field of view (m).</span>
 <span class="sd">    matrix : int</span>
 <span class="sd">        In-plane matrix size. Sets ``kmax = matrix / (2 * fov)``.</span>
-<span class="sd">    fov_z, matrix_z : float, int</span>
+<span class="sd">    fov_z, matrix_z : float, int, default=None</span>
 <span class="sd">        Partition field of view (m) and count. Stacks only.</span>
-<span class="sd">    te, tr : float, optional</span>
+<span class="sd">    te, tr : float, default=None</span>
 <span class="sd">        Echo time (s) from the RF isodelay to the centre crossing, and</span>
 <span class="sd">        repetition time (s). ``None`` is as short as possible.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        Readout oversampling: more samples along the same spoke.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Dephasing left at the end of the TR, in cycles across</span>
 <span class="sd">        ``voxel_size_m``. Zero leaves the spoke rewound.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=None</span>
 <span class="sd">        Length the spoiling is counted over (m); the resolution by default.</span>
-<span class="sd">    spoiling_axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    spoiling_axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Axis the spoiler is played on.</span>
-<span class="sd">    n_echoes : int, optional</span>
+<span class="sd">    n_echoes : int, default=1</span>
 <span class="sd">        Path traversals per repetition, separated by ``echo_spacing``.</span>
 <span class="sd">        Each retraces the same k-space coordinates and carries its own ``ECO``</span>
 <span class="sd">        label. Non-Cartesian arms use rewinders/prewinders between echoes.</span>
-<span class="sd">    explicit : bool, optional</span>
+<span class="sd">    explicit : bool, default=False</span>
 <span class="sd">        Write out one spoke per entry of ``angles`` instead of one base spoke.</span>
-<span class="sd">    angles : array-like, optional</span>
+<span class="sd">    angles : array-like, default=None</span>
 <span class="sd">        In-plane rotations (rad). Required when ``explicit``, refused</span>
 <span class="sd">        otherwise -- a sampling pattern is not the readout's to hold.</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the acquisition block.</span>
-<span class="sd">    trigger : event, optional</span>
+<span class="sd">    trigger : event, default=None</span>
 <span class="sd">        A trigger or digital output armed on the block that opens the readout.</span>
 
 <span class="sd">    Raises</span>
@@ -944,43 +944,43 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse that opens the repetition.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        The rephaser that unwinds ``gz``, carried left-aligned in the first</span>
 <span class="sd">        block after the pulse. Only an axis the loop's rotation leaves alone</span>
 <span class="sd">        can carry one.</span>
 <span class="sd">    trajectory : NonCartesianGradient</span>
 <span class="sd">        Solved gradient interleaf with its ADC, prewinder and rewinder.</span>
-<span class="sd">    fov_z : float, optional</span>
+<span class="sd">    fov_z : float, default=None</span>
 <span class="sd">        Partition field of view (m). Stacks only.</span>
-<span class="sd">    matrix_z : int, optional</span>
+<span class="sd">    matrix_z : int, default=None</span>
 <span class="sd">        Partition count. Stacks only.</span>
-<span class="sd">    te : float, optional</span>
+<span class="sd">    te : float, default=None</span>
 <span class="sd">        Echo time (s) from the RF isodelay to the path's nearest k = 0</span>
 <span class="sd">        crossing. ``None`` is as short as possible.</span>
-<span class="sd">    tr : float, optional</span>
+<span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s). ``None`` is as short as possible.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Dephasing left at the end of the TR, in cycles across</span>
 <span class="sd">        ``voxel_size_m``. Zero leaves the path rewound.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=None</span>
 <span class="sd">        Length the spoiling is counted over (m); the trajectory's resolution</span>
 <span class="sd">        by default.</span>
-<span class="sd">    spoiling_axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    spoiling_axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Axis the spoiler is played on.</span>
-<span class="sd">    n_echoes : int, optional</span>
+<span class="sd">    n_echoes : int, default=1</span>
 <span class="sd">        Path traversals per repetition, separated by ``echo_spacing``, each</span>
 <span class="sd">        with its own ``ECO`` label and joined by rewinders and prewinders.</span>
-<span class="sd">    explicit : bool, optional</span>
+<span class="sd">    explicit : bool, default=False</span>
 <span class="sd">        Write out one interleaf per entry of ``angles`` instead of one base</span>
 <span class="sd">        interleaf.</span>
-<span class="sd">    angles : ArrayLike, optional</span>
+<span class="sd">    angles : ArrayLike, default=None</span>
 <span class="sd">        In-plane rotations (rad). Required when ``explicit``, refused</span>
 <span class="sd">        otherwise.</span>
-<span class="sd">    labels : Sequence[str], optional</span>
+<span class="sd">    labels : Sequence[str], default=None</span>
 <span class="sd">        Counters emitted on the acquisition block.</span>
-<span class="sd">    trigger : TriggerEvent, optional</span>
+<span class="sd">    trigger : TriggerEvent, default=None</span>
 <span class="sd">        A trigger or digital output armed on the block that opens the readout.</span>
 
 <span class="sd">    Examples</span>
@@ -1218,27 +1218,30 @@
 <span class="sd">        Isotropic field of view (m).</span>
 <span class="sd">    matrix : int</span>
 <span class="sd">        In-plane matrix size.</span>
-<span class="sd">    design_interleaves : int, optional</span>
+<span class="sd">    design_interleaves : int, default=16</span>
 <span class="sd">        Nominal pitch, not the number of arms acquired.</span>
-<span class="sd">    direction : {'outward', 'inward', 'in_out'}, optional</span>
+<span class="sd">    direction : {'outward', 'inward', 'in_out'}, default='outward'</span>
 <span class="sd">        Centre-to-edge, edge-to-centre, or edge-to-centre-to-edge traversal.</span>
-<span class="sd">    density : {'constant', 'variable', 'dual'}, optional</span>
+<span class="sd">    density : {'constant', 'variable', 'dual'}, default='constant'</span>
 <span class="sd">        Constant pitch, a radial power-law transition, or a logistic transition.</span>
-<span class="sd">    inner_design_interleaves, outer_design_interleaves : float, optional</span>
+<span class="sd">    inner_design_interleaves, outer_design_interleaves : float, default=None</span>
 <span class="sd">        Local pitch at the centre and edge. Inner defaults to design_interleaves;</span>
 <span class="sd">        outer defaults to twice inner for variable density and is required for dual.</span>
-<span class="sd">    variable_density_power : float, optional</span>
+<span class="sd">    variable_density_power : float, default=2.0</span>
 <span class="sd">        Positive exponent of the normalised radius for variable density.</span>
-<span class="sd">    transition_radius, transition_speed : float, optional</span>
+<span class="sd">    transition_radius : float, default=0.5</span>
 <span class="sd">        Normalised transition radius (between 0 and 1) and positive logistic</span>
 <span class="sd">        steepness for dual density.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    transition_speed : float, default=12.0</span>
+<span class="sd">        Normalised transition radius (between 0 and 1) and positive logistic</span>
+<span class="sd">        steepness for dual density.</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        ADC oversampling factor, at least one.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz), not bandwidth per pixel.</span>
-<span class="sd">    n_points : int, optional</span>
+<span class="sd">    n_points : int, default=1024</span>
 <span class="sd">        Geometric path samples supplied to the solver, not ADC samples.</span>
-<span class="sd">    derate : bool, optional</span>
+<span class="sd">    derate : bool, default=True</span>
 <span class="sd">        Apply the package's system derates before solving.</span>
 <span class="sd">    """</span>
 
@@ -1342,18 +1345,18 @@
 <span class="sd">        Isotropic field of view (m).</span>
 <span class="sd">    matrix : int</span>
 <span class="sd">        In-plane matrix size.</span>
-<span class="sd">    petals : int, optional</span>
+<span class="sd">    petals : int, default=5</span>
 <span class="sd">        Centre-to-centre radial lobes in one interleaf, not shots.</span>
-<span class="sd">    angular_frequency_ratio : float, optional</span>
+<span class="sd">    angular_frequency_ratio : float, default=3.0 / 5.0</span>
 <span class="sd">        Positive angular-to-radial frequency ratio.</span>
-<span class="sd">    echo_spacing_s : float, optional</span>
+<span class="sd">    echo_spacing_s : float, default=None</span>
 <span class="sd">        Requested centre-crossing interval (s). The waveform is stretched when</span>
 <span class="sd">        necessary; requests shorter than the time-optimal spacing are rejected.</span>
-<span class="sd">    oversampling : float, optional</span>
+<span class="sd">    oversampling : float, default=1.0</span>
 <span class="sd">        ADC oversampling factor, at least one.</span>
-<span class="sd">    readout_bandwidth_hz : float, optional</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
 <span class="sd">        Requested ADC sampling rate (Hz), not bandwidth per pixel.</span>
-<span class="sd">    derate : bool, optional</span>
+<span class="sd">    derate : bool, default=True</span>
 <span class="sd">        Apply the package's system derates before solving.</span>
 <span class="sd">    """</span>
 

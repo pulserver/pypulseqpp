@@ -5,5 +5,3 @@ InversionPreparation.register
 
 .. automethod:: InversionPreparation.register
 
-.. minigallery:: pypulseqpp.sequences.InversionPreparation.register
-   :add-heading: Examples using ``InversionPreparation.register``

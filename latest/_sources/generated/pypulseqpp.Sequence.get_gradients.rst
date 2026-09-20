@@ -5,5 +5,3 @@ Sequence.get\_gradients
 
 .. automethod:: Sequence.get_gradients
 
-.. minigallery:: pypulseqpp.Sequence.get_gradients
-   :add-heading: Examples using ``Sequence.get_gradients``

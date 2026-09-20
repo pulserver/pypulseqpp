@@ -22,25 +22,28 @@
 2D spiral spin echo
 =====================
 
-One spiral interleaf per excitation, read at the refocused echo.
+A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a spiral interleaf. Spoilers suppress unwanted coherence before
+the next TR. TE controls T2 weighting; off-resonance affects the spiral
+readout. Spiral spin echo supports rapid T2-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-35
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 11-31
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-40
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 32-36
 
 Baseline
 --------
 
 Sixteen interleaves at a constant pitch.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-50
+.. GENERATED FROM PYTHON SOURCE LINES 36-46
 
 .. code-block:: Python
 
@@ -67,12 +70,12 @@ Sixteen interleaves at a constant pitch.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-53
+.. GENERATED FROM PYTHON SOURCE LINES 47-49
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-56
+.. GENERATED FROM PYTHON SOURCE LINES 49-52
 
 .. code-block:: Python
 
@@ -93,18 +96,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b5592b0>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f59888a9160>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-61
+.. GENERATED FROM PYTHON SOURCE LINES 53-57
 
 Sampling order
 --------------
 
 Each interleaf is the solved arm turned to its own angle.
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-64
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -129,7 +132,7 @@ Each interleaf is the solved arm turned to its own angle.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-70
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Variable density
 ----------------
@@ -137,7 +140,7 @@ Variable density
 A dual-density arm retains the Nyquist spacing near the origin and increases
 the pitch at larger radii, reducing the readout duration.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-91
+.. GENERATED FROM PYTHON SOURCE LINES 66-87
 
 .. code-block:: Python
 
@@ -169,7 +172,7 @@ the pitch at larger radii, reducing the readout duration.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-94
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
 
 .. code-block:: Python
 
@@ -193,49 +196,10 @@ the pitch at larger radii, reducing the readout duration.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 95-101
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 101-132
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.7 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.407 seconds)
+   **Total running time of the script:** (0 minutes 1.048 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

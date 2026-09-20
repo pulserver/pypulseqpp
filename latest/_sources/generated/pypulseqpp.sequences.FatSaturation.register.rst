@@ -5,5 +5,3 @@ FatSaturation.register
 
 .. automethod:: FatSaturation.register
 
-.. minigallery:: pypulseqpp.sequences.FatSaturation.register
-   :add-heading: Examples using ``FatSaturation.register``

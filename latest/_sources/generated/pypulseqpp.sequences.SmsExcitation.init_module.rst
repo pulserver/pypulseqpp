@@ -5,5 +5,3 @@ SmsExcitation.init\_module
 
 .. automethod:: SmsExcitation.init_module
 
-.. minigallery:: pypulseqpp.sequences.SmsExcitation.init_module
-   :add-heading: Examples using ``SmsExcitation.init_module``

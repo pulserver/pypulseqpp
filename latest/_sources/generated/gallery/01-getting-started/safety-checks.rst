@@ -167,13 +167,13 @@ which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
 ``trace=True`` returns the response the peak was taken from, so a diagram of
 it is the check's own calculation rather than a second one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-126
+.. GENERATED FROM PYTHON SOURCE LINES 111-128
 
 
 
 
 .. image-sg:: /generated/gallery/01-getting-started/images/sphx_glr_safety-checks_001.png
-   :alt: threshold dashed, peak marked
+   :alt: Peripheral nerve stimulation response
    :srcset: /generated/gallery/01-getting-started/images/sphx_glr_safety-checks_001.png
    :class: sphx-glr-single-img
 
@@ -181,7 +181,7 @@ it is the check's own calculation rather than a second one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-133
+.. GENERATED FROM PYTHON SOURCE LINES 129-135
 
 Mechanical resonance
 --------------------
@@ -190,7 +190,7 @@ Gradient-coil mechanical modes define forbidden frequency bands and amplitude
 tolerances. The check computes the gradient spectrum in overlapping windows
 and reports the largest amplitude within each band.
 
-.. GENERATED FROM PYTHON SOURCE LINES 133-147
+.. GENERATED FROM PYTHON SOURCE LINES 135-149
 
 .. code-block:: Python
 
@@ -222,14 +222,14 @@ and reports the largest amplitude within each band.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-152
+.. GENERATED FROM PYTHON SOURCE LINES 150-154
 
 ``mech_resonance_spectrum`` returns one window's spectrum through the same
 windowed pass, so the figure and the verdict read the same numbers. The
 readout train is periodic, so its spectrum is a comb at the echo-spacing
 frequency and its harmonics.
 
-.. GENERATED FROM PYTHON SOURCE LINES 152-177
+.. GENERATED FROM PYTHON SOURCE LINES 154-181
 
 .. code-block:: Python
 
@@ -243,7 +243,7 @@ frequency and its harmonics.
 
 
 .. image-sg:: /generated/gallery/01-getting-started/images/sphx_glr_safety-checks_002.png
-   :alt: window 5 at 50 ms; forbidden bands shaded, their thresholds dashed
+   :alt: Mechanical-resonance spectrum, window 5 at 50 ms
    :srcset: /generated/gallery/01-getting-started/images/sphx_glr_safety-checks_002.png
    :class: sphx-glr-single-img
 
@@ -251,7 +251,7 @@ frequency and its harmonics.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-187
+.. GENERATED FROM PYTHON SOURCE LINES 182-191
 
 Specific absorption rate
 ------------------------
@@ -263,7 +263,7 @@ circularly polarised shim: it is shaped like a real one and its numbers mean
 nothing about any coil or any subject. A scanner's model is read from a file
 with :func:`~pypulseqpp.safety.read_vops`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 187-202
+.. GENERATED FROM PYTHON SOURCE LINES 191-206
 
 .. code-block:: Python
 
@@ -296,12 +296,12 @@ with :func:`~pypulseqpp.safety.read_vops`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-205
+.. GENERATED FROM PYTHON SOURCE LINES 207-209
 
 Every verdict together
 ----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 205-232
+.. GENERATED FROM PYTHON SOURCE LINES 209-236
 
 
 
@@ -323,7 +323,7 @@ Every verdict together
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 233-239
+.. GENERATED FROM PYTHON SOURCE LINES 237-243
 
 This short-echo-spacing echo-planar train exceeds the demonstration nerve
 model's threshold.
@@ -335,7 +335,7 @@ compared in the
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.470 seconds)
+   **Total running time of the script:** (0 minutes 0.295 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-getting-started_safety-checks.py:

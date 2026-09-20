@@ -5,5 +5,3 @@ SpatialSelectiveExcitation.register
 
 .. automethod:: SpatialSelectiveExcitation.register
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation.register
-   :add-heading: Examples using ``SpatialSelectiveExcitation.register``

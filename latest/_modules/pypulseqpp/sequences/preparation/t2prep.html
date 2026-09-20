@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -514,26 +514,26 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    echo_time_s : float</span>
 <span class="sd">        Preparation echo time (s), first pulse centre to last.</span>
-<span class="sd">    final_tip : {'up', 'down'}, optional</span>
+<span class="sd">    final_tip : {'up', 'down'}, default='up'</span>
 <span class="sd">        Store on ``+z`` (pure T2 weighting) or ``-z``, which starts a T1</span>
 <span class="sd">        recovery as well -- see :class:`T1T2Preparation`.</span>
-<span class="sd">    n_refocus : int, optional</span>
+<span class="sd">    n_refocus : int, default=2</span>
 <span class="sd">        Adiabatic refocusing pulses, spread evenly through the echo time. Must</span>
 <span class="sd">        be even; see above.</span>
-<span class="sd">    half_passage_duration_s : float, optional</span>
+<span class="sd">    half_passage_duration_s : float, default=0.004</span>
 <span class="sd">        Duration of each half passage (s).</span>
-<span class="sd">    refocusing_duration_s : float, optional</span>
+<span class="sd">    refocusing_duration_s : float, default=0.01024</span>
 <span class="sd">        Duration of each refocusing pulse (s).</span>
-<span class="sd">    adiabaticity : int, optional</span>
+<span class="sd">    adiabaticity : int, default=8</span>
 <span class="sd">        Sweep-rate margin over the adiabatic condition, for every pulse.</span>
-<span class="sd">    dwell_s : float, optional</span>
+<span class="sd">    dwell_s : float, default=1e-05</span>
 <span class="sd">        RF raster (s).</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``</span>
 <span class="sd">        on each axis. Zero omits the spoiler block.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters set to 0 on the first pulse's block.</span>
 
 <span class="sd">    Attributes</span>

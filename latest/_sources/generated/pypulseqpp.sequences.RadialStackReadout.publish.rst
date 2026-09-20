@@ -5,5 +5,3 @@ RadialStackReadout.publish
 
 .. automethod:: RadialStackReadout.publish
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout.publish
-   :add-heading: Examples using ``RadialStackReadout.publish``

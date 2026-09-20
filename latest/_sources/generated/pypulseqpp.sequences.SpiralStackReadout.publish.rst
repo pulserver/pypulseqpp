@@ -5,5 +5,3 @@ SpiralStackReadout.publish
 
 .. automethod:: SpiralStackReadout.publish
 
-.. minigallery:: pypulseqpp.sequences.SpiralStackReadout.publish
-   :add-heading: Examples using ``SpiralStackReadout.publish``

@@ -22,22 +22,22 @@
 3D stack-of-stars MPRAGE
 ==========================
 
-One inversion per shot, followed by a spoiled gradient-echo train that
-reads the radial spokes of one partition. In-plane the acquisition is
-radial, so every spoke crosses the centre of k-space and the contrast the
-inversion time sets is carried by every readout rather than by a few
-central lines.
+An inversion preparation is followed by a train of low-flip-angle spoiled
+radial gradient echoes with Cartesian partition encoding. Each spoke crosses
+in-plane k-space centre; spoke and partition order determine the recovery time
+of the acquired data within and between inversion cycles. Stack-of-stars
+MPRAGE provides T1-weighted 3D structural imaging with radial sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-73
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-66
 
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-81
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 67-74
 
 Timing structure
 ----------------
@@ -47,7 +47,7 @@ partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
 shortest timing supported by the modules. Angular undersampling leaves four
 spokes per partition and produces a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-94
+.. GENERATED FROM PYTHON SOURCE LINES 74-87
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ spokes per partition and produces a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 95-97
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
 
 .. code-block:: Python
 
@@ -97,11 +97,11 @@ spokes per partition and produces a compact timing diagram.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e1d00>, tr=1, underlays=[2, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58ab995370>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-107
+.. GENERATED FROM PYTHON SOURCE LINES 91-100
 
 Sampling order
 --------------
@@ -113,7 +113,7 @@ coincident angles in neighbouring partitions. ``TI`` ends at the first
 excitation-pulse centre; the centre of
 k-space on its spoke is sampled at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 107-116
+.. GENERATED FROM PYTHON SOURCE LINES 100-109
 
 .. code-block:: Python
 
@@ -141,14 +141,14 @@ k-space on its spoke is sampled at ``TI + TE``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-121
+.. GENERATED FROM PYTHON SOURCE LINES 110-114
 
 Trajectory
 ----------
 
 The spokes of every partition, over the three k-space axes, coloured by shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 121-124
+.. GENERATED FROM PYTHON SOURCE LINES 114-117
 
 .. code-block:: Python
 
@@ -173,49 +173,10 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-131
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 131-162
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(protocol)
-    slew_ok, slew = safety.check_max_slew(protocol)
-    cont_ok, cont = safety.check_grad_continuity(protocol)
-    pns_ok, pns = safety.check_pns(protocol, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.6 mT/m
-    slew rate                  pass                  168 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation pass          0.97 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 10.289 seconds)
+   **Total running time of the script:** (0 minutes 6.678 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

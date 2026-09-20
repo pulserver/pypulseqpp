@@ -32,5 +32,6 @@
    ~SpatialSelectiveExcitation.seq
 
 
+
 .. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation
    :add-heading: Examples using ``SpatialSelectiveExcitation``

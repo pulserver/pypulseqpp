@@ -32,5 +32,3 @@
    ~SmsExcitation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.SmsExcitation
-   :add-heading: Examples using ``SmsExcitation``

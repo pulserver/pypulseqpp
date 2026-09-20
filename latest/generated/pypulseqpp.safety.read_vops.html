@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.read_vops"><code class="docutils literal notranslate"><span class="pre">read_vops()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-read-vops">Examples using <code class="docutils literal notranslate"><span class="pre">read_vops</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>read_vops<a class="headerlink" href="#read-vops" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.safety.read_vops">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">read_vops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#read_vops"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.read_vops" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">read_vops</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#read_vops"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.read_vops" title="Link to this definition">#</a></dt>
 <dd><p>Read VOPs and a global SAR matrix from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">.mat</span></code> file holds MATLAB’s <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc,</span> <span class="pre">N)</span></code> stack, named <code class="docutils literal notranslate"><span class="pre">VOP</span></code>,
 <code class="docutils literal notranslate"><span class="pre">vops</span></code>, <code class="docutils literal notranslate"><span class="pre">Q10g</span></code> or <code class="docutils literal notranslate"><span class="pre">Q</span></code>, and optionally <code class="docutils literal notranslate"><span class="pre">Sglobal</span></code> or
@@ -574,12 +573,6 @@
 <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code>.</p>
 </dd></dl>
 
-<section id="examples-using-read-vops">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">read_vops</span></code><a class="headerlink" href="#examples-using-read-vops" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Sequence constraint checks</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
-</div></div></section>
 </section>
 
 
@@ -612,7 +605,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.read_vops"><code class="docutils literal notranslate"><span class="pre">read_vops()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-read-vops">Examples using <code class="docutils literal notranslate"><span class="pre">read_vops</span></code></a></li>
 </ul>
   </nav></div>
 

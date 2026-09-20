@@ -5,5 +5,3 @@ FatSaturation.seq
 
 .. autoproperty:: FatSaturation.seq
 
-.. minigallery:: pypulseqpp.sequences.FatSaturation.seq
-   :add-heading: Examples using ``FatSaturation.seq``

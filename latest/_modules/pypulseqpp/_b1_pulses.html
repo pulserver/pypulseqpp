@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -616,13 +616,16 @@
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
 <span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
-<span class="sd">    passband_center, passband_width : float, optional</span>
+<span class="sd">    passband_center : float, default=1.0</span>
 <span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
 <span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    passband_width : float, default=0.2</span>
+<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
+<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
-<span class="sd">    split_and_reflect : bool, optional</span>
+<span class="sd">    split_and_reflect : bool, default=True</span>
 <span class="sd">        Split the sweep and reflect it about the pulse's centre, which keeps</span>
 <span class="sd">        the selectivity at large tip.</span>
 
@@ -688,13 +691,16 @@
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
 <span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
-<span class="sd">    passband_center, passband_width : float, optional</span>
+<span class="sd">    passband_center : float, default=1.0</span>
 <span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
 <span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    passband_width : float, default=0.5</span>
+<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
+<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
-<span class="sd">    split_and_reflect : bool, optional</span>
+<span class="sd">    split_and_reflect : bool, default=True</span>
 <span class="sd">        Split the sweep and reflect it about the pulse's centre, which keeps</span>
 <span class="sd">        the selectivity at large tip.</span>
 
@@ -771,13 +777,13 @@
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
 <span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
-<span class="sd">    passband_center, passband_width : float, optional</span>
+<span class="sd">    passband_center, passband_width : float, default=1.0</span>
 <span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
 <span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
-<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional</span>
+<span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
-<span class="sd">    split_and_reflect : bool, optional</span>
+<span class="sd">    split_and_reflect : bool, default=True</span>
 <span class="sd">        Split the sweep and reflect it about the pulse's centre, which keeps</span>
 <span class="sd">        the selectivity at large tip.</span>
 
@@ -849,11 +855,11 @@
 <span class="sd">        RF amplitude where B1 is nominal, in T.</span>
 <span class="sd">    duration : float</span>
 <span class="sd">        In s.</span>
-<span class="sd">    k : float, optional</span>
+<span class="sd">    k : float, default=42.0</span>
 <span class="sd">        Sweep shape: ``gamma B1 t / k``, with ``gamma B1`` in rad/s, must stay</span>
 <span class="sd">        below one over half the pulse; a larger ``k`` keeps the sweep further</span>
 <span class="sd">        from resonance.</span>
-<span class="sd">    frequency_sign : {1, -1}, optional</span>
+<span class="sd">    frequency_sign : {1, -1}, default=1</span>
 <span class="sd">        Which side of resonance the sweep runs on; the phase changes sign</span>
 <span class="sd">        with it.</span>
 

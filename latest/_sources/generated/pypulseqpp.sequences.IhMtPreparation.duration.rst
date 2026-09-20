@@ -5,5 +5,3 @@ IhMtPreparation.duration
 
 .. autoproperty:: IhMtPreparation.duration
 
-.. minigallery:: pypulseqpp.sequences.IhMtPreparation.duration
-   :add-heading: Examples using ``IhMtPreparation.duration``

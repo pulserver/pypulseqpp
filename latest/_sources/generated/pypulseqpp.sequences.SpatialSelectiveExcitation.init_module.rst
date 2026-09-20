@@ -5,5 +5,3 @@ SpatialSelectiveExcitation.init\_module
 
 .. automethod:: SpatialSelectiveExcitation.init_module
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation.init_module
-   :add-heading: Examples using ``SpatialSelectiveExcitation.init_module``

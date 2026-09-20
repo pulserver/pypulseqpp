@@ -3,13 +3,11 @@
 3D echo-planar imaging
 ========================
 
-One excitation per shot, followed by a train of readout lobes of alternating
-polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA
-lattice. Phase-encode lines satisfy ``(y - n_y // 2) % ry == 0``; the partition
-index advances by the CAIPI shift between adjacent lattice lines. Each shot
-acquires every ``n_shots``-th lattice line, defining skipped-CAIPI sampling
-(Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot
-per shell is blipped-CAIPI.
+A slab-selective excitation is followed by alternating readout gradients with
+phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes
+a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
+transverse coherence between repetitions; off-resonance accumulates during
+each echo train. 3D EPI supports rapid structural and functional imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -128,13 +126,6 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
         rf"$b^{{(1)}}={first},\ b^{{(2)}}={second},\ n={cycle}$"
     )
     return ax
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -265,63 +256,3 @@ figure.tight_layout()
 # sphinx_gallery_end_ignore
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's. This short-echo-spacing configuration exceeds the demonstration model's
-# threshold.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model, trace=True)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ]
-)
-# sphinx_gallery_end_ignore
-
-# %%
-# Peripheral nerve stimulation
-# ----------------------------
-#
-# The repeated readout-gradient reversals produce a rapid rise in the PNS
-# response during the first echoes. ``check_pns``
-# returns the response it took its peak from.
-
-# sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
-for entry in pns.axes:
-    axis.plot(pns.time * 1e3, entry.response, lw=0.8, label=f"$G_{entry.axis}$")
-axis.plot(pns.time * 1e3, pns.response, lw=1.4, color="black", label="combined")
-axis.axhline(1.0, color="tab:red", ls="--", lw=1.0)
-axis.set_xlim(0, 60)
-axis.set_xlabel("time (ms)")
-axis.set_ylabel("response, fraction of threshold")
-axis.set_title("threshold dashed")
-axis.legend(frameon=False, ncol=4, fontsize=9)
-figure.tight_layout()
-# sphinx_gallery_end_ignore

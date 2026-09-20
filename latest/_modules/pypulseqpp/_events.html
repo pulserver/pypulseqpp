@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -848,16 +848,16 @@
 <span class="sd">        One of ``x``, ``y``, ``z``.</span>
 <span class="sd">    waveform : numpy.ndarray</span>
 <span class="sd">        Amplitudes at raster centres, Hz/m.</span>
-<span class="sd">    first, last : float, optional</span>
+<span class="sd">    first, last : float, default=None</span>
 <span class="sd">        Amplitudes at the waveform's outer edges (Hz/m); linearly extrapolated</span>
 <span class="sd">        from the two end samples when omitted.</span>
-<span class="sd">    delay : float</span>
+<span class="sd">    delay : float, default=0.0</span>
 <span class="sd">        Seconds before the waveform starts.</span>
-<span class="sd">    max_grad, max_slew : float, optional</span>
+<span class="sd">    max_grad, max_slew : float, default=None</span>
 <span class="sd">        Limits; ``system``'s when omitted or zero.</span>
-<span class="sd">    system : Opts, optional</span>
+<span class="sd">    system : Opts, default=None</span>
 <span class="sd">        ``Opts.default`` when omitted.</span>
-<span class="sd">    oversampling : bool</span>
+<span class="sd">    oversampling : bool, default=False</span>
 <span class="sd">        The waveform samples a grid twice as fine; its length must be odd.</span>
 
 <span class="sd">    Returns</span>

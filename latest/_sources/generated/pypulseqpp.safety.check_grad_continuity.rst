@@ -5,5 +5,3 @@
 
 .. autofunction:: check_grad_continuity
 
-.. minigallery:: pypulseqpp.safety.check_grad_continuity
-   :add-heading: Examples using ``check_grad_continuity``

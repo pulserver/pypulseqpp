@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -521,36 +521,36 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    freq_offset_ppm : float, optional</span>
+<span class="sd">    freq_offset_ppm : float, default=FAT_SHIFT_PPM</span>
 <span class="sd">        Fat offset from water (ppm). Carried on the pulse as a ppm offset</span>
 <span class="sd">        rather than as hertz, so the interpreter resolves it against the</span>
 <span class="sd">        field the scan actually runs at.</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=110.0</span>
 <span class="sd">        Saturation flip angle (degrees).</span>
-<span class="sd">    bandwidth_hz : float, optional</span>
+<span class="sd">    bandwidth_hz : float, default=250.0</span>
 <span class="sd">        Spectral passband (Hz). With ``time_bw_product`` it fixes the pulse</span>
 <span class="sd">        duration, which is ``time_bw_product / bandwidth_hz``.</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=2.0</span>
 <span class="sd">        Time-bandwidth product.</span>
-<span class="sd">    thickness_m : float, optional</span>
+<span class="sd">    thickness_m : float, default=None</span>
 <span class="sd">        Band thickness (m). ``None`` saturates the whole transmit volume,</span>
 <span class="sd">        which is the usual fat saturation and the only form that needs no</span>
 <span class="sd">        gradient.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Band normal, before ``orientation`` turns it.</span>
-<span class="sd">    position_mm : sequence of float, optional</span>
+<span class="sd">    position_mm : sequence of float, default=None</span>
 <span class="sd">        ``(dx, dy, dz)`` offset of the band from the isocentre, in the logical</span>
 <span class="sd">        frame, in millimetres. Needs ``thickness_m``.</span>
-<span class="sd">    orientation : array_like or scipy.spatial.transform.Rotation, optional</span>
+<span class="sd">    orientation : array_like or scipy.spatial.transform.Rotation, default=None</span>
 <span class="sd">        A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one</span>
 <span class="sd">        the band lies on. Needs ``thickness_m``.</span>
-<span class="sd">    use_rotation_extension : bool, optional</span>
+<span class="sd">    use_rotation_extension : bool, default=True</span>
 <span class="sd">        Carry the orientation as a ``ROTATIONS`` extension rather than baking</span>
 <span class="sd">        it into new waveforms. Only ``True`` is implemented; see</span>
 <span class="sd">        :class:`~pypulseqpp.TransformFOV`.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
 
 <span class="sd">    Attributes</span>
@@ -566,7 +566,7 @@
 <span class="sd">        ``NOPOS`` and ``NOROT``, set on the first block.</span>
 <span class="sd">    reset_labels : list of LabelSetEvent</span>
 <span class="sd">        The same two cleared, on the last.</span>
-<span class="sd">    freq_offset_ppm : float</span>
+<span class="sd">    freq_offset_ppm : float, default=FAT_SHIFT_PPM</span>
 <span class="sd">        The fat offset the pulse carries (ppm).</span>
 <span class="sd">    freq_offset_hz : float</span>
 <span class="sd">        What that comes to at ``system.B0`` (Hz), for reference; the pulse</span>

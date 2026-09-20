@@ -5,5 +5,3 @@ VopModel.index
 
 .. automethod:: VopModel.index
 
-.. minigallery:: pypulseqpp.safety.VopModel.index
-   :add-heading: Examples using ``VopModel.index``

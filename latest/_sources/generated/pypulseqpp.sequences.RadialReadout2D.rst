@@ -32,5 +32,3 @@
    ~RadialReadout2D.seq
 
 
-.. minigallery:: pypulseqpp.sequences.RadialReadout2D
-   :add-heading: Examples using ``RadialReadout2D``

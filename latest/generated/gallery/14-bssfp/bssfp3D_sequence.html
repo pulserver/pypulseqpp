@@ -285,7 +285,7 @@
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3 current active"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -554,7 +554,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acceleration-on-both-encoded-axes">Acceleration on both encoded axes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-checks">Safety checks</a></li>
 </ul>
             </nav>
         </div>
@@ -573,8 +572,11 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-balanced-ssfp">
 <span id="sphx-glr-generated-gallery-14-bssfp-bssfp3d-sequence-py"></span><h1>3D balanced SSFP<a class="headerlink" href="#d-balanced-ssfp" title="Link to this heading">#</a></h1>
-<p>The balanced gradient structure over a partition-encoded slab, with each
-train opened by a half flip.</p>
+<p>A slab-selective low-flip-angle excitation and balanced Cartesian readout repeat
+with alternating RF phase and zero net gradient moment in every TR. The
+preserved transverse coherence establishes a high-SNR steady state governed by
+T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation.
+3D bSSFP is used for high-SNR structural imaging.</p>
 <section id="baseline">
 <h2>Baseline<a class="headerlink" href="#baseline" title="Link to this heading">#</a></h2>
 <p>A full Cartesian sampling of the slab.</p>
@@ -592,7 +594,7 @@ train opened by a half flip.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_bssfp3D_sequence_001.png" srcset="../../../_images/sphx_glr_bssfp3D_sequence_001.png" alt="bssfp3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b0aea4ad0&gt;, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+<img src="../../../_images/sphx_glr_bssfp3D_sequence_001.png" srcset="../../../_images/sphx_glr_bssfp3D_sequence_001.png" alt="bssfp3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f596bf985c0&gt;, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 </pre></div>
 </div>
 </section>
@@ -622,28 +624,7 @@ full                11985         16.46          3995
 <img src="../../../_images/sphx_glr_bssfp3D_sequence_003.png" srcset="../../../_images/sphx_glr_bssfp3D_sequence_003.png" alt="bssfp3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 605x550 with 2 Axes&gt;
 </pre></div>
 </div>
-</section>
-<section id="safety-checks">
-<h2>Safety checks<a class="headerlink" href="#safety-checks" title="Link to this heading">#</a></h2>
-<p>A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner’s.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span><span class="w">
-</span><span class="w">
-</span><a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">safety</span><span class="o">.</span><span class="n">ChronaxieModel</span></a><span class="p">(</span><span class="n">chronaxie</span><span class="o">=</span><span class="mf">334e-6</span><span class="p">,</span> <span class="n">rheobase</span><span class="o">=</span><span class="mf">23.4</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.333</span><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">grad_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">grad</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_grad</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">slew_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">slew</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_slew</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">cont_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">cont</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><span class="n">safety</span><span class="o">.</span><span class="n">check_grad_continuity</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">pns_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">pns</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><span class="n">safety</span><span class="o">.</span><span class="n">check_pns</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a><span class="p">)</span><span class="w">
-</span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>check                      result                     peak
-gradient amplitude         pass                  36.2 mT/m
-slew rate                  pass                  165 T/m/s
-gradient continuity        pass          0 discontinuities
-peripheral nerve stimulation FAIL          1.23 of threshold
-</pre></div>
-</div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 23.873 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 16.926 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-14-bssfp-bssfp3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/bc31049c69e0fd017b3161ece090b16f/bssfp3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">bssfp3D_sequence.ipynb</span></code></a></p>
@@ -710,7 +691,6 @@ peripheral nerve stimulation FAIL          1.23 of threshold
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acceleration-on-both-encoded-axes">Acceleration on both encoded axes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-checks">Safety checks</a></li>
 </ul>
   </nav></div>
 

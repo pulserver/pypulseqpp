@@ -31,5 +31,3 @@
    ~ZteReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.ZteReadout
-   :add-heading: Examples using ``ZteReadout``

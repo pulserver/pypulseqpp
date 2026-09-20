@@ -5,5 +5,3 @@ IhMtPreparation.register
 
 .. automethod:: IhMtPreparation.register
 
-.. minigallery:: pypulseqpp.sequences.IhMtPreparation.register
-   :add-heading: Examples using ``IhMtPreparation.register``

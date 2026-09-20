@@ -22,29 +22,30 @@
 3D zero echo time
 ===================
 
-The readout gradient is already at amplitude when the hard pulse is
-transmitted, so acquisition begins as soon as the receiver is available and
-the echo time is a few tens of microseconds. Concurrent excitation and
-gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive
-dead time leaves a central k-space gap.
+A short non-selective excitation is applied while the radial readout gradient is
+already at amplitude. Acquisition begins after the transmit/receive dead time,
+without gradient-echo formation; spoiling suppresses residual transverse
+magnetisation between repetitions. Contrast depends on TR, flip angle, RF
+bandwidth, and very short-T2 decay. ZTE is used for anatomical imaging of
+short-T2 tissues and other minimal-TE applications.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-39
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 13-33
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-44
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-38
 
 Baseline
 --------
 
 Half-spokes turned over a sphere, at enough views to sample its surface.
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-55
+.. GENERATED FROM PYTHON SOURCE LINES 38-49
 
 .. code-block:: Python
 
@@ -73,7 +74,7 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-63
+.. GENERATED FROM PYTHON SOURCE LINES 50-57
 
 Sequence diagram
 ----------------
@@ -83,7 +84,7 @@ half-spoke directions. The readout gradient precedes the hard RF event, and the 
 after the transmit/receive dead time. The solid trace is a
 representative repetition; shaded traces show other gradient encodes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-66
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -104,11 +105,11 @@ representative repetition; shaded traces show other gradient encodes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e23f0>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58ab807b60>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-72
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Sampling order
 --------------
@@ -116,7 +117,7 @@ Sampling order
 The half-spokes over the three k-space axes. Each starts at the centre of
 k-space and runs outward to the surface of the sampled sphere.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-75
+.. GENERATED FROM PYTHON SOURCE LINES 66-69
 
 .. code-block:: Python
 
@@ -141,7 +142,7 @@ k-space and runs outward to the surface of the sampled sphere.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-83
+.. GENERATED FROM PYTHON SOURCE LINES 70-77
 
 Fewer views
 -----------
@@ -151,7 +152,7 @@ spacing against the spacing between shells for the requested matrix. Halving
 this count shortens the scan and undersamples one angular direction, producing
 streaking rather than Cartesian aliasing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-95
+.. GENERATED FROM PYTHON SOURCE LINES 77-89
 
 .. code-block:: Python
 
@@ -174,7 +175,7 @@ streaking rather than Cartesian aliasing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-98
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
 
 .. code-block:: Python
 
@@ -198,49 +199,10 @@ streaking rather than Cartesian aliasing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-105
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 105-136
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                   5.3 mT/m
-    slew rate                  pass                  133 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation pass          0.35 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 20.847 seconds)
+   **Total running time of the script:** (0 minutes 16.206 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

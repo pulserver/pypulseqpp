@@ -23,7 +23,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the magnetisation reaches a steady state that carries both relaxation times. The train opens with a half flip, which places the magnetisation on the axis the steady state oscillates about.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure over a partition-encoded slab, with each train opened by a half flip.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective low-flip-angle excitation and balanced Cartesian readout repeat with alternating RF phase and zero net gradient moment in every TR. The preserved transverse coherence establishes a high-SNR steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 3D bSSFP is used for high-SNR structural imaging.">
 
 .. only:: html
 

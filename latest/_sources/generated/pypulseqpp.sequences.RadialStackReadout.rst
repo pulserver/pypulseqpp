@@ -32,5 +32,3 @@
    ~RadialStackReadout.seq
 
 
-.. minigallery:: pypulseqpp.sequences.RadialStackReadout
-   :add-heading: Examples using ``RadialStackReadout``

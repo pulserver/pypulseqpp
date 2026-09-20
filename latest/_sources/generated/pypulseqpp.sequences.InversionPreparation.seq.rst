@@ -5,5 +5,3 @@ InversionPreparation.seq
 
 .. autoproperty:: InversionPreparation.seq
 
-.. minigallery:: pypulseqpp.sequences.InversionPreparation.seq
-   :add-heading: Examples using ``InversionPreparation.seq``

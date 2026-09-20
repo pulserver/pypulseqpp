@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -515,15 +515,15 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The pulse to play.</span>
-<span class="sd">    n_pulses : int, optional</span>
+<span class="sd">    n_pulses : int, default=1</span>
 <span class="sd">        Pulses in the train.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.</span>
 <span class="sd">        Zero omits the spoiler, which is what a pulse whose effect is a phase</span>
 <span class="sd">        rather than a saturation needs.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    labels : Sequence[str], optional</span>
+<span class="sd">    labels : Sequence[str], default=None</span>
 <span class="sd">        Counters emitted on the first pulse's block.</span>
 
 <span class="sd">    Attributes</span>
@@ -625,14 +625,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=500.0</span>
 <span class="sd">        Nominal flip angle (degrees). Far above 90: the point is deposited</span>
 <span class="sd">        power, not a tip.</span>
-<span class="sd">    freq_offset_hz : float, optional</span>
+<span class="sd">    freq_offset_hz : float, default=-1500.0</span>
 <span class="sd">        Offset from water (Hz); must not be zero.</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product, which with ``duration_s`` sets how wide a band</span>
 <span class="sd">        of the bound pool is saturated.</span>
 
@@ -691,14 +691,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=500.0</span>
 <span class="sd">        Flip angle (degrees) of the single-offset arm this one is matched</span>
 <span class="sd">        against. Each band gets ``1 / sqrt(2)`` of it.</span>
-<span class="sd">    freq_offset_hz : float, optional</span>
+<span class="sd">    freq_offset_hz : float, default=1500.0</span>
 <span class="sd">        Distance of each band from water (Hz), positive. Both signs are built.</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Time-bandwidth product of each band.</span>
 
 <span class="sd">    Attributes</span>
@@ -771,19 +771,19 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    freq_offset_hz : float, optional</span>
+<span class="sd">    freq_offset_hz : float, default=4000.0</span>
 <span class="sd">        Offset from water (Hz); flip its sign for the second acquisition.</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    peak_b1_hz : float, optional</span>
+<span class="sd">    peak_b1_hz : float, default=500.0</span>
 <span class="sd">        Plateau amplitude, in Pulseq units.</span>
-<span class="sd">    flat_fraction : float, optional</span>
+<span class="sd">    flat_fraction : float, default=0.8</span>
 <span class="sd">        Fraction of the duration held at ``peak_b1_hz``, in ``(0, 1)``.</span>
-<span class="sd">    transition_fraction : float, optional</span>
+<span class="sd">    transition_fraction : float, default=0.02</span>
 <span class="sd">        Width of each shoulder, as a fraction of the duration.</span>
-<span class="sd">    dwell_s : float, optional</span>
+<span class="sd">    dwell_s : float, default=1e-05</span>
 <span class="sd">        RF raster (s).</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.</span>
 <span class="sd">        Zero, the default here, omits the spoiler, for the reason above.</span>
 

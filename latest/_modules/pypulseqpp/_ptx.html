@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -531,9 +531,9 @@
 <span class="sd">        Complex waveforms, ``(num_channels, num_samples)``, in Hz. Played as</span>
 <span class="sd">        given: nothing is scaled to a flip angle, since with several channels</span>
 <span class="sd">        the flip depends on each channel's B1 map.</span>
-<span class="sd">    dwell : float, optional</span>
+<span class="sd">    dwell : float, default=0.0</span>
 <span class="sd">        Sample spacing, in s; ``system.rf_raster_time`` when zero.</span>
-<span class="sd">    center : float, optional</span>
+<span class="sd">    center : float, default=None</span>
 <span class="sd">        Centre of the pulse from its start, in s. Defaults to the centre of</span>
 <span class="sd">        the peak of the channel-summed magnitude.</span>
 
@@ -647,17 +647,17 @@
 <span class="sd">    b1_maps : array_like</span>
 <span class="sd">        Complex B1+ per channel, ``(num_channels, *grid)``, in any unit shared</span>
 <span class="sd">        by all channels.</span>
-<span class="sd">    mask : array_like of bool, optional</span>
+<span class="sd">    mask : array_like of bool, default=None</span>
 <span class="sd">        Where the magnitude is fitted, shaped like the grid. Defaults to every</span>
 <span class="sd">        point where any map is non-zero.</span>
-<span class="sd">    target : float or array_like, optional</span>
+<span class="sd">    target : float or array_like, default=1.0</span>
 <span class="sd">        Magnitude wanted, in the unit of ``b1_maps``: a scalar or one value per</span>
 <span class="sd">        grid point.</span>
-<span class="sd">    regularization : float, optional</span>
+<span class="sd">    regularization : float, default=0.0</span>
 <span class="sd">        Tikhonov weight on ``sum |w|^2``.</span>
-<span class="sd">    tolerance : float, optional</span>
+<span class="sd">    tolerance : float, default=1e-06</span>
 <span class="sd">        Relative change of the cost at which the fit stops.</span>
-<span class="sd">    rounds : int, optional</span>
+<span class="sd">    rounds : int, default=100</span>
 <span class="sd">        Maximum number of phase exchanges.</span>
 
 <span class="sd">    Returns</span>
@@ -778,21 +778,21 @@
 <span class="sd">        In-plane extent the maps cover, in m, centred on the isocentre.</span>
 <span class="sd">    slice_thickness : float</span>
 <span class="sd">        In m.</span>
-<span class="sd">    n_spokes : int, optional</span>
+<span class="sd">    n_spokes : int, default=3</span>
 <span class="sd">        Number of spokes, one of them at the k-space centre.</span>
-<span class="sd">    mask : array_like of bool, optional</span>
+<span class="sd">    mask : array_like of bool, default=None</span>
 <span class="sd">        Where the flip is fitted, ``(nx, ny)``; everywhere by default.</span>
-<span class="sd">    resolution : float, optional</span>
+<span class="sd">    resolution : float, default=None</span>
 <span class="sd">        Finest in-plane scale the spokes may encode, in m: candidate positions</span>
 <span class="sd">        span ``1 / resolution`` at a pitch of ``1 / fov``. An eighth of the</span>
 <span class="sd">        smaller field of view by default.</span>
-<span class="sd">    time_bw_product : float, optional</span>
+<span class="sd">    time_bw_product : float, default=4.0</span>
 <span class="sd">        Of each spoke's slice profile.</span>
-<span class="sd">    regularization : float, optional</span>
+<span class="sd">    regularization : float, default=0.0</span>
 <span class="sd">        Tikhonov weight on the spoke weights.</span>
-<span class="sd">    axes : (str, str, str), optional</span>
+<span class="sd">    axes : (str, str, str), default=('x', 'y', 'z')</span>
 <span class="sd">        The two in-plane gradient channels, then the slice-select one.</span>
-<span class="sd">    delay : float, optional</span>
+<span class="sd">    delay : float, default=0.0</span>
 <span class="sd">        Delay before the pulse and its gradients, in s; raised to</span>
 <span class="sd">        ``system.rf_dead_time`` and rounded up to the gradient raster.</span>
 

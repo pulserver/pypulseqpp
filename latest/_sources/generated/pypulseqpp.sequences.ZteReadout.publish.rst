@@ -5,5 +5,3 @@ ZteReadout.publish
 
 .. automethod:: ZteReadout.publish
 
-.. minigallery:: pypulseqpp.sequences.ZteReadout.publish
-   :add-heading: Examples using ``ZteReadout.publish``

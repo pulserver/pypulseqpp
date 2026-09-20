@@ -5,5 +5,3 @@ FseReadout3D.duration
 
 .. autoproperty:: FseReadout3D.duration
 
-.. minigallery:: pypulseqpp.sequences.FseReadout3D.duration
-   :add-heading: Examples using ``FseReadout3D.duration``

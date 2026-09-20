@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.RfModule.sim_rf"><code class="docutils literal notranslate"><span class="pre">RfModule.sim_rf()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-rfmodule-sim-rf">Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.sim_rf</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,12 +564,12 @@
 <h1>RfModule.sim_rf<a class="headerlink" href="#rfmodule-sim-rf" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.RfModule.sim_rf">
-<span class="sig-prename descclassname"><span class="pre">RfModule.</span></span><span class="sig-name descname"><span class="pre">sim_rf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pulse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/_base.html#RfModule.sim_rf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.RfModule.sim_rf" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">RfModule.</span></span><span class="sig-name descname"><span class="pre">sim_rf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/_base.html#RfModule.sim_rf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.RfModule.sim_rf" title="Link to this definition">#</a></dt>
 <dd><p>Simulate this module’s pulse across off-resonance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pulse</strong> (<em>RfEvent</em><em>, </em><em>optional</em>) – Pulse to simulate; defaults to the first RF event in block order.</p></li>
+<li><p><strong>pulse</strong> (<em>RfEvent</em><em>, </em><em>default=None</em>) – Pulse to simulate; defaults to the first RF event in block order.</p></li>
 <li><p><strong>**kwargs</strong> – Forwarded to <a class="reference internal" href="pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.sim_rf()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">rephase_factor</span></code>,
 <code class="docutils literal notranslate"><span class="pre">df</span></code>, <code class="docutils literal notranslate"><span class="pre">bandwidth_multiplier</span></code>, <code class="docutils literal notranslate"><span class="pre">dt</span></code>).</p></li>
 </ul>
@@ -594,15 +593,6 @@
 </div>
 </dd></dl>
 
-<section id="examples-using-rfmodule-sim-rf">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.sim_rf</span></code><a class="headerlink" href="#examples-using-rfmodule-sim-rf" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The excitation family produces one RF pulse and the gradients that go with it. Every member reports the events it built and, through sim_rf, the Bloch response of the pulse it holds."><img alt="" src="../_images/sphx_glr_excitation-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/21-modules-rf/excitation-modules.html"><span class="doc">Excitation modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Excitation modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates RF energy near the end of the waveform. For fixed duration and time-bandwidth product, this reduces the interval to the echo but increases peak B_1 and introduces nonlinear slice-profile phase."><img alt="" src="../_images/sphx_glr_custom-excitation-module_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-excitation-module.html"><span class="doc">A minimum-phase excitation module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A minimum-phase excitation module</div>
-</div></div></section>
 </section>
 
 
@@ -635,7 +625,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.RfModule.sim_rf"><code class="docutils literal notranslate"><span class="pre">RfModule.sim_rf()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-rfmodule-sim-rf">Examples using <code class="docutils literal notranslate"><span class="pre">RfModule.sim_rf</span></code></a></li>
 </ul>
   </nav></div>
 

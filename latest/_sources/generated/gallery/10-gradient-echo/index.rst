@@ -23,7 +23,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. This is the reference implementation for the Cartesian gradient-echo variants.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled gradient-echo (SPGR) acquisition applies one low-flip-angle slice-selective excitation before an unbalanced Cartesian readout in each TR. Gradient spoiling and quadratic RF/receiver phase cycling suppress coherent residual transverse magnetisation. TR and flip angle primarily determine T1 weighting, with T2* decay during TE. SPGR is widely used for T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A 3D spoiled gradient-echo (SPGR) acquisition applies a low-flip-angle slab excitation before one Cartesian (line, partition) readout per TR. Gradient spoiling and quadratic RF/receiver phase cycling suppress coherent residual transverse magnetisation. TR, flip angle, and TE determine the T1 and T2* weighting. This sequence is used for high-resolution T1-weighted structural imaging.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. Signal amplitude across the echo train follows apparent transverse relaxation, providing multiple points on the decay curve per excitation.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by several Cartesian gradient echoes of the same phase-encode line. Gradient and RF spoiling suppress residual transverse coherence before the next TR. The echo train samples T2 decay while TR and flip angle determine the T1 weighting. Multi-echo GRE is used for T2/R2* mapping, susceptibility mapping, and structural imaging.">
 
 .. only:: html
 
@@ -74,7 +74,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by several gradient echoes of one Cartesian (line, partition) view. Gradient and RF spoiling suppress residual transverse coherence between repetitions. The multiple echo times sample T2 decay; TR and flip angle determine the T1 weighting. Applications include high-resolution structural imaging, R2 mapping, and QSM.">
 
 .. only:: html
 
@@ -91,7 +91,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one Cartesian line from a rotating PROPELLER blade. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR, flip angle, and TE determine contrast. The overlapping central k-space region supports motion estimation in structural imaging.">
 
 .. only:: html
 
@@ -108,7 +108,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the k-space origin. Angular undersampling produces streak artefacts rather than coherent Cartesian aliasing.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one radial spoke through k-space centre. Gradient and RF spoiling suppress residual transverse coherence before the next TR. TR and flip angle primarily determine T1 weighting, with T2* decay during TE. Radial SPGR is used for motion-robust dynamic and structural imaging.">
 
 .. only:: html
 
@@ -125,7 +125,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A spoiled low-flip-angle excitation is followed by one spiral interleaf. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR and flip angle primarily determine T1 weighting; off-resonance and T2* decay affect the spiral readout. Spiral SPGR supports rapid dynamic and structural imaging.">
 
 .. only:: html
 
@@ -142,7 +142,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one line from a rotating in-plane PROPELLER blade with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence. TR, flip angle, and TE determine contrast. The overlapping blade centres support motion-robust 3D structural imaging.">
 
 .. only:: html
 
@@ -159,7 +159,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one spiral interleaf with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR, flip angle, and TE determine contrast. Stack-of-spirals SPGR supports rapid 3D structural and dynamic imaging.">
 
 .. only:: html
 
@@ -176,7 +176,7 @@ Gradient echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane trajectory retains radial sampling properties, with Cartesian encoding along the partition axis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective spoiled excitation is followed by one radial spoke with Cartesian partition encoding. Gradient and RF spoiling suppress residual transverse coherence between repetitions. TR and flip angle primarily determine T1 weighting. Stack-of-stars SPGR is used for motion-robust 3D structural and dynamic imaging.">
 
 .. only:: html
 

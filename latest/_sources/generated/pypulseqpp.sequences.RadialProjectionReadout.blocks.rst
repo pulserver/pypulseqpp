@@ -5,5 +5,3 @@ RadialProjectionReadout.blocks
 
 .. autoproperty:: RadialProjectionReadout.blocks
 
-.. minigallery:: pypulseqpp.sequences.RadialProjectionReadout.blocks
-   :add-heading: Examples using ``RadialProjectionReadout.blocks``

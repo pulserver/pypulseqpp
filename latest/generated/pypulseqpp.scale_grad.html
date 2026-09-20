@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.scale_grad"><code class="docutils literal notranslate"><span class="pre">scale_grad()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-scale-grad">Examples using <code class="docutils literal notranslate"><span class="pre">scale_grad</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>scale_grad<a class="headerlink" href="#scale-grad" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.scale_grad">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">scale_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/scale_grad.html#scale_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.scale_grad" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">scale_grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/scale_grad.html#scale_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.scale_grad" title="Link to this definition">#</a></dt>
 <dd><p>Scales the gradient with the scalar.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -591,18 +590,6 @@ peak and slew are checked against <code class="docutils literal notranslate"><sp
 through PyPulseq’s own function and comes back as an event.</p>
 </dd></dl>
 
-<section id="examples-using-scale-grad">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">scale_grad</span></code><a class="headerlink" href="#examples-using-scale-grad" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output."><img alt="" src="../_images/sphx_glr_basic-pulseq-sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/basic-pulseq-sequence.html"><span class="doc">A basic Pulseq sequence</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
-<p><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html"><span class="doc">A SequenceApp from scratch</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
-</div></div></section>
 </section>
 
 
@@ -635,7 +622,6 @@ through PyPulseq’s own function and comes back as an event.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.scale_grad"><code class="docutils literal notranslate"><span class="pre">scale_grad()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-scale-grad">Examples using <code class="docutils literal notranslate"><span class="pre">scale_grad</span></code></a></li>
 </ul>
   </nav></div>
 

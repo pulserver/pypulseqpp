@@ -5,5 +5,3 @@ ForbiddenBand.count
 
 .. automethod:: ForbiddenBand.count
 
-.. minigallery:: pypulseqpp.safety.ForbiddenBand.count
-   :add-heading: Examples using ``ForbiddenBand.count``

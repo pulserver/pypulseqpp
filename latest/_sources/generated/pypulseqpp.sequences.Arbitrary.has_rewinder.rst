@@ -5,5 +5,3 @@ Arbitrary.has\_rewinder
 
 .. autoproperty:: Arbitrary.has_rewinder
 
-.. minigallery:: pypulseqpp.sequences.Arbitrary.has_rewinder
-   :add-heading: Examples using ``Arbitrary.has_rewinder``

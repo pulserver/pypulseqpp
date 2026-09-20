@@ -31,5 +31,6 @@
    ~SequenceModule.seq
 
 
+
 .. minigallery:: pypulseqpp.sequences.SequenceModule
    :add-heading: Examples using ``SequenceModule``

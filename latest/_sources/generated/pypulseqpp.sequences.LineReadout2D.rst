@@ -31,5 +31,6 @@
    ~LineReadout2D.seq
 
 
+
 .. minigallery:: pypulseqpp.sequences.LineReadout2D
    :add-heading: Examples using ``LineReadout2D``

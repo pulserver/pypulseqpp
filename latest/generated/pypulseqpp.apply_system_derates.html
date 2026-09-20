@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.apply_system_derates"><code class="docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-apply-system-derates">Examples using <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,15 +564,15 @@
 <h1>apply_system_derates<a class="headerlink" href="#apply-system-derates" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.apply_system_derates">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">apply_system_derates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_derate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">MAX_GRAD_DERATE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slew_derate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">MAX_SLEW_DERATE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_opts.html#apply_system_derates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.apply_system_derates" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">apply_system_derates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_opts.html#apply_system_derates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.apply_system_derates" title="Link to this definition">#</a></dt>
 <dd><p>Return a copy with gradient and slew limits scaled from their base values.</p>
 <p>Base limits are retained on the copy, so repeated derating does not compound.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>opts</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits. Not modified.</p></li>
-<li><p><strong>grad_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
-<li><p><strong>slew_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
+<li><p><strong>grad_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=MAX_GRAD_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
+<li><p><strong>slew_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=MAX_SLEW_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -607,12 +606,6 @@
 </div>
 </dd></dl>
 
-<section id="examples-using-apply-system-derates">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code><a class="headerlink" href="#examples-using-apply-system-derates" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../_images/sphx_glr_spiral-readout-limits_thumb.png" />
-<p><a class="reference internal" href="gallery/24-modules-noncartesian/spiral-readout-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
-</div></div></section>
 </section>
 
 
@@ -645,7 +638,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.apply_system_derates"><code class="docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-apply-system-derates">Examples using <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></li>
 </ul>
   </nav></div>
 

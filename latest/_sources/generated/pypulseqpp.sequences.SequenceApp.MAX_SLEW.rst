@@ -5,5 +5,3 @@ SequenceApp.MAX\_SLEW
 
 .. autoattribute:: SequenceApp.MAX_SLEW
 
-.. minigallery:: pypulseqpp.sequences.SequenceApp.MAX_SLEW
-   :add-heading: Examples using ``SequenceApp.MAX_SLEW``

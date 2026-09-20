@@ -22,20 +22,22 @@
 2D spiral gradient echo
 =========================
 
-One spiral interleaf per repetition, solved against the gradient
-amplitude and slew limits. An interleaf covers a disc rather than a line,
-so a plane is acquired in a few tens of repetitions.
+A spoiled low-flip-angle excitation is followed by one spiral interleaf.
+Gradient and RF spoiling suppress residual transverse coherence between
+repetitions. TR and flip angle primarily determine T1 weighting; off-resonance
+and T2* decay affect the spiral readout. Spiral SPGR supports rapid dynamic and
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-43
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
 Baseline
 --------
@@ -43,7 +45,7 @@ Baseline
 Sixteen interleaves at a constant pitch, which sample the disc at the
 Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-53
+.. GENERATED FROM PYTHON SOURCE LINES 38-48
 
 .. code-block:: Python
 
@@ -70,12 +72,12 @@ Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-56
+.. GENERATED FROM PYTHON SOURCE LINES 49-51
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 51-54
 
 .. code-block:: Python
 
@@ -96,18 +98,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bbf80e0>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f59ab5f8530>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-64
+.. GENERATED FROM PYTHON SOURCE LINES 55-59
 
 Sampling order
 --------------
 
 Each interleaf is the same solved arm turned to its own angle.
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-67
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
@@ -132,7 +134,7 @@ Each interleaf is the same solved arm turned to its own angle.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-74
+.. GENERATED FROM PYTHON SOURCE LINES 63-69
 
 Variable density
 ----------------
@@ -141,7 +143,7 @@ Variable density
 increases the pitch at larger radii. The shorter readout requires a
 reconstruction that accounts for peripheral undersampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-95
+.. GENERATED FROM PYTHON SOURCE LINES 69-90
 
 .. code-block:: Python
 
@@ -173,7 +175,7 @@ reconstruction that accounts for peripheral undersampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-98
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
 
 .. code-block:: Python
 
@@ -197,49 +199,10 @@ reconstruction that accounts for peripheral undersampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-105
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 105-136
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.7 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.26 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.349 seconds)
+   **Total running time of the script:** (0 minutes 1.015 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

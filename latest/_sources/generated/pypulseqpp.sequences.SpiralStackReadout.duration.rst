@@ -5,5 +5,3 @@ SpiralStackReadout.duration
 
 .. autoproperty:: SpiralStackReadout.duration
 
-.. minigallery:: pypulseqpp.sequences.SpiralStackReadout.duration
-   :add-heading: Examples using ``SpiralStackReadout.duration``

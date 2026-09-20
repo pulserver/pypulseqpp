@@ -22,26 +22,29 @@
 3D balanced SSFP
 ==================
 
-The balanced gradient structure over a partition-encoded slab, with each
-train opened by a half flip.
+A slab-selective low-flip-angle excitation and balanced Cartesian readout repeat
+with alternating RF phase and zero net gradient moment in every TR. The
+preserved transverse coherence establishes a high-SNR steady state governed by
+T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation.
+3D bSSFP is used for high-SNR structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-36
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-41
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 A full Cartesian sampling of the slab.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-49
+.. GENERATED FROM PYTHON SOURCE LINES 37-45
 
 .. code-block:: Python
 
@@ -66,12 +69,12 @@ A full Cartesian sampling of the slab.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-52
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-55
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -92,18 +95,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aea4ad0>, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f596bf985c0>, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-60
+.. GENERATED FROM PYTHON SOURCE LINES 52-56
 
 Sampling order
 --------------
 
 The phase-encode plane in the order it is read.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
@@ -128,7 +131,7 @@ The phase-encode plane in the order it is read.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-70
+.. GENERATED FROM PYTHON SOURCE LINES 60-66
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -137,7 +140,7 @@ Subsampling the line and partition axes reduces the number of repetitions.
 For fixed TR and flip angle, the RF and gradient phase cycling that establishes
 the steady state is unchanged.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-82
+.. GENERATED FROM PYTHON SOURCE LINES 66-78
 
 .. code-block:: Python
 
@@ -160,7 +163,7 @@ the steady state is unchanged.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 79-81
 
 .. code-block:: Python
 
@@ -184,49 +187,10 @@ the steady state is unchanged.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-92
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 92-123
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  36.2 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.23 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.873 seconds)
+   **Total running time of the script:** (0 minutes 16.926 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp3D_sequence.py:

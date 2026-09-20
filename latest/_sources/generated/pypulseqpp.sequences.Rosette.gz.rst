@@ -5,5 +5,3 @@ Rosette.gz
 
 .. autoproperty:: Rosette.gz
 
-.. minigallery:: pypulseqpp.sequences.Rosette.gz
-   :add-heading: Examples using ``Rosette.gz``

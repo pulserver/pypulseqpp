@@ -5,5 +5,3 @@ SequenceApp.kernel
 
 .. automethod:: SequenceApp.kernel
 
-.. minigallery:: pypulseqpp.sequences.SequenceApp.kernel
-   :add-heading: Examples using ``SequenceApp.kernel``

@@ -22,27 +22,29 @@
 2D radial gradient echo
 =========================
 
-One full spoke through the centre of k-space per repetition. Every readout
-crosses the k-space origin. Angular undersampling produces
-streak artefacts rather than coherent Cartesian aliasing.
+A spoiled low-flip-angle excitation is followed by one radial spoke through
+k-space centre. Gradient and RF spoiling suppress residual transverse coherence
+before the next TR. TR and flip angle primarily determine T1 weighting, with
+T2* decay during TE. Radial SPGR is used for motion-robust dynamic and
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-37
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-42
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 Enough spokes to sample the outer radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-50
+.. GENERATED FROM PYTHON SOURCE LINES 37-45
 
 .. code-block:: Python
 
@@ -67,12 +69,12 @@ Enough spokes to sample the outer radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-53
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-56
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -93,11 +95,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6afaf5d8e0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598890b050>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-62
+.. GENERATED FROM PYTHON SOURCE LINES 52-57
 
 Sampling order
 --------------
@@ -105,7 +107,7 @@ Sampling order
 Colour encodes spoke acquisition order. Consecutive spokes use a
 distributed angular ordering rather than adjacent angles.
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-65
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -130,7 +132,7 @@ distributed angular ordering rather than adjacent angles.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-71
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Angular undersampling
 ---------------------
@@ -138,7 +140,7 @@ Angular undersampling
 ``ry=3`` retains one third of the spoke angles. Every spoke crosses the
 origin, whereas angular sampling density decreases with k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-85
+.. GENERATED FROM PYTHON SOURCE LINES 66-80
 
 .. code-block:: Python
 
@@ -163,7 +165,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-88
+.. GENERATED FROM PYTHON SOURCE LINES 81-83
 
 .. code-block:: Python
 
@@ -187,49 +189,10 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-95
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 95-126
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  165 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.38 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.830 seconds)
+   **Total running time of the script:** (0 minutes 2.067 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

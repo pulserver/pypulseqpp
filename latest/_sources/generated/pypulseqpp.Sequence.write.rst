@@ -5,5 +5,3 @@ Sequence.write
 
 .. automethod:: Sequence.write
 
-.. minigallery:: pypulseqpp.Sequence.write
-   :add-heading: Examples using ``Sequence.write``

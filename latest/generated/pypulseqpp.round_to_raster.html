@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.round_to_raster"><code class="docutils literal notranslate"><span class="pre">round_to_raster()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-round-to-raster">Examples using <code class="docutils literal notranslate"><span class="pre">round_to_raster</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>round_to_raster<a class="headerlink" href="#round-to-raster" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.round_to_raster">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">round_to_raster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster_s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_timing.html#round_to_raster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.round_to_raster" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">round_to_raster</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_timing.html#round_to_raster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.round_to_raster" title="Link to this definition">#</a></dt>
 <dd><p>Round seconds to the nearest multiple of <code class="docutils literal notranslate"><span class="pre">raster_s</span></code>, with ties to even.</p>
 <p><code class="docutils literal notranslate"><span class="pre">raster_s</span></code> is a raster period in seconds, such as
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">pypulseqpp.Opts.grad_raster_time</span></code> or
@@ -584,15 +583,6 @@
 </div>
 </dd></dl>
 
-<section id="examples-using-round-to-raster">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">round_to_raster</span></code><a class="headerlink" href="#examples-using-round-to-raster" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
-</div></div></section>
 </section>
 
 
@@ -625,7 +615,6 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.round_to_raster"><code class="docutils literal notranslate"><span class="pre">round_to_raster()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-round-to-raster">Examples using <code class="docutils literal notranslate"><span class="pre">round_to_raster</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -5,5 +5,3 @@ T1T2Preparation.register
 
 .. automethod:: T1T2Preparation.register
 
-.. minigallery:: pypulseqpp.sequences.T1T2Preparation.register
-   :add-heading: Examples using ``T1T2Preparation.register``

@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -507,14 +507,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=10.0</span>
 <span class="sd">        Nominal flip angle (degrees).</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Pulse duration (s); spectral width scales inversely with duration.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq use tag. Undefined pulses are treated as excitations by</span>
 <span class="sd">        k-space analysis.</span>
-<span class="sd">    freq_offset_hz, phase_offset_rad : float, optional</span>
+<span class="sd">    freq_offset_hz, phase_offset_rad : float, default=0.0</span>
 <span class="sd">        Transmit offsets designed into the pulse. A scan loop moves</span>
 <span class="sd">        ``module.rf.freq_offset`` and ``module.rf.phase_offset`` per shot</span>
 <span class="sd">        instead of rebuilding the module.</span>
@@ -574,20 +574,20 @@
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
-<span class="sd">    flip_angle_deg : float, optional</span>
+<span class="sd">    flip_angle_deg : float, default=180.0</span>
 <span class="sd">        Nominal flip angle (degrees).</span>
-<span class="sd">    duration_s : float, optional</span>
+<span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Pulse duration (s).</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero</span>
 <span class="sd">        omits the crushers, for an echo train that crushes elsewhere.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Crusher axis.</span>
-<span class="sd">    phase_offset_rad : float, optional</span>
+<span class="sd">    phase_offset_rad : float, default=np.pi / 2</span>
 <span class="sd">        RF phase. The CPMG quarter turn by default.</span>
-<span class="sd">    use : str, optional</span>
+<span class="sd">    use : str, default='refocusing'</span>
 <span class="sd">        What the pulse is for; the trajectory core negates accumulated k at a</span>
 <span class="sd">        refocusing pulse, so this is not cosmetic.</span>
 

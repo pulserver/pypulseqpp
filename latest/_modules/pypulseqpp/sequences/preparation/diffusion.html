@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -515,22 +515,22 @@
 <span class="sd">    b_value : float</span>
 <span class="sd">        Design b-value (s/mm^2). This is the largest the module can produce;</span>
 <span class="sd">        everything else is reached by scaling down.</span>
-<span class="sd">    gradient_duration_s : float, optional</span>
+<span class="sd">    gradient_duration_s : float, default=0.02</span>
 <span class="sd">        Duration of each diffusion lobe (s).</span>
-<span class="sd">    gradient_separation_s : float, optional</span>
+<span class="sd">    gradient_separation_s : float, default=0.03</span>
 <span class="sd">        Onset-to-onset separation of the two lobes (s). Must exceed</span>
 <span class="sd">        ``gradient_duration_s`` by enough to hold the refocusing pulse.</span>
-<span class="sd">    pulse_duration_s : float, optional</span>
+<span class="sd">    pulse_duration_s : float, default=0.0005</span>
 <span class="sd">        Duration of each 90 (s).</span>
-<span class="sd">    refocusing_duration_s : float, optional</span>
+<span class="sd">    refocusing_duration_s : float, default=0.001</span>
 <span class="sd">        Duration of the 180 (s).</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, optional</span>
+<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Axis the canonical pair is designed on.</span>
-<span class="sd">    spoiling_cycles : float, optional</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.</span>
-<span class="sd">    voxel_size_m : float, optional</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    labels : sequence of str, optional</span>
+<span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the first pulse's block.</span>
 
 <span class="sd">    Attributes</span>

@@ -5,5 +5,3 @@ T2Preparation.blocks
 
 .. autoproperty:: T2Preparation.blocks
 
-.. minigallery:: pypulseqpp.sequences.T2Preparation.blocks
-   :add-heading: Examples using ``T2Preparation.blocks``

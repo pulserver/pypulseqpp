@@ -18,55 +18,47 @@
 .. _sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:
 
 
-==================
-3D fast spin echo
-==================
+==============================
+Conventional 3D fast spin echo
+==============================
 
-One excitation followed by a CPMG train of refocusing pulses, with one
-``(line, partition)`` view acquired per echo. Signal amplitude at echo
-:math:`m` weights the corresponding k-space view.
-Echo ordering therefore determines the modulation transfer function and
-point-spread function.
+A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing
+train, with one Cartesian ``(line, partition)`` view acquired at each echo.
+Variable refocusing angles control stimulated-echo pathways and T2-dependent
+signal evolution. Radial view ordering assigns this evolution to k-space and
+therefore determines the modulation transfer function and image blurring. 3D
+FSE is used for T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-87
-
-
-
-
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 88-93
-
-Baseline
---------
-
-A short train limits T2 weighting across the train. Centre-out view ordering
-assigns the earliest echoes to the centre of k-space.
-
-.. GENERATED FROM PYTHON SOURCE LINES 93-113
+.. GENERATED FROM PYTHON SOURCE LINES 13-81
 
 .. code-block:: Python
 
 
 
-    from pypulseqpp.sequences import fse3D_sequence
+    from pypulseqpp import sequences
 
-    PRESCRIPTION = {
-        "n_x": 128,
-        "n_y": 96,
+    Fse3DApp = sequences.fse3D_sequence.Fse3DApp
+
+    P = {
+        "n_x": 96,
+        "n_y": 48,
         "n_z": 16,
-        "fov_x": 0.2,
-        "fov_y": 0.2,
-        "fov_z": 0.1,
+        "fov_x": 0.20,
+        "fov_y": 0.20,
+        "fov_z": 0.12,
+        "etl": 16,
+        "te": 48e-3,
+        "tr": 0.5,
+        "n_dummy": 0,
+        "ordering": "radial",
+        "flip_modulation": "optimized",
+        "wave_amplitude": 0.0,
     }
-
-    baseline = fse3D_sequence(**PRESCRIPTION, etl=16, te=None, tr=None, n_dummy=0)
+    app = Fse3DApp(**P)
+    seq = app.design()
     print(
-        f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.1f} s, "
-        f"echo spacing {baseline.get_definition('EchoSpacing')[0] * 1e3:.2f} ms, "
-        f"TE {baseline.get_definition('TE')[0] * 1e3:.1f} ms"
+        f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
+        f"{seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
     )
 
 
@@ -77,27 +69,25 @@ assigns the earliest echoes to the centre of k-space.
 
  .. code-block:: none
 
-    5100 blocks, 14.2 s, echo spacing 11.60 ms, TE 12.4 ms
+    37 shots; 10.72 ms echo spacing; 44.5 ms effective TE
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-121
+.. GENERATED FROM PYTHON SOURCE LINES 82-88
 
 Sequence diagram
 ----------------
 
-The automatically detected repetition contains the excitation, the CPMG
-train with a crusher pair around every refocusing pulse, and the phase and
-partition encodes before and after each readout. The solid trace is a
-representative train; the shaded traces retain the range of encodes.
+Each echo comprises a variable-angle refocusing pulse, phase and partition
+prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
+is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 121-124
+.. GENERATED FROM PYTHON SOURCE LINES 88-90
 
 .. code-block:: Python
 
-
-    baseline.paper_plot()
+    seq.paper_plot()
 
 
 
@@ -113,21 +103,31 @@ representative train; the shaded traces retain the range of encodes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0ae48d70>, tr=62, underlays=[1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a8c98e00>, tr=36, underlays=[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-132
+.. GENERATED FROM PYTHON SOURCE LINES 91-98
 
-Echo order and shot order
--------------------------
+Refocusing schedule and echo signal
+-----------------------------------
 
-Echo index identifies the position of a view within one CPMG train and thus
-its T2 weighting. Shot index identifies the excitation and repetition that
-acquired the view. Centre-out ordering assigns the least attenuated echoes
-to central k-space.
+The optimized schedule is obtained with ``torchsim``'s configuration-state
+FSE simulator. The objective balances signal at the effective TE, peripheral
+k-space signal, and RF power for the tissue models defined by the sequence.
+The same simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-137
+.. GENERATED FROM PYTHON SOURCE LINES 98-114
+
+.. code-block:: Python
+
+    import torchsim
+
+    angles = np.asarray(app.flips[0, : app.lengths[0]])
+    time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
+    signal = np.abs(
+        np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
+    )
 
 
 
@@ -138,81 +138,24 @@ to central k-space.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x396 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 138-143
+.. GENERATED FROM PYTHON SOURCE LINES 115-122
 
-Train length
-------------
+Echo and shot order
+-------------------
 
-A longer train requires fewer excitations but samples later points of the T2
-decay, increasing attenuation toward the edge of k-space.
+Radial ordering assigns views near k-space centre to the effective-TE echo
+and progressively larger radii to echoes farther from it. Echo index records
+position within a train; shot index identifies views acquired after the same
+excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 143-157
+.. GENERATED FROM PYTHON SOURCE LINES 122-124
 
 .. code-block:: Python
 
-
-    long_train = fse3D_sequence(**PRESCRIPTION, etl=48, te=None, tr=None, n_dummy=0)
-
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-                 ETL   shots   scan (s)   train (ms)
-    ETL 16        16      75       14.2        185.6
-    ETL 48        48      25       14.0        556.8
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 158-165
-
-T2 weighting
-------------
-
-The simulated signal envelope uses the stored refocusing-angle schedule and
-echo spacing. Each line's weight is
-the envelope at the echo index that read it, averaged over the partitions it
-was read at.
-
-.. GENERATED FROM PYTHON SOURCE LINES 165-190
-
-.. code-block:: Python
-
-
-    import torchsim
-
-    #: Relaxation times (ms) of the tissue the envelopes are simulated for.
-    T1_MS, T2_MS = 1200.0, 60.0
-
-    envelopes, weighting = {}, {}
-    for name, seq in (("ETL 16", baseline), ("ETL 48", long_train)):
-        angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
-        esp_ms = 1e3 * seq.get_definition("EchoSpacing")[0]
-        amplitude = np.abs(
-            np.asarray(torchsim.fse_sim(flip=angles, ESP=esp_ms, T1=T1_MS, T2=T2_MS))
-        )
-        line, _, echo, _ = _views(seq, PRESCRIPTION["n_y"], PRESCRIPTION["n_z"])
-        offsets = np.unique(line)
-        weighting[name] = (
-            offsets,
-            np.array([amplitude[echo[line == offset]].mean() for offset in offsets]),
-        )
-        envelopes[name] = amplitude
-
+    order_figure(seq, P["n_y"], P["n_z"])
 
 
 
@@ -227,52 +170,34 @@ was read at.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
-      warnings.warn(
 
-    <Figure size 946x330 with 2 Axes>
+    <Figure size 946x385 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 191-201
+.. GENERATED FROM PYTHON SOURCE LINES 125-132
 
-Central k-space receives nearly the same weight for both train lengths because
-it is acquired first. The longer train attenuates outer k-space more strongly,
-increasing the point-spread width along the phase-encode axes.
+K-space weighting
+-----------------
 
-Safety checks
--------------
+The echo envelope weights each acquired view according to its echo index.
+Radial assignment converts temporal signal evolution into a predominantly
+radial modulation transfer function; its Fourier transform contributes to
+image blurring along both phase-encode axes.
 
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 201-232
+.. GENERATED FROM PYTHON SOURCE LINES 132-141
 
 .. code-block:: Python
 
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
+    ky, kz, echo, _ = views(seq, P["n_y"], P["n_z"])
 
 
 
+.. image-sg:: /generated/gallery/13-fast-spin-echo/images/sphx_glr_fse3D_sequence_004.png
+   :alt: fse3D sequence
+   :srcset: /generated/gallery/13-fast-spin-echo/images/sphx_glr_fse3D_sequence_004.png
+   :class: sphx-glr-single-img
 
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.5 mT/m
-    slew rate                  pass                  164 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation pass          0.99 of threshold
 
 
 
@@ -280,7 +205,7 @@ scanner's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.119 seconds)
+   **Total running time of the script:** (0 minutes 0.889 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

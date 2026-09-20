@@ -5,5 +5,3 @@ Rosette.axes
 
 .. autoproperty:: Rosette.axes
 
-.. minigallery:: pypulseqpp.sequences.Rosette.axes
-   :add-heading: Examples using ``Rosette.axes``

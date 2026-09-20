@@ -5,5 +5,3 @@ SpspExcitation.sim\_rf
 
 .. automethod:: SpspExcitation.sim_rf
 
-.. minigallery:: pypulseqpp.sequences.SpspExcitation.sim_rf
-   :add-heading: Examples using ``SpspExcitation.sim_rf``

@@ -40,7 +40,7 @@ Bloch simulations quantify transition width and passband/stopband ripple. A
 sweep over time-bandwidth product and duration identifies designs compatible
 with the prescribed gradient-amplitude limit.
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-131
+.. GENERATED FROM PYTHON SOURCE LINES 24-137
 
 .. code-block:: Python
 
@@ -71,7 +71,7 @@ with the prescribed gradient-amplitude limit.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-141
+.. GENERATED FROM PYTHON SOURCE LINES 138-147
 
 Simulating a design
 -------------------
@@ -83,7 +83,7 @@ which under a selection gradient of amplitude ``selection_amplitude`` is the
 slice profile, because a spin at position ``z`` is off-resonance by
 ``selection_amplitude * z``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 141-166
+.. GENERATED FROM PYTHON SOURCE LINES 147-172
 
 .. code-block:: Python
 
@@ -119,12 +119,12 @@ slice profile, because a spin at position ``z`` is off-resonance by
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 167-169
+.. GENERATED FROM PYTHON SOURCE LINES 173-175
 
 Two numbers describe a profile: how far it takes to fall from the passband to
 the stopband, and how flat it is on either side of that transition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 169-195
+.. GENERATED FROM PYTHON SOURCE LINES 175-201
 
 .. code-block:: Python
 
@@ -161,7 +161,7 @@ the stopband, and how flat it is on either side of that transition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-202
+.. GENERATED FROM PYTHON SOURCE LINES 202-208
 
 The time-bandwidth product at a fixed duration
 ----------------------------------------------
@@ -170,7 +170,7 @@ Every design below is 3 ms long and selects the same 5 mm. The pulse has more
 zero crossings as the time-bandwidth product rises, and the selection gradient
 rises with it so that the wider bandwidth still lands on the same slice.
 
-.. GENERATED FROM PYTHON SOURCE LINES 202-216
+.. GENERATED FROM PYTHON SOURCE LINES 208-222
 
 .. code-block:: Python
 
@@ -204,7 +204,7 @@ rises with it so that the wider bandwidth still lands on the same slice.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 217-224
+.. GENERATED FROM PYTHON SOURCE LINES 223-230
 
 Above the smallest product the transition width falls close to inversely
 with it, so their product settles towards a figure set by the slice thickness
@@ -214,7 +214,7 @@ corresponding increase in transmit amplitude: the peak :math:`B_1` rises in
 proportion to the time-bandwidth product, because the same flip angle is
 delivered by an envelope with more structure in the same time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 226-231
+.. GENERATED FROM PYTHON SOURCE LINES 232-237
 
 The duration at a fixed time-bandwidth product
 ----------------------------------------------
@@ -222,7 +222,7 @@ The duration at a fixed time-bandwidth product
 Varying duration at fixed time-bandwidth product separates slice-profile
 properties from gradient amplitude and peak :math:`B_1` requirements.
 
-.. GENERATED FROM PYTHON SOURCE LINES 231-248
+.. GENERATED FROM PYTHON SOURCE LINES 237-254
 
 .. code-block:: Python
 
@@ -256,7 +256,7 @@ properties from gradient amplitude and peak :math:`B_1` requirements.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 249-256
+.. GENERATED FROM PYTHON SOURCE LINES 255-262
 
 The five profiles lie on top of each other. The transition width is the same
 to three decimal places across an eightfold change of duration, and the small
@@ -266,7 +266,7 @@ samples of an 8 ms one. What the duration sets is the selection gradient and
 the peak :math:`B_1`, both of which scale as its reciprocal, and the time the
 repetition spends on the excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 258-266
+.. GENERATED FROM PYTHON SOURCE LINES 264-272
 
 Designs admitted by the gradient amplitude limit
 ------------------------------------------------
@@ -277,7 +277,7 @@ design above that line is realizable; one below it asks for a selection
 gradient the system does not have, and the module rejects it rather than
 silently widening the slice.
 
-.. GENERATED FROM PYTHON SOURCE LINES 266-291
+.. GENERATED FROM PYTHON SOURCE LINES 272-297
 
 .. code-block:: Python
 
@@ -318,7 +318,7 @@ silently widening the slice.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 292-303
+.. GENERATED FROM PYTHON SOURCE LINES 298-309
 
 The designs the module accepted are exactly those above the line. The bound
 is on the amplitude alone: changing the slew limit over the range a gradient
@@ -335,7 +335,7 @@ profile.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.359 seconds)
+   **Total running time of the script:** (0 minutes 1.070 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_21-modules-rf_slice-profile-and-time-bandwidth.py:

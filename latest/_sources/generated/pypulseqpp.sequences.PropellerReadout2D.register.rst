@@ -5,5 +5,3 @@ PropellerReadout2D.register
 
 .. automethod:: PropellerReadout2D.register
 
-.. minigallery:: pypulseqpp.sequences.PropellerReadout2D.register
-   :add-heading: Examples using ``PropellerReadout2D.register``

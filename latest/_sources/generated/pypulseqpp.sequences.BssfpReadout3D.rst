@@ -31,5 +31,3 @@
    ~BssfpReadout3D.seq
 
 
-.. minigallery:: pypulseqpp.sequences.BssfpReadout3D
-   :add-heading: Examples using ``BssfpReadout3D``

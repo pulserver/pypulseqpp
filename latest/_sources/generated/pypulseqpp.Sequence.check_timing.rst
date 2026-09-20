@@ -5,5 +5,3 @@ Sequence.check\_timing
 
 .. automethod:: Sequence.check_timing
 
-.. minigallery:: pypulseqpp.Sequence.check_timing
-   :add-heading: Examples using ``Sequence.check_timing``

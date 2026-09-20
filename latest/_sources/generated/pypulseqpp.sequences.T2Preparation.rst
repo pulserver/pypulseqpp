@@ -32,5 +32,3 @@
    ~T2Preparation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.T2Preparation
-   :add-heading: Examples using ``T2Preparation``

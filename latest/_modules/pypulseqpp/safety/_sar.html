@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -742,12 +742,14 @@
 <span class="sd">    drive_per_hz : float or array_like</span>
 <span class="sd">        Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one</span>
 <span class="sd">        value, or one per channel.</span>
-<span class="sd">    local_limit, global_limit : float</span>
+<span class="sd">    local_limit : float, default=10.0</span>
 <span class="sd">        W/kg; IEC 60601-2-33 normal-mode head limits by default.</span>
-<span class="sd">    default_shim : array_like, optional</span>
+<span class="sd">    global_limit : float, default=3.2</span>
+<span class="sd">        W/kg; IEC 60601-2-33 normal-mode head limits by default.</span>
+<span class="sd">    default_shim : array_like, default=None</span>
 <span class="sd">        Channel weights of a single-channel pulse played without an RF shim;</span>
 <span class="sd">        all ones by default.</span>
-<span class="sd">    reference : Sequence or report, optional</span>
+<span class="sd">    reference : Sequence or report, default=None</span>
 <span class="sd">        What to compare with, in the same model and calibration: a sequence,</span>
 <span class="sd">        such as a CP-mode FID, evaluated here with the same drive and default</span>
 <span class="sd">        shim; or the report of an earlier call. Its worst window's per-VOP SAR,</span>

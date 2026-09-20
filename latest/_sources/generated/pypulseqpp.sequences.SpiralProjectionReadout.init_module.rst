@@ -5,5 +5,3 @@ SpiralProjectionReadout.init\_module
 
 .. automethod:: SpiralProjectionReadout.init_module
 
-.. minigallery:: pypulseqpp.sequences.SpiralProjectionReadout.init_module
-   :add-heading: Examples using ``SpiralProjectionReadout.init_module``

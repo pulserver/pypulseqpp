@@ -280,7 +280,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -527,29 +527,29 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse that opens the repetition.</span>
-<span class="sd">    gz : GradEvent, optional</span>
+<span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, optional</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        The rephaser that unwinds ``gz``.</span>
 <span class="sd">    fov : float</span>
 <span class="sd">        In-plane field of view (m), isotropic: the blade turns, so it cannot be</span>
 <span class="sd">        anything else.</span>
 <span class="sd">    matrix : int</span>
 <span class="sd">        In-plane matrix size, isotropic.</span>
-<span class="sd">    blade_width : int, optional</span>
+<span class="sd">    blade_width : int, default=16</span>
 <span class="sd">        Phase-encode lines per blade. Narrow blades turn a scan into many short</span>
 <span class="sd">        trains -- less distortion per blade, more blades to cover the disc.</span>
-<span class="sd">    n_blades : int, optional</span>
+<span class="sd">    n_blades : int, default=None</span>
 <span class="sd">        Blades in the set. The default is the smallest that samples the edge of</span>
 <span class="sd">        the disc at Nyquist, ``ceil(pi * matrix / (2 * blade_width))``.</span>
-<span class="sd">    scheme : {'uniform', 'golden'}, optional</span>
+<span class="sd">    scheme : {'uniform', 'golden'}, default='uniform'</span>
 <span class="sd">        How the default angles are spread. ``'uniform'`` divides half a turn</span>
 <span class="sd">        between the blades, which is exact for the whole set and only for the</span>
 <span class="sd">        whole set. ``'golden'`` leaves any prefix of the set near-uniform,</span>
 <span class="sd">        including incomplete acquisitions.</span>
-<span class="sd">    angles : array_like, optional</span>
+<span class="sd">    angles : array_like, default=None</span>
 <span class="sd">        In-plane angles (rad) to use instead of generating a set.</span>
-<span class="sd">    fov_z, matrix_z : float, int</span>
+<span class="sd">    fov_z, matrix_z : float, int, default=None</span>
 <span class="sd">        Slab field of view (m) and partitions. :class:`PropellerStackReadout`</span>
 <span class="sd">        only, where they are required.</span>
 

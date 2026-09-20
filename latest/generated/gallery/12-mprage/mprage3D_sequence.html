@@ -285,7 +285,7 @@
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3 current active"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -553,7 +553,6 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-structure">Timing structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accelerated-sampling">Accelerated sampling</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-checks">Safety checks</a></li>
 </ul>
             </nav>
         </div>
@@ -572,10 +571,12 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-cartesian-mprage">
 <span id="sphx-glr-generated-gallery-12-mprage-mprage3d-sequence-py"></span><h1>3D Cartesian MPRAGE<a class="headerlink" href="#d-cartesian-mprage" title="Link to this heading">#</a></h1>
-<p>One inversion per shot, an inversion time, and then a spoiled gradient-echo
-train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse
-determines the dominant inversion-recovery contrast. View ordering therefore
-defines the contrast weighting across k-space.</p>
+<p>An inversion preparation is followed after the prescribed inversion delay by a
+train of low-flip-angle spoiled Cartesian gradient echoes. The inversion time
+is measured to the first excitation centre; the corresponding central ADC
+sample occurs one TE later. The ordering assigns recovery times within each
+inversion cycle to <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> views. MPRAGE is used for
+high-resolution 3D T1-weighted structural imaging.</p>
 <section id="timing-structure">
 <h2>Timing structure<a class="headerlink" href="#timing-structure" title="Link to this heading">#</a></h2>
 <p>Each cycle comprises inversion, crusher, inversion delay, spoiled
@@ -598,7 +599,7 @@ longer readout trains.</p>
 </div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">compact</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_mprage3D_sequence_001.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_001.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f6b0b444ad0&gt;, tr=3, underlays=[1, 2, 4])
+<img src="../../../_images/sphx_glr_mprage3D_sequence_001.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_001.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f58a9b95cd0&gt;, tr=3, underlays=[1, 2, 4])
 </pre></div>
 </div>
 </section>
@@ -644,28 +645,7 @@ requires every partition.</p>
 &lt;Figure size 946x396 with 4 Axes&gt;
 </pre></div>
 </div>
-</section>
-<section id="safety-checks">
-<h2>Safety checks<a class="headerlink" href="#safety-checks" title="Link to this heading">#</a></h2>
-<p>A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner’s.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span><span class="w">
-</span><span class="w">
-</span><a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">safety</span><span class="o">.</span><span class="n">ChronaxieModel</span></a><span class="p">(</span><span class="n">chronaxie</span><span class="o">=</span><span class="mf">334e-6</span><span class="p">,</span> <span class="n">rheobase</span><span class="o">=</span><span class="mf">23.4</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.333</span><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">grad_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">grad</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_grad</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">slew_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">slew</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_slew</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">cont_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">cont</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><span class="n">safety</span><span class="o">.</span><span class="n">check_grad_continuity</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a><span class="p">)</span><span class="w">
-</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">pns_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">pns</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><span class="n">safety</span><span class="o">.</span><span class="n">check_pns</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a><span class="p">)</span><span class="w">
-</span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>check                      result                     peak
-gradient amplitude         pass                  39.6 mT/m
-slew rate                  pass                  168 T/m/s
-gradient continuity        pass          0 discontinuities
-peripheral nerve stimulation FAIL          1.12 of threshold
-</pre></div>
-</div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 3.553 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.533 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-12-mprage-mprage3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/b534a291e694d24fcd6bc1941a2ba11d/mprage3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">mprage3D_sequence.ipynb</span></code></a></p>
@@ -731,7 +711,6 @@ peripheral nerve stimulation FAIL          1.12 of threshold
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-structure">Timing structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accelerated-sampling">Accelerated sampling</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-checks">Safety checks</a></li>
 </ul>
   </nav></div>
 

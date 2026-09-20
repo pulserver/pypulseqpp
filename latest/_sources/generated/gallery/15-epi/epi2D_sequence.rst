@@ -22,21 +22,23 @@
 2D echo-planar imaging
 ========================
 
-One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encoding blip between successive readouts. A single-shot train
-acquires the complete phase-encode axis after one excitation. Off-resonance
-phase accumulates across the train and produces displacement along that axis.
+A slice-selective excitation is followed by alternating readout gradients and
+phase-encode blips that acquire multiple Cartesian lines in one echo train.
+Spoilers suppress residual transverse coherence between repetitions.
+Off-resonance phase accumulates during the train and produces geometric
+distortion along the phase-encode axis. EPI supports rapid structural imaging
+and functional MRI.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-96
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 13-91
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-103
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 92-98
 
 Baseline: single shot
 ---------------------
@@ -45,7 +47,7 @@ One excitation acquires the complete phase-encode axis. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.
 
-.. GENERATED FROM PYTHON SOURCE LINES 103-112
+.. GENERATED FROM PYTHON SOURCE LINES 98-107
 
 .. code-block:: Python
 
@@ -71,12 +73,12 @@ off-resonance phase across k-space.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 113-115
+.. GENERATED FROM PYTHON SOURCE LINES 108-110
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-118
+.. GENERATED FROM PYTHON SOURCE LINES 110-113
 
 .. code-block:: Python
 
@@ -97,11 +99,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b2bc43e90>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f596bf189e0>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-131
+.. GENERATED FROM PYTHON SOURCE LINES 114-126
 
 Segmentation and in-plane acceleration
 --------------------------------------
@@ -116,7 +118,7 @@ linear in :math:`k_y` and therefore a displacement of
 :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
 routes shorten the train, and both shorten the distortion with it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 131-156
+.. GENERATED FROM PYTHON SOURCE LINES 126-151
 
 .. code-block:: Python
 
@@ -143,7 +145,7 @@ routes shorten the train, and both shorten the distortion with it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 157-165
+.. GENERATED FROM PYTHON SOURCE LINES 152-160
 
 Echo traversal
 --------------
@@ -154,7 +156,7 @@ traverses the axis one line at a time; a segmented acquisition traverses it
 in steps of ``n_shots``, with each shot starting one line further on;
 acceleration traverses it in steps of ``ry`` and stops there.
 
-.. GENERATED FROM PYTHON SOURCE LINES 165-170
+.. GENERATED FROM PYTHON SOURCE LINES 160-165
 
 
 
@@ -174,7 +176,7 @@ acceleration traverses it in steps of ``ry`` and stops there.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 171-177
+.. GENERATED FROM PYTHON SOURCE LINES 166-172
 
 Which lines are acquired
 ------------------------
@@ -183,7 +185,7 @@ Segmentation and acceleration produce the same train length from different
 sets of lines: the segmented acquisition covers the axis, the accelerated one
 leaves two lines in three unread.
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-182
+.. GENERATED FROM PYTHON SOURCE LINES 172-177
 
 
 
@@ -203,83 +205,10 @@ leaves two lines in three unread.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 183-189
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model and the forbidden bands below are
-demonstrations, not a scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 189-219
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    bands = [safety.ForbiddenBand(axis=None, f_min=550.0, f_max=650.0, tolerance=6.0)]
-
-    grad_ok, grad = safety.check_max_grad(single)
-    slew_ok, slew = safety.check_max_slew(single)
-    pns_ok, pns = safety.check_pns(single, model)
-    mech_ok, mech = safety.check_mech_resonance(single, bands, window_width=20e-3)
-
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  166 T/m/s
-    peripheral nerve stimulation FAIL          1.19 of threshold
-    mechanical resonance       pass           3.5 mT/m in band
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 220-227
-
-Mechanical resonance
---------------------
-
-The readout train is a periodic gradient waveform, so its spectrum is a comb
-at the echo-spacing frequency and its harmonics. A forbidden band that one of
-those lines falls in is driven for as long as the train lasts.
-``mech_resonance_spectrum`` returns the windowed spectrum the check reads.
-
-.. GENERATED FROM PYTHON SOURCE LINES 227-246
-
-.. code-block:: Python
-
-
-    spectrum = safety.mech_resonance_spectrum(
-        single, window=mech.bands[0].window, window_width=20e-3
-    )
-
-
-
-
-.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
-   :alt: forbidden band shaded, its threshold dashed
-   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
-   :class: sphx-glr-single-img
-
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.464 seconds)
+   **Total running time of the script:** (0 minutes 0.227 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

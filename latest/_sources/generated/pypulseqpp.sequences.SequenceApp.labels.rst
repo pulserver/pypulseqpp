@@ -5,5 +5,3 @@ SequenceApp.labels
 
 .. automethod:: SequenceApp.labels
 
-.. minigallery:: pypulseqpp.sequences.SequenceApp.labels
-   :add-heading: Examples using ``SequenceApp.labels``

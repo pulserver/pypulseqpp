@@ -5,5 +5,3 @@ Spiral.rotated
 
 .. automethod:: Spiral.rotated
 
-.. minigallery:: pypulseqpp.sequences.Spiral.rotated
-   :add-heading: Examples using ``Spiral.rotated``

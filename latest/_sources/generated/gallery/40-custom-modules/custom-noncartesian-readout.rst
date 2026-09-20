@@ -308,7 +308,7 @@ One repetition
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0aee2870>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598a794b60>, tr=1, underlays=[])
 
 
 
@@ -386,7 +386,7 @@ The arms the loop acquired.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.254 seconds)
+   **Total running time of the script:** (0 minutes 0.178 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-noncartesian-readout.py:

@@ -5,5 +5,3 @@ DiffusionPreparation.duration
 
 .. autoproperty:: DiffusionPreparation.duration
 
-.. minigallery:: pypulseqpp.sequences.DiffusionPreparation.duration
-   :add-heading: Examples using ``DiffusionPreparation.duration``

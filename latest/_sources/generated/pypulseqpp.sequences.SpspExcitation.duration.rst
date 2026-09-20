@@ -5,5 +5,3 @@ SpspExcitation.duration
 
 .. autoproperty:: SpspExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.SpspExcitation.duration
-   :add-heading: Examples using ``SpspExcitation.duration``

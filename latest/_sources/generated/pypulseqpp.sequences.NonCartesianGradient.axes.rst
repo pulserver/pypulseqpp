@@ -5,5 +5,3 @@ NonCartesianGradient.axes
 
 .. autoproperty:: NonCartesianGradient.axes
 
-.. minigallery:: pypulseqpp.sequences.NonCartesianGradient.axes
-   :add-heading: Examples using ``NonCartesianGradient.axes``

@@ -5,5 +5,3 @@ EpiReadout2D.publish
 
 .. automethod:: EpiReadout2D.publish
 
-.. minigallery:: pypulseqpp.sequences.EpiReadout2D.publish
-   :add-heading: Examples using ``EpiReadout2D.publish``

@@ -32,5 +32,3 @@
    ~SpatialSelective2DExcitation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelective2DExcitation
-   :add-heading: Examples using ``SpatialSelective2DExcitation``

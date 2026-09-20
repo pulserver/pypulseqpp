@@ -5,5 +5,3 @@ MultibandExcitation.publish
 
 .. automethod:: MultibandExcitation.publish
 
-.. minigallery:: pypulseqpp.sequences.MultibandExcitation.publish
-   :add-heading: Examples using ``MultibandExcitation.publish``

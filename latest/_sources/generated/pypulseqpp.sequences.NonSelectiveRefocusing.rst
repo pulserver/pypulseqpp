@@ -32,5 +32,3 @@
    ~NonSelectiveRefocusing.seq
 
 
-.. minigallery:: pypulseqpp.sequences.NonSelectiveRefocusing
-   :add-heading: Examples using ``NonSelectiveRefocusing``

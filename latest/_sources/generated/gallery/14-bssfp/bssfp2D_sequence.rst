@@ -22,28 +22,29 @@
 2D balanced SSFP
 ==================
 
-Every gradient axis returns to zero moment within each repetition and the
-RF phase alternates, so the magnetisation reaches a steady state that carries
-both relaxation times. The train opens with a half flip, which places the
-magnetisation on the axis the steady state oscillates about.
+A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat
+with alternating RF phase. Zero net gradient moment in every TR preserves
+transverse coherence and establishes a steady state governed by T2/T1 and
+off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP
+is widely used for cardiac cine and dynamic cardiac imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-43
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Baseline
 --------
 
 One cardiac phase over a full Cartesian sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-53
+.. GENERATED FROM PYTHON SOURCE LINES 37-47
 
 .. code-block:: Python
 
@@ -71,12 +72,12 @@ One cardiac phase over a full Cartesian sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-56
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -97,18 +98,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6af05e1be0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a8d63860>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-64
+.. GENERATED FROM PYTHON SOURCE LINES 54-58
 
 Sampling order
 --------------
 
 The lines in the order they are read, in segments of ``views_per_segment``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-67
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -133,7 +134,7 @@ The lines in the order they are read, in segments of ``views_per_segment``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-74
+.. GENERATED FROM PYTHON SOURCE LINES 62-68
 
 Cine
 ----
@@ -142,7 +143,7 @@ Cine
 trigger. Segment length controls the temporal footprint per phase and the
 number of cardiac cycles required for complete sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-88
+.. GENERATED FROM PYTHON SOURCE LINES 68-82
 
 .. code-block:: Python
 
@@ -167,7 +168,7 @@ number of cardiac cycles required for complete sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-91
+.. GENERATED FROM PYTHON SOURCE LINES 83-85
 
 .. code-block:: Python
 
@@ -191,49 +192,10 @@ number of cardiac cycles required for complete sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-98
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 98-129
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  38.1 mT/m
-    slew rate                  pass                  167 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.60 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.440 seconds)
+   **Total running time of the script:** (0 minutes 1.030 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

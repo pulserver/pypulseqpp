@@ -5,5 +5,3 @@ Sequence.test\_report\_dict
 
 .. automethod:: Sequence.test_report_dict
 
-.. minigallery:: pypulseqpp.Sequence.test_report_dict
-   :add-heading: Examples using ``Sequence.test_report_dict``

@@ -32,5 +32,3 @@
    ~Rosette.has_rewinder
 
 
-.. minigallery:: pypulseqpp.sequences.Rosette
-   :add-heading: Examples using ``Rosette``

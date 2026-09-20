@@ -5,5 +5,3 @@ ZteReadout.init\_module
 
 .. automethod:: ZteReadout.init_module
 
-.. minigallery:: pypulseqpp.sequences.ZteReadout.init_module
-   :add-heading: Examples using ``ZteReadout.init_module``

@@ -5,5 +5,3 @@ RadialProjectionReadout.arm
 
 .. automethod:: RadialProjectionReadout.arm
 
-.. minigallery:: pypulseqpp.sequences.RadialProjectionReadout.arm
-   :add-heading: Examples using ``RadialProjectionReadout.arm``

@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_max_grad"><code class="docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-check-max-grad">Examples using <code class="docutils literal notranslate"><span class="pre">check_max_grad</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,13 +564,13 @@
 <h1>check_max_grad<a class="headerlink" href="#check-max-grad" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.safety.check_max_grad">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">check_max_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety.html#check_max_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.check_max_grad" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">check_max_grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety.html#check_max_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.check_max_grad" title="Link to this definition">#</a></dt>
 <dd><p>Check the peak gradient amplitude against <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to check.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>optional</em>) – System limits; defaults to seq.system.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits; defaults to seq.system.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -592,96 +591,6 @@ magnitude over the three physical axes; it is reported but not compared
 with a limit, and it is not the norm of independently attained axis peaks.</p>
 </dd></dl>
 
-<section id="examples-using-check-max-grad">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">check_max_grad</span></code><a class="headerlink" href="#examples-using-check-max-grad" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it."><img alt="" src="../_images/sphx_glr_safety-checks_thumb.png" />
-<p><a class="reference internal" href="gallery/01-getting-started/safety-checks.html"><span class="doc">Sequence constraint checks</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence constraint checks</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one phase-encode line per repetition, with the transverse magnetisation spoiled by a gradient and by a quadratic RF phase increment before the next excitation. This is the reference implementation for the Cartesian gradient-echo variants."><img alt="" src="../_images/sphx_glr_gre2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre2D_sequence.html"><span class="doc">2D Cartesian gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D Cartesian gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one (line, partition) view per repetition over a slab. The second phase-encode axis replaces slice selection, so the slab is resolved by encoding rather than by the pulse."><img alt="" src="../_images/sphx_glr_gre3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre3D_sequence.html"><span class="doc">3D Cartesian gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D Cartesian gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation per repetition, with the line read again at several echo times. Signal amplitude across the echo train follows apparent transverse relaxation, providing multiple points on the decay curve per excitation."><img alt="" src="../_images/sphx_glr_gre_multiecho2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_multiecho2D_sequence.html"><span class="doc">2D Cartesian multi-echo gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D Cartesian multi-echo gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The multi-echo readout over a slab: one excitation per (line, partition) view, with that view read at several echo times."><img alt="" src="../_images/sphx_glr_gre_multiecho3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_multiecho3D_sequence.html"><span class="doc">3D Cartesian multi-echo gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D Cartesian multi-echo gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per repetition. A blade is a narrow band of parallel lines through the centre of k-space, and the blades are turned so that between them they cover the disc; each blade samples the centre, so a blade corrupted by motion can be detected and rejected."><img alt="" src="../_images/sphx_glr_gre_propeller2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_propeller2D_sequence.html"><span class="doc">2D PROPELLER gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D PROPELLER gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One full spoke through the centre of k-space per repetition. Every readout crosses the k-space origin. Angular undersampling produces streak artefacts rather than coherent Cartesian aliasing."><img alt="" src="../_images/sphx_glr_gre_radial2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_radial2D_sequence.html"><span class="doc">2D radial gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D radial gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per repetition, solved against the gradient amplitude and slew limits. An interleaf covers a disc rather than a line, so a plane is acquired in a few tens of repetitions."><img alt="" src="../_images/sphx_glr_gre_spiral2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_spiral2D_sequence.html"><span class="doc">2D spiral gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D spiral gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis."><img alt="" src="../_images/sphx_glr_gre_stack_of_blades3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-blades gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, which is the most efficient of the stacks: a partition is covered by a few interleaves rather than by a few hundred lines."><img alt="" src="../_images/sphx_glr_gre_stack_of_spirals3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis. The in-plane trajectory retains radial sampling properties, with Cartesian encoding along the partition axis."><img alt="" src="../_images/sphx_glr_gre_stack_of_stars3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/10-gradient-echo/gre_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars gradient echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-stars gradient echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per repetition, with the line read at the refocused echo. Refocusing undoes the dephasing that static field inhomogeneity causes, so the contrast follows the true transverse relaxation rather than the apparent one."><img alt="" src="../_images/sphx_glr_se2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se2D_sequence.html"><span class="doc">2D Cartesian spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D Cartesian spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation and one refocusing pulse per (line, partition) view over a slab."><img alt="" src="../_images/sphx_glr_se3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se3D_sequence.html"><span class="doc">3D Cartesian spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D Cartesian spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One whole blade per excitation, read as an echo-planar train. The blade is acquired in one shot rather than a line at a time, so the scan is far shorter than a line-by-line PROPELLER and the blade carries the off-resonance behaviour of an echo-planar readout."><img alt="" src="../_images/sphx_glr_se_epi_propeller2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_epi_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo with echo-planar blades</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo with echo-planar blades</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One line of one rotating blade per excitation, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_propeller2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_propeller2D_sequence.html"><span class="doc">2D PROPELLER spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D PROPELLER spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One full spoke per excitation, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_radial2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_radial2D_sequence.html"><span class="doc">2D radial spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D radial spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One spiral interleaf per excitation, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_spiral2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_spiral2D_sequence.html"><span class="doc">2D spiral spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D spiral spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="PROPELLER blades in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_stack_of_blades3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_blades3D_sequence.html"><span class="doc">3D stack-of-blades spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-blades spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Spiral interleaves in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_stack_of_spirals3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Radial spokes in the plane and Cartesian encoding along the slab axis, read at the refocused echo."><img alt="" src="../_images/sphx_glr_se_stack_of_stars3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/11-spin-echo/se_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-stars spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, an inversion time, and then a spoiled gradient-echo train that reads the views of one partition. The acquisition time of central k-space relative to the inversion pulse determines the dominant inversion-recovery contrast. View ordering therefore defines the contrast weighting across k-space."><img alt="" src="../_images/sphx_glr_mprage3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/12-mprage/mprage3D_sequence.html"><span class="doc">3D Cartesian MPRAGE</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D Cartesian MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the spiral interleaves of one partition. An interleaf covers far more of the plane than a line does, so a partition needs few readouts and the whole train sits close behind the inversion."><img alt="" src="../_images/sphx_glr_mprage_stack_of_spirals3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/12-mprage/mprage_stack_of_spirals3D_sequence.html"><span class="doc">3D stack-of-spirals MPRAGE</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-spirals MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One inversion per shot, followed by a spoiled gradient-echo train that reads the radial spokes of one partition. In-plane the acquisition is radial, so every spoke crosses the centre of k-space and the contrast the inversion time sets is carried by every readout rather than by a few central lines."><img alt="" src="../_images/sphx_glr_mprage_stack_of_stars3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/12-mprage/mprage_stack_of_stars3D_sequence.html"><span class="doc">3D stack-of-stars MPRAGE</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D stack-of-stars MPRAGE</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a CPMG train of refocusing pulses, with one (line, partition) view acquired per echo. Signal amplitude at echo m weights the corresponding k-space view. Echo ordering therefore determines the modulation transfer function and point-spread function."><img alt="" src="../_images/sphx_glr_fse3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">3D fast spin echo</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D fast spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Every gradient axis returns to zero moment within each repetition and the RF phase alternates, so the magnetisation reaches a steady state that carries both relaxation times. The train opens with a half flip, which places the magnetisation on the axis the steady state oscillates about."><img alt="" src="../_images/sphx_glr_bssfp2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/14-bssfp/bssfp2D_sequence.html"><span class="doc">2D balanced SSFP</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D balanced SSFP</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The balanced gradient structure over a partition-encoded slab, with each train opened by a half flip."><img alt="" src="../_images/sphx_glr_bssfp3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/14-bssfp/bssfp3D_sequence.html"><span class="doc">3D balanced SSFP</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D balanced SSFP</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation followed by a train of readout lobes of alternating polarity, with a phase-encoding blip between successive readouts. A single-shot train acquires the complete phase-encode axis after one excitation. Off-resonance phase accumulates across the train and produces displacement along that axis."><img alt="" src="../_images/sphx_glr_epi2D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="One excitation per shot, followed by a train of readout lobes of alternating polarity that covers a shell of partitions. The sampled views form a CAIPIRINHA lattice. Phase-encode lines satisfy (y - n_y // 2) % ry == 0; the partition index advances by the CAIPI shift between adjacent lattice lines. Each shot acquires every n_shots-th lattice line, defining skipped-CAIPI sampling (Stirnberg and Stöcker, Magn Reson Med 2021, doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI."><img alt="" src="../_images/sphx_glr_epi3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/15-epi/epi3D_sequence.html"><span class="doc">3D echo-planar imaging</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D echo-planar imaging</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The readout gradient is already at amplitude when the hard pulse is transmitted, so acquisition begins as soon as the receiver is available and the echo time is a few tens of microseconds. Concurrent excitation and gradient encoding produce a spatially dependent RF bandwidth. Transmit/receive dead time leaves a central k-space gap."><img alt="" src="../_images/sphx_glr_zte3D_sequence_thumb.png" />
-<p><a class="reference internal" href="gallery/16-zte/zte3D_sequence.html"><span class="doc">3D zero echo time</span></a></p>
-  <div class="sphx-glr-thumbnail-title">3D zero echo time</div>
-</div></div></section>
 </section>
 
 
@@ -714,7 +623,6 @@ with a limit, and it is not the norm of independently attained axis peaks.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_max_grad"><code class="docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-check-max-grad">Examples using <code class="docutils literal notranslate"><span class="pre">check_max_grad</span></code></a></li>
 </ul>
   </nav></div>
 

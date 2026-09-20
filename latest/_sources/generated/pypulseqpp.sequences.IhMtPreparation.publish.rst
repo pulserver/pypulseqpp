@@ -5,5 +5,3 @@ IhMtPreparation.publish
 
 .. automethod:: IhMtPreparation.publish
 
-.. minigallery:: pypulseqpp.sequences.IhMtPreparation.publish
-   :add-heading: Examples using ``IhMtPreparation.publish``

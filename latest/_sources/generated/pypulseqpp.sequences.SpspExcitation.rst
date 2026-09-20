@@ -33,5 +33,3 @@
    ~SpspExcitation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.SpspExcitation
-   :add-heading: Examples using ``SpspExcitation``

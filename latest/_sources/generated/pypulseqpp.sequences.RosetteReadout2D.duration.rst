@@ -5,5 +5,3 @@ RosetteReadout2D.duration
 
 .. autoproperty:: RosetteReadout2D.duration
 
-.. minigallery:: pypulseqpp.sequences.RosetteReadout2D.duration
-   :add-heading: Examples using ``RosetteReadout2D.duration``

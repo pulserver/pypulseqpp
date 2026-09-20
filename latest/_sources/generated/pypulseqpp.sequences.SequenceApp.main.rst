@@ -5,5 +5,3 @@ SequenceApp.main
 
 .. autoattribute:: SequenceApp.main
 
-.. minigallery:: pypulseqpp.sequences.SequenceApp.main
-   :add-heading: Examples using ``SequenceApp.main``

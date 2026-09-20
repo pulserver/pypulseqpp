@@ -5,5 +5,3 @@ SpatialSelectiveExcitation.duration
 
 .. autoproperty:: SpatialSelectiveExcitation.duration
 
-.. minigallery:: pypulseqpp.sequences.SpatialSelectiveExcitation.duration
-   :add-heading: Examples using ``SpatialSelectiveExcitation.duration``

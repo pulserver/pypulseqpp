@@ -283,7 +283,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
@@ -549,7 +549,6 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_duration"><code class="docutils literal notranslate"><span class="pre">calc_duration()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-calc-duration">Examples using <code class="docutils literal notranslate"><span class="pre">calc_duration</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -565,7 +564,7 @@
 <h1>calc_duration<a class="headerlink" href="#calc-duration" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.calc_duration">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">calc_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/calc_duration.html#calc_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.calc_duration" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">calc_duration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseq/calc_duration.html#calc_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.calc_duration" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the duration of an event or block.
 The duration of an event is the
 time taken by the actual event itself plus its delay.
@@ -589,12 +588,6 @@ comprised of these events, which is given by the maximum duration of the events.
 expects and come back with their fields in slots.</p>
 </dd></dl>
 
-<section id="examples-using-calc-duration">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">calc_duration</span></code><a class="headerlink" href="#examples-using-calc-duration" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding."><img alt="" src="../_images/sphx_glr_custom-cartesian-readout_thumb.png" />
-<p><a class="reference internal" href="gallery/40-custom-modules/custom-cartesian-readout.html"><span class="doc">A ramp-sampled readout module</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
-</div></div></section>
 </section>
 
 
@@ -627,7 +620,6 @@ expects and come back with their fields in slots.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_duration"><code class="docutils literal notranslate"><span class="pre">calc_duration()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-calc-duration">Examples using <code class="docutils literal notranslate"><span class="pre">calc_duration</span></code></a></li>
 </ul>
   </nav></div>
 

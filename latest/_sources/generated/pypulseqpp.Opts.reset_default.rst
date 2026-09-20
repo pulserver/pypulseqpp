@@ -5,5 +5,3 @@ Opts.reset\_default
 
 .. automethod:: Opts.reset_default
 
-.. minigallery:: pypulseqpp.Opts.reset_default
-   :add-heading: Examples using ``Opts.reset_default``

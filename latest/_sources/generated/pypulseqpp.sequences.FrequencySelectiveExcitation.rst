@@ -32,5 +32,3 @@
    ~FrequencySelectiveExcitation.seq
 
 
-.. minigallery:: pypulseqpp.sequences.FrequencySelectiveExcitation
-   :add-heading: Examples using ``FrequencySelectiveExcitation``

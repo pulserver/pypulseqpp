@@ -5,5 +5,3 @@ SmsExcitation.blocks
 
 .. autoproperty:: SmsExcitation.blocks
 
-.. minigallery:: pypulseqpp.sequences.SmsExcitation.blocks
-   :add-heading: Examples using ``SmsExcitation.blocks``

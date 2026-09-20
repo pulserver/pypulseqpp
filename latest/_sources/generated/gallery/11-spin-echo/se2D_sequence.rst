@@ -22,21 +22,22 @@
 2D Cartesian spin echo
 ========================
 
-One excitation and one refocusing pulse per repetition, with the line
-read at the refocused echo. Refocusing undoes the dephasing that static
-field inhomogeneity causes, so the contrast follows the true transverse
-relaxation rather than the apparent one.
+A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a Cartesian readout. Spoilers suppress unwanted coherence before
+the next TR. TE controls T2 weighting and TR controls longitudinal recovery.
+Spin echo is used for conventional T1-, T2-, and proton-density-weighted
+structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-38
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-44
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
 Baseline
 --------
@@ -44,7 +45,7 @@ Baseline
 A full Cartesian sampling of one slice, at the shortest echo time the
 pulses and the readout allow.
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-55
+.. GENERATED FROM PYTHON SOURCE LINES 38-49
 
 .. code-block:: Python
 
@@ -73,12 +74,12 @@ pulses and the readout allow.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-58
+.. GENERATED FROM PYTHON SOURCE LINES 50-52
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 52-55
 
 .. code-block:: Python
 
@@ -99,18 +100,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f6b0b3d15b0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598885fd40>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-66
+.. GENERATED FROM PYTHON SOURCE LINES 56-60
 
 Sampling order
 --------------
 
 The lines in the order they are read.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-69
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
@@ -135,7 +136,7 @@ The lines in the order they are read.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-76
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
 
 Partial Fourier
 ---------------
@@ -144,7 +145,7 @@ Partial Fourier
 k-space. Partial-Fourier reconstruction uses conjugate symmetry and requires
 a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-90
+.. GENERATED FROM PYTHON SOURCE LINES 70-84
 
 .. code-block:: Python
 
@@ -169,7 +170,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-93
+.. GENERATED FROM PYTHON SOURCE LINES 85-87
 
 .. code-block:: Python
 
@@ -193,49 +194,10 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-100
-
-Safety checks
--------------
-
-A passing check does not establish that a sequence is safe to run on a
-scanner or on a subject. The nerve model below is a demonstration, not a
-scanner's.
-
-.. GENERATED FROM PYTHON SOURCE LINES 100-131
-
-.. code-block:: Python
-
-
-    from pypulseqpp import safety
-
-    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-    grad_ok, grad = safety.check_max_grad(baseline)
-    slew_ok, slew = safety.check_max_slew(baseline)
-    cont_ok, cont = safety.check_grad_continuity(baseline)
-    pns_ok, pns = safety.check_pns(baseline, model)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    check                      result                     peak
-    gradient amplitude         pass                  39.8 mT/m
-    slew rate                  pass                  166 T/m/s
-    gradient continuity        pass          0 discontinuities
-    peripheral nerve stimulation FAIL          1.37 of threshold
-
-
-
-
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.455 seconds)
+   **Total running time of the script:** (0 minutes 1.683 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

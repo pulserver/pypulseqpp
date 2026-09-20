@@ -5,5 +5,3 @@ MtPreparation.register
 
 .. automethod:: MtPreparation.register
 
-.. minigallery:: pypulseqpp.sequences.MtPreparation.register
-   :add-heading: Examples using ``MtPreparation.register``
