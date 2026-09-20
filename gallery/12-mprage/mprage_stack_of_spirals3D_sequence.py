@@ -3,10 +3,11 @@
 3D stack-of-spirals MPRAGE
 ============================
 
-One inversion per shot, followed by a spoiled gradient-echo train that
-reads the spiral interleaves of one partition. An interleaf covers far more
-of the plane than a line does, so a partition needs few readouts and the
-whole train sits close behind the inversion.
+An inversion preparation is followed by a train of low-flip-angle spoiled
+spiral gradient echoes with Cartesian partition encoding. Interleaf and
+partition order determine the recovery time of the acquired data within and
+between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted
+3D structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -58,13 +59,6 @@ def order_figure(seq, n_z):
     axes[0].set_ylabel("$k_z$ (partitions from centre)")
     figure.tight_layout()
     return figure
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -120,40 +114,3 @@ order_figure(protocol, 16)
 pp.plot.plot_kspace(protocol, color_by="shot")
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(protocol)
-slew_ok, slew = safety.check_max_slew(protocol)
-cont_ok, cont = safety.check_grad_continuity(protocol)
-pns_ok, pns = safety.check_pns(protocol, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / protocol.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / protocol.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ]
-)
-# sphinx_gallery_end_ignore

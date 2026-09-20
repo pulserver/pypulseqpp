@@ -392,75 +392,84 @@ class Fse3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y, fov_z : float, optional
+        fov_x, fov_y, fov_z : float, default=0.16
             Field of view along the readout, the phase encode and the
             partition encode (m). A slab excited is ``fov_z`` thick.
-        n_x, n_y, n_z : int, optional
+        n_x : int, default=320
             Matrix size along the readout, the phase encode and the partition
             encode.
-        te : float | None, optional
+        n_y : int, default=240
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        n_z : int, default=240
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        te : float | None, default=0.028
             Effective echo time (s): the echo the centre of k-space is read
             at, rounded onto the echo grid. ``None`` is the first echo.
             Meaningless under ``shuffling``.
-        tr : float, optional
+        tr : float, default=1.8
             Repetition time (s), one per train; at the centre of k-space when
             the trains are individually parameterized.
-        etl : int, optional
+        etl : int, default=45
             Echo train length; at the centre of k-space when the trains are
             individually parameterized.
-        refocusing_angle_deg : float, optional
+        refocusing_angle_deg : float, default=180.0
             Refocusing flip angle (degrees): of every pulse under
             ``constant``, at the TE echo under ``optimized``.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz).
-        ry, rz : int, optional
+        ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
-        caipi_shift : int, optional
+        caipi_shift : int, default=0
             Partitions the lattice climbs per acquired line, in ``[0, rz)``.
             Unused by ``shuffling``.
-        partial_fourier_x : float, optional
+        partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``.
-        partial_fourier_y, partial_fourier_z : float, optional
+        partial_fourier_y, partial_fourier_z : float, default=1.0
             Fraction of the phase- and partition-encode extent acquired, in
             ``[0.75, 1]``.
-        n_dummy : int, optional
+        n_dummy : int, default=0
             Trains played without acquiring before the first.
-        excitation : {'slab', 'nonselective'}, optional
+        excitation : {'slab', 'nonselective'}, default='slab'
             Slab-selective excitation and refocusing, or hard pulses with
             readout-axis crushers, which shorten the echo spacing.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=2.0
             Readout oversampling factor, at least one.
-        esp : float | None, optional
+        esp : float | None, default=None
             Echo spacing (s). ``None`` is as short as the train admits.
-        n_acs_y, n_acs_z : int, optional
+        n_acs_y : int, default=24
             Extent of the fully sampled calibration region along the phase
             and the partition encode, when undersampled.
-        elliptical_acs : bool, optional
+        n_acs_z : int, default=16
+            Extent of the fully sampled calibration region along the phase
+            and the partition encode, when undersampled.
+        elliptical_acs : bool, default=False
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-        ordering : {'radial', 'shuffling'}, optional
+        ordering : {'radial', 'shuffling'}, default='radial'
             Adaptive radial reordering on the CAIPIRINHA lattice, or a
             shuffled Poisson-disc set.
-        flip_modulation : {'constant', 'optimized'}, optional
+        flip_modulation : {'constant', 'optimized'}, default='constant'
             Constant refocusing angles, or trains designed with torchsim,
             which the ``design`` extra installs.
-        tr_periphery : float | None, optional
+        tr_periphery : float | None, default=None
             Repetition time (s) at the periphery of k-space. ``None`` is
             ``tr``.
-        etl_periphery : int | None, optional
+        etl_periphery : int | None, default=None
             Echo train length at the periphery of k-space. ``None`` is
             ``etl``.
-        wave : {'phase', 'partition', 'both'}, optional
+        wave : {'phase', 'partition', 'both'}, default='both'
             Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
             wave-encoding gradients the calibration region is acquired again
             first without them, marked ``REF``, and no wave-encoded view is
             marked ``IMA``.
-        wave_cycles : int, optional
+        wave_cycles : int, default=8
             Wave periods across the sampling window; zero plays no wave.
-        wave_amplitude : float, optional
+        wave_amplitude : float, default=0.0
             Requested peak wave-encoding gradient amplitude (T/m); zero, the
             default, plays no wave. The slew rate may lower it.
-        navigator : bool, optional
+        navigator : bool, default=False
             Play three-plane spiral navigators after each train, as many as
             the shortest TR holds up to :attr:`NAVIGATOR_COUNT`.
 

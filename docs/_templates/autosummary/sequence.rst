@@ -100,5 +100,7 @@ Plotting
    ~Sequence.plot
    ~Sequence.paper_plot
 
+{% if module + "." + objname in gallery_backreferences %}
 .. minigallery:: {{ module }}.{{ objname }}
    :add-heading: Examples using ``{{ objname }}``
+{% endif %}

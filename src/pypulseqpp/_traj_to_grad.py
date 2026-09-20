@@ -31,15 +31,15 @@ def traj_to_grad(
     k : numpy.ndarray
         K-space trajectory, **time last**: shape ``(n,)``, ``(2, n)`` or
         ``(3, n)``, in 1/m.
-    raster_time : float, optional
+    raster_time : float, default=None
         Gradient raster (s). Defaults to the system's.
-    time_optimal : bool, optional
+    time_optimal : bool, default=True
         Re-parameterise the path within the limits rather than differentiate it.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits; supplies ``max_grad``, ``max_slew`` and the raster.
-    oversampling : int, optional
+    oversampling : int, default=8
         Path-resampling factor the solver works at.
-    start_at_zero, end_at_zero : bool, optional
+    start_at_zero, end_at_zero : bool, default=True
         Ramp the waveform up from and back down to zero amplitude.
 
     Returns

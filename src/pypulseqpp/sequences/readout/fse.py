@@ -102,9 +102,9 @@ class _FseReadout(SequenceModule):
         System limits.
     rf : RfEvent
         The excitation that opens the repetition.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``. A slab excitation
         (``is_slab=True``) has already merged it into ``gz`` and passes
         nothing.
@@ -114,7 +114,7 @@ class _FseReadout(SequenceModule):
         for a selective train,
         :class:`~pypulseqpp.sequences.NonSelectiveRefocusing`'s for a
         hard-pulse train.
-    gz_ref : GradEvent, optional
+    gz_ref : GradEvent, default=None
         Selection gradient for ``rf_ref`` with its crushers, as one event
         played in the pulse's block: the ``gz`` of
         :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`. A
@@ -125,45 +125,45 @@ class _FseReadout(SequenceModule):
     matrix : int or sequence of int
         Matrix size per encoded axis, used to set gradient areas. The scan
         loop controls the number and order of acquired lines.
-    etl : int, optional
+    etl : int, default=8
         Echo train length: refocusing pulses, and encoded lines, per
         repetition.
-    esp : float, optional
+    esp : float, default=None
         Echo spacing (s). ``None`` is as short as possible.
-    esp_first : float, optional
+    esp_first : float, default=None
         Spacing of the first echo (s). ``None`` is the shortest that
         accommodates the excitation, which is ``esp`` whenever the excitation
         fits in half of one. Rounded so that ``esp_first - esp`` is a multiple
         of twice the block raster.
-    tr : float, optional
+    tr : float, default=None
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
-    partial_echo : float, optional
+    partial_echo : float, default=1.0
         Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the
         samples before the echo.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         Read oversampling: ``delta_kx`` shrinks and the sampled field of view
         grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Read-axis crushing each side of every acquisition, in cycles across
         ``voxel_size_m``.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=None
         Length the crushing is counted over (m). The read resolution by
         default.
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the acquisition block. The loop writes the values.
-    trigger : event, optional
+    trigger : event, default=None
         A trigger or digital output armed on the prephaser block.
-    wave : {'phase', 'partition', 'both'}, optional
+    wave : {'phase', 'partition', 'both'}, default=None
         Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
         on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
         is zero, which builds no wave-encoding gradients.
-    wave_cycles : int, optional
+    wave_cycles : int, default=8
         Wave periods across the sampling window.
-    wave_amplitude : float, optional
+    wave_amplitude : float, default=0.008
         Requested peak wave-encoding gradient amplitude, in T/m rather than the
         Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
         module's ``wave_amplitude`` attribute reports the amplitude built.

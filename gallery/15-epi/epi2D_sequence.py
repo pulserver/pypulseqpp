@@ -3,11 +3,12 @@
 2D echo-planar imaging
 ========================
 
-One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encode blip between them, so the whole phase-encode axis is
-covered after a single pulse. Off-resonance then accumulates along that axis
-instead of across repetitions, and the train length is what decides how far it
-displaces the image.
+A slice-selective excitation is followed by alternating readout gradients and
+phase-encode blips that acquire multiple Cartesian lines in one echo train.
+Spoilers suppress residual transverse coherence between repetitions.
+Off-resonance phase accumulates during the train and produces geometric
+distortion along the phase-encode axis. EPI supports rapid structural imaging
+and functional MRI.
 """
 
 # sphinx_gallery_start_ignore
@@ -83,13 +84,6 @@ def coverage_figure(designs, n_y):
     axis.grid(axis="x", alpha=0.25, lw=0.4)
     figure.tight_layout()
     return figure
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -181,66 +175,3 @@ coverage_figure(designs, 96)
 # sphinx_gallery_end_ignore
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model and the forbidden bands below are
-# demonstrations, not a scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-bands = [safety.ForbiddenBand(axis=None, f_min=550.0, f_max=650.0, tolerance=6.0)]
-
-grad_ok, grad = safety.check_max_grad(single)
-slew_ok, slew = safety.check_max_slew(single)
-pns_ok, pns = safety.check_pns(single, model)
-mech_ok, mech = safety.check_mech_resonance(single, bands, window_width=20e-3)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / single.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / single.system.gamma:.0f} T/m/s",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-        ("mechanical resonance", mech_ok, f"{mech.bands[0].peak:.1f} mT/m in band"),
-    ]
-)
-# sphinx_gallery_end_ignore
-
-# %%
-# Mechanical resonance
-# --------------------
-#
-# The readout train is a periodic gradient waveform, so its spectrum is a comb
-# at the echo-spacing frequency and its harmonics. A forbidden band that one of
-# those lines falls in is driven for as long as the train lasts.
-# ``mech_resonance_spectrum`` returns the windowed spectrum the check reads.
-
-spectrum = safety.mech_resonance_spectrum(
-    single, window=mech.bands[0].window, window_width=20e-3
-)
-
-# sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
-for name, amplitude in zip(spectrum.axes, spectrum.amplitude, strict=True):
-    axis.plot(spectrum.frequency, amplitude, lw=0.9, label=f"$G_{name}$")
-band = mech.bands[0]
-axis.axvspan(band.f_min, band.f_max, color="tab:red", alpha=0.15, lw=0)
-axis.axhline(band.threshold, color="tab:red", ls="--", lw=1.0)
-axis.set_xlim(0, 2000)
-axis.set_xlabel("frequency (Hz)")
-axis.set_ylabel("amplitude (mT/m)")
-axis.set_title("forbidden band shaded, its threshold dashed")
-axis.legend(frameon=False, ncol=3, fontsize=9)
-figure.tight_layout()
-# sphinx_gallery_end_ignore

@@ -54,7 +54,13 @@ def profile_figure(designs, title, legend):
         profile_axis.plot(1e3 * design_["position"], design_["profile"], lw=1.2)
     envelope_axis.set_xlabel("time (ms)")
     envelope_axis.set_ylabel("$|B_1|$ (Hz)")
-    envelope_axis.legend(frameon=False, title=legend, fontsize=9)
+    envelope_axis.legend(
+        frameon=False,
+        title=legend,
+        fontsize=9,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.24),
+    )
     profile_axis.axvspan(
         -0.5e3 * THICKNESS, 0.5e3 * THICKNESS, color="0.9", lw=0, zorder=0
     )
@@ -89,7 +95,7 @@ def feasibility_figure(grid, boundary_tbw, boundary_duration):
     axis.plot([], [], "x", color="tab:red", label="rejected")
     axis.set_xlabel("time-bandwidth product")
     axis.set_ylabel("pulse duration (ms)")
-    axis.legend(loc="upper left", fontsize=9)
+    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=9)
     figure.tight_layout()
     return figure
 

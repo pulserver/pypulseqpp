@@ -202,11 +202,11 @@ def print_error_report(
         the reference toolbox's; nothing here reads it.
     error_report : list[SimpleNamespace]
         What :func:`check_timing` returned.
-    full_report : bool, default False
+    full_report : bool, default False, default=False
         Print every problem rather than the first ``max_errors``.
-    max_errors : int, default 10
+    max_errors : int, default 10, default=10
         Number of problems to print before summarising the rest.
-    colored : bool, default True
+    colored : bool, default True, default=True
         Wrap each message in an ANSI colour.
 
     Examples

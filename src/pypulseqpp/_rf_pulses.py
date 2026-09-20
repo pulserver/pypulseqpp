@@ -77,44 +77,44 @@ def make_slr_pulse(
     ----------
     flip_angle : float
         Nominal flip angle (rad).
-    duration : float, optional
+    duration : float, default=DEFAULT_DURATION
         Pulse duration (s).
-    delay : float, optional
+    delay : float, default=0.0
         Delay before the pulse (s).
-    dwell : float, optional
+    dwell : float, default=0.0
         RF sample spacing (s); ``0`` uses ``system.rf_raster_time``.
-    freq_offset, phase_offset : float, optional
+    freq_offset, phase_offset : float, default=0.0
         Frequency (Hz) and phase (rad) offsets.
-    center_pos : float, optional
+    center_pos : float, default=0.5
         Position of the effective centre within the pulse, in ``[0, 1]``.
-    slice_thickness : float, optional
+    slice_thickness : float, default=0.0
         Slice thickness (m); required when ``return_gz``.
-    return_gz : bool, optional
+    return_gz : bool, default=False
         Also return the selection gradient and its rephaser.
-    time_bw_product : float, optional
+    time_bw_product : float, default=DEFAULT_TIME_BANDWIDTH_PRODUCT
         Time-bandwidth product.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Small-tip, excitation, spin-echo, inversion or saturation.
-    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, optional
+    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'
         FIR design method.
-    passband_ripple, stopband_ripple : float, optional
+    passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band.
-    cancel_alpha_phase : bool, optional
+    cancel_alpha_phase : bool, default=False
         Remove the SLR alpha polynomial's phase.
-    root_flip : bool, optional
+    root_flip : bool, default=False
         Flip roots of the SLR beta polynomial to minimise peak B1 for the same
         profile magnitude (Sharma, Lustig and Grissom, 2016); the profile
         phase is no longer linear. Needs a ``pulse_type`` with a nominal flip
         and searches every subset of the passband's roots. The pulse plays at
         its designed amplitude scaled by ``flip_angle`` over the nominal flip,
         not by area.
-    max_grad, max_slew : float, optional
+    max_grad, max_slew : float, default=0.0
         Override the system limits for the selection gradient.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
-    use : str, optional
+    use : str, default='undefined'
         Pulseq ``use`` tag.
-    freq_ppm, phase_ppm : float, optional
+    freq_ppm, phase_ppm : float, default=0.0
         Field-strength-relative offsets.
 
     Returns
@@ -261,11 +261,11 @@ def make_sms_pulse(
         Number of bands, counting the on-resonance one.
     band_offset : float
         Spacing between adjacent bands (Hz).
-    sideband_power : float or sequence of float, optional
+    sideband_power : float or sequence of float, default=1.0
         Power, not amplitude, relative to the on-resonance band; weights take
         its square root. A scalar applies to every off-resonance band; a
         sequence gives one value per band, the on-resonance one included.
-    phases : {'quadratic', 'wong', 'malik'} or sequence of float, optional
+    phases : {'quadratic', 'wong', 'malik'} or sequence of float, default=None
         Per-band phase (rad), lowest frequency first, or a schedule that keeps
         the peak down: Grissom's quadratic one, Wong's optimised table (3 to
         16 bands) or Malik's Hermitian one (4 to 12 bands). ``None`` leaves
@@ -367,18 +367,18 @@ def make_spsp_pulse(
         Slice thickness (m).
     spectral_bandwidth : float
         Spectral passband (Hz).
-    freq_offset : float, optional
+    freq_offset : float, default=0.0
         Centre of the spectral passband (Hz).
-    spatial_time_bandwidth_product : float, optional
+    spatial_time_bandwidth_product : float, default=4.0
         Time-bandwidth product of each spatial subpulse.
-    spectral_time_bandwidth_product : float, optional
+    spectral_time_bandwidth_product : float, default=3.0
         Time-bandwidth product of the spectral envelope; sets the total
         duration as ``spectral_time_bandwidth_product / spectral_bandwidth``.
-    n_subpulses : int, optional
+    n_subpulses : int, default=10
         Number of subpulses (>= 4, rounded up to even).
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq ``use`` tag.
 
     Returns
@@ -587,37 +587,37 @@ def make_2d_selective_pulse(
         ``fov``.
     matrix : int
         Excitation grid size, square; sets the trajectory's k-space extent.
-    selective_size : float or sequence of float, optional
+    selective_size : float or sequence of float, default=None
         Diameter (m) of the excited disc, one value or one per axis. Half the
         field of view by default.
-    target : numpy.ndarray, optional
+    target : numpy.ndarray, default=None
         Complex desired profile on the ``(matrix, matrix)`` grid, instead of a
         disc.
-    n_interleaves : int, optional
+    n_interleaves : int, default=None
         Spiral arms to play. The default is what covers excitation k-space at
         Nyquist. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
-    axes : sequence of str, optional
+    axes : sequence of str, default=('x', 'y')
         The two gradient channels the trajectory runs on.
-    b1_maps : array_like, optional
+    b1_maps : array_like, default=None
         Complex B1+ per transmit channel, ``(num_channels, matrix, matrix)``,
         relative to nominal. When given, the pulse is designed in the
         spatial domain against them (Grissom et al., Magn Reson Med 56:620,
         2006) and returned as a pTx pulse, one waveform per channel, whose
         small-tip flip is ``flip_angle`` times the target; a single channel
         is a pulse tailored to that channel's B1.
-    off_resonance : array_like, optional
+    off_resonance : array_like, default=None
         Off-resonance map, ``(matrix, matrix)``, in Hz, for the spatial-domain
         design.
-    magnitude_only : bool, optional
+    magnitude_only : bool, default=False
         Fit only the target's magnitude in the spatial-domain design, leaving
         its phase free (magnitude least squares).
-    regularization : float, optional
+    regularization : float, default=0.0
         Tikhonov weight on the waveforms' power in the spatial-domain design.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq ``use`` tag.
-    freq_offset, phase_offset : float, optional
+    freq_offset, phase_offset : float, default=0.0
         Event offsets in Hz and radians, respectively.
 
     Returns
@@ -839,17 +839,17 @@ def make_half_passages(
     ----------
     duration : float
         Duration of each half passage, in s.
-    adiabaticity : float, optional
+    adiabaticity : float, default=8
         Sweep-rate margin over the adiabatic condition. The default is twice
         an inversion's, because a half passage has only half a sweep to
         converge in.
-    dwell : float, optional
+    dwell : float, default=1e-05
         RF raster, in s.
-    pulse_type : str, optional
+    pulse_type : str, default='hypsec'
         Sweep family, as :func:`make_adiabatic_pulse` names them.
-    use : str, optional
+    use : str, default='preparation'
         Pulseq ``use`` tag.
-    system : Opts, optional
+    system : Opts, default=None
         System limits.
 
     Returns
@@ -928,20 +928,23 @@ def make_recursive_slr_pulses(
     ----------
     n_segments : int
         Pulses in the train.
-    duration : float, optional
+    duration : float, default=DEFAULT_DURATION
         Of each pulse, in s. The SLR core, to which ``time_bw_product`` and
         ``refocusing_tbw`` refer, spans about ``duration / 1.75``; a Blackman taper
         fills the rest.
-    spin_echo : bool, optional
+    spin_echo : bool, default=False
         Design for a spin-echo segment, whose refocusing pulse is returned too.
-    refocusing_tbw : float, optional
+    refocusing_tbw : float, default=8.0
         Time-bandwidth product of that refocusing pulse.
-    t1, segment_tr : float, optional
+    t1 : float, default=math.inf
         Longitudinal relaxation time and the time between pulses, in s;
         ``t1=inf`` is no recovery.
-    use_mz : bool, optional
+    segment_tr : float, default=0.06
+        Longitudinal relaxation time and the time between pulses, in s;
+        ``t1=inf`` is no recovery.
+    use_mz : bool, default=True
         Design each pulse against the profile the earlier ones left.
-    return_gz : bool, optional
+    return_gz : bool, default=False
         Return each pulse with its selection gradient and rephaser, as
         :func:`make_slr_pulse` does.
 

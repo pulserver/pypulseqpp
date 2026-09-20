@@ -99,11 +99,11 @@ def blocks_for(
     ----------
     seq : Sequence
         The sequence the range is read against.
-    time_range : sequence of float, optional
+    time_range : sequence of float, default=None
         Two times in seconds. A block is included if any of it falls inside.
-    block_range : sequence of int, optional
+    block_range : sequence of int, default=None
         The first and last block, 1-based and inclusive.
-    tr_range : sequence of int, optional
+    tr_range : sequence of int, default=None
         The first and last repetition, 1-based and inclusive; a sequence that
         does not repeat is one repetition.
 

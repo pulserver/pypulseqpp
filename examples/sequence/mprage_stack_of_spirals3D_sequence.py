@@ -168,63 +168,63 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov : float, optional
+        fov : float, default=0.256
             Isotropic in-plane field of view (m).
-        n : int, optional
+        n : int, default=256
             In-plane matrix size.
-        fov_z : float, optional
+        fov_z : float, default=0.176
             Field of view along the partitions (m). The slab excited is
             ``fov_z`` thick.
-        n_z : int, optional
+        n_z : int, default=176
             Number of partitions.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=9.0
             Readout excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=None
             Echo time to the start of the outward path (s). ``None`` is as
             short as possible.
-        esp : float | None, optional
+        esp : float | None, default=None
             Spacing of successive interleaf excitations (s). ``None`` is as
             short as the readout admits.
-        ti : float | None, optional
+        ti : float | None, default=0.9
             Inversion time (s), from the inversion pulse's centre to the first
             interleaf's excitation. ``None`` is as short as the inversion module
             admits.
-        tr : float | None, optional
+        tr : float | None, default=2.3
             Inversion-to-inversion interval (s). ``None`` leaves one raster of
             recovery after the train.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz).
-        ry : int, optional
+        ry : int, default=1
             Angular undersampling: one interleaf in every ``ry`` of the
             ``n_shots`` is played.
-        rz : int, optional
+        rz : int, default=1
             Partition undersampling: one partition in every ``rz`` is
             acquired, the centre one among them.
-        partial_fourier_z : float, optional
+        partial_fourier_z : float, default=1.0
             Fraction of the partition extent acquired, in ``[0.75, 1]``.
-        n_dummy : int, optional
+        n_dummy : int, default=1
             Whole shots played without acquiring before the first.
-        excitation : {'slab', 'nonselective', 'spsp'}, optional
+        excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
-        partition_angle_shift : {'none', 'golden', 'tiny_golden'}, optional
+        partition_angle_shift : {'none', 'golden', 'tiny_golden'}, default='golden'
             How far each partition turns the interleaves past the previous
             one, as :data:`PARTITION_SHIFTS` names the fractions of a full
             turn.
-        n_acs_z : int, optional
+        n_acs_z : int, default=16
             Fully sampled calibration partitions at the centre, acquired when
             ``rz > 1``.
-        n_shots : int, optional
+        n_shots : int, default=16
             Interleaves that sample the centre of each plane at Nyquist.
-        density : {'constant', 'variable', 'dual'}, optional
+        density : {'constant', 'variable', 'dual'}, default='constant'
             Constant pitch, a radial power-law transition to the periphery, or
             a logistic one.
-        periphery_undersampling : float, optional
+        periphery_undersampling : float, default=2.0
             How much sparser the periphery is sampled than the centre, at
             least one. Unused at constant density.
-        transition_speed : float, optional
+        transition_speed : float, default=12.0
             Steepness of the dual-density transition.
-        navigator : bool, optional
+        navigator : bool, default=False
             Play three-plane spiral navigators in the recovery after each
             shot, as many as it holds up to :attr:`NAVIGATOR_COUNT`.
 

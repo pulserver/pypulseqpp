@@ -42,29 +42,29 @@ class _PropellerReadout(_EpiReadout):
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``.
     fov : float
         In-plane field of view (m), isotropic: the blade turns, so it cannot be
         anything else.
     matrix : int
         In-plane matrix size, isotropic.
-    blade_width : int, optional
+    blade_width : int, default=16
         Phase-encode lines per blade. Narrow blades turn a scan into many short
         trains -- less distortion per blade, more blades to cover the disc.
-    n_blades : int, optional
+    n_blades : int, default=None
         Blades in the set. The default is the smallest that samples the edge of
         the disc at Nyquist, ``ceil(pi * matrix / (2 * blade_width))``.
-    scheme : {'uniform', 'golden'}, optional
+    scheme : {'uniform', 'golden'}, default='uniform'
         How the default angles are spread. ``'uniform'`` divides half a turn
         between the blades, which is exact for the whole set and only for the
         whole set. ``'golden'`` leaves any prefix of the set near-uniform,
         including incomplete acquisitions.
-    angles : array_like, optional
+    angles : array_like, default=None
         In-plane angles (rad) to use instead of generating a set.
-    fov_z, matrix_z : float, int
+    fov_z, matrix_z : float, int, default=None
         Slab field of view (m) and partitions. :class:`PropellerStackReadout`
         only, where they are required.
 

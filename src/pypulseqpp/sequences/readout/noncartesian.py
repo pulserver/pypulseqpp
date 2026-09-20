@@ -114,9 +114,9 @@ class _RadialReadout(_ArmedReadout):
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``. Carried left-aligned in the first
         block after the pulse -- the TE wait when there is one, otherwise
         alongside the prephaser at the head of the spoke, where it costs no
@@ -127,35 +127,35 @@ class _RadialReadout(_ArmedReadout):
         Isotropic in-plane field of view (m).
     matrix : int
         In-plane matrix size. Sets ``kmax = matrix / (2 * fov)``.
-    fov_z, matrix_z : float, int
+    fov_z, matrix_z : float, int, default=None
         Partition field of view (m) and count. Stacks only.
-    te, tr : float, optional
+    te, tr : float, default=None
         Echo time (s) from the RF isodelay to the centre crossing, and
         repetition time (s). ``None`` is as short as possible.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         Readout oversampling: more samples along the same spoke.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Dephasing left at the end of the TR, in cycles across
         ``voxel_size_m``. Zero leaves the spoke rewound.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=None
         Length the spoiling is counted over (m); the resolution by default.
-    spoiling_axis : {'z', 'x', 'y'}, optional
+    spoiling_axis : {'z', 'x', 'y'}, default='z'
         Axis the spoiler is played on.
-    n_echoes : int, optional
+    n_echoes : int, default=1
         Path traversals per repetition, separated by ``echo_spacing``.
         Each retraces the same k-space coordinates and carries its own ``ECO``
         label. Non-Cartesian arms use rewinders/prewinders between echoes.
-    explicit : bool, optional
+    explicit : bool, default=False
         Write out one spoke per entry of ``angles`` instead of one base spoke.
-    angles : array-like, optional
+    angles : array-like, default=None
         In-plane rotations (rad). Required when ``explicit``, refused
         otherwise -- a sampling pattern is not the readout's to hold.
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the acquisition block.
-    trigger : event, optional
+    trigger : event, default=None
         A trigger or digital output armed on the block that opens the readout.
 
     Raises
@@ -448,43 +448,43 @@ class NonCartesianReadout(_ArmedReadout):
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``, carried left-aligned in the first
         block after the pulse. Only an axis the loop's rotation leaves alone
         can carry one.
     trajectory : NonCartesianGradient
         Solved gradient interleaf with its ADC, prewinder and rewinder.
-    fov_z : float, optional
+    fov_z : float, default=None
         Partition field of view (m). Stacks only.
-    matrix_z : int, optional
+    matrix_z : int, default=None
         Partition count. Stacks only.
-    te : float, optional
+    te : float, default=None
         Echo time (s) from the RF isodelay to the path's nearest k = 0
         crossing. ``None`` is as short as possible.
-    tr : float, optional
+    tr : float, default=None
         Repetition time (s). ``None`` is as short as possible.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Dephasing left at the end of the TR, in cycles across
         ``voxel_size_m``. Zero leaves the path rewound.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=None
         Length the spoiling is counted over (m); the trajectory's resolution
         by default.
-    spoiling_axis : {'z', 'x', 'y'}, optional
+    spoiling_axis : {'z', 'x', 'y'}, default='z'
         Axis the spoiler is played on.
-    n_echoes : int, optional
+    n_echoes : int, default=1
         Path traversals per repetition, separated by ``echo_spacing``, each
         with its own ``ECO`` label and joined by rewinders and prewinders.
-    explicit : bool, optional
+    explicit : bool, default=False
         Write out one interleaf per entry of ``angles`` instead of one base
         interleaf.
-    angles : ArrayLike, optional
+    angles : ArrayLike, default=None
         In-plane rotations (rad). Required when ``explicit``, refused
         otherwise.
-    labels : Sequence[str], optional
+    labels : Sequence[str], default=None
         Counters emitted on the acquisition block.
-    trigger : TriggerEvent, optional
+    trigger : TriggerEvent, default=None
         A trigger or digital output armed on the block that opens the readout.
 
     Examples
@@ -718,27 +718,30 @@ class _SpiralReadout(NonCartesianReadout):
         Isotropic field of view (m).
     matrix : int
         In-plane matrix size.
-    design_interleaves : int, optional
+    design_interleaves : int, default=16
         Nominal pitch, not the number of arms acquired.
-    direction : {'outward', 'inward', 'in_out'}, optional
+    direction : {'outward', 'inward', 'in_out'}, default='outward'
         Centre-to-edge, edge-to-centre, or edge-to-centre-to-edge traversal.
-    density : {'constant', 'variable', 'dual'}, optional
+    density : {'constant', 'variable', 'dual'}, default='constant'
         Constant pitch, a radial power-law transition, or a logistic transition.
-    inner_design_interleaves, outer_design_interleaves : float, optional
+    inner_design_interleaves, outer_design_interleaves : float, default=None
         Local pitch at the centre and edge. Inner defaults to design_interleaves;
         outer defaults to twice inner for variable density and is required for dual.
-    variable_density_power : float, optional
+    variable_density_power : float, default=2.0
         Positive exponent of the normalised radius for variable density.
-    transition_radius, transition_speed : float, optional
+    transition_radius : float, default=0.5
         Normalised transition radius (between 0 and 1) and positive logistic
         steepness for dual density.
-    oversampling : float, optional
+    transition_speed : float, default=12.0
+        Normalised transition radius (between 0 and 1) and positive logistic
+        steepness for dual density.
+    oversampling : float, default=1.0
         ADC oversampling factor, at least one.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz), not bandwidth per pixel.
-    n_points : int, optional
+    n_points : int, default=1024
         Geometric path samples supplied to the solver, not ADC samples.
-    derate : bool, optional
+    derate : bool, default=True
         Apply the package's system derates before solving.
     """
 
@@ -833,18 +836,18 @@ class _RosetteReadout(NonCartesianReadout):
         Isotropic field of view (m).
     matrix : int
         In-plane matrix size.
-    petals : int, optional
+    petals : int, default=5
         Centre-to-centre radial lobes in one interleaf, not shots.
-    angular_frequency_ratio : float, optional
+    angular_frequency_ratio : float, default=3.0 / 5.0
         Positive angular-to-radial frequency ratio.
-    echo_spacing_s : float, optional
+    echo_spacing_s : float, default=None
         Requested centre-crossing interval (s). The waveform is stretched when
         necessary; requests shorter than the time-optimal spacing are rejected.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         ADC oversampling factor, at least one.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz), not bandwidth per pixel.
-    derate : bool, optional
+    derate : bool, default=True
         Apply the package's system derates before solving.
     """
 

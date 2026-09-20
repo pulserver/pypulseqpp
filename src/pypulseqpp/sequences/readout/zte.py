@@ -82,38 +82,38 @@ class ZteReadout(SequenceModule):
         Isotropic field of view (m).
     matrix : int
         Isotropic matrix size.
-    directions : array_like, optional
+    directions : array_like, default=None
         ``(n_views, 3)`` unit spoke directions, in the order the shell visits
         them. Supplying one silences the four generator arguments below; the
         default asks ``calc_projection_shell`` for a
         shell. An ordering whose steps vary is accepted, but every turn is
         given the widest one's slot, so the repetition pays for the worst step
         throughout.
-    n_views : int, optional
+    n_views : int, default=None
         Spokes in one shell. Defaults to a Nyquist-matched sphere,
         ``ceil(pi * matrix ** 2)``, split evenly between the shots -- so
         raising ``n_shots`` shortens the shell rather than adding spokes.
-    n_shots : int, optional
+    n_shots : int, default=None
         Shells the sphere is split into, each the same one turned about ``z``
         by ``2 * pi / n_shots``. It sets the segment length, and playing only
         some of the shots is angular undersampling. The default balances the
         two spacings against each other; see ``step_rad``.
-    scheme : {'spiral', 'meridian'}, optional
+    scheme : {'spiral', 'meridian'}, default='spiral'
         Shape of the shell. See
         ``calc_projection_shell``.
-    oversampling : float, optional
+    oversampling : float, default=2.0
         Radial oversampling: a finer ``delta_k`` along the same spoke.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=62500.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate. It sets the gradient amplitude too, the spoke being
         traversed at one sample per ``delta_k``.
-    tr : float, optional
+    tr : float, default=None
         Pulse centre to pulse centre (s). ``None`` is as short as the widest
         turn allows. A longer one is spent slewing more gently, not waiting.
-    dead_time_s : float, optional
+    dead_time_s : float, default=None
         Receiver dead time after the pulse. Defaults to ``system.adc_dead_time``;
         transmit ringdown is added on top either way.
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the acquisition block.
 
     Raises

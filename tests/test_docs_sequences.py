@@ -49,3 +49,23 @@ def test_every_sequence_has_a_gallery_page_that_designs_it(doc):
     """The reference page links its example by name, so the two have to match."""
     scripts = sorted(GALLERY.rglob(f"{doc.module}.py"))
     assert len(scripts) == 1, scripts
+
+
+def test_built_in_sequence_galleries_defer_constraint_checks_to_safety_example():
+    """Sequence tours do not duplicate the canonical constraint-check workflow."""
+    scripts = sorted(GALLERY.glob("1[0-6]-*/*_sequence.py"))
+    assert len(scripts) == len(sequence_reference.SEQUENCES)
+    for script in scripts:
+        source = script.read_text()
+        assert "Safety checks" not in source, script
+        assert "safety_table(" not in source, script
+
+
+def test_fast_spin_echo_modes_have_separate_scientific_examples():
+    """Fixed, adaptive, and shuffled FSE acquisitions have focused pages."""
+    directory = GALLERY / "13-fast-spin-echo"
+    assert {path.name for path in directory.glob("*.py")} == {
+        "fse3D_sequence.py",
+        "fse3D_adaptive.py",
+        "fse3D_shuffling.py",
+    }

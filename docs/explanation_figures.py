@@ -76,7 +76,7 @@ def axis_peaks_against_vector():
     trace.set_xlabel("time (ms)")
     trace.set_ylabel("gradient amplitude (mT/m)")
     trace.set_title("one repetition")
-    trace.legend(frameon=False, ncols=4, loc="lower center", columnspacing=1.0)
+    figure.legend(frameon=False, ncols=4, loc="upper center", bbox_to_anchor=(0.36, 1.03), columnspacing=1.0)
 
     heights = [*axis_peaks, float(np.linalg.norm(axis_peaks)), simultaneous]
     colors = ["0.7", "0.7", "0.7", "tab:red", "tab:green"]
@@ -214,8 +214,8 @@ def strength_duration():
     axis.set_xlabel("ramp duration (ms)")
     axis.set_ylabel("slew rate at threshold (T/m/s)")
     axis.set_title("Strength-duration relation of the two model families")
-    axis.legend(frameon=False)
-    figure.tight_layout()
+    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    figure.tight_layout(rect=(0, 0, 0.82, 1))
     return figure
 
 
@@ -256,8 +256,8 @@ def gradient_spectra():
     axis.set_xlabel("frequency (Hz)")
     axis.set_ylabel("$G_x$ amplitude (mT/m)")
     axis.set_title(f"{width * 1e3:.0f} ms window at the middle of each sequence")
-    axis.legend(frameon=False)
-    figure.tight_layout()
+    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    figure.tight_layout(rect=(0, 0, 0.82, 1))
     return figure
 
 

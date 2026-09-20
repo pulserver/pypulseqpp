@@ -148,51 +148,51 @@ class Epi2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y : float, optional
+        fov_x, fov_y : float, default=0.22
             Field of view along the readout and the phase encode (m).
-        n_x : int, optional
+        n_x : int, default=128
             Readout matrix size.
-        n_y : int, optional
+        n_y : int, default=128
             Phase-encode matrix size.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.005
             Slice thickness (m).
-        slice_spacing : float, optional
+        slice_spacing : float, default=0.0
             Gap between adjacent slices (m); zero is contiguous.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=70.0
             Excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=None
             Echo time of the centre line (s). ``None`` is as short as the
             navigator and the train admit.
-        tr : float | None, optional
+        tr : float | None, default=None
             Volume repetition time (s): every shot of every slice. ``None`` is
             as short as possible, and puts every slice in one packet.
-        n_frames : int, optional
+        n_frames : int, default=1
             Volumes in the time series, each carrying its ``REP`` counter.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=500000.0
             Requested receiver bandwidth (Hz).
-        ry : int, optional
+        ry : int, default=1
             Phase-encode undersampling: one line in every ``ry`` is read, the
             centre line among them.
-        partial_fourier_y : float, optional
+        partial_fourier_y : float, default=1.0
             Fraction of the phase-encode extent read, in ``[0.5, 1]``.
             Truncates the lines before the centre, which shortens the minimum
             TE.
-        n_shots : int, optional
+        n_shots : int, default=1
             Interleaved shots each volume's phase encode is split into.
-        multiband : int, optional
+        multiband : int, default=1
             Slices excited at once. It must divide ``n_slices``.
-        fat_saturation : bool, optional
+        fat_saturation : bool, default=False
             Saturate fat before every shot.
-        n_dummy : int, optional
+        n_dummy : int, default=2
             Non-acquiring volumes before a time series; with one frame,
             non-acquiring shots per slice before each packet.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=1.0
             Readout oversampling factor, at least one.
-        n_acs_y : int, optional
+        n_acs_y : int, default=24
             Phase-encode lines of the gradient-echo calibration.
-        volume_output : bool, optional
+        volume_output : bool, default=False
             Play a digital output on :attr:`OUTPUT_CHANNEL` at the first
             excitation of every volume, dummy volumes included.
 

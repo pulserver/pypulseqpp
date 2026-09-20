@@ -39,23 +39,23 @@ class SpiralNavigator(SequenceModule):
     ----------
     system : pypulseqpp.Opts
         System limits.
-    fov : float, optional
+    fov : float, default=0.32
         In-plane field of view (m). Wide enough to contain the head.
-    matrix : int, optional
+    matrix : int, default=32
         Acquired in-plane matrix. Coarse on purpose.
-    thickness_m : float, optional
+    thickness_m : float, default=0.01
         Slab thickness (m).
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=8.0
         Nominal flip angle (degrees). See above.
-    duration_s : float, optional
+    duration_s : float, default=0.001
         Excitation pulse duration (s).
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested sample spacing along the arm.
-    navigator_tr : float, optional
+    navigator_tr : float, default=None
         Repetition time of one three-plane navigator (s). ``None`` packs the
         planes back to back. A longer one leaves room for the reconstruction
         and the pose estimate to come back before the next navigator.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Spoiler moment at the end of each plane, in cycles across the slab.
 
     Attributes
@@ -166,10 +166,10 @@ class SpiralNavigator(SequenceModule):
         ----------
         window : float
             Dead time available (s).
-        requested : int or str, optional
+        requested : int or str, default='auto'
             ``"auto"`` takes as many as fit, up to ``limit``; an integer asks
             for exactly that many and is refused if they do not fit.
-        limit : int, optional
+        limit : int, default=None
             Ceiling on the ``"auto"`` count. Ignored for an explicit request,
             which is the caller saying it has already decided.
 

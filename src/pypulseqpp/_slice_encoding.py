@@ -54,9 +54,9 @@ def make_gslider_pulse(
     subslice : int
         Encoded sub-slice, in ``[0, num_subslices)``, counted from the most
         negative position under a positive selection gradient.
-    subslice_phase : float, optional
+    subslice_phase : float, default=np.pi
         Phase of the encoded sub-slice relative to the rest of the slab, in rad.
-    slice_thickness : float, optional
+    slice_thickness : float, default=0.0
         Whole slab, in m; required when ``return_gz``.
 
     Returns
@@ -140,7 +140,7 @@ def make_hadamard_pulse(
     row : int
         Encoding, in ``[0, order)``; row 0 is the plain slab. Sub-slices are
         counted from the most negative position under a positive gradient.
-    slice_thickness : float, optional
+    slice_thickness : float, default=0.0
         Whole slab, in m; required when ``return_gz``.
 
     Returns
@@ -256,37 +256,37 @@ def make_pins_pulse(
         Thickness of each slice (m).
     slice_separation : float
         Distance between slice centres (m); must exceed ``slice_thickness``.
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product of the envelope.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Small-tip, excitation, spin-echo, inversion or saturation envelope.
-    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, optional
+    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'
         FIR design method of the envelope.
-    passband_ripple : float, optional
+    passband_ripple : float, default=0.01
         Ripple allowed in the passband.
-    stopband_ripple : float, optional
+    stopband_ripple : float, default=0.01
         Ripple allowed in the stopband.
-    max_b1 : float, optional
+    max_b1 : float, default=1.8e-05
         Peak B1, in T; each subpulse is the shortest, on the gradient raster,
         that stays within it.
-    delay : float, optional
+    delay : float, default=0.0
         Delay before the pulse (s).
-    freq_offset : float, optional
+    freq_offset : float, default=0.0
         Frequency offset (Hz).
-    phase_offset : float, optional
+    phase_offset : float, default=0.0
         Phase offset (rad).
-    max_grad : float, optional
+    max_grad : float, default=0.0
         Gradient limit for the blips and the rephaser, in place of the
         system's.
-    max_slew : float, optional
+    max_slew : float, default=0.0
         Slew limit for the blips and the rephaser, in place of the system's.
-    system : Opts, optional
+    system : Opts, default=None
         System limits.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq ``use`` tag.
-    freq_ppm : float, optional
+    freq_ppm : float, default=0.0
         Field-strength-relative frequency offset.
-    phase_ppm : float, optional
+    phase_ppm : float, default=0.0
         Field-strength-relative phase offset.
 
     Returns

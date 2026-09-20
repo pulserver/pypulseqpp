@@ -20,14 +20,14 @@ class NonSelectiveExcitation(RfModule):
     ----------
     system : pypulseqpp.Opts
         System limits.
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=10.0
         Nominal flip angle (degrees).
-    duration_s : float, optional
+    duration_s : float, default=0.001
         Pulse duration (s); spectral width scales inversely with duration.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq use tag. Undefined pulses are treated as excitations by
         k-space analysis.
-    freq_offset_hz, phase_offset_rad : float, optional
+    freq_offset_hz, phase_offset_rad : float, default=0.0
         Transmit offsets designed into the pulse. A scan loop moves
         ``module.rf.freq_offset`` and ``module.rf.phase_offset`` per shot
         instead of rebuilding the module.
@@ -81,20 +81,20 @@ class NonSelectiveRefocusing(RfModule):
     ----------
     system : pypulseqpp.Opts
         System limits.
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=180.0
         Nominal flip angle (degrees).
-    duration_s : float, optional
+    duration_s : float, default=0.001
         Pulse duration (s).
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero
         omits the crushers, for an echo train that crushes elsewhere.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Crusher axis.
-    phase_offset_rad : float, optional
+    phase_offset_rad : float, default=np.pi / 2
         RF phase. The CPMG quarter turn by default.
-    use : str, optional
+    use : str, default='refocusing'
         What the pulse is for; the trajectory core negates accumulated k at a
         refocusing pulse, so this is not cosmetic.
 

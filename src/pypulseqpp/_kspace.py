@@ -32,11 +32,11 @@ def calculate_kspace(
     ----------
     seq : Sequence
         The sequence to follow.
-    trajectory_delay : float or sequence of float, default 0
+    trajectory_delay : float or sequence of float, default 0, default=0.0
         Timing correction (s); positive values advance the gradient.
-    gradient_offset : float or sequence of float, default 0
+    gradient_offset : float or sequence of float, default 0, default=0.0
         A background gradient per axis, in Hz/m.
-    block_range : sequence of int, optional
+    block_range : sequence of int, default=None
         Two 1-based block indices; only those blocks are followed.
 
     Returns
@@ -87,7 +87,7 @@ def detail(
 
     Other Parameters
     ----------------
-    samples_only : bool, default False
+    samples_only : bool, default=False
         Leave ``k_traj`` and ``t_ktraj`` empty, with all other results
         unchanged. ADC positions are integrated analytically either way.
     """

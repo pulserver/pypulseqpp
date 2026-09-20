@@ -32,7 +32,7 @@ def concatenate_gradients(*grads: Any, system=None):
     ----------
     *grads : GradEvent or TrapEvent or None
         Gradients on the **same** channel, in play order. ``None`` is skipped.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
 
     Returns
@@ -102,9 +102,9 @@ def make_phase_encoding(
     resolution : float
         Target resolution along ``channel`` (m) -- ``fov / matrix`` for an
         in-plane encode, the partition spacing for a 3D slab encode.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
-    duration : float, optional
+    duration : float, default=None
         Force a duration (s); the default is the shortest feasible.
 
     Returns
@@ -158,11 +158,11 @@ def make_phase_blip(
         Gradient channel (``"x"``, ``"y"`` or ``"z"``).
     fov : float
         Field of view along ``channel`` (m).
-    steps : float, optional
+    steps : float, default=1.0
         Cells to traverse; non-zero, may be negative.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
-    duration : float, optional
+    duration : float, default=None
         Force a duration (s); the default is the shortest feasible.
 
     Returns
@@ -217,11 +217,11 @@ def make_crusher(
         Length over which the dephasing is counted (m).
     channel : str
         Gradient channel (``"x"``, ``"y"`` or ``"z"``).
-    grad_start, grad_end : float, optional
+    grad_start, grad_end : float, default=0.0
         Amplitudes to begin and end at (Hz/m).
-    convert_to_arbitrary : bool, optional
+    convert_to_arbitrary : bool, default=False
         Return the gradient as an arbitrary waveform.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         System limits.
 
     Returns
@@ -311,14 +311,16 @@ def make_wave_gradients(
         lowered as needed to keep the played waveforms within
         ``system.max_slew`` and ``system.max_grad``. The balancing offset can
         lift a played peak a few percent above the amplitude.
-    sine_channel, cosine_channel : {"x", "y", "z"} or None, optional
+    sine_channel : {"x", "y", "z"} or None, default='y'
         Channels for the sine and the cosine; ``None`` omits that one.
-    delay : float, optional
+    cosine_channel : {"x", "y", "z"} or None, default='z'
+        Channels for the sine and the cosine; ``None`` omits that one.
+    delay : float, default=0.0
         Start of the flat top within the block (s), normally the readout
         lobe's rise time.
-    return_amplitude : bool, optional
+    return_amplitude : bool, default=False
         Also return the amplitude built.
-    system : Opts, optional
+    system : Opts, default=None
         System limits.
 
     Returns
