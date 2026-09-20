@@ -199,44 +199,59 @@ class Epi3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y, fov_z : float, optional
+        fov_x : float, default=0.22
             Field of view along the readout, the phase encode and the
             partition encode (m). The slab excited is ``fov_z`` thick.
-        n_x, n_y, n_z : int, optional
+        fov_y : float, default=0.22
+            Field of view along the readout, the phase encode and the
+            partition encode (m). The slab excited is ``fov_z`` thick.
+        fov_z : float, default=0.096
+            Field of view along the readout, the phase encode and the
+            partition encode (m). The slab excited is ``fov_z`` thick.
+        n_x : int, default=128
             Matrix size along the readout, the phase encode and the partition
             encode.
-        flip_angle_deg : float, optional
+        n_y : int, default=128
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        n_z : int, default=32
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        flip_angle_deg : float, default=20.0
             Excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=None
             Echo time of the centre line (s). ``None`` is as short as the
             navigator and the train admit.
-        tr : float | None, optional
+        tr : float | None, default=None
             Volume repetition time (s): every shot of every shell. ``None`` is
             as short as possible.
-        n_frames : int, optional
+        n_frames : int, default=1
             Volumes in the time series, each carrying its ``REP`` counter.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=500000.0
             Requested receiver bandwidth (Hz).
-        ry, rz : int, optional
+        ry, rz : int, default=1
             Undersampling along the phase and the partition encode; ``rz`` is
             also the shell height.
-        partial_fourier_y, partial_fourier_z : float, optional
+        partial_fourier_y, partial_fourier_z : float, default=1.0
             Fraction of the phase- and partition-encode extent read, in
             ``[0.5, 1]``. Truncates the lines and the shells before the centre.
-        n_shots : int, optional
+        n_shots : int, default=1
             Interleaved shots each shell's lines are split into.
-        n_dummy : int, optional
+        n_dummy : int, default=2
             Non-acquiring volumes before a time series; with one frame,
             non-acquiring shots.
-        excitation : {'slab', 'nonselective', 'spsp'}, optional
+        excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=1.0
             Readout oversampling factor, at least one.
-        n_acs_y, n_acs_z : int, optional
+        n_acs_y : int, default=24
             Extent of the gradient-echo calibration rectangle along the phase
             and the partition encode.
-        volume_output : bool, optional
+        n_acs_z : int, default=16
+            Extent of the gradient-echo calibration rectangle along the phase
+            and the partition encode.
+        volume_output : bool, default=False
             Play a digital output on :attr:`OUTPUT_CHANNEL` at the first
             excitation of every volume, dummy volumes included.
 

@@ -28,22 +28,22 @@ class DiffusionPreparation(RfModule):
     b_value : float
         Design b-value (s/mm^2). This is the largest the module can produce;
         everything else is reached by scaling down.
-    gradient_duration_s : float, optional
+    gradient_duration_s : float, default=0.02
         Duration of each diffusion lobe (s).
-    gradient_separation_s : float, optional
+    gradient_separation_s : float, default=0.03
         Onset-to-onset separation of the two lobes (s). Must exceed
         ``gradient_duration_s`` by enough to hold the refocusing pulse.
-    pulse_duration_s : float, optional
+    pulse_duration_s : float, default=0.0005
         Duration of each 90 (s).
-    refocusing_duration_s : float, optional
+    refocusing_duration_s : float, default=0.001
         Duration of the 180 (s).
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Axis the canonical pair is designed on.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the first pulse's block.
 
     Attributes

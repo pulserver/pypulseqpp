@@ -31,7 +31,7 @@ def write_sequence(seq, output_path: str, *, offline: bool = True) -> str | None
         Sequence to write; not modified.
     output_path : str
         Destination path.
-    offline : bool, default True
+    offline : bool, default True, default=True
         True writes signed text with timing warnings. False writes binary
         using write_binary's default signature setting, without a timing check.
 
@@ -147,13 +147,13 @@ def run(
     ----------
     main : callable
         The script's entry point. Returns the sequence.
-    argv : list of str, optional
+    argv : list of str, default=None
         The arguments, without the program name. ``sys.argv[1:]`` when
         omitted.
-    description : str, optional
+    description : str, default=None
         What ``--help`` says the script does. The first line of ``main``'s
         docstring when omitted.
-    default_output : str, optional
+    default_output : str, default='sequence.seq'
         Where to write when ``--output`` is not given.
 
     Returns

@@ -27,26 +27,26 @@ class T2Preparation(RfModule):
         System limits.
     echo_time_s : float
         Preparation echo time (s), first pulse centre to last.
-    final_tip : {'up', 'down'}, optional
+    final_tip : {'up', 'down'}, default='up'
         Store on ``+z`` (pure T2 weighting) or ``-z``, which starts a T1
         recovery as well -- see :class:`T1T2Preparation`.
-    n_refocus : int, optional
+    n_refocus : int, default=2
         Adiabatic refocusing pulses, spread evenly through the echo time. Must
         be even; see above.
-    half_passage_duration_s : float, optional
+    half_passage_duration_s : float, default=0.004
         Duration of each half passage (s).
-    refocusing_duration_s : float, optional
+    refocusing_duration_s : float, default=0.01024
         Duration of each refocusing pulse (s).
-    adiabaticity : int, optional
+    adiabaticity : int, default=8
         Sweep-rate margin over the adiabatic condition, for every pulse.
-    dwell_s : float, optional
+    dwell_s : float, default=1e-05
         RF raster (s).
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``
         on each axis. Zero omits the spoiler block.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters set to 0 on the first pulse's block.
 
     Attributes

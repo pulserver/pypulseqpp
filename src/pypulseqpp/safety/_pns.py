@@ -105,12 +105,12 @@ def check_pns(
         A :class:`ChronaxieModel` or a mapping of its fields; a SAFE
         description shaped like upstream's ``safe_example_hw()``; or a ``.asc``
         file for :func:`read_safe_model`.
-    rotation : array_like, optional
+    rotation : array_like, default=None
         3x3 prescription rotation from logical to physical axes, applied after
         each block's own rotation; identity (axial) by default.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         Source of the gyromagnetic ratio; the sequence's own by default.
-    trace : bool, optional
+    trace : bool, default=False
         Also return the response over time, which a diagnostic plot draws.
         The trace is one value per gradient raster interval over the whole
         sequence, so it costs four arrays of ``samples`` each.

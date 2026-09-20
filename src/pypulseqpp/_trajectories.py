@@ -64,7 +64,7 @@ def calc_radial_trajectory(fov, matrix, *, num_points=None):
         accepted, unequal ones are not.
     matrix : int
         Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.
-    num_points : int, optional
+    num_points : int, default=None
         Samples along the spoke; ``matrix`` by default.
 
     Returns
@@ -115,22 +115,25 @@ def calc_spiral_trajectory(
     design_interleaves : int
         Interleaf count the pitch is designed for. One is a single-shot
         spiral of ``matrix / 2`` turns.
-    density : {"constant", "variable", "dual"}, optional
+    density : {"constant", "variable", "dual"}, default='constant'
         How the local pitch changes with radius: not at all, as
         ``radius ** variable_density_power``, or between two plateaus joined
         by a logistic transition.
-    inner_design_interleaves, outer_design_interleaves : float, optional
+    inner_design_interleaves, outer_design_interleaves : float, default=None
         Local interleaf count at the centre and at the edge. The inner one
         defaults to ``design_interleaves``; the outer one to twice the inner
         for a variable-density spiral, and is required for a dual-density
         one. A larger count is a coarser pitch, so a variable-density
         spiral undersamples the edge.
-    variable_density_power : float, optional
+    variable_density_power : float, default=2.0
         Exponent of the variable-density ramp.
-    transition_radius, transition_speed : float, optional
+    transition_radius : float, default=0.5
         Where between the centre (0) and the edge (1) a dual-density spiral
         changes pitch, and how abruptly.
-    num_points : int, optional
+    transition_speed : float, default=12.0
+        Where between the centre (0) and the edge (1) a dual-density spiral
+        changes pitch, and how abruptly.
+    num_points : int, default=1024
         Samples along the polyline. Sets how finely the curve is described,
         not how many ADC samples the readout takes.
 
@@ -232,13 +235,13 @@ def calc_rosette_trajectory(
         Field of view, in m. Isotropic.
     matrix : int
         Matrix size, which with ``fov`` sets the reach ``matrix / (2 fov)``.
-    petals : int, optional
+    petals : int, default=5
         Centre-to-centre lobes within this one interleaf. More petals cross
         the centre more often and lengthen the readout.
-    angular_frequency_ratio : float, optional
+    angular_frequency_ratio : float, default=3.0 / 5.0
         Angular over radial frequency. Below one the petals are open; one is
         the circular limit; above one they wind more tightly.
-    num_points : int, optional
+    num_points : int, default=2049
         Samples along the polyline. Sets how finely the curve is described,
         not how many ADC samples the readout takes.
 

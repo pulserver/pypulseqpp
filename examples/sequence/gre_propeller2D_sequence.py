@@ -65,33 +65,33 @@ class GrePropeller2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov : float, optional
+        fov : float, default=0.22
             Isotropic in-plane field of view (m).
-        n : int, optional
+        n : int, default=128
             In-plane matrix size.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.005
             Slice thickness (m).
-        slice_spacing : float, optional
+        slice_spacing : float, default=0.0
             Gap between adjacent slices (m); zero is contiguous.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=12.0
             Excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=0.008
             Echo time (s). ``None`` is as short as the readout admits.
-        tr : float | None, optional
+        tr : float | None, default=0.25
             Repetition time between successive excitations of one slice (s).
             ``None`` is as short as possible, and puts every slice in one
             packet.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz).
-        ry : int, optional
+        ry : int, default=1
             Angular undersampling: one blade in every ``ry`` of the Nyquist set
             is played.
-        n_dummy : int, optional
+        n_dummy : int, default=16
             Non-acquiring repetitions, at the first blade's angle, before each
             packet.
-        blade_width : int, optional
+        blade_width : int, default=16
             Phase-encode lines per blade, at most ``n``.
 
         Raises

@@ -1,15 +1,18 @@
-# Fast spin echoes
+# Fast spin echo
 
-One excitation followed by a CPMG train of refocusing pulses, with one view
-acquired per echo. The order in which the train covers k-space decides the
-weighting the image carries.
+A CPMG refocusing train acquires one Cartesian view per echo. Refocusing-angle
+modulation and view ordering jointly determine the k-space weighting.
 
-| Example | Scope |
+| Example | Acquisition |
 | --- | --- |
-| {doc}`/generated/gallery/13-fast-spin-echo/fse3D_sequence` | One CPMG train per excitation, with the echo order, the shot order and the weight the ordering applies to k-space. |
+| {doc}`/generated/gallery/13-fast-spin-echo/fse3D_sequence` | Fixed optimized train with radial view ordering and its k-space modulation. |
+| {doc}`/generated/gallery/13-fast-spin-echo/fse3D_adaptive` | Individually optimized train length, TR, and adaptive radial ordering. |
+| {doc}`/generated/gallery/13-fast-spin-echo/fse3D_shuffling` | Variable-density shuffled sampling for echo-resolved reconstruction. |
 
 ```{toctree}
 :hidden:
 
 /generated/gallery/13-fast-spin-echo/fse3D_sequence
+/generated/gallery/13-fast-spin-echo/fse3D_adaptive
+/generated/gallery/13-fast-spin-echo/fse3D_shuffling
 ```

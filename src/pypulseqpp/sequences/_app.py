@@ -14,15 +14,15 @@ import pypulseqpp as pp
 __all__ = ["SequenceApp"]
 
 _MAIN_PARAMETERS = """\
-plot : bool, optional
+plot : bool, default=False
     Draw the finished sequence in SeqEyes.
-test_report : bool, optional
+test_report : bool, default=False
     Print a report on the finished sequence.
-write_seq : bool, optional
+write_seq : bool, default=False
     Write the sequence to a .seq file.
-seq_filename : str, optional
+seq_filename : str, default=None
     Where to write it; ``<NAME>.seq`` when omitted.
-system : pypulseqpp.Opts, optional
+system : pypulseqpp.Opts, default=None
     System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""
 
 

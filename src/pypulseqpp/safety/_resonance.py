@@ -177,18 +177,18 @@ def mech_resonance_spectrum(
     ----------
     seq : Sequence
         Sequence to read.
-    window : int, optional
+    window : int, default=0
         Which window, counted from zero. A report names the worst window of
         each band as ``window``.
-    window_width : float, optional
+    window_width : float, default=0.04
         Window length (s). Give the width the report was made with.
-    stride : float, optional
+    stride : float, default=None
         Step between window starts (s); half the width by default.
-    frequency_oversampling : int, optional
+    frequency_oversampling : int, default=3
         Transform length as a multiple of the window's sample count.
-    rotation : array_like, optional
+    rotation : array_like, default=None
         3x3 prescription rotation from logical to physical axes.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         Source of the gyromagnetic ratio; the sequence's own by default.
 
     Returns
@@ -262,18 +262,18 @@ def check_mech_resonance(
     bands : iterable of ForbiddenBand, or path
         Bands as ``(axis, f_min, f_max, tolerance)``, or a table for
         :func:`read_forbidden_bands`.
-    window_width : float
+    window_width : float, default=0.04
         Window length in seconds.
-    stride : float, optional
+    stride : float, default=None
         Step between window starts in seconds; ``window_width / 2`` by default.
-    frequency_oversampling : int
+    frequency_oversampling : int, default=3
         Zero-padded transform length, in window lengths.
-    min_threshold : float
+    min_threshold : float, default=10.0
         Threshold in mT/m for a band whose tolerance is 0.
-    rotation : array_like, optional
+    rotation : array_like, default=None
         3x3 prescription rotation from logical to physical axes, applied after
         each block's own rotation; identity (axial) by default.
-    system : pypulseqpp.Opts, optional
+    system : pypulseqpp.Opts, default=None
         Source of the gyromagnetic ratio; the sequence's own by default.
 
     Returns

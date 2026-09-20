@@ -73,48 +73,54 @@ def make_adiabatic_pulse(
     ----------
     pulse_type : {"hypsec", "wurst", "bir4", "goia_wurst"}
         Which sweep.
-    adiabaticity : float, optional
+    adiabaticity : float, default=4
         Margin over the adiabatic condition at the sweep's zero crossing.
-    bandwidth : float, optional
+    bandwidth : float, default=40000
         Full frequency sweep, in Hz. Unused by ``"hypsec"``, whose sweep is
         ``mu * beta``.
-    beta : float, optional
+    beta : float, default=None
         Envelope parameter: in 1/s for ``"hypsec"`` (800 by default), and
         dimensionless for ``"bir4"``, where it sets how steep the tanh
         quarters are (10 by default).
-    delay : float, optional
+    delay : float, default=0.0
         Delay before the pulse, in s. A ``"goia_wurst"`` pulse starts no
         earlier than its gradient's ramp ends, so its delay can be longer.
-    duration : float, optional
+    duration : float, default=0.01
         Pulse duration, in s.
-    dwell : float, optional
+    dwell : float, default=None
         RF raster, in s; the system's by default.
-    freq_offset, phase_offset : float, optional
+    freq_offset, phase_offset : float, default=0.0
         Frequency (Hz) and phase (rad) offsets.
-    max_grad, max_slew : float, optional
+    max_grad, max_slew : float, default=None
         Limits for the slice-selection gradient, in place of the system's.
-    n_fac : int, optional
+    n_fac : int, default=None
         Order of the envelope's truncation, ``1 - |cos(pi t / T)|^n_fac``:
         40 for ``"wurst"`` and 16 for ``"goia_wurst"`` by default.
-    mu : float, optional
+    mu : float, default=4.9
         ``"hypsec"`` sweep amplitude, in units of ``beta``.
-    return_gz : bool, optional
+    return_gz : bool, default=False
         Also return the slice-selection gradient and its rephaser. Required
         by ``"goia_wurst"``, refused by ``"bir4"``.
-    slice_thickness : float, optional
+    slice_thickness : float, default=0.0
         Slice thickness, in m, when ``return_gz``.
-    system : Opts, optional
+    system : Opts, default=None
         System limits.
-    use : str, optional
+    use : str, default='inversion'
         What the pulse is for, as Pulseq records it.
-    freq_ppm, phase_ppm : float, optional
+    freq_ppm, phase_ppm : float, default=0.0
         Field-strength-relative offsets.
-    flip_angle : float, optional
+    flip_angle : float, default=np.pi / 2
         ``"bir4"`` rotation, in rad.
-    kappa : float, optional
+    kappa : float, default=math.atan(20.0)
         ``"bir4"`` frequency-sweep shape: ``tan(kappa * s) / tan(kappa)``
         over each quarter.
-    gradient_modulation, gradient_order : float, int, optional
+    gradient_modulation : float, int, default=0.9
+        ``"goia_wurst"``: the gradient follows ``(1 - gradient_modulation) +
+        gradient_modulation * |cos(pi t / T)|^gradient_order`` of its peak,
+        ``bandwidth / slice_thickness``; ``gradient_modulation`` lies in
+        ``[0, 1)``.
+
+    gradient_order : float, int, default=4
         ``"goia_wurst"``: the gradient follows ``(1 - gradient_modulation) +
         gradient_modulation * |cos(pi t / T)|^gradient_order`` of its peak,
         ``bandwidth / slice_thickness``; ``gradient_modulation`` lies in

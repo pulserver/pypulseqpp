@@ -34,36 +34,36 @@ class FatSaturation(RfModule):
     ----------
     system : pypulseqpp.Opts
         System limits.
-    freq_offset_ppm : float, optional
+    freq_offset_ppm : float, default=FAT_SHIFT_PPM
         Fat offset from water (ppm). Carried on the pulse as a ppm offset
         rather than as hertz, so the interpreter resolves it against the
         field the scan actually runs at.
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=110.0
         Saturation flip angle (degrees).
-    bandwidth_hz : float, optional
+    bandwidth_hz : float, default=250.0
         Spectral passband (Hz). With ``time_bw_product`` it fixes the pulse
         duration, which is ``time_bw_product / bandwidth_hz``.
-    time_bw_product : float, optional
+    time_bw_product : float, default=2.0
         Time-bandwidth product.
-    thickness_m : float, optional
+    thickness_m : float, default=None
         Band thickness (m). ``None`` saturates the whole transmit volume,
         which is the usual fat saturation and the only form that needs no
         gradient.
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Band normal, before ``orientation`` turns it.
-    position_mm : sequence of float, optional
+    position_mm : sequence of float, default=None
         ``(dx, dy, dz)`` offset of the band from the isocentre, in the logical
         frame, in millimetres. Needs ``thickness_m``.
-    orientation : array_like or scipy.spatial.transform.Rotation, optional
+    orientation : array_like or scipy.spatial.transform.Rotation, default=None
         A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one
         the band lies on. Needs ``thickness_m``.
-    use_rotation_extension : bool, optional
+    use_rotation_extension : bool, default=True
         Carry the orientation as a ``ROTATIONS`` extension rather than baking
         it into new waveforms. Only ``True`` is implemented; see
         :class:`~pypulseqpp.TransformFOV`.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
 
     Attributes
@@ -79,7 +79,7 @@ class FatSaturation(RfModule):
         ``NOPOS`` and ``NOROT``, set on the first block.
     reset_labels : list of LabelSetEvent
         The same two cleared, on the last.
-    freq_offset_ppm : float
+    freq_offset_ppm : float, default=FAT_SHIFT_PPM
         The fat offset the pulse carries (ppm).
     freq_offset_hz : float
         What that comes to at ``system.B0`` (Hz), for reference; the pulse

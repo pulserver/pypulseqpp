@@ -52,6 +52,26 @@ def test_every_sequence_has_a_gallery_page_that_designs_it(doc):
     assert len(scripts) == 1, scripts
 
 
+def test_built_in_sequence_galleries_defer_constraint_checks_to_safety_example():
+    """Sequence tours do not duplicate the canonical constraint-check workflow."""
+    scripts = sorted(GALLERY.glob("1[0-6]-*/*_sequence.py"))
+    assert len(scripts) == len(sequence_reference.SEQUENCES)
+    for script in scripts:
+        source = script.read_text()
+        assert "Safety checks" not in source, script
+        assert "safety_table(" not in source, script
+
+
+def test_fast_spin_echo_modes_have_separate_scientific_examples():
+    """Fixed, adaptive, and shuffled FSE acquisitions have focused pages."""
+    directory = GALLERY / "13-fast-spin-echo"
+    assert {path.name for path in directory.glob("*.py")} == {
+        "fse3D_sequence.py",
+        "fse3D_adaptive.py",
+        "fse3D_shuffling.py",
+    }
+
+
 @pytest.mark.parametrize(
     "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
 )
@@ -70,14 +90,3 @@ def test_every_sequence_gallery_uses_the_automatic_paper_plot_selection(doc):
     assert len(calls) == 1
     assert not calls[0].args
     assert not calls[0].keywords
-
-
-@pytest.mark.parametrize(
-    "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
-)
-def test_every_sequence_gallery_has_a_compact_safety_summary(doc):
-    script = next(GALLERY.rglob(f"{doc.module}.py"))
-    source = script.read_text()
-
-    assert "# Safety checks\n" in source
-    assert "safety_table(" in source

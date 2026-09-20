@@ -87,7 +87,7 @@ def duration_figure(grid):
     axis.set_ylabel("readout duration (ms)")
     axis.set_ylim(bottom=0)
     axis.margins(x=0.16)
-    axis.legend(loc="upper right")
+    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0))
     figure.tight_layout()
     return figure
 

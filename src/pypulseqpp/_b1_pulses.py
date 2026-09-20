@@ -129,13 +129,16 @@ def make_b1_selective_pulse(
     ----------
     amplitude : float
         RF amplitude the pulse plays at, in T: where B1 is nominal.
-    passband_center, passband_width : float, optional
+    passband_center : float, default=1.0
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    passband_width : float, default=0.2
+        The band of B1 selected, relative to ``amplitude``. The pulse lasts
+        about twice ``time_bw_product`` over the width in Hz.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
-    split_and_reflect : bool, optional
+    split_and_reflect : bool, default=True
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
 
@@ -198,13 +201,16 @@ def make_b1_gslider_pulse(
     ----------
     amplitude : float
         RF amplitude the pulse plays at, in T: where B1 is nominal.
-    passband_center, passband_width : float, optional
+    passband_center : float, default=1.0
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    passband_width : float, default=0.5
+        The band of B1 selected, relative to ``amplitude``. The pulse lasts
+        about twice ``time_bw_product`` over the width in Hz.
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
-    split_and_reflect : bool, optional
+    split_and_reflect : bool, default=True
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
 
@@ -278,13 +284,13 @@ def make_b1_hadamard_pulse(
     ----------
     amplitude : float
         RF amplitude the pulse plays at, in T: where B1 is nominal.
-    passband_center, passband_width : float, optional
+    passband_center, passband_width : float, default=1.0
         The band of B1 selected, relative to ``amplitude``. The pulse lasts
         about twice ``time_bw_product`` over the width in Hz.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
-    split_and_reflect : bool, optional
+    split_and_reflect : bool, default=True
         Split the sweep and reflect it about the pulse's centre, which keeps
         the selectivity at large tip.
 
@@ -353,11 +359,11 @@ def make_bloch_siegert_pulse(
         RF amplitude where B1 is nominal, in T.
     duration : float
         In s.
-    k : float, optional
+    k : float, default=42.0
         Sweep shape: ``gamma B1 t / k``, with ``gamma B1`` in rad/s, must stay
         below one over half the pulse; a larger ``k`` keeps the sweep further
         from resonance.
-    frequency_sign : {1, -1}, optional
+    frequency_sign : {1, -1}, default=1
         Which side of resonance the sweep runs on; the phase changes sign
         with it.
 

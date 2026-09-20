@@ -44,9 +44,9 @@ def make_ptx_pulse(
         Complex waveforms, ``(num_channels, num_samples)``, in Hz. Played as
         given: nothing is scaled to a flip angle, since with several channels
         the flip depends on each channel's B1 map.
-    dwell : float, optional
+    dwell : float, default=0.0
         Sample spacing, in s; ``system.rf_raster_time`` when zero.
-    center : float, optional
+    center : float, default=None
         Centre of the pulse from its start, in s. Defaults to the centre of
         the peak of the channel-summed magnitude.
 
@@ -154,17 +154,17 @@ def calc_rf_shim(
     b1_maps : array_like
         Complex B1+ per channel, ``(num_channels, *grid)``, in any unit shared
         by all channels.
-    mask : array_like of bool, optional
+    mask : array_like of bool, default=None
         Where the magnitude is fitted, shaped like the grid. Defaults to every
         point where any map is non-zero.
-    target : float or array_like, optional
+    target : float or array_like, default=1.0
         Magnitude wanted, in the unit of ``b1_maps``: a scalar or one value per
         grid point.
-    regularization : float, optional
+    regularization : float, default=0.0
         Tikhonov weight on ``sum |w|^2``.
-    tolerance : float, optional
+    tolerance : float, default=1e-06
         Relative change of the cost at which the fit stops.
-    rounds : int, optional
+    rounds : int, default=100
         Maximum number of phase exchanges.
 
     Returns
@@ -282,21 +282,21 @@ def make_spokes_pulse(
         In-plane extent the maps cover, in m, centred on the isocentre.
     slice_thickness : float
         In m.
-    n_spokes : int, optional
+    n_spokes : int, default=3
         Number of spokes, one of them at the k-space centre.
-    mask : array_like of bool, optional
+    mask : array_like of bool, default=None
         Where the flip is fitted, ``(nx, ny)``; everywhere by default.
-    resolution : float, optional
+    resolution : float, default=None
         Finest in-plane scale the spokes may encode, in m: candidate positions
         span ``1 / resolution`` at a pitch of ``1 / fov``. An eighth of the
         smaller field of view by default.
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Of each spoke's slice profile.
-    regularization : float, optional
+    regularization : float, default=0.0
         Tikhonov weight on the spoke weights.
-    axes : (str, str, str), optional
+    axes : (str, str, str), default=('x', 'y', 'z')
         The two in-plane gradient channels, then the slice-select one.
-    delay : float, optional
+    delay : float, default=0.0
         Delay before the pulse and its gradients, in s; raised to
         ``system.rf_dead_time`` and rounded up to the gradient raster.
 

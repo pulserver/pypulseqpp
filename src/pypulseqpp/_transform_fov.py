@@ -80,21 +80,21 @@ class TransformFOV:
 
     Parameters
     ----------
-    rotation : ArrayLike | Rotation, optional
+    rotation : ArrayLike | Rotation, default=None
         Prescription orientation as a 3-by-3 matrix or SciPy rotation.
         Composed after the rotation already attached to each block.
-    translation : Sequence[float], optional
+    translation : Sequence[float], default=None
         Three offsets in logical coordinates, in metres.
-    scale : Sequence[float], optional
+    scale : Sequence[float], default=None
         Gradient amplitude multipliers along the three logical axes.
         A factor of zero disables encoding on that axis.
-    transform : ArrayLike, optional
+    transform : ArrayLike, default=None
         4-by-4 homogeneous matrix, mutually exclusive with ``rotation`` and
         ``translation``. Its translation is in the output frame and is
         converted to logical coordinates using the transpose of its rotation.
-    use_rotation_extension : bool, default True
+    use_rotation_extension : bool, default=True
         Must be True; waveform-baked rotation is not implemented.
-    system : Opts, optional
+    system : Opts, default=None
         Stored for compatibility; not used to validate transformed events.
 
     Attributes
@@ -192,13 +192,13 @@ class TransformFOV:
         ----------
         seq : Sequence
             Sequence to transform.
-        time_range : Sequence[float], optional
+        time_range : Sequence[float], default=None
             Start and end times in seconds; selects all blocks they touch.
-        block_range : Sequence[int], optional
+        block_range : Sequence[int], default=None
             Inclusive, 1-based block range; mutually exclusive with ``time_range``.
             Translation starts from this object's stored state, not from a scan
             of preceding blocks.
-        in_place : bool, default False
+        in_place : bool, default False, default=False
             Modify ``seq`` rather than a copy. Nonzero translation updates this object's
             state in either case.
 
@@ -266,7 +266,7 @@ class TransformFOV:
         ----------
         seq : Sequence
             Sequence to sample.
-        block_range : Sequence[int], optional
+        block_range : Sequence[int], default=None
             Inclusive, 1-based range; defaults to the whole sequence.
 
         Returns

@@ -52,7 +52,7 @@ def calc_sampled_lines(
         Acceleration factor (view ``i`` is sampled when ``i % r == 0``).
     acs_lines : int
         Number of fully sampled center views.
-    order : str, optional
+    order : str, default='ascending'
         ``'ascending'`` traverses k-space from one edge to the other.
         ``'calibration_first'`` puts the autocalibration block ahead of
         everything else, so a reconstruction can estimate coil sensitivities
@@ -60,7 +60,7 @@ def calc_sampled_lines(
         the centre of k-space before the magnetisation has reached steady
         state, so a sequence using it needs dummy repetitions first. Default is
         ``'ascending'``.
-    partial_fourier : float, optional
+    partial_fourier : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``(0.5, 1]``. The
         views dropped are the leading ones, so the centre stays in and the
         conjugate symmetry of k-space covers what is missing. It applies to
@@ -120,7 +120,7 @@ def calc_calibration_lines(
         Total number of views.
     acs_lines : int
         Number of fully sampled centre views. Zero (or fewer) means no block.
-    partial_fourier : float, optional
+    partial_fourier : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``(0.5, 1]``. A
         calibration view the partial-Fourier truncation drops is not returned,
         matching :func:`calc_sampled_lines`. Default is 1.0.
@@ -175,17 +175,17 @@ def calc_sampled_pairs(
         ``(r_y, r_z)``, the uniform undersampling factor on each axis.
     calibration : tuple of int
         ``(acs_y, acs_z)``, the autocalibration extent on each axis, in views.
-    partial_fourier : tuple of float, optional
+    partial_fourier : tuple of float, default=(1.0, 1.0)
         ``(pf_y, pf_z)``, the acquired fraction of each axis in ``(0.5, 1]``.
         Default is ``(1.0, 1.0)``.
-    caipi_shift : int, optional
+    caipi_shift : int, default=0
         CAIPIRINHA shift along kz per sampled-ky block, ``0 <= caipi_shift <
         r_z``. ``0`` (the default) is a regular lattice; a non-zero shift
         spreads the aliasing into both phase-encode directions. Default is 0.
-    elliptical : bool, optional
+    elliptical : bool, default=True
         Restrict sampling to the inscribed ellipse while retaining calibration
         points. Partial-Fourier truncation still applies.
-    order : str, optional
+    order : str, default='calibration_first'
         ``'calibration_first'`` (the default) leads with the rectangle;
         ``'ascending'`` traverses the whole grid partitions-outer,
         lines-inner without pulling the rectangle forward.
@@ -373,15 +373,15 @@ def make_linear_order(
         ``(N,)`` (ky only) or ``(N, 2)`` (ky, kz).
     train_length : int
         Echo-train or segment length.
-    center : tuple of float or None, optional
+    center : tuple of float or None, default=None
         The k-space centre the target echo is placed on. ``None`` uses the
         centroid of ``coords``; a caller with a fixed grid passes its centre.
-    center_echo : int or None, optional
+    center_echo : int or None, default=None
         Echo the k-space centre is acquired at. ``None`` leaves the raster
         bands in order (centre wherever it falls); an integer rolls the bands
         so the one holding the centre plays at that echo -- the effective-TE
         control an echo train needs.
-    pad : bool, optional
+    pad : bool, default=False
         When True every train is padded to ``train_length`` with ``None`` so
         the echo index is the position in the train; when False (the default)
         the gaps are dropped and each train holds only its real views.
@@ -448,12 +448,12 @@ def make_centric_order(
     train_length : int
         Echo-train or segment length; the number of shots is
         ``ceil(N / train_length)``.
-    center : tuple of float or None, optional
+    center : tuple of float or None, default=None
         k-space centre; ``None`` uses the centroid of ``coords``.
-    center_echo : int or None, optional
+    center_echo : int or None, default=None
         Echo the k-space centre is acquired at; ``None`` keeps it at the first
         echo.
-    pad : bool, optional
+    pad : bool, default=False
         Pad each train to ``train_length`` with ``None`` (see
         :func:`make_linear_order`).
 
@@ -518,9 +518,9 @@ def make_radial_order(
     train_length : int
         Echo-train or segment length; the number of wedges is
         ``ceil(N / train_length)``.
-    center : tuple of float or None, optional
+    center : tuple of float or None, default=None
         k-space centre; ``None`` uses the centroid of ``coords``.
-    pad : bool, optional
+    pad : bool, default=False
         Pad each train to ``train_length`` with ``None`` (see
         :func:`make_linear_order`).
 
@@ -584,12 +584,12 @@ def make_radial_adaptive_order(
     train_length : int
         Echo-train or segment length; the number of shots is
         ``ceil(N / train_length)``.
-    center : tuple of float or None, optional
+    center : tuple of float or None, default=None
         k-space centre; ``None`` uses the centroid of ``coords``.
-    center_echo : int or None, optional
+    center_echo : int or None, default=None
         Echo the k-space centre is acquired at; ``None`` keeps the innermost
         band at the first echo (equivalent to a plain radial ordering).
-    pad : bool, optional
+    pad : bool, default=False
         Pad each train to ``train_length`` with ``None`` (see
         :func:`make_linear_order`).
 
@@ -653,12 +653,12 @@ def make_shuffling_order(
         Phase-encode locations, shape ``(N,)`` or ``(N, 2)``.
     train_length : int
         Echo train length.
-    seed : int or None, optional
+    seed : int or None, default=None
         Seed for reproducible shuffling.
-    cluster : bool, optional
+    cluster : bool, default=True
         When True, group spatially nearby views into the same train before
         randomizing echo order; when False, assign views to trains at random.
-    pad : bool, optional
+    pad : bool, default=False
         Pad each train to ``train_length`` with ``None`` (see
         :func:`make_linear_order`).
 
@@ -720,9 +720,9 @@ def make_random_mask(
         Mask shape ``(ny, nz)``.
     accel : float
         Target acceleration factor (> 1).
-    calib : tuple of int, optional
+    calib : tuple of int, default=(0, 0)
         Fully sampled centered calibration shape.
-    seed : int or None, optional
+    seed : int or None, default=None
         Random seed for reproducibility.
 
     Returns
@@ -782,7 +782,7 @@ def make_caipirinha_mask(
         Acceleration along the first axis.
     rz : int
         Acceleration along the second axis.
-    delta : int, optional
+    delta : int, default=1
         CAIPI shift applied per sampled-ky step (``0 <= delta < rz``;
         ``delta=0`` degenerates to a regular ``ry x rz`` lattice).
 
@@ -839,15 +839,15 @@ def make_poisson_disc_mask(
         Mask shape ``(ny, nz)``.
     accel : float
         Target acceleration factor (> 1).
-    calib : tuple of int, optional
+    calib : tuple of int, default=(0, 0)
         Fully sampled centered calibration shape.
-    seed : int, optional
+    seed : int, default=0
         Random seed.
-    max_attempts : int, optional
+    max_attempts : int, default=30
         Bridson candidate attempts per active point.
-    tol : float, optional
+    tol : float, default=0.1
         Allowed deviation of the realized acceleration.
-    crop_corner : bool, optional
+    crop_corner : bool, default=True
         Restrict sampling to the inscribed k-space ellipse.
 
     Returns

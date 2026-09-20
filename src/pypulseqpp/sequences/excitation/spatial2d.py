@@ -30,18 +30,18 @@ class SpatialSelective2DExcitation(RfModule):
     matrix : int
         Excitation grid size, square. How finely the profile is specified, and
         so how far out the trajectory reaches.
-    selective_size : float or sequence of float, optional
+    selective_size : float or sequence of float, default=None
         Diameter (m) of the excited disc. Half the field of view by default.
-    target : numpy.ndarray, optional
+    target : numpy.ndarray, default=None
         Complex desired profile on the ``(matrix, matrix)`` grid, instead of a
         disc.
-    n_interleaves : int, optional
+    n_interleaves : int, default=None
         Spiral arms to play. The default covers excitation k-space at Nyquist;
         fewer is a proportionally shorter pulse and a repeated disc that moves
         proportionally closer.
-    axes : sequence of str, optional
+    axes : sequence of str, default=('x', 'y')
         The two gradient channels the trajectory runs on.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq RF-use tag, used by trajectory integration.
 
     Attributes

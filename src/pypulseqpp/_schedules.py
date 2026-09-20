@@ -29,11 +29,11 @@ def make_rf_spoiling_schedule(
     ----------
     length : int
         Number of repetitions.
-    increment : float, optional
+    increment : float, default=np.deg2rad(117.0)
         Quadratic phase increment (rad); 117 degrees by default.
-    initial_phase : float, optional
+    initial_phase : float, default=0.0
         Phase of the first repetition (rad).
-    initial_increment : float, optional
+    initial_increment : float, default=0.0
         Linear increment at the first repetition (rad).
 
     Returns
@@ -74,7 +74,7 @@ def make_phase_cycling_schedule(
     ----------
     length : int
         Number of repetitions to fill.
-    phases : sequence of float, optional
+    phases : sequence of float, default=(0.0, np.pi)
         The cycle to repeat (rad); ``(0, pi)`` by default.
 
     Returns
@@ -120,7 +120,7 @@ def make_traps_schedule(
         Echo train length (>= 1).
     target_flip_angle : float
         Asymptotic refocusing flip angle (rad), positive.
-    variable : bool, optional
+    variable : bool, default=True
         Sweep down to the target (default) instead of holding it constant.
 
     Returns

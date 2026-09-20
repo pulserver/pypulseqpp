@@ -52,6 +52,37 @@ autodoc_typehints = "none"
 autodoc_class_signature = "mixed"
 autodoc_preserve_defaults = True
 
+# Object headings remain compact; the NumPy-style Parameters section is the
+# authoritative readable signature.
+
+# Minigalleries are reserved for objects that are the subject of an example,
+# rather than objects used incidentally throughout the gallery.
+GALLERY_BACKREFERENCES = {
+    "pypulseqpp.sequences.SequenceApp",
+    "pypulseqpp.sequences.SequenceModule",
+    "pypulseqpp.sequences.SpatialSelectiveExcitation",
+    "pypulseqpp.sequences.LineReadout2D",
+    "pypulseqpp.sequences.SpiralReadout2D",
+}
+GALLERY_BACKREFERENCES.update(
+    f"pypulseqpp.sequences.{name}"
+    for name in (
+        "gre2D_sequence", "gre3D_sequence", "gre_multiecho2D_sequence",
+        "gre_multiecho3D_sequence", "gre_propeller2D_sequence",
+        "gre_radial2D_sequence", "gre_spiral2D_sequence",
+        "gre_stack_of_blades3D_sequence", "gre_stack_of_spirals3D_sequence",
+        "gre_stack_of_stars3D_sequence", "se2D_sequence", "se3D_sequence",
+        "se_epi_propeller2D_sequence", "se_propeller2D_sequence",
+        "se_radial2D_sequence", "se_spiral2D_sequence",
+        "se_stack_of_blades3D_sequence", "se_stack_of_spirals3D_sequence",
+        "se_stack_of_stars3D_sequence", "mprage3D_sequence",
+        "mprage_stack_of_spirals3D_sequence", "mprage_stack_of_stars3D_sequence",
+        "fse3D_sequence", "bssfp2D_sequence", "bssfp3D_sequence",
+        "epi2D_sequence", "epi3D_sequence", "zte3D_sequence",
+    )
+)
+autosummary_context = {"gallery_backreferences": GALLERY_BACKREFERENCES}
+
 napoleon_numpy_docstring = True
 napoleon_use_admonition_for_references = True
 # An Attributes section renders as a field list, as Parameters does, rather
@@ -114,6 +145,7 @@ sphinx_gallery_conf = {
     # global navigation points at, and the landing pages under it own the
     # example pages in hidden toctrees, which is what nests them in the sidebar.
     "copyfile_regex": r".*\.md",
+    "exclude_implicit_doc": {"pypulseqpp.Sequence"},
 }
 
 
@@ -135,6 +167,13 @@ class _InventoryOutageFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         return self._MESSAGE not in record.getMessage()
+
+
+def _compact_signature(_app, what, _name, _obj, _options, _signature, return_annotation):
+    """Render callable headings compactly; leave data and attributes unchanged."""
+    if what in {"function", "method", "class", "exception"}:
+        return "()", return_annotation
+    return None
 
 
 def _public_bases(_app, _name, _obj, _options, bases):
@@ -255,6 +294,7 @@ def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
+    app.connect("autodoc-process-signature", _compact_signature)
     app.connect("builder-inited", _draw_explanation_figures)
     # Ahead of autosummary's own handler, which reads the sources for the
     # objects it writes stubs for: a page written after it would only be read
