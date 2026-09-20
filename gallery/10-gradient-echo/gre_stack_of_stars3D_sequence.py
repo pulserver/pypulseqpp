@@ -61,8 +61,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Angular undersampling
 # ---------------------
 #
-# Playing one spoke in four shortens the scan fourfold and leaves the centre
-# of each partition fully sampled.
+# Retaining one spoke angle in four reduces the number of repetitions
+# fourfold. Every acquired spoke samples the origin of its partition.
 
 alternative = gre_stack_of_stars3D_sequence(n=96, n_z=8, ry=4, tr=None, n_dummy=0)
 

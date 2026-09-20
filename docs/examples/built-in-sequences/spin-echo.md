@@ -4,7 +4,7 @@ One excitation and one refocusing pulse per repetition, with the acquisition
 placed at the refocused echo. The readout families are those of the gradient
 echoes, acquired under a refocusing pulse instead of after a spoiler.
 
-| Example | What it covers |
+| Example | Scope |
 | --- | --- |
 | {doc}`/generated/gallery/11-spin-echo/se2D_sequence` | One phase-encode line per excitation. |
 | {doc}`/generated/gallery/11-spin-echo/se3D_sequence` | One (line, partition) view per excitation. |

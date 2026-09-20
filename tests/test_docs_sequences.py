@@ -1,5 +1,6 @@
 """Every shipped sequence is classified once and documented from its own docstring."""
 
+import ast
 import importlib
 import sys
 from pathlib import Path
@@ -69,3 +70,23 @@ def test_fast_spin_echo_modes_have_separate_scientific_examples():
         "fse3D_adaptive.py",
         "fse3D_shuffling.py",
     }
+
+
+@pytest.mark.parametrize(
+    "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
+)
+def test_every_sequence_gallery_uses_the_automatic_paper_plot_selection(doc):
+    """Built-in tours exercise the plotting default rather than hiding its defects."""
+    script = next(GALLERY.rglob(f"{doc.module}.py"))
+    tree = ast.parse(script.read_text())
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "paper_plot"
+    ]
+
+    assert len(calls) == 1
+    assert not calls[0].args
+    assert not calls[0].keywords

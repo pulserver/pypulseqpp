@@ -15,7 +15,7 @@ it holds.
 #
 # The slice-selective module designs an SLR pulse with its selection gradient
 # and rephaser, and reports the ``selection_amplitude`` a slice offset is
-# converted against. The non-selective module plays a pulse alone. The
+# converted against. The non-selective module contains only an RF event. The
 # spectral-spatial module selects a band in frequency as well as in space.
 
 import numpy as np

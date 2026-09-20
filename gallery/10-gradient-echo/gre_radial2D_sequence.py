@@ -52,8 +52,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The spokes, coloured by the order they are played in. Consecutive spokes
-# are spread over the disc rather than played side by side.
+# Colour encodes spoke acquisition order. Consecutive spokes use a
+# distributed angular ordering rather than adjacent angles.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 
@@ -61,8 +61,8 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Angular undersampling
 # ---------------------
 #
-# ``ry`` plays one spoke in three. The centre of k-space stays fully
-# sampled, because every spoke crosses it; what thins out is the periphery.
+# ``ry=3`` retains one third of the spoke angles. Every spoke crosses the
+# origin, whereas angular sampling density decreases with k-space radius.
 
 alternative = gre_radial2D_sequence(
     n=192, n_slices=1, ry=3, te=None, tr=None, n_dummy=0

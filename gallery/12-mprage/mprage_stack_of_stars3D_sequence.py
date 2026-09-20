@@ -67,11 +67,10 @@ def order_figure(seq, n_z):
 # Timing structure
 # ----------------
 #
-# The inversion, the inversion time, the spoke train over one partition, and
-# the recovery. ``ti=None`` and ``tr=None`` take the shortest inversion time and
-# recovery the modules admit, and an angular undersampling that leaves four
-# spokes per partition makes a train short enough to read at the width of this
-# page.
+# Each cycle comprises inversion, inversion delay, a spoke train at one
+# partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
+# shortest timing supported by the modules. Angular undersampling leaves four
+# spokes per partition and produces a compact timing diagram.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import mprage_stack_of_stars3D_sequence
@@ -93,10 +92,11 @@ compact.paper_plot()
 # --------------
 #
 # One inversion reads the spokes of one partition, so the inversion cycle is
-# constant along each row. The index within the train runs over the spokes in
-# the order they are played, and ``partition_angle_shift`` turns the set from
-# one partition to the next so that the spokes of neighbouring partitions do
-# not coincide.
+# constant along each row. Readout index specifies spoke order within the train.
+# ``partition_angle_shift`` rotates the spoke set between partitions to avoid
+# coincident angles in neighbouring partitions. ``TI`` ends at the first
+# excitation-pulse centre; the centre of
+# k-space on its spoke is sampled at ``TI + TE``.
 
 protocol = mprage_stack_of_stars3D_sequence(
     n=192, n_z=16, ry=4, ti=0.9, tr=2.3, n_dummy=0

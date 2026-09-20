@@ -90,7 +90,7 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
     """3D MPRAGE on a stack of spirals: one inversion per partition, then its interleaves.
 
     Each shot is the inversion, a wait that puts the first interleaf's
-    excitation at TI, one :class:`SpiralStackReadout` repetition per
+    excitation centre at TI, one :class:`SpiralStackReadout` repetition per
     interleaf of one partition, and a recovery that makes every
     inversion-to-inversion interval the TR. Partitions are played in order.
     ``n_shots`` interleaves, spread evenly over a full turn, sample the centre

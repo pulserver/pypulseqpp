@@ -60,7 +60,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Angular undersampling
 # ---------------------
 #
-# One spoke in four, which shortens the scan fourfold.
+# Retaining one spoke angle in four reduces the number of repetitions
+# fourfold while preserving samples at each partition's k-space origin.
 
 alternative = se_stack_of_stars3D_sequence(
     n=96, n_z=8, ry=4, te=None, tr=None, n_dummy=0

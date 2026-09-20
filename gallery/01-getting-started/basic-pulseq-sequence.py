@@ -3,9 +3,8 @@
 A basic Pulseq sequence
 =======================
 
-The shortest complete workflow: system limits, events, blocks, a sequence, and
-the file it is written to. Two repetitions of a slice-selective gradient echo
-are enough to show every step.
+A two-repetition slice-selective gradient-echo sequence illustrates system
+limits, event construction, block timing, sequence assembly and Pulseq output.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.

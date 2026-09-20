@@ -34,8 +34,8 @@ plt.rcParams.update(
 # Baseline
 # --------
 #
-# A full Cartesian sampling of the slab, inside an elliptical shutter that
-# leaves the corners of the phase-encode plane unread.
+# A full Cartesian sampling of the slab, with elliptical sampling of the
+# phase-encode plane.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre3D_sequence
@@ -63,9 +63,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # Acceleration on both encoded axes
 # ---------------------------------
 #
-# ``ry`` and ``rz`` skip lines and partitions independently, so the volume is
-# acquired in a quarter of the repetitions with the calibration region kept
-# at the centre.
+# ``ry`` and ``rz`` subsample the line and partition axes independently.
+# With ``ry=rz=2``, the outer phase-encode plane requires approximately one
+# quarter as many repetitions; the central calibration region remains fully sampled.
 
 alternative = gre3D_sequence(
     n_x=160, n_y=160, n_z=32, ry=2, rz=2, te=None, tr=None, n_dummy=0

@@ -54,7 +54,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The phase-encode plane, coloured by position in the acquisition.
+# Colour encodes acquisition order in the phase-encode plane.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
 
@@ -62,9 +62,8 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # Acceleration on both encoded axes
 # ---------------------------------
 #
-# Skipping lines and partitions shortens a multi-echo acquisition in the
-# same proportion as a single-echo one, because the echo train sits inside
-# one repetition.
+# Subsampling both phase-encode axes reduces the number of repetitions. The
+# complete echo train remains within each retained repetition.
 
 alternative = gre_multiecho3D_sequence(
     n_x=160, n_y=160, n_z=32, n_echoes=4, ry=2, rz=2, tr=None, n_dummy=0

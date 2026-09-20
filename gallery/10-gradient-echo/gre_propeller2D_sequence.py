@@ -54,7 +54,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The blades, coloured by the order they are played in. Each blade is a band
+# The colour encodes blade acquisition order. Each blade is a band
 # of parallel lines; the bands overlap at the centre.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
@@ -63,9 +63,9 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Wider blades
 # ------------
 #
-# A wider blade covers more of the disc, so fewer blades are needed and each
-# takes longer. What one blade samples of the centre grows with its width,
-# which is what the motion correction works from.
+# Increasing the blade width reduces the number of blade orientations and
+# increases the duration of each blade. The larger shared central-k-space
+# region provides additional data for motion estimation.
 
 alternative = gre_propeller2D_sequence(
     n=192, blade_width=32, n_slices=1, te=None, tr=None, n_dummy=0

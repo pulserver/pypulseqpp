@@ -5,11 +5,11 @@ Implementing a module of your own against the base-class contract: what
 result is consumed by the readout modules and applications already in the
 package.
 
-| Example | What it covers |
+| Example | Scope |
 | --- | --- |
-| {doc}`/generated/gallery/40-custom-modules/custom-excitation-module` | A minimum-phase selective excitation, and the echo time its effective centre buys. |
+| {doc}`/generated/gallery/40-custom-modules/custom-excitation-module` | Minimum-phase selective excitation and its effect on echo time. |
 | {doc}`/generated/gallery/40-custom-modules/custom-cartesian-readout` | A Cartesian line acquired across the whole readout lobe, and the non-uniform k-space spacing that follows. |
-| {doc}`/generated/gallery/40-custom-modules/custom-noncartesian-readout` | A twisting radial arm designed as a k-space path, solved as an interleaf and played as a readout module. |
+| {doc}`/generated/gallery/40-custom-modules/custom-noncartesian-readout` | A twisting radial k-space path solved under gradient constraints and implemented as a readout module. |
 
 ```{toctree}
 :hidden:

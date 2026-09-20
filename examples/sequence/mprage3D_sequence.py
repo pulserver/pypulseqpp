@@ -131,14 +131,15 @@ class Mprage3DApp(sequences.SequenceApp):
     """3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
 
     Each shot is the inversion, a wait that puts the first line's excitation
-    at TI, one :class:`LineReadout3D` repetition per line of one partition,
+    centre at TI, one :class:`LineReadout3D` repetition per line of one partition,
     and a recovery that makes every inversion-to-inversion interval the TR.
     Partitions are played in order. Only views inside the inscribed ky-kz
     ellipse are sampled, so partitions hold different numbers of lines; every
     shot plays as many repetitions as the fullest partition, and the ones it
     has no line for play without acquiring. ``ordering`` plays a partition's
-    lines centre-out, so the centre line is read at TI, or shuffled for a
-    time-resolved reconstruction. Each acquisition carries its line, its
+    lines centre-out, so the centre line's excitation occurs at TI and its ADC
+    echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
+    acquisition carries its line, its
     partition and its place in the train as ``LIN``, ``PAR`` and ``ECO``;
     calibration views are marked ``IMA``, and under wave-CAIPI the
     calibration region is first acquired wave-free in shots of its own,

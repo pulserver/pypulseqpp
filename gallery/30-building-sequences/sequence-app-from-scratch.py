@@ -3,20 +3,19 @@
 A SequenceApp from scratch
 ==============================
 
-A complete sequence separates three things: the prescription a user sets, the
-order the views are sampled in, and the blocks of one repetition.
-:class:`~pypulseqpp.sequences.SequenceApp` is the contract that keeps them
-apart, and every sequence the package ships is written against it. The
+A complete sequence defines a prescription, sampling order and repetition
+kernel. :class:`~pypulseqpp.sequences.SequenceApp` separates these
+responsibilities and provides the base class for the shipped sequences. The
 architecture is described in
 :doc:`/explanations/design/sequence-application`.
 
-This page implements a slice-selective, RF-spoiled two-dimensional gradient
-echo against that contract.
+The implementation below defines a slice-selective, RF-spoiled 2D gradient-
+echo acquisition.
 """
 
 # %%
-# The three methods
-# -----------------
+# Application methods
+# -------------------
 #
 # ``init_sequence`` receives the prescription and designs the modules and the
 # sampling order from it. ``loop`` calls ``kernel`` once per repetition.
@@ -117,11 +116,12 @@ class SpoiledGradientEcho(SequenceApp):
 
 
 # %%
-# Designing it
-# ------------
+# Sequence construction
+# ---------------------
 #
-# Constructing the application runs ``init_sequence`` and therefore designs it;
-# ``design`` starts a fresh sequence, runs ``loop``, then ``finalize``.
+# Construction calls ``init_sequence`` to prepare the modules and sampling
+# order. ``design`` creates a new sequence, executes ``loop`` and records the
+# reconstruction definitions in ``finalize``.
 
 app = SpoiledGradientEcho(matrix=128)
 seq = app.design()
@@ -145,7 +145,7 @@ seq.paper_plot(tr=32)
 pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
 
 # %%
-# The command line follows from the signature
+# Command-line interface
 # -------------------------------------------
 #
 # ``main`` is derived from the class, and its parameters are those of

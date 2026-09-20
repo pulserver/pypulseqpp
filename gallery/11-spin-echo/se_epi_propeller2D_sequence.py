@@ -54,8 +54,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The blades in the order they are played; the lines within a blade are read
-# in one train.
+# Colour encodes blade acquisition order. All lines within one blade are
+# acquired in a single echo train.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 

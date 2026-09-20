@@ -1,7 +1,7 @@
 # Pulseq representation
 
-A `.seq` file is the complete, portable description of an acquisition: what is
-played, on which channel and for how long. It is the object `pypulseqpp` builds,
+A `.seq` file is a portable description of acquisition events, channel
+assignments and timing. It is the object `pypulseqpp` builds,
 analyses and writes, and its conventions are visible throughout the Python
 interface — in the units amplitudes are reported in, in the rasters event times
 are quantized to, and in the distinction between an event and the block that

@@ -1,11 +1,9 @@
 # Check a sequence against hardware constraints
 
-This guide runs the six constraint checks over a finished sequence and shows
-how to read their reports. What each check computes, the criterion it applies
-and what it does not establish are in
-{doc}`../explanations/safety/index`; that page also states the limits of these
-checks, which are design-time estimates and not a scanner or patient safety
-assessment.
+Apply the gradient-amplitude, slew-rate, gradient-continuity, PNS, mechanical-
+resonance and SAR checks to a completed sequence. The criteria and limitations
+are described in {doc}`../explanations/safety/index`. These design-time
+estimates do not constitute a scanner or patient-safety assessment.
 
 ```python
 >>> from pypulseqpp import safety, sequences
@@ -15,9 +13,8 @@ assessment.
 
 ```
 
-Every check returns a verdict and a report, and the report is returned whether
-or not the check passes, so the margin of a passing sequence is readable from
-the same call.
+Every check returns a Boolean verdict and a report. Reports include the peak
+quantity and limit regardless of the verdict.
 
 ## Gradient amplitude, slew rate and continuity
 

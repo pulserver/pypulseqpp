@@ -56,8 +56,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The lines are dealt so that the centre of k-space is read near the middle
-# of the scan, which is what the colour by acquisition order shows.
+# The acquisition order places central k-space near the temporal midpoint of
+# the scan. Colour encodes repetition index.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
 

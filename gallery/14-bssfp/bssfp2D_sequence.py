@@ -62,10 +62,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # Cine
 # ----
 #
-# ``n_phases`` reads the same segment of lines at several points after the
-# trigger, so one breath-hold resolves the cardiac cycle. The segment length
-# is what trades temporal resolution against the number of heartbeats the
-# scan takes.
+# ``n_phases`` acquires each line segment at multiple cardiac phases after the
+# trigger. Segment length controls the temporal footprint per phase and the
+# number of cardiac cycles required for complete sampling.
 
 alternative = bssfp2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_phases=8, views_per_segment=12, tr=None, n_dummy=0

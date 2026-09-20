@@ -1,7 +1,7 @@
 # Guides
 
-Task-oriented procedures. Each page states a goal, gives a reliable sequence of
-steps, and explains the choices that are not obvious. Conceptual background is
+Task-oriented procedures for sequence construction, analysis and constraint
+checking. Conceptual background is
 in {doc}`../explanations/index`, and the exhaustive interface semantics in
 {doc}`../api/index`.
 

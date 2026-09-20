@@ -87,7 +87,7 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
     """3D MPRAGE on a stack of stars: one inversion per partition, then its spokes.
 
     Each shot is the inversion, a wait that puts the first spoke's excitation
-    at TI, one :class:`RadialStackReadout` repetition per spoke of one
+    centre at TI, one :class:`RadialStackReadout` repetition per spoke of one
     partition, and a recovery that makes every inversion-to-inversion interval
     the TR. Partitions are played in order. The Nyquist set is
     ``ceil(pi / 2 * n)`` spokes spread evenly over half a turn, and every
