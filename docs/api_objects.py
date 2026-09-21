@@ -15,35 +15,35 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-#: An ``autosummary`` block inside an ``eval-rst`` fence, with its options and
-#: its entries.
-_BLOCK = re.compile(r"^\.\. autosummary::\n((?:[ \t]+.*\n|\n)*)", re.M)
+#: An object link in the first column of a Markdown table row.
+_OBJECT = re.compile(r"^\|\s+\{obj\}`~?([^`]+)`\s+\|", re.M)
 
 #: The module an API page documents, declared once near its top.
 _CURRENTMODULE = re.compile(r"^\.\. currentmodule:: (\S+)$", re.M)
 
 
-def _entries(body: str) -> tuple[list[str], list[str]]:
-    """The options and the object names of one ``autosummary`` block."""
-    options, names = [], []
-    for line in body.splitlines():
-        stripped = line.strip()
-        if not stripped:
-            continue
-        (options if stripped.startswith(":") else names).append(stripped)
-    return options, names
-
-
 def collect(pages: Path) -> list[tuple[str, list[str], list[str]]]:
-    """Every API page's blocks, as ``(module, options, names)``."""
+    """Every API page's object table, as ``(module, options, names)``."""
     blocks = []
     for page in sorted(pages.glob("*.md")):
         text = page.read_text(encoding="utf-8")
         module = _CURRENTMODULE.search(text)
-        for match in _BLOCK.finditer(text):
-            options, names = _entries(match.group(1))
+        names = _OBJECT.findall(text)
+        if names:
+            owner = module.group(1) if module else ""
+            prefix = f"{owner}." if owner else ""
+            names = [name.removeprefix(prefix) for name in names]
+            if owner == "pypulseqpp" and "Sequence" in names:
+                blocks.append(
+                    (
+                        owner,
+                        [":nosignatures:", ":template: autosummary/sequence.rst"],
+                        ["Sequence"],
+                    )
+                )
+                names.remove("Sequence")
             if names:
-                blocks.append((module.group(1) if module else "", options, names))
+                blocks.append((owner, [":nosignatures:"], names))
     return blocks
 
 

@@ -446,6 +446,10 @@ class Epi2DApp(sequences.SequenceApp):
             for frame, shot in cycles:
                 for i, g in enumerate(packet):
                     last = i == len(packet) - 1
+                    first_image_shot = frame is not None and not hasattr(
+                        self, "plot_tr_size"
+                    )
+                    before = self.seq.num_blocks
                     self.kernel(
                         g,
                         shot,
@@ -457,6 +461,9 @@ class Epi2DApp(sequences.SequenceApp):
                         and shot == 0,
                         reversed_encode=reversed_encode,
                     )
+                    if first_image_shot:
+                        self.plot_tr_start = before + 1
+                        self.plot_tr_size = self.seq.num_blocks - before
 
     def kernel(
         self,
@@ -555,6 +562,8 @@ class Epi2DApp(sequences.SequenceApp):
             "TR": self.repetition_time,
             "EchoSpacing": self.epi.esp,
             "EPIFactor": self.epi.etl,
+            "PlotTRsize": self.plot_tr_size,
+            "PlotTRstart": self.plot_tr_start,
             "kSpaceCenterLine": n_y // 2,
             "SlicePositions": self.positions.tolist(),
             "SliceThickness": self.slice_thickness,

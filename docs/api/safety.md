@@ -25,14 +25,11 @@ The amplitude and slew-rate checks compare the largest **per-axis** peak with
 magnitude over the three physical axes, but do not compare it with a limit;
 that magnitude is not the norm of independently attained axis peaks.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   check_max_grad
-   check_max_slew
-   check_grad_continuity
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.safety.check_max_grad` | Check the peak gradient amplitude against ``max_grad``. |
+| {obj}`~pypulseqpp.safety.check_max_slew` | Check the within-block slew rate against ``max_slew``. |
+| {obj}`~pypulseqpp.safety.check_grad_continuity` | Check gradient amplitude continuity across block boundaries. |
 
 ## Mechanical resonance
 
@@ -43,14 +40,11 @@ vendor table through {func}`read_forbidden_bands`. The transform is MKL's
 when the optional `mkl` extra is installed, and the compiled-in pocketfft
 otherwise.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   check_mech_resonance
-   read_forbidden_bands
-   ForbiddenBand
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.safety.check_mech_resonance` | Check the gradient amplitude spectrum against forbidden gradient bands. |
+| {obj}`~pypulseqpp.safety.read_forbidden_bands` | Read forbidden bands from a vendor table. |
+| {obj}`~pypulseqpp.safety.ForbiddenBand` | A forbidden gradient band: a frequency range on one physical axis. |
 
 ## Nerve stimulation
 
@@ -60,14 +54,11 @@ SAFE, as upstream PyPulseq computes it, from a description shaped like
 upstream's `safe_example_hw()` or a Siemens `.asc` file read by
 {func}`read_safe_model`; or a rheobase-chronaxie {class}`ChronaxieModel`.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   check_pns
-   read_safe_model
-   ChronaxieModel
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.safety.check_pns` | Check peripheral nerve stimulation against a SAFE or chronaxie model. |
+| {obj}`~pypulseqpp.safety.read_safe_model` | Read a SAFE nerve model from a Siemens ``.asc`` hardware description. |
+| {obj}`~pypulseqpp.safety.ChronaxieModel` | Rheobase-chronaxie nerve model, one coefficient set for every physical axis. |
 
 ## SAR
 
@@ -80,12 +71,9 @@ demonstration only. RF power in Pulseq's Hz units is
 {func}`pypulseqpp.calc_rf_power` for one pulse and `Sequence.calc_rf_power`
 for a sequence.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   check_sar
-   read_vops
-   example_vops
-   VopModel
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.safety.check_sar` | Check window-averaged local and global SAR against their limits. |
+| {obj}`~pypulseqpp.safety.read_vops` | Read VOPs and a global SAR matrix from a ``.mat`` or ``.npz`` file. |
+| {obj}`~pypulseqpp.safety.example_vops` | Build a synthetic VOP model, for demonstrations and tests only. |
+| {obj}`~pypulseqpp.safety.VopModel` | Virtual observation points, and an optional global SAR matrix. |

@@ -273,6 +273,7 @@ class Bssfp2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each slice's whole train before the next slice's."""
         for s in range(self.matrix[2]):
+            first = self.seq.num_blocks
             previous, shot, trigger = None, 0, False
             last = max(i for i, item in enumerate(self.train) if item is not None)
             for i, item in enumerate(self.train):
@@ -284,6 +285,9 @@ class Bssfp2DApp(sequences.SequenceApp):
                     s, shot, line, previous, segment, phase, trigger, last=i == last
                 )
                 previous, shot, trigger = self._ky(line), shot + 1, False
+            if s == 0:
+                self.plot_tr_start = first + 1
+                self.plot_tr_size = self.seq.num_blocks - first
 
     def kernel(
         self,
@@ -366,6 +370,8 @@ class Bssfp2DApp(sequences.SequenceApp):
             "TE": self.ro.te,
             "TR": self.ro.tr,
             "Gating": self.gating,
+            "PlotTRsize": self.plot_tr_size,
+            "PlotTRstart": self.plot_tr_start,
             "kSpaceCenterLine": n_y // 2,
             "kSpaceCenterSample": self.ro.center_sample,
             "SlicePositions": self.positions.tolist(),

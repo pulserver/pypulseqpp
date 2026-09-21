@@ -15,9 +15,6 @@ separate files linked through `NextSequence`. Each example sequence reached as
 `sequences.<name>` defines one subclass. The sequences themselves are listed
 under {doc}`../sequences`.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   SequenceApp
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.sequences.SequenceApp` | A complete sequence: its events, its sampling order and the loop that plays them. |

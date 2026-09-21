@@ -120,7 +120,13 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
     ax.set_xlabel("$k_y$")
     ax.set_ylabel("$k_z$")
     if shots > 1:
-        ax.legend(frameon=False, ncol=shots, fontsize=8, loc="upper center")
+        ax.legend(
+            frameon=False,
+            ncol=shots,
+            fontsize=8,
+            loc="lower center",
+            bbox_to_anchor=(0.5, 1.16),
+        )
     ax.set_title(
         rf"${shots}\cdot{{{ry}\times{rz}}}_{{z{shift}}}$:  "
         rf"$b^{{(1)}}={first},\ b^{{(2)}}={second},\ n={cycle}$"

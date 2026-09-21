@@ -38,6 +38,11 @@ def _representative(seq, size, start, repeats, span):
 def select_trs(seq, tr=None, max_underlays=16):
     """Return the repetitions a diagram draws.
 
+    ``PlotTRsize`` and optional ``PlotTRstart`` definitions identify an
+    application's logical plotting unit. Otherwise the sequence's structural
+    repetition is used. These definitions affect only the publication diagram;
+    analyses such as SAR retain their structural repetition semantics.
+
     Returns
     -------
     size : int
@@ -54,12 +59,31 @@ def select_trs(seq, tr=None, max_underlays=16):
         repetitions in which each axis reaches its most negative and most
         positive value.
     """
-    size, start = seq._detect_tr()
-    if size >= seq.num_blocks:
-        # A preparation before the loop, or a rewind after it, keeps the scan
-        # from repeating as a whole; the diagram draws what repeats inside it.
-        size, start = seq._native.repeating_part()
-        start += 1
+    declared = seq.get_definition("PlotTRsize")
+    if declared != "":
+        size = int(declared[0] if isinstance(declared, list) else declared)
+        declared_start = seq.get_definition("PlotTRstart")
+        start = (
+            int(
+                declared_start[0]
+                if isinstance(declared_start, list)
+                else declared_start
+            )
+            if declared_start != ""
+            else 1
+        )
+        if not 1 <= size <= seq.num_blocks - start + 1:
+            raise ValueError(
+                f"plot range ({start}, {size}) is not within the sequence's "
+                f"{seq.num_blocks} blocks"
+            )
+    else:
+        size, start = seq._detect_tr()
+        if size >= seq.num_blocks:
+            # A preparation before the loop, or a rewind after it, keeps the scan
+            # from repeating as a whole; the diagram draws what repeats inside it.
+            size, start = seq._native.repeating_part()
+            start += 1
     repeats = (seq.num_blocks - start + 1) // size if size else 0
     if repeats == 0:
         return 0, 0, None, []

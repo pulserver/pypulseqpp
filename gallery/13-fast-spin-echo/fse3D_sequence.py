@@ -56,22 +56,40 @@ from pypulseqpp import sequences
 
 Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
-P = {
-    "n_x": 96,
-    "n_y": 48,
-    "n_z": 16,
+DIAGRAM = {
+    "n_x": 64,
+    "n_y": 24,
+    "n_z": 8,
     "fov_x": 0.20,
     "fov_y": 0.20,
     "fov_z": 0.12,
-    "etl": 16,
-    "te": 48e-3,
-    "tr": 0.5,
+    "etl": 6,
+    "te": None,
+    "tr": None,
     "n_dummy": 0,
     "ordering": "radial",
     "flip_modulation": "optimized",
     "wave_amplitude": 0.0,
 }
-app = Fse3DApp(**P)
+diagram_app = Fse3DApp(**DIAGRAM)
+diagram = diagram_app.design()
+
+ANALYSIS = {
+    "n_x": 96,
+    "n_y": 64,
+    "n_z": 20,
+    "fov_x": 0.20,
+    "fov_y": 0.20,
+    "fov_z": 0.12,
+    "etl": 48,
+    "te": 120e-3,
+    "tr": 1.2,
+    "n_dummy": 0,
+    "ordering": "radial",
+    "flip_modulation": "optimized",
+    "wave_amplitude": 0.0,
+}
+app = Fse3DApp(**ANALYSIS)
 seq = app.design()
 print(
     f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
@@ -85,7 +103,7 @@ print(
 # Each echo comprises a variable-angle refocusing pulse, phase and partition
 # prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 # is the echo assigned to k-space centre.
-seq.paper_plot()
+diagram.paper_plot()
 
 # %%
 # Refocusing schedule and echo signal
@@ -119,7 +137,7 @@ fig.tight_layout()
 # and progressively larger radii to echoes farther from it. Echo index records
 # position within a train; shot index identifies views acquired after the same
 # excitation.
-order_figure(seq, P["n_y"], P["n_z"])
+order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 
 # %%
 # K-space weighting
@@ -129,12 +147,11 @@ order_figure(seq, P["n_y"], P["n_z"])
 # Radial assignment converts temporal signal evolution into a predominantly
 # radial modulation transfer function; its Fourier transform contributes to
 # image blurring along both phase-encode axes.
-ky, kz, echo, _ = views(seq, P["n_y"], P["n_z"])
+ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 # sphinx_gallery_start_ignore
-fig, ax = plt.subplots(figsize=(5.4, 4.1))
+fig, ax = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
 art = ax.scatter(ky, kz, c=signal[echo], cmap="viridis", s=16, linewidth=0)
 fig.colorbar(art, ax=ax, label="Relative echo amplitude")
 ax.set(xlabel=r"$k_y$ (lines from centre)", ylabel=r"$k_z$ (partitions from centre)")
-ax.set_aspect("equal")
 fig.tight_layout()
 # sphinx_gallery_end_ignore
