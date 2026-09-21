@@ -62,25 +62,35 @@ A radial or spiral trajectory therefore reaches its largest per-axis amplitude
 at some particular set of angles and not at others, and a sequence that is
 within `max_grad` when checked unrotated can exceed it at a prescribed
 orientation. This is why the check applies the block rotations rather than
-reading the logical waveforms, and why a prescription rotation is worth passing
-where the scan will be prescribed obliquely.
+reading the logical waveforms, and why a sequence that will be prescribed
+obliquely is worth checking at that orientation.
+
+A rotation about z moves the in-plane gradient vector around a circle of its
+own magnitude. The per-axis limit is a square in that plane, and the largest
+circle the square contains is the one of radius `max_grad`, so a vector shorter
+than `max_grad` stays inside the limit at every orientation and a longer one
+leaves it at some.
 
 ```{figure} ../../generated/figures/rotation_against_per_axis_limit.png
-A Cartesian gradient echo whose logical readout, phase-encode and slice axes
-each stay within `max_grad`. Its prewinder block and its rewinder-and-spoiler
-block play two logical axes at once, so the vector magnitude there exceeds the
-per-axis limit. Under a double-oblique prescription that vector is
-redistributed over the physical axes and one of them exceeds `max_grad`, while
-the vector magnitude, which the rotation leaves unchanged, is the same in both
-frames.
+The in-plane gradient vector of a Cartesian gradient echo at the instant its
+magnitude is largest, drawn at prescription rotations 15 degrees apart. Left,
+a design solved against `max_grad`: its prewinder and its
+rewinder-and-spoiler block play the readout and phase-encode axes together, and
+each reaches the limit, so the vector is $\sqrt2$ times that amplitude. Only
+the orientations that leave it on a diagonal of the box keep both components
+inside. Right, the same prescription solved against
+`max_grad` divided by $\sqrt2$, which fits the vector inside the circle. Below,
+the largest per-axis amplitude over the whole scan against the prescription
+angle.
 ```
 
-The vector magnitude is therefore the bound on what any prescription can place
-on a single physical axis at that instant: a rotation that aligns the vector
-with an axis puts its whole magnitude there. A sequence whose logical per-axis
-peaks are within `max_grad` but whose vector peak is not has orientations at
-which it fails the check, and the check reports both quantities so that margin
-is readable before an orientation is chosen.
+The vector magnitude is therefore the bound on what a prescription can place on
+a single physical axis at that instant, and a design that shares `max_grad`
+between two simultaneous axes has no rotational headroom at all.
+{func}`~pypulseqpp.apply_system_derates` returns the limits to solve such a
+design against. For a sequence that already exists, applying the prescription
+with {class}`~pypulseqpp.TransformFOV` and checking the result answers the same
+question at the orientation the scan will run at.
 
 ## Relationship between gradient amplitude and spatial resolution
 

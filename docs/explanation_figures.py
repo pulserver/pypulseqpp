@@ -91,12 +91,12 @@ def axis_peaks_against_vector():
 
 
 def rotation_against_per_axis_limit():
-    """Per-axis peaks in the logical frame and on the physical axes after a rotation.
+    """The worst in-plane gradient vector under a prescription rotation.
 
-    A rotation preserves the vector magnitude at every instant and redistributes
-    it over the physical axes, so the largest per-axis amplitude a prescription
-    can produce is bounded by the vector magnitude rather than by the logical
-    per-axis peaks.
+    A rotation preserves the vector magnitude and redistributes it over the
+    physical axes, so a vector longer than ``max_grad`` leaves the per-axis
+    limit box at some orientations however its components are shared out at
+    the design orientation.
     """
     from scipy.spatial.transform import Rotation
 
@@ -105,90 +105,131 @@ def rotation_against_per_axis_limit():
 
     plt = _pyplot()
     system = pp.Opts(max_grad=32.0, grad_unit="mT/m", max_slew=140.0, slew_unit="T/m/s")
-    logical = sequences.gre2D_sequence(
-        system=system,
-        fov_x=0.2,
-        fov_y=0.2,
-        n_x=128,
-        n_y=128,
-        n_slices=1,
-        tr=None,
-        n_dummy=0,
-        readout_bandwidth_hz=400e3,
-    )
-    rotation = Rotation.from_euler("zy", [45.0, 45.0], degrees=True)
-    physical = pp.TransformFOV(rotation=rotation).apply_to_sequence(logical)
+    #: The two in-plane axes play together in the prewinder and in the
+    #: rewinder-and-spoiler block, so a design solved against the per-axis
+    #: limit puts a vector of `sqrt(2)` times that limit on them.
+    designs = {
+        "solved against max_grad": system,
+        "solved against max_grad / $\\sqrt{2}$": pp.apply_system_derates(
+            system, grad_derate=2**-0.5, slew_derate=2**-0.5
+        ),
+    }
+    prescription = np.arange(0.0, 180.0, 2.5)
 
     scale = 1e3 / system.gamma
     limit = system.max_grad * scale
-    grid = np.arange(0.0, logical.get_definition("TR")[0], system.grad_raster_time)
-
-    figure = plt.figure(figsize=(PAGE_WIDTH, 4.4))
-    layout = figure.add_gridspec(
-        2, 2, width_ratios=(2.0, 1.2), hspace=0.5, wspace=0.34,
-        left=0.09, right=0.98, top=0.86, bottom=0.10,
-    )
-    traces = [figure.add_subplot(layout[0, 0])]
-    traces.append(figure.add_subplot(layout[1, 0], sharex=traces[0], sharey=traces[0]))
-    bars = figure.add_subplot(layout[:, 1])
-
-    peaks = {}
-    titles = ("logical axes", "physical axes, double-oblique prescription")
-    for axis, seq, title in zip(traces, (logical, physical), titles, strict=True):
+    vectors, sweeps = {}, {}
+    for name, limits in designs.items():
+        seq = sequences.gre2D_sequence(
+            system=limits,
+            fov_x=0.2,
+            fov_y=0.2,
+            n_x=128,
+            n_y=128,
+            n_slices=1,
+            tr=None,
+            n_dummy=0,
+            readout_bandwidth_hz=400e3,
+        )
+        grid = np.arange(0.0, seq.get_definition("TR")[0], system.grad_raster_time)
         played = np.array(
             [
                 np.interp(grid, times, amplitudes, left=0.0, right=0.0)
                 for times, amplitudes in _physical_waveforms(seq)
             ]
         )
-        magnitude = np.linalg.norm(played, axis=0)
-        axis.fill_between(grid * 1e3, magnitude, color="0.55", alpha=0.20, lw=0)
-        axis.plot(grid * 1e3, magnitude, lw=1.0, color="0.45", label="$|G|$")
-        for row, name in zip(played, ("$G_x$", "$G_y$", "$G_z$"), strict=True):
-            axis.plot(grid * 1e3, row, lw=1.2, label=name)
-        for sign in (1.0, -1.0):
-            axis.axhline(sign * limit, color="tab:red", lw=0.9, ls="--")
-        axis.set_title(title)
-        axis.set_ylabel("$G$ (mT/m)")
-        axis.margins(y=0.18)
-        _, report = safety.check_max_grad(seq)
-        peaks[title] = [peak.value * scale for peak in report.axes]
-        peaks[title].append(report.vector.value * scale)
-    traces[1].set_xlabel("time (ms)")
-    traces[0].text(
-        0.1, limit, "max_grad", color="tab:red", va="bottom", ha="left", fontsize=8
+        instant = int(np.argmax(np.hypot(played[0], played[1])))
+        vectors[name] = played[:2, instant]
+        sweeps[name] = [
+            max(peak.value for peak in safety.check_max_grad(turned)[1].axes) * scale
+            for turned in (
+                pp.TransformFOV(
+                    rotation=Rotation.from_euler("z", angle, degrees=True)
+                ).apply_to_sequence(seq)
+                for angle in prescription
+            )
+        ]
+
+    figure = plt.figure(figsize=(PAGE_WIDTH, 5.9))
+    layout = figure.add_gridspec(
+        2, 2, height_ratios=(1.35, 1.0), hspace=0.62, wspace=0.28,
+        left=0.10, right=0.97, top=0.80, bottom=0.09,
     )
+    planes = [figure.add_subplot(layout[0, column]) for column in (0, 1)]
+    sweep = figure.add_subplot(layout[1, :])
+
+    turn = np.arange(0.0, 360.0, 15.0)
+    span = 1.45 * limit
+    for axis, (name, vector) in zip(planes, vectors.items(), strict=True):
+        magnitude = float(np.hypot(*vector))
+        axis.add_patch(
+            plt.Circle(
+                (0, 0), limit, facecolor="tab:green", alpha=0.10, lw=0, zorder=0
+            )
+        )
+        axis.add_patch(
+            plt.Rectangle(
+                (-limit, -limit), 2 * limit, 2 * limit,
+                facecolor="none", edgecolor="tab:red", lw=1.0, ls="--", zorder=1,
+            )
+        )
+        circle = np.linspace(0.0, 2 * np.pi, 361)
+        axis.plot(
+            magnitude * np.cos(circle), magnitude * np.sin(circle),
+            color="0.6", lw=0.8, ls=":", zorder=1,
+        )
+        for angle in turn:
+            radians = np.deg2rad(angle)
+            rotated = np.array(
+                [
+                    [np.cos(radians), -np.sin(radians)],
+                    [np.sin(radians), np.cos(radians)],
+                ]
+            ) @ vector
+            outside = np.max(np.abs(rotated)) > limit
+            axis.annotate(
+                "",
+                xy=tuple(rotated),
+                xytext=(0.0, 0.0),
+                zorder=3 if outside else 2,
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": "tab:red" if outside else "0.35",
+                    "lw": 1.1,
+                    "shrinkA": 0,
+                    "shrinkB": 0,
+                },
+            )
+        axis.set_title(f"{name}\n$|G|$ = {magnitude:.1f} mT/m", fontsize=9)
+        axis.set_xlim(-span, span)
+        axis.set_ylim(-span, span)
+        axis.set_aspect("equal")
+        axis.set_xlabel("$G_x$ (mT/m)")
+    planes[0].set_ylabel("$G_y$ (mT/m)")
+
+    handles = [
+        plt.Line2D([], [], color="tab:red", lw=1.0, ls="--",
+                   label=f"per-axis limit, {limit:.0f} mT/m"),
+        plt.Rectangle((0, 0), 1, 1, facecolor="tab:green", alpha=0.20, lw=0,
+                      label="inside the limit at every orientation"),
+        plt.Line2D([], [], color="0.35", lw=1.1, label="within the per-axis limit"),
+        plt.Line2D([], [], color="tab:red", lw=1.1, label="over the per-axis limit"),
+    ]
     figure.legend(
-        *traces[0].get_legend_handles_labels(),
-        frameon=False,
-        ncols=4,
-        loc="upper left",
-        bbox_to_anchor=(0.07, 1.0),
-        columnspacing=1.2,
+        handles=handles, frameon=False, ncols=2, loc="upper left",
+        bbox_to_anchor=(0.10, 1.0), columnspacing=1.4,
     )
 
-    names = ("x", "y", "z", "$|G|$")
-    offsets = np.arange(len(names))
-    for shift, (title, heights) in zip((-0.19, 0.19), peaks.items(), strict=True):
-        drawn = bars.bar(offsets + shift, heights, width=0.36, label=title.split(",")[0])
-        # Only the per-axis peaks are compared with the limit; the vector peak
-        # is reported beside them and carries no verdict.
-        for index, (rectangle, height) in enumerate(zip(drawn, heights, strict=True)):
-            if index < 3 and height > limit:
-                rectangle.set_color("tab:red")
-            bars.text(
-                rectangle.get_x() + 0.5 * rectangle.get_width(),
-                height + 0.8,
-                f"{height:.0f}",
-                ha="center",
-                fontsize=6.5,
-            )
-    bars.axhline(limit, color="tab:red", lw=0.9, ls="--")
-    bars.set_xticks(offsets, names)
-    bars.set_ylim(0, 1.18 * max(max(heights) for heights in peaks.values()))
-    bars.set_ylabel("peak amplitude (mT/m)")
-    bars.set_title("peaks over the scan")
-    bars.legend(frameon=False, fontsize=7, loc="upper left")
+    for name, peaks in sweeps.items():
+        sweep.plot(prescription, peaks, lw=1.4, label=name)
+    sweep.axhline(limit, color="tab:red", lw=0.9, ls="--")
+    sweep.set_xlim(prescription[0], prescription[-1])
+    sweep.set_xticks(np.arange(0.0, 181.0, 30.0))
+    sweep.set_xlabel("prescription rotation about z (degrees)")
+    sweep.set_ylabel("largest per-axis\namplitude (mT/m)")
+    sweep.legend(
+        frameon=False, fontsize=8, loc="upper left", bbox_to_anchor=(0.0, 1.42),
+    )
     return figure
 
 
