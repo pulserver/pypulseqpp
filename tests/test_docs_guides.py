@@ -1,14 +1,14 @@
-"""Every code block in a how-to guide runs and produces the output it shows."""
+"""Executable snippets in the user guide run as written."""
 
 import doctest
 from pathlib import Path
 
 import pytest
 
-GUIDES = sorted((Path(__file__).parents[1] / "docs/guides").glob("*.md"))
+GUIDES = sorted((Path(__file__).parents[1] / "docs/user-guide").glob("*.md"))
 
 
-def test_the_guides_directory_is_not_empty():
+def test_the_user_guide_directory_is_not_empty():
     assert GUIDES
 
 

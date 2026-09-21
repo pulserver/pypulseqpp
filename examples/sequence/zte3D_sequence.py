@@ -48,26 +48,26 @@ class Zte3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov : float, optional
+        fov : float, default=0.22
             Isotropic field of view, in metres.
-        n_x : int, optional
+        n_x : int, default=128
             Isotropic matrix size.
-        n_views : int or None, optional
+        n_views : int or None, default=None
             Views per shell. ``None`` is the Nyquist-matched count.
-        n_shots : int or None, optional
+        n_shots : int or None, default=None
             Shells the sphere is dealt into. ``None`` balances the spacing
             within and between shells.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=3.0
             Hard-pulse flip angle, in degrees; small, because the pulse plays
             on the readout gradient.
-        pulse_duration : float, optional
+        pulse_duration : float, default=1e-05
             Hard-pulse duration, in seconds, short enough to excite the whole
             spoke.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth, in Hz.
-        n_dummy : int, optional
+        n_dummy : int, default=2
             Whole shells played without acquiring before the first shot.
-        n_gain_calibration_readouts : int, optional
+        n_gain_calibration_readouts : int, default=1
             Written as the ``NumGainCalibrationReadouts`` definition.
         """
         system = self.system

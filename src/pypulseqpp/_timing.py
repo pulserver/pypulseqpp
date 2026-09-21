@@ -57,7 +57,7 @@ def calc_adc_timing(
         Gradient raster (s), e.g. ``system.grad_raster_time``.
     adc_raster_time : float
         ADC raster (s), e.g. ``system.adc_raster_time``.
-    min_readout_duration : float, optional
+    min_readout_duration : float, default=0.0
         Lower bound on the returned duration (s), e.g. to fit a flat top.
 
     Returns

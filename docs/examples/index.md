@@ -3,7 +3,7 @@
 Executable pages, run when the documentation is built, so every figure and
 every printed number on them comes from the code as it stands.
 
-| Section | What it holds |
+| Section | Scope |
 | --- | --- |
 | {doc}`/examples/getting-started` | The minimal Pulseq workflow, event by event. |
 | {doc}`/examples/sequence-modules/index` | The reusable modules the package designs sequences from. |

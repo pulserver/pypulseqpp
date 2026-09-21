@@ -76,7 +76,7 @@ def axis_peaks_against_vector():
     trace.set_xlabel("time (ms)")
     trace.set_ylabel("gradient amplitude (mT/m)")
     trace.set_title("one repetition")
-    trace.legend(frameon=False, ncols=4, loc="lower center", columnspacing=1.0)
+    figure.legend(frameon=False, ncols=4, loc="upper center", bbox_to_anchor=(0.36, 1.03), columnspacing=1.0)
 
     heights = [*axis_peaks, float(np.linalg.norm(axis_peaks)), simultaneous]
     colors = ["0.7", "0.7", "0.7", "tab:red", "tab:green"]
@@ -91,66 +91,55 @@ def axis_peaks_against_vector():
 
 
 def continuity_seam():
-    """A step within the slew limit and one beyond it, at a block boundary.
-
-    Continuity is the slew-rate inequality applied across a boundary, with one
-    gradient raster period as the time available. Each panel is drawn from the
-    two blocks it checks, and its title is the verdict the check returns.
-    """
+    """Legal and illegal physical-axis steps at a block boundary."""
     import pypulseqpp as pp
-    from pypulseqpp import safety
 
     plt = _pyplot()
     system = pp.Opts(max_grad=40.0, grad_unit="mT/m", max_slew=150.0, slew_unit="T/m/s")
     raster = system.grad_raster_time
+    allowed = system.max_slew * raster
     scale = 1e3 / system.gamma
-    allowed = system.max_slew * raster  # the largest legal step, in Hz/m
-
-    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.9), sharey=True)
-    for axis, fraction in ((axes[0], 0.8), (axes[1], 4.0)):
-        ends_at = fraction * allowed
-        ramp = np.linspace(0.0, ends_at, 8)
-        seq = pp.Sequence(system=system)
-        seq.add_block(
-            pp.make_arbitrary_grad("x", ramp, system=system, first=0.0, last=ends_at)
-        )
-        seq.add_block(pp.make_trapezoid("x", area=2e-4, duration=10 * raster, system=system))
-        is_ok, report = safety.check_grad_continuity(seq)
-
-        boundary = ramp.size * raster
-        following = np.array([0.0, 0.5, 1.0, 1.0, 0.5, 0.0]) * 0.6 * allowed
-        axis.plot(np.arange(ramp.size) * raster * 1e6, ramp * scale, lw=1.4, color="0.2")
+    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.7), sharey=True)
+    for axis, fraction, verdict in zip(
+        axes, (0.8, 4.0), ("pass", "fail"), strict=True
+    ):
+        endpoint = fraction * allowed
+        before = np.linspace(0.0, endpoint, 8)
+        boundary = before.size * raster
+        after = np.array([0.0, 0.35, 0.6, 0.6, 0.35, 0.0]) * allowed
         axis.plot(
-            (boundary + np.arange(following.size) * raster) * 1e6,
-            following * scale,
-            lw=1.4,
+            np.arange(before.size) * raster * 1e6,
+            before * scale,
+            lw=1.5,
             color="0.2",
         )
-        axis.axvline(boundary * 1e6, color="0.75", lw=0.8)
+        axis.plot(
+            (boundary + np.arange(after.size) * raster) * 1e6,
+            after * scale,
+            lw=1.5,
+            color="0.2",
+        )
+        axis.axvline(boundary * 1e6, color="0.65", lw=0.9, ls="--")
         axis.annotate(
             "",
             xy=(boundary * 1e6, 0.0),
-            xytext=(boundary * 1e6, ends_at * scale),
-            arrowprops=dict(arrowstyle="<->", color="tab:red", lw=1.1),
+            xytext=(boundary * 1e6, endpoint * scale),
+            arrowprops={"arrowstyle": "<->", "color": "tab:red", "lw": 1.2},
         )
         axis.text(
-            boundary * 1e6 + 4,
-            0.5 * ends_at * scale,
-            f"$\\Delta G$ = {fraction:.1f} x the\nlargest legal step",
+            boundary * 1e6 - 2,
+            0.5 * endpoint * scale,
+            r"$\Delta G$",
             color="tab:red",
+            ha="right",
             va="center",
-            fontsize=8,
         )
-        axis.set_title(
-            f"{len(report.discontinuities)} discontinuity reported"
-            if report.discontinuities
-            else "no discontinuity reported"
-        )
-        axis.set_xlabel("time (us)")
-    axes[0].set_ylabel("$G_x$ (mT/m)")
+        axis.set_title(f"{fraction:.1f} × limit — {verdict}")
+        axis.set_xlabel("time (µs)")
+        axis.margins(x=0.08, y=0.2)
+    axes[0].set_ylabel(r"$G_x$ (mT/m)")
     figure.tight_layout()
     return figure
-
 
 def strength_duration():
     """The slew rate at threshold against the duration it is held for.
@@ -214,8 +203,51 @@ def strength_duration():
     axis.set_xlabel("ramp duration (ms)")
     axis.set_ylabel("slew rate at threshold (T/m/s)")
     axis.set_title("Strength-duration relation of the two model families")
-    axis.legend(frameon=False)
-    figure.tight_layout()
+    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    figure.tight_layout(rect=(0, 0, 0.82, 1))
+    return figure
+
+
+def pns_response():
+    """Checker-backed PNS response of a short-echo-spacing EPI shot."""
+    import pypulseqpp as pp
+    from pypulseqpp import safety, sequences
+
+    plt = _pyplot()
+    seq = sequences.epi2D_sequence(
+        n_x=48,
+        n_y=48,
+        n_slices=1,
+        n_dummy=0,
+        tr=None,
+        fat_saturation=False,
+        readout_bandwidth_hz=500e3,
+    )
+    model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
+    _, report = safety.check_pns(seq, model, trace=True)
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+    for entry in report.axes:
+        axis.plot(
+            report.time * 1e3,
+            entry.response,
+            lw=0.8,
+            label=rf"$R_{entry.axis}(t)$",
+        )
+    axis.plot(report.time * 1e3, report.response, color="black", lw=1.4, label=r"$R(t)$")
+    axis.axhline(1.0, color="tab:red", ls="--", lw=1.0, label="threshold")
+    axis.plot(
+        report.peak.time * 1e3,
+        report.peak.value,
+        "o",
+        color="tab:red",
+        ms=5,
+        label="reported peak",
+    )
+    axis.set_xlabel("time (ms)")
+    axis.set_ylabel("response (fraction of threshold)")
+    axis.set_title("EPI peripheral-nerve-stimulation response")
+    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    figure.tight_layout(rect=(0, 0, 0.80, 1))
     return figure
 
 
@@ -256,8 +288,8 @@ def gradient_spectra():
     axis.set_xlabel("frequency (Hz)")
     axis.set_ylabel("$G_x$ amplitude (mT/m)")
     axis.set_title(f"{width * 1e3:.0f} ms window at the middle of each sequence")
-    axis.legend(frameon=False)
-    figure.tight_layout()
+    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+    figure.tight_layout(rect=(0, 0, 0.82, 1))
     return figure
 
 
@@ -266,6 +298,7 @@ FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
     "continuity_seam": continuity_seam,
     "strength_duration": strength_duration,
+    "pns_response": pns_response,
     "gradient_spectra": gradient_spectra,
 }
 

@@ -1,86 +1,71 @@
 # pypulseqpp
 
-Pulseq sequence design and analysis with a C++ core and a PyPulseq-compatible
-Python interface.
-
 [![Tests](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml/badge.svg)](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml)
+[![Documentation](https://github.com/pulserver/pypulseqpp/actions/workflows/docs.yml/badge.svg)](https://pulserver.github.io/pypulseqpp/)
 [![codecov](https://codecov.io/gh/pulserver/pypulseqpp/branch/main/graph/badge.svg)](https://codecov.io/gh/pulserver/pypulseqpp)
 [![PyPI](https://img.shields.io/pypi/v/pypulseqpp.svg)](https://pypi.org/project/pypulseqpp/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/pulserver/pypulseqpp/blob/main/LICENSE)
+[![Python](https://img.shields.io/pypi/pyversions/pypulseqpp.svg)](https://pypi.org/project/pypulseqpp/)
+[![Wheels](https://img.shields.io/badge/wheels-Linux%20x86--64%20%7C%20macOS%20arm64%2Fx86--64%20%7C%20Windows%20AMD64-2b76ad)](https://github.com/pulserver/pypulseqpp/actions/workflows/wheels.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ffbd28.svg)](https://github.com/pulserver/pypulseqpp/blob/main/LICENSE)
 
-pypulseqpp combines compiled event storage, block registration and analysis
-with [PyPulseq](https://github.com/imr-framework/pypulseq) event factories.
-It also provides RF and gradient design, sampling patterns, and composable
-excitation, preparation and readout modules.
+<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo.svg" alt="pypulseqpp" width="620"></p>
 
-## Scope
+pypulseqpp provides Pulseq sequence design and analysis through a
+PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
+and trajectory design, reusable sequence modules, complete sequence
+applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
+Unsupported PyPulseq features are not presented as available. Passing these
+checks does not establish scanner or patient safety.
 
-- Pulseq text and binary reading/writing, signatures and event deduplication.
-- Waveform expansion, k-space trajectories, sequence reports and structural
-  repetition detection.
-- Timing, gradient amplitude, slew-rate and boundary-continuity checks, a
-  mechanical-resonance check against forbidden gradient bands, a PNS check
-  under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.
-- Logical-frame FOV scaling, rotation and translation.
-- Pulse, trajectory and sampling design, with reusable sequence modules.
+## Features
 
-This is an alpha package, not a complete replacement for every PyPulseq
-feature. Passing the checks does not establish scanner or patient safety.
+- Pulseq text and binary I/O, event storage, deduplication and repetition analysis.
+- RF, gradient and non-Cartesian trajectory design.
+- Composable excitation, preparation and readout `SequenceModule` classes.
+- Waveform, ADC sampling-location and k-space analysis with publication figures.
+- Timing, hardware-limit, PNS, mechanical-resonance and VOP-based SAR estimates.
 
-Scanner execution, protocol orchestration and reconstruction integration
-belong to [Pulserver](https://github.com/pulserver/pulserver).
+<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900"></p>
 
-## Install
-
-Requires Python 3.10 or later. Runtime dependencies are NumPy, SciPy and
-PyPulseq; the native core is included in platform wheels.
+## Quick start
 
 ```bash
 pip install pypulseqpp
 ```
 
-The optional viewer is a separate GPL-licensed package:
-
-```bash
-pip install 'pypulseqpp[plot]'
-```
-
-## Basic use
-
 ```python
-import pypulseqpp as pp
+from pypulseqpp.sequences import gre2D_sequence
 
-system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
-seq = pp.Sequence(system)
-gx = pp.make_trapezoid("x", area=100, system=system)
-seq.add_block(gx)
+seq = gre2D_sequence(n_x=64, n_y=64, n_slices=1, tr=None)
 ok, errors = seq.check_timing()
-seq.write("example.seq")
+seq.write("gre2d.seq")
 ```
 
-Sequence-module classes are available from `pypulseqpp.sequences`, and the
-complete example sequences from `pypulseqpp.sequences.<name>`. The
-[API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html)
-groups sequence operations, event design, sampling, modules and checks; the
-[examples](https://pulserver.github.io/pypulseqpp/latest/examples.html)
-build a sequence from events, from modules and from the shipped applications,
-and the
-[explanations](https://pulserver.github.io/pypulseqpp/latest/explanations/index.html)
-cover the file format and each of the hardware checks.
+## Documentation
 
-## Development and documentation
+| Section | Purpose |
+| --- | --- |
+| [User guide](https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html) | Installation, support and project-use logistics. |
+| [Explanations](https://pulserver.github.io/pypulseqpp/latest/explanations/index.html) | Pulseq representation, sequence design and constraint models. |
+| [Examples](https://pulserver.github.io/pypulseqpp/latest/examples/index.html) | Executable sequence workflows and design studies. |
+| [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html) | Exact interfaces, units and defaults. |
+| [Developer guide](https://pulserver.github.io/pypulseqpp/latest/developer-guide/index.html) | Development setup and contribution workflow. |
+| [Source](https://github.com/pulserver/pypulseqpp) | Repository, issues and discussions. |
+| [PDF manual](https://github.com/pulserver/pypulseqpp/releases/latest/download/pypulseqpp-docs.pdf) | Single-file documentation from the latest release. |
 
-See the [contribution guide](https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md)
-for installation and checks. Build the local Markdown/Sphinx documentation with:
+## Citation
 
-```bash
-pip install -e '.[examples]'
-bash scripts/build_docs.sh
-```
+pypulseqpp has no project publication. Cite the foundational formats and APIs
+used in work built with it:
 
-The script compiles the checkout into `docs/build/site` and generates the pages
-from that build. Every example script under `gallery/` is executed as the pages
-are built, which is what the `examples` extra covers beyond `doc`.
+1. Layton KJ, Kroboth S, Jia F, et al. Pulseq: A rapid and hardware-independent
+   pulse sequence prototyping framework. *Magnetic Resonance in Medicine*.
+   2017;77(4):1544–1552. [doi:10.1002/mrm.26235](https://doi.org/10.1002/mrm.26235).
+2. Ravi KS, Geethanath S, Vaughan JT. PyPulseq: A Python package for MRI pulse
+   sequence design. *Journal of Open Source Software*. 2019;4(42):1725.
+   [doi:10.21105/joss.01725](https://doi.org/10.21105/joss.01725).
 
-Open `docs/build/html/index.html`. Documentation contributions follow
-`docs/contributing/documentation.md` and `docs/contributing/terminology.md`.
+## License
+
+MIT, except bundled or vendored third-party components that retain their own
+licences. See [License and third-party notices](https://pulserver.github.io/pypulseqpp/latest/misc/license.html).

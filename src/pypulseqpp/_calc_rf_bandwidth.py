@@ -96,15 +96,15 @@ def calc_rf_bandwidth(
     ----------
     rf : SimpleNamespace or RfEvent
         The RF event.
-    cutoff : float, optional
+    cutoff : float, default=0.5
         Fraction of the peak the flanks are measured at.
-    return_axis : bool, optional
+    return_axis : bool, default=False
         Also return the frequency axis.
-    return_spectrum : bool, optional
+    return_spectrum : bool, default=False
         Also return the spectrum.
-    dw : float, optional
+    dw : float, default=10
         Spectral resolution, in Hz.
-    dt : float, optional
+    dt : float, default=None
         Sampling step, in seconds. The default system's RF raster when
         omitted.
 

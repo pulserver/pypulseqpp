@@ -3,10 +3,11 @@
 2D Cartesian multi-echo gradient echo
 =======================================
 
-One excitation per repetition, with the line read again at several echo
-times. The signal decays between echoes at a rate the tissue's apparent
-transverse relaxation sets, so one repetition measures the decay rather
-than one point on it.
+A spoiled low-flip-angle excitation is followed by several Cartesian gradient
+echoes of the same phase-encode line. Gradient and RF spoiling suppress
+residual transverse coherence before the next TR. The echo train samples T2*
+decay while TR and flip angle determine the T1 weighting. Multi-echo GRE is
+used for T2*/R2* mapping, susceptibility mapping, and structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -24,13 +25,6 @@ plt.rcParams.update(
         "axes.labelsize": 10,
     }
 )
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -69,8 +63,8 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # A longer echo train
 # -------------------
 #
-# More echoes sample the decay further into it, at the cost of a longer
-# repetition and a later last echo.
+# Additional echoes extend the sampled decay curve and increase the minimum
+# repetition time and final echo time.
 
 alternative = gre_multiecho2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_echoes=8, te=None, tr=None, n_dummy=0
@@ -89,40 +83,3 @@ for name, seq in (("4 echoes", baseline), ("8 echoes", alternative)):
 pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ],
-)
-# sphinx_gallery_end_ignore

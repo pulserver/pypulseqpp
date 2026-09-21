@@ -46,7 +46,7 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     ----------
     n : int
         Number of angles.
-    full_circle : bool, optional
+    full_circle : bool, default=False
         ``False`` (the default) is the ``pi``-periodic radial/blade golden
         angle ``pi / phi``; ``True`` is the full-turn spiral golden angle
         ``2 * pi / phi**2``. Default is False.
@@ -91,9 +91,9 @@ def calc_raga_angles(
     ----------
     n : int
         Number of angles.
-    tiny_index : int, optional
+    tiny_index : int, default=1
         Tiny-golden index the rational approximation is built from.
-    approximation_order : int, optional
+    approximation_order : int, default=13
         Fibonacci order; sets the size of the angular support.
 
     Returns
@@ -142,7 +142,7 @@ def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     ----------
     n : int
         Number of angles.
-    index : int, optional
+    index : int, default=2
         Tiny-golden index ``N >= 1`` (default 2).
 
     Returns
@@ -183,7 +183,7 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     ----------
     n : int
         Number of angles.
-    span : float, optional
+    span : float, default=2.0 * np.pi
         Angular range the spokes are spread across, in radians. ``pi`` for
         diametric spokes, ``2 * pi`` (the default) for full-turn arms.
 
@@ -225,9 +225,9 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     ----------
     n_views : int
         Spokes in the base shell, at least three.
-    n_shots : int, optional
+    n_shots : int, default=1
         Rotated replays of that shell.
-    scheme : {'spiral', 'meridian'}, optional
+    scheme : {'spiral', 'meridian'}, default='spiral'
         ``'spiral'`` winds pole to pole across equal-area rings, so the shell
         alone is already near-uniform. ``'meridian'`` is a half great circle in
         the x-z plane at equal polar steps, which is simpler and oversamples

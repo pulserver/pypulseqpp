@@ -22,8 +22,7 @@ a body model. Evaluating the peak over every voxel for every candidate drive is
 not affordable online, and is not necessary: the matrices can be compressed into
 a small set of **virtual observation points**, each an upper bound over a cluster
 of positions, such that the largest value over the set bounds the largest value
-over the body (Eichfelder and Gebhardt, Magn Reson Med 2011,
-doi:10.1002/mrm.22927).
+over the body.[^eichfelder]
 
 {class}`~pypulseqpp.safety.VopModel` stores that set as an $(N, N_c, N_c)$ stack
 of Hermitian matrices, in W/kg per unit channel drive squared, and optionally a
@@ -100,5 +99,9 @@ the sequence, under a stated model and calibration, is within a stated limit.
 * {func}`~pypulseqpp.calc_rf_power` and
   {meth}`~pypulseqpp.Sequence.calc_rf_power` — the RF power the check
   integrates, in Pulseq's Hz units.
-* {doc}`../../guides/checking-constraints` — running the check over a
+* {doc}`../../examples/getting-started` — running the check over a
   sequence and reading its report.
+
+## References
+
+[^eichfelder]: Eichfelder G, Gebhardt M. Local specific absorption rate control for parallel transmission by virtual observation points. *Magnetic Resonance in Medicine*. 2011;66(5):1468–1476. [doi:10.1002/mrm.22927](https://doi.org/10.1002/mrm.22927).

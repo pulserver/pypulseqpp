@@ -15,6 +15,23 @@ jobs:
     with:
       cibw-build: "cp310-* cp311-* cp312-* cp313-*"
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install '.[examples]'
+      - run: bash scripts/build_docs_pdf.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pypulseqpp-docs-pdf
+          path: docs/build/pypulseqpp-docs.pdf
+
   publish-to-pypi:
     needs: [build]
     runs-on: ubuntu-latest
@@ -32,7 +49,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
-    needs: [publish-to-pypi]
+    needs: [publish-to-pypi, docs]
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the release
@@ -43,6 +60,10 @@ jobs:
           pattern: "{wheels-*,sdist}"
           path: dist
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: pypulseqpp-docs-pdf
+          path: dist
       - uses: sigstore/gh-action-sigstore-python@v3.5.0
         with:
           inputs: |

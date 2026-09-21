@@ -3,11 +3,12 @@
 2D echo-planar imaging
 ========================
 
-One excitation followed by a train of readout lobes of alternating polarity,
-with a phase-encode blip between them, so the whole phase-encode axis is
-covered after a single pulse. Off-resonance then accumulates along that axis
-instead of across repetitions, and the train length is what decides how far it
-displaces the image.
+A slice-selective excitation is followed by alternating readout gradients and
+phase-encode blips that acquire multiple Cartesian lines in one echo train.
+Spoilers suppress residual transverse coherence between repetitions.
+Off-resonance phase accumulates during the train and produces geometric
+distortion along the phase-encode axis. EPI supports rapid structural imaging
+and functional MRI.
 """
 
 # sphinx_gallery_start_ignore
@@ -85,46 +86,48 @@ def coverage_figure(designs, n_y):
     return figure
 
 
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
-
-
 # sphinx_gallery_end_ignore
 
 # %%
 # Baseline: single shot
 # ---------------------
 #
-# One excitation reads every line of the phase-encode axis. The train is as
-# long as the matrix, and the echo spacing times the train length is what a
-# spin at a given off-resonance is displaced by.
+# One excitation acquires the complete phase-encode axis. Echo-train length
+# equals the number of acquired lines and determines the accumulated
+# off-resonance phase across k-space.
 
 from pypulseqpp.sequences import epi2D_sequence
 
+diagram = epi2D_sequence(
+    n_x=64,
+    n_y=48,
+    n_slices=1,
+    n_shots=1,
+    n_dummy=0,
+    fat_saturation=True,
+    tr=None,
+)
 single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
 print(
-    f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
-    f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms"
+    f"{diagram.num_blocks} blocks, {diagram.duration()[0] * 1e3:.1f} ms, "
+    f"TE {diagram.get_definition('TE')[0] * 1e3:.2f} ms"
 )
 
 # %%
 # Sequence diagram
 # ----------------
 
-single.paper_plot()
+diagram.paper_plot()
 
 # %%
 # Segmentation and in-plane acceleration
 # --------------------------------------
 #
-# Both shorten the train, and they differ in what else they change.
+# Segmentation and in-plane acceleration both reduce echo-train length.
 # ``n_shots`` interleaves the lines over several excitations, so every line is
-# still acquired and the scan takes proportionally longer. ``ry`` skips lines
-# instead, which leaves the scan time alone and needs a parallel-imaging
-# reconstruction to fill what was skipped. A spin at offset :math:`\Delta f`
+# still acquired. ``ry`` skips lines within one excitation and requires a
+# parallel-imaging reconstruction for the omitted lines. Both reduce the
+# echo-train duration. A spin at offset :math:`\Delta f`
 # gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
 # linear in :math:`k_y` and therefore a displacement of
 # :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
@@ -136,9 +139,8 @@ accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_
 designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
 
 # sphinx_gallery_start_ignore
-# A spin at offset df gains 2*pi*df*esp of phase per echo, which is linear in
-# k_y and so a displacement of df * esp * etl pixels, whatever step the train
-# takes. The last column is that displacement per hertz of off-resonance.
+# The final column reports displacement per hertz of off-resonance, calculated
+# as echo spacing multiplied by echo-train length.
 print(
     f"{'':10} {'echoes':>7} {'trains':>7} {'per train':>10} {'TE (ms)':>9} "
     f"{'scan (ms)':>10} {'px per Hz':>10}"
@@ -159,10 +161,11 @@ for title, seq in designs.items():
 # Echo traversal
 # --------------
 #
-# The line each echo reads, against its index in the train. A single shot walks
-# the axis one line at a time; a segmented acquisition walks it in steps of
-# ``n_shots``, each shot starting one line further on; acceleration walks it in
-# steps of ``ry`` and stops there.
+# The ordinate gives the phase-encode line acquired at each echo index. A
+# single shot
+# traverses the axis one line at a time; a segmented acquisition traverses it
+# in steps of ``n_shots``, with each shot starting one line further on;
+# acceleration traverses it in steps of ``ry`` and stops there.
 
 # sphinx_gallery_start_ignore
 traversal_figure(designs, 96)
@@ -181,66 +184,42 @@ coverage_figure(designs, 96)
 # sphinx_gallery_end_ignore
 
 # %%
-# Safety checks
-# -------------
+# Functional MRI time series
+# ---------------------------
 #
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model and the forbidden bands below are
-# demonstrations, not a scanner's.
+# Repeated frames form an fMRI time series. The acquisition below uses eight
+# slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
+# identifies the group; acquisition times come from the actual ADC blocks.
 
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-bands = [safety.ForbiddenBand(axis=None, f_min=550.0, f_max=650.0, tolerance=6.0)]
-
-grad_ok, grad = safety.check_max_grad(single)
-slew_ok, slew = safety.check_max_slew(single)
-pns_ok, pns = safety.check_pns(single, model)
-mech_ok, mech = safety.check_mech_resonance(single, bands, window_width=20e-3)
+fmri = epi2D_sequence(
+    n_x=64,
+    n_y=64,
+    n_slices=8,
+    multiband=2,
+    n_frames=4,
+    n_shots=1,
+    n_dummy=0,
+    fat_saturation=False,
+    tr=1.0,
+)
+labels = fmri.evaluate_labels(evolution="adc")
+blocks = np.asarray(fmri._native.block_events())
+durations = np.asarray(fmri._native.block_durations())
+adc_blocks = np.flatnonzero(blocks[:, 4] != 0)
+adc_time = np.concatenate(([0.0], np.cumsum(durations)))[adc_blocks]
+nav = np.asarray(labels["NAV"]) == 0
+rep = np.asarray(labels["REP"])[nav]
+slc = np.asarray(labels["SLC"])[nav]
+time = adc_time[nav]
+first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
 
 # sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / single.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / single.system.gamma:.0f} T/m/s",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-        ("mechanical resonance", mech_ok, f"{mech.bands[0].peak:.1f} mT/m in band"),
-    ]
-)
-# sphinx_gallery_end_ignore
-
-# %%
-# Mechanical resonance
-# --------------------
-#
-# The readout train is a periodic gradient waveform, so its spectrum is a comb
-# at the echo-spacing frequency and its harmonics. A forbidden band that one of
-# those lines falls in is driven for as long as the train lasts.
-# ``mech_resonance_spectrum`` returns the windowed spectrum the check reads.
-
-spectrum = safety.mech_resonance_spectrum(
-    single, window=mech.bands[0].window, window_width=20e-3
-)
-
-# sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
-for name, amplitude in zip(spectrum.axes, spectrum.amplitude, strict=True):
-    axis.plot(spectrum.frequency, amplitude, lw=0.9, label=f"$G_{name}$")
-band = mech.bands[0]
-axis.axvspan(band.f_min, band.f_max, color="tab:red", alpha=0.15, lw=0)
-axis.axhline(band.threshold, color="tab:red", ls="--", lw=1.0)
-axis.set_xlim(0, 2000)
-axis.set_xlabel("frequency (Hz)")
-axis.set_ylabel("amplitude (mT/m)")
-axis.set_title("forbidden band shaded, its threshold dashed")
-axis.legend(frameon=False, ncol=3, fontsize=9)
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+art = axis.scatter(time[first], slc[first], c=rep[first], cmap="turbo", s=35)
+figure.colorbar(art, ax=axis, label="Frame (REP)", pad=0.02)
+axis.set_xlabel("acquisition time (s)")
+axis.set_ylabel("Multiband group (SLC)")
+axis.set_yticks(np.unique(slc[first]))
+axis.grid(alpha=0.2)
 figure.tight_layout()
 # sphinx_gallery_end_ignore

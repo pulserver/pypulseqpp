@@ -1,9 +1,8 @@
 # Events and blocks
 
 [Pulseq](https://pulseq.github.io) is an open file format for MR pulse
-sequences. A `.seq` file states what is played, on which channel and for how
-long: the complete prescription of an acquisition, portable between sites and
-vendors. `pypulseqpp` builds, analyses and writes that description, and its
+sequences. A `.seq` file specifies event timing and channel assignment for a complete,
+portable acquisition. `pypulseqpp` builds, analyses and writes that description, and its
 Python interface preserves the format's conventions.
 
 The authoritative definition is the [Pulseq
@@ -22,8 +21,8 @@ Two rules fix the timing completely:
    the start of the block.
 2. Blocks are played back to back, with no gap between them.
 
-There is no nesting, no loop and no branch. The file is the flattened playout
-order; a scan loop exists only in the script that wrote the file.
+The file contains a flattened event schedule without loops, branches or nested
+blocks. Scan-loop control exists only in the authoring program.
 
 A block whose duration exceeds the extent of its events is therefore a delay,
 and this is how a repetition time is realized. A two-dimensional gradient-echo

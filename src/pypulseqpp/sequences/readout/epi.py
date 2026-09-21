@@ -120,83 +120,83 @@ class _EpiReadout(SequenceModule):
     rf : RfEvent
         The pulse that opens the repetition. A refocusing pulse builds the
         readout half of a spin-echo EPI.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``.
     fov : float | Sequence[float]
         Field of view (m), per encoded axis, readout first.
     matrix : int | Sequence[int]
         Matrix size, per encoded axis.
-    order : ArrayLike, optional
+    order : ArrayLike, default=None
         ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
         row per line. Supplying one silences the generator arguments below; the
         default takes a train from ``calc_epi_order``.
-    etl : int, optional
+    etl : int, default=None
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
-    scheme : {'linear', 'caipi', 'zigzag'}, optional
+    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'
         Which built-in ordering to generate. ``'linear'`` steps by
         ``segments * acceleration`` every line and never leaves its
         partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;
         ``'zigzag'`` traverses up and down a phase-encode segment instead of
         across the whole matrix.
-    acceleration : int, optional
+    acceleration : int, default=1
         Phase-encode undersampling, ``Ry``: lines the blip skips.
-    segments : int, optional
+    segments : int, default=1
         Shots the train is interleaved across, ``S``. The blip becomes
         ``S * Ry``, which shortens the train without changing the lattice
         sampled.
-    partition_acceleration : int, optional
+    partition_acceleration : int, default=1
         Partition undersampling ``Rz``, the height of the CAIPI cycle.
         ``'caipi'`` only.
-    caipi_shift : int, optional
+    caipi_shift : int, default=1
         Partitions the pattern climbs per acquired line. ``'caipi'`` only.
-    extent : int, optional
+    extent : int, default=None
         Phase-encode lines one pass spans. Required by ``'zigzag'``, refused
         by the others.
-    te : float, optional
+    te : float, default=None
         Excitation isodelay to the echo of train line ``te_line`` (s). ``None``
         is as short as possible; every echo is ``esp`` from the next, and
         ``echo_times`` lists them.
-    te_line : float, optional
+    te_line : float, default=0.0
         Train line, counted from zero and possibly fractional, that ``te`` is
         timed to.
-    tr : float, optional
+    tr : float, default=None
         Repetition time (s), over the whole module. It includes the longest
         echo shift.
-    navigator_lines : int, optional
+    navigator_lines : int, default=0
         Lines read without blips between the read and the phase-encode
         prewinders, for odd-even phase correction. Refused with ``flyback``.
-    echo_shifts : int, optional
+    echo_shifts : int, default=1
         Shots whose trains are delayed by successive multiples of
         ``esp / echo_shifts``, so the echo time grows smoothly across the
         interleaved lines. The module plays no shift; the loop lengthens
         ``wait_shift``.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         Read oversampling: ``delta_kx`` shrinks and the sampled read field of
         view grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=500000.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
-    ramp_sampling : bool, optional
+    ramp_sampling : bool, default=True
         Sample across the read ramps as well as the plateau, which is what
         makes the echo spacing short. Turn it off for a rectangular window at
         the cost of a longer train.
-    flyback : bool, optional
+    flyback : bool, default=False
         Read every line in the same direction, rewinding between them, instead
         of alternating polarity. It costs a rewind per line and buys away the
         odd-even inconsistency that a bipolar train leaves behind.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Read-axis spoiling at the end of the repetition, in cycles across
         ``voxel_size_m``.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=None
         Length the spoiling is counted over (m). The read resolution by
         default.
-    labels : Sequence[str], optional
+    labels : Sequence[str], default=None
         Counters for the encoded axes, phase encode first. Two names for a 3D
         train, one for 2D.
-    trigger : TriggerEvent, optional
+    trigger : TriggerEvent, default=None
         A trigger or digital output armed on the prewinder block.
 
     Raises
@@ -745,6 +745,23 @@ class EpiReadout2D(_EpiReadout):
     ... )
     >>> half.etl, int(half.order[1, 0])
     (32, 2)
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
+       excitation = sequences.SpatialSelectiveExcitation(system, 60.0, 3e-3)
+       readout = sequences.EpiReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=32, labels=("LIN",),
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2

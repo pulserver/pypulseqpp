@@ -60,12 +60,12 @@ def calc_traversal_order(
     ----------
     n : int
         Number of positions.
-    order : {'sequential', 'reverse', 'interleaved', 'center_out', 'outside_in', 'random'}, optional
+    order : {'sequential', 'reverse', 'interleaved', 'center_out', 'outside_in', 'random'}, default='sequential'
         Traversal scheme. ``'interleaved'`` takes even positions then odd ones
         (the standard multi-slice choice, maximising the gap between
         neighbours); ``'center_out'`` starts at the middle, which is the usual
         choice for a partition loop whose contrast is set by the first echoes.
-    seed : int, optional
+    seed : int, default=0
         Seed for ``order='random'``.
 
     Returns

@@ -46,26 +46,26 @@ def calc_epi_order(
     ----------
     etl : int
         Echoes in the train.
-    scheme : {'linear', 'caipi', 'zigzag'}, optional
+    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'
         ``'linear'`` steps by ``segments * acceleration`` every echo and never
         leaves its partition -- plain segmented EPI, and plain single-shot EPI
         at the defaults. ``'caipi'`` adds the partition sawtooth that turns
         that into segmented blipped-CAIPI. ``'zigzag'`` traverses up and down a
         phase-encode segment instead of across the whole matrix, which is what
         lets a shot sample the same lines at many echo times.
-    acceleration : int, optional
+    acceleration : int, default=1
         Phase-encode undersampling, ``Ry``: lines the blip skips.
-    segments : int, optional
+    segments : int, default=1
         Shots the train is interleaved across, ``S``. The blip becomes
         ``S * Ry``, which shortens the train and widens the phase-encode
         bandwidth without changing the lattice sampled.
-    partition_acceleration : int, optional
+    partition_acceleration : int, default=1
         Partition undersampling ``Rz``, the height of the CAIPI cycle.
         ``'caipi'`` only.
-    caipi_shift : int, optional
+    caipi_shift : int, default=1
         Partitions the pattern climbs per acquired line, ``delta_z``.
         ``'caipi'`` only.
-    extent : int, optional
+    extent : int, default=None
         Phase-encode lines one pass spans, ``R_seg``. Required by
         ``'zigzag'``, refused by the others.
 

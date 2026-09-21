@@ -16,13 +16,9 @@ system limits of one Pulseq sequence. It builds, reads and writes the sequence,
 expands its gradient and RF waveforms and its k-space trajectory, inspects its
 structure and checks its timing, over the compiled core.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-   :template: autosummary/sequence.rst
-
-   Sequence
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.Sequence` | A Pulseq sequence containing events, blocks and definitions. |
 
 ## Field-of-view transforms
 
@@ -32,12 +28,9 @@ after each block's own rotation, and a translation in logical metres. Field of
 view scales inversely with gradient amplitude, so halving an axis's amplitude
 doubles the field of view along it.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   TransformFOV
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.TransformFOV` | Geometry prescription applied to an existing sequence. |
 
 ## System limits
 
@@ -46,14 +39,11 @@ together with the RF, gradient, ADC and block duration rasters.
 {func}`apply_system_derates` and {func}`cap_system` return adjusted copies and
 leave the caller's limits unchanged.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   Opts
-   default_system
-   apply_system_derates
-   cap_system
-   MAX_GRAD_DERATE
-   MAX_SLEW_DERATE
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.Opts` | PyPulseq system limits with shared raster defaults. |
+| {obj}`~pypulseqpp.default_system` | Return ``system``, or the shared default system when it is ``None``. |
+| {obj}`~pypulseqpp.apply_system_derates` | Return a copy with gradient and slew limits scaled from their base values. |
+| {obj}`~pypulseqpp.cap_system` | Return a copy with gradient and slew limits lowered to the specified ceilings. |
+| {obj}`~pypulseqpp.MAX_GRAD_DERATE` | Convert a string or number to a floating-point number, if possible. |
+| {obj}`~pypulseqpp.MAX_SLEW_DERATE` | Convert a string or number to a floating-point number, if possible. |

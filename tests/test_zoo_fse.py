@@ -59,6 +59,16 @@ def test_a_small_fse_passes_its_timing_check_and_repeats_one_train(prescription)
     assert size * (1 + len(built.trains)) == len(seq.block_events)
 
 
+def test_none_uses_the_shortest_fse_repetition_time():
+    built = app(tr=None)
+    seq = built.design()
+
+    expected = built.fse.duration + built.system.block_duration_raster
+    assert built.repetition_time == pytest.approx(expected)
+    assert built.times == pytest.approx([expected] * len(built.trains))
+    assert seq.check_timing()[0]
+
+
 @pytest.mark.parametrize(
     "prescription",
     [

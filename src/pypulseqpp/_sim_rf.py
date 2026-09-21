@@ -45,7 +45,7 @@ def sim_bloch(b1_hz, bz_hz, dt: float, *, initial=None) -> _np.ndarray:
         Its rows define the positions.
     dt : float
         Step, in s.
-    initial : array_like, optional
+    initial : array_like, default=None
         Starting magnetisation, ``(3,)`` or ``(P, 3)``; ``+z`` by default.
 
     Returns
@@ -114,21 +114,21 @@ def sim_rf(
     rf : SimpleNamespace or RfEvent
         Its ``freq_ppm`` and ``phase_ppm`` are converted with the default
         system's gamma and B0, with a warning.
-    rephase_factor : float, optional
+    rephase_factor : float, default=None
         Free precession after the pulse, as a signed fraction of its
         duration. Defaults to zero when ``rf.use == "refocusing"`` and to
         ``-(shape_dur - center) / shape_dur``, the slice-select rephaser,
         otherwise.
-    prephase_factor : float, optional
+    prephase_factor : float, default=0.0
         The same, before the pulse.
-    df : float, optional
+    df : float, default=1.0
         In Hz: the axis holds ``round(bandwidth / df)`` points, so their
         spacing is about ``bandwidth_multiplier * df``.
-    bandwidth_multiplier : float, optional
+    bandwidth_multiplier : float, default=4.0
         Width of the frequency axis, in bandwidths. The bandwidth is
         :func:`calc_rf_bandwidth` at half maximum plus ``|freq_offset|``;
         the axis is centred on ``freq_offset``.
-    dt : float, optional
+    dt : float, default=None
         Simulation raster, in s. Chosen from the bandwidth when omitted.
 
     Returns

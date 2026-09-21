@@ -17,9 +17,9 @@ therefore needs a proportionally stronger selection gradient and a
 proportionally larger :math:`B_1`. The gradient amplitude limit therefore
 bounds the two together.
 
-This example simulates the Bloch response of the pulse each design produces,
-measures the transition width and the ripple of the resulting profile, and maps
-the region of the time-bandwidth and duration plane the gradient system admits.
+Bloch simulations quantify transition width and passband/stopband ripple. A
+sweep over time-bandwidth product and duration identifies designs compatible
+with the prescribed gradient-amplitude limit.
 """
 
 # sphinx_gallery_start_ignore
@@ -54,7 +54,13 @@ def profile_figure(designs, title, legend):
         profile_axis.plot(1e3 * design_["position"], design_["profile"], lw=1.2)
     envelope_axis.set_xlabel("time (ms)")
     envelope_axis.set_ylabel("$|B_1|$ (Hz)")
-    envelope_axis.legend(frameon=False, title=legend, fontsize=9)
+    envelope_axis.legend(
+        frameon=False,
+        title=legend,
+        fontsize=9,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.24),
+    )
     profile_axis.axvspan(
         -0.5e3 * THICKNESS, 0.5e3 * THICKNESS, color="0.9", lw=0, zorder=0
     )
@@ -89,7 +95,7 @@ def feasibility_figure(grid, boundary_tbw, boundary_duration):
     axis.plot([], [], "x", color="tab:red", label="rejected")
     axis.set_xlabel("time-bandwidth product")
     axis.set_ylabel("pulse duration (ms)")
-    axis.legend(loc="upper left", fontsize=9)
+    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=9)
     figure.tight_layout()
     return figure
 
@@ -226,8 +232,8 @@ profile_figure(
 # The duration at a fixed time-bandwidth product
 # ----------------------------------------------
 #
-# Holding the time-bandwidth product and varying the duration separates the
-# profile from the price of producing it.
+# Varying duration at fixed time-bandwidth product separates slice-profile
+# properties from gradient amplitude and peak :math:`B_1` requirements.
 
 DURATIONS = (1e-3, 2e-3, 3e-3, 5e-3, 8e-3)
 

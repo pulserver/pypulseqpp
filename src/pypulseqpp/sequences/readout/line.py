@@ -108,10 +108,10 @@ class _LineReadout(SequenceModule):
         System limits.
     rf : RfEvent
         The pulse that opens the repetition.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``. Pass an
         excitation's ``gz``, or nothing for a hard pulse.
-    gz_reph : GradEvent, optional
+    gz_reph : GradEvent, default=None
         The rephaser that unwinds ``gz``, left-aligned in the first block
         after the pulse: the TE wait when there is one, the prewinder block
         otherwise. A slab excitation (``is_slab=True``) has already merged it
@@ -121,55 +121,55 @@ class _LineReadout(SequenceModule):
     matrix : int or sequence of int
         Matrix size per encoded axis, used to set gradient areas. The scan
         loop controls the number and order of acquired lines.
-    te : float, optional
+    te : float, default=None
         Echo time (s), from the RF isodelay to the first echo. ``None`` is as
         short as possible.
-    tr : float, optional
+    tr : float, default=None
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
-    partial_echo : float, optional
+    partial_echo : float, default=1.0
         Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the
         samples *before* the echo, so it shortens TE.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         Readout oversampling: ``delta_kx`` shrinks and the sampled field of
         view grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved rate, subject to both ADC and gradient raster constraints.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Residual dephasing left at the end of the TR, in cycles across
         ``voxel_size_m``. Zero is balanced.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=None
         Length the spoiling is counted over (m). Defaults to the readout
         resolution.
-    spoiling_position : {'post', 'pre'}, optional
+    spoiling_position : {'post', 'pre'}, default='post'
         Which side of the acquisition the dephasing lobe sits on.
-    n_echoes : int, optional
+    n_echoes : int, default=1
         Echoes per repetition.
-    flyback : bool, optional
+    flyback : bool, default=True
         With more than one echo: rewind between echoes so every one is read in
         the same direction (monopolar, the default), or alternate the readout
         sign (bipolar), which is faster but reads even echoes backwards and
         puts any gradient-delay error into a phase difference between them.
         A bipolar train needs as many samples before the echo as after it, so
         it refuses partial echo and an odd sample count.
-    echo_spacing : float, optional
+    echo_spacing : float, default=None
         Echo spacing (s). ``None`` is as short as possible: the readout lobe
         of a bipolar train, the lobe and its rewinder for a monopolar one.
         Ignored with one echo.
-    wave : {'phase', 'partition', 'both'}, optional
+    wave : {'phase', 'partition', 'both'}, default=None
         Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
         on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
         is zero, which builds no wave-encoding gradients.
-    wave_cycles : int, optional
+    wave_cycles : int, default=8
         Wave periods across the sampling window.
-    wave_amplitude : float, optional
+    wave_amplitude : float, default=0.008
         Requested peak wave-encoding gradient amplitude, in T/m rather than the
         Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
         module's ``wave_amplitude`` attribute reports the amplitude built.
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the acquisition block. The loop writes the values.
-    trigger : event, optional
+    trigger : event, default=None
         A trigger or digital output armed on the prewinder block.
 
     Raises
@@ -553,6 +553,23 @@ class LineReadout2D(_LineReadout):
 
     >>> readout.blocks[1] == (readout.gx_pre, readout.gy_pre, readout.gz_reph)
     True
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.LineReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=64,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2

@@ -28,15 +28,15 @@ class OffResonanceSaturation(RfModule):
         System limits.
     rf_prep : RfEvent
         The pulse to play.
-    n_pulses : int, optional
+    n_pulses : int, default=1
         Pulses in the train.
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
         Zero omits the spoiler, which is what a pulse whose effect is a phase
         rather than a saturation needs.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    labels : Sequence[str], optional
+    labels : Sequence[str], default=None
         Counters emitted on the first pulse's block.
 
     Attributes
@@ -132,14 +132,14 @@ class MtPreparation(OffResonanceSaturation):
     ----------
     system : Opts
         System limits.
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=500.0
         Nominal flip angle (degrees). Far above 90: the point is deposited
         power, not a tip.
-    freq_offset_hz : float, optional
+    freq_offset_hz : float, default=-1500.0
         Offset from water (Hz); must not be zero.
-    duration_s : float, optional
+    duration_s : float, default=0.008
         Pulse duration (s).
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product, which with ``duration_s`` sets how wide a band
         of the bound pool is saturated.
 
@@ -192,14 +192,14 @@ class IhMtPreparation(OffResonanceSaturation):
     ----------
     system : Opts
         System limits.
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=500.0
         Flip angle (degrees) of the single-offset arm this one is matched
         against. Each band gets ``1 / sqrt(2)`` of it.
-    freq_offset_hz : float, optional
+    freq_offset_hz : float, default=1500.0
         Distance of each band from water (Hz), positive. Both signs are built.
-    duration_s : float, optional
+    duration_s : float, default=0.008
         Pulse duration (s).
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product of each band.
 
     Attributes
@@ -266,19 +266,19 @@ class BlochSiegertPreparation(OffResonanceSaturation):
     ----------
     system : Opts
         System limits.
-    freq_offset_hz : float, optional
+    freq_offset_hz : float, default=4000.0
         Offset from water (Hz); flip its sign for the second acquisition.
-    duration_s : float, optional
+    duration_s : float, default=0.008
         Pulse duration (s).
-    peak_b1_hz : float, optional
+    peak_b1_hz : float, default=500.0
         Plateau amplitude, in Pulseq units.
-    flat_fraction : float, optional
+    flat_fraction : float, default=0.8
         Fraction of the duration held at ``peak_b1_hz``, in ``(0, 1)``.
-    transition_fraction : float, optional
+    transition_fraction : float, default=0.02
         Width of each shoulder, as a fraction of the duration.
-    dwell_s : float, optional
+    dwell_s : float, default=1e-05
         RF raster (s).
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=0.0
         Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
         Zero, the default here, omits the spoiler, for the reason above.
 

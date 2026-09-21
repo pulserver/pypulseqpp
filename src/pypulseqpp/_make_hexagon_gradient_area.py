@@ -312,7 +312,7 @@ def make_hexagon_gradient_area(
         Amplitude at each end, in Hz/m.
     area : float
         The area to enclose, in 1/m.
-    system : Opts, optional
+    system : Opts, default=None
         System limits. The gradients are designed against 99 percent of them,
         so the waveform that comes back is inside them rather than on them.
 

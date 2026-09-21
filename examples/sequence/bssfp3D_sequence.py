@@ -132,39 +132,54 @@ class Bssfp3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y, fov_z : float, optional
+        fov_x : float, default=0.22
             Field of view along the readout, the phase encode and the
             partition encode (m). A slab excited is ``fov_z`` thick.
-        n_x, n_y, n_z : int, optional
+        fov_y : float, default=0.22
+            Field of view along the readout, the phase encode and the
+            partition encode (m). A slab excited is ``fov_z`` thick.
+        fov_z : float, default=0.128
+            Field of view along the readout, the phase encode and the
+            partition encode (m). A slab excited is ``fov_z`` thick.
+        n_x : int, default=256
             Matrix size along the readout, the phase encode and the partition
             encode.
-        flip_angle_deg : float, optional
+        n_y : int, default=256
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        n_z : int, default=128
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        flip_angle_deg : float, default=45.0
             Excitation flip angle (degrees).
-        tr : float | None, optional
+        tr : float | None, default=None
             Repetition time (s); TE is TR/2. ``None`` is as short as possible.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=125000.0
             Requested receiver bandwidth (Hz). The half flip needs an
             acquisition block at least as long as the excitation's tail, which
             a lower bandwidth provides.
-        ry, rz : int, optional
+        ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
-        caipi_shift : int, optional
+        caipi_shift : int, default=0
             Partitions the lattice climbs per acquired line, in ``[0, rz)``.
-        partial_fourier_y, partial_fourier_z : float, optional
+        partial_fourier_y, partial_fourier_z : float, default=1.0
             Fraction of the phase- and partition-encode extent acquired, in
             ``[0.75, 1]``.
-        excitation : {'nonselective', 'slab'}, optional
+        excitation : {'nonselective', 'slab'}, default='nonselective'
             A hard pulse, or a slab-selective SLR pulse whose rephasers the
             balanced readout builds.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=2.0
             Readout oversampling factor, at least one.
-        n_acs_y, n_acs_z : int, optional
+        n_acs_y : int, default=24
             Extent of the fully sampled calibration region along the phase
             and the partition encode, when undersampled.
-        elliptical_acs : bool, optional
+        n_acs_z : int, default=16
+            Extent of the fully sampled calibration region along the phase
+            and the partition encode, when undersampled.
+        elliptical_acs : bool, default=False
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-        n_phase_cycles : int, optional
+        n_phase_cycles : int, default=1
             Trains acquired, each with its own RF phase increment.
 
         Raises

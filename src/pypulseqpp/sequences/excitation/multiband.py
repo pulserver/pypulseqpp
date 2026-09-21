@@ -29,20 +29,20 @@ class SmsExcitation(RfModule):
         Slice thickness (m).
     slice_gap_m : float
         Centre-to-centre spacing between excited slices (m).
-    n_bands : int, optional
+    n_bands : int, default=2
         Slices excited at once.
-    duration_s : float, optional
+    duration_s : float, default=0.003
         Pulse duration (s).
-    phases : {'quadratic'} or sequence of float, optional
+    phases : {'quadratic'} or sequence of float, default='quadratic'
         Per-band phase (rad). ``'quadratic'`` spreads the peak; ``None`` leaves
         every band in phase, which is the worst case for peak B1.
-    rephase : bool, optional
+    rephase : bool, default=True
         Include a slice rephaser.
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product of the underlying slice profile.
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Selection axis.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
@@ -155,20 +155,20 @@ class MultibandExcitation(RfModule):
         Pulse duration (s).
     band_offset_hz : float
         Sideband offset from the on-resonance band (Hz).
-    n_bands : int, optional
+    n_bands : int, default=3
         Bands counting the on-resonance one: two for a single sideband, three
         for a symmetric pair.
-    sideband_power : float, optional
+    sideband_power : float, default=1.0
         Power of *each* sideband relative to the on-resonance band. Ignored
         when ``b1rms_ut`` is given.
-    b1rms_ut : float, optional
+    b1rms_ut : float, default=None
         Target root-mean-square B1 over the repetition (uT), from which the
         sideband power is solved. Needs ``tr``.
-    tr : float, optional
+    tr : float, default=None
         The repetition the RMS is taken over (s).
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product of the underlying envelope.
-    use : str, optional
+    use : str, default='saturation'
         Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
@@ -179,10 +179,10 @@ class MultibandExcitation(RfModule):
         Band frequency offsets (Hz), including the on-resonance band.
     band_power_fraction : numpy.ndarray
         Share of the total ``|B1|^2`` each band carries.
-    sideband_power : float
+    sideband_power : float, default=1.0
         Power of each sideband relative to the on-resonance band, whether it
         was given or solved.
-    b1rms_ut : float
+    b1rms_ut : float, default=None
         Root-mean-square B1 achieved over ``tr``, when one was given.
     peak_ut : float
         Peak B1 (uT), which is what a transmit chain limits.

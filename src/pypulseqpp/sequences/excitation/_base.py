@@ -22,7 +22,7 @@ class RfModule(SequenceModule):
 
         Parameters
         ----------
-        pulse : RfEvent, optional
+        pulse : RfEvent, default=None
             Pulse to simulate; defaults to the first RF event in block order.
         **kwargs
             Forwarded to :func:`pypulseqpp.sim_rf` (``rephase_factor``,

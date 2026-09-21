@@ -352,16 +352,16 @@ def make_arbitrary_grad(
         One of ``x``, ``y``, ``z``.
     waveform : numpy.ndarray
         Amplitudes at raster centres, Hz/m.
-    first, last : float, optional
+    first, last : float, default=None
         Amplitudes at the waveform's outer edges (Hz/m); linearly extrapolated
         from the two end samples when omitted.
-    delay : float
+    delay : float, default=0.0
         Seconds before the waveform starts.
-    max_grad, max_slew : float, optional
+    max_grad, max_slew : float, default=None
         Limits; ``system``'s when omitted or zero.
-    system : Opts, optional
+    system : Opts, default=None
         ``Opts.default`` when omitted.
-    oversampling : bool
+    oversampling : bool, default=False
         The waveform samples a grid twice as fine; its length must be odd.
 
     Returns

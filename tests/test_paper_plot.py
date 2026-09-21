@@ -9,6 +9,7 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import _ext
 from pypulseqpp.plot._paper import select_trs
+from pypulseqpp.sequences import bssfp2D_sequence, epi2D_sequence
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -98,6 +99,64 @@ def test_no_underlays_when_none_are_asked_for(system):
 def test_a_repetition_outside_the_sequence_is_refused(system):
     with pytest.raises(ValueError, match="repetitions"):
         select_trs(encoded(system, 10), tr=11)
+
+
+def test_epi_plot_unit_is_one_complete_shot():
+    seq = epi2D_sequence(
+        n_x=32,
+        n_y=24,
+        n_slices=1,
+        n_dummy=0,
+        fat_saturation=True,
+        tr=None,
+    )
+
+    size, start, main, _ = select_trs(seq)
+    labels = seq.evaluate_labels(evolution="adc")
+    rf_uses = {
+        seq.get_block(block).rf.use
+        for block in range(start, start + size)
+        if seq.get_block(block).rf is not None
+    }
+
+    assert (size, start, main) == (seq.num_blocks, 1, 1)
+    assert set(labels["NAV"]) == {0, 1}
+    assert rf_uses == {"saturation", "excitation"}
+
+
+def test_bssfp_plot_unit_is_one_complete_slice_train():
+    seq = bssfp2D_sequence(
+        n_x=32,
+        n_y=12,
+        n_slices=1,
+        n_phases=1,
+        n_dummy=1,
+        readout_bandwidth_hz=25_000,
+        tr=None,
+    )
+
+    size, start, main, _ = select_trs(seq)
+    rf_amplitudes = [
+        abs(seq.get_block(block).rf.amplitude)
+        for block in range(start, start + size)
+        if seq.get_block(block).rf is not None
+    ]
+    terminal = seq.get_block(start + size - 1)
+
+    assert (size, start, main) == (seq.num_blocks, 1, 1)
+    assert rf_amplitudes[0] == pytest.approx(rf_amplitudes[1] / 2)
+    assert terminal.rf is None and terminal.adc is None
+    assert all((terminal.gx, terminal.gy, terminal.gz))
+
+
+def test_plot_unit_does_not_change_structural_repetition_detection(system):
+    seq = encoded(system, 6)
+    structural = seq._detect_tr()
+    seq.set_definition("PlotTRstart", 5)
+    seq.set_definition("PlotTRsize", 8)
+
+    assert seq._detect_tr() == structural
+    assert select_trs(seq)[:2] == (8, 5)
 
 
 def test_the_block_extremes_are_the_played_extremes(system):
