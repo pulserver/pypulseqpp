@@ -10,12 +10,9 @@ limits and returns the gradient and slew-rate waveforms.
 .. currentmodule:: pypulseqpp
 ```
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   calc_radial_trajectory
-   calc_spiral_trajectory
-   calc_rosette_trajectory
-   traj_to_grad
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.calc_radial_trajectory` | Return one full radial spoke through the centre of k-space. |
+| {obj}`~pypulseqpp.calc_spiral_trajectory` | Return one spiral-out interleaf, from the centre to ``kmax``. |
+| {obj}`~pypulseqpp.calc_rosette_trajectory` | Return one rosette interleaf, petals through the centre of k-space. |
+| {obj}`~pypulseqpp.traj_to_grad` | Convert a k-space trajectory to gradient and slew-rate waveforms. |

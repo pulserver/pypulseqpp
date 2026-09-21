@@ -47,17 +47,26 @@ One excitation acquires the complete phase-encode axis. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-107
+.. GENERATED FROM PYTHON SOURCE LINES 98-116
 
 .. code-block:: Python
 
 
     from pypulseqpp.sequences import epi2D_sequence
 
+    diagram = epi2D_sequence(
+        n_x=64,
+        n_y=48,
+        n_slices=1,
+        n_shots=1,
+        n_dummy=0,
+        fat_saturation=True,
+        tr=None,
+    )
     single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
     print(
-        f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
-        f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms"
+        f"{diagram.num_blocks} blocks, {diagram.duration()[0] * 1e3:.1f} ms, "
+        f"TE {diagram.get_definition('TE')[0] * 1e3:.2f} ms"
     )
 
 
@@ -68,22 +77,22 @@ off-resonance phase across k-space.
 
  .. code-block:: none
 
-    104 blocks, 108.3 ms, TE 55.94 ms
+    58 blocks, 50.6 ms, TE 22.14 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-110
+.. GENERATED FROM PYTHON SOURCE LINES 117-119
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 110-113
+.. GENERATED FROM PYTHON SOURCE LINES 119-122
 
 .. code-block:: Python
 
 
-    single.paper_plot()
+    diagram.paper_plot()
 
 
 
@@ -99,11 +108,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f596bf189e0>, tr=95, underlays=[1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 96])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f138690db80>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-126
+.. GENERATED FROM PYTHON SOURCE LINES 123-135
 
 Segmentation and in-plane acceleration
 --------------------------------------
@@ -118,7 +127,7 @@ linear in :math:`k_y` and therefore a displacement of
 :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
 routes shorten the train, and both shorten the distortion with it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 126-151
+.. GENERATED FROM PYTHON SOURCE LINES 135-160
 
 .. code-block:: Python
 
@@ -145,7 +154,7 @@ routes shorten the train, and both shorten the distortion with it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 152-160
+.. GENERATED FROM PYTHON SOURCE LINES 161-169
 
 Echo traversal
 --------------
@@ -156,7 +165,7 @@ traverses the axis one line at a time; a segmented acquisition traverses it
 in steps of ``n_shots``, with each shot starting one line further on;
 acceleration traverses it in steps of ``ry`` and stops there.
 
-.. GENERATED FROM PYTHON SOURCE LINES 160-165
+.. GENERATED FROM PYTHON SOURCE LINES 169-174
 
 
 
@@ -176,7 +185,7 @@ acceleration traverses it in steps of ``ry`` and stops there.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 166-172
+.. GENERATED FROM PYTHON SOURCE LINES 175-181
 
 Which lines are acquired
 ------------------------
@@ -185,7 +194,7 @@ Segmentation and acceleration produce the same train length from different
 sets of lines: the segmented acquisition covers the axis, the accelerated one
 leaves two lines in three unread.
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-177
+.. GENERATED FROM PYTHON SOURCE LINES 181-186
 
 
 
@@ -205,10 +214,58 @@ leaves two lines in three unread.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 187-193
+
+Functional MRI time series
+---------------------------
+
+Repeated frames form an fMRI time series. The acquisition below uses eight
+slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
+identifies the group; acquisition times come from the actual ADC blocks.
+
+.. GENERATED FROM PYTHON SOURCE LINES 193-226
+
+.. code-block:: Python
+
+
+    fmri = epi2D_sequence(
+        n_x=64,
+        n_y=64,
+        n_slices=8,
+        multiband=2,
+        n_frames=4,
+        n_shots=1,
+        n_dummy=0,
+        fat_saturation=False,
+        tr=1.0,
+    )
+    labels = fmri.evaluate_labels(evolution="adc")
+    blocks = np.asarray(fmri._native.block_events())
+    durations = np.asarray(fmri._native.block_durations())
+    adc_blocks = np.flatnonzero(blocks[:, 4] != 0)
+    adc_time = np.concatenate(([0.0], np.cumsum(durations)))[adc_blocks]
+    nav = np.asarray(labels["NAV"]) == 0
+    rep = np.asarray(labels["REP"])[nav]
+    slc = np.asarray(labels["SLC"])[nav]
+    time = adc_time[nav]
+    first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
+
+
+
+
+.. image-sg:: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
+   :alt: epi2D sequence
+   :srcset: /generated/gallery/15-epi/images/sphx_glr_epi2D_sequence_004.png
+   :class: sphx-glr-single-img
+
+
+
+
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.227 seconds)
+   **Total running time of the script:** (0 minutes 0.622 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

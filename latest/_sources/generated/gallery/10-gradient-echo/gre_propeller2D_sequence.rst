@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5981fdcaa0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f145742cad0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
@@ -195,7 +195,7 @@ region provides additional data for motion estimation.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.062 seconds)
+   **Total running time of the script:** (0 minutes 4.005 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

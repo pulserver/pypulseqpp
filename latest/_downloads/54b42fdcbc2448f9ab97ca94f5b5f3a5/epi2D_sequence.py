@@ -98,17 +98,26 @@ def coverage_figure(designs, n_y):
 
 from pypulseqpp.sequences import epi2D_sequence
 
+diagram = epi2D_sequence(
+    n_x=64,
+    n_y=48,
+    n_slices=1,
+    n_shots=1,
+    n_dummy=0,
+    fat_saturation=True,
+    tr=None,
+)
 single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
 print(
-    f"{single.num_blocks} blocks, {single.duration()[0] * 1e3:.1f} ms, "
-    f"TE {single.get_definition('TE')[0] * 1e3:.2f} ms"
+    f"{diagram.num_blocks} blocks, {diagram.duration()[0] * 1e3:.1f} ms, "
+    f"TE {diagram.get_definition('TE')[0] * 1e3:.2f} ms"
 )
 
 # %%
 # Sequence diagram
 # ----------------
 
-single.paper_plot()
+diagram.paper_plot()
 
 # %%
 # Segmentation and in-plane acceleration
@@ -175,3 +184,42 @@ coverage_figure(designs, 96)
 # sphinx_gallery_end_ignore
 
 # %%
+# Functional MRI time series
+# ---------------------------
+#
+# Repeated frames form an fMRI time series. The acquisition below uses eight
+# slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
+# identifies the group; acquisition times come from the actual ADC blocks.
+
+fmri = epi2D_sequence(
+    n_x=64,
+    n_y=64,
+    n_slices=8,
+    multiband=2,
+    n_frames=4,
+    n_shots=1,
+    n_dummy=0,
+    fat_saturation=False,
+    tr=1.0,
+)
+labels = fmri.evaluate_labels(evolution="adc")
+blocks = np.asarray(fmri._native.block_events())
+durations = np.asarray(fmri._native.block_durations())
+adc_blocks = np.flatnonzero(blocks[:, 4] != 0)
+adc_time = np.concatenate(([0.0], np.cumsum(durations)))[adc_blocks]
+nav = np.asarray(labels["NAV"]) == 0
+rep = np.asarray(labels["REP"])[nav]
+slc = np.asarray(labels["SLC"])[nav]
+time = adc_time[nav]
+first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
+
+# sphinx_gallery_start_ignore
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+art = axis.scatter(time[first], slc[first], c=rep[first], cmap="turbo", s=35)
+figure.colorbar(art, ax=axis, label="Frame (REP)", pad=0.02)
+axis.set_xlabel("acquisition time (s)")
+axis.set_ylabel("Multiband group (SLC)")
+axis.set_yticks(np.unique(slc[first]))
+axis.grid(alpha=0.2)
+figure.tight_layout()
+# sphinx_gallery_end_ignore

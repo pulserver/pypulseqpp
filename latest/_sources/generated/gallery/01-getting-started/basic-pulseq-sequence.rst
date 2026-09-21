@@ -174,7 +174,7 @@ raster its event is played on and that the dead times are respected.
 
     timing: True, 0 errors, 8 blocks
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f59888ab500>, tr=1, underlays=[2])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1457dae060>, tr=1, underlays=[2])
 
 
 
@@ -215,7 +215,7 @@ The definitions a reconstruction reads are written beside the block table.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.071 seconds)
+   **Total running time of the script:** (0 minutes 0.102 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-getting-started_basic-pulseq-sequence.py:

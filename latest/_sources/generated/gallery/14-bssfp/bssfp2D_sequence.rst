@@ -44,7 +44,7 @@ Baseline
 
 One cardiac phase over a full Cartesian sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 37-56
 
 .. code-block:: Python
 
@@ -52,6 +52,15 @@ One cardiac phase over a full Cartesian sampling.
     import pypulseqpp as pp
     from pypulseqpp.sequences import bssfp2D_sequence
 
+    diagram = bssfp2D_sequence(
+        n_x=48,
+        n_y=12,
+        n_slices=1,
+        n_phases=1,
+        readout_bandwidth_hz=25_000,
+        tr=None,
+        n_dummy=1,
+    )
     baseline = bssfp2D_sequence(
         n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0
     )
@@ -72,17 +81,17 @@ One cardiac phase over a full Cartesian sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 57-59
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 59-62
 
 .. code-block:: Python
 
 
-    baseline.paper_plot()
+    diagram.paper_plot()
 
 
 
@@ -98,18 +107,18 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a8d63860>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1386afd010>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-58
+.. GENERATED FROM PYTHON SOURCE LINES 63-67
 
 Sampling order
 --------------
 
 The lines in the order they are read, in segments of ``views_per_segment``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 67-70
 
 .. code-block:: Python
 
@@ -134,22 +143,40 @@ The lines in the order they are read, in segments of ``views_per_segment``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-68
+.. GENERATED FROM PYTHON SOURCE LINES 71-78
 
 Cine
 ----
 
-``n_phases`` acquires each line segment at multiple cardiac phases after the
-trigger. Segment length controls the temporal footprint per phase and the
-number of cardiac cycles required for complete sampling.
+Prospective gating acquires each segment once per requested cardiac phase
+after a trigger. Retrospective gating cycles the segment throughout one
+heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
+Segment length sets the temporal footprint of each cardiac phase.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-82
+.. GENERATED FROM PYTHON SOURCE LINES 78-113
 
 .. code-block:: Python
 
 
-    alternative = bssfp2D_sequence(
-        n_x=192, n_y=192, n_slices=1, n_phases=8, views_per_segment=12, tr=None, n_dummy=0
+    prospective = bssfp2D_sequence(
+        n_x=96,
+        n_y=48,
+        n_slices=1,
+        n_phases=6,
+        views_per_segment=8,
+        gating="prospective",
+        tr=None,
+        n_dummy=0,
+    )
+    retrospective = bssfp2D_sequence(
+        n_x=96,
+        n_y=48,
+        n_slices=1,
+        n_phases=6,
+        views_per_segment=8,
+        gating="retrospective",
+        tr=None,
+        n_dummy=0,
     )
 
 
@@ -162,17 +189,18 @@ number of cardiac cycles required for complete sampling.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    1 phase               579          0.74           192
-    8 phases              579          0.74           192
+    ungated               579          0.74           192
+    prospective           873          0.83           288
+    retrospective        6195          5.95          2064
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 114-116
 
 .. code-block:: Python
 
-    pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+    pp.plot.plot_kspace(prospective, color_by="order", plane="xy", show_trajectory=False)
 
 
 
@@ -195,7 +223,7 @@ number of cardiac cycles required for complete sampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.030 seconds)
+   **Total running time of the script:** (0 minutes 1.370 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

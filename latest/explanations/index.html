@@ -553,25 +553,25 @@
 <p>Conceptual background for the interfaces documented in <a class="reference internal" href="../api/index.html"><span class="doc">API reference</span></a> and
 applied in the <a class="reference internal" href="../examples/index.html"><span class="doc">examples</span></a>: the vocabulary, the models
 and the conventions the rest of the documentation assumes.</p>
-<dl class="simple myst">
-<dt><a class="reference internal" href="pulseq/index.html"><span class="doc">Pulseq representation</span></a></dt><dd><p><strong>Pulseq representation.</strong> What a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file contains — blocks, events,
-libraries, shapes, extensions and definitions — how it is stored and
-deduplicated, and the rasters every event time is quantized to.</p>
-</dd>
-<dt><a class="reference internal" href="design/index.html"><span class="doc">Sequence design in pypulseqpp</span></a></dt><dd><p><strong>Sequence design in pypulseqpp.</strong> The abstractions the package places above
-the file format: sequence modules, which solve one group of blocks at
-construction, and sequence applications, which add a prescription, a
-sampling order and a scan loop.</p>
-</dd>
-<dt><a class="reference internal" href="safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a></dt><dd><p><strong>Gradient, PNS and SAR constraints.</strong> What each check of a finished sequence
-computes, the criterion it applies, the model or table it requires, and what
-it does not establish.</p>
-</dd>
-</dl>
-<p>Each group opens with a landing page that states what its pages cover. A page
-generally proceeds from the physical or computational concept to the model or
-criterion that makes it precise, then to the consequences for the quantities a
-user controls, and finally to the interface that represents it.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Explanation</p></th>
+<th class="head"><p>Scope</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="pulseq/index.html"><span class="doc">Pulseq representation</span></a></p></td>
+<td><p>Pulseq blocks, events, libraries, shapes, extensions, definitions, deduplication, and timing rasters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="design/index.html"><span class="doc">Sequence design in pypulseqpp</span></a></p></td>
+<td><p>Sequence modules, applications, prescriptions, sampling order, and scan loops.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a></p></td>
+<td><p>Gradient, PNS, mechanical-resonance, and SAR models and criteria.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 
 

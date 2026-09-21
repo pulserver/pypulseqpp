@@ -553,10 +553,7 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#strength-duration-relation">Strength-duration relation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nerve-model-families">Nerve model families</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-over-the-sequence">Evaluation over the sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dependence-on-prescription-orientation">Dependence on prescription orientation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-consequences">Design consequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-response">Sequence response</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
             </nav>
@@ -571,121 +568,77 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="peripheral-nerve-stimulation">
 <h1>Peripheral nerve stimulation<a class="headerlink" href="#peripheral-nerve-stimulation" title="Link to this heading">#</a></h1>
-<p>A changing gradient field induces an electric field in the body, and above a
-threshold that field depolarizes peripheral nerves. The sensation reported is a
-tapping or twitching at the extremities. In a sequence with rapid gradient
-switching this constraint is commonly reached at a lower slew rate than the
-amplifier’s own limit, so it, rather than the hardware, determines the
-shortest usable echo spacing.
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> estimates the response of a stated nerve
-model to the sequence’s slew and compares it with that model’s threshold.</p>
+<p>Time-varying gradients induce electric fields that can stimulate peripheral
+nerves. <a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> estimates the response to the
+physical-axis slew waveforms for a supplied demonstration or scanner-specific
+coil model. A passing estimate does not establish scanner or patient safety.</p>
 <section id="strength-duration-relation">
 <h2>Strength-duration relation<a class="headerlink" href="#strength-duration-relation" title="Link to this heading">#</a></h2>
-<p>Nerve excitation is not a function of the instantaneous rate of change alone.
-A membrane integrates the stimulus over a time constant, so a brief, intense
-change and a longer, gentler one can be equally effective. The classical
-description is the strength–duration relation: for a rectangular stimulus of
-duration <span class="math notranslate nohighlight">\(\tau\)</span>, the amplitude required for excitation is</p>
+<p>For a rectangular stimulus of duration <span class="math notranslate nohighlight">\(\tau\)</span>, the chronaxie model gives the
+threshold</p>
 <div class="math notranslate nohighlight">
 \[
 S(\tau) = S_{\mathrm{rh}}\left(1 + \frac{c}{\tau}\right),
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(S_{\mathrm{rh}}\)</span> is the <strong>rheobase</strong>, the amplitude a stimulus of
-unbounded duration needs, and <span class="math notranslate nohighlight">\(c\)</span> the <strong>chronaxie</strong>, the duration at which twice
-the rheobase is required (Irnich and Schmitt, Magn Reson Med 1995,
-doi:10.1002/mrm.1910330418; Reilly, Med Biol Eng Comput 1989,
-doi:10.1007/BF02441480).</p>
-<p>Both parameters belong to the gradient coil and the subject, not to the
-sequence: the coil’s geometry fixes how a given <span class="math notranslate nohighlight">\(\mathrm{d}G/\mathrm{d}t\)</span> maps
-to an induced field at the body’s periphery, and it is that field the nerve
-responds to. This is why the check takes a model and does not supply a default.</p>
+<p>where <span class="math notranslate nohighlight">\(S_{\mathrm{rh}}\)</span> is the rheobase and <span class="math notranslate nohighlight">\(c\)</span> is the chronaxie (Irnich and
+Schmitt, Magn Reson Med 1995, doi:10.1002/mrm.1910330418).</p>
 <figure class="align-default" id="id1">
 <img alt="../../_images/strength_duration.png" src="../../_images/strength_duration.png" />
 <figcaption>
-<p><span class="caption-text">The slew rate at which each model reports unity, against the duration the slew
-is held for, measured by scaling a single triangular gradient pulse. Below the
-chronaxie the threshold rises as the stimulus shortens; above it the two curves
-approach their own asymptotes. A sequence’s verdict therefore depends on the
-duration of its transitions, not on its peak slew rate alone.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+<p><span class="caption-text">Slew rate at unity response for a demonstration chronaxie model and the
+PyPulseq SAFE example hardware description. Shorter transitions require a
+larger stimulus.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Coefficients</p></th>
+<th class="head"><p>Typical source</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../../generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a></p></td>
+<td><p>Common chronaxie, rheobase, and geometry factor for the three axes</p></td>
+<td><p>Explicit demonstration or measured coil parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p>SAFE</p></td>
+<td><p>Three exponential terms, amplitude scale, and stimulation limit per axis</p></td>
+<td><p>Scanner hardware description read by <a class="reference internal" href="../../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_safe_model()</span></code></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
-<section id="nerve-model-families">
-<h2>Nerve model families<a class="headerlink" href="#nerve-model-families" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../../generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a> states the relation above directly,
-with one coefficient set for all three physical axes: a <code class="docutils literal notranslate"><span class="pre">chronaxie</span></code> in seconds,
-a <code class="docutils literal notranslate"><span class="pre">rheobase</span></code> in T/m/s, and a dimensionless <code class="docutils literal notranslate"><span class="pre">alpha</span></code> representing the coil
-geometry.
-The response is normalized by <code class="docutils literal notranslate"><span class="pre">rheobase</span> <span class="pre">/</span> <span class="pre">alpha</span></code>, so a rectangular slew <span class="math notranslate nohighlight">\(S\)</span> held
-for <span class="math notranslate nohighlight">\(\tau\)</span> reaches</p>
-<div class="math notranslate nohighlight">
-\[
-\frac{S \, \alpha \, \tau}{S_{\mathrm{rh}}\,(c + \tau)}.
-\]</div>
-<p>The <strong>SAFE</strong> model is the vendor description the check is more often given. It
-represents each axis as three exponential responses with time constants
-<span class="math notranslate nohighlight">\(\tau_1\)</span>, <span class="math notranslate nohighlight">\(\tau_2\)</span>, <span class="math notranslate nohighlight">\(\tau_3\)</span> and weights <span class="math notranslate nohighlight">\(a_1\)</span>, <span class="math notranslate nohighlight">\(a_2\)</span>, <span class="math notranslate nohighlight">\(a_3\)</span> summing to one,
-together with a stimulation limit and an amplitude scale. Its per-axis
-coefficients differ, which is the modelling difference that matters most in
-practice. The description is either shaped like upstream PyPulseq’s
-<code class="docutils literal notranslate"><span class="pre">safe_example_hw()</span></code>, or read from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware file by
-<a class="reference internal" href="../../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_safe_model()</span></code></a>.</p>
-<p>The response computation is upstream PyPulseq’s <code class="docutils literal notranslate"><span class="pre">calc_pns</span></code>, so a script that
-used it gets the same numbers.</p>
-</section>
-<section id="evaluation-over-the-sequence">
-<h2>Evaluation over the sequence<a class="headerlink" href="#evaluation-over-the-sequence" title="Link to this heading">#</a></h2>
-<p>The gradient is sampled at the centres of the sequence’s own gradient raster,
-starting from rest, and the slew is the difference between neighbouring
-samples. Each axis’s slew drives its own model, and the axis responses are
-combined as a root-sum-square,</p>
+<section id="sequence-response">
+<h2>Sequence response<a class="headerlink" href="#sequence-response" title="Link to this heading">#</a></h2>
+<p>Each physical-axis slew waveform drives its corresponding model response. The
+combined response is the root-sum-square</p>
 <div class="math notranslate nohighlight">
 \[
 R(t) = \sqrt{R_x(t)^2 + R_y(t)^2 + R_z(t)^2},
 \]</div>
-<p>each <span class="math notranslate nohighlight">\(R_a\)</span> already expressed as a fraction of its axis’s threshold. The
-sequence passes when <span class="math notranslate nohighlight">\(R(t) &lt; 1\)</span> at every sample. The report names the peak, the
-time and block it was found in, and the largest response of each axis on its
-own.</p>
-<p>Because the response at one sample depends on the preceding slew history, the
-check runs over the whole sequence in one pass rather than over a
-representative repetition: a response accumulated over a long echo train is not
-visible in any single repetition of it. The pass retains only the model state,
-so its storage does not grow with the sequence.</p>
-</section>
-<section id="dependence-on-prescription-orientation">
-<h2>Dependence on prescription orientation<a class="headerlink" href="#dependence-on-prescription-orientation" title="Link to this heading">#</a></h2>
-<p>With a chronaxie model, whose three axes share one coefficient set, the
-combined response is unchanged by a rotation: the per-axis responses are linear
-in the per-axis slew, so a rotation redistributes the components without
-changing the root-sum-square.</p>
-<p>With a SAFE description it is not. The axes have different thresholds and
-different time constants, so an oblique prescription that moves a fast-switching
-waveform from a tolerant axis onto a sensitive one changes the verdict. Passing
-the prescription rotation is therefore worth doing for any scan that will not be
-prescribed axially, and a scan prescribed at an arbitrary angle is bounded by
-the worst orientation rather than by the one it was designed at.</p>
-</section>
-<section id="design-consequences">
-<h2>Design consequences<a class="headerlink" href="#design-consequences" title="Link to this heading">#</a></h2>
-<p>The three ways to reduce a stimulation estimate all lengthen the acquisition.
-Lowering the slew rate lengthens every ramp, and with it the echo spacing.
-Lengthening the acquisition window lowers the readout gradient’s amplitude and
-therefore the duration of its ramps. Splitting a single-shot train into several
-shots changes neither the slew rate nor the amplitude, but shortens the
-interval over which the response accumulates.</p>
-<p>Because the estimate is a fraction of a stated model’s threshold and not a
-measurement, a sequence close to 1 is a sequence whose verdict depends on which
-description it was checked with.</p>
+<p>and the estimated threshold is <span class="math notranslate nohighlight">\(R=1\)</span>. The trace below is returned directly by
+<code class="docutils literal notranslate"><span class="pre">check_pns(...,</span> <span class="pre">trace=True)</span></code> for a short-echo-spacing EPI sequence and a clearly
+synthetic chronaxie model; it does not describe a particular scanner.</p>
+<figure class="align-default" id="id2">
+<img alt="../../_images/pns_response.png" src="../../_images/pns_response.png" />
+<figcaption>
+<p><span class="caption-text">Axis responses, combined response, threshold, and reported peak for one EPI
+acquisition. The checker computes every plotted response.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p>The check evaluates the whole sequence because model state depends on preceding
+slew history. With a common-axis chronaxie model, rotation redistributes axis
+components without changing their RSS. SAFE coefficients differ by physical
+axis, so prescription orientation can change the estimate.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> and
-<a class="reference internal" href="../../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_safe_model()</span></code></a> — the calls.</p></li>
-<li><p><a class="reference internal" href="slew_rate.html"><span class="doc">Slew rate</span></a> — the amplifier’s own bound on switching.</p></li>
-<li><p><a class="reference internal" href="../../guides/checking-constraints.html"><span class="doc">Check a sequence against hardware constraints</span></a> — running the check over a
-sequence and reading its report.</p></li>
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> — checker and diagnostic trace.</p></li>
+<li><p><a class="reference internal" href="slew_rate.html"><span class="doc">Slew rate</span></a> — hardware slew-rate limit.</p></li>
+<li><p><a class="reference internal" href="../../guides/checking-constraints.html"><span class="doc">Check a sequence against hardware constraints</span></a> — constraint-checking workflow.</p></li>
 </ul>
 </section>
 </section>
@@ -738,10 +691,7 @@ sequence and reading its report.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#strength-duration-relation">Strength-duration relation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nerve-model-families">Nerve model families</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-over-the-sequence">Evaluation over the sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dependence-on-prescription-orientation">Dependence on prescription orientation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-consequences">Design consequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-response">Sequence response</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
   </nav></div>

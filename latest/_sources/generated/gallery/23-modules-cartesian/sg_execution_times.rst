@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.101** total execution time for 1 file **from generated/gallery/23-modules-cartesian**:
+**00:00.151** total execution time for 1 file **from generated/gallery/23-modules-cartesian**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_23-modules-cartesian_cartesian-readout-modules.py` (``cartesian-readout-modules.py``)
-     - 00:00.101
+     - 00:00.151
      - 0.0

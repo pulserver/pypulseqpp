@@ -345,7 +345,7 @@ no longer does.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.736 seconds)
+   **Total running time of the script:** (0 minutes 0.986 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_24-modules-noncartesian_spiral-readout-limits.py:

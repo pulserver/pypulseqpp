@@ -583,6 +583,15 @@ is widely used for cardiac cine and dynamic cardiac imaging.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
 </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="w">
 </span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">diagram</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="p">(</span><span class="w">
+</span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_phases</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span>    <span class="n">readout_bandwidth_hz</span><span class="o">=</span><span class="mi">25_000</span><span class="p">,</span><span class="w">
+</span>    <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_dummy</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_phases</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="w">
 </span><span class="p">)</span><span class="w">
@@ -596,9 +605,9 @@ TR 3.84 ms
 </section>
 <section id="sequence-diagram">
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">diagram</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_bssfp2D_sequence_001.png" srcset="../../../_images/sphx_glr_bssfp2D_sequence_001.png" alt="bssfp2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f58a8d63860&gt;, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+<img src="../../../_images/sphx_glr_bssfp2D_sequence_001.png" srcset="../../../_images/sphx_glr_bssfp2D_sequence_001.png" alt="bssfp2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f1386afd010&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
 </section>
@@ -613,24 +622,43 @@ TR 3.84 ms
 </section>
 <section id="cine">
 <h2>Cine<a class="headerlink" href="#cine" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">n_phases</span></code> acquires each line segment at multiple cardiac phases after the
-trigger. Segment length controls the temporal footprint per phase and the
-number of cardiac cycles required for complete sampling.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="p">(</span><span class="w">
-</span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_phases</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">views_per_segment</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="w">
+<p>Prospective gating acquires each segment once per requested cardiac phase
+after a trigger. Retrospective gating cycles the segment throughout one
+heartbeat and records the cycle index in <code class="docutils literal notranslate"><span class="pre">PHS</span></code> for later cardiac binning.
+Segment length sets the temporal footprint of each cardiac phase.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">prospective</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="p">(</span><span class="w">
+</span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_phases</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="w">
+</span>    <span class="n">views_per_segment</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="w">
+</span>    <span class="n">gating</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">prospective</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>    <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">retrospective</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/bssfp2D_sequence.html#pypulseqpp.sequences.bssfp2D_sequence" title="pypulseqpp.sequences.bssfp2D_sequence"><span class="n">bssfp2D_sequence</span></a><span class="p">(</span><span class="w">
+</span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_phases</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="w">
+</span>    <span class="n">views_per_segment</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="w">
+</span>    <span class="n">gating</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">retrospective</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>    <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="w">
+</span>    <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>                   blocks  duration (s)  acquisitions
-1 phase               579          0.74           192
-8 phases              579          0.74           192
+ungated               579          0.74           192
+prospective           873          0.83           288
+retrospective        6195          5.95          2064
 </pre></div>
 </div>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">order</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">show_trajectory</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="w">
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">prospective</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">order</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">show_trajectory</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_bssfp2D_sequence_003.png" srcset="../../../_images/sphx_glr_bssfp2D_sequence_003.png" alt="bssfp2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 605x550 with 2 Axes&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.030 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.370 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-14-bssfp-bssfp2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/387a9c7e784fe58bb06f16ce95748b42/bssfp2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">bssfp2D_sequence.ipynb</span></code></a></p>

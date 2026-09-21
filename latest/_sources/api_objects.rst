@@ -39,28 +39,13 @@ from.
    make_rotation
    make_soft_delay
    make_trigger
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    align
    block_to_events
    calc_duration
    rotate
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    get_supported_labels
    enable_trace
    disable_trace
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    interoperating
    convert
    as_namespace
@@ -78,11 +63,6 @@ from.
    make_phase_encoding
    make_trapezoid
    make_wave_gradients
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    add_gradients
    calc_ramp
    concatenate_gradients
@@ -100,11 +80,6 @@ from.
 
    SequenceModule
    RfModule
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    NonSelectiveExcitation
    NonSelectiveRefocusing
    SpatialSelectiveExcitation
@@ -114,11 +89,6 @@ from.
    SpspExcitation
    SmsExcitation
    MultibandExcitation
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    InversionPreparation
    BlochSiegertPreparation
    DiffusionPreparation
@@ -128,11 +98,6 @@ from.
    OffResonanceSaturation
    T1T2Preparation
    T2Preparation
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    LineReadout2D
    LineReadout3D
    EpiReadout2D
@@ -143,11 +108,6 @@ from.
    BssfpReadout3D
    PropellerReadout2D
    PropellerStackReadout
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    NonCartesianReadout
    RadialReadout2D
    RadialStackReadout
@@ -160,11 +120,6 @@ from.
    RosetteStackReadout
    RosetteProjectionReadout
    ZteReadout
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    NonCartesianGradient
    Arbitrary
    Spiral
@@ -178,11 +133,6 @@ from.
 
    plot
    paper_plot
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    plot_kspace
    plot_rf
 
@@ -198,47 +148,22 @@ from.
    make_gauss_pulse
    make_half_passages
    make_sinc_pulse
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    make_slr_pulse
    make_recursive_slr_pulses
    make_sms_pulse
    make_spsp_pulse
    make_2d_selective_pulse
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    make_gslider_pulse
    make_hadamard_pulse
    make_pins_pulse
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    make_b1_selective_pulse
    make_b1_gslider_pulse
    make_b1_hadamard_pulse
    make_bloch_siegert_pulse
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    make_ptx_pulse
    split_ptx_pulse
    calc_rf_shim
    make_spokes_pulse
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    calc_rf_bandwidth
    calc_rf_center
    calc_rf_power
@@ -254,27 +179,12 @@ from.
    check_max_grad
    check_max_slew
    check_grad_continuity
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    check_mech_resonance
    read_forbidden_bands
    ForbiddenBand
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    check_pns
    read_safe_model
    ChronaxieModel
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    check_sar
    read_vops
    example_vops
@@ -294,11 +204,6 @@ from.
    :nosignatures:
 
    TransformFOV
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
    Opts
    default_system
    apply_system_derates

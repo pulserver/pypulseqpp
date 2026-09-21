@@ -11,42 +11,33 @@ their own.
 
 ## Acquisition and control events
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   make_adc
-   make_delay
-   make_digital_output_pulse
-   make_label
-   make_rf_shim
-   make_rotation
-   make_soft_delay
-   make_trigger
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.make_adc` | Create an ADC readout event. |
+| {obj}`~pypulseqpp.make_delay` | Create a delay event. |
+| {obj}`~pypulseqpp.make_digital_output_pulse` | Create a digital-output pulse on a supported channel. |
+| {obj}`~pypulseqpp.make_label` | Create a label event. |
+| {obj}`~pypulseqpp.make_rf_shim` | Create complex per-transmit-channel weights for a block's RF envelope. |
+| {obj}`~pypulseqpp.make_rotation` | Create a rotation extension event for a block's gradients. |
+| {obj}`~pypulseqpp.make_soft_delay` | Create a soft delay extension event for dynamic timing adjustment. |
+| {obj}`~pypulseqpp.make_trigger` | Create an external-input trigger event. |
 
 ## Block and event operations
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   align
-   block_to_events
-   calc_duration
-   rotate
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.align` | Align event start, centre or end times within a block. |
+| {obj}`~pypulseqpp.block_to_events` | Split a block into its events, or pass events through unchanged. |
+| {obj}`~pypulseqpp.calc_duration` | Calculate the duration of an event or block. |
+| {obj}`~pypulseqpp.rotate` | Rotate gradient events about a logical axis. |
 
 ## Labels and tracing
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   get_supported_labels
-   enable_trace
-   disable_trace
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.get_supported_labels` | Return the supported label identifiers. |
+| {obj}`~pypulseqpp.enable_trace` | Record source locations when events and blocks are created. |
+| {obj}`~pypulseqpp.disable_trace` | Stop recording event and block source locations. |
 
 ## Interoperability with PyPulseq
 
@@ -55,11 +46,8 @@ Upstream PyPulseq functions take and return plain namespaces.
 compiled events; {func}`convert` and {func}`as_namespace` convert one event
 each way.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   interoperating
-   convert
-   as_namespace
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.interoperating` | Wrap a callable with recursive event conversion. |
+| {obj}`~pypulseqpp.convert` | Convert a PyPulseq event to a compiled event; return other objects unchanged. |
+| {obj}`~pypulseqpp.as_namespace` | Convert a compiled event to a PyPulseq-compatible SimpleNamespace. |

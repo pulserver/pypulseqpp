@@ -555,21 +555,26 @@ and gradient rasters, and times quantized to a raster. Pulseq quantizes event
 timing to the RF, gradient, ADC and block duration rasters.</p>
 <p>Receiver bandwidth is the full sampling bandwidth, <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> in Hz;
 bandwidth per pixel is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_samples</span> <span class="pre">*</span> <span class="pre">dwell)</span></code>.</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html#pypulseqpp.calc_adc_segments" title="pypulseqpp.calc_adc_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_segments</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_segments.html#pypulseqpp.calc_adc_segments" title="pypulseqpp.calc_adc_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_segments</span></code></a></p></td>
 <td><p>Calculate splitting of the ADC in segments with equal samples.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html#pypulseqpp.calc_adc_timing" title="pypulseqpp.calc_adc_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_timing</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_adc_timing.html#pypulseqpp.calc_adc_timing" title="pypulseqpp.calc_adc_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_adc_timing</span></code></a></p></td>
 <td><p>Choose an ADC dwell whose acquisition duration is a multiple of the gradient raster.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html#pypulseqpp.quantize_readout_timing" title="pypulseqpp.quantize_readout_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize_readout_timing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.quantize_readout_timing.html#pypulseqpp.quantize_readout_timing" title="pypulseqpp.quantize_readout_timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize_readout_timing</span></code></a></p></td>
 <td><p>Choose an ADC dwell from a requested receiver bandwidth.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.round_to_raster.html#pypulseqpp.round_to_raster" title="pypulseqpp.round_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round_to_raster</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.round_to_raster.html#pypulseqpp.round_to_raster" title="pypulseqpp.round_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round_to_raster</span></code></a></p></td>
 <td><p>Round seconds to the nearest multiple of <code class="docutils literal notranslate"><span class="pre">raster_s</span></code>, with ties to even.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.ceil_to_raster.html#pypulseqpp.ceil_to_raster" title="pypulseqpp.ceil_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceil_to_raster</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.ceil_to_raster.html#pypulseqpp.ceil_to_raster" title="pypulseqpp.ceil_to_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceil_to_raster</span></code></a></p></td>
 <td><p>Round seconds up to the next raster multiple, within a 1e-10 relative tolerance.</p></td>
 </tr>
 </tbody>

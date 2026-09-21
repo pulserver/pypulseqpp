@@ -38,6 +38,15 @@ plt.rcParams.update(
 import pypulseqpp as pp
 from pypulseqpp.sequences import bssfp2D_sequence
 
+diagram = bssfp2D_sequence(
+    n_x=48,
+    n_y=12,
+    n_slices=1,
+    n_phases=1,
+    readout_bandwidth_hz=25_000,
+    tr=None,
+    n_dummy=1,
+)
 baseline = bssfp2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0
 )
@@ -48,7 +57,7 @@ print(f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms")
 # Sequence diagram
 # ----------------
 
-baseline.paper_plot()
+diagram.paper_plot()
 
 # %%
 # Sampling order
@@ -62,17 +71,39 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # Cine
 # ----
 #
-# ``n_phases`` acquires each line segment at multiple cardiac phases after the
-# trigger. Segment length controls the temporal footprint per phase and the
-# number of cardiac cycles required for complete sampling.
+# Prospective gating acquires each segment once per requested cardiac phase
+# after a trigger. Retrospective gating cycles the segment throughout one
+# heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
+# Segment length sets the temporal footprint of each cardiac phase.
 
-alternative = bssfp2D_sequence(
-    n_x=192, n_y=192, n_slices=1, n_phases=8, views_per_segment=12, tr=None, n_dummy=0
+prospective = bssfp2D_sequence(
+    n_x=96,
+    n_y=48,
+    n_slices=1,
+    n_phases=6,
+    views_per_segment=8,
+    gating="prospective",
+    tr=None,
+    n_dummy=0,
+)
+retrospective = bssfp2D_sequence(
+    n_x=96,
+    n_y=48,
+    n_slices=1,
+    n_phases=6,
+    views_per_segment=8,
+    gating="retrospective",
+    tr=None,
+    n_dummy=0,
 )
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
-for name, seq in (("1 phase", baseline), ("8 phases", alternative)):
+for name, seq in (
+    ("ungated", baseline),
+    ("prospective", prospective),
+    ("retrospective", retrospective),
+):
     print(
         f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
         f"{seq._native.num_adc():13d}"
@@ -80,6 +111,6 @@ for name, seq in (("1 phase", baseline), ("8 phases", alternative)):
 # sphinx_gallery_end_ignore
 
 # %%
-pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+pp.plot.plot_kspace(prospective, color_by="order", plane="xy", show_trajectory=False)
 
 # %%

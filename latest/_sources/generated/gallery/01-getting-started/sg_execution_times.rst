@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.366** total execution time for 2 files **from generated/gallery/01-getting-started**:
+**00:00.514** total execution time for 2 files **from generated/gallery/01-getting-started**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_01-getting-started_safety-checks.py` (``safety-checks.py``)
-     - 00:00.295
+     - 00:00.412
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-getting-started_basic-pulseq-sequence.py` (``basic-pulseq-sequence.py``)
-     - 00:00.071
+     - 00:00.102
      - 0.0

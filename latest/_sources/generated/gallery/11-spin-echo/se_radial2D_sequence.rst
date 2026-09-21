@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f5988831b80>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f14686180e0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
@@ -189,7 +189,7 @@ every acquired spoke still crosses the k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.092 seconds)
+   **Total running time of the script:** (0 minutes 2.753 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

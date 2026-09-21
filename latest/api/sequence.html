@@ -575,9 +575,14 @@ under, and the geometry transforms applied to it.</p>
 system limits of one Pulseq sequence. It builds, reads and writes the sequence,
 expands its gradient and RF waveforms and its k-space trajectory, inspects its
 structure and checks its timing, over the compiled core.</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sequence</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sequence</span></code></a></p></td>
 <td><p>A Pulseq sequence containing events, blocks and definitions.</p></td>
 </tr>
 </tbody>
@@ -591,9 +596,14 @@ per-axis gradient amplitude scaling in the logical frame, a rotation composed
 after each block’s own rotation, and a translation in logical metres. Field of
 view scales inversely with gradient amplitude, so halving an axis’s amplitude
 doubles the field of view along it.</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></p></td>
 <td><p>Geometry prescription applied to an existing sequence.</p></td>
 </tr>
 </tbody>
@@ -606,24 +616,29 @@ doubles the field of view along it.</p>
 together with the RF, gradient, ADC and block duration rasters.
 <a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> and <a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> return adjusted copies and
 leave the caller’s limits unchanged.</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opts</span></code></a></p></td>
 <td><p>PyPulseq system limits with shared raster defaults.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.default_system.html#pypulseqpp.default_system" title="pypulseqpp.default_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_system</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.default_system.html#pypulseqpp.default_system" title="pypulseqpp.default_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_system</span></code></a></p></td>
 <td><p>Return <code class="docutils literal notranslate"><span class="pre">system</span></code>, or the shared default system when it is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></p></td>
 <td><p>Return a copy with gradient and slew limits scaled from their base values.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cap_system</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cap_system</span></code></a></p></td>
 <td><p>Return a copy with gradient and slew limits lowered to the specified ceilings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_GRAD_DERATE.html#pypulseqpp.MAX_GRAD_DERATE" title="pypulseqpp.MAX_GRAD_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_GRAD_DERATE.html#pypulseqpp.MAX_GRAD_DERATE" title="pypulseqpp.MAX_GRAD_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code></a></p></td>
 <td><p>Convert a string or number to a floating-point number, if possible.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a></p></td>
 <td><p>Convert a string or number to a floating-point number, if possible.</p></td>
 </tr>
 </tbody>

@@ -156,7 +156,7 @@ One repetition of each
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598ae8cda0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1468427920>, tr=1, underlays=[])
 
 
 
@@ -187,14 +187,14 @@ The echo-planar readout, which covers the same axis in one shot.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f598ae8f950>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1468424170>, tr=1, underlays=[5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 64])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.101 seconds)
+   **Total running time of the script:** (0 minutes 0.151 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_23-modules-cartesian_cartesian-readout-modules.py:

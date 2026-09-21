@@ -29,7 +29,7 @@ signal evolution. Radial view ordering assigns this evolution to k-space and
 therefore determines the modulation transfer function and image blurring. 3D
 FSE is used for T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-81
+.. GENERATED FROM PYTHON SOURCE LINES 13-99
 
 .. code-block:: Python
 
@@ -39,22 +39,40 @@ FSE is used for T2- and proton-density-weighted structural imaging.
 
     Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
-    P = {
-        "n_x": 96,
-        "n_y": 48,
-        "n_z": 16,
+    DIAGRAM = {
+        "n_x": 64,
+        "n_y": 24,
+        "n_z": 8,
         "fov_x": 0.20,
         "fov_y": 0.20,
         "fov_z": 0.12,
-        "etl": 16,
-        "te": 48e-3,
-        "tr": 0.5,
+        "etl": 6,
+        "te": None,
+        "tr": None,
         "n_dummy": 0,
         "ordering": "radial",
         "flip_modulation": "optimized",
         "wave_amplitude": 0.0,
     }
-    app = Fse3DApp(**P)
+    diagram_app = Fse3DApp(**DIAGRAM)
+    diagram = diagram_app.design()
+
+    ANALYSIS = {
+        "n_x": 96,
+        "n_y": 64,
+        "n_z": 20,
+        "fov_x": 0.20,
+        "fov_y": 0.20,
+        "fov_z": 0.12,
+        "etl": 48,
+        "te": 120e-3,
+        "tr": 1.2,
+        "n_dummy": 0,
+        "ordering": "radial",
+        "flip_modulation": "optimized",
+        "wave_amplitude": 0.0,
+    }
+    app = Fse3DApp(**ANALYSIS)
     seq = app.design()
     print(
         f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
@@ -69,12 +87,12 @@ FSE is used for T2- and proton-density-weighted structural imaging.
 
  .. code-block:: none
 
-    37 shots; 10.72 ms echo spacing; 44.5 ms effective TE
+    21 shots; 10.80 ms echo spacing; 120.3 ms effective TE
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-88
+.. GENERATED FROM PYTHON SOURCE LINES 100-106
 
 Sequence diagram
 ----------------
@@ -83,11 +101,11 @@ Each echo comprises a variable-angle refocusing pulse, phase and partition
 prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 106-108
 
 .. code-block:: Python
 
-    seq.paper_plot()
+    diagram.paper_plot()
 
 
 
@@ -103,11 +121,11 @@ is the echo assigned to k-space centre.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f58a8c98e00>, tr=36, underlays=[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1467d73860>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-98
+.. GENERATED FROM PYTHON SOURCE LINES 109-116
 
 Refocusing schedule and echo signal
 -----------------------------------
@@ -117,7 +135,7 @@ FSE simulator. The objective balances signal at the effective TE, peripheral
 k-space signal, and RF power for the tissue models defined by the sequence.
 The same simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-114
+.. GENERATED FROM PYTHON SOURCE LINES 116-132
 
 .. code-block:: Python
 
@@ -141,7 +159,7 @@ The same simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-122
+.. GENERATED FROM PYTHON SOURCE LINES 133-140
 
 Echo and shot order
 -------------------
@@ -151,11 +169,11 @@ and progressively larger radii to echoes farther from it. Echo index records
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 122-124
+.. GENERATED FROM PYTHON SOURCE LINES 140-142
 
 .. code-block:: Python
 
-    order_figure(seq, P["n_y"], P["n_z"])
+    order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 
 
 
@@ -175,7 +193,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-132
+.. GENERATED FROM PYTHON SOURCE LINES 143-150
 
 K-space weighting
 -----------------
@@ -185,11 +203,11 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-141
+.. GENERATED FROM PYTHON SOURCE LINES 150-158
 
 .. code-block:: Python
 
-    ky, kz, echo, _ = views(seq, P["n_y"], P["n_z"])
+    ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 
 
 
@@ -205,7 +223,7 @@ image blurring along both phase-encode axes.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.889 seconds)
+   **Total running time of the script:** (0 minutes 1.233 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:
