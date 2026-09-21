@@ -544,6 +544,42 @@ class FseReadout3D(_FseReadout):
     ``fov`` and ``matrix`` take three values, readout first. Refocusing may be
     selective or non-selective; a non-selective train is crushed only by
     ``spoiling_cycles``, on the read axis.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts()
+    >>> slab = design.SpatialSelectiveExcitation(system, 90.0, 0.12, is_slab=True)
+    >>> refocusing = design.SpatialSelectiveRefocusing(system, 0.12)
+    >>> readout = design.FseReadout3D(
+    ...     system, slab.rf, slab.gz,
+    ...     rf_ref=refocusing.rf_ref, gz_ref=refocusing.gz,
+    ...     fov=(0.22, 0.22, 0.12), matrix=(64, 64, 32), etl=6,
+    ... )
+    >>> readout.gy_pre.channel, readout.gz_pre.channel
+    ('y', 'z')
+
+    One CPMG train through the slab, and the readout line each echo takes:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       slab = sequences.SpatialSelectiveExcitation(system, 90.0, 0.12, is_slab=True)
+       refocusing = sequences.SpatialSelectiveRefocusing(system, 0.12)
+       readout = sequences.FseReadout3D(
+           system, slab.rf, slab.gz,
+           rf_ref=refocusing.rf_ref, gz_ref=refocusing.gz,
+           fov=(0.22, 0.22, 0.12), matrix=(64, 64, 32), etl=6,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 3

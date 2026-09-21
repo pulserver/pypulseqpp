@@ -203,6 +203,7 @@ fmri = epi2D_sequence(
     tr=1.0,
 )
 labels = fmri.evaluate_labels(evolution="adc")
+# sphinx_gallery_start_ignore
 blocks = np.asarray(fmri._native.block_events())
 durations = np.asarray(fmri._native.block_durations())
 adc_blocks = np.flatnonzero(blocks[:, 4] != 0)
@@ -212,8 +213,6 @@ rep = np.asarray(labels["REP"])[nav]
 slc = np.asarray(labels["SLC"])[nav]
 time = adc_time[nav]
 first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
-
-# sphinx_gallery_start_ignore
 figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
 art = axis.scatter(time[first], slc[first], c=rep[first], cmap="turbo", s=35)
 figure.colorbar(art, ax=axis, label="Frame (REP)", pad=0.02)

@@ -214,6 +214,23 @@ class SpatialSelectiveRefocusing(RfModule):
     >>> refocusing = design.SpatialSelectiveRefocusing(pp.Opts(), 5e-3)
     >>> len(refocusing.blocks), refocusing.gz.type
     (1, 'grad')
+
+    The envelope and the refocusing efficiency across the slice, which is
+    the response an ``"se"`` design is solved against:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import SpatialSelectiveRefocusing
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       module = SpatialSelectiveRefocusing(system, 3e-3)
+       module.seq.paper_plot()
+       plot_rf(module, extent=8, plot_now=False)
+       plt.show()
     """
 
     def init_module(

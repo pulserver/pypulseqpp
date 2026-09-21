@@ -1,7 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" role="img" aria-labelledby="title desc">
-<title id="title">pypulseqpp</title><desc id="desc">Blue and amber Pulseq event mark followed by pypulseq plus plus</desc>
-<g transform="translate(20 28)"><path fill="#3b82b6" d="M0 34h52l17 30H17z"/><path fill="#ffbd28" d="M0 102h69L52 70H17z"/><path fill="#ffbd28" d="M71 60h46l-14 27H86z"/><path fill="#3b82b6" d="M69 98h49l-16 30H85z"/></g>
-<text x="160" y="128" font-family="Arial,Helvetica,sans-serif" font-size="112" font-style="italic" font-weight="700" fill="#ffbd28">py</text>
-<text x="278" y="128" font-family="Arial,Helvetica,sans-serif" font-size="112" font-style="italic" fill="#2b76ad">pulseq</text>
-<text x="638" y="89" font-family="Arial,Helvetica,sans-serif" font-size="58" font-weight="700" fill="#ffbd28">++</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 176" role="img" aria-labelledby="title desc">
+<title id="title">pypulseqpp</title>
+<desc id="desc">Two bipolar trapezoidal gradient waveforms in blue and amber, followed by the wordmark pypulseq++</desc>
+<style>
+.ink{fill:none;stroke:#12212b;stroke-width:5;stroke-linejoin:miter;stroke-linecap:butt}
+.blue{fill:#3a77a8}
+.amber{fill:#ffbe2e}
+.word{fill:#2b76ad}
+@media (prefers-color-scheme:dark){
+.ink{stroke:#e8eef3}
+.blue{fill:#5b9bd0}
+.word{fill:#8fc3e8}
+}
+</style>
+<g transform="translate(24 70)">
+<g transform="translate(26 0)">
+<path class="blue" d="M24 0 38-28 81-28 93.1 0Z"/>
+<path class="amber" d="M93.1 0 104 25 118 25 130 0Z"/>
+<path class="ink" d="M0 0H24L38-28H81L104 25H118L130 0H158"/>
+</g>
+<g transform="translate(0 39)">
+<path class="amber" d="M24 0 38-28 81-28 93.1 0Z"/>
+<path class="blue" d="M93.1 0 104 25 118 25 130 0Z"/>
+<path class="ink" d="M0 0H24L38-28H81L104 25H118L130 0H158"/>
+</g>
+</g>
+<text x="238" y="116" font-family="Arial,Helvetica,sans-serif" font-size="112" font-style="italic"><tspan class="amber" font-weight="700">py</tspan><tspan class="word">pulseq</tspan><tspan class="amber" font-weight="700">++</tspan></text>
 </svg>

@@ -54,6 +54,32 @@ class SequenceApp(ABC):
         The limits the sequence was designed under.
     seq : pypulseqpp.Sequence
         What has been played so far.
+
+    Examples
+    --------
+    A subclass states its ceilings, designs from the prescription in
+    ``init_sequence``, plays the scan in ``loop`` and records the definitions a
+    reconstruction reads in ``finalize``:
+
+    >>> import pypulseqpp as pp
+    >>> import pypulseqpp.sequences as design
+    >>> class HardPulseTrain(design.SequenceApp):
+    ...     MAX_GRAD = 40.0
+    ...     MAX_SLEW = 150.0
+    ...     NAME = "hard_pulse_train"
+    ...     def init_sequence(self, n_lines: int = 4):
+    ...         self.excitation = design.NonSelectiveExcitation(self.system, 10.0, 0.5e-3)
+    ...         self.n_lines = n_lines
+    ...     def loop(self):
+    ...         for line in range(self.n_lines):
+    ...             self.kernel(line)
+    ...     def kernel(self, line):
+    ...         self.seq.add_block(self.excitation.rf, *self.labels(LIN=line))
+    ...     def finalize(self):
+    ...         self.seq.set_definition("Name", self.NAME)
+    >>> seq = HardPulseTrain(n_lines=4).design()
+    >>> seq.num_blocks, seq.get_definition("Name")
+    (4, 'hard_pulse_train')
     """
 
     MAX_GRAD: float

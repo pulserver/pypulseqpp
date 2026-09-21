@@ -82,6 +82,24 @@ class SmsExcitation(RfModule):
     ... )
     >>> round(stacked.peak_ratio, 1), bool(sms.peak_ratio < stacked.peak_ratio)
     (3.0, True)
+
+    Three slices from one pulse, at the gap they were designed for:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import SmsExcitation
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
+       module = SmsExcitation(
+           system, 60.0, thickness_m=3e-3, slice_gap_m=24e-3, n_bands=3
+       )
+       module.seq.paper_plot()
+       plot_rf(module, extent=40, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -216,6 +234,23 @@ class MultibandExcitation(RfModule):
 
     >>> single.sideband_power == 2 * dual.sideband_power
     True
+
+    Three bands in frequency and no spatial selectivity:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import MultibandExcitation
+
+       module = MultibandExcitation(
+           pp.Opts(), 7.0, duration_s=2e-3, band_offset_hz=7000.0, n_bands=3
+       )
+       module.seq.paper_plot()
+       plot_rf(module, extent=12000, plot_now=False)
+       plt.show()
     """
 
     def init_module(

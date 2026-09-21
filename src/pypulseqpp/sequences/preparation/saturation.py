@@ -69,6 +69,31 @@ class OffResonanceSaturation(RfModule):
 
     >>> prep.blocks[0] == prep.blocks[1] == prep.blocks[2]
     True
+
+    Three pulses back to back, and the longitudinal magnetization they
+    leave across the spectrum:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import OffResonanceSaturation
+
+       system = pp.Opts()
+       pulse = pp.make_gauss_pulse(
+           flip_angle=np.deg2rad(500),
+           duration=8e-3,
+           freq_offset=-1500.0,
+           use="saturation",
+           system=system,
+       )
+       module = OffResonanceSaturation(system, pulse, n_pulses=3)
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=3000, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -155,6 +180,21 @@ class MtPreparation(OffResonanceSaturation):
     >>> mt = design.MtPreparation(pp.Opts())
     >>> len(mt.blocks), round(float(mt.rf_prep.freq_offset))
     (2, -1500)
+
+    One band below resonance, with the free pool at zero offset left alone:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import MtPreparation
+
+       module = MtPreparation(pp.Opts())
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=3000, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -221,6 +261,21 @@ class IhMtPreparation(OffResonanceSaturation):
     >>> ihmt = design.IhMtPreparation(pp.Opts())
     >>> ihmt.band_offsets_hz.tolist()
     [-1500.0, 1500.0]
+
+    Both sidebands at once, at the total power one band carries on its own:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import IhMtPreparation
+
+       module = IhMtPreparation(pp.Opts())
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=3000, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -309,6 +364,23 @@ class BlochSiegertPreparation(OffResonanceSaturation):
     >>> pulse = design.BlochSiegertPreparation(pp.Opts())
     >>> len(pulse.blocks), round(pulse.kbs_per_gauss2, 1)
     (1, 86.6)
+
+    The pulse sits far enough off resonance to shift the phase without
+    tipping much; the residual dip at its offset is what that distance
+    costs:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import BlochSiegertPreparation
+
+       module = BlochSiegertPreparation(pp.Opts())
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=(-1000, 8000), plot_now=False)
+       plt.show()
     """
 
     def init_module(

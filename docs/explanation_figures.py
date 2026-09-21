@@ -90,6 +90,149 @@ def axis_peaks_against_vector():
     return figure
 
 
+def rotation_against_per_axis_limit():
+    """The worst in-plane gradient vector under a prescription rotation.
+
+    A rotation preserves the vector magnitude and redistributes it over the
+    physical axes, so a vector longer than ``max_grad`` leaves the per-axis
+    limit box at some orientations however its components are shared out at
+    the design orientation.
+    """
+    from scipy.spatial.transform import Rotation
+
+    import pypulseqpp as pp
+    from pypulseqpp import safety, sequences
+
+    plt = _pyplot()
+    system = pp.Opts(max_grad=32.0, grad_unit="mT/m", max_slew=140.0, slew_unit="T/m/s")
+    #: The two in-plane axes play together in the prewinder and in the
+    #: rewinder-and-spoiler block, so a design solved against the per-axis
+    #: limit puts a vector of `sqrt(2)` times that limit on them.
+    designs = {
+        "solved against max_grad": system,
+        "solved against max_grad / $\\sqrt{2}$": pp.apply_system_derates(
+            system, grad_derate=2**-0.5, slew_derate=2**-0.5
+        ),
+    }
+    prescription = np.arange(0.0, 180.0, 2.5)
+
+    scale = 1e3 / system.gamma
+    limit = system.max_grad * scale
+    vectors, sweeps = {}, {}
+    for name, limits in designs.items():
+        seq = sequences.gre2D_sequence(
+            system=limits,
+            fov_x=0.2,
+            fov_y=0.2,
+            n_x=128,
+            n_y=128,
+            n_slices=1,
+            tr=None,
+            n_dummy=0,
+            readout_bandwidth_hz=400e3,
+        )
+        grid = np.arange(0.0, seq.get_definition("TR")[0], system.grad_raster_time)
+        played = np.array(
+            [
+                np.interp(grid, times, amplitudes, left=0.0, right=0.0)
+                for times, amplitudes in _physical_waveforms(seq)
+            ]
+        )
+        instant = int(np.argmax(np.hypot(played[0], played[1])))
+        vectors[name] = played[:2, instant]
+        sweeps[name] = [
+            max(peak.value for peak in safety.check_max_grad(turned)[1].axes) * scale
+            for turned in (
+                pp.TransformFOV(
+                    rotation=Rotation.from_euler("z", angle, degrees=True)
+                ).apply_to_sequence(seq)
+                for angle in prescription
+            )
+        ]
+
+    figure = plt.figure(figsize=(PAGE_WIDTH, 5.9))
+    layout = figure.add_gridspec(
+        2, 2, height_ratios=(1.35, 1.0), hspace=0.62, wspace=0.28,
+        left=0.10, right=0.97, top=0.80, bottom=0.09,
+    )
+    planes = [figure.add_subplot(layout[0, column]) for column in (0, 1)]
+    sweep = figure.add_subplot(layout[1, :])
+
+    turn = np.arange(0.0, 360.0, 15.0)
+    span = 1.45 * limit
+    for axis, (name, vector) in zip(planes, vectors.items(), strict=True):
+        magnitude = float(np.hypot(*vector))
+        axis.add_patch(
+            plt.Circle(
+                (0, 0), limit, facecolor="tab:green", alpha=0.10, lw=0, zorder=0
+            )
+        )
+        axis.add_patch(
+            plt.Rectangle(
+                (-limit, -limit), 2 * limit, 2 * limit,
+                facecolor="none", edgecolor="tab:red", lw=1.0, ls="--", zorder=1,
+            )
+        )
+        circle = np.linspace(0.0, 2 * np.pi, 361)
+        axis.plot(
+            magnitude * np.cos(circle), magnitude * np.sin(circle),
+            color="0.6", lw=0.8, ls=":", zorder=1,
+        )
+        for angle in turn:
+            radians = np.deg2rad(angle)
+            rotated = np.array(
+                [
+                    [np.cos(radians), -np.sin(radians)],
+                    [np.sin(radians), np.cos(radians)],
+                ]
+            ) @ vector
+            outside = np.max(np.abs(rotated)) > limit
+            axis.annotate(
+                "",
+                xy=tuple(rotated),
+                xytext=(0.0, 0.0),
+                zorder=3 if outside else 2,
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": "tab:red" if outside else "0.35",
+                    "lw": 1.1,
+                    "shrinkA": 0,
+                    "shrinkB": 0,
+                },
+            )
+        axis.set_title(f"{name}\n$|G|$ = {magnitude:.1f} mT/m", fontsize=9)
+        axis.set_xlim(-span, span)
+        axis.set_ylim(-span, span)
+        axis.set_aspect("equal")
+        axis.set_xlabel("$G_x$ (mT/m)")
+    planes[0].set_ylabel("$G_y$ (mT/m)")
+
+    handles = [
+        plt.Line2D([], [], color="tab:red", lw=1.0, ls="--",
+                   label=f"per-axis limit, {limit:.0f} mT/m"),
+        plt.Rectangle((0, 0), 1, 1, facecolor="tab:green", alpha=0.20, lw=0,
+                      label="inside the limit at every orientation"),
+        plt.Line2D([], [], color="0.35", lw=1.1, label="within the per-axis limit"),
+        plt.Line2D([], [], color="tab:red", lw=1.1, label="over the per-axis limit"),
+    ]
+    figure.legend(
+        handles=handles, frameon=False, ncols=2, loc="upper left",
+        bbox_to_anchor=(0.10, 1.0), columnspacing=1.4,
+    )
+
+    for name, peaks in sweeps.items():
+        sweep.plot(prescription, peaks, lw=1.4, label=name)
+    sweep.axhline(limit, color="tab:red", lw=0.9, ls="--")
+    sweep.set_xlim(prescription[0], prescription[-1])
+    sweep.set_xticks(np.arange(0.0, 181.0, 30.0))
+    sweep.set_xlabel("prescription rotation about z (degrees)")
+    sweep.set_ylabel("largest per-axis\namplitude (mT/m)")
+    sweep.legend(
+        frameon=False, fontsize=8, loc="upper left", bbox_to_anchor=(0.0, 1.42),
+    )
+    return figure
+
+
 def continuity_seam():
     """Legal and illegal physical-axis steps at a block boundary."""
     import pypulseqpp as pp
@@ -296,6 +439,7 @@ def gradient_spectra():
 #: Each figure's file name, without the extension, and the function that draws it.
 FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
+    "rotation_against_per_axis_limit": rotation_against_per_axis_limit,
     "continuity_seam": continuity_seam,
     "strength_duration": strength_duration,
     "pns_response": pns_response,

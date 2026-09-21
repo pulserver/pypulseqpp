@@ -77,6 +77,25 @@ class SpatialSelective2DExcitation(RfModule):
 
     >>> pencil.self_refocused, pencil.rephasers
     (True, ())
+
+    The subpulse train under the spiral gradients, and the transverse
+    magnetization over the selected plane:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import SpatialSelective2DExcitation
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       module = SpatialSelective2DExcitation(
+           system, 30.0, fov=0.256, matrix=16, selective_size=0.04
+       )
+       module.seq.paper_plot()
+       plot_rf(module, plane="xy", extent=80.0, span=80.0, samples=61, plot_now=False)
+       plt.show()
     """
 
     def init_module(

@@ -53,12 +53,13 @@ seq = app.design()
 # A fully sampled calibration region is embedded in a variable-density
 # Poisson-disc mask. The remaining samples are distributed across echo indices
 # rather than assigned deterministically by k-space radius.
+
+# sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")
 echo = np.asarray(labels["ECO"])
 ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
 te_ms = (echo + 1) * app.fse.esp * 1e3
-# sphinx_gallery_start_ignore
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.6), sharey=True)
 axes[0].scatter(ky, kz, s=13, color="0.2", linewidth=0)
 axes[0].set_title("Sampled views")
@@ -81,6 +82,8 @@ fig.tight_layout()
 # index occurs throughout the sampled extent. Contrast evolution is
 # consequently not locked to a radial k-space band, which is the sampling
 # condition used by echo-resolved and subspace FSE reconstructions.
+
+# sphinx_gallery_start_ignore
 fig, ax = plt.subplots(figsize=(5.6, 3.2))
 ax.hist(
     te_ms,
@@ -93,3 +96,4 @@ ax.hist(
 )
 ax.set(xlabel="Echo time (ms)", ylabel="Acquired views")
 fig.tight_layout()
+# sphinx_gallery_end_ignore

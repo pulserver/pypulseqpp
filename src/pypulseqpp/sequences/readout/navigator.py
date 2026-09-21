@@ -83,6 +83,21 @@ class SpiralNavigator(SequenceModule):
     ['axial', 'coronal', 'sagittal']
     >>> navigator.readout.adc.num_samples > 0
     True
+
+    The navigator repetition, and the spiral its ADC event samples:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       navigator = sequences.SpiralNavigator(system)
+       navigator.seq.paper_plot()
+       pp.plot.plot_kspace(navigator.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     def init_module(

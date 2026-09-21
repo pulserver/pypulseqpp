@@ -102,6 +102,23 @@ class FatSaturation(RfModule):
 
     >>> [event.type for event in fatsat.blocks[0]]
     ['rf', 'labelset', 'labelset']
+
+    The pulse with its spoiler, and the longitudinal magnetization left
+    across the spectrum. The band sits at the fat resonance for the field
+    the module was designed at, and water at zero offset is untouched:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import FatSaturation
+
+       module = FatSaturation(pp.Opts(B0=3.0))
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=(-800, 400), plot_now=False)
+       plt.show()
     """
 
     def init_module(

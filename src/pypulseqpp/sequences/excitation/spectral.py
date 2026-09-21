@@ -66,6 +66,22 @@ class FrequencySelectiveExcitation(RfModule):
     >>> narrow = design.FrequencySelectiveExcitation(pp.Opts(), 90.0, bandwidth_hz=100.0)
     >>> narrow.duration_s == 2 * water.duration_s
     True
+
+    The envelope and the band it tips. Magnetization outside the passband
+    stays longitudinal:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import FrequencySelectiveExcitation
+
+       module = FrequencySelectiveExcitation(pp.Opts(), 90.0, bandwidth_hz=200.0)
+       module.seq.paper_plot()
+       plot_rf(module, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -176,6 +192,30 @@ class SpspExcitation(RfModule):
 
     >>> water.gz.type
     'grad'
+
+    The subpulse train under its alternating gradient, and the transverse
+    magnetization over position and frequency together. The spectral
+    passband repeats at the subpulse rate, which ``n_subpulses`` sets:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import SpspExcitation
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
+       module = SpspExcitation(
+           system,
+           30.0,
+           thickness_m=10e-3,
+           spectral_bandwidth_hz=300.0,
+           n_subpulses=12,
+       )
+       module.seq.paper_plot()
+       plot_rf(module, plane="zf", extent=15.0, span=2500.0, samples=81, plot_now=False)
+       plt.show()
     """
 
     def init_module(

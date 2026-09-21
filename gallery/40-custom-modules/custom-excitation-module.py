@@ -45,7 +45,12 @@ def design_figure(designs, thickness_m):
         profile_axis.plot(1e3 * entry["position"], entry["profile"], lw=1.2)
     envelope_axis.set_xlabel("time (ms)")
     envelope_axis.set_ylabel("$|B_1|$ (Hz)")
-    envelope_axis.legend(frameon=False, fontsize=9)
+    envelope_axis.legend(
+        frameon=False,
+        fontsize=9,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.24),
+    )
     profile_axis.axvspan(
         -0.5e3 * thickness_m, 0.5e3 * thickness_m, color="0.9", lw=0, zorder=0
     )
@@ -213,7 +218,9 @@ for name, module in (("linear phase", linear_phase), ("minimum phase", minimum_p
         f"slice {module.slice_thickness * 1e3:.2f} mm"
     )
 
+# sphinx_gallery_start_ignore
 design_figure(designs, THICKNESS_M)
+# sphinx_gallery_end_ignore
 
 # %%
 # Echo time

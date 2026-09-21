@@ -790,6 +790,28 @@ class EpiReadout3D(_EpiReadout):
 
     >>> sorted(set(int(step) for step in epi.order[1:, 1] - epi.order[:-1, 1]))
     [-1, 2]
+
+    One segment of a skipped-CAIPI train, and the lattice of
+    ``(line, partition)`` views it reads:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       slab = sequences.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)
+       readout = sequences.EpiReadout3D(
+           system, slab.rf, slab.gz,
+           fov=(0.22, 0.22, 0.12), matrix=(32, 32, 16),
+           scheme="caipi", acceleration=2, segments=2, partition_acceleration=3,
+           labels=("LIN", "PAR"),
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="yz", show_trajectory=False)
+       plt.show()
     """
 
     _ndim = 3

@@ -77,7 +77,13 @@ def _window(source, pulse, time_range, block_range):
             raise TypeError(
                 "plot_rf(): the source is a Sequence, a sequence module or an RF event"
             )
-        window = Sequence(system=getattr(source, "system", None) or Opts())
+        # A module publishes its limits on the sequence it built, so a ppm
+        # frequency offset is resolved against the field the module was
+        # designed at rather than against a default system.
+        limits = getattr(source, "system", None) or getattr(
+            getattr(source, "seq", None), "system", None
+        )
+        window = Sequence(system=limits or Opts())
         for block in module_blocks:
             window.add_block(*block)
         return window, pulse if isinstance(pulse, str) else None

@@ -82,6 +82,23 @@ class T2Preparation(RfModule):
     >>> prep = design.T2Preparation(pp.Opts(), 50e-3)
     >>> round(prep.echo_time * 1e3, 2)
     49.99
+
+    Tip-down, two refocusing pulses and storage. Over the band the
+    refocusing pulses cover, the module returns the magnetization to ``+z``;
+    what it lost on the way is the T2 weighting:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import T2Preparation
+
+       module = T2Preparation(pp.Opts(), 40e-3)
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=600, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -211,6 +228,22 @@ class T1T2Preparation(T2Preparation):
     >>> prep = design.T1T2Preparation(pp.Opts(), 50e-3)
     >>> prep.final_tip
     'down'
+
+    The same module storing on ``-z``, so the readout that follows samples
+    an inversion recovery as well as a T2 decay:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import T1T2Preparation
+
+       module = T1T2Preparation(pp.Opts(), 40e-3)
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, extent=600, plot_now=False)
+       plt.show()
     """
 
     def init_module(self, system: pp.Opts, echo_time_s: float, **kwargs) -> None:

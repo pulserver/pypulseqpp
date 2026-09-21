@@ -62,10 +62,10 @@ cover.append(heading)
 contents = soup.new_tag("ul")
 for label, target in (
     ("User guide", "document-user-guide/index"),
+    ("Developer guide", "document-developer-guide/index"),
     ("Explanations", "document-explanations/index"),
     ("Examples", "document-examples/index"),
     ("API reference", "document-api/index"),
-    ("Developer guide", "document-developer-guide/index"),
     ("Miscellaneous", "document-misc/index"),
 ):
     item = soup.new_tag("li")

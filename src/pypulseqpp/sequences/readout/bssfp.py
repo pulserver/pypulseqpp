@@ -338,6 +338,43 @@ class BssfpReadout2D(_BssfpReadout):
     """Slice-selective balanced SSFP, phase-encoded along y.
 
     ``fov`` and ``matrix`` take two values, readout first.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts()
+    >>> excitation = design.SpatialSelectiveExcitation(
+    ...     system, 40.0, 5e-3, 1e-3, rephase=False
+    ... )
+    >>> readout = design.BssfpReadout2D(
+    ...     system, excitation.rf, excitation.gz,
+    ...     fov=(0.28, 0.28), matrix=(64, 64), readout_bandwidth_hz=50_000,
+    ... )
+    >>> readout.te == readout.tr / 2
+    True
+
+    One repetition and the line it reads. Every gradient moment is rewound
+    within the repetition, which is what makes the acquisition balanced:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(
+           system, 40.0, 5e-3, 1e-3, rephase=False
+       )
+       readout = sequences.BssfpReadout2D(
+           system, excitation.rf, excitation.gz,
+           fov=(0.28, 0.28), matrix=(64, 64), readout_bandwidth_hz=50_000,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2
@@ -351,6 +388,44 @@ class BssfpReadout3D(_BssfpReadout):
     (``gz_partition`` to ``gz_pre``, ``gz_partition_rew`` to ``gz_rew``), for
     example with :func:`pypulseqpp.add_gradients`, rather than playing it
     alone.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts()
+    >>> excitation = design.SpatialSelectiveExcitation(
+    ...     system, 25.0, 0.12, 1e-3, is_slab=True, rephase=False
+    ... )
+    >>> readout = design.BssfpReadout3D(
+    ...     system, excitation.rf, excitation.gz,
+    ...     fov=(0.28, 0.28, 0.12), matrix=(64, 64, 32),
+    ...     readout_bandwidth_hz=50_000,
+    ... )
+    >>> readout.gz_partition.channel, readout.gz_pre.channel
+    ('z', 'z')
+
+    One repetition of the slab acquisition. The partition encode is
+    published separately and is not played in the layout drawn here:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(
+           system, 25.0, 0.12, 1e-3, is_slab=True, rephase=False
+       )
+       readout = sequences.BssfpReadout3D(
+           system, excitation.rf, excitation.gz,
+           fov=(0.28, 0.28, 0.12), matrix=(64, 64, 32), readout_bandwidth_hz=50_000,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 3
