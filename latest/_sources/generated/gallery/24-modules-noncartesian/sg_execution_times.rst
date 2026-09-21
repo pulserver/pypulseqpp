@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.047** total execution time for 1 file **from generated/gallery/24-modules-noncartesian**:
+**00:01.024** total execution time for 1 file **from generated/gallery/24-modules-noncartesian**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_24-modules-noncartesian_spiral-readout-limits.py` (``spiral-readout-limits.py``)
-     - 00:01.047
+     - 00:01.024
      - 0.0

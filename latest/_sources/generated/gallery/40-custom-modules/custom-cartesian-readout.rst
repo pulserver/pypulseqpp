@@ -301,7 +301,7 @@ first and last samples, taken while the gradient is still near zero, are
 almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
 regridding during reconstruction.
 
-.. GENERATED FROM PYTHON SOURCE LINES 259-270
+.. GENERATED FROM PYTHON SOURCE LINES 259-272
 
 .. code-block:: Python
 
@@ -314,7 +314,6 @@ regridding during reconstruction.
         f"Nyquist {1 / FOV:.2f} 1/m"
     )
 
-    sampling_figure(k_read, spacing, 1 / FOV)
 
 
 
@@ -335,7 +334,7 @@ regridding during reconstruction.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 271-276
+.. GENERATED FROM PYTHON SOURCE LINES 273-278
 
 Scan loop
 ---------
@@ -343,7 +342,7 @@ Scan loop
 The loop scales the published phase encode per line and labels the
 acquisition; the rest of the layout is played as the module laid it out.
 
-.. GENERATED FROM PYTHON SOURCE LINES 276-289
+.. GENERATED FROM PYTHON SOURCE LINES 278-291
 
 .. code-block:: Python
 
@@ -373,11 +372,11 @@ acquisition; the rest of the layout is played as the module laid it out.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 290-291
+.. GENERATED FROM PYTHON SOURCE LINES 292-293
 
 One repetition of the module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 291-293
+.. GENERATED FROM PYTHON SOURCE LINES 293-295
 
 .. code-block:: Python
 
@@ -397,14 +396,14 @@ One repetition of the module.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae0e826ed0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb7639699a0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.267 seconds)
+   **Total running time of the script:** (0 minutes 0.255 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-cartesian-readout.py:

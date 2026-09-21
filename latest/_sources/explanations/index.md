@@ -9,3 +9,11 @@ and the conventions the rest of the documentation assumes.
 | {doc}`pulseq/index` | Pulseq blocks, events, libraries, shapes, extensions, definitions, deduplication, and timing rasters. |
 | {doc}`design/index` | Sequence modules, applications, prescriptions, sampling order, and scan loops. |
 | {doc}`safety/index` | Gradient, PNS, mechanical-resonance, and SAR models and criteria. |
+
+```{toctree}
+:hidden:
+
+pulseq/index
+design/index
+safety/index
+```

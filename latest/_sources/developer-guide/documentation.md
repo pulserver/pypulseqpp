@@ -275,6 +275,12 @@ Where a plotting helper chooses something automatically — a representative win
 
 If the automatic choice produces a poor figure, that is a defect in the helper or in the object being drawn. Investigate it and fix it there. Hard-coding a selection in the example hides the defect from everyone who is not reading the example's source.
 
+#### Legends sit outside the panel
+
+A legend is placed outside the axes it describes — above them, below them or beside them — in every figure, on an explanation page, in a gallery example and in a docstring plot alike. A legend inside a panel covers data, and which data it covers depends on the values the build happened to produce.
+
+Where one legend describes series drawn in several panels, it belongs to the figure rather than to one of them, above the row it applies to. Reserve room for it with the `rect` argument of `tight_layout`, or with the `top` and `bottom` of an explicit gridspec, so nothing is clipped.
+
 #### Geometry and traversal are different figures
 
 A plot of where the samples are answers a different question from a plot of the order they were acquired in, and both differ from a plot of the path between them. When the traversal matters — when a reader needs to see what happens between one acquisition and the next — draw the connections and the direction, not only coloured points.

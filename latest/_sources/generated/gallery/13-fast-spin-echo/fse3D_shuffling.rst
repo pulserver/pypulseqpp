@@ -75,15 +75,7 @@ A fully sampled calibration region is embedded in a variable-density
 Poisson-disc mask. The remaining samples are distributed across echo indices
 rather than assigned deterministically by k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-75
-
-.. code-block:: Python
-
-    labels = seq.evaluate_labels(evolution="adc")
-    echo = np.asarray(labels["ECO"])
-    ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
-    kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
-    te_ms = (echo + 1) * app.fse.esp * 1e3
+.. GENERATED FROM PYTHON SOURCE LINES 56-76
 
 
 
@@ -97,7 +89,7 @@ rather than assigned deterministically by k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-84
+.. GENERATED FROM PYTHON SOURCE LINES 77-85
 
 Echo-time distribution
 ----------------------
@@ -108,22 +100,8 @@ index occurs throughout the sampled extent. Contrast evolution is
 consequently not locked to a radial k-space band, which is the sampling
 condition used by echo-resolved and subspace FSE reconstructions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-96
+.. GENERATED FROM PYTHON SOURCE LINES 85-100
 
-.. code-block:: Python
-
-    fig, ax = plt.subplots(figsize=(5.6, 3.2))
-    ax.hist(
-        te_ms,
-        bins=np.arange(
-            te_ms.min() - 0.5 * app.fse.esp * 1e3,
-            te_ms.max() + app.fse.esp * 1e3,
-            app.fse.esp * 1e3,
-        ),
-        color="0.25",
-    )
-    ax.set(xlabel="Echo time (ms)", ylabel="Acquired views")
-    fig.tight_layout()
 
 
 
@@ -139,7 +117,7 @@ condition used by echo-resolved and subspace FSE reconstructions.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.450 seconds)
+   **Total running time of the script:** (0 minutes 0.432 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

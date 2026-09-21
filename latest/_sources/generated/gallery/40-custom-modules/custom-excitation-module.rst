@@ -33,7 +33,7 @@ The implementation follows the
 :class:`~pypulseqpp.sequences.RfModule` contract and compares echo time, RF
 envelope and slice profile with a linear-phase design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 17-62
+.. GENERATED FROM PYTHON SOURCE LINES 17-67
 
 
 
@@ -42,7 +42,7 @@ envelope and slice profile with a linear-phase design.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-81
+.. GENERATED FROM PYTHON SOURCE LINES 68-86
 
 Module interface
 -----------------
@@ -63,7 +63,7 @@ pulse against off-resonance.
 measures its echo time from. A minimum-phase pulse is used at
 ``center_pos=1.0``, its own end.
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-158
+.. GENERATED FROM PYTHON SOURCE LINES 86-163
 
 .. code-block:: Python
 
@@ -151,12 +151,12 @@ measures its echo time from. A minimum-phase pulse is used at
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-161
+.. GENERATED FROM PYTHON SOURCE LINES 164-166
 
 Published events
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 161-189
+.. GENERATED FROM PYTHON SOURCE LINES 166-194
 
 .. code-block:: Python
 
@@ -205,7 +205,7 @@ Published events
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 190-201
+.. GENERATED FROM PYTHON SOURCE LINES 195-206
 
 The rephaser compensates the slice-selection moment accumulated after the
 effective RF centre.
@@ -219,7 +219,7 @@ Pulse envelope and slice profile
 ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 selection amplitude reads the result as a position.
 
-.. GENERATED FROM PYTHON SOURCE LINES 201-218
+.. GENERATED FROM PYTHON SOURCE LINES 206-225
 
 .. code-block:: Python
 
@@ -238,7 +238,6 @@ selection amplitude reads the result as a position.
             f"slice {module.slice_thickness * 1e3:.2f} mm"
         )
 
-    design_figure(designs, THICKNESS_M)
 
 
 
@@ -260,7 +259,7 @@ selection amplitude reads the result as a position.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 219-226
+.. GENERATED FROM PYTHON SOURCE LINES 226-233
 
 Echo time
 ---------
@@ -270,7 +269,7 @@ and measures the echo time from the pulse's effective centre. Applying the
 same readout to each excitation isolates the resulting
 difference in echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 226-249
+.. GENERATED FROM PYTHON SOURCE LINES 233-256
 
 .. code-block:: Python
 
@@ -311,11 +310,11 @@ difference in echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 250-251
+.. GENERATED FROM PYTHON SOURCE LINES 257-258
 
 One repetition of the short-TE design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 251-256
+.. GENERATED FROM PYTHON SOURCE LINES 258-263
 
 .. code-block:: Python
 
@@ -338,14 +337,14 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae139ed310>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb763906990>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.797 seconds)
+   **Total running time of the script:** (0 minutes 0.756 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-excitation-module.py:

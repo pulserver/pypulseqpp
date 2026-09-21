@@ -18,10 +18,15 @@ its hardware monitor during the scan, and they do not establish patient safety.
 Every check works on the **physical gradient axes**, after each block's
 `ROTATIONS` extension has been applied. The amplifier driving an axis produces
 the physical waveform, and a nerve or a mechanical mode responds to the physical
-field, so a limit on either applies in the physical frame. A prescription
-rotation, given as the `rotation` argument, is applied after the block's own, so
-a sequence designed in a logical frame can be checked in the orientation it will
-be prescribed at.
+field, so a limit on either applies in the physical frame.
+
+A prescription rotation is a further rotation, composed after each block's own.
+{func}`~pypulseqpp.safety.check_pns` and
+{func}`~pypulseqpp.safety.check_mech_resonance` take one directly, as their
+`rotation` argument. The gradient amplitude, slew-rate and continuity checks
+read the rotations the sequence carries, so a prescription is applied to them by
+transforming the sequence first with {class}`~pypulseqpp.TransformFOV` and
+checking the result.
 
 Every check returns the same pair: a boolean verdict and a report naming where
 the extreme was found, with the extreme itself and the limit it was compared

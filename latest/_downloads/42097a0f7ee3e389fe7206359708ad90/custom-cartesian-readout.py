@@ -265,7 +265,9 @@ print(
     f"Nyquist {1 / FOV:.2f} 1/m"
 )
 
+# sphinx_gallery_start_ignore
 sampling_figure(k_read, spacing, 1 / FOV)
+# sphinx_gallery_end_ignore
 
 # %%
 # Scan loop

@@ -121,7 +121,7 @@ is the echo assigned to k-space centre.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae1171ccb0>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb85a9aa690>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
 
 
 
@@ -142,7 +142,6 @@ The same simulator evaluates the resulting T2-dependent echo envelope.
     import torchsim
 
     angles = np.asarray(app.flips[0, : app.lengths[0]])
-    time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
     signal = np.abs(
         np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
     )
@@ -169,11 +168,7 @@ and progressively larger radii to echoes farther from it. Echo index records
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-142
-
-.. code-block:: Python
-
-    order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
+.. GENERATED FROM PYTHON SOURCE LINES 140-145
 
 
 
@@ -193,7 +188,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 143-150
+.. GENERATED FROM PYTHON SOURCE LINES 146-153
 
 K-space weighting
 -----------------
@@ -203,11 +198,8 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-158
+.. GENERATED FROM PYTHON SOURCE LINES 153-162
 
-.. code-block:: Python
-
-    ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 
 
 
@@ -223,7 +215,7 @@ image blurring along both phase-encode axes.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.268 seconds)
+   **Total running time of the script:** (0 minutes 1.207 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

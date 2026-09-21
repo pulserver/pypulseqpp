@@ -108,7 +108,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae117599a0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb766084ad0>, tr=1, underlays=[])
 
 
 
@@ -223,7 +223,7 @@ Repeated frames form an fMRI time series. The acquisition below uses eight
 slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
 identifies the group; acquisition times come from the actual ADC blocks.
 
-.. GENERATED FROM PYTHON SOURCE LINES 193-226
+.. GENERATED FROM PYTHON SOURCE LINES 193-225
 
 .. code-block:: Python
 
@@ -240,16 +240,6 @@ identifies the group; acquisition times come from the actual ADC blocks.
         tr=1.0,
     )
     labels = fmri.evaluate_labels(evolution="adc")
-    blocks = np.asarray(fmri._native.block_events())
-    durations = np.asarray(fmri._native.block_durations())
-    adc_blocks = np.flatnonzero(blocks[:, 4] != 0)
-    adc_time = np.concatenate(([0.0], np.cumsum(durations)))[adc_blocks]
-    nav = np.asarray(labels["NAV"]) == 0
-    rep = np.asarray(labels["REP"])[nav]
-    slc = np.asarray(labels["SLC"])[nav]
-    time = adc_time[nav]
-    first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
-
 
 
 
@@ -265,7 +255,7 @@ identifies the group; acquisition times come from the actual ADC blocks.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.893 seconds)
+   **Total running time of the script:** (0 minutes 0.817 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

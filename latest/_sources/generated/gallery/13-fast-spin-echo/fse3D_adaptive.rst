@@ -80,11 +80,7 @@ Train length and TR follow a smooth transition from central to peripheral
 k-space. Representative schedules below retain only the refocusing pulses
 played by each selected shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-76
-
-.. code-block:: Python
-
-    indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
+.. GENERATED FROM PYTHON SOURCE LINES 54-77
 
 
 
@@ -98,7 +94,7 @@ played by each selected shot.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-83
+.. GENERATED FROM PYTHON SOURCE LINES 78-84
 
 Adaptive radial ordering
 ------------------------
@@ -107,15 +103,8 @@ The ordering ranks ``(shot, echo)`` slots jointly by distance from the
 effective-TE echo and by position in the central-to-peripheral transition.
 Colour therefore relates each acquired view to its train length and TR.
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-103
+.. GENERATED FROM PYTHON SOURCE LINES 84-105
 
-.. code-block:: Python
-
-    labels = seq.evaluate_labels(evolution="adc")
-    echo = np.asarray(labels["ECO"])
-    shot = np.cumsum(echo == 0) - 1
-    ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
-    kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
 
 
 
@@ -131,7 +120,7 @@ Colour therefore relates each acquired view to its train length and TR.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.954 seconds)
+   **Total running time of the script:** (0 minutes 4.491 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:
