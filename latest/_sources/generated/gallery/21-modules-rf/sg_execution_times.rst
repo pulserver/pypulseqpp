@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.355** total execution time for 1 file **from generated/gallery/21-modules-rf**:
+**00:01.326** total execution time for 1 file **from generated/gallery/21-modules-rf**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_21-modules-rf_slice-profile-and-time-bandwidth.py` (``slice-profile-and-time-bandwidth.py``)
-     - 00:01.355
+     - 00:01.326
      - 0.0

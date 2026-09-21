@@ -100,7 +100,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb848114ad0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8341ddcad0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -197,7 +197,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.288 seconds)
+   **Total running time of the script:** (0 minutes 2.266 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

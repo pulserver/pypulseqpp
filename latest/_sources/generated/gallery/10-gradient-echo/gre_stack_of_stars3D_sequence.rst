@@ -96,7 +96,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb85a9fb8f0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f83405c2090>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -190,7 +190,7 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.326 seconds)
+   **Total running time of the script:** (0 minutes 5.288 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

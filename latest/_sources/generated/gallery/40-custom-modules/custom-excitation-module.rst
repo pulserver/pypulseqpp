@@ -337,7 +337,7 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fb763906990>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f825d92b4a0>, tr=1, underlays=[])
 
 
 
