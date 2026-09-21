@@ -64,7 +64,7 @@ dev = [
   "coverage>=7",
   # Pinned, not ranged: a formatter that differs between a contributor and
   # CI makes "one entry point" a lie. Dependabot proposes the bumps.
-  "ruff==0.16.7",
+  "ruff==0.16.8",
   "pre-commit>=4",
   "build",
   # The reference toolbox this is tested against is named by URL, and PyPI
