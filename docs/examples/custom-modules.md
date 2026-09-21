@@ -1,20 +1,19 @@
-# Custom sequence modules
+# Custom modules
 
-Implementing a module of your own against the base-class contract: what
-`init_module` has to assign, how its events reach a scan loop, and how the
-result is consumed by the readout modules and applications already in the
-package.
+Modules the package does not ship, written against the base-class
+contract, and measured against the shipped design each of them departs
+from.
 
-| Example | Scope |
+| Page | What it establishes |
 | --- | --- |
-| {doc}`/generated/gallery/40-custom-modules/custom-excitation-module` | Minimum-phase selective excitation and its effect on echo time. |
-| {doc}`/generated/gallery/40-custom-modules/custom-cartesian-readout` | A Cartesian line acquired across the whole readout lobe, and the non-uniform k-space spacing that follows. |
-| {doc}`/generated/gallery/40-custom-modules/custom-noncartesian-readout` | A twisting radial k-space path solved under gradient constraints and implemented as a readout module. |
+| {doc}`/generated/gallery/07-custom-modules/01_excitation_module` | A minimum-phase SLR excitation: a shorter interval from the pulse to the echo, at a larger peak transmit amplitude. |
+| {doc}`/generated/gallery/07-custom-modules/02_cartesian_readout` | A readout sampled through the ramps: the same k-space extent in a shorter lobe, at sampling locations that are not evenly spaced. |
+| {doc}`/generated/gallery/07-custom-modules/03_noncartesian_readout` | A twisting radial arm, stated as a k-space path and solved into a waveform under the gradient limits. |
 
 ```{toctree}
 :hidden:
 
-/generated/gallery/40-custom-modules/custom-excitation-module
-/generated/gallery/40-custom-modules/custom-cartesian-readout
-/generated/gallery/40-custom-modules/custom-noncartesian-readout
+/generated/gallery/07-custom-modules/01_excitation_module
+/generated/gallery/07-custom-modules/02_cartesian_readout
+/generated/gallery/07-custom-modules/03_noncartesian_readout
 ```

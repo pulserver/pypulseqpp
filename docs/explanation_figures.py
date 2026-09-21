@@ -21,8 +21,11 @@ def _pyplot():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    from figure_style import FIGURE_RCPARAMS
+
     plt.rcParams.update(
         {
+            **FIGURE_RCPARAMS,
             "figure.dpi": 150,
             "font.size": 9,
             "axes.titlesize": 10,
@@ -72,7 +75,7 @@ def axis_peaks_against_vector():
     )
     for row, name in zip(played, ("$G_x$", "$G_y$", "$G_z$"), strict=True):
         trace.plot(grid * 1e3, row, lw=0.9, label=name)
-    trace.plot(grid * 1e3, magnitude, lw=1.4, color="0.2", label="$|G|$")
+    trace.plot(grid * 1e3, magnitude, lw=1.4, color="0.5", label="$|G|$")
     trace.set_xlabel("time (ms)")
     trace.set_ylabel("gradient amplitude (mT/m)")
     trace.set_title("one repetition")
@@ -176,7 +179,7 @@ def rotation_against_per_axis_limit():
         circle = np.linspace(0.0, 2 * np.pi, 361)
         axis.plot(
             magnitude * np.cos(circle), magnitude * np.sin(circle),
-            color="0.6", lw=0.8, ls=":", zorder=1,
+            color="0.55", lw=0.8, ls=":", zorder=1,
         )
         for angle in turn:
             radians = np.deg2rad(angle)
@@ -194,7 +197,7 @@ def rotation_against_per_axis_limit():
                 zorder=3 if outside else 2,
                 arrowprops={
                     "arrowstyle": "-|>",
-                    "color": "tab:red" if outside else "0.35",
+                    "color": "tab:red" if outside else "0.5",
                     "lw": 1.1,
                     "shrinkA": 0,
                     "shrinkB": 0,
@@ -212,7 +215,7 @@ def rotation_against_per_axis_limit():
                    label=f"per-axis limit, {limit:.0f} mT/m"),
         plt.Rectangle((0, 0), 1, 1, facecolor="tab:green", alpha=0.20, lw=0,
                       label="inside the limit at every orientation"),
-        plt.Line2D([], [], color="0.35", lw=1.1, label="within the per-axis limit"),
+        plt.Line2D([], [], color="0.5", lw=1.1, label="within the per-axis limit"),
         plt.Line2D([], [], color="tab:red", lw=1.1, label="over the per-axis limit"),
     ]
     figure.legend(
@@ -254,15 +257,15 @@ def continuity_seam():
             np.arange(before.size) * raster * 1e6,
             before * scale,
             lw=1.5,
-            color="0.2",
+            color="0.5",
         )
         axis.plot(
             (boundary + np.arange(after.size) * raster) * 1e6,
             after * scale,
             lw=1.5,
-            color="0.2",
+            color="0.5",
         )
-        axis.axvline(boundary * 1e6, color="0.65", lw=0.9, ls="--")
+        axis.axvline(boundary * 1e6, color="0.55", lw=0.9, ls="--")
         axis.annotate(
             "",
             xy=(boundary * 1e6, 0.0),
@@ -339,10 +342,10 @@ def strength_duration():
         )
         axis.loglog(ramps * 1e3, 1e-3 * threshold / ramps, marker="o", ms=3, label=name)
     asymptote = 20.0 / 0.333  # the chronaxie model's rheobase over its alpha
-    axis.axhline(asymptote, color="0.6", ls="--", lw=0.9)
-    axis.text(3.0, 1.05 * asymptote, "rheobase / alpha", color="0.4", fontsize=8)
-    axis.axvline(0.36, color="0.6", ls=":", lw=0.9)
-    axis.text(0.38, 300.0, "chronaxie", color="0.4", fontsize=8, rotation=90)
+    axis.axhline(asymptote, color="0.55", ls="--", lw=0.9)
+    axis.text(3.0, 1.05 * asymptote, "rheobase / alpha", color="0.55", fontsize=8)
+    axis.axvline(0.36, color="0.55", ls=":", lw=0.9)
+    axis.text(0.38, 300.0, "chronaxie", color="0.55", fontsize=8, rotation=90)
     axis.set_xlabel("ramp duration (ms)")
     axis.set_ylabel("slew rate at threshold (T/m/s)")
     axis.set_title("Strength-duration relation of the two model families")
@@ -376,7 +379,7 @@ def pns_response():
             lw=0.8,
             label=rf"$R_{entry.axis}(t)$",
         )
-    axis.plot(report.time * 1e3, report.response, color="black", lw=1.4, label=r"$R(t)$")
+    axis.plot(report.time * 1e3, report.response, color="0.5", lw=1.4, label=r"$R(t)$")
     axis.axhline(1.0, color="tab:red", ls="--", lw=1.0, label="threshold")
     axis.plot(
         report.peak.time * 1e3,

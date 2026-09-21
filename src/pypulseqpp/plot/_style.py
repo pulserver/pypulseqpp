@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from matplotlib.colors import LinearSegmentedColormap
 
-INK = "#0b0b0b"
-MUTED = "#52514e"
-FAINT = "#b9b8b2"
+#: Axis furniture, in tones that clear 3.5:1 against white paper and against a
+#: dark documentation theme alike. A figure drawn in them needs no canvas, so
+#: the figures this package draws are readable on either.
+INK = "#6b7684"
+MUTED = "#7b8794"
+FAINT = "#7b879459"
 
 #: Categorical hues, assigned in order and never cycled.
 SERIES = (
@@ -16,23 +19,44 @@ SERIES = (
     "#eda100",
     "#e87ba4",
     "#008300",
-    "#4a3aa7",
+    "#7d6fd4",
     "#e34948",
 )
 
 #: An acquisition order, first to last.
 SAMPLING = "turbo"
 
-#: A magnitude from nothing, with zero drawn as paper.
+#: A magnitude from nothing, with zero drawn as paper. Zero is transparent
+#: rather than white, so it is the paper of whichever background the figure is
+#: shown on. The transparent end carries the hue it fades into, so a small
+#: value is a faint tint of the ramp rather than a wash of grey.
 MAGNITUDE = LinearSegmentedColormap.from_list(
     "pypulseqpp-magnitude",
-    ["#ffffff", "#cfe1f7", "#86b6ef", "#2a78d6", "#184f95", "#0d366b"],
+    [
+        (0.0, "#cfe1f700"),
+        (0.2, "#cfe1f7"),
+        (0.4, "#86b6ef"),
+        (0.6, "#2a78d6"),
+        (0.8, "#184f95"),
+        (1.0, "#0d366b"),
+    ],
 )
 
-#: A signed quantity about zero, with zero drawn as paper.
+#: A signed quantity about zero, with zero drawn as paper. Each side fades into
+#: its own hue, so the transparent centre is approached from peach below and
+#: from blue above.
 SIGNED = LinearSegmentedColormap.from_list(
     "pypulseqpp-signed",
-    ["#8a3a12", "#eb6834", "#f7c9b3", "#ffffff", "#cfe1f7", "#2a78d6", "#123f78"],
+    [
+        (0.0, "#8a3a12"),
+        (1 / 6, "#eb6834"),
+        (2 / 6, "#f7c9b3"),
+        (0.5, "#f7c9b300"),
+        (0.5, "#cfe1f700"),
+        (4 / 6, "#cfe1f7"),
+        (5 / 6, "#2a78d6"),
+        (1.0, "#123f78"),
+    ],
 )
 
 
