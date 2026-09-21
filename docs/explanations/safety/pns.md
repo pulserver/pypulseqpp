@@ -14,8 +14,7 @@ $$
 S(\tau) = S_{\mathrm{rh}}\left(1 + \frac{c}{\tau}\right),
 $$
 
-where $S_{\mathrm{rh}}$ is the rheobase and $c$ is the chronaxie (Irnich and
-Schmitt, Magn Reson Med 1995, doi:10.1002/mrm.1910330418).
+where $S_{\mathrm{rh}}$ is the rheobase and $c$ is the chronaxie.[^irnich]
 
 ```{figure} ../../generated/figures/strength_duration.png
 Slew rate at unity response for a demonstration chronaxie model and the
@@ -55,4 +54,8 @@ axis, so prescription orientation can change the estimate.
 
 * {func}`~pypulseqpp.safety.check_pns` — checker and diagnostic trace.
 * {doc}`slew_rate` — hardware slew-rate limit.
-* {doc}`../../guides/checking-constraints` — constraint-checking workflow.
+* {doc}`../../examples/getting-started` — constraint-checking workflow.
+
+## References
+
+[^irnich]: Irnich W, Schmitt F. Magnetostimulation in MRI. *Magnetic Resonance in Medicine*. 1995;33(5):619–623. [doi:10.1002/mrm.1910330418](https://doi.org/10.1002/mrm.1910330418).

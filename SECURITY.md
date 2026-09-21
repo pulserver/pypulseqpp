@@ -2,32 +2,24 @@
 
 ## Reporting a vulnerability
 
-Report privately through
-[GitHub's private advisory form](https://github.com/pulserver/pypulseqpp/security/advisories/new).
-Please do not open a public issue for a vulnerability.
+Report vulnerabilities privately through
+[GitHub private vulnerability reporting](https://github.com/pulserver/pypulseqpp/security/advisories/new).
+Do not open a public issue.
 
-Include what you would need yourself to reproduce it: the version or commit,
-the platform, and the smallest input that triggers it.
-
-You can expect an acknowledgement within a week, an assessment of severity and
-scope after that, and a fix released with the advisory once one is ready.
-Credit goes to the reporter unless you ask otherwise.
+Include the affected version or commit, operating system and architecture, the
+smallest input or sequence that reproduces the issue, its observed impact, and
+any known mitigation. The maintainers aim to acknowledge a report within seven
+days and will communicate the assessment and remediation plan through the
+private advisory. Coordinated public disclosure follows release of a fix or an
+agreed disclosure date. Reporters are credited unless they request otherwise.
 
 ## Supported versions
 
-pypulseqpp is pre-1.0. Fixes land on the default branch and go out in the next
-release; there are no maintained backport branches.
+pypulseqpp is pre-1.0. Security fixes land on the default branch and are
+included in the next release; older releases and backport branches are not
+maintained.
 
 | Version | Supported |
-|---|---|
-| latest release | yes |
-| older releases | no |
-
-## Scope
-
-In scope: anything that reads data from outside the process — file readers,
-array deserialisation, and any path that accepts a filename from a caller.
-
-Out of scope: resource exhaustion from inputs a caller chose themselves (an
-array too large for the machine is a sizing question, not a vulnerability),
-and behaviour under a deliberately hostile Python environment.
+| --- | --- |
+| Default branch and latest release | Yes |
+| Older releases | No |

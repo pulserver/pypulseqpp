@@ -74,6 +74,18 @@ jobs:
           PYPULSEQPP_DOCS_RELEASE: ${{ steps.version.outputs.dir }}
         run: bash scripts/build_docs.sh
 
+      - name: Build PDF manual
+        env:
+          SKIP_HTML: 1
+        run: bash scripts/build_docs_pdf.sh
+
+      - name: Upload PDF manual
+        uses: actions/upload-artifact@v7
+        with:
+          name: pypulseqpp-docs-pdf
+          path: docs/build/pypulseqpp-docs.pdf
+          if-no-files-found: error
+
       - name: Check that the site is only the site
         # Sphinx caches parsed documents in the output directory unless given
         # `-d`, and the cache is far larger than the pages. Publishing commits

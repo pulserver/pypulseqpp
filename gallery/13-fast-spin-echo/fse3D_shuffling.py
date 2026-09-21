@@ -76,7 +76,9 @@ fig.tight_layout()
 # Echo-time distribution
 # ----------------------
 #
-# Each echo index occurs throughout the sampled extent. Contrast evolution is
+# The optimized train is the same type analysed in the conventional FSE example;
+# shuffling changes its assignment to sampled views, not the RF model. Each echo
+# index occurs throughout the sampled extent. Contrast evolution is
 # consequently not locked to a radial k-space band, which is the sampling
 # condition used by echo-resolved and subspace FSE reconstructions.
 fig, ax = plt.subplots(figsize=(5.6, 3.2))

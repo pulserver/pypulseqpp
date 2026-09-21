@@ -1,23 +1,17 @@
-# Sequence modules
+# Sequence-module design studies
 
-A sequence module designs one group of blocks once and publishes its events for
-a scan loop to place per view. These pages construct the shipped modules, print
-their published event templates and resulting block layouts.
+Class-centred construction, diagrams and response or trajectory figures are on
+the individual {doc}`SequenceModule API pages <../../api/modules>`. The gallery
+retains studies that compare design parameters rather than catalogue classes.
 
-| Group | Module type |
+| Study | Question |
 | --- | --- |
-| {doc}`/examples/sequence-modules/composition` | The module interface itself, and the interval two modules compose at. |
-| {doc}`/examples/sequence-modules/rf` | One RF pulse and the gradients that select with it. |
-| {doc}`/examples/sequence-modules/preparation` | The magnetisation the readout that follows will sample. |
-| {doc}`/examples/sequence-modules/cartesian-readouts` | The views one excitation reads on a regular grid. |
-| {doc}`/examples/sequence-modules/non-cartesian-readouts` | A trajectory solved against the gradient system and the receiver. |
+| {doc}`rf` | How do slice-profile sharpness and feasibility vary with time-bandwidth product and duration? |
+| {doc}`non-cartesian-readouts` | Which gradient, slew-rate or bandwidth constraint limits a spiral design? |
 
 ```{toctree}
 :hidden:
 
-/examples/sequence-modules/composition
-/examples/sequence-modules/rf
-/examples/sequence-modules/preparation
-/examples/sequence-modules/cartesian-readouts
-/examples/sequence-modules/non-cartesian-readouts
+rf
+non-cartesian-readouts
 ```

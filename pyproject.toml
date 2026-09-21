@@ -50,6 +50,8 @@ doc = [
   "sphinx-copybutton>=0.5",
   "sphinx-gallery>=0.18",
   "matplotlib>=3.7",
+  "weasyprint>=62",
+  "latex2mathml>=3.77",
 ]
 # What the gallery's example scripts need beyond the documentation toolchain.
 # Every script is executed while the pages are built, and the fast spin echo
@@ -94,10 +96,10 @@ sdist.include = [
   "/docs/sequence_reference.py",
   "/docs/*.md",
   "/docs/api/*.md",
-  "/docs/contributing/*.md",
+  "/docs/developer-guide/*.md",
   "/docs/examples/**/*.md",
   "/docs/explanations/**/*.md",
-  "/docs/guides/**/*.md",
+  "/docs/user-guide/*.md",
   "/docs/misc/*.md",
   "/docs/_templates/**/*.rst",
   "/README.md",

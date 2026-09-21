@@ -117,5 +117,5 @@ frequency range the table identifies as forbidden.
 * {func}`~pypulseqpp.safety.check_mech_resonance`,
   {func}`~pypulseqpp.safety.read_forbidden_bands` and
   {class}`~pypulseqpp.safety.ForbiddenBand` — the calls.
-* {doc}`../../guides/checking-constraints` — running the check over a
+* {doc}`../../examples/getting-started` — running the check over a
   sequence and reading its report.

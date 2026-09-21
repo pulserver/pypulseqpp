@@ -514,6 +514,25 @@ class FseReadout2D(_FseReadout):
 
     >>> fse.blocks[-3] == (fse.gx_bridge_pre, fse.gy_pre)
     True
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 90.0, 5e-3)
+       refocusing = sequences.SpatialSelectiveRefocusing(system, 5e-3)
+       readout = sequences.FseReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           rf_ref=refocusing.rf_ref, gz_ref=refocusing.gz,
+           fov=0.22, matrix=64, etl=6,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2

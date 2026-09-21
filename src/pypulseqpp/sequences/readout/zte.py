@@ -137,6 +137,22 @@ class ZteReadout(SequenceModule):
 
     >>> zte.n_samples + zte.n_missing == zte.n_nominal
     True
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       hard = sequences.NonSelectiveExcitation(system, 4.0, duration_s=10e-6)
+       readout = sequences.ZteReadout(
+           system, hard.rf, fov=0.24, matrix=32, n_views=16, n_shots=32,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     def init_module(

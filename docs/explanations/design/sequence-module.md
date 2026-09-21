@@ -54,4 +54,4 @@ and repetition structure belong to {doc}`sequence-application`.
 ## See also
 
 * {doc}`../../api/modules` — module interfaces and parameters.
-* {doc}`../../guides/custom-module` — custom module implementation.
+* {doc}`../../examples/custom-modules` — custom module implementation.

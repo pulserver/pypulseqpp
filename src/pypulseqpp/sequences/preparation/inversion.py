@@ -68,6 +68,19 @@ class InversionPreparation(RfModule):
 
     >>> len(design.InversionPreparation(pp.Opts(), spoiling_cycles=0).blocks)
     1
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import InversionPreparation
+
+       module = InversionPreparation(pp.Opts(), duration_s=8e-3)
+       module.seq.paper_plot()
+       plot_rf(module, plot_now=False)
+       plt.show()
     """
 
     def init_module(

@@ -745,6 +745,23 @@ class EpiReadout2D(_EpiReadout):
     ... )
     >>> half.etl, int(half.order[1, 0])
     (32, 2)
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=50, grad_unit="mT/m", max_slew=180, slew_unit="T/m/s")
+       excitation = sequences.SpatialSelectiveExcitation(system, 60.0, 3e-3)
+       readout = sequences.EpiReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=32, labels=("LIN",),
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2

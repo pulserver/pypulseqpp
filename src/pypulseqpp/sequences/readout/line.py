@@ -553,6 +553,23 @@ class LineReadout2D(_LineReadout):
 
     >>> readout.blocks[1] == (readout.gx_pre, readout.gy_pre, readout.gz_reph)
     True
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.LineReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=64,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2

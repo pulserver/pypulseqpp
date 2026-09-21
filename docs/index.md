@@ -4,9 +4,9 @@
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Guides
+:caption: User guide
 
-guides/index
+user-guide/index
 ```
 
 ```{toctree}
@@ -39,18 +39,17 @@ api/index
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Contributing
+:caption: Developer guide
 
-contributing/documentation
-contributing/terminology
+developer-guide/index
 ```
 
 ```{toctree}
 :hidden:
 :caption: Miscellaneous
 
+misc/index
 misc/related
 misc/contributors
-misc/code_of_conduct
 misc/license
 ```

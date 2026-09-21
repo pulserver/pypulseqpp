@@ -76,6 +76,22 @@ class SpatialSelectiveExcitation(RfModule):
     >>> slab = design.SpatialSelectiveExcitation(pp.Opts(), 8.0, 0.12, is_slab=True)
     >>> len(slab.blocks), slab.gz.type
     (1, 'grad')
+
+    The module diagram and simulated slice profile are generated from the same
+    RF event and selection gradient:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import SpatialSelectiveExcitation
+
+       module = SpatialSelectiveExcitation(pp.Opts(), 15.0, 5e-3)
+       module.seq.paper_plot()
+       plot_rf(module, extent=8, plot_now=False)
+       plt.show()
     """
 
     def init_module(

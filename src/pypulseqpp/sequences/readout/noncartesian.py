@@ -376,6 +376,23 @@ class RadialReadout2D(_RadialReadout):
 
     >>> any(event is readout.gz_reph for event in readout.blocks[1])
     True
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.RadialReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=64,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
 
@@ -812,6 +829,23 @@ class SpiralReadout2D(_SpiralReadout):
     ... )
     >>> readout.trajectory.direction
     'in_out'
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.SpiralReadout2D(
+           system, excitation.rf, excitation.gz,
+           fov=0.22, matrix=64, design_interleaves=8, n_points=256,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
 
