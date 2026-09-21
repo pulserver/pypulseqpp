@@ -60,6 +60,10 @@ autodoc_preserve_defaults = True
 # rather than objects used incidentally throughout the gallery.
 GALLERY_BACKREFERENCES = {
     "pypulseqpp.sequences.SequenceApp",
+    "pypulseqpp.sequences.SequenceModule",
+    "pypulseqpp.sequences.SpatialSelectiveExcitation",
+    "pypulseqpp.sequences.LineReadout2D",
+    "pypulseqpp.sequences.SpiralReadout2D",
 }
 GALLERY_BACKREFERENCES.update(
     f"pypulseqpp.sequences.{name}"
