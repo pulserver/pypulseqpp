@@ -39,14 +39,20 @@ separately from the MIT core.
 | `examples/sequence/` | Complete scripts, installed as `pypulseqpp.sequences.<name>` |
 | `gallery/` | sphinx-gallery example scripts, executed when the pages are built |
 | `tests/` | API, numerical, format-parity and invariant tests |
-| `docs/guides/` | Task-oriented how-to guides |
-| `docs/examples/` | The gallery's landing pages, one per gallery directory |
+| `docs/user-guide/` | Installation, supported platforms and project-use procedures; the snippets are executed as doctests |
+| `docs/examples/` | The executable pages' landing pages, one per gallery directory |
 | `docs/explanations/` | Conceptual explanation pages and their build-time figures |
 | `docs/api/` | API reference pages; autosummary writes the stubs under `docs/generated/` |
-| `docs/contributing/` | The documentation guide and the project terminology conventions |
+| `docs/developer-guide/` | Contribution procedure and conventions, including the documentation guide and the project terminology |
+| `docs/misc/` | Licensing, related projects and contributors |
 | `viewer/` | Separate `pypulseqpp-seqeyes` package; excluded from the core distribution |
 
 Do not edit vendored submodule contents as part of core maintenance.
+
+`CLAUDE.md` and `GEMINI.md` point here, and `SKILLS.md` indexes the skills
+under `.claude/skills/`: the procedures for building and testing the package,
+writing documentation, and adding a shipped sequence. This page states the
+rules; a skill states how a recurring task is carried out under them.
 
 ## Build and test
 
@@ -66,6 +72,11 @@ For documentation changes, also run:
 ```bash
 bash scripts/build_docs.sh
 ```
+
+The gallery is executed as the pages are built, and the fast-spin-echo scripts
+design their refocusing trains with `torchsim`, which the `design` extra brings.
+`bash scripts/build_docs_pdf.sh` renders the single-file manual from the same
+build and is what the release workflow attaches to a tag.
 
 The development extra includes documentation dependencies. Do not add a new
 documentation or linting dependency solely for a cleanup.
@@ -213,10 +224,10 @@ test compares the remaining columns explicitly.
 
 Two documents govern documentation, and both are binding:
 
-- `docs/contributing/documentation.md` — the generic guide. What belongs in
+- `docs/developer-guide/documentation.md` — the generic guide. What belongs in
   each form of documentation (API reference, gallery examples, conceptual
   explanation, tutorials and how-to guides) and how each should be written.
-- `docs/contributing/terminology.md` — the pypulseqpp conventions. Terminology,
+- `docs/developer-guide/terminology.md` — the pypulseqpp conventions. Terminology,
   register, units, frames, rasters, safety language and source-of-truth rules.
 
 Read both before creating or substantially modifying documentation,
@@ -229,10 +240,11 @@ either; it states the rules most often broken.
 
 | Location | Type | Answers |
 |---|---|---|
-| `docs/guides/` | Task-oriented how-to | How do I accomplish this task? |
+| `docs/user-guide/` | Task-oriented how-to | How do I install and use the project? |
 | `docs/explanations/` | Conceptual explanation | Why does this work this way? |
 | `gallery/` | Executable examples, built into `docs/generated/gallery/` | What does a representative scientific workflow look like? |
 | `docs/api/` | Reference | What exactly does this object do? |
+| `docs/developer-guide/` | Contributor procedure and conventions | How is this repository developed? |
 | `docs/sequences.md` | Catalogue of the shipped sequences, grouped by family, with a reference page each | Which sequences exist, and what does one of them look like? |
 
 Do not transfer the prose style or level of exposition of one type into
