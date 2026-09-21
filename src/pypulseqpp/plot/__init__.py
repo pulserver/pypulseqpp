@@ -1,4 +1,4 @@
-"""Sequence figures: the SeqEyes view, the publication diagram, k-space and RF profiles.
+"""Sequence figures, from the SeqEyes view and the publication diagram to the profiles.
 
 Each figure is a function of the object it draws. :func:`plot` and
 :func:`paper_plot` call the :class:`~pypulseqpp.Sequence` methods of the same

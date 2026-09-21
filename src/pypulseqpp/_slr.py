@@ -1,4 +1,4 @@
-"""SLR pulse design in NumPy/SciPy: slab, gSlider, Hadamard, recursive and B1-selective.
+"""SLR design in NumPy and SciPy, for slab, gSlider, Hadamard, recursive and B1-selective pulses.
 
 Filter design, the SLR transforms, root flipping and Leja ordering derive from
 SigPy's ``sigpy.mri.rf.slr`` and ``sigpy.util.leja``, the B1-selective sweep

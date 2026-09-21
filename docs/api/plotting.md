@@ -1,9 +1,8 @@
 # Plotting
 
-`pypulseqpp.plot`: each figure is a function of the object it draws.
-{func}`plot` and {func}`paper_plot` are also {class}`pypulseqpp.Sequence`
-methods, for scripts written against upstream PyPulseq; the other figures are
-functions only.
+Each figure is a function of the object it draws. {func}`plot` and
+{func}`paper_plot` are also {class}`pypulseqpp.Sequence` methods, for scripts
+written against upstream PyPulseq; the other figures are functions only.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.plot

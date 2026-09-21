@@ -10,11 +10,11 @@ plays it.
 What the package adds on top of the representation is in
 {doc}`../design/index`.
 
-| Concept | Scope |
+| Concept | What it covers |
 | --- | --- |
-| {doc}`events-and-blocks` | Blocks, event fields, libraries, units and extension chains. |
-| {doc}`libraries-and-shapes` | Definitions, instances, shape deduplication, metadata, signatures and format revisions. |
-| {doc}`timing-and-rasterization` | Event rasters, block duration, ADC–gradient raster coupling and timing checks. |
+| {doc}`events-and-blocks` | What a block holds, what each kind of event carries, and how an extension is chained onto one. |
+| {doc}`libraries-and-shapes` | How events and shapes are stored, deduplicated and signed, and what changes between format revisions. |
+| {doc}`timing-and-rasterization` | The rasters an event time is addressed on, how a block duration follows from them, and what the timing check establishes. |
 
 ```{toctree}
 :hidden:

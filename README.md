@@ -45,7 +45,11 @@ seq.write("gre2d.seq")
 
 The [user guide](https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html)
 covers installation and support, and lists what each documentation section
-holds. Every version of the documentation is published at
+holds. The
+[examples](https://pulserver.github.io/pypulseqpp/latest/examples/index.html)
+are a course in sequence design, from a pulse-acquire experiment to echo planar
+and non-Cartesian acquisitions, followed by a page for each shipped sequence.
+Every version of the documentation is published at
 <https://pulserver.github.io/pypulseqpp/>.
 
 ## Citation

@@ -1,4 +1,4 @@
-"""Excitation selective in frequency: a spectral band, or a band and a slice."""
+"""Excitation selective in frequency, over a spectral band alone or with a slice."""
 
 from __future__ import annotations
 

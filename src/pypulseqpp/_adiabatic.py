@@ -1,4 +1,4 @@
-"""Adiabatic pulses: PyPulseq's hyperbolic-secant and WURST, plus BIR-4 and GOIA-WURST.
+"""Adiabatic pulse design, from hyperbolic-secant and WURST to BIR-4 and GOIA-WURST.
 
 Hyperbolic-secant and WURST are built by PyPulseq's own factory, so their
 samples match upstream's. BIR-4 and GOIA-WURST follow SigPy's
@@ -49,7 +49,7 @@ def make_adiabatic_pulse(
     gradient_modulation: float = 0.9,
     gradient_order: int = 4,
 ):
-    """Construct an adiabatic RF pulse: a frequency sweep whose rotation is insensitive to B1.
+    """Construct an adiabatic RF pulse, a frequency sweep insensitive to B1.
 
     Four sweeps:
 

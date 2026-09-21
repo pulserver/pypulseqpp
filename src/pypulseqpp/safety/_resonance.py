@@ -18,7 +18,7 @@ from ._physical import _gamma, _prescription
 
 
 class ForbiddenBand(NamedTuple):
-    """A forbidden gradient band: a frequency range on one physical axis.
+    """A forbidden gradient band, a frequency range on one physical axis.
 
     ``axis`` is ``"x"``, ``"y"``, ``"z"`` or None for every axis; ``f_min`` and
     ``f_max`` are inclusive edges in Hz; ``tolerance`` is the largest amplitude
