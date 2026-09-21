@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1488b8fa40>, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae11024a70>, tr=3954, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -190,7 +190,7 @@ the steady state is unchanged.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.286 seconds)
+   **Total running time of the script:** (0 minutes 24.549 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp3D_sequence.py:

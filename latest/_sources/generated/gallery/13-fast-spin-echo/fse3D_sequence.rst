@@ -121,7 +121,7 @@ is the echo assigned to k-space centre.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1467d73860>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fae1171ccb0>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
 
 
 
@@ -223,7 +223,7 @@ image blurring along both phase-encode axes.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.233 seconds)
+   **Total running time of the script:** (0 minutes 1.268 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -189,8 +190,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -229,14 +236,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -272,12 +279,9 @@
 <li class="toctree-l3"><a class="reference internal" href="gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -321,17 +325,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -693,6 +712,18 @@ requested one where the slew rate binds; zero without <code class="docutils lite
 <span class="go">True</span>
 </pre></div>
 </div>
+<figure class="align-default" id="id1">
+<img alt="../_images/pypulseqpp-sequences-LineReadout2D-1_00.svg" class="plot-directive" src="../_images/pypulseqpp-sequences-LineReadout2D-1_00.svg" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="../_downloads/56f0a6bc0f32e1775adf46fe934ff066/pypulseqpp-sequences-LineReadout2D-1_00.svg"><code class="xref download docutils literal notranslate"><span class="pre">svg</span></code></a>)</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id2">
+<img alt="../_images/pypulseqpp-sequences-LineReadout2D-1_01.svg" class="plot-directive" src="../_images/pypulseqpp-sequences-LineReadout2D-1_01.svg" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="../_downloads/2e443d945834999c2ba80e2b65e768ab/pypulseqpp-sequences-LineReadout2D-1_01.svg"><code class="xref download docutils literal notranslate"><span class="pre">svg</span></code></a>)</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 </dd></dl>
 
 <p class="rubric">Methods</p>
@@ -727,13 +758,7 @@ requested one where the slew rate binds; zero without <code class="docutils lite
 </div>
 <section id="examples-using-linereadout2d">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">LineReadout2D</span></code><a class="headerlink" href="#examples-using-linereadout2d" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module."><img alt="" src="../_images/sphx_glr_sequence-module-composition_thumb.png" />
-<p><a class="reference internal" href="gallery/20-modules-overview/sequence-module-composition.html"><span class="doc">Sequence module composition</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A readout module solves the rest of the repetition around an excitation it is given: the prewinders, the phase-encode template at its largest step, the acquisition window and the spoiler. The Cartesian family differs in how many views one excitation reads."><img alt="" src="../_images/sphx_glr_cartesian-readout-modules_thumb.png" />
-<p><a class="reference internal" href="gallery/23-modules-cartesian/cartesian-readout-modules.html"><span class="doc">Cartesian readout modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Cartesian readout modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application."><img alt="" src="../_images/sphx_glr_sequence-app-from-scratch_thumb.png" />
 <p><a class="reference internal" href="gallery/30-building-sequences/sequence-app-from-scratch.html"><span class="doc">A SequenceApp from scratch</span></a></p>
   <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates RF energy near the end of the waveform. For fixed duration and time-bandwidth product, this reduces the interval to the echo but increases peak B_1 and introduces nonlinear slice-profile phase."><img alt="" src="../_images/sphx_glr_custom-excitation-module_thumb.png" />

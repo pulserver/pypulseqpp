@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -191,8 +192,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -231,14 +238,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -274,12 +281,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -323,17 +327,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -597,7 +616,7 @@ Nyquist spacing.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_gre_spiral2D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_spiral2D_sequence_001.png" alt="gre spiral2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f1457dae420&gt;, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+<img src="../../../_images/sphx_glr_gre_spiral2D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_spiral2D_sequence_001.png" alt="gre spiral2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7faef30bc140&gt;, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 </pre></div>
 </div>
 </section>
@@ -636,7 +655,7 @@ dual density           80          0.19            16
 <img src="../../../_images/sphx_glr_gre_spiral2D_sequence_003.png" srcset="../../../_images/sphx_glr_gre_spiral2D_sequence_003.png" alt="gre spiral2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 605x550 with 2 Axes&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.344 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.406 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-10-gradient-echo-gre-spiral2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/39ebdcd480619d2840b9dc5bbf41812c/gre_spiral2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gre_spiral2D_sequence.ipynb</span></code></a></p>

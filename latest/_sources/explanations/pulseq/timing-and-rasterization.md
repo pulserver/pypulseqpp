@@ -92,5 +92,5 @@ properties and are separate calls.
 
 * {doc}`events-and-blocks` — what a block contains.
 * {doc}`../../api/timing` — the quantization and ADC timing helpers.
-* {doc}`../../guides/checking-constraints` — running the checks over a finished
+* {doc}`../../examples/getting-started` — running the checks over a finished
   sequence.

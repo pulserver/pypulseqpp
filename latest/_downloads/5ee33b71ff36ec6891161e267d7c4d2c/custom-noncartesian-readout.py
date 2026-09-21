@@ -12,8 +12,7 @@ are :math:`2\pi k / N` apart, which exceeds the Nyquist spacing
 
     k_t = \frac{N}{2\pi\,\mathrm{FOV}}.
 
-A twisting radial line (Jackson, Nishimura and Macovski, Magn Reson Med 1992,
-doi:10.1002/mrm.1910280209) departs from the spoke beyond that radius and accumulates azimuth with radius, so
+A twisting radial line [JNM92]_ departs from the spoke beyond that radius and accumulates azimuth with radius, so
 that the perpendicular distance between neighbouring interleaves stays at the
 Nyquist spacing. Writing the arm as a k-space path and solving it under the
 gradient limits gives
@@ -234,3 +233,12 @@ print(
 # The arms the loop acquired.
 
 pp.plot.plot_kspace(scan, plane="xy")
+
+# %%
+# References
+# ==========
+#
+# .. [JNM92] Jackson JI, Nishimura DG, Macovski A. Twisting radial lines with
+#    application to robust magnetic resonance imaging of irregular flow.
+#    *Magnetic Resonance in Medicine*. 1992;28(2):251-263.
+#    https://doi.org/10.1002/mrm.1910280209

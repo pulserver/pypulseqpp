@@ -31,8 +31,7 @@ are :math:`2\pi k / N` apart, which exceeds the Nyquist spacing
 
     k_t = \frac{N}{2\pi\,\mathrm{FOV}}.
 
-A twisting radial line (Jackson, Nishimura and Macovski, Magn Reson Med 1992,
-doi:10.1002/mrm.1910280209) departs from the spoke beyond that radius and accumulates azimuth with radius, so
+A twisting radial line [JNM92]_ departs from the spoke beyond that radius and accumulates azimuth with radius, so
 that the perpendicular distance between neighbouring interleaves stays at the
 Nyquist spacing. Writing the arm as a k-space path and solving it under the
 gradient limits gives
@@ -46,7 +45,7 @@ gradient limits gives
 The path is solved under the gradient constraints, wrapped as an interleaf
 and used in a complete non-Cartesian readout module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-40
+.. GENERATED FROM PYTHON SOURCE LINES 31-39
 
 The path
 --------
@@ -57,7 +56,7 @@ solver, which assigns the timing under the amplitude and slew limits and
 builds the gradient events, the acquisition window and the rewinder back to
 k = 0.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-62
+.. GENERATED FROM PYTHON SOURCE LINES 39-61
 
 .. code-block:: Python
 
@@ -90,7 +89,7 @@ k = 0.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-71
+.. GENERATED FROM PYTHON SOURCE LINES 62-70
 
 The interleaf
 -------------
@@ -101,7 +100,7 @@ duration is not known until the arm is solved, so it is solved once at two
 samples to measure that duration and once more with the number of samples the
 duration holds at the requested rate.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-92
+.. GENERATED FROM PYTHON SOURCE LINES 70-91
 
 .. code-block:: Python
 
@@ -133,7 +132,7 @@ duration holds at the requested rate.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-102
+.. GENERATED FROM PYTHON SOURCE LINES 92-101
 
 The readout module
 ------------------
@@ -145,7 +144,7 @@ the spoiler. A family that designs its own interleaf subclasses it, builds
 the trajectory in ``init_module`` and forwards the rest, which is how the
 shipped spiral and rosette readouts are written.
 
-.. GENERATED FROM PYTHON SOURCE LINES 102-143
+.. GENERATED FROM PYTHON SOURCE LINES 101-142
 
 .. code-block:: Python
 
@@ -197,7 +196,7 @@ shipped spiral and rosette readouts are written.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 144-151
+.. GENERATED FROM PYTHON SOURCE LINES 143-150
 
 Readout duration against a spiral
 ---------------------------------
@@ -207,7 +206,7 @@ same field of view at the same resolution, and spends longer doing it: the
 twisting arm crosses the centre of k-space radially, where the spiral has to
 wind through it at the Nyquist pitch.
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-179
+.. GENERATED FROM PYTHON SOURCE LINES 150-178
 
 .. code-block:: Python
 
@@ -254,12 +253,12 @@ wind through it at the Nyquist pitch.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 180-182
+.. GENERATED FROM PYTHON SOURCE LINES 179-181
 
 One repetition
 --------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 182-209
+.. GENERATED FROM PYTHON SOURCE LINES 181-208
 
 .. code-block:: Python
 
@@ -308,11 +307,11 @@ One repetition
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f1383a70fb0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7faee2668bc0>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 210-215
+.. GENERATED FROM PYTHON SOURCE LINES 209-214
 
 Scan loop
 ---------
@@ -320,7 +319,7 @@ Scan loop
 One solved arm is turned per shot by a rotation extension, which the loop
 adds to every block that drives an in-plane gradient.
 
-.. GENERATED FROM PYTHON SOURCE LINES 215-233
+.. GENERATED FROM PYTHON SOURCE LINES 214-232
 
 .. code-block:: Python
 
@@ -355,16 +354,17 @@ adds to every block that drives an in-plane gradient.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 234-235
+.. GENERATED FROM PYTHON SOURCE LINES 233-234
 
 The arms the loop acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 235-237
+.. GENERATED FROM PYTHON SOURCE LINES 234-237
 
 .. code-block:: Python
 
 
     pp.plot.plot_kspace(scan, plane="xy")
+
 
 
 
@@ -383,10 +383,20 @@ The arms the loop acquired.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 238-245
+
+References
+==========
+
+.. [JNM92] Jackson JI, Nishimura DG, Macovski A. Twisting radial lines with
+   application to robust magnetic resonance imaging of irregular flow.
+   *Magnetic Resonance in Medicine*. 1992;28(2):251-263.
+   https://doi.org/10.1002/mrm.1910280209
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.257 seconds)
+   **Total running time of the script:** (0 minutes 0.270 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_40-custom-modules_custom-noncartesian-readout.py:

@@ -84,48 +84,6 @@ Getting started
 
     </div>
 
-===========================
-Sequence module composition
-===========================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="A sequence module contains a reusable block layout and named event templates. The composition below combines inversion preparation, a prescribed inversion delay and a Cartesian readout, then verifies the resulting pulse-centre interval. The object model is described in /explanations/design/sequence-module.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/20-modules-overview/images/thumb/sphx_glr_sequence-module-composition_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/20-modules-overview/sequence-module-composition`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Sequence module composition</div>
-    </div>
-
-
-.. thumbnail-parent-div-close
-
-.. raw:: html
-
-    </div>
-
 =========================
 RF and excitation modules
 =========================
@@ -147,23 +105,6 @@ RF and excitation modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The excitation family produces one RF pulse and the gradients that go with it. Every member reports the events it built and, through sim_rf, the Bloch response of the pulse it holds.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/21-modules-rf/images/thumb/sphx_glr_excitation-modules_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/21-modules-rf/excitation-modules`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Excitation modules</div>
-    </div>
-
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective SLR pulse is specified by three numbers: the flip angle, the slice thickness and the time-bandwidth product. The duration is a fourth, and it is not independent of the rest, because the selection gradient has to place the pulse&#x27;s bandwidth across the slice:">
 
 .. only:: html
@@ -176,90 +117,6 @@ RF and excitation modules
 .. raw:: html
 
       <div class="sphx-glr-thumbnail-title">Time-bandwidth product, slice profile and pulse duration</div>
-    </div>
-
-
-.. thumbnail-parent-div-close
-
-.. raw:: html
-
-    </div>
-
-===================
-Preparation modules
-===================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Preparation modules put the magnetisation into a stated condition and acquire nothing. None of them defines a recovery interval: the interval between a preparation and the readout that follows belongs to the scan loop, so the same module serves a single-shot and a segmented acquisition.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/22-modules-preparation/images/thumb/sphx_glr_preparation-modules_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/22-modules-preparation/preparation-modules`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Preparation modules</div>
-    </div>
-
-
-.. thumbnail-parent-div-close
-
-.. raw:: html
-
-    </div>
-
-=========================
-Cartesian readout modules
-=========================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="A readout module solves the rest of the repetition around an excitation it is given: the prewinders, the phase-encode template at its largest step, the acquisition window and the spoiler. The Cartesian family differs in how many views one excitation reads.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/23-modules-cartesian/images/thumb/sphx_glr_cartesian-readout-modules_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/23-modules-cartesian/cartesian-readout-modules`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Cartesian readout modules</div>
     </div>
 
 
@@ -287,23 +144,6 @@ Non-Cartesian readout modules
     <div class="sphx-glr-thumbnails">
 
 .. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. The gradient library stores one interleaf; per-shot rotation extensions define its physical orientation.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/24-modules-noncartesian/images/thumb/sphx_glr_noncartesian-readout-modules_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/24-modules-noncartesian/noncartesian-readout-modules`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Non-Cartesian readout modules</div>
-    </div>
-
 
 .. raw:: html
 
@@ -1138,10 +978,7 @@ Custom sequence modules
 
 
    /generated/gallery/01-getting-started/index.rst
-   /generated/gallery/20-modules-overview/index.rst
    /generated/gallery/21-modules-rf/index.rst
-   /generated/gallery/22-modules-preparation/index.rst
-   /generated/gallery/23-modules-cartesian/index.rst
    /generated/gallery/24-modules-noncartesian/index.rst
    /generated/gallery/10-gradient-echo/index.rst
    /generated/gallery/11-spin-echo/index.rst

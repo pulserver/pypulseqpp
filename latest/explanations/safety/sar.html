@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -193,8 +194,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -233,14 +240,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -276,12 +283,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -325,17 +329,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -558,6 +577,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -591,8 +611,7 @@ a body model. Evaluating the peak over every voxel for every candidate drive is
 not affordable online, and is not necessary: the matrices can be compressed into
 a small set of <strong>virtual observation points</strong>, each an upper bound over a cluster
 of positions, such that the largest value over the set bounds the largest value
-over the body (Eichfelder and Gebhardt, Magn Reson Med 2011,
-doi:10.1002/mrm.22927).</p>
+over the body.<a class="footnote-reference brackets" href="#eichfelder" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 <p><a class="reference internal" href="../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> stores that set as an <span class="math notranslate nohighlight">\((N, N_c, N_c)\)</span> stack
 of Hermitian matrices, in W/kg per unit channel drive squared, and optionally a
 global matrix evaluated the same way over the whole exposed volume. The model is
@@ -665,11 +684,20 @@ the sequence, under a stated model and calibration, is within a stated limit.</p
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> and
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.calc_rf_power.html#pypulseqpp.Sequence.calc_rf_power" title="pypulseqpp.Sequence.calc_rf_power"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> — the RF power the check
 integrates, in Pulseq’s Hz units.</p></li>
-<li><p><a class="reference internal" href="../../guides/checking-constraints.html"><span class="doc">Check a sequence against hardware constraints</span></a> — running the check over a
+<li><p><a class="reference internal" href="../../examples/getting-started.html"><span class="doc">Getting started</span></a> — running the check over a
 sequence and reading its report.</p></li>
 </ul>
 </section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 </section>
+</section>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="eichfelder" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Eichfelder G, Gebhardt M. Local specific absorption rate control for parallel transmission by virtual observation points. <em>Magnetic Resonance in Medicine</em>. 2011;66(5):1468–1476. <a class="reference external" href="https://doi.org/10.1002/mrm.22927">doi:10.1002/mrm.22927</a>.</p>
+</aside>
+</aside>
 
 
                 </article>
@@ -724,6 +752,7 @@ sequence and reading its report.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

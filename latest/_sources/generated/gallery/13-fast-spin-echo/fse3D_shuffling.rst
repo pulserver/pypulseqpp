@@ -97,16 +97,18 @@ rather than assigned deterministically by k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-82
+.. GENERATED FROM PYTHON SOURCE LINES 76-84
 
 Echo-time distribution
 ----------------------
 
-Each echo index occurs throughout the sampled extent. Contrast evolution is
+The optimized train is the same type analysed in the conventional FSE example;
+shuffling changes its assignment to sampled views, not the RF model. Each echo
+index occurs throughout the sampled extent. Contrast evolution is
 consequently not locked to a radial k-space band, which is the sampling
 condition used by echo-resolved and subspace FSE reconstructions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-94
+.. GENERATED FROM PYTHON SOURCE LINES 84-96
 
 .. code-block:: Python
 
@@ -137,7 +139,7 @@ condition used by echo-resolved and subspace FSE reconstructions.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.439 seconds)
+   **Total running time of the script:** (0 minutes 0.450 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

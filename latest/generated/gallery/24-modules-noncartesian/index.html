@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -185,8 +186,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -225,14 +232,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -268,12 +275,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -317,17 +321,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -549,10 +568,7 @@
   <section id="non-cartesian-readout-modules">
 <span id="sphx-glr-generated-gallery-24-modules-noncartesian"></span><h1>Non-Cartesian readout modules<a class="headerlink" href="#non-cartesian-readout-modules" title="Link to this heading">#</a></h1>
 <p>Readout modules whose trajectory is solved against the gradient system.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. The gradient library stores one interleaf; per-shot rotation extensions define its physical orientation."><img alt="" src="../../../_images/sphx_glr_noncartesian-readout-modules_thumb.png" />
-<p><a class="reference internal" href="noncartesian-readout-modules.html"><span class="doc">Non-Cartesian readout modules</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Non-Cartesian readout modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../../../_images/sphx_glr_spiral-readout-limits_thumb.png" />
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at"><img alt="" src="../../../_images/sphx_glr_spiral-readout-limits_thumb.png" />
 <p><a class="reference internal" href="spiral-readout-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p>
   <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
 </div></div><div class="toctree-wrapper compound">

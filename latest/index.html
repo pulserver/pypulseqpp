@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -63,7 +64,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/index.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Guides" href="guides/index.html" />
+    <link rel="next" title="User guide" href="user-guide/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -192,8 +193,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -232,14 +239,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -275,12 +282,9 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -324,17 +328,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -551,10 +570,11 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope">Scope</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-use">Basic use</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-and-documentation">Development and documentation</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#features">Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citation">Citation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License</a><ul class="nav section-nav flex-column">
 </ul>
 </li>
 </ul>
@@ -570,80 +590,95 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="pypulseqpp">
 <h1>pypulseqpp<a class="headerlink" href="#pypulseqpp" title="Link to this heading">#</a></h1>
-<p>Pulseq sequence design and analysis with a C++ core and a PyPulseq-compatible
-Python interface.</p>
 <p><a class="reference external" href="https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml"><img alt="Tests" src="https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml/badge.svg" /></a>
+<a class="reference external" href="https://pulserver.github.io/pypulseqpp/"><img alt="Documentation" src="https://github.com/pulserver/pypulseqpp/actions/workflows/docs.yml/badge.svg" /></a>
 <a class="reference external" href="https://codecov.io/gh/pulserver/pypulseqpp"><img alt="codecov" src="https://codecov.io/gh/pulserver/pypulseqpp/branch/main/graph/badge.svg" /></a>
 <a class="reference external" href="https://pypi.org/project/pypulseqpp/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pypulseqpp.svg" /></a>
-<a class="reference external" href="https://github.com/pulserver/pypulseqpp/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a></p>
-<p>pypulseqpp combines compiled event storage, block registration and analysis
-with <a class="reference external" href="https://github.com/imr-framework/pypulseq">PyPulseq</a> event factories.
-It also provides RF and gradient design, sampling patterns, and composable
-excitation, preparation and readout modules.</p>
-<section id="scope">
-<h2>Scope<a class="headerlink" href="#scope" title="Link to this heading">#</a></h2>
+<a class="reference external" href="https://pypi.org/project/pypulseqpp/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/pypulseqpp.svg" /></a>
+<a class="reference external" href="https://github.com/pulserver/pypulseqpp/actions/workflows/wheels.yml"><img alt="Wheels" src="https://img.shields.io/badge/wheels-Linux%20x86--64%20%7C%20macOS%20arm64%2Fx86--64%20%7C%20Windows%20AMD64-2b76ad" /></a>
+<a class="reference external" href="https://github.com/pulserver/pypulseqpp/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-ffbd28.svg" /></a></p>
+<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo.svg" alt="pypulseqpp" width="620"></p>
+<p>pypulseqpp provides Pulseq sequence design and analysis through a
+PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
+and trajectory design, reusable sequence modules, complete sequence
+applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
+Unsupported PyPulseq features are not presented as available. Passing these
+checks does not establish scanner or patient safety.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>Pulseq text and binary reading/writing, signatures and event deduplication.</p></li>
-<li><p>Waveform expansion, k-space trajectories, sequence reports and structural
-repetition detection.</p></li>
-<li><p>Timing, gradient amplitude, slew-rate and boundary-continuity checks, a
-mechanical-resonance check against forbidden gradient bands, a PNS check
-under the SAFE or the rheobase-chronaxie model, and VOP-based SAR.</p></li>
-<li><p>Logical-frame FOV scaling, rotation and translation.</p></li>
-<li><p>Pulse, trajectory and sampling design, with reusable sequence modules.</p></li>
+<li><p>Pulseq text and binary I/O, event storage, deduplication and repetition analysis.</p></li>
+<li><p>RF, gradient and non-Cartesian trajectory design.</p></li>
+<li><p>Composable excitation, preparation and readout <code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code> classes.</p></li>
+<li><p>Waveform, ADC sampling-location and k-space analysis with publication figures.</p></li>
+<li><p>Timing, hardware-limit, PNS, mechanical-resonance and VOP-based SAR estimates.</p></li>
 </ul>
-<p>This is an alpha package, not a complete replacement for every PyPulseq
-feature. Passing the checks does not establish scanner or patient safety.</p>
-<p>Scanner execution, protocol orchestration and reconstruction integration
-belong to <a class="reference external" href="https://github.com/pulserver/pulserver">Pulserver</a>.</p>
+<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900"></p>
 </section>
-<section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
-<p>Requires Python 3.10 or later. Runtime dependencies are NumPy, SciPy and
-PyPulseq; the native core is included in platform wheels.</p>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pypulseqpp
 </pre></div>
 </div>
-<p>The optional viewer is a separate GPL-licensed package:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'pypulseqpp[plot]'</span>
-</pre></div>
-</div>
-</section>
-<section id="basic-use">
-<h2>Basic use<a class="headerlink" href="#basic-use" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp.sequences</span><span class="w"> </span><span class="kn">import</span> <span class="n">gre2D_sequence</span>
 
-<span class="n">system</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_grad</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">grad_unit</span><span class="o">=</span><span class="s2">"mT/m"</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">slew_unit</span><span class="o">=</span><span class="s2">"T/m/s"</span><span class="p">)</span>
-<span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-<span class="n">gx</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
-<span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">)</span>
+<span class="n">seq</span> <span class="o">=</span> <span class="n">gre2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="n">ok</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()</span>
-<span class="n">seq</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"example.seq"</span><span class="p">)</span>
+<span class="n">seq</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"gre2d.seq"</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Sequence-module classes are available from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>, and the
-complete example sequences from <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences.&lt;name&gt;</span></code>. The
-<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/api/index.html">API reference</a>
-groups sequence operations, event design, sampling, modules and checks; the
-<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/examples.html">examples</a>
-build a sequence from events, from modules and from the shipped applications,
-and the
-<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/explanations/index.html">explanations</a>
-cover the file format and each of the hardware checks.</p>
 </section>
-<section id="development-and-documentation">
-<h2>Development and documentation<a class="headerlink" href="#development-and-documentation" title="Link to this heading">#</a></h2>
-<p>See the <a class="reference external" href="https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md">contribution guide</a>
-for installation and checks. Build the local Markdown/Sphinx documentation with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[examples]'</span>
-bash<span class="w"> </span>scripts/build_docs.sh
-</pre></div>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html">User guide</a></p></td>
+<td><p>Installation, support and project-use logistics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/explanations/index.html">Explanations</a></p></td>
+<td><p>Pulseq representation, sequence design and constraint models.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/examples/index.html">Examples</a></p></td>
+<td><p>Executable sequence workflows and design studies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/api/index.html">API reference</a></p></td>
+<td><p>Exact interfaces, units and defaults.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/developer-guide/index.html">Developer guide</a></p></td>
+<td><p>Development setup and contribution workflow.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/pulserver/pypulseqpp">Source</a></p></td>
+<td><p>Repository, issues and discussions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/pulserver/pypulseqpp/releases/latest/download/pypulseqpp-docs.pdf">PDF manual</a></p></td>
+<td><p>Single-file documentation from the latest release.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>The script compiles the checkout into <code class="docutils literal notranslate"><span class="pre">docs/build/site</span></code> and generates the pages
-from that build. Every example script under <code class="docutils literal notranslate"><span class="pre">gallery/</span></code> is executed as the pages
-are built, which is what the <code class="docutils literal notranslate"><span class="pre">examples</span></code> extra covers beyond <code class="docutils literal notranslate"><span class="pre">doc</span></code>.</p>
-<p>Open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code>. Documentation contributions follow
-<code class="docutils literal notranslate"><span class="pre">docs/contributing/documentation.md</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/contributing/terminology.md</span></code>.</p>
+</section>
+<section id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Link to this heading">#</a></h2>
+<p>pypulseqpp has no project publication. Cite the foundational formats and APIs
+used in work built with it:</p>
+<ol class="arabic simple">
+<li><p>Layton KJ, Kroboth S, Jia F, et al. Pulseq: A rapid and hardware-independent
+pulse sequence prototyping framework. <em>Magnetic Resonance in Medicine</em>.
+2017;77(4):1544–1552. <a class="reference external" href="https://doi.org/10.1002/mrm.26235">doi:10.1002/mrm.26235</a>.</p></li>
+<li><p>Ravi KS, Geethanath S, Vaughan JT. PyPulseq: A Python package for MRI pulse
+sequence design. <em>Journal of Open Source Software</em>. 2019;4(42):1725.
+<a class="reference external" href="https://doi.org/10.21105/joss.01725">doi:10.21105/joss.01725</a>.</p></li>
+</ol>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Link to this heading">#</a></h2>
+<p>MIT, except bundled or vendored third-party components that retain their own
+licences. See <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/misc/license.html">License and third-party notices</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
@@ -671,11 +706,11 @@ are built, which is what the <code class="docutils literal notranslate"><span cl
                   
 <div class="prev-next-area">
     <a class="right-next"
-       href="guides/index.html"
+       href="user-guide/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Guides</p>
+        <p class="prev-next-title">User guide</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -697,10 +732,11 @@ are built, which is what the <code class="docutils literal notranslate"><span cl
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope">Scope</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-use">Basic use</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-and-documentation">Development and documentation</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#features">Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citation">Citation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License</a><ul class="nav section-nav flex-column">
 </ul>
 </li>
 </ul>

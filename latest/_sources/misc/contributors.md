@@ -1,10 +1,7 @@
 # Contributors
 
-pypulseqpp is developed by Matteo Cencini and the pypulseqpp contributors.
-The full list of contributors is the commit history of the
-[repository](https://github.com/pulserver/pypulseqpp/graphs/contributors).
-
-See the [contribution guide](https://github.com/pulserver/pypulseqpp/blob/main/CONTRIBUTING.md)
-for how to set up a checkout, which checks a pull request has to pass, and the
-release process. Documentation contributions additionally follow
-{doc}`../contributing/documentation` and {doc}`../contributing/terminology`.
+pypulseqpp is maintained by the Pulserver project contributors. The complete
+authorship record is available in the
+[Git history](https://github.com/pulserver/pypulseqpp/graphs/contributors).
+Contribution setup and review conventions are in the
+{doc}`Developer Guide <../developer-guide/index>`.

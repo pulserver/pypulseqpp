@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Non-Cartesian readout modules &#8212; pypulseqpp documentation</title>
+    <title>Non-Cartesian design studies &#8212; pypulseqpp documentation</title>
   
   
   
@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -63,8 +64,8 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/examples/sequence-modules/non-cartesian-readouts.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Non-Cartesian readout modules" href="../../generated/gallery/24-modules-noncartesian/noncartesian-readout-modules.html" />
-    <link rel="prev" title="Cartesian readout modules" href="../../generated/gallery/23-modules-cartesian/cartesian-readout-modules.html" />
+    <link rel="next" title="Gradient, slew and receiver limits on a spiral readout" href="../../generated/gallery/24-modules-noncartesian/spiral-readout-limits.html" />
+    <link rel="prev" title="Time-bandwidth product, slice profile and pulse duration" href="../../generated/gallery/21-modules-rf/slice-profile-and-time-bandwidth.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -187,8 +188,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -227,14 +234,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -270,12 +277,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Sequence-module design studies</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rf.html">RF design studies</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -319,17 +323,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -534,7 +553,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Non-Cartesian readout modules</h1>
+    <h1>Non-Cartesian design studies</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -548,10 +567,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="non-cartesian-readout-modules">
-<h1>Non-Cartesian readout modules<a class="headerlink" href="#non-cartesian-readout-modules" title="Link to this heading">#</a></h1>
-<p>Readout modules whose trajectory is solved against the gradient amplitude, the
-slew rate and the sampling criterion rather than laid out on a grid.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="non-cartesian-design-studies">
+<h1>Non-Cartesian design studies<a class="headerlink" href="#non-cartesian-design-studies" title="Link to this heading">#</a></h1>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Example</p></th>
@@ -559,11 +576,8 @@ slew rate and the sampling criterion rather than laid out on a grid.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/24-modules-noncartesian/noncartesian-readout-modules.html"><span class="doc">Non-Cartesian readout modules</span></a></p></td>
-<td><p>Radial, spiral, rosette and PROPELLER interleaf designs.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../generated/gallery/24-modules-noncartesian/spiral-readout-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p></td>
-<td><p>Which of the gradient, slew and receiver ceilings bounds a spiral arm, over a grid of slew limits and sampling rates.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../generated/gallery/24-modules-noncartesian/spiral-readout-limits.html"><span class="doc">Gradient, slew and receiver limits on a spiral readout</span></a></p></td>
+<td><p>Spiral duration and active hardware or sampling constraint.</p></td>
 </tr>
 </tbody>
 </table>
@@ -584,20 +598,20 @@ slew rate and the sampling criterion rather than laid out on a grid.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../../generated/gallery/23-modules-cartesian/cartesian-readout-modules.html"
+       href="../../generated/gallery/21-modules-rf/slice-profile-and-time-bandwidth.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Cartesian readout modules</p>
+        <p class="prev-next-title">Time-bandwidth product, slice profile and pulse duration</p>
       </div>
     </a>
     <a class="right-next"
-       href="../../generated/gallery/24-modules-noncartesian/noncartesian-readout-modules.html"
+       href="../../generated/gallery/24-modules-noncartesian/spiral-readout-limits.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Non-Cartesian readout modules</p>
+        <p class="prev-next-title">Gradient, slew and receiver limits on a spiral readout</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

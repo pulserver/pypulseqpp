@@ -23,23 +23,6 @@ Non-Cartesian readout modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A non-Cartesian readout designs one base interleaf — its acquisition window and the gradients that prewind to and rewind from the centre of k-space — and the scan loop rotates it per shot with a ROTATIONS extension. The gradient library stores one interleaf; per-shot rotation extensions define its physical orientation.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/24-modules-noncartesian/images/thumb/sphx_glr_noncartesian-readout-modules_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/24-modules-noncartesian/noncartesian-readout-modules`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Non-Cartesian readout modules</div>
-    </div>
-
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at">
 
 .. only:: html
@@ -65,6 +48,5 @@ Non-Cartesian readout modules
 .. toctree::
    :hidden:
 
-   /generated/gallery/24-modules-noncartesian/noncartesian-readout-modules
    /generated/gallery/24-modules-noncartesian/spiral-readout-limits
 

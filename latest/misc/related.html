@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -64,7 +65,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Contributors" href="contributors.html" />
-    <link rel="prev" title="Terminology and conventions" href="../contributing/terminology.html" />
+    <link rel="prev" title="License and third-party notices" href="license.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -187,8 +188,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
   
-    <p class="title logo__title">pypulseqpp documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -227,14 +234,14 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/first-sequence.html">Write your first sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/analysing-a-sequence.html">Analyse a finished sequence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/checking-constraints.html">Check a sequence against hardware constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/custom-module.html">Build a sequence from modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/command-line.html">Run a sequence from the command line</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/prerequisites.html">Prerequisites and supported platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/issues.html">Reporting issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/discussions.html">Discussions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/security.html">Security</a></li>
 </ul>
 </details></li>
 </ul>
@@ -270,12 +277,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/composition.html">Composing modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF and excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/preparation.html">Preparation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/cartesian-readouts.html">Cartesian readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian readout modules</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/rf.html">RF design studies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -319,17 +323,32 @@
 </ul>
 </details></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../contributing/documentation.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contributing/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Miscellaneous</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="license.html">License and third-party notices</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributors.html">Contributors</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Related projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code_of_conduct.html">Code of conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License and third-party notices</a></li>
 </ul>
 
     </div>
@@ -550,7 +569,6 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="related-projects">
 <h1>Related projects<a class="headerlink" href="#related-projects" title="Link to this heading">#</a></h1>
-<p>pypulseqpp sits between the Pulseq ecosystem and the Pulserver execution stack.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Project</p></th>
@@ -558,29 +576,32 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/pulseq/pulseq">Pulseq</a></p></td>
-<td><p>The open sequence file format and the MATLAB toolbox that defines it. pypulseqpp reads and writes Pulseq 1.2 to 1.5 text and binary files.</p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://pulseq.github.io/">Pulseq</a></p></td>
+<td><p>Open sequence-file specification represented, read and written by pypulseqpp.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference external" href="https://github.com/imr-framework/pypulseq">PyPulseq</a></p></td>
-<td><p>The Python interface pypulseqpp is compatible with, and a runtime dependency. Supported upstream signatures, event conventions and reference output are preserved; the event factories are re-exported.</p></td>
+<td><p>Python API and event-convention reference; pypulseqpp preserves supported signatures and interoperability.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pypulseq-matlab-like</span></code></p></td>
-<td><p>A transcription of the MATLAB Pulseq toolbox, used as the file-format authority in the tests. It is a test-only dependency named by URL; the tests that need it skip when it is absent.</p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/pulserver/pulserver">Pulserver</a></p></td>
+<td><p>Scanner execution, protocol orchestration and console integration for sequences authored here.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/pulserver/pulserver">Pulserver</a></p></td>
-<td><p>Scanner execution, segmentation, protocol contracts and consoles. Vendor-specific execution logic lives there, not here.</p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/pulseq/seqeyes">SeqEyes</a></p></td>
+<td><p>Interactive sequence viewer, distributed separately through the optional <code class="docutils literal notranslate"><span class="pre">plot</span></code> extra.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mikgroup/sigpy">SigPy</a></p></td>
-<td><p>Source of the SLR, adiabatic, B1-selective, multiband-phase and Poisson-disc algorithms transcribed here under BSD-3-Clause. pypulseqpp does not depend on it at runtime.</p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/pulserver/mrsd">mrsd</a></p></td>
+<td><p>Sequence-diagram renderer used by <code class="docutils literal notranslate"><span class="pre">paper_plot</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/RyanShanghaitech/MRArbGrad">MRArbGrad</a></p></td>
-<td><p>The arbitrary-gradient solver behind the spiral, rosette and trajectory-to-gradient designs, vendored as a submodule of the <a class="reference external" href="https://github.com/mcencini/MRArbGrad">fork</a> this package pins.</p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/paquiteau/mrseq">MRseq</a></p></td>
+<td><p>Related tools for reading and analysing Pulseq sequences.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://pypi.org/project/mrsd/">mrsd</a></p></td>
-<td><p>Draws the publication diagram behind <a class="reference internal" href="../generated/pypulseqpp.plot.paper_plot.html#pypulseqpp.plot.paper_plot" title="pypulseqpp.plot.paper_plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.plot.paper_plot()</span></code></a>.</p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/jonbmartin/pulpy">PulPy</a></p></td>
+<td><p>RF and gradient design algorithms with direct MRI pulse-design relevance.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/xingwangyong/seqeyes">SeqEyes</a></p></td>
-<td><p>The optional sequence viewer behind <a class="reference internal" href="../generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot" title="pypulseqpp.plot.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.plot.plot()</span></code></a>, packaged separately as the GPL-licensed <code class="docutils literal notranslate"><span class="pre">pypulseqpp-seqeyes</span></code>.</p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mikgroup/sigpy">SigPy</a></p></td>
+<td><p>Source of BSD-licensed numerical routines identified in <code class="docutils literal notranslate"><span class="pre">LICENSES/</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mriphysics/MRArbGrad">MRArbGrad</a></p></td>
+<td><p>Gradient-constrained trajectory solver vendored as a pinned submodule.</p></td>
 </tr>
 </tbody>
 </table>
@@ -599,12 +620,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../contributing/terminology.html"
+       href="license.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Terminology and conventions</p>
+        <p class="prev-next-title">License and third-party notices</p>
       </div>
     </a>
     <a class="right-next"
