@@ -213,7 +213,9 @@ for name, module in (("linear phase", linear_phase), ("minimum phase", minimum_p
         f"slice {module.slice_thickness * 1e3:.2f} mm"
     )
 
+# sphinx_gallery_start_ignore
 design_figure(designs, THICKNESS_M)
+# sphinx_gallery_end_ignore
 
 # %%
 # Echo time

@@ -221,6 +221,25 @@ class SequenceModule(ABC):
     objects does not rewrite the stored sequence used for analysis.
     Only calculate_kspace, check_timing, test_report and waveforms_and_times
     are forwarded to seq.
+
+    Examples
+    --------
+    A subclass assigns ``seq`` and adds its blocks; the constructor's locals
+    are published under their own names and on ``events``:
+
+    >>> import pypulseqpp as pp
+    >>> import pypulseqpp.sequences as design
+    >>> class OneTrapezoid(design.SequenceModule):
+    ...     def init_module(self, system):
+    ...         self.seq = pp.Sequence(system=system)
+    ...         gx = pp.make_trapezoid("x", area=500, system=system)
+    ...         self.seq.add_block(gx)
+    ...         self.center = 0.5 * pp.calc_duration(gx)
+    >>> module = OneTrapezoid(pp.Opts())
+    >>> module.gx.channel, len(module.blocks)
+    ('x', 1)
+    >>> module.gx is module.events.gx
+    True
     """
 
     def __init_subclass__(cls, **kwargs: Any) -> None:

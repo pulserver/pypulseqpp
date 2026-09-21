@@ -592,6 +592,25 @@ class LineReadout3D(_LineReadout):
     ... )
     >>> readout.gy_pre.channel, readout.gz_pre.channel
     ('y', 'z')
+
+    One repetition of the slab acquisition, and the line it reads:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       slab = sequences.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)
+       readout = sequences.LineReadout3D(
+           system, slab.rf, slab.gz,
+           fov=(0.22, 0.22, 0.12), matrix=(64, 64, 32),
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 3

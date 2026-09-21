@@ -397,7 +397,41 @@ class RadialReadout2D(_RadialReadout):
 
 
 class RadialStackReadout(_RadialReadout):
-    """Radial spokes in-plane, Cartesian partitions along z: stack of stars."""
+    """Radial spokes in-plane, Cartesian partitions along z: stack of stars.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+    >>> readout = design.RadialStackReadout(
+    ...     system, slab.rf, slab.gz,
+    ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
+    ... )
+    >>> readout.gz_pre.channel
+    'z'
+
+    One spoke of one partition, and the k-space line it reads:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       slab = sequences.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+       readout = sequences.RadialStackReadout(
+           system, slab.rf, slab.gz,
+           fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
     _phase_axis = "z"
 
@@ -406,6 +440,38 @@ class RadialProjectionReadout(_RadialReadout):
     """Radial spokes for a spherical projection acquisition.
 
     The loop supplies 3D rotations. Partition encoding is not supported.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> hard = design.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+    >>> readout = design.RadialProjectionReadout(
+    ...     system, hard.rf, fov=0.24, matrix=64
+    ... )
+    >>> int(readout.adc.num_samples) > 0
+    True
+
+    One half-spoke of a spherical projection acquisition, before the loop
+    turns it:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       hard = sequences.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+       readout = sequences.RadialProjectionReadout(
+           system, hard.rf, fov=0.24, matrix=64
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _rotated_axes = AXES
@@ -519,6 +585,29 @@ class NonCartesianReadout(_ArmedReadout):
     ... )
     >>> int(readout.adc.num_samples)
     64
+
+    A single spoke supplied as an :class:`Arbitrary` trajectory, played in
+    the block layout the readout lays out around it:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts()
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       kmax = 64 / (2 * 0.22)
+       spoke = np.column_stack([np.linspace(-kmax, kmax, 64), np.zeros(64)])
+       readout = sequences.NonCartesianReadout(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           trajectory=sequences.Arbitrary(system, spoke, matrix=64),
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _phase_axis: str | None = None
@@ -850,13 +939,83 @@ class SpiralReadout2D(_SpiralReadout):
 
 
 class SpiralStackReadout(_SpiralReadout):
-    """Spiral arms in-plane, Cartesian partitions along z."""
+    """Spiral arms in-plane, Cartesian partitions along z.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+    >>> readout = design.SpiralStackReadout(
+    ...     system, slab.rf, slab.gz,
+    ...     fov=0.22, matrix=64, design_interleaves=8, n_points=256,
+    ...     fov_z=0.12, matrix_z=16,
+    ... )
+    >>> readout.gz_pre.channel
+    'z'
+
+    One interleaf of one partition, and the arm it traverses:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       slab = sequences.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+       readout = sequences.SpiralStackReadout(
+           system, slab.rf, slab.gz,
+           fov=0.22, matrix=64, design_interleaves=8, n_points=256,
+           fov_z=0.12, matrix_z=16,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
     _phase_axis = "z"
 
 
 class SpiralProjectionReadout(_SpiralReadout):
-    """Spiral arms turned over a sphere."""
+    """Spiral arms turned over a sphere.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> hard = design.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+    >>> readout = design.SpiralProjectionReadout(
+    ...     system, hard.rf, fov=0.22, matrix=64,
+    ...     design_interleaves=8, n_points=256,
+    ... )
+    >>> [gradient.channel for gradient in (readout.gx, readout.gy)]
+    ['x', 'y']
+
+    One arm of a spherical spiral acquisition, before the loop turns it:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       hard = sequences.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+       readout = sequences.SpiralProjectionReadout(
+           system, hard.rf, fov=0.22, matrix=64,
+           design_interleaves=8, n_points=256,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
     _rotated_axes = AXES
 
@@ -917,17 +1076,118 @@ class _RosetteReadout(NonCartesianReadout):
 
 
 class RosetteReadout2D(_RosetteReadout):
-    """One multi-petal rosette interleaf in a plane."""
+    """One multi-petal rosette interleaf in a plane.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+    >>> readout = design.RosetteReadout2D(
+    ...     system, excitation.rf, excitation.gz, excitation.gz_reph,
+    ...     fov=0.22, matrix=64,
+    ... )
+    >>> [gradient.channel for gradient in (readout.gx, readout.gy)]
+    ['x', 'y']
+
+    One interleaf, whose petals pass through the centre of k-space once per
+    petal:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.RosetteReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=64,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
 
 class RosetteStackReadout(_RosetteReadout):
-    """Rosette petals in-plane, Cartesian partitions along z."""
+    """Rosette petals in-plane, Cartesian partitions along z.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> slab = design.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+    >>> readout = design.RosetteStackReadout(
+    ...     system, slab.rf, slab.gz,
+    ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
+    ... )
+    >>> readout.gz_pre.channel
+    'z'
+
+    One interleaf of one partition, and the petals it traverses:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       slab = sequences.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+       readout = sequences.RosetteStackReadout(
+           system, slab.rf, slab.gz, fov=0.22, matrix=64, fov_z=0.12, matrix_z=16
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
     _phase_axis = "z"
 
 
 class RosetteProjectionReadout(_RosetteReadout):
-    """Rosette petals turned over a sphere."""
+    """Rosette petals turned over a sphere.
+
+    Examples
+    --------
+    >>> import pypulseqpp.sequences as design
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_grad=40, grad_unit="mT/m",
+    ...                  max_slew=150, slew_unit="T/m/s")
+    >>> hard = design.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+    >>> readout = design.RosetteProjectionReadout(
+    ...     system, hard.rf, fov=0.22, matrix=64
+    ... )
+    >>> int(readout.adc.num_samples) > 0
+    True
+
+    One interleaf of a spherical rosette acquisition, before the loop turns
+    it:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       hard = sequences.NonSelectiveExcitation(system, 10.0, 0.5e-3)
+       readout = sequences.RosetteProjectionReadout(
+           system, hard.rf, fov=0.22, matrix=64
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
+    """
 
     _rotated_axes = AXES
 

@@ -44,6 +44,22 @@ class NonSelectiveExcitation(RfModule):
     >>> excitation = design.NonSelectiveExcitation(pp.Opts(), flip_angle_deg=10.0)
     >>> round(excitation.center * 1e6)
     500
+
+    Without a gradient the only selectivity is in frequency, and the profile
+    is the transform of a rectangle:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import NonSelectiveExcitation
+
+       module = NonSelectiveExcitation(pp.Opts(), 90.0, 0.5e-3)
+       module.seq.paper_plot()
+       plot_rf(module, plot_now=False)
+       plt.show()
     """
 
     def init_module(
@@ -121,6 +137,21 @@ class NonSelectiveRefocusing(RfModule):
 
     >>> len(design.NonSelectiveRefocusing(pp.Opts(), spoiling_cycles=0.0).blocks)
     1
+
+    The pulse and both crushers, integrated as one window:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.plot import plot_rf
+       from pypulseqpp.sequences import NonSelectiveRefocusing
+
+       module = NonSelectiveRefocusing(pp.Opts(), duration_s=0.5e-3)
+       module.seq.paper_plot()
+       plot_rf(module, whole=True, plot_now=False)
+       plt.show()
     """
 
     def init_module(

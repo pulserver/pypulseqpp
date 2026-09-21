@@ -116,11 +116,11 @@ diagram.paper_plot()
 import torchsim
 
 angles = np.asarray(app.flips[0, : app.lengths[0]])
-time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
 signal = np.abs(
     np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
 )
 # sphinx_gallery_start_ignore
+time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.0))
 axes[0].plot(np.arange(1, len(angles) + 1), angles)
 axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")
@@ -137,7 +137,10 @@ fig.tight_layout()
 # and progressively larger radii to echoes farther from it. Echo index records
 # position within a train; shot index identifies views acquired after the same
 # excitation.
+
+# sphinx_gallery_start_ignore
 order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
+# sphinx_gallery_end_ignore
 
 # %%
 # K-space weighting
@@ -147,8 +150,9 @@ order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 # Radial assignment converts temporal signal evolution into a predominantly
 # radial modulation transfer function; its Fourier transform contributes to
 # image blurring along both phase-encode axes.
-ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
+
 # sphinx_gallery_start_ignore
+ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 fig, ax = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
 art = ax.scatter(ky, kz, c=signal[echo], cmap="viridis", s=16, linewidth=0)
 fig.colorbar(art, ax=ax, label="Relative echo amplitude")

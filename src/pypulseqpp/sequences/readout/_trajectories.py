@@ -251,6 +251,37 @@ class NonCartesianGradient:
     >>> turned = spiral.rotated(np.pi / 2)
     >>> turned.duration == spiral.duration, type(turned).__name__
     (True, 'Spiral')
+
+    The k-space path and the gradient waveform that traces it, here for the
+    same arm turned a quarter turn:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp.sequences import Spiral
+
+       arm = Spiral(pp.Opts(), 0.22, 64, 8).rotated(np.pi / 2)
+       scale = 1e3 / arm.system.gamma
+       figure, (path, waveform) = plt.subplots(1, 2, figsize=(8.4, 3.2))
+       path.plot(arm.trajectory[:, 0], arm.trajectory[:, 1], lw=1.0)
+       path.set_aspect("equal")
+       path.set_xlabel("$k_x$ [1/m]")
+       path.set_ylabel("$k_y$ [1/m]")
+       for gradient in arm.gradients:
+           waveform.plot(
+               np.asarray(gradient.tt) * 1e3,
+               np.asarray(gradient.waveform) * scale,
+               lw=1.0,
+               label=f"$G_{{{gradient.channel}}}$",
+           )
+       waveform.set_xlabel("time [ms]")
+       waveform.set_ylabel("gradient amplitude [mT/m]")
+       waveform.legend(frameon=False)
+       figure.tight_layout()
+       plt.show()
     """
 
     def __init__(
@@ -488,6 +519,40 @@ class Arbitrary(NonCartesianGradient):
     >>> path = design.Arbitrary(pp.Opts(), spoke, matrix=64)
     >>> path.has_prewinder, path.has_rewinder, path.n_samples
     (True, True, 64)
+
+    One spoke given as a k-space path, and the waveform the solver traces it
+    with. The prewinder and rewinder are solved separately and are not part
+    of the readout waveform drawn here:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp.sequences import Arbitrary
+
+       kmax = 64 / (2 * 0.22)
+       spoke = np.column_stack([np.linspace(-kmax, kmax, 64), np.zeros(64)])
+       arm = Arbitrary(pp.Opts(), spoke, matrix=64)
+       scale = 1e3 / arm.system.gamma
+       figure, (path, waveform) = plt.subplots(1, 2, figsize=(8.4, 3.2))
+       path.plot(arm.trajectory[:, 0], arm.trajectory[:, 1], lw=1.0)
+       path.set_aspect("equal")
+       path.set_xlabel("$k_x$ [1/m]")
+       path.set_ylabel("$k_y$ [1/m]")
+       for gradient in arm.gradients:
+           waveform.plot(
+               np.asarray(gradient.tt) * 1e3,
+               np.asarray(gradient.waveform) * scale,
+               lw=1.0,
+               label=f"$G_{{{gradient.channel}}}$",
+           )
+       waveform.set_xlabel("time [ms]")
+       waveform.set_ylabel("gradient amplitude [mT/m]")
+       waveform.legend(frameon=False)
+       figure.tight_layout()
+       plt.show()
     """
 
     def __init__(
@@ -695,6 +760,37 @@ class Spiral(NonCartesianGradient):
     >>> arm = design.Spiral(pp.Opts(), 0.22, 64, 8)
     >>> arm.axes, arm.has_prewinder, arm.has_rewinder
     (('x', 'y'), False, True)
+
+    One arm and the waveform that traverses it. The amplitude climbs at the
+    slew limit over the first turns and settles once a ceiling is reached:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp.sequences import Spiral
+
+       arm = Spiral(pp.Opts(), 0.22, 64, 8)
+       scale = 1e3 / arm.system.gamma
+       figure, (path, waveform) = plt.subplots(1, 2, figsize=(8.4, 3.2))
+       path.plot(arm.trajectory[:, 0], arm.trajectory[:, 1], lw=1.0)
+       path.set_aspect("equal")
+       path.set_xlabel("$k_x$ [1/m]")
+       path.set_ylabel("$k_y$ [1/m]")
+       for gradient in arm.gradients:
+           waveform.plot(
+               np.asarray(gradient.tt) * 1e3,
+               np.asarray(gradient.waveform) * scale,
+               lw=1.0,
+               label=f"$G_{{{gradient.channel}}}$",
+           )
+       waveform.set_xlabel("time [ms]")
+       waveform.set_ylabel("gradient amplitude [mT/m]")
+       waveform.legend(frameon=False)
+       figure.tight_layout()
+       plt.show()
     """
 
     def __init__(
@@ -897,6 +993,37 @@ class Rosette(NonCartesianGradient):
     >>> rosette = design.Rosette(pp.Opts(), 0.22, 64)
     >>> rosette.has_prewinder or rosette.has_rewinder
     False
+
+    One interleaf and the waveform that traverses it. The path passes
+    through the centre of k-space once per petal:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import numpy as np
+       import pypulseqpp as pp
+       from pypulseqpp.sequences import Rosette
+
+       arm = Rosette(pp.Opts(), 0.22, 64)
+       scale = 1e3 / arm.system.gamma
+       figure, (path, waveform) = plt.subplots(1, 2, figsize=(8.4, 3.2))
+       path.plot(arm.trajectory[:, 0], arm.trajectory[:, 1], lw=1.0)
+       path.set_aspect("equal")
+       path.set_xlabel("$k_x$ [1/m]")
+       path.set_ylabel("$k_y$ [1/m]")
+       for gradient in arm.gradients:
+           waveform.plot(
+               np.asarray(gradient.tt) * 1e3,
+               np.asarray(gradient.waveform) * scale,
+               lw=1.0,
+               label=f"$G_{{{gradient.channel}}}$",
+           )
+       waveform.set_xlabel("time [ms]")
+       waveform.set_ylabel("gradient amplitude [mT/m]")
+       waveform.legend(frameon=False)
+       figure.tight_layout()
+       plt.show()
     """
 
     def __init__(

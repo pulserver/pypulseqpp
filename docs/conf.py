@@ -174,13 +174,31 @@ def _compact_signature(_app, what, _name, _obj, _options, _signature, return_ann
     return None
 
 
+#: Where the README points its figures for readers on GitHub and PyPI, and
+#: what those references become once the same file is the documentation's
+#: landing page.
+README_ASSETS = (
+    "https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/",
+    "_static/",
+)
+
+
 def _local_readme_assets(_app, docname, source):
     """Use built static assets when the repository README is the index page."""
     if docname == "index":
-        source[0] = source[0].replace(
-            "https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/",
-            "_static/",
-        )
+        source[0] = source[0].replace(*README_ASSETS)
+
+
+def _included_readme_assets(_app, _relative_path, parent_docname, content):
+    """Rewrite the same references in the README pulled in by an ``include``.
+
+    ``source-read`` fires on the landing page before its ``include`` runs, so
+    the README's own text is never in the source that handler sees.
+    """
+    if parent_docname == "index":
+        content[0] = content[0].replace(*README_ASSETS)
+
+
 def _public_bases(_app, _name, _obj, _options, bases):
     """List a private base as the nearest public class it is built on.
 
@@ -301,6 +319,7 @@ def setup(app):
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("autodoc-process-signature", _compact_signature)
     app.connect("source-read", _local_readme_assets)
+    app.connect("include-read", _included_readme_assets)
     app.connect("builder-inited", _draw_explanation_figures)
     # Ahead of autosummary's own handler, which reads the sources for the
     # objects it writes stubs for: a page written after it would only be read
@@ -366,6 +385,10 @@ html_sidebars = {
 }
 html_baseurl = f"{PAGES_URL}/{DOCS_VERSION}/"
 html_title = "pypulseqpp documentation"
+# The landing page is the repository README, whose figures are rewritten to
+# these copies by the handlers above, and the PDF cover reads the wordmark
+# from here as well.
+html_static_path = ["_static"]
 html_logo = "_static/pypulseqpp-mark.svg"
 plot_include_source = True
 plot_html_show_source_link = False

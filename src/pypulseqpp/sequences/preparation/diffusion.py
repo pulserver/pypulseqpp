@@ -86,6 +86,21 @@ class DiffusionPreparation(RfModule):
     500
     >>> round(prep.scale_for(125.0), 3)
     0.5
+
+    The whole module, pulses and diffusion lobes together. Both lobes have
+    the same sign, and the refocusing pulse between them is what makes the
+    pair sensitizing rather than balanced:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp.sequences import DiffusionPreparation
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       DiffusionPreparation(system, 500.0).seq.paper_plot()
+       plt.show()
     """
 
     def init_module(

@@ -65,6 +65,23 @@ orientation. This is why the check applies the block rotations rather than
 reading the logical waveforms, and why a prescription rotation is worth passing
 where the scan will be prescribed obliquely.
 
+```{figure} ../../generated/figures/rotation_against_per_axis_limit.png
+A Cartesian gradient echo whose logical readout, phase-encode and slice axes
+each stay within `max_grad`. Its prewinder block and its rewinder-and-spoiler
+block play two logical axes at once, so the vector magnitude there exceeds the
+per-axis limit. Under a double-oblique prescription that vector is
+redistributed over the physical axes and one of them exceeds `max_grad`, while
+the vector magnitude, which the rotation leaves unchanged, is the same in both
+frames.
+```
+
+The vector magnitude is therefore the bound on what any prescription can place
+on a single physical axis at that instant: a rotation that aligns the vector
+with an axis puts its whole magnitude there. A sequence whose logical per-axis
+peaks are within `max_grad` but whose vector peak is not has orientations at
+which it fails the check, and the check reports both quantities so that margin
+is readable before an orientation is chosen.
+
 ## Relationship between gradient amplitude and spatial resolution
 
 The amplitude a readout needs follows from the resolution and the acquisition

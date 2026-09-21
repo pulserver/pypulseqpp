@@ -43,27 +43,41 @@ seq.write("gre2d.seq")
 
 ## Documentation
 
-| Section | Purpose |
-| --- | --- |
-| [User guide](https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html) | Installation, support and project-use logistics. |
-| [Explanations](https://pulserver.github.io/pypulseqpp/latest/explanations/index.html) | Pulseq representation, sequence design and constraint models. |
-| [Examples](https://pulserver.github.io/pypulseqpp/latest/examples/index.html) | Executable sequence workflows and design studies. |
-| [API reference](https://pulserver.github.io/pypulseqpp/latest/api/index.html) | Exact interfaces, units and defaults. |
-| [Developer guide](https://pulserver.github.io/pypulseqpp/latest/developer-guide/index.html) | Development setup and contribution workflow. |
-| [Source](https://github.com/pulserver/pypulseqpp) | Repository, issues and discussions. |
-| [PDF manual](https://github.com/pulserver/pypulseqpp/releases/latest/download/pypulseqpp-docs.pdf) | Single-file documentation from the latest release. |
+The [user guide](https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html)
+covers installation and support, and lists what each documentation section
+holds. Every version of the documentation is published at
+<https://pulserver.github.io/pypulseqpp/>.
 
 ## Citation
 
 pypulseqpp has no project publication. Cite the foundational formats and APIs
 used in work built with it:
 
-1. Layton KJ, Kroboth S, Jia F, et al. Pulseq: A rapid and hardware-independent
-   pulse sequence prototyping framework. *Magnetic Resonance in Medicine*.
-   2017;77(4):1544–1552. [doi:10.1002/mrm.26235](https://doi.org/10.1002/mrm.26235).
-2. Ravi KS, Geethanath S, Vaughan JT. PyPulseq: A Python package for MRI pulse
-   sequence design. *Journal of Open Source Software*. 2019;4(42):1725.
-   [doi:10.21105/joss.01725](https://doi.org/10.21105/joss.01725).
+```bibtex
+@article{layton2017pulseq,
+  title   = {Pulseq: a rapid and hardware-independent pulse sequence prototyping framework},
+  author  = {Layton, Kelvin J and Kroboth, Stefan and Jia, Feng and Littin, Sebastian
+             and Yu, Huijun and Leupold, Jochen and Nielsen, Jon-Fredrik
+             and St{\"o}cker, Tony and Zaitsev, Maxim},
+  journal = {Magnetic Resonance in Medicine},
+  volume  = {77},
+  number  = {4},
+  pages   = {1544--1552},
+  year    = {2017},
+  doi     = {10.1002/mrm.26235}
+}
+
+@article{ravi2019pypulseq,
+  title   = {PyPulseq: A Python Package for MRI Pulse Sequence Design},
+  author  = {Ravi, Keerthi Sravan and Geethanath, Sairam and Vaughan, John Thomas},
+  journal = {Journal of Open Source Software},
+  volume  = {4},
+  number  = {42},
+  pages   = {1725},
+  year    = {2019},
+  doi     = {10.21105/joss.01725}
+}
+```
 
 ## License
 

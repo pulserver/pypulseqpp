@@ -172,6 +172,26 @@ class PropellerReadout2D(_PropellerReadout):
 
     >>> float(round(blade.blade_angles[1] - blade.blade_angles[0], 6))
     0.241661
+
+    One blade, and the strip of k-space its echo train covers before the
+    loop turns it:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       excitation = sequences.SpatialSelectiveExcitation(system, 15.0, 5e-3)
+       readout = sequences.PropellerReadout2D(
+           system, excitation.rf, excitation.gz, excitation.gz_reph,
+           fov=0.22, matrix=64, blade_width=8,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 2
@@ -201,6 +221,25 @@ class PropellerStackReadout(_PropellerReadout):
 
     >>> set(blade.gz_blips)
     {None}
+
+    One blade of one partition, with the partition encode on z:
+
+    .. plot::
+       :include-source: false
+
+       import matplotlib.pyplot as plt
+       import pypulseqpp as pp
+       from pypulseqpp import sequences
+
+       system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+       slab = sequences.SpatialSelectiveExcitation(system, 15.0, 0.12, is_slab=True)
+       readout = sequences.PropellerStackReadout(
+           system, slab.rf, slab.gz,
+           fov=0.22, matrix=64, blade_width=8, fov_z=0.12, matrix_z=16,
+       )
+       readout.seq.paper_plot()
+       pp.plot.plot_kspace(readout.seq, plane="xy", show_trajectory=True)
+       plt.show()
     """
 
     _ndim = 3

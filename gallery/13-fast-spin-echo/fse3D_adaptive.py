@@ -51,8 +51,9 @@ seq = app.design()
 # Train length and TR follow a smooth transition from central to peripheral
 # k-space. Representative schedules below retain only the refocusing pulses
 # played by each selected shot.
-indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
+
 # sphinx_gallery_start_ignore
+indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
 for i in indices:
     n = app.lengths[i]
@@ -80,12 +81,13 @@ fig.tight_layout(rect=(0, 0, 1, 0.75))
 # The ordering ranks ``(shot, echo)`` slots jointly by distance from the
 # effective-TE echo and by position in the central-to-peripheral transition.
 # Colour therefore relates each acquired view to its train length and TR.
+
+# sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")
 echo = np.asarray(labels["ECO"])
 shot = np.cumsum(echo == 0) - 1
 ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
-# sphinx_gallery_start_ignore
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.5), sharey=True)
 for ax, val, label in zip(
     axes,

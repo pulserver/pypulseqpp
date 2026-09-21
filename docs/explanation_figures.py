@@ -90,6 +90,108 @@ def axis_peaks_against_vector():
     return figure
 
 
+def rotation_against_per_axis_limit():
+    """Per-axis peaks in the logical frame and on the physical axes after a rotation.
+
+    A rotation preserves the vector magnitude at every instant and redistributes
+    it over the physical axes, so the largest per-axis amplitude a prescription
+    can produce is bounded by the vector magnitude rather than by the logical
+    per-axis peaks.
+    """
+    from scipy.spatial.transform import Rotation
+
+    import pypulseqpp as pp
+    from pypulseqpp import safety, sequences
+
+    plt = _pyplot()
+    system = pp.Opts(max_grad=32.0, grad_unit="mT/m", max_slew=140.0, slew_unit="T/m/s")
+    logical = sequences.gre2D_sequence(
+        system=system,
+        fov_x=0.2,
+        fov_y=0.2,
+        n_x=128,
+        n_y=128,
+        n_slices=1,
+        tr=None,
+        n_dummy=0,
+        readout_bandwidth_hz=400e3,
+    )
+    rotation = Rotation.from_euler("zy", [45.0, 45.0], degrees=True)
+    physical = pp.TransformFOV(rotation=rotation).apply_to_sequence(logical)
+
+    scale = 1e3 / system.gamma
+    limit = system.max_grad * scale
+    grid = np.arange(0.0, logical.get_definition("TR")[0], system.grad_raster_time)
+
+    figure = plt.figure(figsize=(PAGE_WIDTH, 4.4))
+    layout = figure.add_gridspec(
+        2, 2, width_ratios=(2.0, 1.2), hspace=0.5, wspace=0.34,
+        left=0.09, right=0.98, top=0.86, bottom=0.10,
+    )
+    traces = [figure.add_subplot(layout[0, 0])]
+    traces.append(figure.add_subplot(layout[1, 0], sharex=traces[0], sharey=traces[0]))
+    bars = figure.add_subplot(layout[:, 1])
+
+    peaks = {}
+    titles = ("logical axes", "physical axes, double-oblique prescription")
+    for axis, seq, title in zip(traces, (logical, physical), titles, strict=True):
+        played = np.array(
+            [
+                np.interp(grid, times, amplitudes, left=0.0, right=0.0)
+                for times, amplitudes in _physical_waveforms(seq)
+            ]
+        )
+        magnitude = np.linalg.norm(played, axis=0)
+        axis.fill_between(grid * 1e3, magnitude, color="0.55", alpha=0.20, lw=0)
+        axis.plot(grid * 1e3, magnitude, lw=1.0, color="0.45", label="$|G|$")
+        for row, name in zip(played, ("$G_x$", "$G_y$", "$G_z$"), strict=True):
+            axis.plot(grid * 1e3, row, lw=1.2, label=name)
+        for sign in (1.0, -1.0):
+            axis.axhline(sign * limit, color="tab:red", lw=0.9, ls="--")
+        axis.set_title(title)
+        axis.set_ylabel("$G$ (mT/m)")
+        axis.margins(y=0.18)
+        _, report = safety.check_max_grad(seq)
+        peaks[title] = [peak.value * scale for peak in report.axes]
+        peaks[title].append(report.vector.value * scale)
+    traces[1].set_xlabel("time (ms)")
+    traces[0].text(
+        0.1, limit, "max_grad", color="tab:red", va="bottom", ha="left", fontsize=8
+    )
+    figure.legend(
+        *traces[0].get_legend_handles_labels(),
+        frameon=False,
+        ncols=4,
+        loc="upper left",
+        bbox_to_anchor=(0.07, 1.0),
+        columnspacing=1.2,
+    )
+
+    names = ("x", "y", "z", "$|G|$")
+    offsets = np.arange(len(names))
+    for shift, (title, heights) in zip((-0.19, 0.19), peaks.items(), strict=True):
+        drawn = bars.bar(offsets + shift, heights, width=0.36, label=title.split(",")[0])
+        # Only the per-axis peaks are compared with the limit; the vector peak
+        # is reported beside them and carries no verdict.
+        for index, (rectangle, height) in enumerate(zip(drawn, heights, strict=True)):
+            if index < 3 and height > limit:
+                rectangle.set_color("tab:red")
+            bars.text(
+                rectangle.get_x() + 0.5 * rectangle.get_width(),
+                height + 0.8,
+                f"{height:.0f}",
+                ha="center",
+                fontsize=6.5,
+            )
+    bars.axhline(limit, color="tab:red", lw=0.9, ls="--")
+    bars.set_xticks(offsets, names)
+    bars.set_ylim(0, 1.18 * max(max(heights) for heights in peaks.values()))
+    bars.set_ylabel("peak amplitude (mT/m)")
+    bars.set_title("peaks over the scan")
+    bars.legend(frameon=False, fontsize=7, loc="upper left")
+    return figure
+
+
 def continuity_seam():
     """Legal and illegal physical-axis steps at a block boundary."""
     import pypulseqpp as pp
@@ -296,6 +398,7 @@ def gradient_spectra():
 #: Each figure's file name, without the extension, and the function that draws it.
 FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
+    "rotation_against_per_axis_limit": rotation_against_per_axis_limit,
     "continuity_seam": continuity_seam,
     "strength_duration": strength_duration,
     "pns_response": pns_response,
