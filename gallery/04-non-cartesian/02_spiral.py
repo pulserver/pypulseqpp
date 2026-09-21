@@ -68,9 +68,9 @@ REGIME_LABEL = {
     "amplitude": "at the amplitude cap",
 }
 REGIME_COLOUR = {
-    "slew": "tab:blue",
-    "bandwidth": "tab:red",
-    "amplitude": "tab:green",
+    "slew": "C0",
+    "bandwidth": "C7",
+    "amplitude": "C2",
 }
 
 
@@ -120,12 +120,12 @@ def waveform_figure(panels):
     )
     for column, (name, arm) in enumerate(panels.items()):
         top, bottom = axes[0][column], axes[1][column]
-        top.plot(1e3 * arm["time"], 1e3 * arm["magnitude"], color="tab:blue")
-        top.axhline(1e3 * arm["ceiling_bw"], color="tab:red", ls="--", lw=1.0)
-        top.axhline(1e3 * arm["ceiling_grad"], color="tab:green", ls="--", lw=1.0)
+        top.plot(1e3 * arm["time"], 1e3 * arm["magnitude"], color="C0")
+        top.axhline(1e3 * arm["ceiling_bw"], color="C7", ls="--", lw=1.0)
+        top.axhline(1e3 * arm["ceiling_grad"], color="C2", ls="--", lw=1.0)
         top.set_title(name)
         top.set_ylim(0, 1e3 * 1.15 * arm["ceiling_grad"])
-        bottom.plot(1e3 * arm["time"][:-1], arm["slew"], color="tab:blue")
+        bottom.plot(1e3 * arm["time"][:-1], arm["slew"], color="C0")
         bottom.axhline(arm["ceiling_slew"], color="0.55", ls="--", lw=1.0)
         bottom.set_ylim(0, 1.15 * arm["ceiling_slew"])
         bottom.set_xlabel("time from the start of the arm (ms)")
@@ -139,16 +139,16 @@ def interleaf_figure(rows):
     """Arm duration and repetition content against the number of interleaves."""
     figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6))
     arms = [row["interleaves"] for row in rows]
-    axis.plot(arms, [1e3 * row["readout"] for row in rows], "o-", color="tab:blue")
+    axis.plot(arms, [1e3 * row["readout"] for row in rows], "o-", color="C0")
     axis.set_xlabel("interleaves")
-    axis.set_ylabel("readout duration (ms)", color="tab:blue")
+    axis.set_ylabel("readout duration (ms)", color="C0")
     axis.set_yscale("log")
     axis.set_xscale("log")
     axis.set_xticks(arms)
     axis.set_xticklabels([str(n) for n in arms])
     second = axis.twinx()
-    second.plot(arms, [row["scan"] for row in rows], "s-", color="tab:red")
-    second.set_ylabel("time for a full set of arms (s)", color="tab:red")
+    second.plot(arms, [row["scan"] for row in rows], "s-", color="C7")
+    second.set_ylabel("time for a full set of arms (s)", color="C7")
     figure.tight_layout()
     return figure
 

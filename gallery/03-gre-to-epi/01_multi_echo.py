@@ -204,11 +204,11 @@ for echo in range(ECHOES):
         1e3 * (t_adc[window] - t_excitation[0]),
         kx[window],
         lw=1.4,
-        color="tab:blue" if echo % 2 == 0 else "tab:red",
+        color="C0" if echo % 2 == 0 else "C7",
     )
-axis.plot([], [], color="tab:blue", label="odd echoes")
-axis.plot([], [], color="tab:red", label="even echoes")
-axis.plot(1e3 * echo_times, np.zeros(ECHOES), "ko", ms=4, label="echo")
+axis.plot([], [], color="C0", label="odd echoes")
+axis.plot([], [], color="C7", label="even echoes")
+axis.plot(1e3 * echo_times, np.zeros(ECHOES), "o", color="C2", ms=4, label="echo")
 axis.set_xlabel("time from the excitation (ms)")
 axis.set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
 axis.legend(

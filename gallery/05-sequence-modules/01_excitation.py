@@ -99,7 +99,7 @@ def feasibility_figure(grid, boundary_tbw, boundary_duration):
             1e3 * entry["duration"],
             "o" if entry["feasible"] else "x",
             ms=7,
-            color="tab:blue" if entry["feasible"] else "tab:red",
+            color="C0" if entry["feasible"] else "C7",
         )
     axis.plot(
         boundary_tbw,
@@ -108,8 +108,8 @@ def feasibility_figure(grid, boundary_tbw, boundary_duration):
         color="0.5",
         label=r"$T = \mathrm{TBW} / (\gamma\, \Delta z\, G_\mathrm{max})$",
     )
-    axis.plot([], [], "o", color="tab:blue", label="designed")
-    axis.plot([], [], "x", color="tab:red", label="rejected")
+    axis.plot([], [], "o", color="C0", label="designed")
+    axis.plot([], [], "x", color="C7", label="rejected")
     axis.set_xlabel("time-bandwidth product")
     axis.set_ylabel("pulse duration (ms)")
     axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=9)

@@ -18,6 +18,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pypulseqpp.plot import SAMPLING
+
 PAGE_WIDTH = 8.6  # inches, the width of the documentation column
 
 plt.rcParams.update(
@@ -53,7 +55,7 @@ def order_figure(seq, n_y, n_z):
         ("Readout index in train", "Inversion cycle"),
         strict=True,
     ):
-        drawn = axis.scatter(line, partition, c=value, cmap="turbo", s=9, linewidth=0)
+        drawn = axis.scatter(line, partition, c=value, cmap=SAMPLING, s=9, linewidth=0)
         figure.colorbar(drawn, ax=axis, label=label, pad=0.02)
         axis.set_xlabel("$k_y$ (lines from centre)")
         axis.grid(alpha=0.2, lw=0.4)

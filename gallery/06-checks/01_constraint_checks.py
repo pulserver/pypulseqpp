@@ -133,8 +133,8 @@ figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
 for entry in pns.axes:
     axis.plot(pns.time * 1e3, entry.response, lw=0.8, label=f"$G_{entry.axis}$")
 axis.plot(pns.time * 1e3, pns.response, lw=1.5, color="0.5", label="combined")
-axis.axhline(1.0, color="tab:red", ls="--", lw=1.0)
-axis.plot(pns.peak.time * 1e3, pns.peak.value, "o", color="tab:red", ms=5)
+axis.axhline(1.0, color="C7", ls="--", lw=1.0)
+axis.plot(pns.peak.time * 1e3, pns.peak.value, "o", color="C7", ms=5)
 axis.set_xlabel("time (ms)")
 axis.set_ylabel("response, fraction of threshold")
 axis.set_title("Peripheral nerve stimulation response")
@@ -180,10 +180,8 @@ figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
 for name, amplitude in zip(spectrum.axes, spectrum.amplitude, strict=True):
     axis.plot(spectrum.frequency, amplitude, lw=0.9, label=f"$G_{name}$")
 for band in mech.bands:
-    axis.axvspan(band.f_min, band.f_max, color="tab:red", alpha=0.15, lw=0)
-    axis.hlines(
-        band.threshold, band.f_min, band.f_max, color="tab:red", ls="--", lw=1.0
-    )
+    axis.axvspan(band.f_min, band.f_max, color="C7", alpha=0.15, lw=0)
+    axis.hlines(band.threshold, band.f_min, band.f_max, color="C7", ls="--", lw=1.0)
 axis.set_xlim(0, 2500)
 axis.set_xlabel("frequency (Hz)")
 axis.set_ylabel("amplitude (mT/m)")

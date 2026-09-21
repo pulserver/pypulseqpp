@@ -16,6 +16,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import ListedColormap, to_rgba
+
+from pypulseqpp.plot import SAMPLING
+from pypulseqpp.plot._style import FAINT, MUTED
 
 PAGE_WIDTH = 8.6  # inches, the width of the documentation column
 
@@ -61,14 +65,16 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
         sampled[par[inside] - z0, lin[inside] - y0] = True
 
     ax = ax or plt.gca()
+    # A sampled cell is a soft fill and an unsampled one is the page, so the
+    # lattice reads the same way on a white page and on a dark one.
     ax.pcolormesh(
         np.arange(width + 1),
         np.arange(rz + 1),
-        sampled + 0.3,
-        cmap="gray",
+        sampled.astype(float),
+        cmap=ListedColormap([(0, 0, 0, 0), to_rgba(MUTED, 0.3)]),
         vmin=0,
         vmax=1,
-        edgecolor=[0.35, 0.35, 0.35],
+        edgecolor=FAINT,
         lw=0.6,
     )
     for shot, (_, lin, par) in enumerate(paths[:shots]):
@@ -79,9 +85,7 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
         z = (par[keep] - z0) % rz + 0.5
         z = z + 0.06 * (shot - (shots - 1) / 2)
         leading = shot == 0
-        colour = (
-            "tab:red" if leading else plt.get_cmap("copper")(0.2 + 0.5 * shot / shots)
-        )
+        colour = "C7" if leading else SAMPLING(0.2 + 0.5 * shot / shots)
         ax.plot(
             y,
             z,

@@ -12,6 +12,8 @@ from pathlib import Path
 
 import numpy as np
 
+from pypulseqpp.plot._style import MUTED
+
 PAGE_WIDTH = 7.4  # inches, the width of the documentation column
 
 
@@ -82,7 +84,7 @@ def axis_peaks_against_vector():
     figure.legend(frameon=False, ncols=4, loc="upper center", bbox_to_anchor=(0.36, 1.03), columnspacing=1.0)
 
     heights = [*axis_peaks, float(np.linalg.norm(axis_peaks)), simultaneous]
-    colors = ["0.7", "0.7", "0.7", "tab:red", "tab:green"]
+    colors = [MUTED, MUTED, MUTED, "C7", "C2"]
     bars.bar(["x", "y", "z", "RSS", "$|G|$"], heights, color=colors)
     for index, height in enumerate(heights):
         bars.text(index, height + 1.0, f"{height:.0f}", ha="center", fontsize=8)
@@ -167,13 +169,13 @@ def rotation_against_per_axis_limit():
         magnitude = float(np.hypot(*vector))
         axis.add_patch(
             plt.Circle(
-                (0, 0), limit, facecolor="tab:green", alpha=0.10, lw=0, zorder=0
+                (0, 0), limit, facecolor="C2", alpha=0.10, lw=0, zorder=0
             )
         )
         axis.add_patch(
             plt.Rectangle(
                 (-limit, -limit), 2 * limit, 2 * limit,
-                facecolor="none", edgecolor="tab:red", lw=1.0, ls="--", zorder=1,
+                facecolor="none", edgecolor="C7", lw=1.0, ls="--", zorder=1,
             )
         )
         circle = np.linspace(0.0, 2 * np.pi, 361)
@@ -197,7 +199,7 @@ def rotation_against_per_axis_limit():
                 zorder=3 if outside else 2,
                 arrowprops={
                     "arrowstyle": "-|>",
-                    "color": "tab:red" if outside else "0.5",
+                    "color": "C7" if outside else "0.5",
                     "lw": 1.1,
                     "shrinkA": 0,
                     "shrinkB": 0,
@@ -211,12 +213,12 @@ def rotation_against_per_axis_limit():
     planes[0].set_ylabel("$G_y$ (mT/m)")
 
     handles = [
-        plt.Line2D([], [], color="tab:red", lw=1.0, ls="--",
+        plt.Line2D([], [], color="C7", lw=1.0, ls="--",
                    label=f"per-axis limit, {limit:.0f} mT/m"),
-        plt.Rectangle((0, 0), 1, 1, facecolor="tab:green", alpha=0.20, lw=0,
+        plt.Rectangle((0, 0), 1, 1, facecolor="C2", alpha=0.20, lw=0,
                       label="inside the limit at every orientation"),
         plt.Line2D([], [], color="0.5", lw=1.1, label="within the per-axis limit"),
-        plt.Line2D([], [], color="tab:red", lw=1.1, label="over the per-axis limit"),
+        plt.Line2D([], [], color="C7", lw=1.1, label="over the per-axis limit"),
     ]
     figure.legend(
         handles=handles, frameon=False, ncols=2, loc="upper left",
@@ -225,7 +227,7 @@ def rotation_against_per_axis_limit():
 
     for name, peaks in sweeps.items():
         sweep.plot(prescription, peaks, lw=1.4, label=name)
-    sweep.axhline(limit, color="tab:red", lw=0.9, ls="--")
+    sweep.axhline(limit, color="C7", lw=0.9, ls="--")
     sweep.set_xlim(prescription[0], prescription[-1])
     sweep.set_xticks(np.arange(0.0, 181.0, 30.0))
     sweep.set_xlabel("prescription rotation about z (degrees)")
@@ -270,13 +272,13 @@ def continuity_seam():
             "",
             xy=(boundary * 1e6, 0.0),
             xytext=(boundary * 1e6, endpoint * scale),
-            arrowprops={"arrowstyle": "<->", "color": "tab:red", "lw": 1.2},
+            arrowprops={"arrowstyle": "<->", "color": "C7", "lw": 1.2},
         )
         axis.text(
             boundary * 1e6 - 2,
             0.5 * endpoint * scale,
             r"$\Delta G$",
-            color="tab:red",
+            color="C7",
             ha="right",
             va="center",
         )
@@ -380,12 +382,12 @@ def pns_response():
             label=rf"$R_{entry.axis}(t)$",
         )
     axis.plot(report.time * 1e3, report.response, color="0.5", lw=1.4, label=r"$R(t)$")
-    axis.axhline(1.0, color="tab:red", ls="--", lw=1.0, label="threshold")
+    axis.axhline(1.0, color="C7", ls="--", lw=1.0, label="threshold")
     axis.plot(
         report.peak.time * 1e3,
         report.peak.value,
         "o",
-        color="tab:red",
+        color="C7",
         ms=5,
         label="reported peak",
     )
