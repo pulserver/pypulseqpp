@@ -37,9 +37,9 @@ def traj2grad(
         K-space path, ``(n, 2)`` or ``(n, 3)``, in 1/m.
     system : pypulseqpp.Opts
         System limits.
-    oversampling : int, optional
+    oversampling : int, default=8
         Path-resampling factor the solver works at.
-    start_at_zero, end_at_zero : bool, optional
+    start_at_zero, end_at_zero : bool, default=True
         Ramp up from and back down to zero amplitude. Disable an endpoint
         where a prewinder or rewinder meets the readout at non-zero amplitude.
 
@@ -217,14 +217,14 @@ class NonCartesianGradient:
         The acquisition window under ``gradients``.
     trajectory : ArrayLike
         ``(n, 2)`` or ``(n, 3)`` k-space path (1/m).
-    design_interleaves : int, optional
+    design_interleaves : int, default=None
         Interleaf count the path's pitch was designed for.
-    recommended_rotations : int, optional
+    recommended_rotations : int, default=None
         Rotated copies that sample the path's disc at Nyquist.
-    prewinders, rewinders : Sequence[GradEvent], optional
+    prewinders, rewinders : Sequence[GradEvent], default=()
         Prewinding gradients from k = 0 to the path's start, and rewinding
         gradients from its end back to k = 0, one event per channel.
-    kind : str, optional
+    kind : str, default=None
         Name of the interleaf family.
 
     Attributes
@@ -234,12 +234,12 @@ class NonCartesianGradient:
         :class:`Rosette` the k-space at the ADC samples.
     bandwidth_hz_px : float
         ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.
-    design_interleaves : int | None
+    design_interleaves : int | None, default=None
         Interleaf count the spiral pitch was designed for.
-    recommended_rotations : int | None
+    recommended_rotations : int | None, default=None
         Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``,
         for a radial spoke; ``None`` otherwise.
-    kind : str
+    kind : str, default=None
         ``"arbitrary"``, ``"full"`` (radial), ``"spiral"`` or ``"rosette"``.
 
     Examples
@@ -457,16 +457,16 @@ class Arbitrary(NonCartesianGradient):
     matrix : int
         Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,
         rounded down to ``system.adc_samples_divisor``.
-    bandwidth_hz_px : float, optional
+    bandwidth_hz_px : float, default=250000.0
         Requested ``1 / dwell`` (Hz).
-    oversamp : float, optional
+    oversamp : float, default=1.0
         ADC oversampling, at least one.
-    axes : Sequence[str], optional
+    axes : Sequence[str], default=None
         Channel per path component; the first two or three of x, y, z by
         default.
-    solver_oversampling : int, optional
+    solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
-    derate : bool, optional
+    derate : bool, default=True
         Apply :func:`pypulseqpp.apply_system_derates` first.
 
     Raises
@@ -654,29 +654,32 @@ class Spiral(NonCartesianGradient):
     design_interleaves : int
         Interleaf count the pitch is designed for, not the number of arms
         acquired.
-    direction : {'outward', 'inward', 'in_out'}, optional
+    direction : {'outward', 'inward', 'in_out'}, default='outward'
         Traversal, as above.
-    density : {'constant', 'variable', 'dual'}, optional
+    density : {'constant', 'variable', 'dual'}, default='constant'
         Constant pitch, a radial power-law transition, or a logistic
         transition.
-    inner_design_interleaves, outer_design_interleaves : float, optional
+    inner_design_interleaves, outer_design_interleaves : float, default=None
         Local pitch at the centre and at the edge.
-    variable_density_power : float, optional
+    variable_density_power : float, default=2.0
         Exponent of the normalised radius, for variable density.
-    transition_radius, transition_speed : float, optional
+    transition_radius : float, default=0.5
         Normalised radius and logistic steepness of the dual-density
         transition.
-    num_points : int, optional
+    transition_speed : float, default=12.0
+        Normalised radius and logistic steepness of the dual-density
+        transition.
+    num_points : int, default=1024
         Path samples given to the solver, not ADC samples.
-    bandwidth_hz_px : float, optional
+    bandwidth_hz_px : float, default=250000.0
         Requested ``1 / dwell`` (Hz).
-    oversamp : float, optional
+    oversamp : float, default=1.0
         ADC oversampling; tightens the step limit.
-    axes : tuple[str, str], optional
+    axes : tuple[str, str], default=('x', 'y')
         Channels for the path's two components.
-    solver_oversampling : int, optional
+    solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
-    derate : bool, optional
+    derate : bool, default=True
         Apply :func:`pypulseqpp.apply_system_derates` first.
 
     Raises
@@ -857,28 +860,28 @@ class Rosette(NonCartesianGradient):
         adjacent ADC samples to ``1 / (oversamp * fov)``.
     matrix : int or array-like
         Isotropic matrix size.
-    petals : int, optional
+    petals : int, default=5
         Centre-to-centre lobes within this one interleaf, not rotated shots.
-    angular_frequency_ratio : float, optional
+    angular_frequency_ratio : float, default=3.0 / 5.0
         Angular over radial frequency: below one the petals are open, one is
         the circular limit, above one they wind more tightly.
-    echo_spacing_s : float, optional
+    echo_spacing_s : float, default=None
         Mean centre-to-centre petal duration (s); ``None`` is the minimum the
         limits allow, and a longer value stretches the waveform uniformly.
         The ramps at each end can make the first and last crossing intervals
         differ slightly from the mean.
-    bandwidth_hz_px : float, optional
+    bandwidth_hz_px : float, default=250000.0
         Requested ``1 / dwell`` (Hz). The dwell is also bounded by the step
         limit and floored to the ADC raster, so the realised bandwidth can be
         higher.
-    oversamp : float, optional
+    oversamp : float, default=1.0
         ADC oversampling; tightens the step limit without changing the
         gradient.
-    axes : tuple[str, str], optional
+    axes : tuple[str, str], default=('x', 'y')
         Channels for the path's two components.
-    solver_oversampling : int, optional
+    solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
-    derate : bool, optional
+    derate : bool, default=True
         Apply :func:`pypulseqpp.apply_system_derates` first.
 
     Raises

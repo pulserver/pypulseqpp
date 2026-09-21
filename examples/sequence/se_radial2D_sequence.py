@@ -61,33 +61,33 @@ class SeRadial2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov : float, optional
+        fov : float, default=0.22
             Isotropic in-plane field of view (m).
-        n : int, optional
+        n : int, default=128
             In-plane matrix size; a spoke reads it edge to edge.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.005
             Slice thickness (m).
-        slice_spacing : float, optional
+        slice_spacing : float, default=0.0
             Gap between adjacent slices (m); zero is contiguous.
-        te : float | None, optional
+        te : float | None, default=None
             Echo time (s), excitation centre to the spoke's centre crossing,
             with the refocusing pulse at its midpoint. ``None`` is as short as
             possible.
-        tr : float | None, optional
+        tr : float | None, default=0.5
             Repetition time between successive excitations of one slice (s).
             ``None`` is as short as possible, and puts every slice in one
             packet.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz).
-        ry : int, optional
+        ry : int, default=1
             Angular undersampling: one spoke in every ``ry`` of the Nyquist set
             is played.
-        n_dummy : int, optional
+        n_dummy : int, default=0
             Non-acquiring repetitions, at the first spoke's angle, before each
             packet.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=2.0
             Readout oversampling factor, at least one.
 
         Raises

@@ -1,11 +1,10 @@
 # Analyse a finished sequence
 
-This guide covers what a sequence can be asked about once it has been built or
-read from a file: its structure, its timing, the waveforms it plays and the
-k-space trajectory it samples.
+Inspect the structure, timing, physical waveforms, k-space trajectory and ADC
+sampling locations of a constructed or imported sequence.
 
-The sequence used here is one of the shipped implementations; the same calls
-apply to a sequence assembled by hand or read with
+The same analysis methods apply to shipped sequences, manually assembled
+sequences and files imported with
 {meth}`~pypulseqpp.Sequence.read`.
 
 ```python

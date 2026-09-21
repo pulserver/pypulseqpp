@@ -75,9 +75,9 @@ def traj2grad(
         Vector gradient limit in Hz/m.
     dt : float
         Output gradient raster time in seconds.
-    oversampling : int, optional
+    oversampling : int, default=8
         Internal MRArbGrad integration oversampling, at least 2.
-    start_at_zero, end_at_zero : bool, optional
+    start_at_zero, end_at_zero : bool, default=True
         Constrain the gradient amplitude at the respective path endpoint to
         zero. Disable an endpoint when a continuous prewinder/rewinder will
         bridge directly to the readout gradient.
@@ -138,9 +138,9 @@ def spiral(
         Gradient-amplitude limit, Hz/pix.
     dt : float
         Gradient raster time, seconds.
-    k_rho_phi0 : float, optional
+    k_rho_phi0 : float, default=0.5 / (8.0 * pi)
         Inner (center) spiral shape parameter.
-    k_rho_phi1 : float, optional
+    k_rho_phi1 : float, default=0.5 / (2.0 * pi)
         Outer (edge) spiral shape parameter. Set equal to ``k_rho_phi0`` for
         a constant-pitch spiral.
     """
@@ -180,12 +180,12 @@ def rosette(
         Gradient-amplitude limit, Hz/pix.
     dt : float
         Gradient raster time, seconds.
-    om1 : float, optional
+    om1 : float, default=5.0 * pi
         First rosette frequency, which with ``om2`` sets the petal count and
         shape.
-    om2 : float, optional
+    om2 : float, default=3.0 * pi
         Second rosette frequency.
-    t_max : float, optional
+    t_max : float, default=1.0
         Trajectory parameter upper bound.
     """
     k0, gradient, n_shots = _kernels.rosette_waveform(
@@ -219,7 +219,7 @@ def to_gradient_tesla_per_meter(
         Field of view used when designing the waveform, meters.
     n_pix : int
         Matrix size used when designing the waveform, pixels.
-    gamma : float, optional
+    gamma : float, default=DEFAULT_GAMMA_HZ_PER_T
         Gyromagnetic ratio, Hz/T. Defaults to :sup:`1`\\ H (42.5756e6 Hz/T).
 
     Returns

@@ -17,9 +17,9 @@ independently of what the gradient system could deliver. The solver applies
 the lowest of the three, so the readout duration depends on the slew rate over
 part of the design space and not over the rest.
 
-This example designs one spiral arm over a grid of slew limits and sampling
-rates, reads the peak amplitude and peak slew back off the designed waveform,
-and identifies which ceiling bounds each design.
+Spiral arms are designed over a grid of slew limits and sampling rates. Peak
+gradient amplitude and slew rate are measured from each resulting waveform to
+identify the active constraint.
 """
 
 # sphinx_gallery_start_ignore
@@ -87,7 +87,7 @@ def duration_figure(grid):
     axis.set_ylabel("readout duration (ms)")
     axis.set_ylim(bottom=0)
     axis.margins(x=0.16)
-    axis.legend(loc="upper right")
+    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0))
     figure.tight_layout()
     return figure
 
@@ -162,8 +162,8 @@ MAX_GRAD_MT_M = 40.0
 # -----------------
 #
 # The readout module designs the arm from the prescription and the system
-# limits it is given, so a design is one call and the waveform it produced is
-# an attribute of the result. ``design_interleaves`` sets the pitch of the
+# limits it is given, and stores the resulting gradient waveform as
+# an attribute. ``design_interleaves`` sets the pitch of the
 # spiral, against which the readout duration is measured. It is not the number
 # of arms a scan plays.
 

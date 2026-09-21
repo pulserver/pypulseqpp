@@ -82,28 +82,28 @@ class _BssfpReadout(SequenceModule):
         System limits.
     rf : RfEvent
         The excitation.
-    gz : GradEvent, optional
+    gz : GradEvent, default=None
         Its selection gradient without a rephaser, played in the excitation
         block. ``None`` for a hard pulse.
     fov : float or sequence of float
         Field of view (m), per encoded axis, readout first.
     matrix : int or sequence of int
         Matrix size, per encoded axis.
-    tr : float, optional
+    tr : float, default=None
         Repetition time (s). ``None`` is as short as possible; a longer one is
         padded evenly either side of the echo, so TE stays at TR/2.
-    half_flip_prep : bool, optional
+    half_flip_prep : bool, default=True
         Publish ``wait_prep``. This requires the acquisition block after the
         echo to be at least as long as the excitation block after the pulse
         centre. Turn it off to ramp the train in with dummy repetitions.
-    oversampling : float, optional
+    oversampling : float, default=1.0
         Read oversampling.
-    readout_bandwidth_hz : float, optional
+    readout_bandwidth_hz : float, default=250000.0
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
-    labels : sequence of str, optional
+    labels : sequence of str, default=None
         Counters emitted on the acquisition block.
-    trigger : event, optional
+    trigger : event, default=None
         A trigger or digital output armed on the rewind block.
 
     Raises

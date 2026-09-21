@@ -114,6 +114,19 @@ def test_the_first_excitation_of_a_shot_is_ti_after_its_inversion(name, ti):
 
 
 @pytest.mark.parametrize("name", SMALL)
+def test_the_first_views_central_adc_sample_is_ti_plus_te_after_inversion(name):
+    built = app(name)
+    seq = built.design()
+    sample_times, _ = seq.adc_times()
+    first_centre = sample_times[built.ro.center_sample]
+    inversion = pulse_times(seq, "inversion")[0]
+
+    assert first_centre - inversion == pytest.approx(
+        built.ti + built.ro.echo_time, abs=built.ro.adc.dwell / 2
+    )
+
+
+@pytest.mark.parametrize("name", SMALL)
 def test_inversions_are_one_tr_apart(name):
     built = app(name, tr=800e-3, n_dummy=1)
     inversions = pulse_times(built.design(), "inversion")

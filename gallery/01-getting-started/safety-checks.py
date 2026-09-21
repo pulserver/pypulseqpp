@@ -1,19 +1,18 @@
 """
-==============================
-Checking a sequence for safety
-==============================
+==========================
+Sequence constraint checks
+==========================
 
-The package computes five checks over a finished sequence: the gradient
-amplitude and slew rate the hardware is asked for, the continuity of the
-gradient waveform across block boundaries, the nerve response the slew implies,
-the gradient spectrum inside a scanner's forbidden bands, and the power a
-transmit array deposits. Each returns a verdict and a report, and this page
-runs all of them over one sequence.
+The package computes timing and six constraint checks over a finished sequence:
+event timing, gradient amplitude, slew rate, gradient continuity across block
+boundaries, peripheral nerve stimulation (PNS), mechanical resonance and
+specific absorption rate (SAR). Each check returns a verdict and the quantities
+used to determine it.
 
 A passing check does not establish that a sequence is safe to run on a scanner
-or on a subject. The models used here are demonstrations: a scanner applies its
-own, and its predownload gate and hardware monitor run whatever these say. The
-physics behind each check is in
+or on a subject. The PNS, mechanical-resonance and SAR models used here are
+synthetic demonstrations. Scanner-specific checks and hardware monitoring are
+separate. The physical models are described in
 :doc:`/explanations/safety/index`.
 """
 
@@ -46,11 +45,12 @@ def summary(rows):
 # sphinx_gallery_end_ignore
 
 # %%
-# The sequence
-# ------------
+# Echo-planar test sequence
+# -------------------------
 #
-# An echo-planar readout, which drives one gradient axis hard and repetitively
-# and so has something to say to every check.
+# A single-shot echo-planar readout provides high slew rates and a periodic
+# gradient waveform, making both PNS and mechanical-resonance diagnostics
+# informative.
 
 from pypulseqpp import safety
 from pypulseqpp.sequences import epi2D_sequence
@@ -59,18 +59,20 @@ seq = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
 print(f"{seq.num_blocks} blocks, {seq.duration()[0] * 1e3:.1f} ms")
 
 # %%
-# Gradient hardware
-# -----------------
+# Timing and gradient hardware
+# ----------------------------
 #
+# ``check_timing`` verifies raster alignment, dead times and event placement.
 # The amplitude and slew checks compare the physical, rotated waveform against
 # the system limits the sequence was designed under. They report the largest
 # per-axis reading and the largest vector reading, which is not the norm of the
 # per-axis peaks: two axes reach their own peaks at different times.
 # The verdict is on the per-axis reading, which is what the hardware limits;
 # the vector reading is reported beside it. ``check_grad_continuity`` looks for
-# steps between blocks, which a scanner would have to slew through in no time
-# at all.
+# discontinuities between adjacent blocks. A discontinuity corresponds to an
+# undefined instantaneous slew in the Pulseq waveform.
 
+timing_ok, timing_errors = seq.check_timing()
 grad_ok, grad = safety.check_max_grad(seq)
 slew_ok, slew = safety.check_max_slew(seq)
 cont_ok, cont = safety.check_grad_continuity(seq)
@@ -86,7 +88,7 @@ print(
 # ----------------------------
 #
 # A changing gradient induces an electric field in the subject, and the nerve
-# model turns the slew on each axis into a response as a fraction of the
+# model converts the slew on each axis into a response as a fraction of the
 # threshold at which stimulation is reported. The axes are combined as a
 # root sum of squares, and the check passes while that stays below one.
 #
@@ -116,19 +118,20 @@ axis.axhline(1.0, color="tab:red", ls="--", lw=1.0)
 axis.plot(pns.peak.time * 1e3, pns.peak.value, "o", color="tab:red", ms=5)
 axis.set_xlabel("time (ms)")
 axis.set_ylabel("response, fraction of threshold")
-axis.set_title("threshold dashed, peak marked")
-axis.legend(frameon=False, ncol=4, fontsize=9)
-figure.tight_layout()
+axis.set_title("Peripheral nerve stimulation response")
+axis.legend(
+    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
+)
+figure.tight_layout(rect=(0, 0, 0.82, 1))
 # sphinx_gallery_end_ignore
 
 # %%
 # Mechanical resonance
 # --------------------
 #
-# A gradient coil has mechanical modes, and driving one of them shakes the
-# magnet. A scanner declares the frequency ranges to stay out of and how much
-# amplitude it tolerates in each. The check takes the gradient spectrum in
-# overlapping windows and reads the largest amplitude inside each band.
+# Gradient-coil mechanical modes define forbidden frequency bands and amplitude
+# tolerances. The check computes the gradient spectrum in overlapping windows
+# and reports the largest amplitude within each band.
 
 bands = [
     safety.ForbiddenBand(axis=None, f_min=550.0, f_max=650.0, tolerance=6.0),
@@ -166,11 +169,13 @@ axis.set_xlim(0, 2500)
 axis.set_xlabel("frequency (Hz)")
 axis.set_ylabel("amplitude (mT/m)")
 axis.set_title(
-    f"window {spectrum.window} at {spectrum.window_start * 1e3:.0f} ms; "
-    "forbidden bands shaded, their thresholds dashed"
+    f"Mechanical-resonance spectrum, window {spectrum.window} "
+    f"at {spectrum.window_start * 1e3:.0f} ms"
 )
-axis.legend(frameon=False, ncol=3, fontsize=9)
-figure.tight_layout()
+axis.legend(
+    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
+)
+figure.tight_layout(rect=(0, 0, 0.84, 1))
 # sphinx_gallery_end_ignore
 
 # %%
@@ -205,6 +210,7 @@ print(
 # sphinx_gallery_start_ignore
 summary(
     [
+        ("event timing", timing_ok, f"{len(timing_errors)} errors"),
         (
             "gradient amplitude",
             grad_ok,
@@ -228,9 +234,9 @@ summary(
 # sphinx_gallery_end_ignore
 
 # %%
-# This configuration exceeds the nerve model's threshold, which is what an
-# echo-planar train at a short echo spacing does on a body gradient system.
-# Lengthening the echo spacing, reading fewer lines per train or lowering the
-# slew rate the readout is designed under all move it; the notebook on
-# :doc:`echo-planar imaging </generated/gallery/15-epi/epi2D_sequence>` shows
-# what each of those costs.
+# This short-echo-spacing echo-planar train exceeds the demonstration nerve
+# model's threshold.
+# Lengthening the echo spacing, reducing the echo-train length or lowering the
+# prescribed slew limit changes the response. These design parameters are
+# compared in the
+# :doc:`echo-planar imaging example </generated/gallery/15-epi/epi2D_sequence>`.

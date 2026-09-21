@@ -3,7 +3,10 @@
 2D spiral spin echo
 =====================
 
-One spiral interleaf per excitation, read at the refocused echo.
+A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a spiral interleaf. Spoilers suppress unwanted coherence before
+the next TR. TE controls T2 weighting; off-resonance affects the spiral
+readout. Spiral spin echo supports rapid T2-weighted structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -21,13 +24,6 @@ plt.rcParams.update(
         "axes.labelsize": 10,
     }
 )
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -65,8 +61,8 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Variable density
 # ----------------
 #
-# A dual-density arm keeps the Nyquist spacing at the centre and samples the
-# periphery more sparsely, which shortens the readout.
+# A dual-density arm retains the Nyquist spacing near the origin and increases
+# the pitch at larger radii, reducing the readout duration.
 
 alternative = se_spiral2D_sequence(
     n=192,
@@ -92,40 +88,3 @@ for name, seq in (("constant", baseline), ("dual density", alternative)):
 pp.plot.plot_kspace(alternative, color_by="shot", plane="xy")
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ],
-)
-# sphinx_gallery_end_ignore

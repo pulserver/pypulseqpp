@@ -1,1 +1,1 @@
-What a sequence module publishes, and how modules are composed into a repetition.
+Published event templates and composition of modules within one repetition.

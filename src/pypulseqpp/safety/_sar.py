@@ -246,12 +246,14 @@ def check_sar(
     drive_per_hz : float or array_like
         Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one
         value, or one per channel.
-    local_limit, global_limit : float
+    local_limit : float, default=10.0
         W/kg; IEC 60601-2-33 normal-mode head limits by default.
-    default_shim : array_like, optional
+    global_limit : float, default=3.2
+        W/kg; IEC 60601-2-33 normal-mode head limits by default.
+    default_shim : array_like, default=None
         Channel weights of a single-channel pulse played without an RF shim;
         all ones by default.
-    reference : Sequence or report, optional
+    reference : Sequence or report, default=None
         What to compare with, in the same model and calibration: a sequence,
         such as a CP-mode FID, evaluated here with the same drive and default
         shim; or the report of an earlier call. Its worst window's per-VOP SAR,

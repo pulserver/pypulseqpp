@@ -5,9 +5,9 @@ Non-Cartesian readout modules
 
 A non-Cartesian readout designs one base interleaf — its acquisition window and
 the gradients that prewind to and rewind from the centre of k-space — and the
-scan loop rotates it per shot with a ``ROTATIONS`` extension. One interleaf in
-the gradient library therefore serves the whole scan, however many angles it is
-played at.
+scan loop rotates it per shot with a ``ROTATIONS`` extension. The gradient
+library stores one interleaf; per-shot rotation extensions define
+its physical orientation.
 """
 
 # %%
@@ -50,9 +50,9 @@ for name, module in (
 # The solved interleaf
 # --------------------
 #
-# A spiral arm is solved against the gradient system rather than taken from a
-# fixed shape, so the module reports what it achieved rather than what was
-# requested: the receiver bandwidth, the sample count and the duration of the
+# A spiral arm is solved under the gradient-system constraints. The module
+# reports the resulting receiver bandwidth, sample count and acquisition
+# duration: the receiver bandwidth, the sample count and the duration of the
 # acquisition window.
 
 for name, module in (("radial", radial), ("spiral", spiral), ("blade", blade)):

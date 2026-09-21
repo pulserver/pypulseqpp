@@ -27,18 +27,18 @@ class FrequencySelectiveExcitation(RfModule):
         Nominal flip angle (degrees).
     bandwidth_hz : float
         Spectral passband (Hz).
-    freq_offset_ppm : float, optional
+    freq_offset_ppm : float, default=0.0
         Centre of the band, relative to water (ppm). Water itself by default.
-    freq_offset_hz : float, optional
+    freq_offset_hz : float, default=0.0
         Centre of the band as a frequency offset (Hz), added to the offset
         ``freq_offset_ppm`` specifies.
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product. Higher is a squarer band and a longer pulse.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         SLR design family.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq RF-use tag, used by trajectory integration.
-    passband_ripple, stopband_ripple : float, optional
+    passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the spectral profile.
 
     Attributes
@@ -131,21 +131,21 @@ class SpspExcitation(RfModule):
     spectral_bandwidth_hz : float
         Spectral passband (Hz). With ``spectral_time_bw_product`` it fixes the
         total duration.
-    freq_offset_hz : float, optional
+    freq_offset_hz : float, default=0.0
         Centre of the spectral band (Hz).
-    is_slab : bool, optional
+    is_slab : bool, default=False
         Merge any rephaser into the selection gradient rather than a second block.
-    rephase : bool, optional
+    rephase : bool, default=True
         Include a slice rephaser.
-    spatial_time_bw_product : float, optional
+    spatial_time_bw_product : float, default=4.0
         Time-bandwidth product of each spatial subpulse.
-    spectral_time_bw_product : float, optional
+    spectral_time_bw_product : float, default=3.0
         Time-bandwidth product of the spectral envelope.
-    n_subpulses : int, optional
+    n_subpulses : int, default=10
         Subpulses in the train.
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Selection axis.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq RF-use tag, used by trajectory integration.
 
     Attributes

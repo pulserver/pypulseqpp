@@ -3,8 +3,11 @@
 3D Cartesian multi-echo gradient echo
 =======================================
 
-The multi-echo readout over a slab: one excitation per
-``(line, partition)`` view, with that view read at several echo times.
+A slab-selective spoiled excitation is followed by several gradient echoes of
+one Cartesian ``(line, partition)`` view. Gradient and RF spoiling suppress
+residual transverse coherence between repetitions. The multiple echo times
+sample T2* decay; TR and flip angle determine the T1 weighting. Applications
+include high-resolution structural imaging, R2* mapping, and QSM.
 """
 
 # sphinx_gallery_start_ignore
@@ -22,13 +25,6 @@ plt.rcParams.update(
         "axes.labelsize": 10,
     }
 )
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -58,7 +54,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The phase-encode plane, coloured by position in the acquisition.
+# Colour encodes acquisition order in the phase-encode plane.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
 
@@ -66,9 +62,8 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # Acceleration on both encoded axes
 # ---------------------------------
 #
-# Skipping lines and partitions shortens a multi-echo acquisition in the
-# same proportion as a single-echo one, because the echo train sits inside
-# one repetition.
+# Subsampling both phase-encode axes reduces the number of repetitions. The
+# complete echo train remains within each retained repetition.
 
 alternative = gre_multiecho3D_sequence(
     n_x=160, n_y=160, n_z=32, n_echoes=4, ry=2, rz=2, tr=None, n_dummy=0
@@ -87,40 +82,3 @@ for name, seq in (("full", baseline), ("2 x 2", alternative)):
 pp.plot.plot_kspace(alternative, color_by="order", plane="yz", show_trajectory=False)
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ],
-)
-# sphinx_gallery_end_ignore

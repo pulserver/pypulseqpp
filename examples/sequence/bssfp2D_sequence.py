@@ -108,50 +108,50 @@ class Bssfp2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y : float, optional
+        fov_x, fov_y : float, default=0.3
             Field of view along the readout and the phase encode (m).
-        n_x : int, optional
+        n_x : int, default=192
             Readout matrix size.
-        n_y : int, optional
+        n_y : int, default=192
             Phase-encode matrix size.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices, each acquired as its own complete train.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.006
             Slice thickness (m).
-        slice_spacing : float, optional
+        slice_spacing : float, default=0.0
             Gap between adjacent slices (m); zero is contiguous.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=45.0
             Excitation flip angle (degrees).
-        tr : float | None, optional
+        tr : float | None, default=None
             Repetition time (s); TE is TR/2. ``None`` is as short as possible.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=125000.0
             Requested receiver bandwidth (Hz). The half flip needs an
             acquisition block at least as long as the excitation's tail, which
             a lower bandwidth provides.
-        ry : int, optional
+        ry : int, default=1
             Phase-encode undersampling: one line in every ``ry`` is acquired,
             the centre line among them.
-        partial_fourier_y : float, optional
+        partial_fourier_y : float, default=1.0
             Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
-        n_phases : int, optional
+        n_phases : int, default=25
             Cardiac phases a prospective heartbeat acquires.
-        n_dummy : int, optional
+        n_dummy : int, default=10
             Repetitions played without acquiring after the half flip, while
             the oscillating transient settles.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=1.0
             Readout oversampling factor, at least one.
-        n_acs_y : int, optional
+        n_acs_y : int, default=24
             Fully sampled calibration lines at the centre of k-space, acquired
             ahead of the rest when ``ry > 1``.
-        gating : {'none', 'retrospective', 'prospective'}, optional
+        gating : {'none', 'retrospective', 'prospective'}, default='none'
             No gating; each segment cycled over one heartbeat; or each
             heartbeat triggered and acquired once per cardiac phase.
-        heart_rate_bpm : float, optional
+        heart_rate_bpm : float, default=60.0
             Nominal heart rate (beats per minute) the segments are timed to.
-        views_per_segment : int, optional
+        views_per_segment : int, default=12
             Phase-encode lines per segment, one segment per heartbeat. Unused
             without gating.
-        trigger_delay : float, optional
+        trigger_delay : float, default=0.0
             Wait after a prospective trigger before the first cardiac phase (s).
 
         Raises
@@ -273,6 +273,7 @@ class Bssfp2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each slice's whole train before the next slice's."""
         for s in range(self.matrix[2]):
+            first = self.seq.num_blocks
             previous, shot, trigger = None, 0, False
             last = max(i for i, item in enumerate(self.train) if item is not None)
             for i, item in enumerate(self.train):
@@ -284,6 +285,9 @@ class Bssfp2DApp(sequences.SequenceApp):
                     s, shot, line, previous, segment, phase, trigger, last=i == last
                 )
                 previous, shot, trigger = self._ky(line), shot + 1, False
+            if s == 0:
+                self.plot_tr_start = first + 1
+                self.plot_tr_size = self.seq.num_blocks - first
 
     def kernel(
         self,
@@ -366,6 +370,8 @@ class Bssfp2DApp(sequences.SequenceApp):
             "TE": self.ro.te,
             "TR": self.ro.tr,
             "Gating": self.gating,
+            "PlotTRsize": self.plot_tr_size,
+            "PlotTRstart": self.plot_tr_start,
             "kSpaceCenterLine": n_y // 2,
             "kSpaceCenterSample": self.ro.center_sample,
             "SlicePositions": self.positions.tolist(),

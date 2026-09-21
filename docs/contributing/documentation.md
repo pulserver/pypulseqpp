@@ -23,6 +23,14 @@ Four broad forms are useful:
 
 These forms may link extensively to one another, but they should not be collapsed into a single style of documentation.
 
+The three principal modes have distinct levels of detail:
+
+* **Explanation** is concise scientific prose organised around equations, figures, tables, schematics, or explicit criteria. Each object is introduced and interpreted briefly.
+* **Examples** are executable MRI workflows that connect sequence physics, acquisition strategy, and application to observable output.
+* **API reference** is terse and exhaustive. Accurate NumPy-style docstrings carry interface semantics, units, types, and defaults.
+
+Cross-link these modes rather than repeating the same account in all three.
+
 ### API reference
 
 API reference defines the public interface and its precise semantics.
@@ -30,6 +38,8 @@ API reference defines the public interface and its precise semantics.
 The intended reader is technically competent and reasonably familiar with the relevant scientific domain. Standard domain concepts should be named directly rather than replaced by informal explanations.
 
 Mature scientific Python projects such as MRpro, PyLops, PyProximal, Pyxu, DeepInv, and SigPy provide useful examples of the desired reference-documentation register. Domain-specific authoritative libraries and specifications should additionally guide terminology and conventions.
+
+Every parameter with a Python default records it in the Parameters entry as ``default=<repr>``; ``optional`` alone is insufficient. Required parameters do not claim defaults. The documented value must match the callable signature. Individual object pages use compact headings, leaving types and defaults to the Parameters section.
 
 A public function, class, method, or operator should document, where relevant:
 

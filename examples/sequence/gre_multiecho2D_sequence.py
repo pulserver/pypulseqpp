@@ -98,53 +98,53 @@ class GreMultiecho2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y : float, optional
+        fov_x, fov_y : float, default=0.22
             Field of view along the readout and the phase encode (m).
-        n_x : int, optional
+        n_x : int, default=128
             Readout matrix size.
-        n_y : int, optional
+        n_y : int, default=128
             Phase-encode matrix size.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.005
             Slice thickness (m).
-        slice_spacing : float, optional
+        slice_spacing : float, default=0.0
             Gap between adjacent slices (m); zero is contiguous.
-        flip_angle_deg : float, optional
+        flip_angle_deg : float, default=12.0
             Excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=None
             First echo time (s). ``None`` is as short as the readout admits.
-        tr : float | None, optional
+        tr : float | None, default=0.25
             Repetition time between successive excitations of one slice (s).
             ``None`` is as short as possible, and puts every slice in one
             packet.
-        n_echoes : int, optional
+        n_echoes : int, default=4
             Echoes per excitation.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz). What was achieved is the
             readout module's ``bandwidth_hz``.
-        ry : int, optional
+        ry : int, default=1
             Phase-encode undersampling: one line in every ``ry`` is acquired,
             the centre line among them.
-        partial_fourier_x : float, optional
+        partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the
             samples before the echo, which shortens the minimum TE. A bipolar
             train needs a full echo.
-        partial_fourier_y : float, optional
+        partial_fourier_y : float, default=1.0
             Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
             Truncates the lines before the centre.
-        n_dummy : int, optional
+        n_dummy : int, default=16
             Non-acquiring repetitions before the first line of each packet.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=2.0
             Readout oversampling factor, at least one.
-        n_acs_y : int, optional
+        n_acs_y : int, default=24
             Fully sampled calibration lines at the centre of k-space, acquired
             ahead of the rest when ``ry > 1``.
-        echo_spacing : float | None, optional
+        echo_spacing : float | None, default=None
             Echo spacing (s). ``None`` is as short as the readout admits; a
             longer one adds a delay after every echo but the last, following
             the flyback rewinder of a monopolar train.
-        flyback : bool, optional
+        flyback : bool, default=True
             Monopolar echo train, rewound after every echo but the last so
             every echo is read the same way; off, a bipolar train. A bipolar
             train has a shorter echo spacing and reads even echoes backwards.

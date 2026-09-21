@@ -134,13 +134,13 @@ def waveforms_and_times(
     ----------
     seq : Sequence
         The sequence to expand.
-    append_RF : bool, default False
+    append_RF : bool, default False, default=False
         Also return the RF envelope, as a fourth channel.
-    time_range : list of float, optional
+    time_range : list of float, default=None
         Two times in seconds; only the blocks they touch are expanded.
-    block_range : sequence of int, optional
+    block_range : sequence of int, default=None
         Two 1-based block indices. Not with ``time_range``.
-    compat : bool, default True
+    compat : bool, default True, default=True
         Upstream's five values. False returns a
         :class:`pypulseqpp._results.WaveformsAndTimes`, which carries what
         those five cannot.
@@ -210,9 +210,9 @@ def rf_times(seq, time_range=None, *, compat: bool = True):
     ----------
     seq : Sequence
         The sequence to expand.
-    time_range : list of float, optional
+    time_range : list of float, default=None
         Two times in seconds; only the blocks they touch are expanded.
-    compat : bool, default True
+    compat : bool, default True, default=True
         Upstream's four values, which describe two of Pulseq's seven RF uses
         and drop the rest. False returns a
         :class:`pypulseqpp._results.RfTimes` covering all of them.
@@ -252,9 +252,9 @@ def get_gradients(
     ----------
     seq : Sequence
         The sequence to expand.
-    trajectory_delay : float or sequence of float, default 0
+    trajectory_delay : float or sequence of float, default 0, default=0
         Timing correction (s); positive values advance the gradient.
-    gradient_offset : float or sequence of float, default 0
+    gradient_offset : float or sequence of float, default 0, default=0
         A background gradient per axis, in Hz/m.
     time_range, block_range
         As for :func:`waveforms_and_times`.

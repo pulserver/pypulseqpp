@@ -62,41 +62,41 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov : float, optional
+        fov : float, default=0.22
             Isotropic in-plane field of view, in metres.
-        n_x : int, optional
+        n_x : int, default=128
             In-plane matrix size.
-        blade_width : int, optional
+        blade_width : int, default=16
             Phase-encode lines per blade.
-        n_blades : int or None, optional
+        n_blades : int or None, default=None
             Blades in the set. ``None`` is the smallest count that samples the
             rim of k-space at Nyquist.
-        angle_scheme : str, optional
+        angle_scheme : str, default='uniform'
             ``'uniform'`` or ``'golden'``, spread over half a turn.
-        n_slices : int, optional
+        n_slices : int, default=1
             Number of slices.
-        slice_thickness : float, optional
+        slice_thickness : float, default=0.005
             Slice thickness, in metres.
-        slice_gap : float, optional
+        slice_gap : float, default=0.0
             Gap between adjacent slices, in metres.
-        slice_order : str, optional
+        slice_order : str, default='interleaved'
             Order the slices of one pass are excited in, as
             ``calc_traversal_order`` accepts.
-        te : float or None, optional
+        te : float or None, default=0.08
             Effective echo time, excitation centre to the blade's central
             line, in seconds. ``None`` is as short as possible.
-        tr : float or None, optional
+        tr : float or None, default=2.0
             Repetition time between successive excitations of one slice, in
             seconds. ``None`` is as short as possible, and puts every slice in
             one pass.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth, in Hz.
-        crusher_cycles : float, optional
+        crusher_cycles : float, default=4.0
             Cycles of dephasing each crusher beside the refocusing pulse winds.
-        n_dummy : int, optional
+        n_dummy : int, default=0
             Non-acquiring blades, at the first blade's angle, before the first
             acquired blade of each pass.
-        n_gain_calibration_readouts : int or None, optional
+        n_gain_calibration_readouts : int or None, default=None
             Written as the ``NumGainCalibrationReadouts`` definition. ``None``
             is one per slice.
         """

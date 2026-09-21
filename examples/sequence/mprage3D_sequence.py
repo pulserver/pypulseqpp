@@ -131,14 +131,15 @@ class Mprage3DApp(sequences.SequenceApp):
     """3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
 
     Each shot is the inversion, a wait that puts the first line's excitation
-    at TI, one :class:`LineReadout3D` repetition per line of one partition,
+    centre at TI, one :class:`LineReadout3D` repetition per line of one partition,
     and a recovery that makes every inversion-to-inversion interval the TR.
     Partitions are played in order. Only views inside the inscribed ky-kz
     ellipse are sampled, so partitions hold different numbers of lines; every
     shot plays as many repetitions as the fullest partition, and the ones it
     has no line for play without acquiring. ``ordering`` plays a partition's
-    lines centre-out, so the centre line is read at TI, or shuffled for a
-    time-resolved reconstruction. Each acquisition carries its line, its
+    lines centre-out, so the centre line's excitation occurs at TI and its ADC
+    echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
+    acquisition carries its line, its
     partition and its place in the train as ``LIN``, ``PAR`` and ``ECO``;
     calibration views are marked ``IMA``, and under wave-CAIPI the
     calibration region is first acquired wave-free in shots of its own,
@@ -215,67 +216,82 @@ class Mprage3DApp(sequences.SequenceApp):
 
         Parameters
         ----------
-        fov_x, fov_y, fov_z : float, optional
+        fov_x : float, default=0.256
             Field of view along the readout, the phase encode and the
             partition encode (m). The slab excited is ``fov_z`` thick.
-        n_x, n_y, n_z : int, optional
+        fov_y : float, default=0.256
+            Field of view along the readout, the phase encode and the
+            partition encode (m). The slab excited is ``fov_z`` thick.
+        fov_z : float, default=0.176
+            Field of view along the readout, the phase encode and the
+            partition encode (m). The slab excited is ``fov_z`` thick.
+        n_x : int, default=256
             Matrix size along the readout, the phase encode and the partition
             encode.
-        flip_angle_deg : float, optional
+        n_y : int, default=256
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        n_z : int, default=176
+            Matrix size along the readout, the phase encode and the partition
+            encode.
+        flip_angle_deg : float, default=9.0
             Readout excitation flip angle (degrees).
-        te : float | None, optional
+        te : float | None, default=None
             Echo time of every line (s). ``None`` is as short as the readout
             admits.
-        esp : float | None, optional
+        esp : float | None, default=None
             Spacing of successive line excitations (s). ``None`` is as short
             as the readout admits.
-        ti : float | None, optional
+        ti : float | None, default=0.9
             Inversion time (s), from the inversion pulse's centre to the first
             line's excitation. ``None`` is as short as the inversion module
             admits.
-        tr : float | None, optional
+        tr : float | None, default=2.3
             Inversion-to-inversion interval (s). ``None`` leaves one raster of
             recovery after the train.
-        readout_bandwidth_hz : float, optional
+        readout_bandwidth_hz : float, default=250000.0
             Requested receiver bandwidth (Hz).
-        ry, rz : int, optional
+        ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
-        caipi_shift : int, optional
+        caipi_shift : int, default=0
             Partitions the lattice climbs per acquired line, in ``[0, rz)``.
             Unused by ``shuffling``.
-        partial_fourier_x : float, optional
+        partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``.
-        partial_fourier_y, partial_fourier_z : float, optional
+        partial_fourier_y, partial_fourier_z : float, default=1.0
             Fraction of the phase- and partition-encode extent acquired, in
             ``[0.75, 1]``.
-        n_dummy : int, optional
+        n_dummy : int, default=1
             Whole shots played without acquiring before the first.
-        excitation : {'slab', 'nonselective', 'spsp'}, optional
+        excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
             A slab-selective SLR pulse, a hard pulse, or a slab- and
             water-selective spectral-spatial pulse.
-        readout_oversampling : float, optional
+        readout_oversampling : float, default=2.0
             Readout oversampling factor, at least one.
-        n_acs_y, n_acs_z : int, optional
+        n_acs_y : int, default=24
             Extent of the fully sampled calibration region along the phase
             and the partition encode, when undersampled.
-        elliptical_acs : bool, optional
+        n_acs_z : int, default=16
+            Extent of the fully sampled calibration region along the phase
+            and the partition encode, when undersampled.
+        elliptical_acs : bool, default=False
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-        ordering : {'radial', 'shuffling'}, optional
+        ordering : {'radial', 'shuffling'}, default='radial'
             Line order within a partition: centre-out, with the views on the
             CAIPIRINHA lattice; or shuffled, with the views a variable-density
             Poisson-disc draw.
-        wave : {'phase', 'partition', 'both'}, optional
+        wave : {'phase', 'partition', 'both'}, default='both'
             Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
             wave-encoding gradients the calibration region is acquired again
             first without them, marked ``REF``, and no wave-encoded view is
             marked ``IMA``.
-        wave_cycles : int, optional
+        wave_cycles : int, default=8
             Wave periods across the sampling window; zero plays no wave.
-        wave_amplitude : float, optional
+        wave_amplitude : float, default=0.0
             Requested peak wave-encoding gradient amplitude (T/m); zero, the
             default, plays no wave. The slew rate may lower it.
-        navigator : bool, optional
+        navigator : bool, default=False
             Play three-plane spiral navigators in the recovery after each
             shot, as many as it holds up to :attr:`NAVIGATOR_COUNT`.
 

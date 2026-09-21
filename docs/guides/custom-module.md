@@ -1,16 +1,15 @@
 # Build a sequence from modules
 
-This guide assembles an inversion-prepared gradient echo from excitation,
-preparation and readout modules, and then turns the assembly into a
-{class}`~pypulseqpp.sequences.SequenceApp`. The abstractions themselves are
-described in {doc}`../explanations/design/index`; this page is the procedure.
+Assemble an inversion-prepared gradient-echo sequence from excitation,
+preparation and readout modules, then package the scan loop as a
+{class}`~pypulseqpp.sequences.SequenceApp`. Module and application semantics are
+described in {doc}`../explanations/design/index`.
 
 ## Construct the modules
 
-Each module solves its own timing and gradient waveforms at construction. The
-readout takes the excitation's pulse and gradients, which lets it
-measure the echo time from the pulse centre and place the rephaser inside an
-interval the repetition already has to wait out.
+Each module solves its own timing and gradient waveforms at construction. The readout receives the RF event, slice-selection gradient and rephaser. It
+measures echo time relative to the RF centre and incorporates the rephaser into
+the prephasing interval.
 
 ```python
 >>> import numpy as np

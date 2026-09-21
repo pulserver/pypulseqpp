@@ -17,7 +17,7 @@ def make_uniform_mask(shape, acceleration, calibration=0) -> np.ndarray:
         axis, two for a 3D acquisition's ``(ny, nz)``.
     acceleration : int or tuple of int
         Undersampling factor, per axis or one for all.
-    calibration : int or tuple of int, optional
+    calibration : int or tuple of int, default=0
         Fully sampled centred region, per axis or one for all.
 
     Returns

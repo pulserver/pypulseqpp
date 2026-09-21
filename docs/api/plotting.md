@@ -15,13 +15,10 @@ functions only.
 `pip install 'pypulseqpp[plot]'`. {func}`paper_plot` draws one repetition as a
 publication diagram, overlaid on the others.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   plot
-   paper_plot
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.plot.plot` | Open ``seq`` in the SeqEyes viewer; see :meth:`pypulseqpp.Sequence.plot`. |
+| {obj}`~pypulseqpp.plot.paper_plot` | Draw a publication diagram of ``seq``; see :meth:`pypulseqpp.Sequence.paper_plot`. |
 
 ## k-space and RF profiles
 
@@ -30,10 +27,7 @@ in 1/m, optionally coloured by shot or echo index. {func}`plot_rf` draws an RF
 pulse's envelope beside the magnetisation profile it produces, against position
 or off-resonance, or over a plane.
 
-```{eval-rst}
-.. autosummary::
-   :nosignatures:
-
-   plot_kspace
-   plot_rf
-```
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.plot.plot_kspace` | Plot the ADC sampling locations in k-space. |
+| {obj}`~pypulseqpp.plot.plot_rf` | Draw an RF pulse's ``|B1|`` envelope beside the profile it produces. |

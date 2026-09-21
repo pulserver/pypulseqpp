@@ -71,7 +71,7 @@ def rotate_3d(rotation, *args, system=None) -> list:
         about z, or two angles read as ``Rz(phi) Ry(theta)``.
     *args : SimpleNamespace or list
         Block events, or one block. At most one gradient per axis.
-    system : Opts, optional
+    system : Opts, default=None
         System limits, used when two projections are summed.
 
     Returns

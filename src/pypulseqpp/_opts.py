@@ -128,7 +128,10 @@ def apply_system_derates(
     ----------
     opts : Opts
         System limits. Not modified.
-    grad_derate, slew_derate : float, optional
+    grad_derate : float, default=MAX_GRAD_DERATE
+        Fraction of the base ``max_grad`` / ``max_slew`` to allow.
+
+    slew_derate : float, default=MAX_SLEW_DERATE
         Fraction of the base ``max_grad`` / ``max_slew`` to allow.
 
     Returns
@@ -180,11 +183,14 @@ def cap_system(
     ----------
     opts : Opts
         System limits. Not modified.
-    max_grad : float, optional
+    max_grad : float, default=None
         Amplitude ceiling, in ``grad_unit``.
-    max_slew : float, optional
+    max_slew : float, default=None
         Slew ceiling, in ``slew_unit``.
-    grad_unit, slew_unit : str, optional
+    grad_unit : str, default='mT/m'
+        The units those two are given in.
+
+    slew_unit : str, default='T/m/s'
         The units those two are given in.
 
     Returns

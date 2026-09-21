@@ -3,10 +3,11 @@
 2D balanced SSFP
 ==================
 
-Every gradient axis returns to zero moment within each repetition and the
-RF phase alternates, so the magnetisation reaches a steady state that carries
-both relaxation times. The train opens with a half flip, which places the
-magnetisation on the axis the steady state oscillates about.
+A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat
+with alternating RF phase. Zero net gradient moment in every TR preserves
+transverse coherence and establishes a steady state governed by T2/T1 and
+off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP
+is widely used for cardiac cine and dynamic cardiac imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -26,13 +27,6 @@ plt.rcParams.update(
 )
 
 
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
-
-
 # sphinx_gallery_end_ignore
 
 # %%
@@ -44,6 +38,15 @@ def safety_table(rows):
 import pypulseqpp as pp
 from pypulseqpp.sequences import bssfp2D_sequence
 
+diagram = bssfp2D_sequence(
+    n_x=48,
+    n_y=12,
+    n_slices=1,
+    n_phases=1,
+    readout_bandwidth_hz=25_000,
+    tr=None,
+    n_dummy=1,
+)
 baseline = bssfp2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0
 )
@@ -54,7 +57,7 @@ print(f"TR {baseline.get_definition('TR')[0] * 1e3:.2f} ms")
 # Sequence diagram
 # ----------------
 
-baseline.paper_plot()
+diagram.paper_plot()
 
 # %%
 # Sampling order
@@ -68,18 +71,39 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # Cine
 # ----
 #
-# ``n_phases`` reads the same segment of lines at several points after the
-# trigger, so one breath-hold resolves the cardiac cycle. The segment length
-# is what trades temporal resolution against the number of heartbeats the
-# scan takes.
+# Prospective gating acquires each segment once per requested cardiac phase
+# after a trigger. Retrospective gating cycles the segment throughout one
+# heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
+# Segment length sets the temporal footprint of each cardiac phase.
 
-alternative = bssfp2D_sequence(
-    n_x=192, n_y=192, n_slices=1, n_phases=8, views_per_segment=12, tr=None, n_dummy=0
+prospective = bssfp2D_sequence(
+    n_x=96,
+    n_y=48,
+    n_slices=1,
+    n_phases=6,
+    views_per_segment=8,
+    gating="prospective",
+    tr=None,
+    n_dummy=0,
+)
+retrospective = bssfp2D_sequence(
+    n_x=96,
+    n_y=48,
+    n_slices=1,
+    n_phases=6,
+    views_per_segment=8,
+    gating="retrospective",
+    tr=None,
+    n_dummy=0,
 )
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
-for name, seq in (("1 phase", baseline), ("8 phases", alternative)):
+for name, seq in (
+    ("ungated", baseline),
+    ("prospective", prospective),
+    ("retrospective", retrospective),
+):
     print(
         f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
         f"{seq._native.num_adc():13d}"
@@ -87,43 +111,6 @@ for name, seq in (("1 phase", baseline), ("8 phases", alternative)):
 # sphinx_gallery_end_ignore
 
 # %%
-pp.plot.plot_kspace(alternative, color_by="order", plane="xy", show_trajectory=False)
+pp.plot.plot_kspace(prospective, color_by="order", plane="xy", show_trajectory=False)
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ],
-)
-# sphinx_gallery_end_ignore

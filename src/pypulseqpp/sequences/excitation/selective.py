@@ -28,23 +28,23 @@ class SpatialSelectiveExcitation(RfModule):
         Nominal flip angle (degrees).
     thickness_m : float
         Slice or slab thickness (m).
-    duration_s : float, optional
+    duration_s : float, default=0.003
         Pulse duration (s).
-    is_slab : bool, optional
+    is_slab : bool, default=False
         Merge the rephaser into the selection gradient, as above.
-    rephase : bool, optional
+    rephase : bool, default=True
         Include a slice rephaser.
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product. Higher is a squarer profile and a longer pulse
         at the same bandwidth.
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Selection axis.
-    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, optional
+    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         SLR design family. ``"ex"`` for a large-tip excitation, ``"se"`` for a
         refocusing pulse.
-    use : str, optional
+    use : str, default='excitation'
         Pulseq RF-use tag, used by trajectory integration.
-    passband_ripple, stopband_ripple : float, optional
+    passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the slice profile.
 
     Attributes
@@ -154,25 +154,25 @@ class SpatialSelectiveRefocusing(RfModule):
         System limits.
     thickness_m : float
         Slice thickness (m).
-    flip_angle_deg : float, optional
+    flip_angle_deg : float, default=180.0
         Nominal flip angle (degrees).
-    duration_s : float, optional
+    duration_s : float, default=0.003
         Pulse duration (s).
-    spoiling_cycles : float, optional
+    spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero
         leaves the bare selection lobe.
-    voxel_size_m : float, optional
+    voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    time_bw_product : float, optional
+    time_bw_product : float, default=4.0
         Time-bandwidth product.
-    axis : {'z', 'x', 'y'}, optional
+    axis : {'z', 'x', 'y'}, default='z'
         Selection axis; the crushers share it.
-    phase_offset_rad : float, optional
+    phase_offset_rad : float, default=np.pi / 2
         RF phase. The CPMG quarter turn by default.
-    use : str, optional
+    use : str, default='refocusing'
         What the pulse is for; the trajectory core negates accumulated k at a
         refocusing pulse.
-    passband_ripple, stopband_ripple : float, optional
+    passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the slice profile.
 
     Attributes

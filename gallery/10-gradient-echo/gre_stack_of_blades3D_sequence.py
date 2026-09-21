@@ -3,7 +3,11 @@
 3D stack-of-blades gradient echo
 ==================================
 
-PROPELLER blades in the plane and Cartesian encoding along the slab axis.
+A slab-selective spoiled excitation is followed by one line from a rotating
+in-plane PROPELLER blade with Cartesian partition encoding. Gradient and RF
+spoiling suppress residual transverse coherence. TR, flip angle, and TE
+determine contrast. The overlapping blade centres support motion-robust 3D
+structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -21,13 +25,6 @@ plt.rcParams.update(
         "axes.labelsize": 10,
     }
 )
-
-
-def safety_table(rows):
-    """Print a check, its verdict and its peak, one per line."""
-    print(f"{'check':26} {'result':8} {'peak':>22}")
-    for name, ok, peak in rows:
-        print(f"{name:26} {'pass' if ok else 'FAIL':8} {peak:>22}")
 
 
 # sphinx_gallery_end_ignore
@@ -65,8 +62,8 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Wider blades
 # ------------
 #
-# Fewer, wider blades cover the disc with fewer turns, and each one samples
-# more of the centre.
+# Increasing blade width reduces the number of blade orientations and
+# increases the shared central-k-space region.
 
 alternative = gre_stack_of_blades3D_sequence(
     n=96, n_z=8, blade_width=32, tr=None, n_dummy=0
@@ -85,40 +82,3 @@ for name, seq in (("16 lines", baseline), ("32 lines", alternative)):
 pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
-# Safety checks
-# -------------
-#
-# A passing check does not establish that a sequence is safe to run on a
-# scanner or on a subject. The nerve model below is a demonstration, not a
-# scanner's.
-
-from pypulseqpp import safety
-
-model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
-grad_ok, grad = safety.check_max_grad(baseline)
-slew_ok, slew = safety.check_max_slew(baseline)
-cont_ok, cont = safety.check_grad_continuity(baseline)
-pns_ok, pns = safety.check_pns(baseline, model)
-
-# sphinx_gallery_start_ignore
-safety_table(
-    [
-        (
-            "gradient amplitude",
-            grad_ok,
-            f"{grad.per_axis.value / baseline.system.gamma * 1e3:.1f} mT/m",
-        ),
-        (
-            "slew rate",
-            slew_ok,
-            f"{slew.per_axis.value / baseline.system.gamma:.0f} T/m/s",
-        ),
-        (
-            "gradient continuity",
-            cont_ok,
-            f"{len(cont.discontinuities)} discontinuities",
-        ),
-        ("peripheral nerve stimulation", pns_ok, f"{pns.peak.value:.2f} of threshold"),
-    ],
-)
-# sphinx_gallery_end_ignore

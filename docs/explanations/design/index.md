@@ -9,15 +9,10 @@ Neither abstraction is part of the file format. A sequence written through them
 is an ordinary `.seq` file, and a sequence written without them is equally
 valid.
 
-{doc}`sequence-module`
-: What a module solves and what it leaves to the caller, the published event
-  templates and the `center` timing reference, and what the excitation,
-  preparation and readout families contribute.
-
-{doc}`sequence-application`
-: The separation of prescription, sampling order and repetition; class
-  attributes as design settings; encoding indices as labels; and prescan
-  chains.
+| Concept | Scope |
+| --- | --- |
+| {doc}`sequence-module` | Reusable block layouts, published event templates, the `center` timing reference, and excitation, preparation and readout responsibilities. |
+| {doc}`sequence-application` | Prescription, sampling order, repetition kernels, design settings, encoding labels and prescan chains. |
 
 ```{toctree}
 :hidden:
