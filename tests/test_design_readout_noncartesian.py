@@ -7,9 +7,8 @@ import pytest
 from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
+from pypulseqpp import calc_golden_angles, make_rf_spoiling_schedule
 from pypulseqpp import sequences as design
-from pypulseqpp._angles import calc_golden_angles
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 from pypulseqpp.sequences.readout import _trajectories as trajectories
 
 FOV = 0.22

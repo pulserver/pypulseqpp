@@ -9,7 +9,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 class GreRadial2DApp(sequences.SequenceApp):
@@ -159,7 +158,7 @@ class GreRadial2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each packet: its dummies, then every spoke at each of its slices."""
         spokes = [None] * self.n_dummy + list(range(len(self.angles)))
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(spokes), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for packet in self.packets:

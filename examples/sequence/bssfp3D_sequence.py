@@ -103,7 +103,8 @@ class Bssfp3DApp(sequences.SequenceApp):
         ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
         caipi_shift : int, default=0
-            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            CAIPIRINHA shift: partitions by which the lattice is displaced per
+            acquired line, in ``[0, rz)``.
         partial_fourier_y, partial_fourier_z : float, default=1.0
             Fraction of the phase- and partition-encode extent acquired, in
             ``[0.75, 1]``.
@@ -191,7 +192,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.z_pre = getattr(ro, "gz_pre", None)
         self.z_rew = getattr(ro, "gz_rew", None)
 
-        calibrating, lattice = pp.calc_sampled_pairs(
+        calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
             (ry, rz),
             (n_acs_y, n_acs_z),
@@ -203,7 +204,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         # A balanced sequence holds its steady state only while the encoding
         # changes gently, so the views are played in order rather than with the
         # calibration rectangle pulled to the front.
-        self.views = sorted({*calibrating, *lattice})
+        self.views = sorted({*calibrating, *imaging})
         self.calibration = set(calibrating)
         self.increments = [
             np.pi + 2 * np.pi * k / n_phase_cycles for k in range(n_phase_cycles)

@@ -35,6 +35,23 @@ separate contracts.
 - `check_timing` records `TotalDuration` if absent and checks an existing
   value against the blocks. Writing does not independently add it.
 
+## Renamed sampling routines
+
+The sampling routines were renamed so that each name states what it returns.
+The former names still resolve from `pypulseqpp`, emit a `DeprecationWarning`
+naming the replacement, and are scheduled for removal:
+
+| Former name | Replacement | Change |
+| --- | --- | --- |
+| `calc_sampled_lines` | `make_cartesian_axis_sampling` | `r` is `acceleration`. |
+| `calc_sampled_pairs` | `make_cartesian_plane_sampling` | `shuffling=True` is `sampling='poisson'`. |
+| `calc_traversal_order` | `make_traversal_order` | None. |
+| `calc_epi_order` | `make_epi_shot_offsets` | None. |
+
+The second value returned by the two support routines is documented as
+`imaging`: the acquired views outside the calibration region, which are not a
+lattice when the support is a Poisson-disc draw.
+
 ## Storage and structural analysis
 
 Stored blocks are snapshots: editing an event returned by `get_block` does

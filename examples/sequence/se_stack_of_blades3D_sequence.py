@@ -221,15 +221,15 @@ class SeStackOfBlades3DApp(sequences.SequenceApp):
         self.span = np.pi
         self.angles = self.span * np.arange(0, n_nyquist, ry) / n_nyquist
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
-        calibration, lattice = pp.calc_sampled_lines(
+        calibration, imaging = pp.make_cartesian_axis_sampling(
             n_z, rz, n_acs_z, partial_fourier=partial_fourier_z
         )
         self.calibration = set(calibration)
-        self.partitions = sorted([*calibration, *lattice])
+        self.partitions = sorted([*calibration, *imaging])
         # The calibration partitions lead, at every tilt, then the rest.
         self.views = [
             (blade, line, z)
-            for partitions in (calibration, lattice)
+            for partitions in (calibration, imaging)
             for blade in range(len(self.angles))
             for line in range(blade_width)
             for z in partitions

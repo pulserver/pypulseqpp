@@ -9,7 +9,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import make_shuffling_order
 
 EXCITATIONS = ("nonselective", "slab")
 
@@ -303,9 +302,11 @@ class Fse3DApp(sequences.SequenceApp):
 
     Only views inside the inscribed ky-kz ellipse are sampled. ``radial``
     deals them by adaptive radial reordering (:func:`deal_trains`), so the
-    centre of k-space is read at the TE echo; ``shuffling`` deals a
-    variable-density Poisson-disc set randomly across echoes (Tamir et al.,
-    Magn Reson Med 2017;77:180), for a time-resolved reconstruction. Every
+    centre of k-space is acquired at the TE echo; ``shuffling`` selects a
+    variable-density Poisson-disc support and assigns it to random echo
+    positions with :func:`~pypulseqpp.make_shuffling_order` (T2 Shuffling,
+    Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
+    reconstruction. Every
     acquisition carries its line, partition and echo as ``LIN``, ``PAR`` and
     ``ECO``, and calibration views are marked ``IMA``; under wave-CAIPI the
     calibration region is first acquired wave-free in trains of its own,
@@ -436,7 +437,8 @@ class Fse3DApp(sequences.SequenceApp):
         ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
         caipi_shift : int, default=0
-            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            CAIPIRINHA shift: partitions by which the lattice is displaced per
+            acquired line, in ``[0, rz)``.
             Unused by ``shuffling``.
         partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``.
@@ -462,8 +464,9 @@ class Fse3DApp(sequences.SequenceApp):
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
         ordering : {'radial', 'shuffling'}, default='radial'
-            Adaptive radial reordering on the CAIPIRINHA lattice, or a
-            shuffled Poisson-disc set.
+            ``'radial'``: adaptive radial reordering of CAIPIRINHA lattice
+            support. ``'shuffling'``: variable-density Poisson-disc support
+            in randomly shuffled echo order (T2 Shuffling).
         flip_modulation : {'constant', 'optimized'}, default='constant'
             Constant refocusing angles, or trains designed with torchsim,
             which the ``design`` extra installs.
@@ -607,7 +610,7 @@ class Fse3DApp(sequences.SequenceApp):
             )
         self.repetition_time, self.tr_periphery = tr, tr_periphery
 
-        calibrating, lattice = pp.calc_sampled_pairs(
+        calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
             (ry, rz),
             (n_acs_y, n_acs_z),
@@ -615,11 +618,11 @@ class Fse3DApp(sequences.SequenceApp):
             partial_fourier=(partial_fourier_y, partial_fourier_z),
             elliptical=True,
             elliptical_acs=elliptical_acs,
-            shuffling=ordering == "shuffling",
+            sampling="poisson" if ordering == "shuffling" else "lattice",
             seed=self.SHUFFLE_SEED,
         )
         self.calibration = set(calibrating)
-        views = sorted({*calibrating, *lattice})
+        views = sorted({*calibrating, *imaging})
         coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
         self.lengths, self.times, place = shot_parameters(
             len(views), etl, etl_periphery, tr, tr_periphery
@@ -630,7 +633,9 @@ class Fse3DApp(sequences.SequenceApp):
             # Identical trains sit nowhere along a transition.
             place = np.zeros_like(place)
         if ordering == "shuffling":
-            order = make_shuffling_order(coords, etl, seed=self.SHUFFLE_SEED, pad=True)
+            order = pp.make_shuffling_order(
+                coords, etl, seed=self.SHUFFLE_SEED, pad=True
+            )
             self.lengths = [etl] * len(order)
             self.times = [tr] * len(order)
             place = np.zeros(len(order))

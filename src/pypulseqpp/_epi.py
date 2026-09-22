@@ -1,22 +1,25 @@
-"""Within-shot echo orderings for EPI trains.
+"""Within-shot phase-encoding offsets of EPI echo trains.
 
-An EPI shot traverses a fixed pattern of phase-encode steps and repeats it
-every repetition, translated to the region that shot samples. These functions
-build the pattern as offsets from the shot's own origin, one row per echo.
+An EPI shot acquires one echo per phase-encoding blip. The routine here
+returns the offsets of the shot's echoes from the shot's first echo, one row
+per echo. It does not select the acquisition support and does not place the
+shot: the scan loop chooses each shot's origin, and the views a shot
+acquires are that origin plus the offsets.
 
 References
 ----------
-Segmented blipped-CAIPI (``'caipi'``) follows Stirnberg and Stocker, "Segmented
-k-space blipped-controlled aliasing in parallel imaging for high spatiotemporal
-resolution EPI", Magn Reson Med 2021;85:1540-1551 (DOI 10.1002/mrm.28486).
-The ``'zigzag'`` traversal follows Dong et al., "Single-shot echo planar
-time-resolved imaging for multi-echo functional MRI", Magn Reson Med
-2025;93:993-1013 (DOI 10.1002/mrm.30327).
+Segmented blipped-CAIPI (``'caipi'``) follows Stirnberg R, Stöcker T.
+Segmented k-space blipped-controlled aliasing in parallel imaging for high
+spatiotemporal resolution EPI. Magn Reson Med. 2021;85(3):1540-1551.
+doi:10.1002/mrm.28486. The ``'zigzag'`` traversal follows Dong Z, Wald LL,
+Polimeni JR, Wang F. Single-shot echo planar time-resolved imaging for
+multi-echo functional MRI and distortion-free diffusion imaging. Magn Reson
+Med. 2025;93(3):993-1013. doi:10.1002/mrm.30327.
 """
 
 from __future__ import annotations
 
-__all__ = ["calc_epi_order"]
+__all__ = ["make_epi_shot_offsets"]
 
 import numpy as np
 
@@ -25,7 +28,7 @@ from ._masks import make_caipirinha_mask
 _SCHEMES = ("linear", "caipi", "zigzag")
 
 
-def calc_epi_order(
+def make_epi_shot_offsets(
     etl: int,
     *,
     scheme: str = "linear",
@@ -35,80 +38,99 @@ def calc_epi_order(
     caipi_shift: int = 1,
     extent: int | None = None,
 ) -> np.ndarray:
-    """Return the phase-encode offsets of an EPI shot, relative to its first echo.
+    """Return the phase-encoding offsets of one EPI shot, relative to its first echo.
 
-    The first row is always ``(0, 0)``: the pattern says where the shot goes
-    *from* its origin, and placing that origin is the scan loop's job. The
-    second column is the partition offset, zero throughout for the schemes
-    that do not encode one.
+    Row ``e`` is the offset ``(Δky, Δkz)``, in encoded lines and partitions,
+    of the view acquired at echo ``e`` from the view acquired at echo 0.
+    The first row is always ``(0, 0)``. For a shot whose first echo acquires
+    the view ``(y0, z0)``, echo ``e`` acquires ``(y0, z0) + offsets[e]``;
+    choosing ``(y0, z0)`` for each shot is the scan loop's role, so this
+    routine does not determine the global acquisition support.
+
+    With ``R_y = acceleration`` and ``S = segments``, the line offset of
+    ``'linear'`` and ``'caipi'`` is ``Δky_e = e S R_y``. ``S`` shots with
+    origins ``y0, y0 + R_y, ..., y0 + (S - 1) R_y`` therefore interleave to
+    acquire every ``R_y``-th line. ``'caipi'`` adds the partition offset of
+    the CAIPIRINHA lattice with ``R_z = partition_acceleration`` and shift
+    ``Δz = caipi_shift``, reduced modulo ``R_z``, so the partition blips
+    cycle through one lattice period; the offsets tile
+    :func:`make_caipirinha_mask` exactly. ``'zigzag'`` alternates between an
+    outward and a return pass across ``extent`` lines, the return pass
+    displaced by half a blip.
 
     Parameters
     ----------
     etl : int
-        Echoes in the train.
+        Echo-train length: the number of echoes, and of rows returned.
     scheme : {'linear', 'caipi', 'zigzag'}, default='linear'
-        ``'linear'`` steps by ``segments * acceleration`` every echo and never
-        leaves its partition -- plain segmented EPI, and plain single-shot EPI
-        at the defaults. ``'caipi'`` adds the partition sawtooth that turns
-        that into segmented blipped-CAIPI. ``'zigzag'`` traverses up and down a
-        phase-encode segment instead of across the whole matrix, which is what
-        lets a shot sample the same lines at many echo times.
+        ``'linear'``: segmented or single-shot EPI, ``Δkz = 0``.
+        ``'caipi'``: segmented blipped-CAIPI. ``'zigzag'``: repeated
+        up-and-down traversal of one phase-encoding segment, which acquires
+        the same lines at several echo times; ``Δkz = 0``.
     acceleration : int, default=1
-        Phase-encode undersampling, ``Ry``: lines the blip skips.
+        In-plane undersampling factor ``R_y``.
     segments : int, default=1
-        Shots the train is interleaved across, ``S``. The blip becomes
-        ``S * Ry``, which shortens the train and widens the phase-encode
-        bandwidth without changing the lattice sampled.
+        Number of shots ``S`` among which the lines are interleaved. The blip
+        is ``S R_y`` lines.
     partition_acceleration : int, default=1
-        Partition undersampling ``Rz``, the height of the CAIPI cycle.
-        ``'caipi'`` only.
+        Partition undersampling factor ``R_z``, the period of the partition
+        offsets. ``'caipi'`` only.
     caipi_shift : int, default=1
-        Partitions the pattern climbs per acquired line, ``delta_z``.
-        ``'caipi'`` only.
-    extent : int, default=None
-        Phase-encode lines one pass spans, ``R_seg``. Required by
-        ``'zigzag'``, refused by the others.
+        CAIPIRINHA shift ``Δz``: partitions the lattice is displaced by per
+        acquired line. ``'caipi'`` only.
+    extent : int or None, default=None
+        Phase-encoding lines spanned by one pass. Required by ``'zigzag'``
+        and rejected by the other schemes.
 
     Returns
     -------
     numpy.ndarray
-        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.
+        Integer array of shape ``(etl, 2)``: ``[Δky, Δkz]`` of each echo,
+        relative to echo 0.
 
     Raises
     ------
     ValueError
         If a count is out of range, ``scheme`` is unknown, or ``extent`` is
-        given for a scheme that has no use for it and vice versa.
-
-    Examples
-    --------
-    >>> import pypulseqpp as pp
-    >>> calc_epi_order(4, acceleration=2)[:, 0]
-    array([0, 2, 4, 6])
-
-    Segmenting widens the blip without moving the lattice, so two shots of
-    three cover what one shot of six did:
-
-    >>> calc_epi_order(3, acceleration=2, segments=2)[:, 0]
-    array([0, 4, 8])
-
-    A CAIPI shell climbs the partitions and wraps, which is what makes the
-    partition blips take only two values:
-
-    >>> order = calc_epi_order(6, scheme="caipi", partition_acceleration=3)
-    >>> order[:, 1]
-    array([0, 1, 2, 0, 1, 2])
-
-    A zigzag turns inside its segment, and the return pass is offset by half a
-    blip so it samples between the outward one:
-
-    >>> calc_epi_order(9, scheme="zigzag", acceleration=4, extent=12)[:, 0]
-    array([ 0,  4,  8, 12, 10,  6,  2,  0,  4])
+        given for a scheme other than ``'zigzag'`` or omitted for it.
 
     See Also
     --------
-    calc_traversal_order : orderings over a single axis, for an outer loop.
-    make_caipirinha_mask : the lattice a ``'caipi'`` train tiles.
+    make_caipirinha_mask : the lattice the ``'caipi'`` offsets tile.
+    make_cartesian_plane_sampling : acquisition support of a Cartesian plane.
+    make_traversal_order : loop order over shots or slices.
+
+    Examples
+    --------
+    Four echoes at twofold acceleration step two lines per echo:
+
+    >>> import pypulseqpp as pp
+    >>> offsets = pp.make_epi_shot_offsets(4, acceleration=2)
+    >>> offsets.tolist()
+    [[0, 0], [2, 0], [4, 0], [6, 0]]
+
+    The offsets are relative. With two segments the blip is four lines, and
+    shots with origins at lines 3 and 5 acquire interleaved lines:
+
+    >>> offsets = pp.make_epi_shot_offsets(4, acceleration=2, segments=2)
+    >>> (offsets + [3, 0])[:, 0].tolist()
+    [3, 7, 11, 15]
+    >>> (offsets + [5, 0])[:, 0].tolist()
+    [5, 9, 13, 17]
+
+    Segmented blipped-CAIPI with ``R_z = 3`` cycles the partition offset
+    through one lattice period:
+
+    >>> pp.make_epi_shot_offsets(
+    ...     6, scheme="caipi", acceleration=2, partition_acceleration=3
+    ... ).tolist()
+    [[0, 0], [2, 1], [4, 2], [6, 0], [8, 1], [10, 2]]
+
+    A zigzag pass turns at ``extent``, and the return pass is displaced by
+    half a blip:
+
+    >>> pp.make_epi_shot_offsets(9, scheme="zigzag", acceleration=4, extent=12)[:, 0].tolist()
+    [0, 4, 8, 12, 10, 6, 2, 0, 4]
     """
     etl = int(etl)
     if etl < 1:

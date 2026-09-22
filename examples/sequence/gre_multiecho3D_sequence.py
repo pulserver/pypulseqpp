@@ -8,7 +8,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 class GreMultiecho3DApp(sequences.SequenceApp):
@@ -120,7 +119,8 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
         caipi_shift : int, default=0
-            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            CAIPIRINHA shift: partitions by which the lattice is displaced per
+            acquired line, in ``[0, rz)``.
         partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``. A bipolar train
             needs a full echo.
@@ -231,7 +231,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         self.echo_times = [
             self.ro.echo_time + i * self.ro.echo_spacing for i in range(n_echoes)
         ]
-        calibrating, lattice = pp.calc_sampled_pairs(
+        calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
             (ry, rz),
             (n_acs_y, n_acs_z),
@@ -242,7 +242,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         )
         # The calibration rectangle leads, so a reconstruction can
         # estimate coil sensitivities while the rest is still arriving.
-        self.views = [*calibrating, *lattice]
+        self.views = [*calibrating, *imaging]
         self.calibration = set(calibrating)
         # A wave-encoded view calibrates nothing, so with the wave on the
         # calibration region is acquired again wave-free ahead of the scan.
@@ -268,7 +268,7 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         references[self.n_dummy : self.n_dummy + len(self.reference)] = [True] * len(
             self.reference
         )
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for view, reference, phase in zip(views, references, phases, strict=True):

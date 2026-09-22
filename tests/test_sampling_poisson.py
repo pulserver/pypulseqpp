@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pypulseqpp._masks import make_poisson_disc_mask
+from pypulseqpp import make_poisson_disc_mask
 
 SHAPES = [(48, 48), (48, 40), (64, 64), (32, 96), (100, 100), (20, 20)]
 ACCELERATIONS = [2.0, 3.0, 4.0, 6.0, 8.0]

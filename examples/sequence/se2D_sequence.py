@@ -195,12 +195,12 @@ class Se2DApp(sequences.SequenceApp):
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
 
-        calibrating, lattice = pp.calc_sampled_lines(
+        calibrating, imaging = pp.make_cartesian_axis_sampling(
             n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
         )
         # The calibration block leads, so a reconstruction can estimate
         # coil sensitivities while the rest is still arriving.
-        self.lines = [*calibrating, *lattice]
+        self.lines = [*calibrating, *imaging]
         self.calibration = set(calibrating)
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_spacing

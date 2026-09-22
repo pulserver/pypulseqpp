@@ -189,12 +189,12 @@ class Bssfp2DApp(sequences.SequenceApp):
             self.TRIGGER_CHANNEL, duration=trigger_delay, system=system
         )
 
-        calibrating, lattice = pp.calc_sampled_lines(
+        calibrating, imaging = pp.make_cartesian_axis_sampling(
             n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
         )
         # The calibration block leads, so a reconstruction can estimate
         # coil sensitivities while the rest is still arriving.
-        self.lines = [*calibrating, *lattice]
+        self.lines = [*calibrating, *imaging]
         self.calibration = set(calibrating)
         # A train is a list of (line, segment, phase) repetitions, None where a
         # heartbeat's trigger falls; the first heartbeat's is ahead of the half

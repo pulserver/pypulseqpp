@@ -1,4 +1,10 @@
-"""Projection angles in radians and rotation matrices for radial acquisitions."""
+"""Non-Cartesian orientations: in-plane rotation angles and 3D projection directions.
+
+The angle routines return one in-plane rotation angle in radians per shot
+(spoke, interleaf or blade); :func:`calc_projection_shell` returns 3D unit
+directions and rotation matrices. The scan loop applies them as rotations of
+a readout trajectory.
+"""
 
 from __future__ import annotations
 
@@ -60,10 +66,10 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_golden_angles(4)).round(2)
+    >>> np.rad2deg(pp.calc_golden_angles(4)).round(2)
     array([  0.  , 111.25, 222.49, 333.74])
 
-    >>> np.rad2deg(calc_golden_angles(3, full_circle=True)).round(2)
+    >>> np.rad2deg(pp.calc_golden_angles(3, full_circle=True)).round(2)
     array([  0.  , 137.51, 275.02])
 
     References
@@ -110,7 +116,7 @@ def calc_raga_angles(
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> angles = calc_raga_angles(1000, approximation_order=8)
+    >>> angles = pp.calc_raga_angles(1000, approximation_order=8)
     >>> len(np.unique(angles.round(9)))
     21
 
@@ -164,7 +170,7 @@ def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_tiny_golden_angles(3, index=2)).round(2)
+    >>> np.rad2deg(pp.calc_tiny_golden_angles(3, index=2)).round(2)
     array([  0.  ,  68.75, 137.51])
 
     References
@@ -206,13 +212,13 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_uniform_angles(4))
+    >>> np.rad2deg(pp.calc_uniform_angles(4))
     array([  0.,  90., 180., 270.])
 
     A half-turn span spaces diametric spokes without covering a direction
     twice:
 
-    >>> np.rad2deg(calc_uniform_angles(4, span=np.pi))
+    >>> np.rad2deg(pp.calc_uniform_angles(4, span=np.pi))
     array([  0.,  45.,  90., 135.])
 
     See Also
@@ -260,7 +266,7 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> directions, rotations = calc_projection_shell(32, n_shots=13)
+    >>> directions, rotations = pp.calc_projection_shell(32, n_shots=13)
     >>> directions.shape, rotations.shape
     ((32, 3), (13, 3, 3))
 

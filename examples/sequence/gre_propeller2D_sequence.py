@@ -9,7 +9,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 class GrePropeller2DApp(sequences.SequenceApp):
@@ -177,7 +176,7 @@ class GrePropeller2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each packet: its dummies, then every blade line at each of its slices."""
         views = [None] * self.n_dummy + self.views
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for packet in self.packets:

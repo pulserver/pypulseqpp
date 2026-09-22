@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 import pypulseqpp as pp
+from pypulseqpp import make_rf_spoiling_schedule
 from pypulseqpp import sequences as design
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 FOV = (0.22, 0.22, 0.12)
 MATRIX = (128, 128, 64)
