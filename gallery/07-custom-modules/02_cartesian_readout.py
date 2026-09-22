@@ -3,28 +3,32 @@ r"""
 A ramp-sampled readout module
 =============================
 
-The scope of this notebook is to write a Cartesian readout module of one's own,
-by following the :class:`~pypulseqpp.sequences.SequenceModule` contract, and to
-measure what it changes against the shipped readout.
+The previous lesson wrote an excitation module. This lesson writes a
+Cartesian readout module that follows the
+:class:`~pypulseqpp.sequences.SequenceModule` contract, and compares it with
+the shipped readout.
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
-the ramps carry area that is never sampled. Sampling through the ramps as well
-covers the same extent of k-space in a shorter lobe, and the sampling locations
-it produces are not evenly spaced, so the data need regridding before a
-transform.
+the area under the ramps is not sampled. Sampling through the ramps as well
+covers the same extent of k-space in a shorter lobe; the resulting sampling
+locations are not evenly spaced, so the data require regridding before a
+Fourier transform. The module concept, and the events a module publishes, are
+described in :doc:`/explanations/design/sequence-module`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Module interface.** What the contract requires of a readout module.
-#. **Readout duration.** The two designs at the same resolution and the same
-   sampling rate.
-#. **One repetition.** The blocks each of them publishes.
-#. **Sample spacing along the line.** Where the samples land, and what that
-   asks of the reconstruction.
-#. **Scan loop.** The module played over a matrix.
+After this lesson, you should be able to:
 
-What a module is, and what it must publish, is described in
-:doc:`/explanations/design/sequence-module`.
+- implement ``init_module`` for a readout module and set its ``center`` to
+  the echo;
+- design a prephaser and an acquisition window that sample through the ramps
+  of the readout lobe;
+- compare the readout duration of ramp-sampled and flat-top designs at the
+  same resolution and sampling rate;
+- measure the nonuniform sample spacing along the line from the k-space
+  analysis;
+- play the module over a matrix in a scan loop.
 """
 
 # sphinx_gallery_start_ignore
@@ -69,7 +73,7 @@ def sampling_figure(k_read, spacing, nyquist):
 
 # %%
 # Module interface
-# -----------------
+# ----------------
 #
 # ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 # sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -77,7 +81,7 @@ def sampling_figure(k_read, spacing, nyquist):
 # local variables are published under those names, so a scan loop reaches the
 # phase encode as ``readout.gy_pre`` without the module returning anything.
 #
-# The prephaser carries half the area of the whole lobe, ramps included, so the
+# The prephaser has half the area of the whole lobe, ramps included, so the
 # echo lands at the middle of the lobe rather than the middle of its flat top.
 # The acquisition window is centred on the lobe and sampled at a fixed rate:
 # equal steps in time over a gradient that is not constant are unequal steps in
@@ -200,7 +204,7 @@ class RampSampledLineReadout(design.SequenceModule):
 # ----------------
 #
 # Both designs sample the same extent of k-space, so both resolve the same
-# matrix over the same field of view. The flat-top design carries that extent
+# matrix over the same field of view. The flat-top design covers that extent
 # on its plateau alone, and its ramps add duration without adding samples.
 
 system = pp.Opts(
@@ -266,10 +270,10 @@ print(
 # it built, so the sample positions come from the events themselves rather than
 # from the design arithmetic. The spacing is finest on the ramps, where the
 # gradient is weakest, and largest on the plateau, where it remains below the
-# Nyquist spacing for the prescribed field of view. The
-# first and last samples, taken while the gradient is still near zero, are
-# almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
-# regridding during reconstruction.
+# Nyquist spacing for the prescribed field of view. Consecutive samples at the
+# start and at the end of the window, taken while the gradient is near zero,
+# are almost coincident in k, so these edge samples are redundant. The
+# nonuniform sampling locations require regridding during reconstruction.
 
 k_adc = readout.calculate_kspace()[0]
 k_read = k_adc[0]

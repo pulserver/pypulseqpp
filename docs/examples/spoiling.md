@@ -1,7 +1,7 @@
 # Spoiling
 
 A repetition leaves transverse magnetisation behind, and the next one
-refocuses part of it. These two pages measure what a spoiler gradient
+refocuses part of it. These two lessons measure what a spoiler gradient
 removes and what it does not.
 
 | Page | What it establishes |

@@ -3,14 +3,15 @@ r"""
 Spiral readout
 ==============
 
-The scope of this notebook is to acquire k-space along a spiral arm rather than
-along straight lines, and to establish which of the system's limits decides how
-long an arm takes. A spiral is the first trajectory of the course that cannot
-be written down as a trapezoid: its waveform is solved numerically against the
-limits, which is what :class:`~pypulseqpp.sequences.SpiralReadout2D` is for.
-The interface such a module presents is the subject of
-:doc:`/generated/gallery/05-sequence-modules/02_readout`; here it is used for
-the arms it designs.
+The previous lesson, :doc:`/generated/gallery/04-non-cartesian/01_radial`,
+acquired k-space along straight spokes. This lesson
+acquires it along a spiral arm, and establishes which of the system limits
+determines the duration of an arm. A spiral is the first trajectory of the
+course that cannot be written as a trapezoid: its waveform is solved
+numerically against the limits by
+:class:`~pypulseqpp.sequences.SpiralReadout2D`. The interface of such a module
+is the subject of :doc:`/generated/gallery/05-sequence-modules/02_readout`;
+here the module is used only for the arms it designs.
 
 Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from
@@ -26,21 +27,21 @@ whatever the gradient system could deliver. The solver applies the lowest of
 the three, so the readout duration depends on the slew rate over part of the
 design space and not over the rest.
 
-The observable is which of the three is binding, read off the waveform each
-design produces.
+The binding limit of each design is read from the waveform it produces.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Designing one arm.** The module, and the limits it is solved against.
-#. **The design space.** Readout duration over a grid of slew limits and
-   sampling rates, and the ceiling that binds each design.
-#. **The waveform in each regime.** One design from each, against the ceilings
-   that bound it.
-#. **Interleaves against arm duration.** The remaining lever once a regime is
-   fixed.
+After this lesson, you should be able to:
 
-The straight-line trajectory this is a departure from is
-:doc:`/generated/gallery/04-non-cartesian/01_radial`.
+- state the amplitude, slew-rate and receiver limits on a spiral traversal,
+  including the receiver cap :math:`G_\mathrm{bw}`;
+- design a spiral arm with a readout module and measure the vector amplitude
+  and slew rate of its waveform;
+- identify the binding limit of a design from its waveform, over a range of
+  slew limits and sampling rates;
+- relate the interleaf count to the arm duration and to the duration of a
+  full set of interleaves.
 """
 
 # sphinx_gallery_start_ignore
@@ -293,7 +294,7 @@ duration_figure(grid)
 #
 # The flat part of the middle curve is not exactly flat, and the reason is that
 # an arm at constant amplitude is still turning. Holding :math:`|G|` while the
-# direction rotates costs slew rate of its own, and the tighter the turn the
+# direction rotates requires slew rate of its own, and the tighter the turn the
 # more of it, so the slew limit continues to govern the first turns of an arm
 # whose amplitude has already stopped growing.
 
@@ -318,8 +319,8 @@ waveform_figure(
 # In the other two it reaches a ceiling part way out and stays there, and the
 # slew falls away from its limit once it does: the remaining traversal is at
 # constant speed, and the only turning left is the angular one. The slew rate
-# is at its limit early in every one of them, which is why reaching the slew
-# limit is not by itself what tells the three apart.
+# is at its limit early in every one of them, so reaching the slew limit does
+# not by itself distinguish the three.
 #
 # The ceilings are drawn at the system's derated limits rather than at the
 # numbers passed in. A design whose two in-plane axes play together is solved
@@ -330,9 +331,9 @@ waveform_figure(
 # Interleaves against arm duration
 # --------------------------------
 #
-# Within one regime the pitch is the remaining lever: more interleaves cover
-# k-space with shorter arms, and the set of them takes correspondingly longer
-# to play.
+# Within one regime the pitch is the remaining free parameter: more interleaves
+# cover k-space with shorter arms, and the set of them takes correspondingly
+# longer to play.
 
 interleaves = []
 for count in (4, 8, 16, 32, 48):
@@ -359,7 +360,7 @@ interleaf_figure(interleaves)
 # %%
 # The arm duration falls almost as the reciprocal of the interleaf count while
 # the time for a full set rises less than proportionally, because each
-# repetition carries an excitation and a rewind whose duration does not depend
+# repetition contains an excitation and a rewind whose duration does not depend
 # on the pitch. Off-resonance and :math:`T_2^*` act over the readout duration,
 # so the interleaf count is the remaining way to shorten it once the slew rate
 # no longer does.

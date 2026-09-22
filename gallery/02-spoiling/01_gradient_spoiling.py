@@ -3,30 +3,31 @@ r"""
 Gradient spoiling
 =================
 
-The scope of this notebook is to add a spoiler gradient to the gradient echo of
-the previous section, and to establish what it does and does not achieve: a
-spoiler winds the transverse magnetisation left at the end of a repetition
-through several cycles across a voxel, so that it integrates to nothing there,
-but it winds every repetition by the same amount and therefore leaves a
-coherent pathway that survives into the steady state.
+The gradient echo of the previous section leaves transverse magnetisation at
+the end of each repetition, and the following pulses refocus part of it. This
+lesson adds a spoiler gradient after the acquisition. The spoiler dephases the
+remaining transverse magnetisation through several cycles across a voxel, so
+that it integrates to nearly zero there; because every repetition applies the
+same dephasing, a coherent pathway remains and contributes to the steady
+state.
 
-The observable is the steady-state signal, computed by summing isochromats
-across a voxel over several hundred repetitions of the sequence being built,
-against the signal an ideally spoiled repetition would give.
+The steady-state signal is computed by summing isochromats across a voxel over
+several hundred repetitions of the sequence built here, and compared with the
+signal of an ideally spoiled repetition. The next lesson,
+:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, removes the coherent
+pathway that gradient spoiling leaves.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **The spoiler.** A gradient after the acquisition, prescribed by the
-   dephasing it winds across a voxel.
-#. **One repetition.** Where the spoiler goes, and what it costs.
-#. **Isochromats across a voxel.** The summation the steady state is measured
-   with, driven by the sequence's own timing and spoiler area.
-#. **Steady state against spoiler area.** What raising the spoiler does.
-#. **Steady state against flip angle.** Where the residual pathway matters.
+After this lesson, you should be able to:
 
-The ideal steady state is the subject of
-:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, which removes the
-coherent pathway this page is left with.
+- prescribe a spoiler gradient by its dephasing across a voxel and place it
+  in the repetition;
+- compute a steady-state signal by an isochromat summation that uses the
+  echo time, repetition time and spoiler area of the built sequence;
+- relate the steady-state signal to the spoiler area and to the flip angle;
+- explain why no spoiler area reproduces the ideally spoiled signal.
 """
 
 # sphinx_gallery_start_ignore
@@ -161,7 +162,7 @@ seq.paper_plot(tr=1)
 # --------------------------
 #
 # The steady state is reached by playing the repetition several hundred times
-# on a set of isochromats spread across one voxel. Each one carries a complex
+# on a set of isochromats spread across one voxel. Each one has a complex
 # transverse component and a longitudinal one, and each repetition applies the
 # pulse, the interval to the echo, the interval from the echo to the end of the
 # repetition, and the phase the spoiler winds at that isochromat's position.
@@ -278,9 +279,9 @@ print(
 # does not quite average to zero, and past about three cycles the curve is flat
 # to the last digit.
 #
-# What the plateau is made of is a pathway the pulse refocuses from one
+# The plateau consists of a pathway that the pulse refocuses from one
 # repetition to the next: the spoiler winds every repetition through the same
-# phase, so it does not touch it. At 30 degrees that residual is more than one
+# phase, so it leaves that pathway unchanged. At 30 degrees that residual is more than one
 # and a half times the ideally spoiled signal it is being compared with, and no
 # spoiler area removes it.
 #
@@ -292,8 +293,8 @@ print(
 # Steady state against flip angle
 # -------------------------------
 #
-# The residual pathway carries what the pulse returns from the longitudinal
-# axis, so it grows with the flip angle, and it adds to or subtracts from the
+# The residual pathway contains magnetisation that the pulse returns from the
+# longitudinal axis, so it grows with the flip angle, and it adds to or subtracts from the
 # ideally spoiled signal depending on where the flip angle sits.
 
 FLIP_ANGLES = np.arange(2.0, 61.0, 2.0)
@@ -327,5 +328,5 @@ print(
 # and T1, and its shape is what a signal model inverted for T1 assumes. The
 # gradient-spoiled curve peaks well beyond it, falls below it at small flip
 # angles and rises to twice it at large ones, and the whole departure depends
-# on T2, which that model does not carry. Removing the dependence is what the
-# RF phase cycle of the next page is for.
+# on T2, which that model does not include. The RF phase cycle of the next
+# lesson removes this dependence.

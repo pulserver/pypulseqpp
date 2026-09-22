@@ -192,6 +192,7 @@ class Mprage3DApp(sequences.SequenceApp):
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
         ordering : {'radial', 'shuffling'}, default='radial'
+            Line order within a partition, and the support it is drawn from.
             ``'radial'``: CAIPIRINHA lattice support, lines of each partition
             acquired centre-out. ``'shuffling'``: variable-density
             Poisson-disc support (``sampling='poisson'`` of

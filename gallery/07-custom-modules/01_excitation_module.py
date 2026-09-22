@@ -3,29 +3,33 @@ r"""
 A minimum-phase excitation module
 =================================
 
-The scope of this notebook is to write an excitation module of one's own, by
-subclassing :class:`~pypulseqpp.sequences.RfModule`, and to measure what the
-design it implements gains and costs against the shipped one.
+The earlier lessons used the shipped modules. This lesson writes an
+excitation module by subclassing :class:`~pypulseqpp.sequences.RfModule`, and
+compares the design it implements with the shipped one.
 
 The shipped excitation modules design linear-phase SLR pulses, whose energy is
-symmetric about the middle of the pulse. A minimum-phase design concentrates RF
-energy near the end of the waveform, so that at a fixed duration and
-time-bandwidth product the interval from the pulse to the echo is shorter, at
-the price of a larger peak :math:`B_1` and a slice profile whose phase is not
-linear.
-
-Outline:
-
-#. **Module interface.** What subclassing ``RfModule`` requires, and what it
-   provides.
-#. **Published events.** The pulse, the selection gradient and the rephaser the
-   module publishes, and the timing they imply.
-#. **Pulse envelope and slice profile.** The two designs simulated side by
-   side.
-#. **Echo time.** What the asymmetric envelope buys.
-
-What a module is, and what it must publish, is described in
+symmetric about the middle of the pulse. A minimum-phase design concentrates
+RF energy near the end of the waveform, so that at a fixed duration and
+time-bandwidth product the interval from the pulse to the echo is shorter. The
+peak :math:`B_1` is larger, and the phase of the slice profile is not linear.
+The module concept, and the events a module publishes, are described in
 :doc:`/explanations/design/sequence-module`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- subclass :class:`~pypulseqpp.sequences.RfModule` and implement
+  ``init_module``;
+- publish the pulse, selection gradient and rephaser of a module and set its
+  timing reference ``center``;
+- place the effective RF centre of a minimum-phase SLR pulse with
+  ``center_pos``;
+- compare the envelope, slice profile and peak :math:`B_1` of linear-phase
+  and minimum-phase designs;
+- measure the shortest echo time a readout module reaches with each
+  excitation.
 """
 
 # sphinx_gallery_start_ignore
@@ -84,7 +88,7 @@ def design_figure(designs, thickness_m):
 
 # %%
 # Module interface
-# -----------------
+# ----------------
 #
 # A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 # of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -211,10 +215,9 @@ for name, module in (("linear", linear_phase), ("minimum", minimum_phase)):
 
 # %%
 # The rephaser compensates the slice-selection moment accumulated after the
-# effective RF centre.
-# At ``center_pos=1.0`` that is the fall ramp alone, so the rephaser block
-# collapses to its shortest and the pulse ends a gradient raster or two before
-# the encoding starts.
+# effective RF centre. At ``center_pos=1.0`` that moment is the fall ramp
+# alone, so the rephaser block has its minimum duration and the pulse ends a
+# gradient raster period or two before the encoding starts.
 #
 # Pulse envelope and slice profile
 # --------------------------------
@@ -246,8 +249,8 @@ design_figure(designs, THICKNESS_M)
 #
 # A readout module takes the pulse, its selection gradient and its rephaser,
 # and measures the echo time from the pulse's effective centre. Applying the
-# same readout to each excitation isolates the resulting
-# difference in echo time.
+# same readout to each excitation isolates the resulting difference in echo
+# time.
 
 readouts = {
     name: design.LineReadout2D(

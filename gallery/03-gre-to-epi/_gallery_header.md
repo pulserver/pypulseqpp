@@ -1,1 +1,1 @@
-Several echoes per excitation: a train of readouts, the blips that make it an image, and what a single shot costs.
+Several echoes per excitation: a train of readouts, the phase-encode blips between them, and single-shot echo planar imaging.

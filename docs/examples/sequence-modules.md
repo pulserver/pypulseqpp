@@ -2,7 +2,7 @@
 
 The designers the package solves excitations and readouts with, and the
 application that gives one a prescription, a sampling order and a loop.
-The prescriptions they are put through are the ones the earlier sections
+These lessons apply them to the prescriptions that the earlier lessons
 solved by hand.
 
 | Page | What it establishes |
