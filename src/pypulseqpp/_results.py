@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-__all__ = ["AdcTimes", "RfTimes", "Waveforms", "WaveformsAndTimes"]
+__all__ = ["AdcTimes", "RfBandwidth", "RfTimes", "Waveforms", "WaveformsAndTimes"]
 
 #: Pulseq's RF uses, in the order `supported_rf_uses` lists them.
 RF_USES = (
@@ -171,3 +171,40 @@ class WaveformsAndTimes:
     waveforms: Waveforms
     rf: RfTimes
     adc: AdcTimes
+
+
+@dataclass(frozen=True)
+class RfBandwidth:
+    """RF bandwidth, the spectrum it was measured on, and the bands in it.
+
+    Frequencies are in Hz. ``frequency`` is centred on where the pulse is
+    tuned; ``band_offsets`` are relative to that tuning, the pulse's own
+    frequency offset, so a single-band pulse has one band at zero. The
+    PyPulseq-compatible tuple is ``(bandwidth, spectrum, frequency)``.
+
+    Attributes
+    ----------
+    bandwidth : float
+        Width between the outermost crossings at ``cutoff`` of the peak, over
+        every band.
+    spectrum : numpy.ndarray
+        Complex Fourier transform of the envelope, one value per ``frequency``.
+    frequency : numpy.ndarray
+        Frequency of each bin of ``spectrum``. Upstream's axis, which the
+        compatible tuple returns, labels every bin one bin low.
+    band_offsets : numpy.ndarray
+        Magnitude-weighted centre of each band, lowest first.
+    band_bandwidths : numpy.ndarray
+        Width of each band at ``cutoff`` of that band's own peak.
+    """
+
+    bandwidth: float
+    spectrum: np.ndarray
+    frequency: np.ndarray
+    band_offsets: np.ndarray
+    band_bandwidths: np.ndarray
+
+    @property
+    def num_bands(self) -> int:
+        """Number of bands; one for a pulse with a single passband."""
+        return int(self.band_offsets.size)
