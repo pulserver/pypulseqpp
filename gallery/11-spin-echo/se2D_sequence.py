@@ -30,11 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# A full Cartesian sampling of one slice, at the shortest echo time the
-# pulses and the readout allow.
+# Every phase-encode line of one slice is acquired, at the minimum echo time
+# permitted by the RF pulse and readout durations.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import se2D_sequence
@@ -56,7 +56,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The lines in the order they are read.
+# Colour encodes phase-encode line acquisition order.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
 

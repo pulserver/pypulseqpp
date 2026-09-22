@@ -20,8 +20,11 @@ pypulseqpp provides Pulseq sequence design and analysis through a
 PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
 and trajectory design, reusable sequence modules, complete sequence
 applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
-Unsupported PyPulseq features are not presented as available. Passing these
-checks does not establish scanner or patient safety.
+Its event factories and `Sequence` methods keep PyPulseq's signatures and event
+conventions; it reads Pulseq text files from version 1.2 onward and writes
+Pulseq 1.5.1 text and binary files, or 1.4.1 text for older interpreters. Not
+every PyPulseq feature is implemented, and the API reference lists what is.
+Passing these checks does not establish scanner or patient safety.
 
 ## Features
 
@@ -49,10 +52,10 @@ seq.write("gre2d.seq")
 
 ## Documentation
 
-The [user guide](https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html)
+The [user guide](https://pulserver.github.io/pypulseqpp/stable/user-guide/index.html)
 covers installation and support, and lists what each documentation section
-holds. The
-[examples](https://pulserver.github.io/pypulseqpp/latest/examples/index.html)
+contains. The
+[examples](https://pulserver.github.io/pypulseqpp/stable/examples/index.html)
 are a course in sequence design, from a pulse-acquire experiment to echo planar
 and non-Cartesian acquisitions, followed by a page for each shipped sequence.
 Every version of the documentation is published at
@@ -92,4 +95,4 @@ used in work built with it:
 ## License
 
 MIT, except bundled or vendored third-party components that retain their own
-licences. See [License and third-party notices](https://pulserver.github.io/pypulseqpp/latest/misc/license.html).
+licences. See [License and third-party notices](https://pulserver.github.io/pypulseqpp/stable/misc/license.html).

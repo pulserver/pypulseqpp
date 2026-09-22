@@ -4,7 +4,7 @@
 ========================
 
 A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
-which reads one line of a rotating PROPELLER blade. Spoilers suppress unwanted
+at which one line of a rotating PROPELLER blade is acquired. Spoilers suppress unwanted
 coherence before the next TR. TE controls T2 weighting and TR controls
 longitudinal recovery. The overlapping blade centres support motion-robust
 structural imaging.
@@ -30,10 +30,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Sixteen-line blades
+# -------------------
 #
-# Sixteen lines to a blade.
+# Sixteen lines per blade.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import se_propeller2D_sequence
@@ -62,8 +62,8 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Wider blades
 # ------------
 #
-# A wider blade needs fewer turns to cover the disc and samples more of the
-# centre in each.
+# Wider blades cover the k-space disc with fewer blade orientations, and
+# each blade samples a larger central region.
 
 alternative = se_propeller2D_sequence(
     n=192, blade_width=32, n_slices=1, te=None, tr=None, n_dummy=0

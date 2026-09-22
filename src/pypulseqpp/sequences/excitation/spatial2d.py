@@ -52,9 +52,10 @@ class SpatialSelective2DExcitation(RfModule):
         One per axis, played in the pulse's own block.
     rephasers : tuple of TrapEvent
         Empty for the spiral trajectory; the attribute is present because a
-        different path would need one.
+        trajectory that does not end at the origin requires rephasers.
     self_refocused : bool
-        Whether the trajectory came back to the origin on its own.
+        Whether the excitation k-space trajectory ends at the origin without
+        a rephaser.
     duration_s : float
         Pulse length (s), which the trajectory fixed.
 

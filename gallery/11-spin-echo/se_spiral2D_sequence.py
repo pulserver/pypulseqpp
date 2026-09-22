@@ -29,8 +29,8 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Constant-density spiral
+# -----------------------
 #
 # Sixteen interleaves at a constant pitch.
 
@@ -53,7 +53,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# Each interleaf is the solved arm turned to its own angle.
+# Each interleaf is the same spiral gradient waveform, rotated to its own
+# angle by a rotation extension.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 
@@ -61,7 +62,7 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Variable density
 # ----------------
 #
-# A dual-density arm retains the Nyquist spacing near the origin and increases
+# A dual-density interleaf retains the Nyquist spacing near the origin and increases
 # the pitch at larger radii, reducing the readout duration.
 
 alternative = se_spiral2D_sequence(

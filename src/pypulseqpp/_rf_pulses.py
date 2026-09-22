@@ -594,8 +594,8 @@ def make_2d_selective_pulse(
         Complex desired profile on the ``(matrix, matrix)`` grid, instead of a
         disc.
     n_interleaves : int, default=None
-        Spiral arms to play. The default is what covers excitation k-space at
-        Nyquist. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
+        Spiral arms to play. The default covers excitation k-space at the
+        Nyquist spacing. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
     axes : sequence of str, default=('x', 'y')
         The two gradient channels the trajectory runs on.
     b1_maps : array_like, default=None

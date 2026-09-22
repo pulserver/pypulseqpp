@@ -30,11 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Nyquist angular sampling
+# ------------------------
 #
-# A spoke at every partition, with the spoke set turned from one partition
-# to the next.
+# The Nyquist set of spoke angles at every partition. With the default
+# ``partition_angle_shift='none'``, every partition uses the same angles.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_stack_of_stars3D_sequence

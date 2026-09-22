@@ -160,14 +160,14 @@ def plot_kspace(
         Two of ``x``, ``y``, ``z`` and ``f`` to project onto, where ``f`` is
         the transmit frequency of each sample's slice. By default a trajectory
         confined to a plane is drawn in it, and any other in 3D.
-    show_trajectory : bool, default True, default=True
+    show_trajectory : bool, default=True
         Also draw the trajectory between samples. The axis limits are set
         from the sampling locations either way, so a prewinder or spoiler is
         clipped rather than setting the scale.
     color_by : {"echo", "shot", "order"}, default=None
         Colour samples by echo index within the shot, by shot index, or both
         side by side. A panel whose index never varies is dropped.
-    plot_now : bool, default True, default=True
+    plot_now : bool, default=True
         Show the figure before returning.
 
     Returns

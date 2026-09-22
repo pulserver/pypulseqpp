@@ -72,7 +72,7 @@ class SpiralNavigator(SequenceModule):
     Examples
     --------
     The three planes are one designed arm under three rotations, so the module
-    holds one waveform however many planes it plays:
+    stores one waveform regardless of the number of planes played:
 
     >>> import pypulseqpp.sequences as design
     >>> import pypulseqpp as pp
@@ -182,11 +182,11 @@ class SpiralNavigator(SequenceModule):
         window : float
             Dead time available (s).
         requested : int or str, default='auto'
-            ``"auto"`` takes as many as fit, up to ``limit``; an integer asks
-            for exactly that many and is refused if they do not fit.
+            ``"auto"`` takes as many as fit, up to ``limit``; an integer
+            requests exactly that many and raises if they do not fit.
         limit : int, default=None
-            Ceiling on the ``"auto"`` count. Ignored for an explicit request,
-            which is the caller saying it has already decided.
+            Ceiling on the ``"auto"`` count. Ignored for an explicit integer
+            request.
 
         Returns
         -------
@@ -196,8 +196,8 @@ class SpiralNavigator(SequenceModule):
         Raises
         ------
         ValueError
-            If ``requested`` is negative, or exceeds the number ``window``
-            holds.
+            If ``requested`` is negative, or exceeds the number that fits in
+            ``window``.
         """
         if requested == "auto":
             fits = max(int(window // self.duration), 0)

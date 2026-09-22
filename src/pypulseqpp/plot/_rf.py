@@ -252,17 +252,17 @@ def plot_rf(
     extent, span : float or pair of float, default=None
         Limits of the first and second axis: a half-width about zero or a
         ``(low, high)`` pair, in mm for a position and Hz for off-resonance.
-    samples : int, default 401, default=401
+    samples : int, default=401
         Points per axis; a plane caps at 91 a side.
-    dt : float, default 8e-6, default=8e-06
+    dt : float, default=8e-06
         Integration step in seconds, wherever the window is integrated rather
         than the pulse alone.
-    whole : bool, default False, default=False
+    whole : bool, default=False
         Integrate everything in the window -- every pulse, gradient and the
         precession between them -- rather than the pulse alone. A plane is
         always integrated this way.
     title : str, default=None
-    plot_now : bool, default True, default=True
+    plot_now : bool, default=True
         Show the figure before returning.
 
     Returns

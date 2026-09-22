@@ -203,7 +203,7 @@ class MultibandExcitation(RfModule):
     b1rms_ut : float, default=None
         Root-mean-square B1 achieved over ``tr``, when one was given.
     peak_ut : float
-        Peak B1 (uT), which is what a transmit chain limits.
+        Peak B1 (uT), the quantity limited by the transmit chain.
 
     Raises
     ------

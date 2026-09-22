@@ -29,8 +29,8 @@ class RfModule(SequenceModule):
     """Sequence module with off-resonance simulation of an individual RF pulse.
 
     Every excitation and preparation module the package ships is an
-    ``RfModule``, so the response of the pulse it holds is available from the
-    module itself.
+    ``RfModule``, so the off-resonance response of its pulse is available from
+    the module itself.
 
     Examples
     --------

@@ -2,12 +2,30 @@
 
 Checks of a complete sequence against the gradient hardware limits, the
 forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
-model and a VOP SAR model. Every check applies each block's rotation and
-evaluates the three physical gradient axes, and takes its limits from the
-sequence's own {class}`pypulseqpp.Opts` or from one passed to it. They are
-estimates, not a complete scanner or patient-safety assessment.
-{doc}`../explanations/safety/index` covers what each one computes and the
-criterion it applies.
+model and a VOP SAR model. They are estimates, not a complete scanner or
+patient-safety assessment. {doc}`../explanations/safety/index` covers what each
+one computes and the criterion it applies.
+
+The **gradient-derived checks** evaluate the three physical gradient axes,
+after each block's rotation.
+{func}`~pypulseqpp.safety.check_max_grad` takes `max_grad`, and
+{func}`~pypulseqpp.safety.check_max_slew` and
+{func}`~pypulseqpp.safety.check_grad_continuity` take `max_slew` and
+`grad_raster_time`, from the sequence's own {class}`pypulseqpp.Opts` or from
+one passed as `system`; a prescription is applied to them by transforming the
+sequence first. {func}`~pypulseqpp.safety.check_pns` and
+{func}`~pypulseqpp.safety.check_mech_resonance` apply their `rotation`
+argument after the block rotations, sample the gradient on the sequence's own
+gradient raster, and take only `gamma` from `system`. Their criteria are
+separate arguments: a nerve model ({class}`~pypulseqpp.safety.ChronaxieModel`,
+a SAFE description or a `.asc` file) and forbidden bands
+({class}`~pypulseqpp.safety.ForbiddenBand` entries or a vendor table).
+
+The **RF-derived check**, {func}`~pypulseqpp.safety.check_sar`, evaluates the
+RF waveforms and RF shims, and reads no gradient, rotation or `system`. Its
+VOPs are a {class}`~pypulseqpp.safety.VopModel` argument, its channel drive
+calibration is `drive_per_hz`, and its limits are `local_limit` and
+`global_limit`, in W/kg.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.safety
@@ -43,6 +61,7 @@ otherwise.
 | Object | Description |
 | --- | --- |
 | {obj}`~pypulseqpp.safety.check_mech_resonance` | Check the gradient amplitude spectrum against forbidden gradient bands. |
+| {obj}`~pypulseqpp.safety.mech_resonance_spectrum` | Return the gradient amplitude spectrum of one window, per physical axis. |
 | {obj}`~pypulseqpp.safety.read_forbidden_bands` | Read forbidden bands from a vendor table. |
 | {obj}`~pypulseqpp.safety.ForbiddenBand` | A forbidden gradient band, a frequency range on one physical axis. |
 
@@ -62,9 +81,10 @@ upstream's `safe_example_hw()` or a Siemens `.asc` file read by
 
 ## SAR
 
-{func}`check_sar` averages SAR from virtual observation points over each real
-repetition, and compares the worst repetition's largest VOP SAR with a local
-limit and, given a global matrix, its global SAR with a global limit. VOPs come
+{func}`check_sar` averages SAR from virtual observation points over each
+window — each repetition detected from the block definitions, or the whole
+sequence when it does not repeat — and compares every window's largest VOP SAR with `local_limit` and,
+given a global matrix, its global SAR with `global_limit`. VOPs come
 as a {class}`VopModel`, read from a `.mat` or `.npz` file by
 {func}`read_vops`, or from {func}`example_vops`, a synthetic model for
 demonstration only. RF power in Pulseq's Hz units is

@@ -1,7 +1,7 @@
 # Zero echo time
 
 The readout gradient is already at amplitude when the pulse is transmitted, so
-acquisition begins as soon as the receiver is available.
+acquisition begins after the transmit/receive switching dead time.
 
 | Example | Scope |
 | --- | --- |

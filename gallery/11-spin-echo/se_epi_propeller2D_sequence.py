@@ -30,10 +30,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Sixteen-line blades
+# -------------------
 #
-# Sixteen lines to a blade, each blade read after one excitation.
+# Sixteen lines per blade, each blade acquired after one excitation.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import se_epi_propeller2D_sequence
@@ -63,8 +63,9 @@ pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 # Wider blades
 # ------------
 #
-# A wider blade is a longer echo-planar train, so the blade covers more of
-# the disc and accumulates more off-resonance phase across itself.
+# A wider blade requires a longer echo-planar train. Each blade covers more
+# of the k-space disc, and more off-resonance phase accumulates across the
+# blade's phase-encode direction.
 
 alternative = se_epi_propeller2D_sequence(
     n_x=192, blade_width=24, n_slices=1, te=60e-3, tr=None, n_dummy=0

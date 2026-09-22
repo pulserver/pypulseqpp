@@ -3,11 +3,12 @@
 Shuffled echo-resolved 3D FSE
 =============================
 
-Shuffled 3D FSE uses the same optimized refocusing train as conventional FSE,
-but distributes echo times over a variable-density Poisson-disc sampling
-pattern. The resulting incoherent contrast distribution can support
-echo-resolved or subspace reconstruction; no reconstruction is performed
-here.
+Shuffled 3D FSE uses the same refocusing-train design as conventional FSE,
+but assigns each view of a variable-density Poisson-disc sampling pattern to
+a random echo position within its train, as in T2 Shuffling [TAM17]_. Each
+echo time then samples an incoherent subset of k-space, which is the sampling
+condition of echo-resolved subspace reconstruction [TAM17]_; no
+reconstruction is performed here.
 """
 
 # sphinx_gallery_start_ignore
@@ -79,11 +80,11 @@ fig.tight_layout()
 # Echo-time distribution
 # ----------------------
 #
-# The optimized train is the same type analysed in the conventional FSE example;
-# shuffling changes its assignment to sampled views, not the RF model. Each echo
-# index occurs throughout the sampled extent. Contrast evolution is
-# consequently not locked to a radial k-space band, which is the sampling
-# condition used by echo-resolved and subspace FSE reconstructions.
+# The refocusing train is designed as in the conventional FSE example;
+# shuffling changes the assignment of views to echoes, not the refocusing
+# schedule. Each echo index occurs throughout the sampled extent, so the
+# contrast evolution along the train is not confined to a radial k-space
+# band. The histogram gives the number of acquired views per echo time.
 
 # sphinx_gallery_start_ignore
 fig, ax = plt.subplots(figsize=(5.6, 3.2))
@@ -99,3 +100,12 @@ ax.hist(
 ax.set(xlabel="Echo time (ms)", ylabel="Acquired views")
 fig.tight_layout()
 # sphinx_gallery_end_ignore
+
+# %%
+# References
+# ----------
+#
+# .. [TAM17] Tamir JI, Uecker M, Chen W, Lai P, Alley MT, Vasanawala SS,
+#    Lustig M. T2 shuffling: sharp, multicontrast, volumetric fast spin-echo
+#    imaging. *Magnetic Resonance in Medicine*. 2017;77(1):180-195.
+#    https://doi.org/10.1002/mrm.26102

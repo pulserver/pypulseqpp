@@ -30,8 +30,8 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Constant-density spiral
+# -----------------------
 #
 # Sixteen interleaves at a constant pitch, which sample the disc at the
 # Nyquist spacing.
@@ -55,7 +55,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# Each interleaf is the same solved arm turned to its own angle.
+# Each interleaf is the same spiral gradient waveform, rotated to its own
+# angle by a rotation extension.
 
 pp.plot.plot_kspace(baseline, color_by="shot", plane="xy")
 

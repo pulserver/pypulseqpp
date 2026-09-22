@@ -5,10 +5,12 @@ Conventional 3D fast spin echo
 
 A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing
 train, with one Cartesian ``(line, partition)`` view acquired at each echo.
-Variable refocusing angles control stimulated-echo pathways and T2-dependent
-signal evolution. Radial view ordering assigns this evolution to k-space and
-therefore determines the modulation transfer function and image blurring. 3D
-FSE is used for T2- and proton-density-weighted structural imaging.
+Refocusing angles below 180 degrees add stimulated-echo pathways to the echo
+signal [HEN88]_, and variable refocusing angles modulate the T2-dependent
+signal evolution along the train [BUS08a]_. Radial view ordering maps this
+evolution onto the ``(k_y, k_z)`` plane and therefore determines the
+modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for
+T2- and proton-density-weighted structural imaging.
 """
 
 # sphinx_gallery_start_ignore
@@ -111,10 +113,15 @@ diagram.paper_plot()
 # Refocusing schedule and echo signal
 # -----------------------------------
 #
-# The optimized schedule is obtained with ``torchsim``'s configuration-state
-# FSE simulator. The objective balances signal at the effective TE, peripheral
-# k-space signal, and RF power for the tissue models defined by the sequence.
-# The same simulator evaluates the resulting T2-dependent echo envelope.
+# The refocusing schedule has the form of [BUS08a]_: the angle decreases from
+# a maximum to a minimum over the first five echoes, increases to the
+# prescribed angle at the effective-TE echo and returns to the maximum at the
+# end of the train. The minimum and maximum angles, bounded by the prescribed
+# angle, are optimized with the extended phase graph (EPG) FSE simulator of ``torchsim`` [HEN88]_ [WEI15]_.
+# The cost combines an echo-to-echo signal-variation measure of blurring, the
+# contrast between two of the sequence's design tissues at the effective-TE
+# echo, and a penalty on RF power above that of the initial schedule. The same
+# simulator evaluates the resulting T2-dependent echo envelope.
 import torchsim
 
 angles = np.asarray(app.flips[0, : app.lengths[0]])
@@ -135,8 +142,8 @@ fig.tight_layout()
 # Echo and shot order
 # -------------------
 #
-# Radial ordering assigns views near k-space centre to the effective-TE echo
-# and progressively larger radii to echoes farther from it. Echo index records
+# Radial ordering [BUS08a]_ assigns views near k-space centre to the
+# effective-TE echo and progressively larger radii to echoes farther from it. Echo index records
 # position within a train; shot index identifies views acquired after the same
 # excitation.
 
@@ -161,3 +168,20 @@ fig.colorbar(art, ax=ax, label="Relative echo amplitude")
 ax.set(xlabel=r"$k_y$ (lines from centre)", ylabel=r"$k_z$ (partitions from centre)")
 fig.tight_layout()
 # sphinx_gallery_end_ignore
+
+# %%
+# References
+# ----------
+#
+# .. [HEN88] Hennig J. Multiecho imaging sequences with low refocusing flip
+#    angles. *Journal of Magnetic Resonance*. 1988;78(3):397-407.
+#    https://doi.org/10.1016/0022-2364(88)90128-X
+#
+# .. [WEI15] Weigel M. Extended phase graphs: dephasing, RF pulses, and
+#    echoes - pure and simple. *Journal of Magnetic Resonance Imaging*.
+#    2015;41(2):266-295. https://doi.org/10.1002/jmri.24619
+#
+# .. [BUS08a] Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
+#    Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and
+#    view ordering in 3D fast spin echo. *Magnetic Resonance in Medicine*.
+#    2008;60(3):640-649. https://doi.org/10.1002/mrm.21680

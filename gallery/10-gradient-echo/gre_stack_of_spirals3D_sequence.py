@@ -30,8 +30,8 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Sixteen interleaves
+# -------------------
 #
 # Sixteen interleaves at every partition.
 

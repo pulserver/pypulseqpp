@@ -10,7 +10,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ..._epi import calc_epi_order
+from ..._epi import make_epi_shot_offsets
 from .._module import SequenceModule
 from ._common import (
     as_tuple,
@@ -30,8 +30,8 @@ class _EpiReadout(SequenceModule):
     The scan loop sets the shot origin by scaling prewinders. Blips implement
     the relative offsets and share the readout ramps; flyback blips instead
     play in the rewind gaps. TE is measured to the train line ``te_line``,
-    the first by default: the loop knows which line samples the centre of
-    k-space, the module does not.
+    the first by default, because which line samples the centre of k-space
+    depends on the shot origin that the loop sets.
 
     Navigator lines, when asked for, are read after the read prewinder and
     before the phase-encode prewinder, without blips, so they sample the
@@ -67,15 +67,16 @@ class _EpiReadout(SequenceModule):
         Phase encodes at their largest step, to be scaled per shot. ``gz_pre``
         is 3D only.
     gy_rew, gz_rew : TrapEvent
-        The encodes negated, in the block that closes the repetition.
+        The encodes negated, in the last block of the repetition.
     gx_spoil : GradEvent
-        The lobe that closes the read axis, bridged off the last line.
+        Read-axis trapezoid in the last block: returns the read axis from the
+        end of the last line through k = 0 and adds the requested spoiling.
     adc : AdcEvent
         The acquisition window, shared by every line.
     shot_labels : tuple[LabelEvent, ...]
         ``SET`` counters on the prewinder block, one per name in ``labels``.
-        The loop writes the shot's origin into them. Always a tuple, however
-        many names there are, because the loop splats it.
+        The acquisition loop sets them to the shot's origin. Always a tuple,
+        whatever the number of names, so that it can be unpacked into a block.
     line_labels : tuple[tuple[LabelEvent, ...], ...]
         Per line, the ``INC`` counters that step from the previous line to this
         one -- the ordering, expressed as labels. Empty for the first line,
@@ -100,7 +101,8 @@ class _EpiReadout(SequenceModule):
         Each line's echo time (s) from the excitation isodelay, with no echo
         shift.
     echo_time : float
-        Echo time (s) of train line ``te_line``, which is what ``te`` sets.
+        Echo time (s) of train line ``te_line``, the echo time that ``te``
+        specifies.
     echo_shift_step : float
         Echo shift between successive shots (s), ``esp / echo_shifts`` on the
         block raster; zero with one shift.
@@ -130,8 +132,8 @@ class _EpiReadout(SequenceModule):
         Matrix size, per encoded axis.
     order : ArrayLike, default=None
         ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
-        row per line. Supplying one silences the generator arguments below; the
-        default takes a train from ``calc_epi_order``.
+        row per line. When supplied, the generator arguments below are ignored;
+        the default takes a train from :func:`~pypulseqpp.make_epi_shot_offsets`.
     etl : int, default=None
         Lines per repetition. Defaults to what one shot of the requested
         scheme needs to cross the phase-encode matrix.
@@ -180,13 +182,13 @@ class _EpiReadout(SequenceModule):
         Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
         achieved raster-compatible rate.
     ramp_sampling : bool, default=True
-        Sample across the read ramps as well as the plateau, which is what
-        makes the echo spacing short. Turn it off for a rectangular window at
-        the cost of a longer train.
+        Sample across the read ramps as well as the plateau, which shortens
+        the echo spacing. When off, the window covers the plateau only and the
+        train is longer.
     flyback : bool, default=False
         Read every line in the same direction, rewinding between them, instead
-        of alternating polarity. It costs a rewind per line and buys away the
-        odd-even inconsistency that a bipolar train leaves behind.
+        of alternating polarity. This adds a rewind per line and removes the
+        odd-even echo inconsistency of a bipolar train.
     spoiling_cycles : float, default=0.0
         Read-axis spoiling at the end of the repetition, in cycles across
         ``voxel_size_m``.
@@ -267,7 +269,7 @@ class _EpiReadout(SequenceModule):
         if order is None:
             if etl is None:
                 etl = -(-int(n[1]) // (int(acceleration) * int(segments)))
-            order = calc_epi_order(
+            order = make_epi_shot_offsets(
                 etl,
                 scheme=scheme,
                 acceleration=acceleration,

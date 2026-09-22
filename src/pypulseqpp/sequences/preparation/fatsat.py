@@ -58,8 +58,8 @@ class FatSaturation(RfModule):
         A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one
         the band lies on. Needs ``thickness_m``.
     use_rotation_extension : bool, default=True
-        Carry the orientation as a ``ROTATIONS`` extension rather than baking
-        it into new waveforms. Only ``True`` is implemented; see
+        Encode the orientation as a ``ROTATIONS`` extension rather than
+        rotating the gradient waveforms. Only ``True`` is implemented; see
         :class:`~pypulseqpp.TransformFOV`.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.

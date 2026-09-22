@@ -93,7 +93,7 @@ compact.paper_plot()
 # Sampling order
 # --------------
 #
-# One inversion reads the interleaves of one partition, so the inversion cycle
+# Each inversion cycle acquires the interleaves of one partition, so the cycle
 # is constant along each row. The interleaf train contains substantially fewer
 # readouts than an equivalent Cartesian line train, reducing the range of
 # inversion-recovery weighting. ``TI`` ends at the first excitation-pulse
@@ -112,7 +112,8 @@ order_figure(protocol, 16)
 # ----------
 #
 # The interleaves of every partition, over the three k-space axes, coloured by
-# shot. Each one is turned from the last so that the set covers the plane.
+# shot. Each interleaf is the same spiral gradient waveform rotated to its own
+# angle; the rotated set covers the in-plane k-space disc.
 
 pp.plot.plot_kspace(protocol, color_by="shot")
 

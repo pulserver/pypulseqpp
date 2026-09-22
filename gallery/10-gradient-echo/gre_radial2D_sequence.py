@@ -30,10 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Nyquist angular sampling
+# ------------------------
 #
-# Enough spokes to sample the outer radius at the Nyquist spacing.
+# ``ceil(pi / 2 * n)`` spokes over half a turn, which sample the outer
+# radius at the Nyquist spacing.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_radial2D_sequence

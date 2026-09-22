@@ -117,12 +117,12 @@ class _RadialReadout(_ArmedReadout):
     gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
     gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``. Carried left-aligned in the first
+        The rephaser that unwinds ``gz``. Played left-aligned in the first
         block after the pulse -- the TE wait when there is one, otherwise
-        alongside the prephaser at the head of the spoke, where it costs no
-        echo time at all. Only an axis the loop's rotation leaves alone can
-        carry one, so an in-plane acquisition takes a rephaser on z and a
-        projection takes none.
+        alongside the prephaser at the head of the spoke, where it adds no
+        echo time. It is accepted only on an axis that the loop's rotation
+        leaves unchanged, so an in-plane acquisition takes a rephaser on z and
+        a projection takes none.
     fov : float
         Isotropic in-plane field of view (m).
     matrix : int
@@ -151,8 +151,9 @@ class _RadialReadout(_ArmedReadout):
     explicit : bool, default=False
         Write out one spoke per entry of ``angles`` instead of one base spoke.
     angles : array-like, default=None
-        In-plane rotations (rad). Required when ``explicit``, refused
-        otherwise -- a sampling pattern is not the readout's to hold.
+        In-plane rotations (rad). Required when ``explicit`` and rejected
+        otherwise; without ``explicit``, the acquisition loop applies the
+        per-shot rotation.
     labels : sequence of str, default=None
         Counters emitted on the acquisition block.
     trigger : event, default=None
@@ -534,9 +535,9 @@ class NonCartesianReadout(_ArmedReadout):
     gz : GradEvent, default=None
         A selection gradient played in the same block as ``rf``.
     gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``, carried left-aligned in the first
-        block after the pulse. Only an axis the loop's rotation leaves alone
-        can carry one.
+        The rephaser that unwinds ``gz``, played left-aligned in the first
+        block after the pulse. Accepted only on an axis that the loop's
+        rotation leaves unchanged.
     trajectory : NonCartesianGradient
         Solved gradient interleaf with its ADC, prewinder and rewinder.
     fov_z : float, default=None
@@ -563,7 +564,7 @@ class NonCartesianReadout(_ArmedReadout):
         Write out one interleaf per entry of ``angles`` instead of one base
         interleaf.
     angles : ArrayLike, default=None
-        In-plane rotations (rad). Required when ``explicit``, refused
+        In-plane rotations (rad). Required when ``explicit`` and rejected
         otherwise.
     labels : Sequence[str], default=None
         Counters emitted on the acquisition block.

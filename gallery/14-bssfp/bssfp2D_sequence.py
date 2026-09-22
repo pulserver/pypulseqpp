@@ -30,10 +30,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# One cardiac phase over a full Cartesian sampling.
+# One cardiac phase, with every phase-encode line acquired.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import bssfp2D_sequence
@@ -63,7 +63,8 @@ diagram.paper_plot()
 # Sampling order
 # --------------
 #
-# The lines in the order they are read, in segments of ``views_per_segment``.
+# Colour encodes phase-encode line acquisition order; lines are acquired in
+# segments of ``views_per_segment``.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
 

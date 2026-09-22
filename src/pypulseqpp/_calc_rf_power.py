@@ -27,7 +27,7 @@ def calc_rf_power(rf, dt: float = 1e-6) -> tuple[float, float, float]:
     ----------
     rf : RF event
         Anything with ``t`` (s), ``signal`` (Hz) and ``shape_dur`` (s).
-    dt : float, default 1e-6, default=1e-06
+    dt : float, default=1e-06
         Resampling step, in seconds.
 
     Returns

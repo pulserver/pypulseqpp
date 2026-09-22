@@ -1,7 +1,8 @@
 # User guide
 
 Installing the package, the platforms it is supported on, and how the project
-is used and cited. Sequence physics and design concepts are covered in
+is used. The references to cite are on the {doc}`homepage <../index>`.
+Sequence physics and design concepts are covered in
 {doc}`../explanations/index`; executable workflows are in
 {doc}`../examples/index`.
 
@@ -9,7 +10,7 @@ is used and cited. Sequence physics and design concepts are covered in
 
 | Section | Purpose |
 | --- | --- |
-| This page | Installation, supported platforms, and how to cite the project. |
+| This page | Installation, supported platforms, issue reporting and security. |
 | {doc}`../developer-guide/index` | Development setup and contribution workflow. |
 | {doc}`../explanations/index` | Pulseq representation, sequence design and constraint models. |
 | {doc}`../examples/index` | A course in sequence design, and a page per shipped sequence. |

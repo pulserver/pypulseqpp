@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -191,29 +192,53 @@ def _compact_signature(_app, what, _name, _obj, _options, _signature, return_ann
     return None
 
 
-#: Where the README points its figures for readers on GitHub and PyPI, and
-#: what those references become once the same file is the documentation's
-#: landing page.
-README_ASSETS = (
-    "https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/",
-    "_static/",
+#: Links the repository README carries for readers on GitHub and PyPI, and
+#: what they become once the same file is the documentation's landing page:
+#: figures on ``main`` become this build's static copies, and a page of any
+#: published version becomes that page in this build, so each version's landing
+#: page links within that version. Badges, which link a version's root rather
+#: than one of its pages, are left as they are.
+README_REWRITES = (
+    (
+        re.compile(
+            r"https://raw\.githubusercontent\.com/pulserver/pypulseqpp/main/docs/_static/"
+        ),
+        "_static/",
+    ),
+    (
+        re.compile(
+            r"https://pulserver\.github\.io/pypulseqpp/[^/\s]+/([^\s)\"'<>#]+)\.html"
+        ),
+        r"\1.md",
+    ),
 )
 
 
-def _local_readme_assets(_app, docname, source):
-    """Use built static assets when the repository README is the index page."""
+def _readme_for_docs(text: str) -> str:
+    """Apply `README_REWRITES` to the README's text.
+
+    A rewritten page link is relative to ``docs/``, the directory of the page
+    that includes the README, which is what MyST resolves it against.
+    """
+    for pattern, replacement in README_REWRITES:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def _local_readme(_app, docname, source):
+    """Rewrite the README's links when the repository README is the index page."""
     if docname == "index":
-        source[0] = source[0].replace(*README_ASSETS)
+        source[0] = _readme_for_docs(source[0])
 
 
-def _included_readme_assets(_app, _relative_path, parent_docname, content):
-    """Rewrite the same references in the README pulled in by an ``include``.
+def _included_readme(_app, _relative_path, parent_docname, content):
+    """Rewrite the same links in the README pulled in by an ``include``.
 
     ``source-read`` fires on the landing page before its ``include`` runs, so
     the README's own text is never in the source that handler sees.
     """
     if parent_docname == "index":
-        content[0] = content[0].replace(*README_ASSETS)
+        content[0] = _readme_for_docs(content[0])
 
 
 def _public_bases(_app, _name, _obj, _options, bases):
@@ -335,8 +360,8 @@ def setup(app):
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("autodoc-process-signature", _compact_signature)
-    app.connect("source-read", _local_readme_assets)
-    app.connect("include-read", _included_readme_assets)
+    app.connect("source-read", _local_readme)
+    app.connect("include-read", _included_readme)
     app.connect("builder-inited", _draw_explanation_figures)
     # Ahead of autosummary's own handler, which reads the sources for the
     # objects it writes stubs for: a page written after it would only be read

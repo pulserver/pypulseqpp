@@ -200,9 +200,9 @@ def _moment_bridges(system, area, grad_start, grad_end, axes):
 class NonCartesianGradient:
     """One canonical non-Cartesian base interleaf, independent of its acquisition schedule.
 
-    A prewinder carries the trajectory from k = 0, at zero gradient amplitude,
-    to the start of the readout; a rewinder carries it from the end of the
-    readout back to k = 0 at zero amplitude. Both play in blocks of their own,
+    A prewinder moves the k-space position from k = 0, at zero gradient
+    amplitude, to the start of the readout; a rewinder returns it from the end
+    of the readout to k = 0 at zero amplitude. Both play in blocks of their own,
     so ``duration`` is the longest prewinder plus ``read_duration`` plus the
     longest rewinder (s). The subclasses design an interleaf; this class wraps
     events designed elsewhere.
@@ -508,8 +508,8 @@ class Arbitrary(NonCartesianGradient):
 
     Examples
     --------
-    A spoke written as a path starts and ends away from k = 0, so it carries a
-    prewinder and a rewinder:
+    A spoke written as a path starts and ends away from k = 0, so it requires
+    a prewinder and a rewinder:
 
     >>> import numpy as np
     >>> import pypulseqpp.sequences as design
@@ -632,7 +632,7 @@ class Radial(NonCartesianGradient):
     The readout is a constant-amplitude plateau from ``-kmax`` to ``+kmax``
     lasting ``round(matrix * oversamp) / bandwidth_hz_px``, or longer where
     ``system.max_grad`` requires, ceiled to the gradient raster. The prewinder
-    and the rewinder each carry area ``-kmax``, from and back to zero gradient
+    and the rewinder each have area ``-kmax``, from and back to zero gradient
     amplitude.
     """
 

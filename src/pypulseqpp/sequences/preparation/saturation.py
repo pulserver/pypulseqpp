@@ -31,9 +31,9 @@ class OffResonanceSaturation(RfModule):
     n_pulses : int, default=1
         Pulses in the train.
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-        Zero omits the spoiler, which is what a pulse whose effect is a phase
-        rather than a saturation needs.
+        Dephasing of the final spoiler, in cycles across ``voxel_size_m``.
+        Zero omits the spoiler, as required for a pulse used for its phase
+        effect rather than for saturation.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
     labels : Sequence[str], default=None
@@ -201,7 +201,8 @@ class MtPreparation(OffResonanceSaturation):
     >>> len(mt.blocks), round(float(mt.rf_prep.freq_offset))
     (2, -1500)
 
-    One band below resonance, with the free pool at zero offset left alone:
+    One band below resonance, with the free pool at zero offset not directly
+    saturated:
 
     .. plot::
        :include-source: false
@@ -282,7 +283,8 @@ class IhMtPreparation(OffResonanceSaturation):
     >>> ihmt.band_offsets_hz.tolist()
     [-1500.0, 1500.0]
 
-    Both sidebands at once, at the total power one band carries on its own:
+    Both sidebands at once, with the same total RF power as one band played
+    alone:
 
     .. plot::
        :include-source: false
@@ -385,9 +387,9 @@ class BlochSiegertPreparation(OffResonanceSaturation):
     >>> len(pulse.blocks), round(pulse.kbs_per_gauss2, 1)
     (1, 86.6)
 
-    The pulse sits far enough off resonance to shift the phase without
-    tipping much; the residual dip at its offset is what that distance
-    costs:
+    The pulse is placed far enough off resonance to produce a phase shift
+    with a small flip angle; the residual dip at its offset is the saturation
+    that remains at that frequency offset:
 
     .. plot::
        :include-source: false

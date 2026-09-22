@@ -1,8 +1,8 @@
 # Gradient echoes
 
-Every repetition holds one excitation and no refocusing pulse, and the
-transverse magnetisation left at the end of it is spoiled. The family varies in
-how k-space is covered between repetitions.
+Every repetition contains one excitation and no refocusing pulse, and the
+residual transverse magnetisation is spoiled at the end of each repetition.
+The sequences differ in the k-space trajectory acquired in each repetition.
 
 | Example | Scope |
 | --- | --- |

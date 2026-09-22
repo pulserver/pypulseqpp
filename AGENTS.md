@@ -250,7 +250,10 @@ either; it states the rules most often broken.
 | `docs/sequences.md` | Catalogue of the shipped sequences, grouped by family, with a reference page each | Which sequences exist, and what does one of them look like? |
 
 Do not transfer the prose style or level of exposition of one type into
-another. Explanations come before examples in the navigation, and an example
+another. The first gallery groups, `01-pulseq-basics` to `07-custom-modules`,
+are a sequential Pulseq course: each lesson has a concise introduction and
+explicit learning objectives, and may refer to the previous and next lesson.
+The later groups are standalone scientific examples. Explanations come before examples in the navigation, and an example
 links to conceptual material rather than restating it.
 
 A gallery example exists because running it and examining its output shows

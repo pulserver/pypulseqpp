@@ -1,8 +1,8 @@
 # Spin echoes
 
 One excitation and one refocusing pulse per repetition, with the acquisition
-placed at the refocused echo. The readout families are those of the gradient
-echoes, acquired under a refocusing pulse instead of after a spoiler.
+centred on the spin echo. The readout trajectories are those of the gradient
+echoes, with a refocusing pulse between the excitation and the readout.
 
 | Example | Scope |
 | --- | --- |

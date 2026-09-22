@@ -39,9 +39,9 @@ class _BssfpReadout(SequenceModule):
     gz : GradEvent
         Its selection gradient, if one was given.
     gx, gx_rew : GradEvent
-        ``gx`` climbs from zero, prephases and holds the readout plateau to
-        the end of the acquisition block; ``gx_rew`` leaves the plateau and
-        rewinds the read axis.
+        ``gx`` ramps up from zero, prephases and holds the readout plateau to
+        the end of the acquisition block; ``gx_rew`` ramps down from the
+        plateau and rewinds the read axis.
     gy_pre, gy_rew : TrapEvent
         In-plane encode at its largest step, and the same negated, to be scaled
         per shot.
@@ -354,8 +354,9 @@ class BssfpReadout2D(_BssfpReadout):
     >>> readout.te == readout.tr / 2
     True
 
-    One repetition and the line it reads. Every gradient moment is rewound
-    within the repetition, which is what makes the acquisition balanced:
+    One repetition and the line it reads. The net gradient area on every axis
+    is zero over the repetition, the condition that defines a balanced
+    acquisition:
 
     .. plot::
        :include-source: false

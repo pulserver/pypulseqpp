@@ -4,10 +4,12 @@ Individually optimized 3D fast spin echo
 ========================================
 
 Individually parameterized 3D FSE assigns different echo-train lengths and
-repetition times to central and peripheral k-space. The refocusing schedules
-and radial view order vary smoothly between these limits. This coupling can
-reduce scan time while retaining a prescribed central-k-space contrast for
-high-resolution structural imaging.
+repetition times to the shots that acquire central and peripheral k-space
+[BUO25]_. Train length, TR and the minimum and maximum angles of the
+refocusing schedule [BUS08b]_ vary smoothly between these limits, and the
+views are assigned by an adaptive radial order. Longer trains and a
+different TR at the periphery can reduce scan time, while the contrast at the
+centre of k-space is set by the parameters of the central shots.
 """
 
 # sphinx_gallery_start_ignore
@@ -50,9 +52,10 @@ seq = app.design()
 # Train parameters
 # ----------------
 #
-# Train length and TR follow a smooth transition from central to peripheral
-# k-space. Representative schedules below retain only the refocusing pulses
-# played by each selected shot.
+# Train length and TR follow a cubic smooth-step transition,
+# :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central) shot to 1
+# at the last (peripheral) shot [BUO25]_. The refocusing schedules of representative shots are plotted
+# up to each shot's own train length.
 
 # sphinx_gallery_start_ignore
 indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
@@ -81,8 +84,11 @@ fig.tight_layout(rect=(0, 0, 1, 0.75))
 # ------------------------
 #
 # The ordering ranks ``(shot, echo)`` slots jointly by distance from the
-# effective-TE echo and by position in the central-to-peripheral transition.
-# Colour therefore relates each acquired view to its train length and TR.
+# effective-TE echo and by position in the central-to-peripheral transition
+# [BUO25]_. Views are ranked by k-space radius; the innermost views fill the
+# slots nearest the effective-TE echo of the central shots, and within each group of one view per shot the views
+# are assigned to shots in order of angle. Colour gives the train length and
+# TR of the shot that acquired each view.
 
 # sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")
@@ -104,3 +110,14 @@ for ax, val, label in zip(
 axes[0].set_ylabel(r"$k_z$ (partitions from centre)")
 fig.tight_layout()
 # sphinx_gallery_end_ignore
+
+# %%
+# References
+# ----------
+#
+# .. [BUO25] Buonincontri G, et al. ISMRM 2025, abstract 566-05-007.
+#
+# .. [BUS08b] Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
+#    Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and
+#    view ordering in 3D fast spin echo. *Magnetic Resonance in Medicine*.
+#    2008;60(3):640-649. https://doi.org/10.1002/mrm.21680

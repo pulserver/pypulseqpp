@@ -50,17 +50,17 @@ class _LineReadout(SequenceModule):
         Its rephaser, if one was given, left-aligned in whichever block follows
         the pulse.
     gx_pre : GradEvent
-        Readout prephaser, right-aligned in the prewinder block. Carries the
-        spoiler under ``spoiling_position='pre'``.
+        Readout prephaser, right-aligned in the prewinder block. Includes the
+        spoiler area under ``spoiling_position='pre'``.
     gx : GradEvent
         Readout lobe. A spoiler is bridged onto it when there is one echo: the
         lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or
         ``gx_spoil`` plays instead. Where the spoiler is bridged onto the end,
         the plateau is held to the end of the acquisition block, past the last
-        sample by the ADC dead time, so that the spoiler has a plateau to leave
-        from; ``gx_spoil`` carries correspondingly less area.
+        sample by the ADC dead time, so that the spoiler starts at the plateau
+        amplitude; ``gx_spoil`` has correspondingly less area.
     gx_spoil : GradEvent
-        Closes the TR on the read axis: rewinds the part of the line after the
+        Last read-axis gradient of the TR: rewinds the part of the line after the
         echo and, under ``spoiling_position='post'``, adds the spoiler.
         Left-aligned with ``gy_rew``.
     gy_pre, gz_pre : TrapEvent
@@ -143,7 +143,7 @@ class _LineReadout(SequenceModule):
         Length the spoiling is counted over (m). Defaults to the readout
         resolution.
     spoiling_position : {'post', 'pre'}, default='post'
-        Which side of the acquisition the dephasing lobe sits on.
+        Side of the acquisition on which the dephasing lobe is played.
     n_echoes : int, default=1
         Echoes per repetition.
     flyback : bool, default=True
@@ -152,7 +152,7 @@ class _LineReadout(SequenceModule):
         sign (bipolar), which is faster but reads even echoes backwards and
         puts any gradient-delay error into a phase difference between them.
         A bipolar train needs as many samples before the echo as after it, so
-        it refuses partial echo and an odd sample count.
+        partial echo and an odd sample count are rejected.
     echo_spacing : float, default=None
         Echo spacing (s). ``None`` is as short as possible: the readout lobe
         of a bipolar train, the lobe and its rewinder for a monopolar one.
@@ -168,7 +168,8 @@ class _LineReadout(SequenceModule):
         Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
         module's ``wave_amplitude`` attribute reports the amplitude built.
     labels : sequence of str, default=None
-        Counters emitted on the acquisition block. The loop writes the values.
+        Counters emitted on the acquisition block. The acquisition loop
+        assigns their values.
     trigger : event, default=None
         A trigger or digital output armed on the prewinder block.
 

@@ -29,10 +29,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# A full Cartesian sampling of the slab.
+# Every ``(line, partition)`` view inside the ellipse inscribed in the
+# phase-encode plane is acquired.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import se3D_sequence
@@ -51,7 +52,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The phase-encode plane in the order it is read.
+# Colour encodes acquisition order in the phase-encode plane.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
 
@@ -59,8 +60,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # Acceleration on both encoded axes
 # ---------------------------------
 #
-# Skipping lines and partitions reduces the number of repetitions by four.
-# Every acquired view retains the prescribed spin-echo time.
+# Subsampling lines and partitions by two each reduces the number of
+# repetitions approximately fourfold outside the calibration region. Each
+# acquired view has the prescribed echo time.
 
 alternative = se3D_sequence(
     n_x=160, n_y=160, n_z=32, ry=2, rz=2, te=None, tr=None, n_dummy=0
