@@ -1947,7 +1947,7 @@ class Sequence:
             Upstream's block-boundary grid. Ignored.
         save : bool, default=False
             Upstream's figure saving. Ignored.
-        time_range : Sequence[float], default (0, inf), default=(0, np.inf)
+        time_range : Sequence[float], default=(0, np.inf)
             The seconds to draw, measured from the start of the scan.
         time_disp : {'s', 'ms', 'us'}, default='s'
             Upstream's time unit. Ignored.
@@ -2051,7 +2051,7 @@ class Sequence:
 
         Parameters
         ----------
-        time_range : Sequence[float], default (0, inf), default=(0, np.inf)
+        time_range : Sequence[float], default=(0, np.inf)
             Upstream's window, in seconds. Given, the blocks it touches are
             drawn alone, without repetitions underneath.
         line_width : float, default=1.2

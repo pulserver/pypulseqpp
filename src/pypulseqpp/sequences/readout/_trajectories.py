@@ -233,7 +233,8 @@ class NonCartesianGradient:
         ``(n, 2)`` or ``(n, 3)`` path in 1/m: the design polyline, or for
         :class:`Rosette` the k-space at the ADC samples.
     bandwidth_hz_px : float
-        ``1 / adc.dwell`` (Hz), the full receiver bandwidth despite the name.
+        Receiver bandwidth ``1 / adc.dwell`` (Hz), not the bandwidth per
+        pixel.
     design_interleaves : int | None, default=None
         Interleaf count the spiral pitch was designed for.
     recommended_rotations : int | None, default=None
