@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml/badge.svg)](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml)
 [![codecov](https://codecov.io/gh/pulserver/pypulseqpp/branch/main/graph/badge.svg)](https://codecov.io/gh/pulserver/pypulseqpp)
+[![CodeFactor](https://www.codefactor.io/repository/github/pulserver/pypulseqpp/badge)](https://www.codefactor.io/repository/github/pulserver/pypulseqpp)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Docs: stable](https://img.shields.io/badge/docs-stable-2b76ad)](https://pulserver.github.io/pypulseqpp/stable/)
 [![Docs: latest](https://img.shields.io/badge/docs-latest-6b7684)](https://pulserver.github.io/pypulseqpp/latest/)
@@ -13,6 +14,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-ffbd28.svg)](https://github.com/pulserver/pypulseqpp/blob/main/LICENSE)
 [![Source](https://img.shields.io/badge/source-GitHub-181717?logo=github)](https://github.com/pulserver/pypulseqpp)
 [![Stars](https://img.shields.io/github/stars/pulserver/pypulseqpp?style=flat&logo=github&color=ffbd28)](https://github.com/pulserver/pypulseqpp/stargazers)
+[![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=32322&r=133)
 
 <p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo.svg" alt="pypulseqpp" width="620"></p>
 
