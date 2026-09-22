@@ -15,6 +15,7 @@ the scan, and they do not establish patient safety.
 | {doc}`pns` | a nerve model's response to the slew of each axis | a SAFE or chronaxie model |
 | {doc}`mechanical_resonance` | the windowed gradient amplitude spectrum | a forbidden-band table |
 | {doc}`sar` | window-averaged local and global SAR | virtual observation points, a drive calibration and SAR limits |
+
 The first five checks are gradient-derived and evaluate the physical gradient
 axes; the SAR check is RF-derived and evaluates the RF waveforms and shims. The
 frames, report units and evaluation intervals common to the checks are in
