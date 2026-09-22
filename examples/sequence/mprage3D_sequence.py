@@ -2,118 +2,16 @@
 
 from __future__ import annotations
 
-import math
 import sys
 
 import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import make_poisson_disc_mask
 from pypulseqpp._schedules import make_rf_spoiling_schedule
-
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
 
 #: The line orders ``ordering`` selects from.
 ORDERINGS = ("radial", "shuffling")
-
-
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
-
-def sampled_views(
-    shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    caipi_shift: int,
-    calibration: tuple[int, int],
-    partial_fourier: tuple[float, float],
-    elliptical_acs: bool,
-    *,
-    shuffling: bool = False,
-    seed: int = 0,
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
-    """Return the ``(line, partition)`` views sampled, and the calibration views.
-
-    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
-    sampled, and partial Fourier drops the lines and partitions before the
-    centre. The regular set keeps a CAIPIRINHA lattice holding the centre
-    view: lines with ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them
-    from the centre the partitions with ``(z - nz // 2 - caipi_shift * j) % rz
-    == 0``. The ``shuffling`` set is a variable-density Poisson-disc draw at
-    ``ry * rz``. Under undersampling the ``n_acs_y x n_acs_z`` calibration
-    region, centred on the centre view, is sampled whole: a rectangle, or under
-    ``elliptical_acs`` the ellipse inscribed in it.
-    """
-    (ny, nz), (ry, rz) = shape, acceleration
-    first_y = ny - round(partial_fourier[0] * ny)
-    first_z = nz - round(partial_fourier[1] * nz)
-    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
-
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre view, the one the encodes scale to zero.
-        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
-        return dy * dy + dz * dz <= 0.25
-
-    region = {
-        (y, z)
-        for y in range(
-            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
-        )
-        for z in range(
-            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
-        )
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    }
-    if shuffling:
-        mask = (
-            make_poisson_disc_mask(
-                (ny, nz), float(ry * rz), calib=(n_acs_y, n_acs_z), seed=seed
-            )
-            if ry * rz > 1
-            else np.ones((ny, nz), dtype=bool)
-        )
-        kept = {(int(y), int(z)) for y, z in np.argwhere(mask)}
-    else:
-        kept = {
-            (y, z)
-            for y in range(ny)
-            if (y - ny // 2) % ry == 0
-            for z in range(nz)
-            if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        }
-    views = {
-        (y, z)
-        for y, z in kept
-        if y >= first_y and z >= first_z and inside(y, z, ny, nz)
-    }
-    return sorted(views | region), region
 
 
 def order_lines(lines: list[int], centre: int, ordering: str, rng) -> list[int]:
@@ -305,9 +203,9 @@ class Mprage3DApp(sequences.SequenceApp):
             shot takes.
         """
         self.n_dummy = n_dummy
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         if ordering not in ORDERINGS:
             raise ValueError(f"ordering must be one of {ORDERINGS}, got {ordering!r}")
@@ -330,7 +228,16 @@ class Mprage3DApp(sequences.SequenceApp):
         self.inv = sequences.InversionPreparation(
             system, voxel_size_m=min(fov_x / n_x, fov_z / n_z)
         )
-        self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            system,
+            excitation,
+            flip_angle_deg,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
         self.ro = ro = sequences.LineReadout3D(
             system,
@@ -357,16 +264,19 @@ class Mprage3DApp(sequences.SequenceApp):
         self.esp = ro.duration
 
         # One shot per partition, every shot as long as the fullest partition.
-        views, self.calibration = sampled_views(
+        calibrating, lattice = pp.calc_sampled_pairs(
             (n_y, n_z),
             (ry, rz),
-            caipi_shift,
             (n_acs_y, n_acs_z),
-            (partial_fourier_y, partial_fourier_z),
-            elliptical_acs,
+            caipi_shift=caipi_shift,
+            partial_fourier=(partial_fourier_y, partial_fourier_z),
+            elliptical=True,
+            elliptical_acs=elliptical_acs,
             shuffling=ordering == "shuffling",
             seed=self.SHUFFLE_SEED,
         )
+        self.calibration = set(calibrating)
+        views = sorted({*calibrating, *lattice})
         rng = np.random.default_rng(self.SHUFFLE_SEED)
         by_partition: dict[int, list[int]] = {}
         for y, z in views:

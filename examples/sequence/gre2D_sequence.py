@@ -11,26 +11,6 @@ from pypulseqpp import cli, sequences
 from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
-def sampled_lines(
-    n: int, ry: int, n_acs_y: int, partial_fourier: float
-) -> tuple[list[int], set[int]]:
-    """Return the phase-encode lines in play order, and the calibration lines.
-
-    The lattice keeps every line ``i`` with ``(i - n // 2) % ry == 0``, so the
-    centre line is always acquired. Partial Fourier drops the lines before
-    ``n - round(partial_fourier * n)``. The calibration block, centred on the
-    same line, leads; a fully sampled scan has none.
-    """
-    first = n - round(partial_fourier * n)
-    start = n // 2 - (n_acs_y if ry > 1 else 0) // 2
-    stop = n // 2 + ((n_acs_y if ry > 1 else 0) + 1) // 2
-    calibration = list(range(max(start, first), min(stop, n)))
-    lattice = [
-        i for i in range(first, n) if (i - n // 2) % ry == 0 and i not in calibration
-    ]
-    return calibration + lattice, set(calibration)
-
-
 class Gre2DApp(sequences.SequenceApp):
     """RF-spoiled, multi-slice 2D Cartesian gradient echo.
 
@@ -198,9 +178,13 @@ class Gre2DApp(sequences.SequenceApp):
         packet_time = {n: n * shot - self.raster + pad for n, pad in self.pads.items()}
         self.repetition_time = max(packet_time.values())
 
-        self.lines, self.calibration = sampled_lines(
-            n_y, ry, n_acs_y, partial_fourier_y
+        calibrating, lattice = pp.calc_sampled_lines(
+            n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
         )
+        # The calibration block leads, so a reconstruction can estimate
+        # coil sensitivities while the rest is still arriving.
+        self.lines = [*calibrating, *lattice]
+        self.calibration = set(calibrating)
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_spacing
         )

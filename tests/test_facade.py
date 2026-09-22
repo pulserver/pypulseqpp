@@ -272,18 +272,25 @@ def test_what_is_advertised_is_what_a_sequence_is_written_in():
 
 @pytest.mark.parametrize(
     ("module", "name"),
-    [
-        (module, name)
-        for module, names in pp._PRIVATE_SAMPLING.items()
-        for name in names
-    ],
+    [(module, name) for module, names in pp._SAMPLING.items() for name in names],
     ids=lambda value: value,
 )
-def test_a_sampling_helper_is_held_back_but_kept_in_its_private_module(module, name):
-    with pytest.raises(AttributeError, match="held back from the public interface"):
-        getattr(pp, name)
-    assert name not in pp.__all__
-    assert callable(getattr(importlib.import_module(f"pypulseqpp.{module}"), name))
+def test_a_sampling_helper_is_advertised_and_is_the_one_its_module_defines(
+    module, name
+):
+    """The shipped sequences are written against these, so they are public."""
+    assert name in pp.__all__
+    assert getattr(pp, name) is getattr(
+        importlib.import_module(f"pypulseqpp.{module}"), name
+    )
+
+
+@pytest.mark.parametrize(
+    "name", ["cli", "io", "plot", "safety", "sequences"], ids=lambda value: value
+)
+def test_a_public_subpackage_is_reached_as_an_attribute_of_the_package(name):
+    """Imported on first use, so `import pypulseqpp` stays cheap."""
+    assert getattr(pp, name) is importlib.import_module(f"pypulseqpp.{name}")
 
 
 def test_calc_duration_agrees_with_upstream():

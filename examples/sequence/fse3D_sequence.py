@@ -9,9 +9,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import make_poisson_disc_mask, make_shuffling_order
+from pypulseqpp._masks import make_shuffling_order
 
-#: The excitations ``excitation`` selects from.
 EXCITATIONS = ("nonselective", "slab")
 
 #: The view orders ``ordering`` selects from.
@@ -19,74 +18,6 @@ ORDERINGS = ("radial", "shuffling")
 
 #: The refocusing trains ``flip_modulation`` selects from.
 MODULATIONS = ("constant", "optimized")
-
-
-def sampled_views(
-    shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    caipi_shift: int,
-    calibration: tuple[int, int],
-    partial_fourier: tuple[float, float],
-    elliptical_acs: bool,
-    *,
-    shuffling: bool = False,
-    seed: int = 0,
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
-    """Return the ``(line, partition)`` views sampled, and the calibration views.
-
-    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
-    sampled, and partial Fourier drops the lines and partitions before the
-    centre. The regular set keeps a CAIPIRINHA lattice holding the centre
-    view: lines with ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them
-    from the centre the partitions with ``(z - nz // 2 - caipi_shift * j) % rz
-    == 0``. The ``shuffling`` set is a variable-density Poisson-disc draw at
-    ``ry * rz``. Under undersampling the ``n_acs_y x n_acs_z`` calibration
-    region, centred on the centre view, is sampled whole: a rectangle, or under
-    ``elliptical_acs`` the ellipse inscribed in it.
-    """
-    (ny, nz), (ry, rz) = shape, acceleration
-    first_y = ny - round(partial_fourier[0] * ny)
-    first_z = nz - round(partial_fourier[1] * nz)
-    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
-
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre view, the one the encodes scale to zero.
-        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
-        return dy * dy + dz * dz <= 0.25
-
-    region = {
-        (y, z)
-        for y in range(
-            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
-        )
-        for z in range(
-            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
-        )
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    }
-    if shuffling:
-        mask = (
-            make_poisson_disc_mask(
-                (ny, nz), float(ry * rz), calib=(n_acs_y, n_acs_z), seed=seed
-            )
-            if ry * rz > 1
-            else np.ones((ny, nz), dtype=bool)
-        )
-        kept = {(int(y), int(z)) for y, z in np.argwhere(mask)}
-    else:
-        kept = {
-            (y, z)
-            for y in range(ny)
-            if (y - ny // 2) % ry == 0
-            for z in range(nz)
-            if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        }
-    views = {
-        (y, z)
-        for y, z in kept
-        if y >= first_y and z >= first_z and inside(y, z, ny, nz)
-    }
-    return sorted(views | region), region
 
 
 def cubic(fraction):
@@ -593,16 +524,19 @@ class Fse3DApp(sequences.SequenceApp):
             )
         self.repetition_time, self.tr_periphery = tr, tr_periphery
 
-        views, self.calibration = sampled_views(
+        calibrating, lattice = pp.calc_sampled_pairs(
             (n_y, n_z),
             (ry, rz),
-            caipi_shift,
             (n_acs_y, n_acs_z),
-            (partial_fourier_y, partial_fourier_z),
-            elliptical_acs,
+            caipi_shift=caipi_shift,
+            partial_fourier=(partial_fourier_y, partial_fourier_z),
+            elliptical=True,
+            elliptical_acs=elliptical_acs,
             shuffling=ordering == "shuffling",
             seed=self.SHUFFLE_SEED,
         )
+        self.calibration = set(calibrating)
+        views = sorted({*calibrating, *lattice})
         coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
         self.lengths, self.times, place = shot_parameters(
             len(views), etl, etl_periphery, tr, tr_periphery

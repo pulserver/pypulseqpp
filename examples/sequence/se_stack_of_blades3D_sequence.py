@@ -10,9 +10,6 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
-
 #: How far each partition turns its tilts, as a fraction of the half turn a
 #: blade covers: not at all, by the golden ratio ``1 / phi``, or by the tiny
 #: golden angle ``1 / (phi + 1)``.
@@ -21,58 +18,6 @@ PARTITION_SHIFTS = {
     "golden": 2 / (1 + math.sqrt(5)),
     "tiny_golden": 2 / (3 + math.sqrt(5)),
 }
-
-
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster,
-        # which a spin echo needs to place its 180 midway.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
-
-def sampled_partitions(
-    n: int, rz: int, n_acs_z: int, partial_fourier: float
-) -> tuple[list[int], list[int]]:
-    """Return the calibration partitions and the other partitions acquired.
-
-    The lattice keeps every partition ``z`` with ``(z - n // 2) % rz == 0``, so
-    the centre partition is always acquired; partial Fourier drops those before
-    ``n - round(partial_fourier * n)``. Under undersampling the ``n_acs_z``
-    partitions centred on the same one are acquired in full; a fully sampled
-    scan has none. Both lists are in order.
-    """
-    first = n - round(partial_fourier * n)
-    size = n_acs_z if rz > 1 else 0
-    calibration = list(
-        range(max(n // 2 - size // 2, first), min(n // 2 + (size + 1) // 2, n))
-    )
-    lattice = [
-        z for z in range(first, n) if (z - n // 2) % rz == 0 and z not in calibration
-    ]
-    return calibration, lattice
 
 
 class SeStackOfBlades3DApp(sequences.SequenceApp):
@@ -189,9 +134,9 @@ class SeStackOfBlades3DApp(sequences.SequenceApp):
             TE or TR is shorter than the pulses and the readout take.
         """
         self.n_dummy = n_dummy
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         if partition_angle_shift not in PARTITION_SHIFTS:
             raise ValueError(
@@ -213,7 +158,16 @@ class SeStackOfBlades3DApp(sequences.SequenceApp):
         self.blade_width = blade_width
         self.excitation = excitation
         self.partition_angle_shift = partition_angle_shift
-        self.exc = make_excitation(self, 90.0, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            system,
+            excitation,
+            90.0,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
         self.ref = sequences.NonSelectiveRefocusing(
             system, spoiling_cycles=self.CRUSHER_CYCLES
@@ -267,7 +221,9 @@ class SeStackOfBlades3DApp(sequences.SequenceApp):
         self.span = np.pi
         self.angles = self.span * np.arange(0, n_nyquist, ry) / n_nyquist
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
-        calibration, lattice = sampled_partitions(n_z, rz, n_acs_z, partial_fourier_z)
+        calibration, lattice = pp.calc_sampled_lines(
+            n_z, rz, n_acs_z, partial_fourier=partial_fourier_z
+        )
         self.calibration = set(calibration)
         self.partitions = sorted([*calibration, *lattice])
         # The calibration partitions lead, at every tilt, then the rest.

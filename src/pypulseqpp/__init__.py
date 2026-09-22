@@ -274,10 +274,11 @@ _WITHHELD = {
 }
 
 
-#: Sampling, view-ordering, angle and schedule helpers, held back from the
-#: public interface until the example sequences settle which of them they need.
-#: Their code stays in the private modules named here.
-_PRIVATE_SAMPLING = {
+#: The sampling surface: choosing which views a scan acquires, the order it
+#: plays them in, the angles a non-Cartesian trajectory turns through, and the
+#: per-repetition phase and flip schedules. The shipped sequences are written
+#: against these, which is what settled the set.
+_SAMPLING = {
     "_angles": (
         "calc_golden_angles",
         "calc_projection_shell",
@@ -287,7 +288,6 @@ _PRIVATE_SAMPLING = {
     ),
     "_epi": ("calc_epi_order",),
     "_masks": (
-        "calc_calibration_lines",
         "calc_sampled_lines",
         "calc_sampled_pairs",
         "make_caipirinha_mask",
@@ -300,23 +300,20 @@ _PRIVATE_SAMPLING = {
         "make_shuffling_order",
     ),
     "_ordering": ("calc_traversal_order",),
-    "_sampling": ("make_uniform_mask",),
     "_schedules": (
         "make_phase_cycling_schedule",
         "make_rf_spoiling_schedule",
         "make_traps_schedule",
     ),
 }
-_WITHHELD.update(
-    {
-        name: (
-            "held back from the public interface while the example sequences "
-            f"settle which sampling helpers they need; it remains in pypulseqpp.{module}."
-        )
-        for module, names in _PRIVATE_SAMPLING.items()
-        for name in names
-    }
-)
+
+for _module, _names in _SAMPLING.items():
+    _imported = _importlib.import_module(f".{_module}", __name__)
+    for _sampling_name in _names:
+        globals()[_sampling_name] = getattr(_imported, _sampling_name)
+    __all__.extend(_names)
+del _module, _names, _imported, _sampling_name
+__all__.sort()
 
 
 #: The public subpackages, imported on first use. Importing them all here

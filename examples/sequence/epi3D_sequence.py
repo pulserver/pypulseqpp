@@ -10,38 +10,6 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
-
-
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
 
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
@@ -263,9 +231,9 @@ class Epi3DApp(sequences.SequenceApp):
             or the partitions hold no shell, or the TE or TR is shorter than
             the shots take.
         """
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         for name, fraction in (
             ("partial_fourier_y", partial_fourier_y),
@@ -289,7 +257,16 @@ class Epi3DApp(sequences.SequenceApp):
         self.n_frames, self.n_shots = n_frames, n_shots
         self.n_dummy, self.volume_output = n_dummy, volume_output
         self.raster = system.block_duration_raster
-        self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            system,
+            excitation,
+            flip_angle_deg,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
 
         # Shot s reads lattice lines s, s + n_shots, ...; the centre line is the

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import sys
 
 import numpy as np
@@ -10,96 +9,6 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 from pypulseqpp._schedules import make_rf_spoiling_schedule
-
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
-
-
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster,
-        # which a spin echo needs to place its 180 midway.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
-
-def sampled_views(
-    shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    caipi_shift: int,
-    calibration: tuple[int, int],
-    partial_fourier: tuple[float, float],
-    elliptical_sampling: bool = False,
-    elliptical_acs: bool = False,
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
-    """Return the ``(line, partition)`` pairs in play order, and the calibration pairs.
-
-    Lines keep ``(y - ny // 2) % ry == 0``. The partitions of the ``j``-th
-    line from the centre keep ``(z - nz // 2 - caipi_shift * j) % rz == 0``,
-    so the centre pair is always acquired and the partition lattice climbs
-    ``caipi_shift`` per acquired line. Partial Fourier drops the lines and the
-    partitions before the centre, and ``elliptical_sampling`` the pairs outside
-    the ellipse inscribed in the ``ny x nz`` grid. Under undersampling the
-    ``n_acs_y x n_acs_z`` calibration region, centred on the same pair, leads
-    and is acquired whole: a rectangle, or under ``elliptical_acs`` the ellipse
-    inscribed in it. Both parts run line by line, each line's partitions in
-    order.
-    """
-    (ny, nz), (ry, rz) = shape, acceleration
-    first_y = ny - round(partial_fourier[0] * ny)
-    first_z = nz - round(partial_fourier[1] * nz)
-    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
-
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre pair, the one the encodes scale to zero.
-        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
-        return dy * dy + dz * dz <= 0.25
-
-    lines_acs = range(
-        max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
-    )
-    partitions_acs = range(
-        max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
-    )
-    region = [
-        (y, z)
-        for y in lines_acs
-        for z in partitions_acs
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    ]
-    calibrating = set(region)
-    lattice = [
-        (y, z)
-        for y in range(first_y, ny)
-        if (y - ny // 2) % ry == 0
-        for z in range(first_z, nz)
-        if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        and (not elliptical_sampling or inside(y, z, ny, nz))
-        and (y, z) not in calibrating
-    ]
-    return region + lattice, calibrating
 
 
 class Gre3DApp(sequences.SequenceApp):
@@ -251,9 +160,9 @@ class Gre3DApp(sequences.SequenceApp):
             mode, or the TE or TR is shorter than the readout takes.
         """
         self.n_dummy = n_dummy
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         for name, fraction in (
             ("partial_fourier_x", partial_fourier_x),
@@ -270,7 +179,16 @@ class Gre3DApp(sequences.SequenceApp):
         self.fov = (fov_x, fov_y, fov_z)
         self.matrix = (n_x, n_y, n_z)
         self.excitation = excitation
-        self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            self.system,
+            excitation,
+            flip_angle_deg,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
         self.ro = sequences.LineReadout3D(
             self.system,
@@ -288,15 +206,19 @@ class Gre3DApp(sequences.SequenceApp):
             wave_cycles=wave_cycles,
             wave_amplitude=wave_amplitude,
         )
-        self.views, self.calibration = sampled_views(
+        calibrating, lattice = pp.calc_sampled_pairs(
             (n_y, n_z),
             (ry, rz),
-            caipi_shift,
             (n_acs_y, n_acs_z),
-            (partial_fourier_y, partial_fourier_z),
-            elliptical_sampling,
-            elliptical_acs,
+            caipi_shift=caipi_shift,
+            partial_fourier=(partial_fourier_y, partial_fourier_z),
+            elliptical=elliptical_sampling,
+            elliptical_acs=elliptical_acs,
         )
+        # The calibration rectangle leads, so a reconstruction can
+        # estimate coil sensitivities while the rest is still arriving.
+        self.views = [*calibrating, *lattice]
+        self.calibration = set(calibrating)
         # A wave-encoded view calibrates nothing, so with the wave on the
         # calibration region is acquired again wave-free ahead of the scan.
         self.waves = [
