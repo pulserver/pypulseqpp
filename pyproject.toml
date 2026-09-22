@@ -142,8 +142,21 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+# The importable package, not the directory it is written in: CI installs the
+# wheel and imports from site-packages, where `src` matches nothing, so every
+# file came back unexecuted and the report read 0%. `[tool.coverage.paths]`
+# maps what was measured back onto the repository, which is what Codecov
+# matches its files by.
+source = ["pypulseqpp"]
+relative_files = true
 branch = true
+
+[tool.coverage.paths]
+# The example sequences install inside the package, from a directory of their
+# own; their mapping is listed first because the package's own would otherwise
+# claim them and rewrite them under `src/`, where they do not exist.
+sequences = ["examples/sequence", "*/site-packages/pypulseqpp/sequences/sequence"]
+package = ["src/pypulseqpp", "*/site-packages/pypulseqpp"]
 
 [tool.coverage.report]
 exclude_also = [
