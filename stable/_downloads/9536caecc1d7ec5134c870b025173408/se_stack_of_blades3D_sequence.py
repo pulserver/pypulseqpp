@@ -1,0 +1,84 @@
+"""
+==============================
+3D stack-of-blades spin echo
+==============================
+
+A slab-selective excitation and 180-degree refocusing pulse form one spin echo,
+followed by a PROPELLER line with Cartesian partition encoding. Spoilers
+suppress unwanted coherence between repetitions. TE and TR determine T2 and
+longitudinal recovery weighting. The overlapping blade centres support
+motion-robust 3D structural imaging.
+"""
+
+# sphinx_gallery_start_ignore
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+plt.rcParams.update(
+    {
+        "figure.dpi": 110,
+        "savefig.dpi": 110,
+        "font.size": 10,
+        "axes.titlesize": 11,
+        "axes.labelsize": 10,
+    }
+)
+
+
+# sphinx_gallery_end_ignore
+
+# %%
+# Baseline
+# --------
+#
+# Sixteen lines to a blade, at every partition.
+
+import pypulseqpp as pp
+from pypulseqpp.sequences import se_stack_of_blades3D_sequence
+
+baseline = se_stack_of_blades3D_sequence(
+    n=96, n_z=8, blade_width=16, te=None, tr=None, n_dummy=0
+)
+print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
+
+
+# %%
+# Sequence diagram
+# ----------------
+
+baseline.paper_plot()
+
+# %%
+# Sampling order
+# --------------
+#
+# The blades of every partition, over the three k-space axes.
+
+pp.plot.plot_kspace(baseline, color_by="shot")
+
+# %%
+# Wider blades
+# ------------
+#
+# Increasing blade width reduces the number of orientations and increases
+# the shared central-k-space region.
+
+alternative = se_stack_of_blades3D_sequence(
+    n=96, n_z=8, blade_width=32, te=None, tr=None, n_dummy=0
+)
+
+# sphinx_gallery_start_ignore
+print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
+for name, seq in (("16 lines", baseline), ("32 lines", alternative)):
+    print(
+        f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
+        f"{seq._native.num_adc():13d}"
+    )
+# sphinx_gallery_end_ignore
+
+# %%
+pp.plot.plot_kspace(alternative, color_by="shot")
+
+# %%

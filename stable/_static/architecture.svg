@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 430" role="img" aria-labelledby="t d">
+<title id="t">pypulseqpp architecture</title><desc id="d">Python API over a C++ Pulseq core, connected to design, composition, analysis, checks and Pulseq outputs</desc>
+<style>
+.box{fill:#eef4fa;stroke:#2b76ad;stroke-width:2}
+.core{fill:#2b76ad;stroke:#174b70;stroke-width:2}
+.a{fill:#fdf6e6;stroke:#ffb91f;stroke-width:2}
+.txt{font:22px Arial,sans-serif;fill:#173042}
+.white{font:25px Arial,sans-serif;fill:#ffffff;font-weight:bold}
+.small{font:18px Arial,sans-serif;fill:#173042}
+.arrow{stroke:#657786;stroke-width:3;marker-end:url(#m)}
+.head{fill:#657786}
+@media (prefers-color-scheme:dark){
+.box{fill:#13293a;stroke:#5b9bd0}
+.core{fill:#2b76ad;stroke:#8fc3e8}
+.a{fill:#2a2415;stroke:#ffbe2e}
+.txt,.small{fill:#dce7f0}
+.arrow{stroke:#93a7b5}
+.head{fill:#93a7b5}
+}
+</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path class="head" d="M0,0 L0,6 L9,3 z"/></marker></defs>
+<rect class="box" x="270" y="20" rx="12" width="460" height="65"/><text class="txt" x="500" y="60" text-anchor="middle">PyPulseq-compatible Python API</text>
+<line class="arrow" x1="500" y1="85" x2="500" y2="120"/>
+<rect class="core" x="270" y="120" rx="12" width="460" height="75"/><text class="white" x="500" y="166" text-anchor="middle">C++ Pulseq event and file core</text>
+<line class="arrow" x1="500" y1="195" x2="500" y2="235"/>
+<rect class="a" x="20" y="235" rx="10" width="220" height="90"/><text class="small" x="130" y="270" text-anchor="middle">RF, gradient and</text><text class="small" x="130" y="296" text-anchor="middle">trajectory design</text>
+<rect class="a" x="267" y="235" rx="10" width="220" height="90"/><text class="small" x="377" y="270" text-anchor="middle">SequenceModule</text><text class="small" x="377" y="296" text-anchor="middle">composition</text>
+<rect class="a" x="513" y="235" rx="10" width="220" height="90"/><text class="small" x="623" y="270" text-anchor="middle">Analysis, k-space</text><text class="small" x="623" y="296" text-anchor="middle">and plotting</text>
+<rect class="a" x="760" y="235" rx="10" width="220" height="90"/><text class="small" x="870" y="262" text-anchor="middle">Timing, gradient, PNS,</text><text class="small" x="870" y="287" text-anchor="middle">resonance and SAR</text><text class="small" x="870" y="312" text-anchor="middle">checks</text>
+<line class="arrow" x1="500" y1="325" x2="500" y2="360"/>
+<rect class="box" x="180" y="360" rx="10" width="280" height="55"/><text class="txt" x="320" y="395" text-anchor="middle">Pulseq .seq files</text>
+<rect class="box" x="540" y="360" rx="10" width="280" height="55"/><text class="txt" x="680" y="395" text-anchor="middle">Pulserver / interpreters</text>
+</svg>
