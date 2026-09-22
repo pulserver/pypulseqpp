@@ -14,7 +14,7 @@ state.
 The steady-state signal is computed by summing isochromats across a voxel over
 several hundred repetitions of the sequence built here, and compared with the
 signal of an ideally spoiled repetition. The next lesson,
-:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, removes the coherent
+:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, suppresses the coherent
 pathway that gradient spoiling leaves.
 
 Learning objectives
@@ -329,4 +329,4 @@ print(
 # gradient-spoiled curve peaks well beyond it, falls below it at small flip
 # angles and rises to twice it at large ones, and the whole departure depends
 # on T2, which that model does not include. The RF phase cycle of the next
-# lesson removes this dependence.
+# lesson reduces this dependence.

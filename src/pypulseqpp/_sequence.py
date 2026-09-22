@@ -282,9 +282,8 @@ class Sequence:
 
         Notes
         -----
-        The block lasts as long as the longest thing in it, rounded up onto
-        the block duration raster, which is what a caller passing a bare
-        delay is asking for directly.
+        The block lasts as long as its longest event, rounded up onto the
+        block duration raster.
 
         Examples
         --------
@@ -779,8 +778,8 @@ class Sequence:
         ----------
         init : dict[str, int], default=None
             Initial value of each label before evaluation begins. A label named here is
-            reported whether or not the blocks touch it, which is what makes
-            evaluating a sequence a piece at a time work.
+            reported whether or not the blocks touch it, so that a sequence
+            can be evaluated one range at a time.
         evolution : {'none', 'blocks', 'adc', 'label'}, default='none'
             Where to record a value: at the end, at every block, at every
             block that acquires, or at every block that sets or increments

@@ -149,8 +149,7 @@ def waveforms_and_times(
     -------
     tuple or WaveformsAndTimes
         With ``compat``: ``(wave_data, tfp_excitation, tfp_refocusing, t_adc,
-        fp_adc)``, which is what upstream returns and what a script written
-        against it unpacks.
+        fp_adc)``, the tuple upstream PyPulseq returns.
 
     Notes
     -----
@@ -247,7 +246,7 @@ def rf_times(seq, time_range=None, *, compat: bool = True):
     tuple or RfTimes
         With ``compat``: ``(t_excitation, fp_excitation, t_refocusing,
         fp_refocusing)``. A pulse whose row records no use is counted as an
-        excitation, which is what upstream does with one.
+        excitation, as in upstream PyPulseq.
     """
     expanded, elapsed = _expand(seq, time_range=time_range)
     pulses = _named(expanded, elapsed, False).rf

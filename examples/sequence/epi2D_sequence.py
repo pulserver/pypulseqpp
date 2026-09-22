@@ -507,8 +507,7 @@ class Epi2DApp(sequences.SequenceApp):
         frames : iterable of int
             The frames to acquire, in play order.
         reversed_encode : bool, default=False
-            Negate every phase-encode event, which is what the reference
-            prescan plays.
+            Negate every phase-encode event, as in the reference prescan.
         """
         n_shots = self.n_shots
         for packet in self.packets:

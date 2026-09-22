@@ -5,11 +5,13 @@ Individually optimized 3D fast spin echo
 
 Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
-[BUO25]_. Train length, TR and the minimum and maximum angles of the
-refocusing schedule [BUS08b]_ vary smoothly between these limits, and the
-views are assigned by an adaptive radial order. Longer trains and a
-different TR at the periphery can reduce scan time, while the contrast at the
-centre of k-space is set by the parameters of the central shots.
+[BUO25]_. From the central to the peripheral shots, TR and the minimum and
+maximum angles of the refocusing schedule [BUS08b]_ follow a cubic
+smooth-step transition between their two limits; the echo-train length
+follows the same transition, rounded to integer values. The views are
+assigned by an adaptive radial order. Longer trains and a different TR at the
+periphery can reduce scan time, while the contrast at the centre of k-space
+is set by the parameters of the central shots.
 """
 
 # sphinx_gallery_start_ignore
@@ -29,17 +31,18 @@ from pypulseqpp import sequences
 Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
 P = {
-    "n_x": 80,
-    "n_y": 40,
-    "n_z": 16,
+    "n_x": 96,
+    "n_y": 64,
+    "n_z": 20,
     "fov_x": 0.20,
     "fov_y": 0.20,
     "fov_z": 0.12,
-    "etl": 12,
-    "etl_periphery": 24,
-    "te": 36e-3,
-    "tr": 0.45,
-    "tr_periphery": 0.65,
+    "etl": 40,
+    "etl_periphery": 72,
+    "te": 200e-3,
+    "tr": 1.2,
+    "tr_periphery": 1.6,
+    "refocusing_angle_deg": 120.0,
     "n_dummy": 0,
     "ordering": "radial",
     "flip_modulation": "optimized",
@@ -52,10 +55,14 @@ seq = app.design()
 # Train parameters
 # ----------------
 #
-# Train length and TR follow a cubic smooth-step transition,
-# :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central) shot to 1
-# at the last (peripheral) shot [BUO25]_. The refocusing schedules of representative shots are plotted
-# up to each shot's own train length.
+# TR and the schedule's minimum and maximum angles follow a cubic smooth-step
+# transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
+# shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
+# follows the same transition rounded to integers. Every schedule passes
+# through the prescribed 120 degrees at the effective-TE echo. The schedules
+# of representative shots are plotted up to each shot's own train length:
+# the central shots reach lower minimum angles, and the peripheral shots have
+# shallower minima and longer trains.
 
 # sphinx_gallery_start_ignore
 indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
@@ -96,15 +103,15 @@ echo = np.asarray(labels["ECO"])
 shot = np.cumsum(echo == 0) - 1
 ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
-fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.5), sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.4), sharey=True)
 for ax, val, label in zip(
     axes,
     (np.asarray(app.lengths)[shot], np.asarray(app.times)[shot] * 1e3),
     ("Echo-train length", "TR (ms)"),
     strict=True,
 ):
-    art = ax.scatter(ky, kz, c=val, cmap=SAMPLING, s=15, linewidth=0)
-    fig.colorbar(art, ax=ax, label=label, pad=0.02)
+    art = ax.scatter(ky, kz, c=val, cmap=SAMPLING, s=6, linewidth=0)
+    fig.colorbar(art, ax=ax, label=label, pad=0.02, shrink=0.8)
     ax.set_xlabel(r"$k_y$ (lines from centre)")
     ax.set_aspect("equal")
 axes[0].set_ylabel(r"$k_z$ (partitions from centre)")
@@ -115,7 +122,8 @@ fig.tight_layout()
 # References
 # ----------
 #
-# .. [BUO25] Buonincontri G, et al. ISMRM 2025, abstract 566-05-007.
+# .. [BUO25] Buonincontri G, et al. *Proceedings of the International Society
+#    for Magnetic Resonance in Medicine*. 2025; abstract 566-05-007.
 #
 # .. [BUS08b] Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
 #    Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and

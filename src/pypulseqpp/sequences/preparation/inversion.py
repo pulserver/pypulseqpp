@@ -21,8 +21,8 @@ class InversionPreparation(RfModule):
     system : pypulseqpp.Opts
         System limits.
     duration_s : float, default=0.01
-        Inversion pulse duration (s). Adiabaticity is a condition on sweeping
-        slowly enough, so this is not free to shorten.
+        Inversion pulse duration (s). Shorter durations increase the required
+        sweep rate and may violate the adiabatic condition.
     spoiling_cycles : float, default=4.0
         Dephasing of the crusher, in cycles across ``voxel_size_m``. Zero
         omits the crusher.

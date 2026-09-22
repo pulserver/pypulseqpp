@@ -6,8 +6,9 @@ Spin echo
 The previous lesson acquired a free induction decay directly after the
 excitation. This lesson adds a refocusing pulse, so that the acquisition is
 centred on a spin echo at a prescribed echo time, and a pair of crusher
-gradients about the refocusing pulse that dephase the free induction decay an
-imperfect refocusing pulse produces.
+gradients about the refocusing pulse. The crushers leave the spin-echo pathway
+rephased and dephase the coherence pathways the pulse does not refocus, such
+as the free induction decay an imperfect refocusing pulse produces.
 
 The echo time is defined between pulse centres rather than between block
 edges, and the crusher pair has to fit within it. The last section measures
@@ -104,8 +105,8 @@ print(
 # Two gradients of equal area and equal polarity, one before the refocusing
 # pulse and one after it. The refocused pathway has its accumulated gradient
 # integral inverted by the pulse, so the second crusher unwinds what the first
-# wound. A pathway that crosses the pulse without that inversion — the free
-# induction decay a refocusing pulse of imperfect flip angle produces — sees
+# wound. A pathway that crosses the pulse without that inversion, such as the
+# free induction decay a refocusing pulse of imperfect flip angle produces, sees
 # the two areas add, and is left wound through ``CRUSHER_CYCLES`` cycles across
 # a voxel.
 #

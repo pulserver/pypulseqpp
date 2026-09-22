@@ -144,7 +144,7 @@ class Zte3DApp(sequences.SequenceApp):
         shot : int
             Which rotation of the shell's directions this repetition plays.
         acquire : bool, default=True
-            Play the ADC. False leaves it off, which is what a dummy plays.
+            Play the ADC. False omits it, as in a dummy repetition.
         """
         ro, seq = self.ro, self.seq
         turn = self.rotations[shot]

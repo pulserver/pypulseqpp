@@ -4,9 +4,11 @@ RF spoiling
 ===========
 
 The previous lesson showed that a spoiler gradient leaves a coherent pathway
-in the steady state. This lesson removes it by advancing the phase of the RF
-pulse and of the receiver by a quadratically increasing amount from one
-repetition to the next, and measures which phase increments do so.
+in the steady state. This lesson suppresses the coherent residual transverse
+pathways by advancing the phase of the RF pulse and of the receiver by a
+quadratically increasing amount from one repetition to the next, and measures
+which phase increments bring the steady-state signal close to that of ideal
+spoiling.
 
 The steady-state signal is computed against the phase increment, summed across
 a voxel as in :doc:`/generated/gallery/02-spoiling/01_gradient_spoiling`. The

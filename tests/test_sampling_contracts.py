@@ -83,6 +83,25 @@ def test_plane_support_is_disjoint_in_range_and_keeps_the_centre(sampling, ellip
     assert min(y for y, _ in calibration + imaging) >= 24 - round(0.75 * 24)
 
 
+def test_plane_support_is_the_lattice_within_partial_fourier_plus_the_acs_block():
+    n_y, n_z, ry, rz, shift = 16, 12, 2, 3, 1
+    first_y = n_y - round(0.75 * n_y)
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        (n_y, n_z), (ry, rz), (4, 2), caipi_shift=shift, partial_fourier=(0.75, 1.0)
+    )
+    lattice = {
+        (y, z)
+        for y in range(first_y, n_y)
+        for z in range(n_z)
+        if (y - n_y // 2) % ry == 0
+        and (z - n_z // 2 - shift * ((y - n_y // 2) // ry)) % rz == 0
+    }
+    acs = {(y, z) for y in range(6, 10) for z in range(5, 7)}
+
+    assert {*calibration, *imaging} == lattice | acs
+    assert set(calibration) == acs
+
+
 def test_plane_calibration_is_the_fully_sampled_centred_block():
     calibration, _ = pp.make_cartesian_plane_sampling((16, 12), (2, 3), (4, 2))
 
