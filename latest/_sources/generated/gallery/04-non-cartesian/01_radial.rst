@@ -211,7 +211,7 @@ readout rotated. Both in-plane axes carry gradient for every spoke.
 
     timing True, 640 blocks, 128 spokes, 1.280 s
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f48a50af980>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff2587dec00>, tr=1, underlays=[])
 
 
 
@@ -396,7 +396,7 @@ is the exact uniformity of the complete set.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.904 seconds)
+   **Total running time of the script:** (0 minutes 2.218 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_04-non-cartesian_01_radial.py:

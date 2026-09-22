@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489face900>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff2601ee2d0>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -191,7 +191,7 @@ fourfold while preserving samples at each partition's k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.264 seconds)
+   **Total running time of the script:** (0 minutes 4.147 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

@@ -100,7 +100,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489caa8ad0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25bb96c60>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -198,7 +198,7 @@ coil sensitivities from.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.933 seconds)
+   **Total running time of the script:** (0 minutes 1.481 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

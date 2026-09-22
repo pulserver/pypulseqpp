@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.728** total execution time for 3 files **from generated/gallery/01-pulseq-basics**:
+**00:00.560** total execution time for 3 files **from generated/gallery/01-pulseq-basics**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_03_gradient_echo.py` (``03_gradient_echo.py``)
-     - 00:00.358
+     - 00:00.275
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_01_fid.py` (``01_fid.py``)
-     - 00:00.224
+     - 00:00.171
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_02_spin_echo.py` (``02_spin_echo.py``)
-     - 00:00.147
+     - 00:00.113
      - 0.0

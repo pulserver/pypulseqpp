@@ -97,7 +97,7 @@ longer readout trains.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f47c19f2fc0>, tr=3, underlays=[1, 2, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff17a483290>, tr=3, underlays=[1, 2, 4])
 
 
 
@@ -193,7 +193,7 @@ requires every partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.745 seconds)
+   **Total running time of the script:** (0 minutes 0.566 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:
