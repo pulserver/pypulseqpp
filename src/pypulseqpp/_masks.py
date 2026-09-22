@@ -538,7 +538,8 @@ def make_poisson_disc_mask(
     (dtype('bool'), (24, 24))
     >>> bool(mask[9:15, 9:15].all())
     True
-    >>> bool((pp.make_poisson_disc_mask((24, 24), 3.0, calib=(6, 6), seed=1) == mask).all())
+    >>> again = pp.make_poisson_disc_mask((24, 24), 3.0, calib=(6, 6), seed=1)
+    >>> bool((again == mask).all())
     True
     """
     if accel <= 1:

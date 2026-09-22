@@ -441,7 +441,8 @@ def make_radial_order(
     views:
 
     >>> import pypulseqpp as pp
-    >>> views = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    >>> views = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
+    ...          (0, 1), (1, -1), (1, 0), (1, 1)]
     >>> trains = pp.make_radial_order(views, 4, center=(0, 0))
     >>> trains
     [[3, 6, 0, 5], [4, 1, 7, 2]]
@@ -518,7 +519,9 @@ def make_radial_adaptive_order(
     >>> import numpy as np
     >>> import pypulseqpp as pp
     >>> views = np.arange(-4, 5)
-    >>> trains = pp.make_radial_adaptive_order(views, 3, center=(0, 0), center_echo=1)
+    >>> trains = pp.make_radial_adaptive_order(
+    ...     views, 3, center=(0, 0), center_echo=1
+    ... )
     >>> trains
     [[6, 4, 8], [7, 5, 1], [2, 3, 0]]
     >>> views[np.array(trains)]
@@ -614,7 +617,8 @@ def make_shuffling_order(
 
     Another seed keeps the train membership and changes the echo positions:
 
-    >>> [[views[i] for i in train] for train in pp.make_shuffling_order(views, 3, seed=1)]
+    >>> other = pp.make_shuffling_order(views, 3, seed=1)
+    >>> [[views[i] for i in train] for train in other]
     [[-3, -2, -1], [2, 0, 1]]
     """
     pts = _as_coords(coords)

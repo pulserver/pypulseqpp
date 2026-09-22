@@ -19,21 +19,27 @@ return plain Python and NumPy values that a
 For a Cartesian application:
 
 ```text
-acquisition prescription          matrix, acceleration, ACS, partial Fourier, CAIPI
+acquisition prescription
+  matrix, acceleration, ACS extent, partial Fourier, CAIPI shift
         |
         v
-support: encoded coordinates      make_cartesian_axis_sampling, make_cartesian_plane_sampling
-        |                         (or a boolean mask from make_*_mask)
+support: encoded coordinates
+  make_cartesian_axis_sampling, make_cartesian_plane_sampling
+  (or a boolean mask from make_*_mask)
+        |
         v
-temporal ordering                 make_traversal_order: loop order over positions
-        |                         make_*_order: indices into the coordinates, per shot and echo
+temporal ordering
+  make_traversal_order: loop order over positions
+  make_*_order: indices into the coordinates, per shot and echo
+        |
         v
 SequenceApp.kernel, once per repetition
         |
-        +--> scales the phase- and partition-encoding gradients from the coordinate
+        +--> scales the phase- and partition-encoding gradients
+        |    from the coordinate
         |
-        +--> emits the LIN / PAR / ECO / SEG / IMA ... labels from the coordinate,
-             the echo index and the calibration membership
+        +--> emits LIN / PAR / ECO / SEG / IMA ... labels from the
+             coordinate, the echo index and calibration membership
 ```
 
 An EPI application replaces the ordering step: the scan loop chooses each
@@ -87,7 +93,9 @@ internally when `sampling='poisson'`.
 
 ```python
 >>> import pypulseqpp as pp
->>> calibration, imaging = pp.make_cartesian_plane_sampling((4, 4), (2, 2), (2, 2))
+>>> calibration, imaging = pp.make_cartesian_plane_sampling(
+...     (4, 4), acceleration=(2, 2), n_acs=(2, 2)
+... )
 >>> calibration
 [(1, 1), (1, 2), (2, 1), (2, 2)]
 >>> imaging
@@ -140,7 +148,8 @@ coordinates.
 | {obj}`~pypulseqpp.make_shuffling_order` | Coordinates, train length, seed | `trains[shot][echo]` indices | Random echo positions within spatially clustered trains (T2 Shuffling). |
 
 ```python
->>> views = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+>>> views = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
+...          (0, 1), (1, -1), (1, 0), (1, 1)]
 >>> trains = pp.make_radial_order(views, 4, center=(0, 0))
 >>> trains
 [[3, 6, 0, 5], [4, 1, 7, 2]]

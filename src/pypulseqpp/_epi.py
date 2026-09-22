@@ -129,7 +129,10 @@ def make_epi_shot_offsets(
     A zigzag pass turns at ``extent``, and the return pass is displaced by
     half a blip:
 
-    >>> pp.make_epi_shot_offsets(9, scheme="zigzag", acceleration=4, extent=12)[:, 0].tolist()
+    >>> offsets = pp.make_epi_shot_offsets(
+    ...     9, scheme="zigzag", acceleration=4, extent=12
+    ... )
+    >>> offsets[:, 0].tolist()
     [0, 4, 8, 12, 10, 6, 2, 0, 4]
     """
     etl = int(etl)
