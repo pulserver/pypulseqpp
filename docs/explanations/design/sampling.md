@@ -49,9 +49,11 @@ at the target echo. The conversion is explicit:
 calibration, imaging = pp.make_cartesian_plane_sampling(
     (n_y, n_z), (2, 2), (24, 24), partial_fourier=(0.75, 1.0)
 )
-views = np.array(calibration + imaging)                  # A: encoded indices
-centred = views - (n_y // 2, n_z // 2)                   # B: centred coordinates
-trains = pp.make_radial_adaptive_order(centred, etl, center_echo=te_echo)  # D
+views = np.array(calibration + imaging)       # A: encoded indices
+centred = views - (n_y // 2, n_z // 2)        # B: centred coordinates
+trains = pp.make_radial_adaptive_order(       # D: [shot][echo] indices
+    centred, etl, center_echo=te_echo
+)
 view_of = [[tuple(views[i]) for i in train] for train in trains]
 ```
 
@@ -70,8 +72,10 @@ answer different questions.
 | Routine | `make_cartesian_plane_sampling(..., sampling='poisson')`, {func}`~pypulseqpp.make_poisson_disc_mask` | {func}`~pypulseqpp.make_shuffling_order` |
 | Output | encoded views, or a boolean mask | `trains[shot][echo]` indices |
 
-The shipped fast-spin-echo and MPRAGE applications combine them under
-`ordering='shuffling'`; either can be used without the other.
+The shipped fast-spin-echo application combines them under
+`ordering='shuffling'`. The MPRAGE application's `ordering='shuffling'` pairs
+the same Poisson-disc support with a random line order within each partition.
+Either choice can be used without the other.
 
 ## Labels
 

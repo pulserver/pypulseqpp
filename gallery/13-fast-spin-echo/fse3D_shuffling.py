@@ -16,6 +16,12 @@ reconstruction is performed here.
 """
 
 # sphinx_gallery_start_ignore
+import warnings
+
+# torchsim's simulator is compiled with torch.jit.script, which newer torch
+# releases flag as deprecated; the warning concerns torch, not this sequence.
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch.jit")
+
 import matplotlib
 
 matplotlib.use("Agg")

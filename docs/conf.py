@@ -157,6 +157,9 @@ sphinx_gallery_conf = {
     # example pages in hidden toctrees, which is what nests them in the sidebar.
     "copyfile_regex": r".*\.md",
     "exclude_implicit_doc": {"pypulseqpp.Sequence"},
+    # A cell ending in a plotting call would otherwise print the returned
+    # figure, axis label or diagram namespace beneath the figure itself.
+    "ignore_repr_types": r"matplotlib|SimpleNamespace",
 }
 
 # `reset_modules` holds a function, which Sphinx cannot pickle into its
