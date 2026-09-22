@@ -299,6 +299,19 @@ class SpspExcitation(RfModule):
         ``t_c`` its centre, and ``phase`` becomes the phase at the centre.
         Under a constant gradient this is ``freq_offset = G position`` with the
         centre's phase compensated. The module's ``rf`` is changed in place.
+
+        Parameters
+        ----------
+        position : float
+            Where the selected slice is to sit, in m along the selection
+            axis.
+        phase : float, default=0.0
+            Phase at the pulse centre, in radians.
+
+        Returns
+        -------
+        object
+            The module's RF event, modulated in place.
         """
         self.rf.signal = self._signal * np.exp(2j * np.pi * position * self._area)
         self.rf.phase_offset = phase

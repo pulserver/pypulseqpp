@@ -272,6 +272,12 @@ class SequenceModule(ABC):
         Assign ``self.seq``, add blocks to it, and set :attr:`center` if the
         module is timed against something other than its own start. Events are
         published automatically; nothing has to be returned.
+
+        Parameters
+        ----------
+        *args, **kwargs : object
+            What the subclass is constructed with, which its own docstring
+            states.
         """
 
     # ------------------------------------------------------------------
@@ -358,6 +364,12 @@ class SequenceModule(ABC):
 
         Use in construction helpers whose locals are not captured automatically.
         Keyword aliases take precedence over automatic names.
+
+        Parameters
+        ----------
+        **named : object
+            Events to publish under the names given, whatever the caller's
+            locals call them.
         """
         self._publish_locals(sys._getframe(1).f_locals)
         self.register(**named)
@@ -367,6 +379,12 @@ class SequenceModule(ABC):
 
         Preserve the supplied container structure and override automatic
         publication for these names.
+
+        Parameters
+        ----------
+        **events : object
+            Events to publish under the names given. A list or tuple is
+            published as it stands.
         """
         for name, event in events.items():
             self._publish(name, event)

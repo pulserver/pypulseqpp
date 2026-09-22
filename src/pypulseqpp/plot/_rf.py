@@ -269,6 +269,11 @@ def plot_rf(
     -------
     matplotlib.figure.Figure
 
+    Raises
+    ------
+    ValueError
+        If ``source`` holds no RF event, or the range given holds none.
+
     Notes
     -----
     A single pulse against one axis is :func:`pypulseqpp.sim_rf`, which

@@ -255,6 +255,16 @@ class Gre3DApp(sequences.SequenceApp):
         """One excitation at ``(line, partition)``.
 
         ``view=None`` plays a dummy; ``reference`` plays the view wave-free.
+
+        Parameters
+        ----------
+        view : tuple of int or None
+            The phase-encode line and the partition to acquire, or None for a
+            dummy.
+        phase : float
+            RF and ADC phase for this repetition, in radians.
+        reference : bool, default=False
+            Play the view wave-free.
         """
         rf, ro, seq = self.exc.rf, self.ro, self.seq
         n_y, n_z = self.matrix[1:]

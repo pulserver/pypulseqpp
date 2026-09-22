@@ -10,7 +10,18 @@ from .._module import SequenceModule
 
 
 def rf_reference(rf: Any) -> float:
-    """Return the RF pulse centre relative to its block start, in seconds: delay + center."""
+    """Return the RF pulse centre relative to its block start, in seconds: delay + center.
+
+    Parameters
+    ----------
+    rf : object
+        An RF event.
+
+    Returns
+    -------
+    float
+        Its centre from the start of the block that plays it, in seconds.
+    """
     return float(rf.delay) + float(rf.center)
 
 

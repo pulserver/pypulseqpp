@@ -1,4 +1,8 @@
-"""Traversal orders over a single encoded axis, and chunking them into shots."""
+"""Traversal orders over a single encoded axis.
+
+Each traversal is reached through :func:`calc_traversal_order`, which names
+them, so the individual ones are private to this module.
+"""
 
 from __future__ import annotations
 
@@ -12,20 +16,20 @@ def _count(n):
     return n
 
 
-def sequential(n: int) -> np.ndarray:
+def _sequential(n: int) -> np.ndarray:
     return np.arange(_count(n), dtype=np.intp)
 
 
-def reverse(n: int) -> np.ndarray:
-    return sequential(n)[::-1].copy()
+def _reverse(n: int) -> np.ndarray:
+    return _sequential(n)[::-1].copy()
 
 
-def interleaved(n: int) -> np.ndarray:
-    values = sequential(n)
+def _interleaved(n: int) -> np.ndarray:
+    values = _sequential(n)
     return np.concatenate((values[::2], values[1::2]))
 
 
-def center_out(n: int) -> np.ndarray:
+def _center_out(n: int) -> np.ndarray:
     """Order positions by distance from the centre, the lower index first on a tie."""
     n = _count(n)
     center = (n - 1) / 2.0
@@ -34,8 +38,8 @@ def center_out(n: int) -> np.ndarray:
     )
 
 
-def outside_in(n: int) -> np.ndarray:
-    return center_out(n)[::-1].copy()
+def _outside_in(n: int) -> np.ndarray:
+    return _center_out(n)[::-1].copy()
 
 
 def _random_order(n: int, seed: int = 0) -> np.ndarray:
@@ -43,11 +47,11 @@ def _random_order(n: int, seed: int = 0) -> np.ndarray:
 
 
 _TRAVERSALS = {
-    "sequential": sequential,
-    "reverse": reverse,
-    "interleaved": interleaved,
-    "center_out": center_out,
-    "outside_in": outside_in,
+    "sequential": _sequential,
+    "reverse": _reverse,
+    "interleaved": _interleaved,
+    "center_out": _center_out,
+    "outside_in": _outside_in,
 }
 
 

@@ -21,7 +21,19 @@ MODULATIONS = ("constant", "optimized")
 
 
 def cubic(fraction):
-    """Return the smooth step ``3 u**2 - 2 u**3`` the parameters move along."""
+    """Return the smooth step ``3 u**2 - 2 u**3`` the parameters move along.
+
+    Parameters
+    ----------
+    fraction : array-like
+        Where along the transition, from 0 at the centre to 1 at the
+        periphery.
+
+    Returns
+    -------
+    numpy.ndarray
+        The step, over the same range.
+    """
     fraction = np.asarray(fraction, dtype=float)
     return 3 * fraction**2 - 2 * fraction**3
 
@@ -35,6 +47,28 @@ def shot_parameters(
     and TR a cubic step (:func:`cubic`) of the way from the centre values to
     the periphery ones (Buonincontri et al., ISMRM 2025, abstract 566-05-007,
     Fig. 1). ``n`` is the fewest shots whose trains hold every view.
+
+    Parameters
+    ----------
+    n_views : int
+        Views the shots have to hold between them.
+    etl : int
+        Echo train length of the centre shot.
+    etl_periphery : int
+        Echo train length of the periphery shot.
+    tr : float
+        Repetition time of the centre shot, in s.
+    tr_periphery : float
+        Repetition time of the periphery shot, in s.
+
+    Returns
+    -------
+    lengths : list of int
+        Each shot's train length.
+    times : list of float
+        Each shot's repetition time, in s.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
     """
     n = max(1, -(-n_views // max(etl, etl_periphery)))
     while True:
@@ -66,6 +100,26 @@ def deal_trains(
     the centre of k-space, which has no angle, takes the nearest slot.
     With identical trains the shot term vanishes and a section is one echo, so
     this is the radial ordering folded about the TE echo.
+
+    Parameters
+    ----------
+    coords : numpy.ndarray
+        ``(n_views, 2)`` phase-encode and partition coordinates of each view,
+        centred on k-space.
+    lengths : list of int
+        Each shot's train length.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
+    te_echo : int
+        The echo the prescribed echo time falls on, counting from 0.
+    etl_max : int
+        Echoes the longest train holds.
+
+    Returns
+    -------
+    list of list of int or None
+        One ``etl_max``-long train per shot, holding view indices; None where
+        an echo plays unencoded and unacquired.
     """
     n_shots = len(lengths)
     radius = np.hypot(coords[:, 0], coords[:, 1])
@@ -108,6 +162,35 @@ def design_trains(app, lengths, times, place, te_echo, etl_max, esp) -> np.ndarr
     starting trains. Individually parameterized trains have a minimum and a
     maximum at each end, and every shot takes them a cubic step of the way
     along its transition. Angles past a shot's own train length are zero.
+
+    Parameters
+    ----------
+    app : Fse3DApp
+        The application being designed, read for its prescribed angle,
+        design tissues and simulation parameters.
+    lengths : list of int
+        Each shot's train length.
+    times : list of float
+        Each shot's repetition time, in s.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
+    te_echo : int
+        The echo the prescribed echo time falls on, counting from 0.
+    etl_max : int
+        Echoes the longest train holds.
+    esp : float
+        Echo spacing, in s.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``(shots, etl_max)`` refocusing angles in degrees, zero past a shot's
+        own train length.
+
+    Raises
+    ------
+    ImportError
+        If torchsim is not installed.
     """
     try:
         import torch
@@ -618,6 +701,18 @@ class Fse3DApp(sequences.SequenceApp):
         ``None`` plays an echo unencoded and unacquired, and ``closing`` is the
         delay after the train. A ``dummy`` train acquires nothing and a
         ``reference`` train plays without the wave.
+
+        Parameters
+        ----------
+        views : sequence
+            One view per echo, as ``(line, partition)``; None plays an echo
+            unencoded and unacquired.
+        flips : sequence of float
+            One refocusing angle per echo, in degrees.
+        closing : float
+            Delay after the train, in s.
+        kind : str, default="image"
+            ``"image"``, ``"dummy"`` or ``"reference"``.
         """
         fse, seq = self.fse, self.seq
         n_y, n_z = self.matrix[1:]

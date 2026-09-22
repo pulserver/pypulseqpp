@@ -21,12 +21,45 @@ AXES = ("x", "y", "z")
 
 
 def present(event: Any) -> tuple:
-    """Return ``(event,)`` when the event exists, else ``()``, for unpacking into a block."""
+    """Return ``(event,)`` when the event exists, else ``()``, for unpacking into a block.
+
+    Parameters
+    ----------
+    event : object or None
+        An event, or None where a module plays none.
+
+    Returns
+    -------
+    tuple
+        The event on its own, or nothing.
+    """
     return () if event is None else (event,)
 
 
 def as_tuple(value: Any, length: int, name: str, cast=float) -> tuple:
-    """Broadcast a scalar to ``length``, or verify a sequence is already that long."""
+    """Broadcast a scalar to ``length``, or verify a sequence is already that long.
+
+    Parameters
+    ----------
+    value : object
+        A scalar or a sequence of ``length`` values.
+    length : int
+        How many values are wanted.
+    name : str
+        What to call the argument in the error.
+    cast : callable, default=float
+        What each value is converted with.
+
+    Returns
+    -------
+    tuple
+        ``length`` values.
+
+    Raises
+    ------
+    ValueError
+        If ``value`` is a sequence of some other length.
+    """
     if isinstance(value, int | float):
         return (cast(value),) * length
     values = tuple(cast(item) for item in value)
@@ -177,7 +210,24 @@ WAVE_MODES = {
 
 
 def wave_channels(mode: str) -> tuple:
-    """``(sine_channel, cosine_channel)`` a wave mode drives, for :func:`pypulseqpp.make_wave_gradients`."""
+    """``(sine_channel, cosine_channel)`` a wave mode drives, for :func:`pypulseqpp.make_wave_gradients`.
+
+    Parameters
+    ----------
+    mode : str
+        One of `WAVE_MODES`.
+
+    Returns
+    -------
+    tuple
+        The axis the sine plays on and the axis the cosine plays on, either
+        of which is None where that mode drives one channel.
+
+    Raises
+    ------
+    ValueError
+        If ``mode`` is not one of `WAVE_MODES`.
+    """
     if mode not in WAVE_MODES:
         raise ValueError(f"wave mode must be one of {tuple(WAVE_MODES)}, got {mode!r}")
     return WAVE_MODES[mode]

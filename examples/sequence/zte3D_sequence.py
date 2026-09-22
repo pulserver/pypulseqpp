@@ -137,7 +137,15 @@ class Zte3DApp(sequences.SequenceApp):
             self.kernel(shot)
 
     def kernel(self, shot: int, acquire: bool = True) -> None:
-        """One shell at shot ``shot``; ``acquire=False`` leaves the ADC off."""
+        """One shell at shot ``shot``; ``acquire=False`` leaves the ADC off.
+
+        Parameters
+        ----------
+        shot : int
+            Which rotation of the shell's directions this repetition plays.
+        acquire : bool, default=True
+            Play the ADC. False leaves it off, which is what a dummy plays.
+        """
         ro, seq = self.ro, self.seq
         turn = self.rotations[shot]
         seq.add_block(*ro.g_ramp, turn)

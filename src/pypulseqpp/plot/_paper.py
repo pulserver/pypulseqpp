@@ -59,6 +59,21 @@ def select_trs(seq, tr=None, max_underlays=16):
         there are at most ``max_underlays`` of them, together with the
         repetitions in which each axis reaches its most negative and most
         positive value.
+
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to read.
+    tr : int, default=None
+        The 1-based repetition to draw solid. None picks one.
+    max_underlays : int, default=16
+        The most repetitions drawn underneath.
+
+    Raises
+    ------
+    ValueError
+        If a ``PlotTRsize`` or ``PlotTRstart`` definition puts the range
+        outside the sequence, or ``tr`` names a repetition it does not have.
     """
     declared = seq.get_definition("PlotTRsize")
     if declared != "":
@@ -172,7 +187,29 @@ def paper_plot(
     underlay_color=None,
     ax=None,
 ):
-    """Draw the diagram; see :meth:`pypulseqpp.Sequence.paper_plot`."""
+    """Draw the publication diagram of one repetition.
+
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to draw.
+    time_range, line_width, axes_color, rf_color, gx_color, gy_color, \
+gz_color, rf_plot, tr, max_underlays, underlay_color, ax
+        As :meth:`pypulseqpp.Sequence.paper_plot` documents them; this is the
+        function that method calls.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The axes the diagram was drawn on, whether ``ax`` supplied them or
+        this made them.
+
+    Raises
+    ------
+    ValueError
+        If ``rf_plot`` is not ``'abs'``, ``'real'`` or ``'imag'``, or a
+        declared plotting range falls outside the sequence.
+    """
     if rf_plot not in _RF_PARTS:
         raise ValueError(f"rf_plot is 'abs', 'real' or 'imag', not {rf_plot!r}")
     axes_color = _style.FAINT if axes_color is None else axes_color

@@ -110,6 +110,16 @@ def split_ptx_pulse(rf) -> np.ndarray:
     time, as the reference interpreter reads it; a single-channel pulse comes
     back as one row.
 
+    Parameters
+    ----------
+    rf : object
+        A dynamic pTx RF event, as :func:`make_ptx_pulse` writes it.
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape ``(channels, samples)`` complex waveforms in Hz.
+
     Raises
     ------
     ValueError

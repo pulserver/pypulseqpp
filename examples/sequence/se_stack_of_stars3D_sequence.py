@@ -245,7 +245,20 @@ class SeStackOfStars3DApp(sequences.SequenceApp):
         self.duration = (self.n_dummy + len(self.views)) * length
 
     def rotation(self, spoke: int, partition: int):
-        """Return the rotation extension turning ``spoke`` at ``partition``."""
+        """Return the rotation extension turning ``spoke`` at ``partition``.
+
+        Parameters
+        ----------
+        spoke : int
+            The spoke to turn to.
+        partition : int
+            The partition it is played at, which advances the angle.
+
+        Returns
+        -------
+        object
+            The rotation extension, shared between shots at the same angle.
+        """
         angle = float((self.angles[spoke] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
@@ -263,6 +276,11 @@ class SeStackOfStars3DApp(sequences.SequenceApp):
         After the refocusing module, the readout's blocks are played as it laid
         them out, with the partition encode scaled and every block that drives
         an in-plane gradient turned to the shot's angle.
+
+        Parameters
+        ----------
+        view : tuple of int or None
+            The spoke and the partition to acquire, or None for a dummy.
         """
         ro, seq = self.ro, self.seq
         n_z = self.matrix[2]

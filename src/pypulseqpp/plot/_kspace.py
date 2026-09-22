@@ -99,8 +99,22 @@ def sampling_order(seq, first: int, last: int) -> tuple[np.ndarray, np.ndarray]:
 
     The echo is the ``ECO`` label where the sequence sets one, and otherwise
     the readout's rank after the excitation that opened its train. A shot
-    begins wherever the echo returns to zero. One value per sample, aligned
-    with ``k_traj_adc``.
+    begins wherever the echo returns to zero.
+
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to read.
+    first, last : int
+        The 1-based block range to follow.
+
+    Returns
+    -------
+    shot : numpy.ndarray
+        The shot each ADC sample belongs to, one value per sample, aligned
+        with the ``k_traj_adc`` of the same range.
+    echo : numpy.ndarray
+        The echo index within that shot, on the same alignment.
     """
     counts, _, train = _readout_trains(seq, first, last)
     echo = seq.evaluate_labels(evolution="adc", block_range=(first, last)).get("ECO")
@@ -159,6 +173,13 @@ def plot_kspace(
     Returns
     -------
     matplotlib.figure.Figure
+        The figure the sampling locations were drawn on.
+
+    Raises
+    ------
+    ValueError
+        If more than one range is given, ``color_by`` or ``plane`` is not one
+        of the values listed, or the range holds no ADC samples.
 
     Notes
     -----

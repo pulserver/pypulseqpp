@@ -227,7 +227,20 @@ class GreStackOfBlades3DApp(sequences.SequenceApp):
         self.duration = (self.n_dummy + len(self.views)) * self.repetition_time
 
     def rotation(self, blade: int, partition: int):
-        """Return the rotation extension turning ``blade`` at ``partition``."""
+        """Return the rotation extension turning ``blade`` at ``partition``.
+
+        Parameters
+        ----------
+        blade : int
+            The blade to turn to.
+        partition : int
+            The partition it is played at, which advances the angle.
+
+        Returns
+        -------
+        object
+            The rotation extension, shared between shots at the same angle.
+        """
         angle = float((self.angles[blade] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
@@ -248,6 +261,14 @@ class GreStackOfBlades3DApp(sequences.SequenceApp):
 
         Every block that drives an in-plane gradient carries the shot's
         rotation, which turns about z and leaves the partition encode alone.
+
+        Parameters
+        ----------
+        view : tuple of int or None
+            The blade, the line within it and the partition to acquire, or
+            None for a dummy.
+        phase : float
+            RF and ADC phase for this repetition, in radians.
         """
         ro, seq = self.ro, self.seq
         n, n_z = self.matrix[1:]

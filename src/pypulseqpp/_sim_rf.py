@@ -145,6 +145,12 @@ def sim_rf(
     mx_xy, my_xy : numpy.ndarray
         ``Mx + i My`` starting from ``+x`` and from ``+y``.
 
+    Warns
+    -----
+    UserWarning
+        If the pulse carries a ppm offset, which is read against the gamma
+        and B0 of the default system.
+
     Examples
     --------
     >>> import numpy as np

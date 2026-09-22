@@ -24,7 +24,18 @@ _BY_CODE = {use[0]: use for use in RF_USES}
 
 
 def use_of(code: str) -> str:
-    """Return the RF use a stored code denotes; `undefined` for any other code."""
+    """Return the RF use a stored code denotes; `undefined` for any other code.
+
+    Parameters
+    ----------
+    code : str
+        A use as a library row records it, which is its first letter.
+
+    Returns
+    -------
+    str
+        One of `RF_USES`.
+    """
     return _BY_CODE.get(code, "undefined")
 
 
@@ -77,6 +88,21 @@ class RfTimes:
 
         An undefined use is not implicitly included with excitation; request
         both tags to reproduce the PyPulseq excitation group.
+
+        Parameters
+        ----------
+        *uses : str
+            The uses to keep, each one of `RF_USES`.
+
+        Returns
+        -------
+        RfTimes
+            The pulses carrying one of ``uses``, in play order.
+
+        Raises
+        ------
+        ValueError
+            If a use is not one of `RF_USES`.
         """
         unknown = set(uses) - set(RF_USES)
         if unknown:

@@ -27,8 +27,17 @@ blocks. Scan-loop control exists only in the authoring program.
 A block whose duration exceeds the extent of its events is therefore a delay,
 and this is how a repetition time is realized. A two-dimensional gradient-echo
 repetition, for example, is six blocks: the pulse with its slice-selection
-gradient, the prewinders, an echo-time delay, the readout gradient with its
-ADC, the spoilers, and a delay that completes the repetition time.
+gradient, an echo-time delay carrying the slice rephaser, the prewinders, the
+readout gradient with its ADC, the spoilers, and a delay that completes the
+repetition time. Which of the middle blocks carries the wait is a design
+choice; that the wait is a block duration rather than a field of its own is
+the format.
+
+```{figure} ../../generated/figures/gre_repetition_blocks.png
+One repetition of a two-dimensional gradient echo, over its six blocks,
+numbered in the order just listed. Blocks 2 and 6 last longer than their
+events, and that difference is the echo time and the repetition time.
+```
 
 ## Event libraries
 
@@ -45,6 +54,13 @@ integer id, so an event played ten thousand times is stored once:
 
 A zero means the block has no event on that channel. Block and library indices
 are 1-based.
+
+```{figure} ../../generated/figures/block_table_and_libraries.png
+The block table of a written eight-line gradient-echo file, the libraries its
+cells index, and the shape library the RF and gradient rows index in turn. Each
+library holds one row per distinct event, however many blocks play it, so the
+tables below the block table are far shorter than it is.
+```
 
 RF
 : An amplitude in Hz, ids into a magnitude, a phase and optionally a time

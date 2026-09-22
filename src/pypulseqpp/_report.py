@@ -258,7 +258,18 @@ def _gradient_peaks(gw_data):
 
 
 def report_text(data: dict[str, Any]) -> str:
-    """Format the statistics returned by report_data."""
+    """Format the statistics returned by report_data.
+
+    Parameters
+    ----------
+    data : dict
+        What :func:`report_data` returned.
+
+    Returns
+    -------
+    str
+        The report, one statistic per line.
+    """
     event_count = data["event_count"]
     flip_angles_deg = data["flip_angles_deg"]
     unique_k_positions = data["unique_k_positions"]

@@ -19,6 +19,22 @@ def order_lines(lines: list[int], centre: int, ordering: str, rng) -> list[int]:
 
     ``radial`` plays them centre-out, the lower of two equally distant lines
     first; ``shuffling`` in a random order.
+
+    Parameters
+    ----------
+    lines : list of int
+        The lines acquired at this partition.
+    centre : int
+        The line at the centre of k-space.
+    ordering : str
+        ``"radial"`` or ``"shuffling"``.
+    rng : numpy.random.Generator
+        What ``"shuffling"`` draws its order from.
+
+    Returns
+    -------
+    list of int
+        ``lines`` in play order.
     """
     if ordering == "shuffling":
         return [lines[i] for i in rng.permutation(len(lines))]
@@ -364,6 +380,17 @@ class Mprage3DApp(sequences.SequenceApp):
         ``dummy`` shot acquires nothing, a ``reference`` shot plays without
         the wave, and a repetition past the end of ``lines``, or at ``None``,
         acquires nothing either.
+
+        Parameters
+        ----------
+        partition : int
+            The partition this shot encodes.
+        lines : list of int or None
+            One line per repetition, in play order; None acquires nothing.
+        phases : sequence of float
+            RF-spoiling phase of each repetition, in radians.
+        kind : str, default="image"
+            ``"image"``, ``"dummy"`` or ``"reference"``.
         """
         inv, ro, seq = self.inv, self.ro, self.seq
         n_y, n_z = self.matrix[1:]

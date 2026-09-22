@@ -290,6 +290,14 @@ class Se3DApp(sequences.SequenceApp):
         """One spin echo encoding ``(line, partition)``.
 
         ``None`` plays a dummy; ``reference`` plays the view wave-free.
+
+        Parameters
+        ----------
+        view : tuple of int or None
+            The phase-encode line and the partition to acquire, or None for a
+            dummy.
+        reference : bool, default=False
+            Play the view wave-free.
         """
         ro, seq = self.ro, self.seq
         n_y, n_z = self.matrix[1:]

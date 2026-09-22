@@ -225,7 +225,17 @@ class Se2DApp(sequences.SequenceApp):
                     )
 
     def kernel(self, s: int, line: int | None, pad: float) -> None:
-        """One excitation of slice ``s`` at one line; ``line=None`` plays a dummy."""
+        """One excitation of slice ``s`` at one line; ``line=None`` plays a dummy.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        line : int or None
+            The phase-encode line to acquire, or None for a dummy.
+        pad : float
+            Delay closing the repetition, in s.
+        """
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
         position = self.positions[s]
         # Each pulse selects at its own plateau; a crushed refocusing

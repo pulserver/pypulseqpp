@@ -181,7 +181,18 @@ def _message(finding: SimpleNamespace) -> str:
 
 
 def describe(finding: SimpleNamespace) -> str:
-    """Format one finding as a line naming the block, event and field it is in."""
+    """Format one finding as a line naming the block, event and field it is in.
+
+    Parameters
+    ----------
+    finding : types.SimpleNamespace
+        One entry of what :func:`check_timing` returned.
+
+    Returns
+    -------
+    str
+        The line, indented as the report prints it.
+    """
     where = f"Block:{finding.block} " if finding.block else ""
     return f"   {where}{finding.event}.{finding.field}: {_message(finding)}"
 

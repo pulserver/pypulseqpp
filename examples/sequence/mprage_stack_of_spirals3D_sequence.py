@@ -30,6 +30,17 @@ def golden_order(n: int) -> list[int]:
     The ``t``-th angle played is the rank of ``t / phi`` (mod 1) among the
     first ``n`` such values, so the angles played by any time lie close to a
     golden-angle set and a train binned in time still covers the full turn.
+
+    Parameters
+    ----------
+    n : int
+        Angles to order.
+
+    Returns
+    -------
+    list of int
+        The angle played at each time, as an index into the evenly spread
+        set.
     """
     positions = (np.arange(n) * (math.sqrt(5) - 1) / 2) % 1.0
     return np.argsort(np.argsort(positions, kind="stable"), kind="stable").tolist()
@@ -309,7 +320,20 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
         )
 
     def rotation(self, arm: int, partition: int):
-        """Return the rotation extension turning ``arm`` at ``partition``."""
+        """Return the rotation extension turning ``arm`` at ``partition``.
+
+        Parameters
+        ----------
+        arm : int
+            The interleaf to turn to.
+        partition : int
+            The partition it is played at, which advances the angle.
+
+        Returns
+        -------
+        object
+            The rotation extension, shared between shots at the same angle.
+        """
         angle = float((self.angles[arm] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
@@ -334,6 +358,14 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
         blocks after the pulse are played as it laid them out, with the
         partition encode scaled and every block that drives an in-plane
         gradient turned to the interleaf's angle.
+
+        Parameters
+        ----------
+        partition : int or None
+            The partition to acquire, or None for a dummy at the centre
+            partition.
+        phases : sequence of float
+            RF-spoiling phase of each repetition of the shot, in radians.
         """
         inv, ro, seq = self.inv, self.ro, self.seq
         n_z = self.matrix[2]

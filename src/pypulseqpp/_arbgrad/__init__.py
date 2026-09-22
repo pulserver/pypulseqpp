@@ -86,6 +86,14 @@ def traj2grad(
     -------
     numpy.ndarray
         Shape ``(n_grad, 3)`` gradient samples in Hz/m, one per ``dt``.
+
+    Raises
+    ------
+    ValueError
+        If ``trajectory`` is not an ``(n, 2)`` or ``(n, 3)`` path of at least
+        four finite samples with no consecutive duplicate, if ``max_slew``,
+        ``max_grad`` or ``dt`` is not positive, or if ``oversampling`` is
+        below 2.
     """
     path = np.asarray(trajectory, dtype=float)
     if path.ndim != 2 or path.shape[1] not in (2, 3) or path.shape[0] < 4:
@@ -143,6 +151,12 @@ def spiral(
     k_rho_phi1 : float, default=0.5 / (2.0 * pi)
         Outer (edge) spiral shape parameter. Set equal to ``k_rho_phi0`` for
         a constant-pitch spiral.
+
+    Returns
+    -------
+    BaseWaveform
+        One interleaf: its k-space start, its gradient samples in Hz/pix on
+        the ``dt`` raster, and the interleaves that cover k-space fully.
     """
     k0, gradient, n_shots = _kernels.vdspiral_waveform(
         float(fov),
@@ -187,6 +201,12 @@ def rosette(
         Second rosette frequency.
     t_max : float, default=1.0
         Trajectory parameter upper bound.
+
+    Returns
+    -------
+    BaseWaveform
+        One interleaf: its k-space start, its gradient samples in Hz/pix on
+        the ``dt`` raster, and the interleaves that cover k-space fully.
     """
     k0, gradient, n_shots = _kernels.rosette_waveform(
         float(fov),

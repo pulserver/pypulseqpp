@@ -379,6 +379,12 @@ def make_linear_order(
         Shots of view indices (indices into ``coords``); echo index is the
         position within the shot.
 
+    Raises
+    ------
+    ValueError
+        If the train length is below one, or the coordinates are not a
+        two-column array.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -717,6 +723,12 @@ def make_random_mask(
     numpy.ndarray
         Boolean mask of ``shape``.
 
+    Raises
+    ------
+    ValueError
+        If the acceleration is below one, or the calibration extent does not
+        fit the shape.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -778,6 +790,12 @@ def make_caipirinha_mask(
     numpy.ndarray
         Boolean mask with nominal acceleration ``ry * rz``; finite grid
         boundaries can change the realised factor.
+
+    Raises
+    ------
+    ValueError
+        If an acceleration is below one, or the shift is not smaller than the
+        partition acceleration.
 
     Examples
     --------
@@ -841,6 +859,12 @@ def make_poisson_disc_mask(
     -------
     numpy.ndarray
         Boolean mask of ``shape``.
+
+    Raises
+    ------
+    ValueError
+        If the acceleration is below one, or the draw cannot reach it within
+        the shape given.
 
     Examples
     --------

@@ -81,7 +81,16 @@ SIGNED = LinearSegmentedColormap.from_list(
 
 
 def axis_style(axis, title: str = "") -> None:
-    """Apply the shared axis style: two faint spines, muted ticks, optional left-aligned title."""
+    """Apply the shared axis style, two faint spines over muted ticks.
+
+    Parameters
+    ----------
+    axis : matplotlib.axes.Axes
+        The axes to style, in place.
+    title : str, default=""
+        A title, set left-aligned in the ink of this module. Empty leaves the
+        axes without one.
+    """
     for side in ("top", "right"):
         axis.spines[side].set_visible(False)
     for side in ("left", "bottom"):
@@ -96,7 +105,15 @@ def axis_style(axis, title: str = "") -> None:
 
 
 def image_style(axis, title: str = "") -> None:
-    """As :func:`axis_style`, but keeping all four sides of a heatmap's frame."""
+    """As :func:`axis_style`, but keeping all four sides of a heatmap's frame.
+
+    Parameters
+    ----------
+    axis : matplotlib.axes.Axes
+        The axes to style, in place.
+    title : str, default=""
+        A title, set as :func:`axis_style` sets one.
+    """
     for spine in axis.spines.values():
         spine.set_color(FAINT)
     axis.grid(False)
@@ -108,5 +125,14 @@ def image_style(axis, title: str = "") -> None:
 
 
 def figure_title(figure, text: str | None) -> None:
+    """Set a figure's title, left-aligned in the ink of this module.
+
+    Parameters
+    ----------
+    figure : matplotlib.figure.Figure
+        The figure to title, in place.
+    text : str or None
+        The title. None or empty leaves the figure without one.
+    """
     if text:
         figure.suptitle(text, x=0.01, ha="left", fontsize=10, color=INK)

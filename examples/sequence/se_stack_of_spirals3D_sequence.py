@@ -282,7 +282,20 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         self.duration = (self.n_dummy + len(self.views)) * length
 
     def rotation(self, arm: int, partition: int):
-        """Return the rotation extension turning ``arm`` at ``partition``."""
+        """Return the rotation extension turning ``arm`` at ``partition``.
+
+        Parameters
+        ----------
+        arm : int
+            The interleaf to turn to.
+        partition : int
+            The partition it is played at, which advances the angle.
+
+        Returns
+        -------
+        object
+            The rotation extension, shared between shots at the same angle.
+        """
         angle = float((self.angles[arm] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
@@ -300,6 +313,11 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
         After the refocusing module, the readout's blocks are played as it laid
         them out, with the partition encode scaled and every block that drives
         an in-plane gradient turned to the shot's angle.
+
+        Parameters
+        ----------
+        view : tuple of int or None
+            The interleaf and the partition to acquire, or None for a dummy.
         """
         ro, seq = self.ro, self.seq
         n_z = self.matrix[2]

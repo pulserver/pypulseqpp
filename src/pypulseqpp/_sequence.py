@@ -357,6 +357,16 @@ class Sequence:
 
         Missing events have ID zero. The extension chain is a ``(2, n)``
         array of type IDs and reference IDs; block duration is in seconds.
+
+        Parameters
+        ----------
+        index : int
+            The 1-based block index.
+
+        Returns
+        -------
+        types.SimpleNamespace
+            ``block_duration`` and the stored id of each event slot.
         """
         row = self._native.get_block(index)
         return SimpleNamespace(
@@ -435,6 +445,11 @@ class Sequence:
         -------
         int | None
             The block playing then, or None if ``t`` is past the end.
+
+        Raises
+        ------
+        ValueError
+            If the block found at ``t`` has a non-positive duration.
 
         Examples
         --------
@@ -567,11 +582,32 @@ class Sequence:
     # -- extensions ----------------------------------------------------
 
     def get_extension_type_ID(self, extension_string: str) -> int:
-        """Return the numeric id for ``extension_string``, assigning one if new."""
+        """Return the numeric id for ``extension_string``, assigning one if new.
+
+        Parameters
+        ----------
+        extension_string : str
+            The extension's name, as the file spells it.
+
+        Returns
+        -------
+        int
+            Its id in this sequence.
+        """
         return self._native.extension_type_id(extension_string)
 
     def get_extension_type_string(self, extension_id: int) -> str:
         """Return the name ``extension_id`` maps to.
+
+        Parameters
+        ----------
+        extension_id : int
+            The id to look up.
+
+        Returns
+        -------
+        str
+            The extension's name.
 
         Raises
         ------
@@ -586,7 +622,15 @@ class Sequence:
         return name
 
     def set_extension_string_ID(self, extension_str: str, extension_id: int) -> None:
-        """Pin ``extension_str`` to ``extension_id``."""
+        """Pin ``extension_str`` to ``extension_id``.
+
+        Parameters
+        ----------
+        extension_str : str
+            The extension's name.
+        extension_id : int
+            The id it is to be stored under.
+        """
         self._native.set_extension_type_id(extension_str, extension_id)
 
     # -- TR ids --------------------------------------------------------
@@ -603,6 +647,11 @@ class Sequence:
         -------
         int
             Its number, counting from 1 in the order names were first seen.
+
+        Raises
+        ------
+        ValueError
+            If ``label_name`` is empty.
 
         Examples
         --------
@@ -1335,6 +1384,16 @@ class Sequence:
             Per numeric id, the default, the hint, the block it came from,
             and the range of values that keep the block duration positive.
 
+        Raises
+        ------
+        ValueError
+            If two numeric ids carry the same hint.
+
+        Warns
+        -----
+        UserWarning
+            If the numeric ids are not contiguous.
+
         Examples
         --------
         >>> import pypulseqpp as pp
@@ -1436,6 +1495,11 @@ class Sequence:
     def register_rf_event(self, event) -> tuple[int, list[int]]:
         """Register an RF event and return its ids.
 
+        Parameters
+        ----------
+        event : object
+            An RF pulse.
+
         Returns
         -------
         rf_id : int
@@ -1450,6 +1514,11 @@ class Sequence:
     def register_grad_event(self, event):
         """Register a gradient event and return its ids.
 
+        Parameters
+        ----------
+        event : object
+            A trapezoid or an arbitrary gradient.
+
         Returns
         -------
         int | tuple[int, list[int]]
@@ -1463,6 +1532,11 @@ class Sequence:
     def register_adc_event(self, event) -> tuple[int, int]:
         """Register an ADC event and return its ids.
 
+        Parameters
+        ----------
+        event : object
+            An ADC.
+
         Returns
         -------
         adc_id : int
@@ -1474,31 +1548,86 @@ class Sequence:
         return stored["id"], stored["shapes"][0]
 
     def register_label_event(self, event) -> int:
-        """Register a label event and return its row id."""
+        """Register a label event and return its row id.
+
+        Parameters
+        ----------
+        event : object
+            A label set or increment.
+
+        Returns
+        -------
+        int
+            The row it was stored as.
+        """
         return self._register(
             event, ("LABELSET", "LABELINC"), "register_label_event", "a label"
         )["id"]
 
     def register_control_event(self, event) -> int:
-        """Register a trigger or digital-output event and return its row id."""
+        """Register a trigger or digital-output event and return its row id.
+
+        Parameters
+        ----------
+        event : object
+            A trigger or a digital output.
+
+        Returns
+        -------
+        int
+            The row it was stored as.
+        """
         return self._register(
             event, ("TRIGGERS",), "register_control_event", "a trigger"
         )["id"]
 
     def register_rotation_event(self, event) -> int:
-        """Register a rotation event and return its row id."""
+        """Register a rotation event and return its row id.
+
+        Parameters
+        ----------
+        event : object
+            A rotation.
+
+        Returns
+        -------
+        int
+            The row it was stored as.
+        """
         return self._register(
             event, ("ROTATIONS",), "register_rotation_event", "a rotation"
         )["id"]
 
     def register_rf_shim_event(self, event) -> int:
-        """Register an RF shim event and return its row id."""
+        """Register an RF shim event and return its row id.
+
+        Parameters
+        ----------
+        event : object
+            An RF shim.
+
+        Returns
+        -------
+        int
+            The row it was stored as.
+        """
         return self._register(
             event, ("RF_SHIMS",), "register_rf_shim_event", "an RF shim"
         )["id"]
 
     def register_soft_delay_event(self, event) -> int:
-        """Register a soft delay event and return its row id."""
+        """Register a soft delay event and return its row id.
+
+        Parameters
+        ----------
+        event : object
+            A soft delay.
+
+        Returns
+        -------
+        int
+            The row it was stored as.
+        """
         return self._register(
             event, ("DELAYS",), "register_soft_delay_event", "a soft delay"
         )["id"]
@@ -1538,6 +1667,11 @@ class Sequence:
             The signature written, or None if the file is unsigned. It is
             the signature of what was written, so with ``remove_duplicates``
             it belongs to the collapsed copy rather than to this sequence.
+
+        Warns
+        -----
+        UserWarning
+            If ``check_timing`` is set and the timing check finds anything.
 
         Examples
         --------
@@ -1694,6 +1828,18 @@ class Sequence:
             Collapse identical library rows after reading.
         verify : bool, default False, default=False
             Check the file against the signature it carries.
+
+        Raises
+        ------
+        RuntimeError
+            If ``verify`` is set and the signature the file carries is not the
+            signature of its contents.
+
+        Warns
+        -----
+        UserWarning
+            If ``detect_rf_use`` is set and every pulse in the file already
+            records what it is for.
 
         Examples
         --------
@@ -2040,11 +2186,23 @@ class Sequence:
     # spells a call the other way round still runs.
 
     def write_file(self, filename) -> None:
-        """`write(filename, create_signature=False)`."""
+        """`write(filename, create_signature=False)`.
+
+        Parameters
+        ----------
+        filename : str | os.PathLike[str]
+            Where to write it.
+        """
         self.write(filename, create_signature=False)
 
     def read_binary(self, filename) -> None:
-        """`read(filename)`, which distinguishes text from binary itself."""
+        """`read(filename)`, which distinguishes text from binary itself.
+
+        Parameters
+        ----------
+        filename : str | os.PathLike[str]
+            The file to read.
+        """
         self.read(filename)
 
     # -- no-ops --------------------------------------------------------

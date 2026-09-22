@@ -211,7 +211,13 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.duration = n_phase_cycles * (len(self.views) + 1) * ro.tr
 
     def prescans(self) -> dict:
-        """Return every file but the last cycle: each cycle's catalyst, then the cycle."""
+        """Return every file but the last cycle: each cycle's catalyst, then the cycle.
+
+        Returns
+        -------
+        dict
+            One loop per file, in play order.
+        """
         chain = {}
         for k in range(len(self.increments)):
             chain[f"catalyst_{k}"] = lambda k=k: self.catalyst(k)
@@ -224,7 +230,13 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.cycle(len(self.increments) - 1)
 
     def catalyst(self, k: int) -> None:
-        """Play cycle ``k``'s half flip, half a repetition before its first excitation."""
+        """Play cycle ``k``'s half flip, half a repetition before its first excitation.
+
+        Parameters
+        ----------
+        k : int
+            Phase cycle index.
+        """
         ro, seq = self.ro, self.seq
         ro.rf.amplitude = 0.5 * self.nominal
         # The first excitation is at the increment itself, so the one before it
@@ -237,7 +249,13 @@ class Bssfp3DApp(sequences.SequenceApp):
         self._define(Name=f"{self.NAME}_catalyst", PhaseCycle=k)
 
     def cycle(self, k: int) -> None:
-        """Play every view of phase cycle ``k``."""
+        """Play every view of phase cycle ``k``.
+
+        Parameters
+        ----------
+        k : int
+            Phase cycle index.
+        """
         increment = self.increments[k]
         for n, view in enumerate(self.views):
             self.kernel(view, (n + 1) * increment % (2 * np.pi), k)
@@ -255,7 +273,17 @@ class Bssfp3DApp(sequences.SequenceApp):
         return pp.scale_grad(lobe, amplitude / lobe.amplitude)
 
     def kernel(self, view: tuple[int, int], phase: float, cycle: int = 0) -> None:
-        """One balanced repetition at ``(line, partition)``: excite, read, rewind."""
+        """One balanced repetition at ``(line, partition)``: excite, read, rewind.
+
+        Parameters
+        ----------
+        view : tuple of int
+            The phase-encode line and the partition to acquire.
+        phase : float
+            RF and ADC phase for this repetition, in radians.
+        cycle : int, default=0
+            Phase cycle index, written to the SET label.
+        """
         ro, seq = self.ro, self.seq
         n_y, n_z = self.matrix[1:]
         line, partition = view

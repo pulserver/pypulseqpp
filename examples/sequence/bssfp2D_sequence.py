@@ -291,6 +291,27 @@ class Bssfp2DApp(sequences.SequenceApp):
         ``prospective`` gating. ``trigger`` waits for the heartbeat between the
         rewind and the excitation, ``last`` closes the train with the final
         rewind, and ``line=None`` plays a dummy.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0 in play order.
+        shot : int
+            Repetition index within the slice's train, which sets the RF and
+            ADC phase.
+        line : int or None
+            The phase-encode line to acquire, or None for a dummy.
+        previous_ky : float or None
+            The fractional encode the opening rewind undoes; None opens the
+            train with the half flip.
+        segment : int, default=0
+            Value written to the SEG label.
+        phase : int, default=0
+            Value written to the PHS label.
+        trigger : bool, default=False
+            Wait for the heartbeat between the rewind and the excitation.
+        last : bool, default=False
+            Close the train with the final rewind.
         """
         ro, seq = self.ro, self.seq
         rf = ro.rf

@@ -52,6 +52,11 @@ def executable() -> Path:
     The one ``pypulseqpp-seqeyes`` installs comes first, then ``seqeyes`` on
     ``PATH``.
 
+    Returns
+    -------
+    pathlib.Path
+        The executable to run.
+
     Raises
     ------
     ModuleNotFoundError
@@ -200,6 +205,11 @@ class Viewer:
     def wait(self, timeout: float | None = None) -> int:
         """Block until the window is closed, then remove the file it read.
 
+        Parameters
+        ----------
+        timeout : float, default=None
+            Seconds to wait. None waits for as long as the window is open.
+
         Returns
         -------
         int
@@ -314,7 +324,44 @@ def plot(
 ) -> Viewer:
     """Open a SeqEyes viewer window on the sequence.
 
-    See `Sequence.plot`, which is what a script calls.
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to open.
+    time_range, block_range, tr_range : sequence, default=None
+        The part of the sequence to write out, as
+        :meth:`pypulseqpp.Sequence.plot` documents them; at most one.
+    plot_now : bool, default=True
+        Start the viewer. False writes the file and returns without one.
+    save : bool, default=False
+        Keep the file the viewer read rather than removing it on close.
+    **options
+        Accepted for scripts written against upstream PyPulseq's signature,
+        and not honoured; an option this does not know is refused.
+
+    Returns
+    -------
+    Viewer
+        The viewer process, whose ``wait`` blocks until the window closes.
+
+    Raises
+    ------
+    TypeError
+        If an unknown option is passed.
+    ValueError
+        If more than one range is given.
+    ModuleNotFoundError
+        If the optional viewer is not installed.
+
+    Warns
+    -----
+    UserWarning
+        If an option this does not honour is passed with a value other than
+        its default.
+
+    See Also
+    --------
+    pypulseqpp.Sequence.plot : The method a script calls.
     """
     unknown = sorted(set(options) - set(_NOT_HONOURED))
     if unknown:

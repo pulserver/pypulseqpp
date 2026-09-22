@@ -72,6 +72,12 @@ def calc_radial_trajectory(fov, matrix, *, num_points=None):
     numpy.ndarray
         ``(num_points, 2)``, in 1/m, from ``-kmax`` to ``+kmax`` along x.
 
+    Raises
+    ------
+    ValueError
+        If ``fov`` is not isotropic or not positive, if ``matrix`` is not
+        positive, or if ``num_points`` is below 2.
+
     Examples
     --------
     >>> import pypulseqpp as pp
