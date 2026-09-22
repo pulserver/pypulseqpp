@@ -101,6 +101,11 @@ def calc_raga_angles(
     numpy.ndarray
         Angles (rad), length ``n``, drawn from a finite equidistant support.
 
+    Raises
+    ------
+    ValueError
+        If ``n`` is below one, or the approximation index is out of range.
+
     Examples
     --------
     >>> import numpy as np
@@ -191,6 +196,11 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     -------
     numpy.ndarray
         Angles (rad), length ``n``, spaced by ``span / n``.
+
+    Raises
+    ------
+    ValueError
+        If ``n`` is below one, or ``span`` is not positive.
 
     Examples
     --------

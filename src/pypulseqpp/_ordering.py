@@ -1,4 +1,8 @@
-"""Traversal orders over a single encoded axis, and chunking them into shots."""
+"""Traversal orders over a single encoded axis.
+
+Each traversal is reached through :func:`calc_traversal_order`, which names
+them, so the individual ones are private to this module.
+"""
 
 from __future__ import annotations
 
@@ -12,20 +16,20 @@ def _count(n):
     return n
 
 
-def sequential(n: int) -> np.ndarray:
+def _sequential(n: int) -> np.ndarray:
     return np.arange(_count(n), dtype=np.intp)
 
 
-def reverse(n: int) -> np.ndarray:
-    return sequential(n)[::-1].copy()
+def _reverse(n: int) -> np.ndarray:
+    return _sequential(n)[::-1].copy()
 
 
-def interleaved(n: int) -> np.ndarray:
-    values = sequential(n)
+def _interleaved(n: int) -> np.ndarray:
+    values = _sequential(n)
     return np.concatenate((values[::2], values[1::2]))
 
 
-def center_out(n: int) -> np.ndarray:
+def _center_out(n: int) -> np.ndarray:
     """Order positions by distance from the centre, the lower index first on a tie."""
     n = _count(n)
     center = (n - 1) / 2.0
@@ -34,20 +38,20 @@ def center_out(n: int) -> np.ndarray:
     )
 
 
-def outside_in(n: int) -> np.ndarray:
-    return center_out(n)[::-1].copy()
+def _outside_in(n: int) -> np.ndarray:
+    return _center_out(n)[::-1].copy()
 
 
-def random_order(n: int, seed: int = 0) -> np.ndarray:
+def _random_order(n: int, seed: int = 0) -> np.ndarray:
     return np.random.default_rng(seed).permutation(_count(n))
 
 
 _TRAVERSALS = {
-    "sequential": sequential,
-    "reverse": reverse,
-    "interleaved": interleaved,
-    "center_out": center_out,
-    "outside_in": outside_in,
+    "sequential": _sequential,
+    "reverse": _reverse,
+    "interleaved": _interleaved,
+    "center_out": _center_out,
+    "outside_in": _outside_in,
 }
 
 
@@ -87,35 +91,10 @@ def calc_traversal_order(
     [2, 1, 3, 0, 4]
     """
     if order == "random":
-        return random_order(n, seed)
+        return _random_order(n, seed)
     try:
         return _TRAVERSALS[order](n)
     except KeyError:
         raise ValueError(
             f"unknown order {order!r}; expected one of {', '.join(sorted((*_TRAVERSALS, 'random')))}"
         ) from None
-
-
-def calc_chunk_indices(indices: list[int], size: int) -> list[list[int]]:
-    """Split indices into consecutive chunks, retaining a shorter final chunk.
-
-    Parameters
-    ----------
-    indices : list of int
-        Indices in acquisition order.
-    size : int
-        Maximum chunk length; values below 1 are clamped to 1.
-
-    Returns
-    -------
-    list of list of int
-        Consecutive chunks, in order.
-
-    Examples
-    --------
-    >>> from pypulseqpp._ordering import calc_chunk_indices
-    >>> calc_chunk_indices([0, 1, 2, 3, 4], 2)
-    [[0, 1], [2, 3], [4]]
-    """
-    size = max(1, int(size))
-    return [indices[i : i + size] for i in range(0, len(indices), size)]

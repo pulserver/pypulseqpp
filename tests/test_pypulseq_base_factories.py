@@ -16,14 +16,11 @@ from pypulseqpp._angles import (
 from pypulseqpp._masks import (
     make_centric_order,
     make_linear_order,
-    make_poisson_disc_mask,
     make_radial_adaptive_order,
     make_radial_order,
-    make_random_mask,
     make_shuffling_order,
 )
 from pypulseqpp._ordering import calc_traversal_order
-from pypulseqpp._sampling import make_uniform_mask
 
 
 @pytest.fixture
@@ -261,21 +258,6 @@ def test_traj_to_grad_keeps_upstreams_parameter_names_first():
 
 
 # -- sampling -------------------------------------------------------------
-
-
-def test_the_uniform_mask_samples_every_rth_line_plus_a_centre():
-    mask = make_uniform_mask(64, 2, calibration=8)
-    assert int(mask.sum()) == 36
-    assert mask[np.arange(0, 64, 2)].all()
-    assert mask[28:36].all()
-
-
-def test_the_uniform_mask_is_the_only_mode_a_single_axis_accepts():
-    """The other three need two phase-encode axes to spread points over."""
-    assert make_uniform_mask(64, 2).ndim == 1
-    for two_dimensional in (make_random_mask, make_poisson_disc_mask):
-        with pytest.raises((ValueError, IndexError, TypeError)):
-            two_dimensional(64, 2.0)
 
 
 def test_every_traversal_order_visits_each_view_once():

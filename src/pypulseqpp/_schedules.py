@@ -41,6 +41,11 @@ def make_rf_spoiling_schedule(
     numpy.ndarray
         Phases (rad) in ``[0, 2 pi)``, length ``length``.
 
+    Raises
+    ------
+    ValueError
+        If ``length`` is negative.
+
     Examples
     --------
     >>> import numpy as np
@@ -81,6 +86,12 @@ def make_phase_cycling_schedule(
     -------
     numpy.ndarray
         Phases (rad) in ``[0, 2 pi)``, length ``length``.
+
+    Raises
+    ------
+    ValueError
+        If ``length`` is negative, or ``phases`` is not a non-empty
+        one-dimensional finite sequence.
 
     Examples
     --------
@@ -128,6 +139,12 @@ def make_traps_schedule(
     numpy.ndarray
         Refocusing flip angles (rad), length ``length``, approaching
         ``target_flip_angle``.
+
+    Raises
+    ------
+    ValueError
+        If ``length`` is negative, or a flip angle is outside the range a
+        refocusing train can use.
 
     Examples
     --------

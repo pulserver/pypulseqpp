@@ -13,7 +13,6 @@ Poisson-disc sampling derives from SigPy (BSD 3-Clause).
 from __future__ import annotations
 
 __all__ = [
-    "calc_calibration_lines",
     "calc_sampled_lines",
     "calc_sampled_pairs",
     "make_caipirinha_mask",
@@ -28,234 +27,220 @@ __all__ = [
 
 import numpy as np
 
-from ._ordering import calc_chunk_indices
-
 
 def calc_sampled_lines(
     n: int,
-    r: int,
-    acs_lines: int,
+    r: int = 1,
+    n_acs: int = 0,
     *,
-    order: str = "ascending",
     partial_fourier: float = 1.0,
-) -> list[int]:
-    """Return the sampled view indices for uniform undersampling + ACS block.
+) -> tuple[list[int], list[int]]:
+    """Return the calibration views of one encoded axis, and the others acquired.
 
-    Every ``r``-th view is sampled, plus a centered block of ``acs_lines``
-    autocalibration views.
+    The lattice keeps every view ``i`` with ``(i - n // 2) % r == 0``, so the
+    centre view is always acquired whatever the undersampling. Partial Fourier
+    drops the views before ``n - round(partial_fourier * n)``, which leaves the
+    centre in and the conjugate symmetry of k-space to cover what is missing.
+    The calibration block is ``n_acs`` views centred on the same view, acquired
+    whole; a fully sampled axis has none, because there is nothing to calibrate
+    a reconstruction of.
 
     Parameters
     ----------
     n : int
-        Total number of views.
-    r : int
-        Acceleration factor (view ``i`` is sampled when ``i % r == 0``).
-    acs_lines : int
-        Number of fully sampled center views.
-    order : str, default='ascending'
-        ``'ascending'`` traverses k-space from one edge to the other.
-        ``'calibration_first'`` puts the autocalibration block ahead of
-        everything else, so a reconstruction can estimate coil sensitivities
-        from it while the remaining views are still being acquired. It acquires
-        the centre of k-space before the magnetisation has reached steady
-        state, so a sequence using it needs dummy repetitions first. Default is
-        ``'ascending'``.
+        Views on the axis.
+    r : int, default=1
+        Undersampling: one view in every ``r`` of the lattice is acquired.
+    n_acs : int, default=0
+        Fully sampled calibration views at the centre. Ignored when ``r`` is 1.
     partial_fourier : float, default=1.0
-        Fraction of the phase-encode extent acquired, in ``(0.5, 1]``. The
-        views dropped are the leading ones, so the centre stays in and the
-        conjugate symmetry of k-space covers what is missing. It applies to
-        the calibration block as well: a view that is not played is not in the
-        list, whatever else would have asked for it. Default is 1.0.
+        Fraction of the extent acquired, in ``(0.5, 1]``.
 
     Returns
     -------
-    list of int
-        Sampled view indices, in acquisition order.
+    calibration : list of int
+        The calibration block, ascending, and empty when there is none.
+    lattice : list of int
+        The other views acquired, ascending.
 
     Raises
     ------
     ValueError
-        If ``order`` is neither ``'ascending'`` nor ``'calibration_first'``, or
-        ``partial_fourier`` is outside ``(0.5, 1]``.
+        If ``r`` is below one, ``n_acs`` is negative, or ``partial_fourier``
+        is outside ``(0.5, 1]``.
+
+    Notes
+    -----
+    The two parts are returned separately because a scan plays them in that
+    order -- the calibration first, so a reconstruction can estimate coil
+    sensitivities while the rest is still being acquired -- and marks them
+    differently. ``[*calibration, *lattice]`` is that play order and
+    ``sorted(calibration + lattice)`` the ascending traversal.
 
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> calc_sampled_lines(8, 2, 0)
-    [0, 2, 4, 6]
+    >>> pp.calc_sampled_lines(8)
+    ([], [0, 1, 2, 3, 4, 5, 6, 7])
 
-    The calibration block first, then what is left of the ascending traversal:
+    Twofold undersampling about the centre view, with four calibrating it:
 
-    >>> calc_sampled_lines(8, 2, 4, order='calibration_first')
-    [2, 3, 4, 5, 0, 6]
+    >>> pp.calc_sampled_lines(8, 2, 4)
+    ([2, 3, 4, 5], [0, 6])
 
     Three quarters of the extent, counted from the far edge:
 
-    >>> calc_sampled_lines(8, 1, 0, partial_fourier=0.75)
-    [2, 3, 4, 5, 6, 7]
+    >>> pp.calc_sampled_lines(8, partial_fourier=0.75)
+    ([], [2, 3, 4, 5, 6, 7])
     """
-    if order not in ("ascending", "calibration_first"):
-        raise ValueError("order must be 'ascending' or 'calibration_first'")
-
+    if r < 1:
+        raise ValueError(f"r must be at least 1, got {r}")
+    if n_acs < 0:
+        raise ValueError(f"n_acs must be nonnegative, got {n_acs}")
     first = n - round(_checked_partial_fourier(partial_fourier) * n)
-    sampled = {i for i in range(first, n) if (i % r) == 0}
-    calibration = calc_calibration_lines(n, acs_lines, partial_fourier=partial_fourier)
-    sampled.update(calibration)
-    if order == "ascending":
-        return sorted(sampled)
-    return calibration + sorted(sampled.difference(calibration))
-
-
-def calc_calibration_lines(
-    n: int,
-    acs_lines: int,
-    *,
-    partial_fourier: float = 1.0,
-) -> list[int]:
-    """Return centred calibration indices after partial-Fourier truncation.
-
-    Parameters
-    ----------
-    n : int
-        Total number of views.
-    acs_lines : int
-        Number of fully sampled centre views. Zero (or fewer) means no block.
-    partial_fourier : float, default=1.0
-        Fraction of the phase-encode extent acquired, in ``(0.5, 1]``. A
-        calibration view the partial-Fourier truncation drops is not returned,
-        matching :func:`calc_sampled_lines`. Default is 1.0.
-
-    Returns
-    -------
-    list of int
-        The autocalibration view indices, ascending.
-
-    Raises
-    ------
-    ValueError
-        If ``partial_fourier`` is outside ``(0.5, 1]``.
-
-    Examples
-    --------
-    >>> import pypulseqpp as pp
-    >>> calc_calibration_lines(8, 4)
-    [2, 3, 4, 5]
-    """
-    first = n - round(_checked_partial_fourier(partial_fourier) * n)
-    if acs_lines <= 0:
-        return []
-    center = n // 2
-    start = max(0, center - acs_lines // 2)
-    stop = min(n, start + acs_lines)
-    return [i for i in range(start, stop) if i >= first]
+    size = n_acs if r > 1 else 0
+    calibration = list(
+        range(max(n // 2 - size // 2, first), min(n // 2 + (size + 1) // 2, n))
+    )
+    lattice = [
+        i for i in range(first, n) if (i - n // 2) % r == 0 and i not in calibration
+    ]
+    return calibration, lattice
 
 
 def calc_sampled_pairs(
     shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    calibration: tuple[int, int],
+    acceleration: tuple[int, int] = (1, 1),
+    n_acs: tuple[int, int] = (0, 0),
     *,
-    partial_fourier: tuple[float, float] = (1.0, 1.0),
     caipi_shift: int = 0,
-    elliptical: bool = True,
-    order: str = "calibration_first",
-) -> tuple[list[tuple[int, int]], int]:
-    """Return acquired (line, partition) pairs and the calibration count.
+    partial_fourier: tuple[float, float] = (1.0, 1.0),
+    elliptical: bool = False,
+    elliptical_acs: bool = False,
+    shuffling: bool = False,
+    seed: int = 0,
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    """Return the calibration ``(line, partition)`` pairs, and the others acquired.
 
-    Combines a CAIPIRINHA lattice, central calibration rectangle and
-    partial-Fourier truncation. Optional elliptical cropping retains the
-    calibration rectangle. Traversal is partitions-outer, lines-inner;
-    calibration_first moves calibration pairs ahead of the other pairs.
+    Lines keep ``(y - n_y // 2) % r_y == 0``. The partitions of the ``j``-th
+    acquired line from the centre keep
+    ``(z - n_z // 2 - caipi_shift * j) % r_z == 0``, so the centre pair is
+    always acquired and the partition lattice climbs ``caipi_shift`` per
+    acquired line, which spreads the aliasing into both encoded directions
+    rather than along one. Partial Fourier drops the lines and the partitions
+    before the centre.
 
     Parameters
     ----------
     shape : tuple of int
-        ``(n_y, n_z)``, the phase-encode and partition-encode counts.
-    acceleration : tuple of int
-        ``(r_y, r_z)``, the uniform undersampling factor on each axis.
-    calibration : tuple of int
-        ``(acs_y, acs_z)``, the autocalibration extent on each axis, in views.
-    partial_fourier : tuple of float, default=(1.0, 1.0)
-        ``(pf_y, pf_z)``, the acquired fraction of each axis in ``(0.5, 1]``.
-        Default is ``(1.0, 1.0)``.
+        ``(n_y, n_z)``, the lines and the partitions.
+    acceleration : tuple of int, default=(1, 1)
+        ``(r_y, r_z)``, the undersampling on each axis.
+    n_acs : tuple of int, default=(0, 0)
+        ``(n_acs_y, n_acs_z)``, the calibration region centred on the centre
+        pair. Ignored when neither axis is undersampled.
     caipi_shift : int, default=0
-        CAIPIRINHA shift along kz per sampled-ky block, ``0 <= caipi_shift <
-        r_z``. ``0`` (the default) is a regular lattice; a non-zero shift
-        spreads the aliasing into both phase-encode directions. Default is 0.
-    elliptical : bool, default=True
-        Restrict sampling to the inscribed ellipse while retaining calibration
-        points. Partial-Fourier truncation still applies.
-    order : str, default='calibration_first'
-        ``'calibration_first'`` (the default) leads with the rectangle;
-        ``'ascending'`` traverses the whole grid partitions-outer,
-        lines-inner without pulling the rectangle forward.
+        Partitions the lattice climbs per acquired line. Zero is a plain
+        rectangular lattice.
+    partial_fourier : tuple of float, default=(1.0, 1.0)
+        Fraction of each axis acquired, in ``(0.5, 1]``.
+    elliptical : bool, default=False
+        Keep only the pairs inside the ellipse inscribed in the grid, whose
+        corners carry no resolution the axes do not already give.
+    elliptical_acs : bool, default=False
+        Shape the calibration region as the ellipse inscribed in it rather
+        than as a rectangle.
+    shuffling : bool, default=False
+        Draw the pairs from a variable-density Poisson disc at ``r_y * r_z``
+        instead of from the lattice, which spreads the aliasing incoherently
+        rather than into a fixed replica and is what a reconstruction with a
+        sparsity prior wants. ``caipi_shift`` then does nothing.
+    seed : int, default=0
+        Seed for that draw.
 
     Returns
     -------
-    pairs : list of tuple of int
-        ``(line, partition)`` in acquisition order.
-    n_calibration : int
-        How many leading pairs make up the autocalibration rectangle. With
-        ``order='ascending'`` this still reports the rectangle's size, though
-        those pairs are not contiguous at the front.
+    calibration : list of tuple of int
+        The calibration region, line by line, each line's partitions
+        ascending. Empty when there is none.
+    lattice : list of tuple of int
+        The other pairs acquired, in the same traversal.
 
     Raises
     ------
     ValueError
-        If ``order`` is not one of the two recognised values, or a
-        ``partial_fourier`` entry is outside ``(0.5, 1]``.
+        If an undersampling factor is below one, a calibration extent is
+        negative, or a partial-Fourier fraction is outside ``(0.5, 1]``.
 
     Examples
     --------
     >>> import pypulseqpp as pp
-    >>> pairs, n_cal = calc_sampled_pairs((4, 4), (2, 2), (2, 2))
-    >>> n_cal
-    4
-    >>> pairs[:n_cal]
-    [(1, 1), (2, 1), (1, 2), (2, 2)]
+    >>> calibration, lattice = pp.calc_sampled_pairs((4, 4), (2, 2), (2, 2))
+    >>> calibration
+    [(1, 1), (1, 2), (2, 1), (2, 2)]
+    >>> lattice
+    [(0, 0), (0, 2), (2, 0)]
 
-    The corners are outside the inscribed ellipse, so they are not sampled
-    unless the full rectangle is asked for:
+    A CAIPIRINHA shift moves each acquired line's partitions up by one:
 
-    >>> disk, _ = calc_sampled_pairs((8, 8), (1, 1), (0, 0))
-    >>> full, _ = calc_sampled_pairs((8, 8), (1, 1), (0, 0), elliptical=False)
-    >>> (0, 0) in disk, (0, 0) in full
-    (False, True)
+    >>> pp.calc_sampled_pairs((4, 4), (2, 2), caipi_shift=1)[1]
+    [(0, 1), (0, 3), (2, 0), (2, 2)]
     """
-    if order not in ("ascending", "calibration_first"):
-        raise ValueError("order must be 'ascending' or 'calibration_first'")
-    n_y, n_z = shape
-    r_y, r_z = acceleration
-    acs_y, acs_z = calibration
-    pf_y, pf_z = partial_fourier
+    (n_y, n_z), (r_y, r_z) = shape, acceleration
+    if r_y < 1 or r_z < 1:
+        raise ValueError(
+            f"acceleration must be at least 1 on each axis, got {acceleration}"
+        )
+    if n_acs[0] < 0 or n_acs[1] < 0:
+        raise ValueError(f"n_acs must be nonnegative on each axis, got {n_acs}")
+    first_y = n_y - round(_checked_partial_fourier(partial_fourier[0]) * n_y)
+    first_z = n_z - round(_checked_partial_fourier(partial_fourier[1]) * n_z)
+    n_acs_y, n_acs_z = n_acs if r_y * r_z > 1 else (0, 0)
 
-    first_y = n_y - round(_checked_partial_fourier(pf_y) * n_y)
-    first_z = n_z - round(_checked_partial_fourier(pf_z) * n_z)
+    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
+        # Offsets from the centre pair, the one the encodes scale to zero.
+        dy, dz = (y - n_y // 2) / extent_y, (z - n_z // 2) / extent_z
+        return dy * dy + dz * dz <= 0.25
 
-    # The CAIPI lattice within the partial-Fourier region, cropped to the
-    # inscribed ellipse if asked, plus the fully sampled autocalibration
-    # rectangle -- which stays whole, being central.
-    sampled = make_caipirinha_mask((n_y, n_z), r_y, r_z, delta=caipi_shift)
-    sampled[:first_y, :] = False
-    sampled[:, :first_z] = False
-    if elliptical:
-        sampled &= _elliptical_support((n_y, n_z))
-    acs_lines = calc_calibration_lines(n_y, acs_y, partial_fourier=pf_y)
-    acs_partitions = calc_calibration_lines(n_z, acs_z, partial_fourier=pf_z)
-    if acs_lines and acs_partitions:
-        sampled[np.ix_(acs_lines, acs_partitions)] = True
-
-    # Partition-major over the sampled mask, which is what transposing and
-    # asking for the set indices gives directly.
-    partitions, lines = np.argwhere(sampled.T).T
-    calibrates = np.isin(lines, acs_lines) & np.isin(partitions, acs_partitions)
-    n_calibration = int(np.count_nonzero(calibrates))
-
-    if order == "calibration_first":
-        rank = np.concatenate((np.flatnonzero(calibrates), np.flatnonzero(~calibrates)))
-        lines, partitions = lines[rank], partitions[rank]
-
-    return list(zip(lines.tolist(), partitions.tolist(), strict=True)), n_calibration
+    lines_acs = range(
+        max(n_y // 2 - n_acs_y // 2, first_y), min(n_y // 2 + (n_acs_y + 1) // 2, n_y)
+    )
+    partitions_acs = range(
+        max(n_z // 2 - n_acs_z // 2, first_z), min(n_z // 2 + (n_acs_z + 1) // 2, n_z)
+    )
+    calibration = [
+        (y, z)
+        for y in lines_acs
+        for z in partitions_acs
+        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
+    ]
+    calibrating = set(calibration)
+    if shuffling:
+        drawn = (
+            make_poisson_disc_mask(
+                (n_y, n_z), float(r_y * r_z), calib=(n_acs_y, n_acs_z), seed=seed
+            )
+            if r_y * r_z > 1
+            else np.ones((n_y, n_z), dtype=bool)
+        )
+        kept = [(int(y), int(z)) for y, z in np.argwhere(drawn)]
+    else:
+        kept = [
+            (y, z)
+            for y in range(n_y)
+            if (y - n_y // 2) % r_y == 0
+            for z in range(n_z)
+            if (z - n_z // 2 - caipi_shift * ((y - n_y // 2) // r_y)) % r_z == 0
+        ]
+    lattice = [
+        (y, z)
+        for y, z in kept
+        if y >= first_y
+        and z >= first_z
+        and (not elliptical or inside(y, z, n_y, n_z))
+        and (y, z) not in calibrating
+    ]
+    return calibration, lattice
 
 
 def _elliptical_support(shape: tuple[int, int]) -> np.ndarray:
@@ -287,7 +272,9 @@ def _as_coords(coords) -> np.ndarray:
 
 
 def _split_into_shots(order: list[int], etl: int) -> list[list[int]]:
-    return calc_chunk_indices(order, etl)
+    """Consecutive chunks of ``etl``, the last one shorter when it has to be."""
+    etl = max(1, int(etl))
+    return [order[i : i + etl] for i in range(0, len(order), etl)]
 
 
 def _polar(pts: np.ndarray, center) -> tuple[np.ndarray, np.ndarray]:
@@ -391,6 +378,12 @@ def make_linear_order(
     list of list of int
         Shots of view indices (indices into ``coords``); echo index is the
         position within the shot.
+
+    Raises
+    ------
+    ValueError
+        If the train length is below one, or the coordinates are not a
+        two-column array.
 
     Examples
     --------
@@ -730,6 +723,12 @@ def make_random_mask(
     numpy.ndarray
         Boolean mask of ``shape``.
 
+    Raises
+    ------
+    ValueError
+        If the acceleration is below one, or the calibration extent does not
+        fit the shape.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -791,6 +790,12 @@ def make_caipirinha_mask(
     numpy.ndarray
         Boolean mask with nominal acceleration ``ry * rz``; finite grid
         boundaries can change the realised factor.
+
+    Raises
+    ------
+    ValueError
+        If an acceleration is below one, or the shift is not smaller than the
+        partition acceleration.
 
     Examples
     --------
@@ -854,6 +859,12 @@ def make_poisson_disc_mask(
     -------
     numpy.ndarray
         Boolean mask of ``shape``.
+
+    Raises
+    ------
+    ValueError
+        If the acceleration is below one, or the draw cannot reach it within
+        the shape given.
 
     Examples
     --------

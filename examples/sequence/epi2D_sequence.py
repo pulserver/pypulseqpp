@@ -22,6 +22,19 @@ def caipi_shift(ry: int, rz: int) -> int:
     on the shortest is settled by the next, and then by the smaller shift. The rule
     reproduces the patterns Stirnberg and Stöcker (Magn Reson Med 2021,
     doi:10.1002/mrm.28486) found best, such as 2x2z1, 3x2z1, 2x4z2 and 1x6z2.
+
+    Parameters
+    ----------
+    ry : int
+        Acceleration along the phase-encode axis.
+    rz : int
+        Acceleration along the partition axis, which is also the shifts to
+        choose among.
+
+    Returns
+    -------
+    int
+        The shift, in partitions per ``ry`` lines.
     """
 
     def shortest(shift: int) -> list[int]:
@@ -48,6 +61,29 @@ def train_lines(
     from ``n - round(partial_fourier * n)`` up; when the shots cannot share
     them evenly, the extra lines extend below that, or are dropped where
     there is no room.
+
+    Parameters
+    ----------
+    n : int
+        Phase-encode lines across the full field of view.
+    ry : int
+        Acceleration along the phase-encode axis.
+    n_shots : int
+        Shots the train is segmented into.
+    partial_fourier : float
+        Fraction of k-space acquired, from the far side of the centre.
+
+    Returns
+    -------
+    start : int
+        The first line of shot 0.
+    etl : int
+        Lines each shot reads.
+
+    Raises
+    ------
+    ValueError
+        If the lines cannot be shared among ``n_shots`` shots.
     """
     first = n - round(partial_fourier * n)
     lattice = [i for i in range(n) if (i - n // 2) % ry == 0]
@@ -63,7 +99,20 @@ def train_lines(
 
 
 def packets_of(n: int, per_packet: int) -> list[list[int]]:
-    """Deal ``n`` slices round-robin into packets, even slices first in each."""
+    """Deal ``n`` slices round-robin into packets, even slices first in each.
+
+    Parameters
+    ----------
+    n : int
+        Slices to deal.
+    per_packet : int
+        Most slices one packet may hold.
+
+    Returns
+    -------
+    list of list of int
+        The slices of each packet, in excitation order.
+    """
     n_packets = -(-n // per_packet)
     packets = [range(start, n, n_packets) for start in range(n_packets)]
     return [[*packet[::2], *packet[1::2]] for packet in packets]
@@ -387,7 +436,13 @@ class Epi2DApp(sequences.SequenceApp):
             self.gre_selection_amplitude = single.selection_amplitude
 
     def prescans(self) -> dict:
-        """Return ``calibration`` (when undersampled or multiband) and ``reference``."""
+        """Return ``calibration`` (when undersampled or multiband) and ``reference``.
+
+        Returns
+        -------
+        dict
+            One loop per prescan, in play order.
+        """
         chain = {"calibration": self.calibrate} if self.gre is not None else {}
         return {**chain, "reference": self.reference}
 
@@ -402,7 +457,15 @@ class Epi2DApp(sequences.SequenceApp):
         self._define(Name=f"{self.NAME}_calibration")
 
     def calibration_kernel(self, s: int, line: int) -> None:
-        """One single-band gradient echo of slice ``s`` at ``line``."""
+        """One single-band gradient echo of slice ``s`` at ``line``.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        line : int
+            The phase-encode line to acquire.
+        """
         ro, seq, n_y = self.gre, self.seq, self.matrix[1]
         ro.rf.freq_offset = self.gre_selection_amplitude * self.positions[s]
         ro.rf.phase_offset = -2 * np.pi * ro.rf.freq_offset * ro.rf.center
@@ -437,7 +500,16 @@ class Epi2DApp(sequences.SequenceApp):
         self.play(frames=range(self.n_frames))
 
     def play(self, frames, reversed_encode: bool = False) -> None:
-        """Play the dummies and then ``frames``, packet by packet."""
+        """Play the dummies and then ``frames``, packet by packet.
+
+        Parameters
+        ----------
+        frames : iterable of int
+            The frames to acquire, in play order.
+        reversed_encode : bool, default=False
+            Negate every phase-encode event, which is what the reference
+            prescan plays.
+        """
         n_shots = self.n_shots
         for packet in self.packets:
             cycles = [(None, c % n_shots) for c in range(self.dummy_cycles)]
@@ -479,6 +551,21 @@ class Epi2DApp(sequences.SequenceApp):
         ``pad`` is the closing delay the shot would have without echo shift.
         ``reversed_encode`` negates every phase-encode event and keeps the
         labels of the forward shot.
+
+        Parameters
+        ----------
+        g : int
+            Slice, or multiband group, index.
+        shot : int
+            Which segment of the phase-encode lattice this shot reads.
+        frame : int or None
+            The frame to acquire, or None for a dummy.
+        pad : float
+            The closing delay the shot would have without echo shift, in s.
+        output : bool, default=False
+            Play the digital output that marks the start of a volume.
+        reversed_encode : bool, default=False
+            Negate every phase-encode event.
         """
         seq, epi, n_y = self.seq, self.shot_trains[shot], self.matrix[1]
         epi.rf.freq_offset = self.selection_amplitude * self.centers[g]

@@ -30,7 +30,7 @@ SMALL = {
     "se_stack_of_stars3D_sequence": {"n": 32, "n_z": 4, "tr": None},
     "se_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4, "tr": None},
     "se_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8, "tr": None},
-    "zte3D_sequence": {"n_x": 32, "n_views": 24, "n_shots": 2, "n_dummy": 0},
+    "zte3D_sequence": {"n": 32, "n_shots": 2, "n_dummy": 0},
     "gre_radial2D_sequence": {"n": 32, "tr": None},
     "gre_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
     "gre_propeller2D_sequence": {"n": 32, "blade_width": 8, "tr": None},
@@ -484,30 +484,6 @@ def test_a_flag_is_described_by_the_first_sentence_whatever_lines_it_spans(capsy
 
     assert f"--fov-x FOV_X {fov} --fov-y FOV_Y {fov}" in printed
     assert printed.endswith("--no-flyback Monopolar echo train; off, a bipolar one.")
-
-
-def test_the_binary_form_is_smaller_and_carries_no_signature(tmp_path):
-    seq = gre()
-    text, binary = tmp_path / "s.seq", tmp_path / "s.bin"
-
-    signature = cli.write_sequence(seq, str(text))
-    assert cli.write_sequence(seq, str(binary), offline=False) is None
-
-    assert len(signature) == 32
-    assert binary.stat().st_size < text.stat().st_size
-    assert "[SIGNATURE]" in text.read_text()
-
-
-def test_a_written_sequence_reads_back_as_itself(tmp_path):
-    path = tmp_path / "gre.seq"
-    cli.write_sequence(gre(), str(path))
-
-    read_back = pp.Sequence()
-    read_back.read(str(path))
-    again = tmp_path / "again.seq"
-    read_back.write(str(again))
-
-    assert again.read_text() == path.read_text()
 
 
 def test_running_the_module_as_a_script_writes_a_sequence(tmp_path):

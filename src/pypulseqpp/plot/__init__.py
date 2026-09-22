@@ -29,10 +29,36 @@ __all__ = [
 
 
 def plot(seq, *args, **kwargs):
-    """Open ``seq`` in the SeqEyes viewer; see :meth:`pypulseqpp.Sequence.plot`."""
+    """Open ``seq`` in the SeqEyes viewer.
+
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to draw.
+    *args, **kwargs
+        Passed to :meth:`pypulseqpp.Sequence.plot`, which documents them.
+
+    Returns
+    -------
+    Viewer
+        The viewer process, which closes when it is garbage collected.
+    """
     return seq.plot(*args, **kwargs)
 
 
 def paper_plot(seq, *args, **kwargs):
-    """Draw a publication diagram of ``seq``; see :meth:`pypulseqpp.Sequence.paper_plot`."""
+    """Draw a publication diagram of ``seq``.
+
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to draw.
+    *args, **kwargs
+        Passed to :meth:`pypulseqpp.Sequence.paper_plot`, which documents them.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The axes the diagram was drawn on.
+    """
     return seq.paper_plot(*args, **kwargs)

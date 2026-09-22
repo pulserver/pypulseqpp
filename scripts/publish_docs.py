@@ -10,7 +10,10 @@ beside them is the list the version switcher reads.
 
 The third argument is a checkout of the branch the site is served from. Only
 the published version's directory is replaced, and a release replaces
-``stable`` only when it is the newest one.
+``stable`` only when it is the newest one. The site keeps ``latest``,
+``stable`` and the ``--keep`` newest releases beside them; an older release is
+removed, because the branch is never pruned otherwise and every version is a
+whole documentation tree.
 """
 
 from __future__ import annotations
@@ -63,7 +66,25 @@ def catalogue(site: Path, url: str) -> list[dict[str, object]]:
     return entries
 
 
-def publish(built: Path, version: str, site: Path, url: str) -> list[dict[str, object]]:
+#: Releases kept beside ``latest`` and ``stable``, newest first.
+KEEP = 3
+
+
+def prune(site: Path, keep: int) -> list[str]:
+    """Remove every release directory but the ``keep`` newest, and say which.
+
+    ``stable`` is a copy of the newest release rather than one of these, so it
+    is never what is removed; neither is ``latest``.
+    """
+    dropped = releases(site)[max(keep, 0) :]
+    for name in dropped:
+        shutil.rmtree(site / name, ignore_errors=True)
+    return dropped
+
+
+def publish(
+    built: Path, version: str, site: Path, url: str, keep: int = KEEP
+) -> list[dict[str, object]]:
     """Put ``built`` in the site as ``version``, then rewrite the root and the list."""
     if not (built / "index.html").is_file():
         raise SystemExit(f"{built} does not look like a built documentation tree")
@@ -80,6 +101,8 @@ def publish(built: Path, version: str, site: Path, url: str) -> list[dict[str, o
     if version != LATEST and releases(site)[0] == version:
         shutil.rmtree(site / STABLE, ignore_errors=True)
         shutil.copytree(target, site / STABLE)
+
+    prune(site, keep)
 
     root = STABLE if (site / STABLE).is_dir() else LATEST
     (site / "index.html").write_text(REDIRECT.format(target=root), encoding="utf-8")
@@ -100,12 +123,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("version", help="latest, or the release tag")
     parser.add_argument("site", type=Path, help="a checkout of the site branch")
     parser.add_argument(
+        "--keep",
+        type=int,
+        default=KEEP,
+        help=f"releases kept beside latest and stable (default {KEEP})",
+    )
+    parser.add_argument(
         "--url",
         default="https://pulserver.github.io/pypulseqpp",
         help="where the site is served from",
     )
     arguments = parser.parse_args(argv)
-    entries = publish(arguments.built, arguments.version, arguments.site, arguments.url)
+    entries = publish(
+        arguments.built,
+        arguments.version,
+        arguments.site,
+        arguments.url,
+        arguments.keep,
+    )
     listed = ", ".join(str(entry["name"]) for entry in entries)
     print(f"{arguments.version} published; the switcher lists {listed}")
     return 0

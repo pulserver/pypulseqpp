@@ -16,6 +16,7 @@ from typing import Any
 from ._app import SequenceApp
 from ._module import SequenceModule
 from .excitation import (
+    EXCITATIONS,
     FrequencySelectiveExcitation,
     MultibandExcitation,
     NonSelectiveExcitation,
@@ -26,6 +27,7 @@ from .excitation import (
     SpatialSelectiveExcitation,
     SpatialSelectiveRefocusing,
     SpspExcitation,
+    make_excitation,
 )
 from .preparation import (
     BlochSiegertPreparation,
@@ -77,6 +79,7 @@ EXCITATION = (
     "SpatialSelective2DExcitation",
     "SpatialSelectiveExcitation",
     "SpatialSelectiveRefocusing",
+    "EXCITATIONS",
     "SpspExcitation",
 )
 
@@ -125,8 +128,9 @@ READOUT = (
 #: rewinder, for a NonCartesianReadout to play.
 TRAJECTORIES = ("Arbitrary", "NonCartesianGradient", "Rosette", "Spiral")
 
-#: Base classes, for a family this package does not ship.
-BASES = ("RfModule", "SequenceModule")
+#: Base classes, for a family this package does not ship, and the chooser a
+#: volumetric prescription selects its excitation with.
+BASES = ("EXCITATIONS", "RfModule", "SequenceModule", "make_excitation")
 
 #: Complete sequences, one per module of the repo's `examples/sequence/`, which
 #: is installed as the subpackage `sequences.sequence`. Each is reached here by

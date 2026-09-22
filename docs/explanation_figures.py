@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from pypulseqpp.plot._style import MUTED
+from pypulseqpp.plot._style import FAINT, MUTED, SERIES
 
 PAGE_WIDTH = 7.4  # inches, the width of the documentation column
 
@@ -441,6 +441,318 @@ def gradient_spectra():
     return figure
 
 
+# ---------------------------------------------------------------------------
+#  explanations/pulseq
+# ---------------------------------------------------------------------------
+
+
+def block_table_and_libraries():
+    """The block table of a written file, the libraries it indexes, and the shapes.
+
+    Every cell of the block table below the duration is a library id, and zero
+    is the absence of an event on that channel. The counts are those of a
+    written eight-line gradient-echo file: a library holds one row per
+    distinct event, however many blocks reference it.
+    """
+    import re
+    import tempfile
+
+    from pypulseqpp import sequences
+
+    plt = _pyplot()
+    seq = sequences.gre2D_sequence(
+        fov_x=220e-3, n_x=64, n_y=8, n_slices=1, n_dummy=0, tr=15e-3
+    )
+    path = Path(tempfile.mkdtemp()) / "measured.seq"
+    seq.write(path)
+    text = path.read_text()
+
+    parts = re.split(r"^\[(\w+)\]\s*$", text, flags=re.M)
+    body = dict(zip(parts[1::2], parts[2::2], strict=True))
+
+    def rows(name):
+        """Return the data lines of one section, without its comments."""
+        lines = body.get(name, "").splitlines()
+        return [line for line in lines if line.strip() and not line.startswith("#")]
+
+    columns = ("NUM", "DUR", "RF", "GX", "GY", "GZ", "ADC", "EXT")
+    table = [line.split() for line in rows("BLOCKS")[:4]]
+    shapes = len(re.findall(r"^shape_id ", body.get("SHAPES", ""), flags=re.M))
+
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6))
+    axis.set_xlim(0, 100)
+    axis.set_ylim(0, 100)
+    axis.axis("off")
+
+    def panel(x, y, width, height, colour, title, count, note):
+        """Draw one outlined library box with its row count and its fields."""
+        axis.add_patch(
+            plt.Rectangle(
+                (x, y), width, height, facecolor="none", edgecolor=colour, lw=1.0
+            )
+        )
+        axis.text(
+            x + width / 2, y + height - 3.5, title, ha="center", va="center",
+            fontsize=8.5, color=colour,
+        )
+        axis.text(
+            x + width / 2, y + height - 8.5, f"{count} rows", ha="center",
+            va="center", fontsize=7.5, color=colour,
+        )
+        axis.text(
+            x + width / 2, y + height - 12.0, note, ha="center", va="top",
+            fontsize=7.5, color=MUTED, linespacing=1.6,
+        )
+
+    cell, line_height, left, top = 8.0, 6.0, 22.0, 96.0
+    axis.text(
+        left, top + 1.5, f"[BLOCKS] — {len(rows('BLOCKS'))} rows, the played order",
+        fontsize=9, color=SERIES[0], va="bottom",
+    )
+    for index, name in enumerate(columns):
+        axis.text(
+            left + (index + 0.5) * cell, top - 1.4, name,
+            ha="center", va="center", fontsize=7.5, color=MUTED, family="monospace",
+        )
+    for line, cells in enumerate(table):
+        y = top - 3.5 - (line + 1) * line_height
+        if line % 2 == 0:
+            axis.add_patch(
+                plt.Rectangle(
+                    (left, y), len(columns) * cell, line_height,
+                    facecolor=FAINT, edgecolor="none",
+                )
+            )
+        for index, value in enumerate(cells):
+            axis.text(
+                left + (index + 0.5) * cell, y + line_height / 2, value,
+                ha="center", va="center", fontsize=8, color=MUTED,
+                family="monospace",
+            )
+
+    libraries = (
+        (SERIES[1], "[RF]", len(rows("RF")),
+         "amplitude, shape ids,\ndelay, offsets, centre, use"),
+        (SERIES[2], "[TRAP], [GRADIENTS]",
+         len(rows("TRAP")) + len(rows("GRADIENTS")),
+         "amplitude with rise, flat\nand fall, or a shape id"),
+        (SERIES[3], "[ADC]", len(rows("ADC")),
+         "samples, dwell, delay,\nfrequency and phase offsets"),
+        (SERIES[4], "[EXTENSIONS]", len(rows("EXTENSIONS")),
+         "one linked list per block:\nlabels, rotations, triggers"),
+    )
+    width, gap = 23.0, 2.6
+    for index, (colour, title, count, note) in enumerate(libraries):
+        x = index * (width + gap)
+        panel(x, 26.0, width, 22.0, colour, title, count, note)
+        axis.annotate(
+            "", xy=(x + width / 2, 48.5), xytext=(x + width / 2, 67.0),
+            arrowprops={"arrowstyle": "-|>", "color": MUTED, "lw": 1.0},
+        )
+
+    panel(14.0, 1.0, 72.0, 18.0, SERIES[5], "[SHAPES]", shapes,
+          "run-length encoded on the derivative, so a thousand-sample "
+          "linear ramp is three numbers")
+    for index in (0, 1):
+        x = index * (width + gap) + width / 2
+        axis.annotate(
+            "", xy=(x + 9.0, 19.5), xytext=(x, 25.5),
+            arrowprops={
+                "arrowstyle": "-|>", "color": MUTED, "lw": 1.0,
+                "connectionstyle": "arc3,rad=0.15",
+            },
+        )
+    figure.tight_layout()
+    return figure
+
+
+def gre_repetition_blocks():
+    """One gradient-echo repetition, as the blocks it is written as.
+
+    The events of a block play concurrently and the blocks play back to back,
+    so the whole repetition is fixed by the block durations and the delay of
+    each event within its block. A block whose duration exceeds the extent of
+    its events is a delay, which is how the echo time and the repetition time
+    are realized.
+    """
+    from pypulseqpp import sequences
+
+    plt = _pyplot()
+    seq = sequences.gre2D_sequence(
+        fov_x=220e-3, n_x=64, n_y=8, n_slices=1, n_dummy=0, tr=15e-3
+    )
+    last = 6  # the blocks of one repetition, pulse to closing delay
+    edges = np.cumsum([0.0, *(seq.block_durations[i] for i in range(1, last + 1))])
+    span = edges[-1]
+    channels = seq.waveforms_and_times(append_RF=True, block_range=(1, last))[0]
+    t_adc = seq.adc_times()[0]
+    t_adc = t_adc[t_adc <= span]
+
+    figure, axes = plt.subplots(
+        6, 1, figsize=(PAGE_WIDTH, 4.0), sharex=True,
+        gridspec_kw={"height_ratios": [0.5, 1.2, 1, 1, 1, 0.5]},
+    )
+    strip = axes[0]
+    for index, (left, right) in enumerate(zip(edges[:-1], edges[1:], strict=True), 1):
+        strip.add_patch(
+            plt.Rectangle(
+                (left * 1e3, 0.15), (right - left) * 1e3, 0.7,
+                facecolor=FAINT, edgecolor=MUTED, lw=0.8,
+            )
+        )
+        strip.text(
+            0.5 * (left + right) * 1e3, 0.5, str(index),
+            ha="center", va="center", fontsize=8, color=MUTED,
+        )
+    strip.set_ylim(0, 1)
+    strip.set_ylabel("block", rotation=0, ha="right", va="center")
+    strip.set_yticks([])
+
+    rows = (
+        ("RF", channels[3], SERIES[0]),
+        ("$G_x$", channels[0], SERIES[2]),
+        ("$G_y$", channels[1], SERIES[3]),
+        ("$G_z$", channels[2], SERIES[4]),
+    )
+    for axis, (name, channel, colour) in zip(axes[1:5], rows, strict=True):
+        wave = np.asarray(channel)
+        # The RF channel carries the complex envelope; the gradients are real.
+        amplitude = np.abs(wave[1]) if name == "RF" else wave[1].real
+        height = np.abs(amplitude).max() if wave.shape[1] else 1.0
+        if wave.shape[1]:
+            axis.plot(wave[0].real * 1e3, amplitude / height, lw=1.3, color=colour)
+        axis.set_ylabel(name, rotation=0, ha="right", va="center")
+        axis.set_yticks([])
+        axis.set_ylim(-1.25, 1.25)
+
+    adc = axes[5]
+    adc.plot(t_adc * 1e3, np.zeros_like(t_adc), "|", ms=8, color=SERIES[1])
+    adc.set_ylabel("ADC", rotation=0, ha="right", va="center")
+    adc.set_yticks([])
+    adc.set_ylim(-1, 1)
+    adc.set_xlabel("time from the start of the repetition (ms)")
+
+    for axis in axes:
+        for edge in edges:
+            axis.axvline(edge * 1e3, color=FAINT, lw=0.8)
+        axis.spines[["top", "right", "left"]].set_visible(False)
+    adc.set_xlim(-0.2, span * 1e3 + 0.2)
+    figure.tight_layout()
+    return figure
+
+
+def rotation_against_materialised_shapes():
+    """Shapes written and file size against interleaves, for the two representations.
+
+    The same spiral acquisition is written twice: once as one interleaf with a
+    ``ROTATIONS`` extension per block, and once with every shot's waveform
+    rotated into the file. Both are deduplicated as they are written, which is
+    why the materialized form shares shapes at the counts whose rotations map
+    an axis onto an axis.
+    """
+    import re
+    import tempfile
+
+    import pypulseqpp as pp
+    from pypulseqpp import sequences
+
+    plt = _pyplot()
+    system = pp.Opts(
+        max_grad=40.0, grad_unit="mT/m", max_slew=150.0, slew_unit="T/m/s"
+    )
+    rf = pp.make_block_pulse(np.deg2rad(10.0), duration=0.2e-3, system=system)
+    readout = sequences.SpiralReadout2D(
+        system, rf, fov=220e-3, matrix=64, design_interleaves=16
+    )
+    folder = Path(tempfile.mkdtemp())
+
+    def written(seq):
+        """Return the shapes the written file holds and its size in kilobytes."""
+        path = folder / "measured.seq"
+        seq.write(path)
+        shapes = len(re.findall(r"^shape_id ", path.read_text(), flags=re.M))
+        return shapes, path.stat().st_size / 1024
+
+    counts = [8, 16, 24, 32, 48, 64]
+    measured = {"rotation extension": [], "rotated waveforms": []}
+    for interleaves in counts:
+        turned, materialised = pp.Sequence(system), pp.Sequence(system)
+        for shot in range(interleaves):
+            angle = 2 * np.pi * shot / interleaves
+            turned.add_block(rf)
+            turned.add_block(
+                readout.gx, readout.gy, readout.adc, pp.make_rotation(angle)
+            )
+            materialised.add_block(rf)
+            materialised.add_block(
+                *pp.rotate(readout.gx, readout.gy, angle=angle, axis="z"),
+                readout.adc,
+            )
+        measured["rotation extension"].append(written(turned))
+        measured["rotated waveforms"].append(written(materialised))
+
+    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.6))
+    for index, (label, values) in enumerate(measured.items()):
+        shapes = [shape for shape, _ in values]
+        sizes = [size for _, size in values]
+        axes[0].plot(counts, shapes, "o-", ms=3.5, color=SERIES[index], label=label)
+        axes[1].plot(counts, sizes, "o-", ms=3.5, color=SERIES[index], label=label)
+    axes[0].set_ylabel("shapes in the file")
+    axes[1].set_ylabel("file size (kB)")
+    for axis in axes:
+        axis.set_xlabel("interleaves")
+        axis.set_xticks(counts)
+        axis.margins(y=0.15)
+    axes[0].legend(
+        frameon=False, fontsize=8, loc="lower center",
+        bbox_to_anchor=(1.1, 1.02), ncols=2,
+    )
+    figure.tight_layout(rect=(0, 0, 1, 0.88))
+    return figure
+
+
+def bandwidth_against_sample_count():
+    """The highest receiver bandwidth each sample count admits, against a request.
+
+    The acquisition window has to be a whole number of gradient raster periods
+    and the dwell a whole number of ADC raster periods, so the shortest dwell a
+    sample count admits is ``a r / gcd(N, r)``, with ``a`` the ADC raster and
+    ``r`` the ratio of the two. What :func:`~pypulseqpp.calc_adc_timing`
+    returns is the first admissible dwell at or above the requested one, so a
+    request above the ceiling is met at the ceiling and not at the request.
+    """
+    from math import gcd
+
+    import pypulseqpp as pp
+
+    plt = _pyplot()
+    system = pp.Opts()
+    adc_raster = system.adc_raster_time
+    grad_raster = system.grad_raster_time
+    ratio = round(grad_raster / adc_raster)
+    requested = 250e3
+
+    counts = np.arange(96, 161)
+    ceiling = np.array(
+        [1.0 / (adc_raster * ratio / gcd(int(n), ratio)) for n in counts]
+    )
+
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.7))
+    axis.vlines(counts, 0.0, ceiling * 1e-3, lw=1.0, color=FAINT)
+    axis.plot(counts, ceiling * 1e-3, "o", ms=3.5, color=SERIES[0])
+    axis.axhline(requested * 1e-3, lw=1.0, ls="--", color=SERIES[1])
+    axis.text(
+        counts[-1], requested * 1e-3 + 14.0, "requested",
+        ha="right", va="bottom", fontsize=8, color=SERIES[1],
+    )
+    axis.set_xlabel("ADC samples")
+    axis.set_ylabel("highest receiver\nbandwidth (kHz)")
+    axis.set_xlim(counts[0] - 1, counts[-1] + 1)
+    axis.set_ylim(0.0, 1e-3 / adc_raster * 1.1)
+    figure.tight_layout()
+    return figure
+
+
 #: Each figure's file name, without the extension, and the function that draws it.
 FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
@@ -449,6 +761,10 @@ FIGURES = {
     "strength_duration": strength_duration,
     "pns_response": pns_response,
     "gradient_spectra": gradient_spectra,
+    "block_table_and_libraries": block_table_and_libraries,
+    "gre_repetition_blocks": gre_repetition_blocks,
+    "rotation_against_materialised_shapes": rotation_against_materialised_shapes,
+    "bandwidth_against_sample_count": bandwidth_against_sample_count,
 }
 
 

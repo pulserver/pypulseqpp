@@ -137,7 +137,27 @@ def saturation_pulse(
     freq_offset_hz: float,
     time_bw_product: float,
 ) -> Any:
-    """Design the non-spatially-selective SLR envelope used by MT preparations."""
+    """Design the non-spatially-selective SLR envelope used by MT preparations.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits the pulse is designed against.
+    flip_angle_deg : float
+        Nominal flip angle, in degrees.
+    duration_s : float
+        Pulse duration, in s.
+    freq_offset_hz : float
+        Offset from water, in Hz.
+    time_bw_product : float
+        Time-bandwidth product, which with ``duration_s`` sets the saturated
+        band.
+
+    Returns
+    -------
+    object
+        The RF event, with no selection gradient and ``use="saturation"``.
+    """
     return pp.make_slr_pulse(
         np.deg2rad(flip_angle_deg),
         duration=duration_s,

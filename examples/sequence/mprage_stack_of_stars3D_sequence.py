@@ -11,9 +11,6 @@ import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 from pypulseqpp._schedules import make_rf_spoiling_schedule
 
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
-
 #: How far each partition turns its spokes, as a fraction of the half turn a
 #: spoke covers: not at all, by the golden ratio ``1 / phi``, or by the tiny
 #: golden angle ``1 / (phi + 1)``.
@@ -24,60 +21,23 @@ PARTITION_SHIFTS = {
 }
 
 
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
-
-def sampled_partitions(
-    n: int, rz: int, n_acs_z: int, partial_fourier: float
-) -> tuple[list[int], set[int]]:
-    """Return the partitions acquired, in order, and the calibration partitions.
-
-    The lattice keeps every partition ``z`` with ``(z - n // 2) % rz == 0``, so
-    the centre partition is always acquired; partial Fourier drops those before
-    ``n - round(partial_fourier * n)``. Under undersampling the ``n_acs_z``
-    partitions centred on the same one are acquired too.
-    """
-    first = n - round(partial_fourier * n)
-    size = n_acs_z if rz > 1 else 0
-    calibration = set(
-        range(max(n // 2 - size // 2, first), min(n // 2 + (size + 1) // 2, n))
-    )
-    lattice = {z for z in range(first, n) if (z - n // 2) % rz == 0}
-    return sorted(lattice | calibration), calibration
-
-
 def golden_order(n: int) -> list[int]:
     """Return a play order of ``n`` evenly spread angles whose every prefix is spread too.
 
     The ``t``-th angle played is the rank of ``t / phi`` (mod 1) among the
     first ``n`` such values, so the angles played by any time lie close to a
     golden-angle set and a train binned in time still covers the half turn.
+
+    Parameters
+    ----------
+    n : int
+        Angles to order.
+
+    Returns
+    -------
+    list of int
+        The angle played at each time, as an index into the evenly spread
+        set.
     """
     positions = (np.arange(n) * (math.sqrt(5) - 1) / 2) % 1.0
     return np.argsort(np.argsort(positions, kind="stable"), kind="stable").tolist()
@@ -217,9 +177,9 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
             than the shot takes.
         """
         self.n_dummy = n_dummy
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         if partition_angle_shift not in PARTITION_SHIFTS:
             raise ValueError(
@@ -240,7 +200,16 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         self.inv = sequences.InversionPreparation(
             system, voxel_size_m=min(fov / n, fov_z / n_z)
         )
-        self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            system,
+            excitation,
+            flip_angle_deg,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
         self.ro = ro = sequences.RadialStackReadout(
             system,
@@ -264,9 +233,11 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         self.angles = self.span * np.arange(0, n_nyquist, ry) / n_nyquist
         self.spokes = golden_order(len(self.angles))
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
-        self.partitions, self.calibration = sampled_partitions(
-            n_z, rz, n_acs_z, partial_fourier_z
+        calibrating, lattice = pp.calc_sampled_lines(
+            n_z, rz, n_acs_z, partial_fourier=partial_fourier_z
         )
+        self.partitions = sorted({*calibrating, *lattice})
+        self.calibration = set(calibrating)
         self._rotations: dict[float, object] = {}
 
         raster = system.block_duration_raster
@@ -311,7 +282,20 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         )
 
     def rotation(self, spoke: int, partition: int):
-        """Return the rotation extension turning ``spoke`` at ``partition``."""
+        """Return the rotation extension turning ``spoke`` at ``partition``.
+
+        Parameters
+        ----------
+        spoke : int
+            The spoke to turn to.
+        partition : int
+            The partition it is played at, which advances the angle.
+
+        Returns
+        -------
+        object
+            The rotation extension, shared between shots at the same angle.
+        """
         angle = float((self.angles[spoke] + partition * self.shift) % self.span)
         key = round(angle, 12)
         if key not in self._rotations:
@@ -336,6 +320,14 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         blocks after the pulse are played as it laid them out, with the
         partition encode scaled and every block that drives an in-plane
         gradient turned to the spoke's angle.
+
+        Parameters
+        ----------
+        partition : int or None
+            The partition to acquire, or None for a dummy at the centre
+            partition.
+        phases : sequence of float
+            RF-spoiling phase of each repetition of the shot, in radians.
         """
         inv, ro, seq = self.inv, self.ro, self.seq
         n_z = self.matrix[2]

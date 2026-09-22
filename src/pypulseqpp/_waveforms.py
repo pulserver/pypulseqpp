@@ -184,12 +184,37 @@ def _shift_row(moments, elapsed):
 
 
 def waveforms(seq, append_RF: bool = False, time_range=None, block_range=None):
-    """Return the gradient waveforms alone. See :func:`waveforms_and_times`."""
+    """Return the gradient waveforms alone. See :func:`waveforms_and_times`.
+
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to expand.
+    append_RF : bool, default=False
+        Also return the RF envelope, as a fourth channel.
+    time_range : list of float, default=None
+        Two times in seconds; only the blocks they touch are expanded.
+    block_range : sequence of int, default=None
+        Two 1-based block indices. Not with ``time_range``.
+
+    Returns
+    -------
+    list of numpy.ndarray
+        One ``(2, n)`` array per channel: time in seconds, then amplitude in
+        Hz/m, and in Hz for the RF channel.
+    """
     return waveforms_and_times(seq, append_RF, time_range, block_range)[0]
 
 
 def adc_times(seq, time_range=None):
     """Return the ADC sample times and each window's frequency and phase offsets.
+
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to expand.
+    time_range : list of float, default=None
+        Two times in seconds; only the blocks they touch are expanded.
 
     Returns
     -------
@@ -264,6 +289,11 @@ def get_gradients(
     list
         One `scipy.interpolate.PPoly` per axis, None where an axis plays
         nothing and has no offset.
+
+    Warns
+    -----
+    UserWarning
+        If ``trajectory_delay`` exceeds 100 us on any axis.
     """
     from scipy.interpolate import PPoly
 

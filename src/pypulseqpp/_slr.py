@@ -217,6 +217,37 @@ def design_gslider(
 
     Derived from SigPy's ``dz_gslider_b``. Sub-slices are counted from the
     lowest frequency; ``phase`` (rad) is relative to the rest of the slab.
+
+    Parameters
+    ----------
+    n : int
+        Samples in the pulse; even and at least 8.
+    time_bandwidth_product : float
+        Of the whole slab.
+    num_subslices : int
+        Sub-slices the slab is divided into.
+    subslice : int
+        Which one this pulse phases, counted from 0 at the lowest frequency.
+    flip_angle : float
+        Flip angle of the slab, in radians.
+    phase : float, default=numpy.pi
+        Phase of ``subslice`` relative to the rest of the slab, in radians.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Ripple of the underlying filter design.
+    cancel_alpha_phase : bool, default=True
+        Remove the alpha phase from the waveform.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``n`` complex samples, in radians per sample.
+
+    Raises
+    ------
+    ValueError
+        If ``subslice`` is outside ``[0, num_subslices)``, if ``n``, the
+        ripples or the time-bandwidth product are out of range, or if the
+        sub-slices are no wider than a transition.
     """
     g = int(num_subslices)
     if g < 1 or not 0 <= subslice < g:
@@ -243,6 +274,36 @@ def design_hadamard(
 
     Derived from SigPy's ``dz_hadamard_b``. Row 0 is the plain slab; sub-bands
     are counted from the lowest frequency.
+
+    Parameters
+    ----------
+    n : int
+        Samples in the pulse; even and at least 8.
+    time_bandwidth_product : float
+        Of the whole slab.
+    order : int
+        Size of the Hadamard matrix, a power of two, which is also the
+        sub-bands the slab is divided into.
+    row : int
+        Which row of it signs the sub-bands, counted from 0.
+    flip_angle : float
+        Flip angle of the slab, in radians.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Ripple of the underlying filter design.
+    cancel_alpha_phase : bool, default=True
+        Remove the alpha phase from the waveform.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``n`` complex samples, in radians per sample.
+
+    Raises
+    ------
+    ValueError
+        If ``order`` is not a power of two, if ``row`` is outside
+        ``[0, order)``, if ``n``, the ripples or the time-bandwidth product
+        are out of range, or if the sub-bands are no wider than a transition.
     """
     if order < 1 or order & (order - 1):
         raise ValueError(f"order must be a power of two, got {order}")
@@ -487,6 +548,38 @@ def design_slr(
     types it is the pulse in radians per sample at ``NOMINAL_FLIP[pulse_type]``.
     Root-flipped designs longer than ``ROOT_FLIP_SAMPLES`` are designed at that
     length and resampled. Designs are cached; each call returns a copy.
+
+    Parameters
+    ----------
+    n : int
+        Samples in the waveform; even and at least 8.
+    time_bandwidth_product : float
+        Of the designed profile.
+    pulse_type : str, default="st"
+        ``"st"`` for the small-tip beta filter, or one of `NOMINAL_FLIP`:
+        ``"ex"``, ``"se"``, ``"inv"`` or ``"sat"``.
+    filter_type : str, default="ls"
+        Filter design the beta polynomial comes from.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Ripple of that design.
+    cancel_alpha_phase : bool, default=False
+        Remove the alpha phase from the waveform.
+    root_flip : bool, default=False
+        Search the beta roots for the pulse of lowest peak amplitude.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``n`` complex samples: the beta filter for ``"st"``, otherwise
+        radians per sample at ``NOMINAL_FLIP[pulse_type]``.
+
+    Raises
+    ------
+    ValueError
+        If ``n``, the ripples or the time-bandwidth product are out of range,
+        if ``root_flip`` is asked for without a nominal flip or together with
+        ``cancel_alpha_phase``, or if the root-flip search would be larger
+        than ``MAX_ROOT_FLIP_CANDIDATES`` allows.
     """
     _check_design(n, time_bandwidth_product, passband_ripple, stopband_ripple)
     if root_flip and pulse_type not in NOMINAL_FLIP:
@@ -577,6 +670,25 @@ def design_b1_selective(
     selectivity at large tip. Both returned arrays hold ``2 * beta.size``
     samples: the RF is reversed over the first and last quarter, where the
     sweep is zero without ``split_and_reflect``.
+
+    Parameters
+    ----------
+    beta : numpy.ndarray
+        The filter to select with, in radians per ``dwell``.
+    dwell : float
+        Sample spacing, in s.
+    centre_hz : float
+        Where the selected band is centred, in Hz.
+    split_and_reflect : bool, default=True
+        Split the sweep and reflect it about the pulse, which keeps the
+        selectivity at large tip.
+
+    Returns
+    -------
+    signs : numpy.ndarray
+        The sign of the constant-magnitude RF, per sample.
+    sweep : numpy.ndarray
+        The frequency sweep, in Hz, per sample.
     """
     n = beta.size
     half = n // 2
@@ -622,10 +734,41 @@ def design_recursive_slr(
     t1)``, and is ignored with ``spin_echo``. Derived from SigPy's
     ``dz_recursive_rf``.
 
-    Returns ``(pulses, refocusing)``: ``pulses`` has one column per segment,
-    each an ``n``-sample core plus ``round((window - 1) * n)`` samples of
-    Blackman taper split either side; ``refocusing`` is the spin-echo
-    refocusing pulse over the same samples, or ``None``.
+    Parameters
+    ----------
+    n_segments : int
+        Segments the train holds.
+    n : int
+        Samples in each pulse's core; even and at least 8.
+    time_bandwidth_product : float
+        Of the designed profile.
+    spin_echo : bool, default=False
+        Design the train around a refocusing pulse, which also takes
+        ``relaxation`` out of the solution.
+    refocusing_tbw : float, default=8.0
+        Time-bandwidth product of that refocusing pulse.
+    zero_pad : int, default=4
+        Padding factor the profiles are solved over.
+    window : float, default=1.75
+        Pulse length in cores, the excess being the Blackman taper.
+    cancel_alpha_phase : bool, default=True
+        Remove the alpha phase from each waveform.
+    relaxation : float, default=0.0
+        Longitudinal recovery between segments, ``1 - exp(-segment_tr / t1)``.
+    use_mz : bool, default=True
+        Solve each beta against the longitudinal profile the earlier pulses
+        left, rather than against the nominal one.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Ripple of the underlying filter design.
+
+    Returns
+    -------
+    pulses : numpy.ndarray
+        One column per segment, in radians per sample: an ``n``-sample core
+        plus ``round((window - 1) * n)`` samples of Blackman taper split
+        either side.
+    refocusing : numpy.ndarray or None
+        The spin-echo refocusing pulse over the same samples, or None.
     """
     fft = lambda values: _centred(np.fft.fft, values)  # noqa: E731
     ifft = lambda values: _centred(np.fft.ifft, values)  # noqa: E731

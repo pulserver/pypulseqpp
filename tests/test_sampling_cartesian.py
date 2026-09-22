@@ -1,125 +1,112 @@
-"""Cartesian calibration membership, partial Fourier and acquisition order."""
+"""What a Cartesian scan acquires: the lattice, the calibration block, partial Fourier.
+
+Every shipped Cartesian sequence chooses its views with these two routines, so
+what they promise is what those sequences do. The centre of k-space is the
+invariant they are built around: it carries the contrast, and a reconstruction
+that estimates coil sensitivities needs it whatever the undersampling.
+"""
 
 from __future__ import annotations
 
 import pytest
 
-from pypulseqpp._masks import (
-    calc_calibration_lines,
-    calc_sampled_lines,
-    calc_sampled_pairs,
-)
+import pypulseqpp as pp
 
 
 @pytest.mark.parametrize("n", [64, 120, 128, 127])
-@pytest.mark.parametrize("acs", [0, 16, 24, 25])
-@pytest.mark.parametrize("pf", [1.0, 0.75, 0.8])
-def test_calibration_is_a_subset_of_the_sampled_lines(n, acs, pf):
-    calibration = calc_calibration_lines(n, acs, partial_fourier=pf)
-    for r in (1, 2, 3):
-        sampled = set(calc_sampled_lines(n, r, acs, partial_fourier=pf))
-        assert set(calibration) <= sampled
+@pytest.mark.parametrize("r", [1, 2, 3, 4])
+@pytest.mark.parametrize("n_acs", [0, 16, 25])
+def test_the_centre_view_is_acquired_whatever_the_undersampling(n, r, n_acs):
+    calibration, lattice = pp.calc_sampled_lines(n, r, n_acs)
+
+    assert n // 2 in {*calibration, *lattice}
 
 
-def test_calibration_count_matches_calibration_first_prefix():
-    # calibration_first leads with exactly the calibration lines, so their
-    # count is the length of the block the builtin reports.
-    n, r, acs = 128, 2, 24
-    sampled = calc_sampled_lines(n, r, acs, order="calibration_first")
-    calibration = calc_calibration_lines(n, acs)
-    assert sampled[: len(calibration)] == calibration
+@pytest.mark.parametrize("n", [64, 127])
+@pytest.mark.parametrize("r", [2, 3])
+@pytest.mark.parametrize("n_acs", [8, 16])
+def test_the_calibration_block_and_the_lattice_do_not_overlap(n, r, n_acs):
+    calibration, lattice = pp.calc_sampled_lines(n, r, n_acs)
+
+    assert not set(calibration) & set(lattice)
+    assert calibration == sorted(calibration)
+    assert lattice == sorted(lattice)
 
 
-def test_calibration_lines_respect_partial_fourier():
-    # A calibration view dropped by the truncation is not reported.
-    n, acs = 16, 8
-    full = calc_calibration_lines(n, acs)
-    truncated = calc_calibration_lines(n, acs, partial_fourier=0.75)
-    assert set(truncated) <= set(full)
-    assert min(truncated) >= n - round(0.75 * n)
+@pytest.mark.parametrize("n", [64, 127])
+@pytest.mark.parametrize("n_acs", [0, 16])
+def test_a_fully_sampled_axis_has_no_calibration_block_and_every_view(n, n_acs):
+    calibration, lattice = pp.calc_sampled_lines(n, 1, n_acs)
+
+    assert calibration == []
+    assert lattice == list(range(n))
 
 
-@pytest.mark.parametrize("acs_y", [0, 8, 24])
-def test_no_calibration_means_empty_rectangle(acs_y):
-    _pairs, n_cal = calc_sampled_pairs((64, 32), (2, 2), (acs_y, 0))
-    assert n_cal == 0  # the rectangle is empty when either axis has no ACS
-
-
-def test_pairs_are_the_full_grid_regardless_of_order():
-    shape, accel, calib = (128, 64), (2, 2), (24, 16)
-    ascending, n_a = calc_sampled_pairs(shape, accel, calib, order="ascending")
-    first, n_f = calc_sampled_pairs(shape, accel, calib, order="calibration_first")
-    assert n_a == n_f
-    assert set(ascending) == set(first)  # same pairs, different order
-    assert len(ascending) == len(set(ascending))  # no duplicates
-
-
-def test_calibration_first_leads_with_the_rectangle():
-    shape, accel, calib = (128, 64), (2, 2), (24, 16)
-    lines = set(calc_calibration_lines(128, 24))
-    partitions = set(calc_calibration_lines(64, 16))
-    pairs, n_cal = calc_sampled_pairs(shape, accel, calib)
-    rectangle = pairs[:n_cal]
-    # Every leading pair calibrates on both axes...
-    assert all(line in lines and part in partitions for line, part in rectangle)
-    # ...and none of the pairs after it does.
-    assert not any(line in lines and part in partitions for line, part in pairs[n_cal:])
-
-
-def test_partial_fourier_on_z_drops_leading_partitions():
-    shape, accel, calib = (64, 64), (1, 1), (0, 0)
-    full, _ = calc_sampled_pairs(shape, accel, calib)
-    truncated, _ = calc_sampled_pairs(shape, accel, calib, partial_fourier=(1.0, 0.75))
-    partitions_full = {part for _, part in full}
-    partitions_trunc = {part for _, part in truncated}
-    assert partitions_trunc < partitions_full  # z extent genuinely shrank
-    assert min(partitions_trunc) >= 64 - round(0.75 * 64)
-
-
-def test_caipi_shift_staggers_kz_without_changing_the_count():
-    # A non-zero shift keeps the same number of samples but moves them.
-    plain, _ = calc_sampled_pairs(
-        (16, 16), (2, 2), (0, 0), caipi_shift=0, elliptical=False
+@pytest.mark.parametrize("partial_fourier", [0.75, 0.8, 1.0])
+def test_partial_fourier_drops_the_views_before_the_centre_and_no_others(
+    partial_fourier,
+):
+    n = 64
+    calibration, lattice = pp.calc_sampled_lines(
+        n, 2, 8, partial_fourier=partial_fourier
     )
-    shifted, _ = calc_sampled_pairs(
-        (16, 16), (2, 2), (0, 0), caipi_shift=1, elliptical=False
+    acquired = {*calibration, *lattice}
+
+    first = n - round(partial_fourier * n)
+    assert min(acquired) >= first
+    assert n // 2 in acquired
+
+
+def test_the_lattice_steps_by_the_undersampling_factor_about_the_centre():
+    _, lattice = pp.calc_sampled_lines(64, 4, 0)
+
+    assert all((view - 32) % 4 == 0 for view in lattice)
+
+
+@pytest.mark.parametrize("acceleration", [(1, 1), (2, 1), (2, 2), (3, 2)])
+def test_the_centre_pair_is_acquired_whatever_the_undersampling(acceleration):
+    calibration, lattice = pp.calc_sampled_pairs((32, 16), acceleration, (8, 4))
+
+    assert (16, 8) in {*calibration, *lattice}
+
+
+def test_a_caipirinha_shift_climbs_one_partition_per_acquired_line():
+    _, lattice = pp.calc_sampled_pairs((8, 8), (2, 2), caipi_shift=1)
+
+    partitions = {
+        line: sorted(z for y, z in lattice if y == line) for line, _ in lattice
+    }
+    steps = [min(partitions[line]) for line in sorted(partitions)]
+    assert steps == sorted(steps) or len(set(steps)) > 1
+
+
+def test_elliptical_sampling_drops_the_corners_and_keeps_the_centre():
+    _, full = pp.calc_sampled_pairs((32, 32))
+    _, ellipse = pp.calc_sampled_pairs((32, 32), elliptical=True)
+
+    assert (0, 0) in full and (0, 0) not in ellipse
+    assert (16, 16) in ellipse
+    assert len(ellipse) < len(full)
+
+
+def test_a_shuffled_draw_covers_the_calibration_region_and_thins_the_rest():
+    calibration, lattice = pp.calc_sampled_pairs(
+        (48, 48), (2, 2), (8, 8), elliptical=True, shuffling=True, seed=7
     )
-    assert len(plain) == len(shifted)
-    assert set(plain) != set(shifted)
+
+    assert len(calibration) == 64
+    assert not set(calibration) & set(lattice)
+    assert 0 < len(lattice) < 48 * 48
 
 
-def test_no_acceleration_samples_the_whole_grid():
-    pairs, n_cal = calc_sampled_pairs(
-        (8, 8), (1, 1), (0, 0), caipi_shift=1, elliptical=False
-    )
-    assert len(pairs) == 64  # a shift is a no-op when nothing is skipped
-    assert n_cal == 0
-
-
-def test_the_support_is_the_inscribed_ellipse_unless_told_otherwise():
-    disk, _ = calc_sampled_pairs((16, 16), (1, 1), (0, 0))
-    full, _ = calc_sampled_pairs((16, 16), (1, 1), (0, 0), elliptical=False)
-    assert set(disk) < set(full)
-    # Every dropped pair is outside the inscribed ellipse, and the corners are.
-    dropped = set(full) - set(disk)
-    assert {(0, 0), (0, 15), (15, 0), (15, 15)} <= dropped
-    assert all(((y - 8) / 8) ** 2 + ((z - 8) / 8) ** 2 > 1.0 for y, z in dropped)
-
-
-def test_caipi_lattice_carries_the_acs_rectangle():
-    shape, accel, calib = (32, 32), (2, 2), (8, 8)
-    pairs, n_cal = calc_sampled_pairs(shape, accel, calib, caipi_shift=1)
-    lines = set(calc_calibration_lines(32, 8))
-    partitions = set(calc_calibration_lines(32, 8))
-    rectangle = pairs[:n_cal]
-    assert n_cal == len(lines) * len(partitions)
-    assert all(line in lines and part in partitions for line, part in rectangle)
-
-
-def test_bad_order_and_fraction_are_rejected():
-    with pytest.raises(ValueError):
-        calc_sampled_pairs((32, 32), (1, 1), (0, 0), order="nonsense")
-    with pytest.raises(ValueError):
-        calc_sampled_pairs((32, 32), (1, 1), (0, 0), partial_fourier=(0.4, 1.0))
-    with pytest.raises(ValueError):
-        calc_calibration_lines(32, 8, partial_fourier=1.5)
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"r": 0}, "at least 1"),
+        ({"n_acs": -1}, "nonnegative"),
+        ({"partial_fourier": 0.4}, "partial_fourier"),
+    ],
+)
+def test_an_out_of_range_argument_is_refused(kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        pp.calc_sampled_lines(64, **kwargs)

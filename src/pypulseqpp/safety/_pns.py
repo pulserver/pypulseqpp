@@ -36,6 +36,17 @@ def read_safe_model(path: str | os.PathLike) -> SimpleNamespace:
     is shaped like ``pypulseq.utils.safe_pns_prediction.safe_example_hw()``:
     ``x``, ``y`` and ``z``, each with ``a1``-``a3``, ``tau1``-``tau3`` (ms),
     ``stim_limit`` (T/m/s) and ``g_scale``.
+
+    Parameters
+    ----------
+    path : str | os.PathLike
+        The ``.asc`` file to read.
+
+    Returns
+    -------
+    types.SimpleNamespace
+        The model, shaped as described above, for
+        :func:`~pypulseqpp.safety.check_pns` to take as its ``model``.
     """
     from pypulseq.utils.siemens.asc_to_hw import asc_to_hw
     from pypulseq.utils.siemens.readasc import readasc

@@ -96,6 +96,16 @@ Opts.reset_default()
 def default_system(system: _pp.Opts | None) -> _pp.Opts:
     """Return ``system``, or the shared default system when it is ``None``.
 
+    Parameters
+    ----------
+    system : Opts or None
+        The system limits a caller prescribed, if any.
+
+    Returns
+    -------
+    Opts
+        ``system`` itself, or `Opts.default`.
+
     Examples
     --------
     >>> import pypulseqpp as pp

@@ -63,6 +63,25 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ``global_matrix``; the stack is read into ``(N, Nc, Nc)``. MATLAB v7.3
     (HDF5) files are not read. An ``.npz`` file holds ``vops`` as
     ``(N, Nc, Nc)`` and optionally ``global_matrix``.
+
+    Parameters
+    ----------
+    path : str | os.PathLike
+        The ``.mat`` or ``.npz`` file to read.
+
+    Returns
+    -------
+    VopModel
+        The VOPs and, where the file carries one, the global SAR matrix, for
+        :func:`~pypulseqpp.safety.check_sar` to take as its ``model``.
+
+    Raises
+    ------
+    ValueError
+        If the file holds no recognised VOP array, or one whose shape is not
+        a square stack.
+    OSError
+        If the file cannot be read, a MATLAB v7.3 file among them.
     """
     path = Path(path)
     if path.suffix.lower() == ".npz":
@@ -98,8 +117,14 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     electric field is ``-j omega A_z`` of their vector potential. Local SAR
     matrices are averaged over 12 mm disks on a coarse grid and used as the
     VOPs uncompressed; the global matrix is averaged over the whole cylinder.
+
     No tissue, no coil coupling and no conservative field are modelled, so the
     numbers are plausible in scale and nothing more.
+
+    Parameters
+    ----------
+    num_channels : int, default=8
+        Transmit channels the synthetic array has.
 
     Returns
     -------
@@ -280,6 +305,12 @@ def check_sar(
         and ``global_sar_ratio`` and ``global_energy_ratio`` alike for the
         global matrix, or None. Every window counts, prologue and tail
         included.
+
+    Raises
+    ------
+    ValueError
+        If a reference sequence plays nothing to compare with, or a shim
+        weighs a different number of channels than the model has.
 
     Notes
     -----

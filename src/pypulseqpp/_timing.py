@@ -183,6 +183,18 @@ def round_to_raster(value_s: float, raster_s: float) -> float:
     :attr:`pypulseqpp.Opts.grad_raster_time` or
     :attr:`pypulseqpp.Opts.block_duration_raster`.
 
+    Parameters
+    ----------
+    value_s : float
+        The time to round (s).
+    raster_s : float
+        The raster period to round it onto (s).
+
+    Returns
+    -------
+    float
+        The nearest multiple of ``raster_s``.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -203,5 +215,25 @@ def ceil_to_raster(value_s: float, raster_s: float) -> float:
 
     ``raster_s`` is a raster period in seconds. A value already within the
     tolerance of a raster multiple is not pushed to the next one.
+
+    Parameters
+    ----------
+    value_s : float
+        The time to round (s).
+    raster_s : float
+        The raster period to round it onto (s).
+
+    Returns
+    -------
+    float
+        The smallest multiple of ``raster_s`` that is not below ``value_s``.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> round(pp.ceil_to_raster(21e-6, 10e-6), 9)
+    3e-05
+    >>> pp.ceil_to_raster(20e-6, 10e-6)
+    2e-05
     """
     return math.ceil(value_s / raster_s - 1e-10) * raster_s

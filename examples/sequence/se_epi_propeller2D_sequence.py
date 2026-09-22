@@ -99,6 +99,12 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         n_gain_calibration_readouts : int or None, default=None
             Written as the ``NumGainCalibrationReadouts`` definition. ``None``
             is one per slice.
+
+        Raises
+        ------
+        ValueError
+            If the TE is shorter than the blade half or the excitation half
+            admits, or the TR is shorter than one blade takes.
         """
         system = self.system
         self.fov, self.matrix = fov, (n_x, n_x, n_slices)
@@ -220,6 +226,15 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         """One spin echo of slice ``s`` reading blade ``index``; ``None`` plays a dummy.
 
         A dummy plays the first blade's orientation without acquiring.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        index : int or None
+            The blade to read, or None for a dummy.
+        wait : object, default=None
+            Delay closing the repetition; None closes it with none.
         """
         exc, ref, blade, seq = self.exc, self.ref, self.blade, self.seq
         position = self.positions[s]

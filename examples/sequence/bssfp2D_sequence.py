@@ -13,26 +13,6 @@ from pypulseqpp import cli, sequences
 GATINGS = ("none", "retrospective", "prospective")
 
 
-def sampled_lines(
-    n: int, ry: int, n_acs_y: int, partial_fourier: float
-) -> tuple[list[int], set[int]]:
-    """Return the phase-encode lines in play order, and the calibration lines.
-
-    The lattice keeps every line ``i`` with ``(i - n // 2) % ry == 0``, so the
-    centre line is always acquired. Partial Fourier drops the lines before
-    ``n - round(partial_fourier * n)``. The calibration block, centred on the
-    same line, leads; a fully sampled scan has none.
-    """
-    first = n - round(partial_fourier * n)
-    start = n // 2 - (n_acs_y if ry > 1 else 0) // 2
-    stop = n // 2 + ((n_acs_y if ry > 1 else 0) + 1) // 2
-    calibration = list(range(max(start, first), min(stop, n)))
-    lattice = [
-        i for i in range(first, n) if (i - n // 2) % ry == 0 and i not in calibration
-    ]
-    return calibration + lattice, set(calibration)
-
-
 class Bssfp2DApp(sequences.SequenceApp):
     """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
@@ -209,9 +189,13 @@ class Bssfp2DApp(sequences.SequenceApp):
             self.TRIGGER_CHANNEL, duration=trigger_delay, system=system
         )
 
-        self.lines, self.calibration = sampled_lines(
-            n_y, ry, n_acs_y, partial_fourier_y
+        calibrating, lattice = pp.calc_sampled_lines(
+            n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
         )
+        # The calibration block leads, so a reconstruction can estimate
+        # coil sensitivities while the rest is still arriving.
+        self.lines = [*calibrating, *lattice]
+        self.calibration = set(calibrating)
         # A train is a list of (line, segment, phase) repetitions, None where a
         # heartbeat's trigger falls; the first heartbeat's is ahead of the half
         # flip, and so ahead of the dummies too.
@@ -307,6 +291,27 @@ class Bssfp2DApp(sequences.SequenceApp):
         ``prospective`` gating. ``trigger`` waits for the heartbeat between the
         rewind and the excitation, ``last`` closes the train with the final
         rewind, and ``line=None`` plays a dummy.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0 in play order.
+        shot : int
+            Repetition index within the slice's train, which sets the RF and
+            ADC phase.
+        line : int or None
+            The phase-encode line to acquire, or None for a dummy.
+        previous_ky : float or None
+            The fractional encode the opening rewind undoes; None opens the
+            train with the half flip.
+        segment : int, default=0
+            Value written to the SEG label.
+        phase : int, default=0
+            Value written to the PHS label.
+        trigger : bool, default=False
+            Wait for the heartbeat between the rewind and the excitation.
+        last : bool, default=False
+            Close the train with the final rewind.
         """
         ro, seq = self.ro, self.seq
         rf = ro.rf

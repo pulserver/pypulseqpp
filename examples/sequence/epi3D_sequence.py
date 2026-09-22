@@ -10,38 +10,6 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: The excitations ``excitation`` selects from.
-EXCITATIONS = ("nonselective", "slab", "spsp")
-
-
-def make_excitation(app, flip_angle_deg: float, kind: str, thickness: float):
-    """Build the excitation ``kind`` names, from the application's pulse settings."""
-    system = app.system
-    if kind == "nonselective":
-        # An even number of block rasters puts the pulse centre on the raster.
-        raster = system.block_duration_raster
-        duration = 2 * raster * math.ceil(app.HARD_PULSE_DURATION / (2 * raster) - 1e-9)
-        return sequences.NonSelectiveExcitation(
-            system, flip_angle_deg, duration_s=duration
-        )
-    if kind == "slab":
-        return sequences.SpatialSelectiveExcitation(
-            system,
-            flip_angle_deg,
-            thickness,
-            duration_s=app.PULSE_DURATION,
-            time_bw_product=app.TIME_BW_PRODUCT,
-            is_slab=True,
-        )
-    fat_offset_hz = app.FAT_SHIFT_PPM * 1e-6 * system.gamma * system.B0
-    return sequences.SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
-
 
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
@@ -54,6 +22,19 @@ def caipi_shift(ry: int, rz: int) -> int:
     on the shortest is settled by the next, and then by the smaller shift. The rule
     reproduces the patterns Stirnberg and Stöcker (Magn Reson Med 2021,
     doi:10.1002/mrm.28486) found best, such as 2x2z1, 3x2z1, 2x4z2 and 1x6z2.
+
+    Parameters
+    ----------
+    ry : int
+        Acceleration along the phase-encode axis.
+    rz : int
+        Acceleration along the partition axis, which is also the shifts to
+        choose among.
+
+    Returns
+    -------
+    int
+        The shift, in partitions per ``ry`` lines.
     """
 
     def shortest(shift: int) -> list[int]:
@@ -80,6 +61,29 @@ def train_lines(
     from ``n - round(partial_fourier * n)`` up; when the shots cannot share
     them evenly, the extra lines extend below that, or are dropped where
     there is no room.
+
+    Parameters
+    ----------
+    n : int
+        Phase-encode lines across the full field of view.
+    ry : int
+        Acceleration along the phase-encode axis.
+    n_shots : int
+        Shots the train is segmented into.
+    partial_fourier : float
+        Fraction of k-space acquired, from the far side of the centre.
+
+    Returns
+    -------
+    start : int
+        The first line of shot 0.
+    etl : int
+        Lines each shot reads.
+
+    Raises
+    ------
+    ValueError
+        If the lines cannot be shared among ``n_shots`` shots.
     """
     first = n - round(partial_fourier * n)
     lattice = [i for i in range(n) if (i - n // 2) % ry == 0]
@@ -100,6 +104,25 @@ def shell_bases(n: int, rz: int, partial_fourier: float) -> list[int]:
     Shells of ``rz`` partitions end on the last partition and cover those
     from ``n - round(partial_fourier * n)`` up; a shell that would start below
     partition zero is dropped. They are played centre-out.
+
+    Parameters
+    ----------
+    n : int
+        Partitions across the full field of view.
+    rz : int
+        Partitions one shell spans, which is the partition acceleration.
+    partial_fourier : float
+        Fraction of k-space acquired, from the far side of the centre.
+
+    Returns
+    -------
+    list of int
+        The first partition of each shell, centre-out.
+
+    Raises
+    ------
+    ValueError
+        If the partitions cannot hold one shell.
     """
     kept = round(partial_fourier * n)
     count = -(-kept // rz)
@@ -263,9 +286,9 @@ class Epi3DApp(sequences.SequenceApp):
             or the partitions hold no shell, or the TE or TR is shorter than
             the shots take.
         """
-        if excitation not in EXCITATIONS:
+        if excitation not in sequences.EXCITATIONS:
             raise ValueError(
-                f"excitation must be one of {EXCITATIONS}, got {excitation!r}"
+                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
             )
         for name, fraction in (
             ("partial_fourier_y", partial_fourier_y),
@@ -289,7 +312,16 @@ class Epi3DApp(sequences.SequenceApp):
         self.n_frames, self.n_shots = n_frames, n_shots
         self.n_dummy, self.volume_output = n_dummy, volume_output
         self.raster = system.block_duration_raster
-        self.exc = make_excitation(self, flip_angle_deg, excitation, fov_z)
+        self.exc = sequences.make_excitation(
+            system,
+            excitation,
+            flip_angle_deg,
+            fov_z,
+            duration_s=self.PULSE_DURATION,
+            time_bw_product=self.TIME_BW_PRODUCT,
+            hard_duration_s=self.HARD_PULSE_DURATION,
+            fat_shift_ppm=self.FAT_SHIFT_PPM,
+        )
         self.gz = getattr(self.exc, "gz", None)
 
         # Shot s reads lattice lines s, s + n_shots, ...; the centre line is the
@@ -382,7 +414,13 @@ class Epi3DApp(sequences.SequenceApp):
             )
 
     def prescans(self) -> dict:
-        """Return ``calibration`` (when undersampled) and ``reference``."""
+        """Return ``calibration`` (when undersampled) and ``reference``.
+
+        Returns
+        -------
+        dict
+            One loop per prescan, in play order.
+        """
         chain = {"calibration": self.calibrate} if self.gre is not None else {}
         return {**chain, "reference": self.reference}
 
@@ -393,7 +431,13 @@ class Epi3DApp(sequences.SequenceApp):
         self._define(Name=f"{self.NAME}_calibration")
 
     def calibration_kernel(self, view: tuple[int, int]) -> None:
-        """One gradient echo at ``(line, partition)``."""
+        """One gradient echo at ``(line, partition)``.
+
+        Parameters
+        ----------
+        view : tuple of int
+            The phase-encode line and the partition to acquire.
+        """
         ro, seq = self.gre, self.seq
         n_y, n_z = self.matrix[1:]
         line, partition = view
@@ -432,7 +476,16 @@ class Epi3DApp(sequences.SequenceApp):
         self.play(frames=range(self.n_frames))
 
     def play(self, frames, reversed_encode: bool = False) -> None:
-        """Play the dummies and then ``frames``."""
+        """Play the dummies and then ``frames``.
+
+        Parameters
+        ----------
+        frames : iterable of int
+            The frames to acquire, in play order.
+        reversed_encode : bool, default=False
+            Negate every line encode, which is what the reference prescan
+            plays.
+        """
         shots = [(None, view) for view in self.dummies]
         shots += [(frame, view) for frame in frames for view in self.volume]
         for frame, (shot, base) in shots:
@@ -455,6 +508,19 @@ class Epi3DApp(sequences.SequenceApp):
 
         ``reversed_encode`` negates every line encode and keeps the labels of
         the forward shot.
+
+        Parameters
+        ----------
+        shot : int
+            Which segment of the phase-encode lattice this shot reads.
+        base : int
+            The shell's first partition.
+        frame : int or None
+            The frame to acquire, or None for a dummy.
+        output : bool, default=False
+            Play the digital output that marks the start of a volume.
+        reversed_encode : bool, default=False
+            Negate every line encode.
         """
         seq, epi = self.seq, self.shot_trains[shot]
         n_y, n_z = self.matrix[1:]

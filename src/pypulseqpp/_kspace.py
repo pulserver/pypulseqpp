@@ -90,6 +90,11 @@ def detail(
     samples_only : bool, default=False
         Leave ``k_traj`` and ``t_ktraj`` empty, with all other results
         unchanged. ADC positions are integrated analytically either way.
+
+    Warns
+    -----
+    UserWarning
+        If ``trajectory_delay`` exceeds 100 us on any axis.
     """
     if np.any(np.abs(trajectory_delay) > 100e-6):
         warn(

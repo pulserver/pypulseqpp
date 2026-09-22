@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["run", "write_sequence"]
+__all__ = ["run"]
 
 import argparse as _argparse
 import inspect as _inspect
@@ -20,32 +20,6 @@ _RESERVED = ("plot", "test_report", "write_seq", "seq_filename", "system")
 #: The annotations a flag can be made from. A parameter annotated with
 #: anything else -- a system, an array, a callable -- is left to the caller.
 _SCALARS = (bool, int, float, str)
-
-
-def write_sequence(seq, output_path: str, *, offline: bool = True) -> str | None:
-    """Write a deduplicated copy as Pulseq text or binary.
-
-    Parameters
-    ----------
-    seq : pypulseqpp.Sequence
-        Sequence to write; not modified.
-    output_path : str
-        Destination path.
-    offline : bool, default True, default=True
-        True writes signed text with timing warnings. False writes binary
-        using write_binary's default signature setting, without a timing check.
-
-    Returns
-    -------
-    str or None
-        Text signature when offline; None for binary, even if the binary file
-        contains a signature.
-    """
-    seq = seq.remove_duplicates()
-    if not offline:
-        seq.write_binary(output_path)
-        return None
-    return seq.write(output_path, check_timing=True)
 
 
 def _scalar(annotation) -> type | None:
@@ -249,6 +223,6 @@ def run(
         return 0
 
     seq = main(**kwargs)
-    write_sequence(seq, args.output, offline=not args.binary)
+    _pp.io.write(seq, args.output, binary=args.binary)
     print(f"Wrote sequence: {args.output}")
     return 0

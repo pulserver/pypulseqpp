@@ -359,6 +359,13 @@ PAGES_URL = "https://pulserver.github.io/pypulseqpp"
 #: release, which is what the page links point at.
 DOCS_RELEASE = os.environ.get("PYPULSEQPP_DOCS_RELEASE", "latest")
 
+#: The theme decides whether to warn that a page is not the current release by
+#: comparing this with the version marked preferred in `versions.json`, not by
+#: the `version_match` above -- so leaving it unset warns on every page,
+#: `stable` included. A release build carries its tag and matches; `latest` is
+#: not a version and does not, which is what the banner is for.
+version = release = DOCS_RELEASE
+
 html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": "https://github.com/pulserver/pypulseqpp",

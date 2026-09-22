@@ -205,6 +205,15 @@ class SeRadial2DApp(sequences.SequenceApp):
         The readout's blocks, from the refocusing pulse on, are played as it
         laid them out, each turned to the spoke's angle where it drives an
         in-plane gradient.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        spoke : int or None
+            The spoke to read, or None for a dummy.
+        pad : float
+            Delay closing the repetition, in s.
         """
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
         position = self.positions[s]

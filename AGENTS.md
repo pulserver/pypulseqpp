@@ -12,10 +12,12 @@ repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks
 waveform and k-space analysis, FOV transforms, RF/gradient design and
 reusable sequence modules. Tiling is deferred.
 
-Sampling, view-ordering, angle and schedule helpers live in private modules
-(`_masks`, `_sampling`, `_ordering`, `_epi`, `_angles`, `_schedules`) and are
-withheld from the public namespace until the example sequences settle which of
-them they need. Code that uses one imports it from its private module.
+Sampling, view-ordering, angle and schedule helpers are implemented in
+private modules (`_masks`, `_ordering`, `_epi`, `_angles`, `_schedules`) and
+re-exported from the package namespace, which `_SAMPLING` in `__init__.py`
+lists and `docs/api/sampling.md` documents. The shipped sequences are written
+against them: a view-selection, ordering or schedule rule that a sequence
+needs belongs there rather than in the script.
 
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.

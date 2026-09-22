@@ -220,6 +220,15 @@ class SePropeller2DApp(sequences.SequenceApp):
 
         A dummy plays the first blade's centre line without its ADC. Every
         block that drives an in-plane gradient carries the blade's rotation.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        view : tuple of int or None
+            The blade and the line within it, or None for a dummy.
+        pad : float
+            Delay closing the repetition, in s.
         """
         exc, ref, ro, seq = self.exc, self.ref, self.ro, self.seq
         position = self.positions[s]

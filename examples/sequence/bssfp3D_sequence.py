@@ -10,65 +10,7 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
-#: The excitations ``excitation`` selects from.
 EXCITATIONS = ("nonselective", "slab")
-
-
-def sampled_views(
-    shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    caipi_shift: int,
-    calibration: tuple[int, int],
-    partial_fourier: tuple[float, float],
-    elliptical_acs: bool,
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
-    """Return the ``(line, partition)`` views in play order, and the calibration views.
-
-    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
-    sampled, on a CAIPIRINHA lattice holding the centre view: lines with
-    ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them from the centre
-    the partitions with ``(z - nz // 2 - caipi_shift * j) % rz == 0``. Partial
-    Fourier drops the lines and partitions before the centre. Under
-    undersampling the ``n_acs_y x n_acs_z`` calibration region, centred on the
-    centre view, is sampled whole: a rectangle, or under ``elliptical_acs`` the
-    ellipse inscribed in it. Lines are played in order and their partitions
-    back and forth, so no step jumps across the partitions.
-    """
-    (ny, nz), (ry, rz) = shape, acceleration
-    first_y = ny - round(partial_fourier[0] * ny)
-    first_z = nz - round(partial_fourier[1] * nz)
-    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
-
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre view, the one the encodes scale to zero.
-        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
-        return dy * dy + dz * dz <= 0.25
-
-    region = {
-        (y, z)
-        for y in range(
-            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
-        )
-        for z in range(
-            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
-        )
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    }
-    lattice = {
-        (y, z)
-        for y in range(first_y, ny)
-        if (y - ny // 2) % ry == 0
-        for z in range(first_z, nz)
-        if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        and inside(y, z, ny, nz)
-    }
-    views = sorted(lattice | region)
-    lines = sorted({y for y, _ in views})
-    order = []
-    for index, line in enumerate(lines):
-        row = [view for view in views if view[0] == line]
-        order += row if index % 2 == 0 else row[::-1]
-    return order, region
 
 
 class Bssfp3DApp(sequences.SequenceApp):
@@ -249,21 +191,33 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.z_pre = getattr(ro, "gz_pre", None)
         self.z_rew = getattr(ro, "gz_rew", None)
 
-        self.views, self.calibration = sampled_views(
+        calibrating, lattice = pp.calc_sampled_pairs(
             (n_y, n_z),
             (ry, rz),
-            caipi_shift,
             (n_acs_y, n_acs_z),
-            (partial_fourier_y, partial_fourier_z),
-            elliptical_acs,
+            caipi_shift=caipi_shift,
+            partial_fourier=(partial_fourier_y, partial_fourier_z),
+            elliptical=True,
+            elliptical_acs=elliptical_acs,
         )
+        # A balanced sequence holds its steady state only while the encoding
+        # changes gently, so the views are played in order rather than with the
+        # calibration rectangle pulled to the front.
+        self.views = sorted({*calibrating, *lattice})
+        self.calibration = set(calibrating)
         self.increments = [
             np.pi + 2 * np.pi * k / n_phase_cycles for k in range(n_phase_cycles)
         ]
         self.duration = n_phase_cycles * (len(self.views) + 1) * ro.tr
 
     def prescans(self) -> dict:
-        """Return every file but the last cycle: each cycle's catalyst, then the cycle."""
+        """Return every file but the last cycle: each cycle's catalyst, then the cycle.
+
+        Returns
+        -------
+        dict
+            One loop per file, in play order.
+        """
         chain = {}
         for k in range(len(self.increments)):
             chain[f"catalyst_{k}"] = lambda k=k: self.catalyst(k)
@@ -276,7 +230,13 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.cycle(len(self.increments) - 1)
 
     def catalyst(self, k: int) -> None:
-        """Play cycle ``k``'s half flip, half a repetition before its first excitation."""
+        """Play cycle ``k``'s half flip, half a repetition before its first excitation.
+
+        Parameters
+        ----------
+        k : int
+            Phase cycle index.
+        """
         ro, seq = self.ro, self.seq
         ro.rf.amplitude = 0.5 * self.nominal
         # The first excitation is at the increment itself, so the one before it
@@ -289,7 +249,13 @@ class Bssfp3DApp(sequences.SequenceApp):
         self._define(Name=f"{self.NAME}_catalyst", PhaseCycle=k)
 
     def cycle(self, k: int) -> None:
-        """Play every view of phase cycle ``k``."""
+        """Play every view of phase cycle ``k``.
+
+        Parameters
+        ----------
+        k : int
+            Phase cycle index.
+        """
         increment = self.increments[k]
         for n, view in enumerate(self.views):
             self.kernel(view, (n + 1) * increment % (2 * np.pi), k)
@@ -307,7 +273,17 @@ class Bssfp3DApp(sequences.SequenceApp):
         return pp.scale_grad(lobe, amplitude / lobe.amplitude)
 
     def kernel(self, view: tuple[int, int], phase: float, cycle: int = 0) -> None:
-        """One balanced repetition at ``(line, partition)``: excite, read, rewind."""
+        """One balanced repetition at ``(line, partition)``: excite, read, rewind.
+
+        Parameters
+        ----------
+        view : tuple of int
+            The phase-encode line and the partition to acquire.
+        phase : float
+            RF and ADC phase for this repetition, in radians.
+        cycle : int, default=0
+            Phase cycle index, written to the SET label.
+        """
         ro, seq = self.ro, self.seq
         n_y, n_z = self.matrix[1:]
         line, partition = view

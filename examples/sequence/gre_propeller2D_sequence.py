@@ -194,6 +194,17 @@ class GrePropeller2DApp(sequences.SequenceApp):
 
         A dummy plays the first blade's centre line without its ADC. Every
         block that drives an in-plane gradient carries the blade's rotation.
+
+        Parameters
+        ----------
+        s : int
+            Slice index, counting from 0.
+        view : tuple of int or None
+            The blade and the line within it, or None for a dummy.
+        phase : float
+            RF and ADC phase for this repetition, in radians.
+        pad : float
+            Delay closing the repetition, in s.
         """
         rf, gz, ro, seq = self.exc.rf, self.exc.gz, self.ro, self.seq
         rf.freq_offset = self.exc.selection_amplitude * self.positions[s]

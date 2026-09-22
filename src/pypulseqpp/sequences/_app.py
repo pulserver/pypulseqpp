@@ -110,11 +110,23 @@ class SequenceApp(ABC):
         The signature is the application's protocol: its keyword parameters,
         defaults and ``Parameters`` docstring are what :attr:`main`, the
         command line and :meth:`protocol` present.
+
+        Parameters
+        ----------
+        **protocol : object
+            The prescription, which the subclass names in its own signature.
         """
 
     @abstractmethod
     def kernel(self, *args: Any, **kwargs: Any) -> None:
-        """Add the blocks of one repetition to :attr:`seq`."""
+        """Add the blocks of one repetition to :attr:`seq`.
+
+        Parameters
+        ----------
+        *args, **kwargs : object
+            What this repetition is, which the subclass names in its own
+            signature; :meth:`loop` passes one repetition's worth per call.
+        """
 
     @abstractmethod
     def loop(self) -> None:
@@ -135,11 +147,35 @@ class SequenceApp(ABC):
         interpreter plays the chain as one scan while every file stays one
         repeating unit. A prescan loop writes its own definitions. None by
         default.
+
+        Returns
+        -------
+        dict of {str: callable}
+            One loop per prescan, by the name its file is given, in play
+            order.
         """
         return {}
 
     def design(self, prescan: str | None = None) -> pp.Sequence:
-        """Build the whole scan, or the named prescan, into a new :attr:`seq`."""
+        """Build the whole scan, or the named prescan, into a new :attr:`seq`.
+
+        Parameters
+        ----------
+        prescan : str, optional
+            The prescan to build, named as :meth:`prescans` lists it. The
+            default builds the main sequence: :meth:`loop`, then
+            :meth:`finalize`.
+
+        Returns
+        -------
+        pypulseqpp.Sequence
+            The sequence that was built, which is also :attr:`seq`.
+
+        Raises
+        ------
+        KeyError
+            If ``prescan`` is not one of the names :meth:`prescans` lists.
+        """
         self.seq = pp.Sequence(self.system)
         self._label_state, self._label_steps = {}, {}
         if prescan is None:
@@ -155,15 +191,22 @@ class SequenceApp(ABC):
         The first file of the chain is written at ``path`` and the others
         beside it as ``<stem>_<prescan>.seq`` and ``<stem>_main.seq``; without
         prescans the main sequence alone is written at ``path``. ``offline``
-        selects signed text or binary, as :func:`pypulseqpp.cli.write_sequence`
-        takes it.
+        selects signed text, and False the binary form, which
+        :func:`pypulseqpp.io.write` takes the other way round.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Where the first file of the chain is written.
+        offline : bool, default=True
+            Write the text form. False writes the binary form.
 
         Returns
         -------
         list of str
             The written paths, in play order.
         """
-        from pypulseqpp.cli import write_sequence
+        from pypulseqpp.io import write
 
         path = Path(path)
         names = [*self.prescans(), None]
@@ -174,7 +217,7 @@ class SequenceApp(ABC):
             seq = self.design(name)
             if i + 1 < len(names):
                 seq.set_definition(key="NextSequence", value=paths[i + 1].name)
-            write_sequence(seq, str(paths[i]), offline=offline)
+            write(seq, str(paths[i]), binary=not offline)
         return [str(p) for p in paths]
 
     def labels(self, **values: int) -> list:
@@ -185,6 +228,16 @@ class SequenceApp(ABC):
         repeats as one event; any other change is a SET. A change of ``ONCE``
         calls :meth:`restart_labels` first, so every label passed with it is
         written again as a SET.
+
+        Parameters
+        ----------
+        **values : int
+            The new value of each label, by its Pulseq name.
+
+        Returns
+        -------
+        list
+            The label events to add to the block, empty when nothing changed.
         """
         once = values.get("ONCE")
         if once is not None and int(once) != self._label_state.get("ONCE"):
@@ -217,7 +270,14 @@ class SequenceApp(ABC):
 
     @classmethod
     def protocol(cls) -> dict[str, Any]:
-        """Return the prescription ``init_sequence`` accepts, with its defaults."""
+        """Return the prescription ``init_sequence`` accepts, with its defaults.
+
+        Returns
+        -------
+        dict
+            The default of each prescribed parameter, by its name;
+            `inspect.Parameter.empty` where there is none.
+        """
         parameters = inspect.signature(cls.init_sequence).parameters
         return {name: p.default for name, p in parameters.items() if name != "self"}
 

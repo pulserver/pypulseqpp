@@ -59,7 +59,19 @@ _CONVERTERS: dict[str, Callable[[Any], Any]] = {
 
 
 def convert(event: Any) -> Any:
-    """Convert a PyPulseq event to a compiled event; return other objects unchanged."""
+    """Convert a PyPulseq event to a compiled event; return other objects unchanged.
+
+    Parameters
+    ----------
+    event : object
+        A PyPulseq event namespace, a compiled event, or anything else.
+
+    Returns
+    -------
+    object
+        The compiled event, or ``event`` itself when it is not one of the
+        namespaces this converts.
+    """
     kind = getattr(event, "type", None)
     if kind is None or isinstance(event, _cxx.Event):
         return event
@@ -125,6 +137,18 @@ def as_namespace(event: Any) -> Any:
     """Convert a compiled event to a PyPulseq-compatible SimpleNamespace.
 
     Non-event objects are returned unchanged.
+
+    Parameters
+    ----------
+    event : object
+        A compiled event, or anything else.
+
+    Returns
+    -------
+    object
+        The namespace, carrying the fields upstream reads and the
+        registration ids the event holds, or ``event`` itself when it is not
+        a compiled event.
     """
     if not isinstance(event, _cxx.Event):
         return event
@@ -191,6 +215,17 @@ def interoperating(function: Callable[..., Any]) -> Callable[..., Any]:
 
     Arguments become namespaces for PyPulseq type checks and deepcopy;
     returned events become compiled objects. Other values pass through.
+
+    Parameters
+    ----------
+    function : callable
+        What to wrap. A PyPulseq function is given a note saying its
+        arguments are converted.
+
+    Returns
+    -------
+    callable
+        ``function`` with the conversion around it.
     """
 
     @functools.wraps(function)

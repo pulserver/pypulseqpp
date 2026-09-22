@@ -5,8 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from pypulseqpp import calc_sampled_lines
 from pypulseqpp._epi import calc_epi_order
-from pypulseqpp._masks import calc_sampled_lines, make_caipirinha_mask
+from pypulseqpp._masks import make_caipirinha_mask
 
 
 def tile(ny, nz, ry, rz, shift, segments):
@@ -194,24 +195,26 @@ def test_a_count_out_of_range_is_refused(kwargs):
 @pytest.mark.parametrize("partial_fourier", [1.0, 0.75, 0.6])
 def test_partial_fourier_keeps_the_far_side_of_k_space(partial_fourier):
     """The centre stays in; conjugate symmetry covers what is dropped."""
-    lines = calc_sampled_lines(32, 1, 0, partial_fourier=partial_fourier)
+    calibration, lattice = calc_sampled_lines(32, 1, 0, partial_fourier=partial_fourier)
 
-    assert lines == list(range(32 - round(partial_fourier * 32), 32))
-    assert 16 in lines
+    assert calibration == []
+    assert lattice == list(range(32 - round(partial_fourier * 32), 32))
+    assert 16 in lattice
 
 
 def test_partial_fourier_truncates_the_calibration_block_with_everything_else():
-    """A view that is not played is not in the list, whoever asked for it."""
-    lines = calc_sampled_lines(32, 2, 32, partial_fourier=0.75)
+    """A view that is not played is not in either list, whoever asked for it."""
+    calibration, lattice = calc_sampled_lines(32, 2, 32, partial_fourier=0.75)
 
-    assert min(lines) == 8
-    assert lines == sorted(lines)
+    assert min([*calibration, *lattice]) == 8
+    assert calibration == sorted(calibration)
 
 
 def test_partial_fourier_and_acceleration_compose():
-    lines = calc_sampled_lines(32, 2, 0, partial_fourier=0.75)
+    calibration, lattice = calc_sampled_lines(32, 2, 0, partial_fourier=0.75)
 
-    assert lines == [line for line in range(8, 32) if line % 2 == 0]
+    assert calibration == []
+    assert lattice == [line for line in range(8, 32) if (line - 16) % 2 == 0]
 
 
 @pytest.mark.parametrize("partial_fourier", [0.5, 0.0, 1.5])

@@ -57,6 +57,17 @@ def read_forbidden_bands(path: str | os.PathLike) -> list[ForbiddenBand]:
     amplitude, the train's plateau, is returned in mT/m times
     ``_ESP_TOLERANCE_SCALE``.
 
+    Parameters
+    ----------
+    path : str | os.PathLike
+        The ``.asc`` or ``epiesp.dat`` file to read.
+
+    Returns
+    -------
+    list of ForbiddenBand
+        The bands, for :func:`~pypulseqpp.safety.check_mech_resonance` to
+        take as its ``bands``.
+
     Raises
     ------
     ValueError
@@ -290,6 +301,12 @@ def check_mech_resonance(
         0-based ``window`` starting at ``window_start`` (s); ``violations``,
         the windows exceeding the threshold on any guarded axis; and ``axes``,
         the same reading for each guarded axis on its own.
+
+    Raises
+    ------
+    ValueError
+        If a band's frequency range is empty or negative, or a rotation is
+        not a 3x3 matrix.
 
     Notes
     -----

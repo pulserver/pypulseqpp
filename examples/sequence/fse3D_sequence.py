@@ -9,9 +9,8 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._masks import make_poisson_disc_mask, make_shuffling_order
+from pypulseqpp._masks import make_shuffling_order
 
-#: The excitations ``excitation`` selects from.
 EXCITATIONS = ("nonselective", "slab")
 
 #: The view orders ``ordering`` selects from.
@@ -21,76 +20,20 @@ ORDERINGS = ("radial", "shuffling")
 MODULATIONS = ("constant", "optimized")
 
 
-def sampled_views(
-    shape: tuple[int, int],
-    acceleration: tuple[int, int],
-    caipi_shift: int,
-    calibration: tuple[int, int],
-    partial_fourier: tuple[float, float],
-    elliptical_acs: bool,
-    *,
-    shuffling: bool = False,
-    seed: int = 0,
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]]]:
-    """Return the ``(line, partition)`` views sampled, and the calibration views.
-
-    Only views inside the ellipse inscribed in the ``ny x nz`` grid are
-    sampled, and partial Fourier drops the lines and partitions before the
-    centre. The regular set keeps a CAIPIRINHA lattice holding the centre
-    view: lines with ``(y - ny // 2) % ry == 0``, and in the ``j``-th of them
-    from the centre the partitions with ``(z - nz // 2 - caipi_shift * j) % rz
-    == 0``. The ``shuffling`` set is a variable-density Poisson-disc draw at
-    ``ry * rz``. Under undersampling the ``n_acs_y x n_acs_z`` calibration
-    region, centred on the centre view, is sampled whole: a rectangle, or under
-    ``elliptical_acs`` the ellipse inscribed in it.
-    """
-    (ny, nz), (ry, rz) = shape, acceleration
-    first_y = ny - round(partial_fourier[0] * ny)
-    first_z = nz - round(partial_fourier[1] * nz)
-    n_acs_y, n_acs_z = calibration if ry * rz > 1 else (0, 0)
-
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre view, the one the encodes scale to zero.
-        dy, dz = (y - ny // 2) / extent_y, (z - nz // 2) / extent_z
-        return dy * dy + dz * dz <= 0.25
-
-    region = {
-        (y, z)
-        for y in range(
-            max(ny // 2 - n_acs_y // 2, first_y), min(ny // 2 + (n_acs_y + 1) // 2, ny)
-        )
-        for z in range(
-            max(nz // 2 - n_acs_z // 2, first_z), min(nz // 2 + (n_acs_z + 1) // 2, nz)
-        )
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    }
-    if shuffling:
-        mask = (
-            make_poisson_disc_mask(
-                (ny, nz), float(ry * rz), calib=(n_acs_y, n_acs_z), seed=seed
-            )
-            if ry * rz > 1
-            else np.ones((ny, nz), dtype=bool)
-        )
-        kept = {(int(y), int(z)) for y, z in np.argwhere(mask)}
-    else:
-        kept = {
-            (y, z)
-            for y in range(ny)
-            if (y - ny // 2) % ry == 0
-            for z in range(nz)
-            if (z - nz // 2 - caipi_shift * ((y - ny // 2) // ry)) % rz == 0
-        }
-    views = {
-        (y, z)
-        for y, z in kept
-        if y >= first_y and z >= first_z and inside(y, z, ny, nz)
-    }
-    return sorted(views | region), region
-
-
 def cubic(fraction):
-    """Return the smooth step ``3 u**2 - 2 u**3`` the parameters move along."""
+    """Return the smooth step ``3 u**2 - 2 u**3`` the parameters move along.
+
+    Parameters
+    ----------
+    fraction : array-like
+        Where along the transition, from 0 at the centre to 1 at the
+        periphery.
+
+    Returns
+    -------
+    numpy.ndarray
+        The step, over the same range.
+    """
     fraction = np.asarray(fraction, dtype=float)
     return 3 * fraction**2 - 2 * fraction**3
 
@@ -104,6 +47,28 @@ def shot_parameters(
     and TR a cubic step (:func:`cubic`) of the way from the centre values to
     the periphery ones (Buonincontri et al., ISMRM 2025, abstract 566-05-007,
     Fig. 1). ``n`` is the fewest shots whose trains hold every view.
+
+    Parameters
+    ----------
+    n_views : int
+        Views the shots have to hold between them.
+    etl : int
+        Echo train length of the centre shot.
+    etl_periphery : int
+        Echo train length of the periphery shot.
+    tr : float
+        Repetition time of the centre shot, in s.
+    tr_periphery : float
+        Repetition time of the periphery shot, in s.
+
+    Returns
+    -------
+    lengths : list of int
+        Each shot's train length.
+    times : list of float
+        Each shot's repetition time, in s.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
     """
     n = max(1, -(-n_views // max(etl, etl_periphery)))
     while True:
@@ -135,6 +100,26 @@ def deal_trains(
     the centre of k-space, which has no angle, takes the nearest slot.
     With identical trains the shot term vanishes and a section is one echo, so
     this is the radial ordering folded about the TE echo.
+
+    Parameters
+    ----------
+    coords : numpy.ndarray
+        ``(n_views, 2)`` phase-encode and partition coordinates of each view,
+        centred on k-space.
+    lengths : list of int
+        Each shot's train length.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
+    te_echo : int
+        The echo the prescribed echo time falls on, counting from 0.
+    etl_max : int
+        Echoes the longest train holds.
+
+    Returns
+    -------
+    list of list of int or None
+        One ``etl_max``-long train per shot, holding view indices; None where
+        an echo plays unencoded and unacquired.
     """
     n_shots = len(lengths)
     radius = np.hypot(coords[:, 0], coords[:, 1])
@@ -177,6 +162,35 @@ def design_trains(app, lengths, times, place, te_echo, etl_max, esp) -> np.ndarr
     starting trains. Individually parameterized trains have a minimum and a
     maximum at each end, and every shot takes them a cubic step of the way
     along its transition. Angles past a shot's own train length are zero.
+
+    Parameters
+    ----------
+    app : Fse3DApp
+        The application being designed, read for its prescribed angle,
+        design tissues and simulation parameters.
+    lengths : list of int
+        Each shot's train length.
+    times : list of float
+        Each shot's repetition time, in s.
+    place : numpy.ndarray
+        Each shot's place along the transition, from 0 to 1.
+    te_echo : int
+        The echo the prescribed echo time falls on, counting from 0.
+    etl_max : int
+        Echoes the longest train holds.
+    esp : float
+        Echo spacing, in s.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``(shots, etl_max)`` refocusing angles in degrees, zero past a shot's
+        own train length.
+
+    Raises
+    ------
+    ImportError
+        If torchsim is not installed.
     """
     try:
         import torch
@@ -593,16 +607,19 @@ class Fse3DApp(sequences.SequenceApp):
             )
         self.repetition_time, self.tr_periphery = tr, tr_periphery
 
-        views, self.calibration = sampled_views(
+        calibrating, lattice = pp.calc_sampled_pairs(
             (n_y, n_z),
             (ry, rz),
-            caipi_shift,
             (n_acs_y, n_acs_z),
-            (partial_fourier_y, partial_fourier_z),
-            elliptical_acs,
+            caipi_shift=caipi_shift,
+            partial_fourier=(partial_fourier_y, partial_fourier_z),
+            elliptical=True,
+            elliptical_acs=elliptical_acs,
             shuffling=ordering == "shuffling",
             seed=self.SHUFFLE_SEED,
         )
+        self.calibration = set(calibrating)
+        views = sorted({*calibrating, *lattice})
         coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
         self.lengths, self.times, place = shot_parameters(
             len(views), etl, etl_periphery, tr, tr_periphery
@@ -684,6 +701,18 @@ class Fse3DApp(sequences.SequenceApp):
         ``None`` plays an echo unencoded and unacquired, and ``closing`` is the
         delay after the train. A ``dummy`` train acquires nothing and a
         ``reference`` train plays without the wave.
+
+        Parameters
+        ----------
+        views : sequence
+            One view per echo, as ``(line, partition)``; None plays an echo
+            unencoded and unacquired.
+        flips : sequence of float
+            One refocusing angle per echo, in degrees.
+        closing : float
+            Delay after the train, in s.
+        kind : str, default="image"
+            ``"image"``, ``"dummy"`` or ``"reference"``.
         """
         fse, seq = self.fse, self.seq
         n_y, n_z = self.matrix[1:]
