@@ -1,10 +1,10 @@
 # RF pulse design
 
-RF events, from the basic factories to designed pulses, and the analysis of
-what they produce. A design function returns an RF event and, depending on its
-options, a slice-selection gradient, a rephasing gradient and the design's
-metadata. RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in
-radians.
+RF events, from the basic factories to designed pulses, and their analysis.
+Flip angles are in rad, RF amplitudes and frequency offsets in Hz, phase
+offsets in rad and durations in s. With `return_gz`, a slice-selective design
+also returns its slice-selection and rephasing gradients;
+{doc}`../explanations/pulseq/events-and-blocks` describes the RF event.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -12,71 +12,63 @@ radians.
 
 ## Pulse factories
 
-Hard, arbitrary, Gaussian, sinc and adiabatic pulses, and the adiabatic
-half-passage pair.
-
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_adiabatic_pulse` | Construct an adiabatic RF pulse, a frequency sweep insensitive to B1. |
-| {obj}`~pypulseqpp.make_arbitrary_rf` | Create an RF pulse with the given pulse shape. |
-| {obj}`~pypulseqpp.make_block_pulse` | Create a block (RECT or hard) pulse. |
-| {obj}`~pypulseqpp.make_gauss_pulse` | Create a [optionally slice selective] Gauss pulse. |
-| {obj}`~pypulseqpp.make_half_passages` | Build the adiabatic half-passage pair that tips magnetisation down and back. |
-| {obj}`~pypulseqpp.make_sinc_pulse` | Create a sinc RF event with optional slice-selection and rephasing gradients. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_adiabatic_pulse` | Sweep type, adiabaticity, bandwidth, duration | RF event; optional slice-select and rephasing gradients | Adiabatic (B1-insensitive) frequency sweep. |
+| {obj}`~pypulseqpp.make_arbitrary_rf` | Complex waveform, flip angle | RF event; optional slice-select gradient | RF event from a given waveform. |
+| {obj}`~pypulseqpp.make_block_pulse` | Flip angle, duration or bandwidth | RF event | Hard (rectangular) pulse. |
+| {obj}`~pypulseqpp.make_gauss_pulse` | Flip angle, duration, time-bandwidth product | RF event; optional slice-select and rephasing gradients | Gaussian pulse. |
+| {obj}`~pypulseqpp.make_half_passages` | Duration, adiabaticity, sweep type | Two RF events, `down` and `up` | Adiabatic half-passage pair. |
+| {obj}`~pypulseqpp.make_sinc_pulse` | Flip angle, duration, time-bandwidth product | RF event; optional slice-select and rephasing gradients | Sinc pulse. |
 
 ## SLR and multidimensional design
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_slr_pulse` | Design an RF pulse using the Shinnar-Le Roux algorithm. |
-| {obj}`~pypulseqpp.make_recursive_slr_pulses` | Design SLR pulses that each excite the same transverse magnetisation. |
-| {obj}`~pypulseqpp.make_sms_pulse` | Modulate one RF pulse into equispaced spectral bands. |
-| {obj}`~pypulseqpp.make_spsp_pulse` | Design a spectral-spatial pulse on an alternating slice gradient. |
-| {obj}`~pypulseqpp.make_2d_selective_pulse` | Design a small-tip 2D-selective pulse on a spiral excitation trajectory. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_slr_pulse` | Flip angle, duration, time-bandwidth product, pulse and filter type | RF event; optional slice-select and rephasing gradients | Shinnar-Le Roux design. |
+| {obj}`~pypulseqpp.make_recursive_slr_pulses` | Number of segments, time-bandwidth product, T1, segment TR | One RF event per segment; optional refocusing pulse | Equal transverse magnetisation per segment. |
+| {obj}`~pypulseqpp.make_sms_pulse` | RF event, number of bands, band spacing (Hz) | Modulated RF event; band offsets (Hz); complex weights | Simultaneous multi-slice modulation. |
+| {obj}`~pypulseqpp.make_spsp_pulse` | Flip angle, slice thickness, spectral bandwidth | RF event; alternating gradient; optional rephaser | Spectral-spatial pulse. |
+| {obj}`~pypulseqpp.make_2d_selective_pulse` | Flip angle, FOV, matrix, target or size | RF event; per-axis gradients; rephasers | Small-tip 2D-selective pulse on a spiral. |
 
 ## Slice encoding
 
-Slab pulses whose sub-slices are encoded across repeated acquisitions, by
-gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.
-
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_gslider_pulse` | Design a gSlider slab pulse with ``subslice`` at ``subslice_phase``. |
-| {obj}`~pypulseqpp.make_hadamard_pulse` | Design a slab pulse whose sub-bands are signed by row ``row`` of a Hadamard matrix. |
-| {obj}`~pypulseqpp.make_pins_pulse` | Design a PINS pulse exciting a slice every ``slice_separation`` along z. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_gslider_pulse` | Flip angle, sub-slice count, sub-slice index, phase (rad) | RF event; optional slice-select and rephasing gradients | gSlider slab encoding. |
+| {obj}`~pypulseqpp.make_hadamard_pulse` | Flip angle, Hadamard order, row | RF event; optional slice-select and rephasing gradients | Hadamard slab encoding. |
+| {obj}`~pypulseqpp.make_pins_pulse` | Flip angle, slice thickness, slice separation (m) | RF event; blip gradient; rephaser | PINS multiband excitation. |
 
 ## B1 selection
 
-Pulses selective in the transmit field's amplitude rather than in position, and
-the adiabatic Bloch-Siegert pulse that encodes B1 into phase.
+B1 amplitudes of these designs are inputs in T; the returned RF events are in
+Hz.
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_b1_selective_pulse` | Design a B1-selective RF pulse, excited only where the transmit amplitude lies in a band. |
-| {obj}`~pypulseqpp.make_b1_gslider_pulse` | Design a B1-selective gSlider pulse with one B1 sub-band at ``subslice_phase``. |
-| {obj}`~pypulseqpp.make_b1_hadamard_pulse` | Design a B1-selective pulse whose B1 sub-bands are signed by a Hadamard row. |
-| {obj}`~pypulseqpp.make_bloch_siegert_pulse` | Design an adiabatic Bloch-Siegert encoding pulse. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_b1_selective_pulse` | Flip angle, amplitude (T), relative B1 passband | RF event | B1-selective excitation. |
+| {obj}`~pypulseqpp.make_b1_gslider_pulse` | Flip angle, amplitude (T), sub-band count and index | RF event | B1-selective gSlider encoding. |
+| {obj}`~pypulseqpp.make_b1_hadamard_pulse` | Flip angle, amplitude (T), Hadamard order, row | RF event | B1-selective Hadamard encoding. |
+| {obj}`~pypulseqpp.make_bloch_siegert_pulse` | Amplitude (T), duration, sweep shape, side of resonance | RF event | Adiabatic Bloch-Siegert B1 encoding. |
 
 ## Parallel transmit
 
-A dynamic pTx pulse holds every transmit channel's waveform in one RF event,
-one channel after another over a shared time base.
-{func}`calc_rf_shim` computes static channel weights and
-{func}`make_spokes_pulse` designs spokes.
+A dynamic pTx pulse is one RF event holding each transmit channel's waveform
+in turn over a shared time base.
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_ptx_pulse` | Make a dynamic pTx pulse from one waveform per transmit channel. |
-| {obj}`~pypulseqpp.split_ptx_pulse` | Return a pulse's waveforms, one row per transmit channel, in Hz. |
-| {obj}`~pypulseqpp.calc_rf_shim` | Return per-channel weights whose combined B1 field has magnitude ``target``. |
-| {obj}`~pypulseqpp.make_spokes_pulse` | Design a spokes pTx pulse, exciting one slice at several in-plane k positions. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_ptx_pulse` | Complex waveforms `(channels, samples)` (Hz) | pTx RF event | Dynamic pTx pulse. |
+| {obj}`~pypulseqpp.split_ptx_pulse` | pTx RF event | Complex waveforms `(channels, samples)` (Hz) | Per-channel waveforms of a pTx pulse. |
+| {obj}`~pypulseqpp.calc_rf_shim` | Complex B1+ maps per channel, mask, target | Complex weights `(channels,)` | Magnitude least-squares RF shim. |
+| {obj}`~pypulseqpp.make_spokes_pulse` | Flip angle, B1+ maps, FOV, slice thickness | pTx RF event; gradients; rephasers | Spokes pTx excitation. |
 
 ## Analysis and simulation
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.calc_rf_bandwidth` | Estimate RF bandwidth from the envelope's Fourier magnitude. |
-| {obj}`~pypulseqpp.calc_rf_center` | Return the RF event's effective rotation time and corresponding sample index. |
-| {obj}`~pypulseqpp.calc_rf_power` | Return an RF event's energy, peak power and RMS amplitude, as MATLAB Pulseq's ``calcRfPower``. |
-| {obj}`~pypulseqpp.sim_bloch` | Simulate the Bloch equation without relaxation, in hard-pulse steps. |
-| {obj}`~pypulseqpp.sim_rf` | Simulate an RF pulse versus off-resonance without relaxation. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.calc_rf_bandwidth` | RF event, cutoff | Bandwidth (Hz); optional spectrum and frequency axis | Bandwidth from the envelope spectrum. |
+| {obj}`~pypulseqpp.calc_rf_center` | RF event | Centre time (s); sample index | RF pulse centre. |
+| {obj}`~pypulseqpp.calc_rf_power` | RF event, time step | Energy (Hz² s), peak power (Hz²), RMS amplitude (Hz) | RF power, as MATLAB Pulseq `calcRfPower`. |
+| {obj}`~pypulseqpp.sim_bloch` | Complex B1 (Hz), Bz (Hz), time step | Final magnetisation `(P, 3)` | Hard-pulse Bloch simulation, no relaxation. |
+| {obj}`~pypulseqpp.sim_rf` | RF event, rephase factor | Mz and Mxy profiles, frequency axis (Hz), refocusing efficiency | Off-resonance profile, no relaxation. |

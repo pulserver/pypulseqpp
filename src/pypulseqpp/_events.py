@@ -213,8 +213,12 @@ def _raised(value: Any) -> Any:
 def interoperating(function: Callable[..., Any]) -> Callable[..., Any]:
     """Wrap a callable with recursive event conversion.
 
-    Arguments become namespaces for PyPulseq type checks and deepcopy;
-    returned events become compiled objects. Other values pass through.
+    Upstream PyPulseq functions take and return events as plain namespaces.
+    The wrapped callable accepts and returns compiled events: arguments
+    become namespaces for PyPulseq type checks and deepcopy, and returned
+    events become compiled objects. Other values pass through.
+    :func:`convert` and :func:`as_namespace` convert one event in each
+    direction.
 
     Parameters
     ----------
