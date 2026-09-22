@@ -74,3 +74,41 @@ def test_a_patch_tagged_after_a_later_release_does_not_take_stable_back(
 def test_a_version_that_is_neither_latest_nor_a_tag_is_refused(publisher, tmp_path):
     with pytest.raises(SystemExit, match="neither"):
         publisher.publish(built(tmp_path, "x"), "stable", tmp_path / "site", URL)
+
+
+def test_the_site_keeps_only_the_newest_releases_beside_latest_and_stable(
+    publisher, tmp_path
+):
+    """The branch is never pruned, and every version is a whole documentation tree."""
+    site = tmp_path / "site"
+    for tag in ("v0.1.0", "v0.2.0", "v0.3.0", "v0.4.0", "v0.5.0"):
+        publisher.publish(built(tmp_path, tag), tag, site, URL, keep=3)
+    publisher.publish(built(tmp_path, "main"), "latest", site, URL, keep=3)
+
+    assert sorted(d.name for d in site.iterdir() if d.is_dir()) == [
+        "latest",
+        "stable",
+        "v0.3.0",
+        "v0.4.0",
+        "v0.5.0",
+    ]
+
+
+def test_a_release_the_site_no_longer_holds_leaves_the_switcher(publisher, tmp_path):
+    site = tmp_path / "site"
+    for tag in ("v0.1.0", "v0.2.0", "v0.3.0"):
+        entries = publisher.publish(built(tmp_path, tag), tag, site, URL, keep=2)
+
+    assert [entry["version"] for entry in entries] == ["v0.3.0", "v0.2.0"]
+
+
+def test_stable_survives_a_prune_that_removes_its_own_tag_directory(
+    publisher, tmp_path
+):
+    """stable is a copy of the newest release, not one of the kept directories."""
+    site = tmp_path / "site"
+    for tag in ("v0.1.0", "v0.2.0"):
+        publisher.publish(built(tmp_path, tag), tag, site, URL, keep=0)
+
+    assert (site / "stable" / "index.html").read_text() == "v0.2.0"
+    assert not any(d.name.startswith("v") for d in site.iterdir() if d.is_dir())
