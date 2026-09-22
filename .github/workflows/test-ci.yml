@@ -41,10 +41,13 @@ jobs:
       - name: Run the tests
         run: pytest -q --cov --cov-report=xml
 
+      # A rejected upload is a broken report, not a passing build: without
+      # this the step is green whatever Codecov answers, and the badge goes
+      # stale with nothing to say so.
       - uses: codecov/codecov-action@v7
         if: matrix.os == 'ubuntu-latest'
         with:
-          fail_ci_if_error: false
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: pulserver/pypulseqpp
 
