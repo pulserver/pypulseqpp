@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/documentation_options.js?v=b1def801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Radial sampling" href="01_radial.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -237,7 +237,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../../../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -331,11 +331,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -718,7 +720,7 @@ gradient amplitude limit to above it.</p>
 </span>            <span class="p">{</span><span class="s2">&quot;</span><span class="s2">slew_limit</span><span class="s2">&quot;</span><span class="p">:</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">slew</span></a><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">regime</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">limiting_ceiling</span><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">measured</span></a><span class="p">)</span><span class="p">,</span> <span class="o">*</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">measured</span></a><span class="p">}</span><span class="w">
 </span>        <span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_02_spiral_001.png" srcset="../../../_images/sphx_glr_02_spiral_001.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:234: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+<img src="../../../_images/sphx_glr_02_spiral_001.png" srcset="../../../_images/sphx_glr_02_spiral_001.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
   made = factory(*args, **kwargs)
   slew         100 kHz         250 kHz         600 kHz
     40    10.96 ms band     7.49 ms slew     7.50 ms slew
@@ -797,7 +799,7 @@ repetition carries an excitation and a rewind whose duration does not depend
 on the pitch. Off-resonance and <span class="math notranslate nohighlight">\(T_2^*\)</span> act over the readout duration,
 so the interleaf count is the remaining way to shorten it once the slew rate
 no longer does.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.057 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.971 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-04-non-cartesian-02-spiral-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/8382e3215e834a1eb3a799cff2ae36a4/02_spiral.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_spiral.ipynb</span></code></a></p>

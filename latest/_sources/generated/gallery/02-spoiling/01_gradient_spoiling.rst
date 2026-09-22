@@ -208,7 +208,7 @@ the delay that brings the repetition up to the repetition time absorbs less.
 
     timing True, 640 blocks, spoiler 2.00 ms for 4 cycles across a 1.72 mm voxel
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2345b41280>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489c721c70>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
 
 
 
@@ -415,7 +415,7 @@ RF phase cycle of the next page is for.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.309 seconds)
+   **Total running time of the script:** (0 minutes 2.154 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-spoiling_01_gradient_spoiling.py:

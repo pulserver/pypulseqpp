@@ -378,7 +378,7 @@ carries it as a bias.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.247 seconds)
+   **Total running time of the script:** (0 minutes 8.660 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-spoiling_02_rf_spoiling.py:

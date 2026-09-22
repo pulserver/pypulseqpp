@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2345b80d40>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f48a0f58590>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -193,7 +193,7 @@ complete echo train remains within each retained repetition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (2 minutes 58.217 seconds)
+   **Total running time of the script:** (2 minutes 59.814 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py:

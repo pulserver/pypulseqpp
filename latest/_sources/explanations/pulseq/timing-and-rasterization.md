@@ -62,6 +62,13 @@ receiver bandwidth of 100 kHz; a readout of 100 samples has $\gcd(100, 10) =
 the second case and not in the first, and nothing about the first prescription
 is otherwise unusual.
 
+```{figure} ../../generated/figures/bandwidth_against_sample_count.png
+The highest receiver bandwidth each sample count admits at the default
+rasters, over one range of readout lengths. The four levels are the four
+values $\gcd(N, r)$ takes for $r = 10$, and a request is met only where the
+ceiling reaches it.
+```
+
 {func}`~pypulseqpp.calc_adc_timing` performs this search and returns the dwell
 together with the acquisition duration, so the achieved bandwidth is
 `1 / dwell` and may be lower than the one requested. The readout modules report

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/documentation_options.js?v=b1def801"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -233,7 +233,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -327,11 +327,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -582,6 +584,28 @@
 <dd><p>Round seconds up to the next raster multiple, within a 1e-10 relative tolerance.</p>
 <p><code class="docutils literal notranslate"><span class="pre">raster_s</span></code> is a raster period in seconds. A value already within the
 tolerance of a raster multiple is not pushed to the next one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The time to round (s).</p></li>
+<li><p><strong>raster_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The raster period to round it onto (s).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The smallest multiple of <code class="docutils literal notranslate"><span class="pre">raster_s</span></code> that is not below <code class="docutils literal notranslate"><span class="pre">value_s</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="mf">21e-6</span><span class="p">,</span> <span class="mf">10e-6</span><span class="p">),</span> <span class="mi">9</span><span class="p">)</span>
+<span class="go">3e-05</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="mf">20e-6</span><span class="p">,</span> <span class="mf">10e-6</span><span class="p">)</span>
+<span class="go">2e-05</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

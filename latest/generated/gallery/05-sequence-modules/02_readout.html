@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/documentation_options.js?v=b1def801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="Excitation modules" href="01_excitation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -235,7 +235,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../../../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -329,11 +329,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -656,7 +658,7 @@ asked for — the module reports what it achieved.</p>
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">line spacing </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">readout</span><span class="o">.</span><span class="n">delta_kx</span></a><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> 1/m</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:234: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
   made = factory(*args, **kwargs)
 echo time 2.800 ms, module 6.480 ms
 128 samples at 100.0 kHz, echo on sample 64, line spacing 4.55 1/m
@@ -681,7 +683,7 @@ first because the module is the readout half of the repetition.</p>
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_02_readout_001.png" srcset="../../../_images/sphx_glr_02_readout_001.png" alt="02 readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing True, 5 blocks, 9.640 ms
 
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f2345b538f0&gt;, tr=1, underlays=[])
+namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f48a5032660&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
 </section>
@@ -765,7 +767,7 @@ second echo runs backwards. Which to prefer is the trade the earlier page
 measured: the bipolar train is shorter, and any delay between the gradient
 and the acquisition enters it as a difference between the odd and the even
 echoes rather than as a shift common to all of them.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.329 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.296 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-05-sequence-modules-02-readout-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/eea805bdfaa167da22fce1dfed36444e/02_readout.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_readout.ipynb</span></code></a></p>

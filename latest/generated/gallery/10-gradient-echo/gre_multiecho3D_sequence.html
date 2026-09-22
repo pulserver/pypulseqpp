@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/documentation_options.js?v=b1def801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="2D Cartesian multi-echo gradient echo" href="gre_multiecho2D_sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -235,7 +235,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../../../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -329,11 +329,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -610,7 +612,7 @@ include high-resolution structural imaging, R2* mapping, and QSM.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_gre_multiecho3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_multiecho3D_sequence_001.png" alt="gre multiecho3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f2345b80d40&gt;, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+<img src="../../../_images/sphx_glr_gre_multiecho3D_sequence_001.png" srcset="../../../_images/sphx_glr_gre_multiecho3D_sequence_001.png" alt="gre multiecho3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f48a0f58590&gt;, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 </pre></div>
 </div>
 </section>
@@ -641,7 +643,7 @@ full                39950         52.89         15980
 <img src="../../../_images/sphx_glr_gre_multiecho3D_sequence_003.png" srcset="../../../_images/sphx_glr_gre_multiecho3D_sequence_003.png" alt="gre multiecho3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 1210x550 with 4 Axes&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (2 minutes 58.217 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (2 minutes 59.814 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-10-gradient-echo-gre-multiecho3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/0b29003e95ae36a21f79448ba7814067/gre_multiecho3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gre_multiecho3D_sequence.ipynb</span></code></a></p>

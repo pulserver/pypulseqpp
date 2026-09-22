@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f23418087d0>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f488fe28590>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
@@ -193,7 +193,7 @@ centre in each.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.990 seconds)
+   **Total running time of the script:** (0 minutes 3.989 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

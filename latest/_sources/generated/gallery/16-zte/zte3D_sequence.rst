@@ -53,7 +53,7 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
     import pypulseqpp as pp
     from pypulseqpp.sequences import zte3D_sequence
 
-    baseline = zte3D_sequence(n_x=64, n_views=None, n_dummy=0)
+    baseline = zte3D_sequence(n=64, n_dummy=0)
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
     print(
         f"{int(baseline.get_definition('NumShots')[0])} shots, "
@@ -105,7 +105,7 @@ representative repetition; shaded traces show other gradient encodes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f234182e2a0>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f48a100ca40>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
@@ -142,22 +142,23 @@ k-space and runs outward to the surface of the sampled sphere.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-77
+.. GENERATED FROM PYTHON SOURCE LINES 70-78
 
-Fewer views
------------
+Angular undersampling
+---------------------
 
-``n_views`` sets the half-spokes per shell. The default balances their angular
-spacing against the spacing between shells for the requested matrix. Halving
-this count shortens the scan and undersamples one angular direction, producing
-streaking rather than Cartesian aliasing.
+The sphere is dealt into shells, each the same one turned about ``z``.
+``r`` plays one shell in every ``r`` of that set, which halves the
+acquisitions at ``r = 2`` and leaves the angular spacing between the shells
+that remain twice as wide. What that produces is streaking from the
+periphery rather than the fold-over a Cartesian acquisition would give.
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-89
+.. GENERATED FROM PYTHON SOURCE LINES 78-90
 
 .. code-block:: Python
 
 
-    alternative = zte3D_sequence(n_x=64, n_views=33, n_dummy=0)
+    alternative = zte3D_sequence(n=64, r=2, n_dummy=0)
 
 
 
@@ -169,13 +170,13 @@ streaking rather than Cartesian aliasing.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    balanced            25938          8.25         12870
-    half the views      13266          4.19          6534
+    every shell         25938          8.25         12870
+    every second        12969          4.12          6435
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-92
+.. GENERATED FROM PYTHON SOURCE LINES 91-93
 
 .. code-block:: Python
 
@@ -202,7 +203,7 @@ streaking rather than Cartesian aliasing.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 20.148 seconds)
+   **Total running time of the script:** (0 minutes 20.077 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

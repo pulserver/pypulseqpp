@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/documentation_options.js?v=b1def801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Segmented echo planar" href="02_segmented.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -237,7 +237,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../../../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -331,11 +331,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -684,7 +686,7 @@ runs the length of the matrix. Nothing else changes.</p>
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_03_epi_001.png" srcset="../../../_images/sphx_glr_03_epi_001.png" alt="03 epi" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing True, 66 blocks, echo spacing 0.700 ms, train 44.8 ms, blip 80 us
 
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f2338856240&gt;, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
+namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7f489c76a450&gt;, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
 </pre></div>
 </div>
 </section>
@@ -793,7 +795,7 @@ the field of view, which is the ghost an uncorrected echo planar acquisition
 shows. Measuring the delay and correcting for it belongs to the
 reconstruction, which is Pulserver’s part of the stack rather than this
 package’s.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.507 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.477 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-03-gre-to-epi-03-epi-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/a6c81643df39b2cd05316ca71f0aec8a/03_epi.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_epi.ipynb</span></code></a></p>

@@ -44,6 +44,14 @@ the shape library grows in proportion to the number of shots. Referring to one
 interleaf and attaching a `ROTATIONS` extension per block writes the waveform
 once, and the per-shot cost is one quaternion.
 
+```{figure} ../../generated/figures/rotation_against_materialised_shapes.png
+The same spiral acquisition written both ways, at interleaf counts from 8 to
+64. A rotation extension per block leaves the shape library the size of one
+interleaf; a rotated waveform per shot adds a pair of shapes each time,
+except where a rotation carries one axis onto another and the two files
+deduplicate as they are written.
+```
+
 A radial, spiral, PROPELLER or stack-of-stars acquisition designed the second
 way therefore has a shape library the size of a single repetition, whatever the
 number of shots, while its block count and its rotation-row count grow with the

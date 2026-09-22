@@ -121,7 +121,7 @@ asked for — the module reports what it achieved.
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:234: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     echo time 2.800 ms, module 6.480 ms
     128 samples at 100.0 kHz, echo on sample 64, line spacing 4.55 1/m
@@ -169,7 +169,7 @@ first because the module is the readout half of the repetition.
 
     timing True, 5 blocks, 9.640 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2345b538f0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f48a5032660>, tr=1, underlays=[])
 
 
 
@@ -314,7 +314,7 @@ echoes rather than as a shift common to all of them.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.329 seconds)
+   **Total running time of the script:** (0 minutes 0.296 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_02_readout.py:

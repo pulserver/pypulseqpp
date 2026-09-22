@@ -209,7 +209,7 @@ Published events
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:234: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: gz, gz_reph, rf
     linear-phase: center at 1.600 ms of 3.680 ms, rephaser area -408.0 1/m
@@ -350,14 +350,14 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2345ac00e0>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489c76a480>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.772 seconds)
+   **Total running time of the script:** (0 minutes 0.793 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_01_excitation_module.py:

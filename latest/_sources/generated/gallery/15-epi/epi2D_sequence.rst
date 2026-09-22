@@ -108,7 +108,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f22621f8260>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f47bc7b0320>, tr=1, underlays=[])
 
 
 
@@ -255,7 +255,7 @@ identifies the group; acquisition times come from the actual ADC blocks.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.822 seconds)
+   **Total running time of the script:** (0 minutes 0.742 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

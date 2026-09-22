@@ -310,12 +310,12 @@ One repetition
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:234: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2338de7800>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f48a1cf58e0>, tr=1, underlays=[])
 
 
 
@@ -404,7 +404,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.257 seconds)
+   **Total running time of the script:** (0 minutes 0.248 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_03_noncartesian_readout.py:

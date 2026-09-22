@@ -39,7 +39,7 @@ plt.rcParams.update(
 import pypulseqpp as pp
 from pypulseqpp.sequences import zte3D_sequence
 
-baseline = zte3D_sequence(n_x=64, n_views=None, n_dummy=0)
+baseline = zte3D_sequence(n=64, n_dummy=0)
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 print(
     f"{int(baseline.get_definition('NumShots')[0])} shots, "
@@ -67,19 +67,20 @@ baseline.paper_plot()
 pp.plot.plot_kspace(baseline, color_by="shot")
 
 # %%
-# Fewer views
-# -----------
+# Angular undersampling
+# ---------------------
 #
-# ``n_views`` sets the half-spokes per shell. The default balances their angular
-# spacing against the spacing between shells for the requested matrix. Halving
-# this count shortens the scan and undersamples one angular direction, producing
-# streaking rather than Cartesian aliasing.
+# The sphere is dealt into shells, each the same one turned about ``z``.
+# ``r`` plays one shell in every ``r`` of that set, which halves the
+# acquisitions at ``r = 2`` and leaves the angular spacing between the shells
+# that remain twice as wide. What that produces is streaking from the
+# periphery rather than the fold-over a Cartesian acquisition would give.
 
-alternative = zte3D_sequence(n_x=64, n_views=33, n_dummy=0)
+alternative = zte3D_sequence(n=64, r=2, n_dummy=0)
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")
-for name, seq in (("balanced", baseline), ("half the views", alternative)):
+for name, seq in (("every shell", baseline), ("every second", alternative)):
     print(
         f"{name:16} {seq.num_blocks:8d} {seq.duration()[0]:13.2f} "
         f"{seq._native.num_adc():13d}"

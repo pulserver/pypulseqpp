@@ -212,7 +212,7 @@ differ only in the amplitude of the pulse.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2341a232c0>, tr=4, underlays=[1, 2, 3])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489caa9b80>, tr=4, underlays=[1, 2, 3])
 
 
 
@@ -285,7 +285,7 @@ reconstruction reads to interpret the acquisition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.230 seconds)
+   **Total running time of the script:** (0 minutes 0.224 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_01_fid.py:

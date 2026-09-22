@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=66b41771" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/documentation_options.js?v=b1def801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
+  <meta name="docsearch:version" content="latest" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -231,7 +231,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="../../../index.html">
-                    pypulseqpp
+                    Homepage
                 </a>
             </li>
         </ul>
@@ -325,11 +325,13 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -564,7 +566,7 @@
                   
   <section id="computation-times">
 <span id="sphx-glr-generated-gallery-10-gradient-echo-sg-execution-times"></span><h1>Computation times<a class="headerlink" href="#computation-times" title="Link to this heading">#</a></h1>
-<p><strong>04:13.644</strong> total execution time for 10 files <strong>from generated/gallery/10-gradient-echo</strong>:</p>
+<p><strong>04:15.011</strong> total execution time for 10 files <strong>from generated/gallery/10-gradient-echo</strong>:</p>
 <div class="docutils container">
 <style scoped>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
@@ -586,43 +588,43 @@ $(document).ready( function () {
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="gre_multiecho3D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-multiecho3d-sequence-py"><span class="std std-ref">3D Cartesian multi-echo gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_multiecho3D_sequence.py</span></code>)</p></td>
-<td><p>02:58.217</p></td>
+<td><p>02:59.814</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="gre_multiecho2D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-multiecho2d-sequence-py"><span class="std std-ref">2D Cartesian multi-echo gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_multiecho2D_sequence.py</span></code>)</p></td>
-<td><p>00:24.447</p></td>
+<td><p>00:24.584</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gre3D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre3d-sequence-py"><span class="std std-ref">3D Cartesian gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre3D_sequence.py</span></code>)</p></td>
-<td><p>00:23.822</p></td>
+<td><p>00:23.654</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="gre_stack_of_blades3D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-stack-of-blades3d-sequence-py"><span class="std std-ref">3D stack-of-blades gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_stack_of_blades3D_sequence.py</span></code>)</p></td>
-<td><p>00:08.731</p></td>
+<td><p>00:08.663</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gre_stack_of_stars3D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-stack-of-stars3d-sequence-py"><span class="std std-ref">3D stack-of-stars gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_stack_of_stars3D_sequence.py</span></code>)</p></td>
-<td><p>00:05.295</p></td>
+<td><p>00:05.311</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="gre_propeller2D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-propeller2d-sequence-py"><span class="std std-ref">2D PROPELLER gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_propeller2D_sequence.py</span></code>)</p></td>
-<td><p>00:03.986</p></td>
+<td><p>00:03.955</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gre_stack_of_spirals3D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-stack-of-spirals3d-sequence-py"><span class="std std-ref">3D stack-of-spirals gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_stack_of_spirals3D_sequence.py</span></code>)</p></td>
-<td><p>00:03.157</p></td>
+<td><p>00:03.105</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="gre_radial2D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-radial2d-sequence-py"><span class="std std-ref">2D radial gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_radial2D_sequence.py</span></code>)</p></td>
-<td><p>00:02.674</p></td>
+<td><p>00:02.655</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gre2D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre2d-sequence-py"><span class="std std-ref">2D Cartesian gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre2D_sequence.py</span></code>)</p></td>
-<td><p>00:01.954</p></td>
+<td><p>00:01.933</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="gre_spiral2D_sequence.html#sphx-glr-generated-gallery-10-gradient-echo-gre-spiral2d-sequence-py"><span class="std std-ref">2D spiral gradient echo</span></a> (<code class="docutils literal notranslate"><span class="pre">gre_spiral2D_sequence.py</span></code>)</p></td>
-<td><p>00:01.362</p></td>
+<td><p>00:01.337</p></td>
 <td><p>0.0</p></td>
 </tr>
 </tbody>

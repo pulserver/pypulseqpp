@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2341aad460>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f489c68c8c0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -191,7 +191,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.157 seconds)
+   **Total running time of the script:** (0 minutes 3.105 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

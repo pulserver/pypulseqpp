@@ -23,7 +23,6 @@ from.
    :nosignatures:
 
    run
-   write_sequence
 
 .. currentmodule:: pypulseqpp
 
@@ -71,6 +70,15 @@ from.
    scale_grad
    split_gradient
    split_gradient_at
+
+.. currentmodule:: pypulseqpp.io
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   read
+   write
 
 .. currentmodule:: pypulseqpp.sequences
 
@@ -194,6 +202,31 @@ from.
    VopModel
 
 .. currentmodule:: pypulseqpp
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   calc_sampled_lines
+   calc_sampled_pairs
+   make_caipirinha_mask
+   make_poisson_disc_mask
+   make_random_mask
+   calc_traversal_order
+   calc_epi_order
+   make_linear_order
+   make_centric_order
+   make_radial_order
+   make_radial_adaptive_order
+   make_shuffling_order
+   calc_uniform_angles
+   calc_golden_angles
+   calc_tiny_golden_angles
+   calc_raga_angles
+   calc_projection_shell
+   make_rf_spoiling_schedule
+   make_phase_cycling_schedule
+   make_traps_schedule
 
 .. autosummary::
    :toctree: generated
