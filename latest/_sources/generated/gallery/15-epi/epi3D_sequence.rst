@@ -28,7 +28,7 @@ a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
 transverse coherence between repetitions; off-resonance accumulates during
 each echo train. 3D EPI supports rapid structural and functional imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-139
+.. GENERATED FROM PYTHON SOURCE LINES 12-143
 
 
 
@@ -37,7 +37,7 @@ each echo train. 3D EPI supports rapid structural and functional imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-147
+.. GENERATED FROM PYTHON SOURCE LINES 144-151
 
 Accelerated acquisition
 -----------------------
@@ -47,7 +47,7 @@ and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 successive echoes therefore contain both the skipped-line displacement and
 the partition jump.
 
-.. GENERATED FROM PYTHON SOURCE LINES 147-166
+.. GENERATED FROM PYTHON SOURCE LINES 151-170
 
 .. code-block:: Python
 
@@ -84,12 +84,12 @@ the partition jump.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 167-169
+.. GENERATED FROM PYTHON SOURCE LINES 171-173
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 169-172
+.. GENERATED FROM PYTHON SOURCE LINES 173-176
 
 .. code-block:: Python
 
@@ -110,11 +110,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8342574740>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f22621d7ef0>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 173-184
+.. GENERATED FROM PYTHON SOURCE LINES 177-188
 
 Skipped-CAIPI traversal
 -----------------------
@@ -128,7 +128,7 @@ amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
 :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 184-191
+.. GENERATED FROM PYTHON SOURCE LINES 188-195
 
 
 
@@ -142,7 +142,7 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 192-199
+.. GENERATED FROM PYTHON SOURCE LINES 196-203
 
 Single-shot comparison
 ----------------------
@@ -152,7 +152,7 @@ each shell. Three shots shorten the readout window and the geometric distortion
 along the phase-encode axis; the inter-echo jumps grow because each shot
 steps three sampled lattice lines at a time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 199-236
+.. GENERATED FROM PYTHON SOURCE LINES 203-240
 
 .. code-block:: Python
 
@@ -189,7 +189,7 @@ steps three sampled lattice lines at a time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 237-243
+.. GENERATED FROM PYTHON SOURCE LINES 241-247
 
 In-plane acceleration
 ---------------------
@@ -198,7 +198,7 @@ In-plane acceleration
 increasing lattice spacing along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
 where the CAIPI shift puts them.
 
-.. GENERATED FROM PYTHON SOURCE LINES 243-264
+.. GENERATED FROM PYTHON SOURCE LINES 247-268
 
 .. code-block:: Python
 
@@ -239,7 +239,7 @@ where the CAIPI shift puts them.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.536 seconds)
+   **Total running time of the script:** (0 minutes 0.539 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

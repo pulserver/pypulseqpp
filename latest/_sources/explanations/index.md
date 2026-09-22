@@ -1,14 +1,15 @@
 # Explanations
 
 Conceptual background for the interfaces documented in {doc}`../api/index` and
-applied in the {doc}`examples <../examples/index>`: the vocabulary, the models
-and the conventions the rest of the documentation assumes.
+applied in the {doc}`examples <../examples/index>`. These pages state the
+vocabulary, the models and the conventions the rest of the documentation
+assumes.
 
-| Explanation | Scope |
+| Explanation | What it covers |
 | --- | --- |
-| {doc}`pulseq/index` | Pulseq blocks, events, libraries, shapes, extensions, definitions, deduplication, and timing rasters. |
-| {doc}`design/index` | Sequence modules, applications, prescriptions, sampling order, and scan loops. |
-| {doc}`safety/index` | Gradient, PNS, mechanical-resonance, and SAR models and criteria. |
+| {doc}`pulseq/index` | What a `.seq` file records, how it stores it, and the rasters an event time is addressed on. |
+| {doc}`design/index` | The two abstractions the package places above the file format, and what each is responsible for. |
+| {doc}`safety/index` | What each check computes, the model it computes it from, and the criterion it applies. |
 
 ```{toctree}
 :hidden:

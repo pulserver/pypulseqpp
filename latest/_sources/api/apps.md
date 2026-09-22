@@ -1,7 +1,7 @@
 # Complete sequences
 
-`pypulseqpp.sequences`: {class}`SequenceApp`, the base class of the shipped
-example sequences.
+{class}`SequenceApp`, the base class every shipped sequence is written
+against.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
@@ -17,4 +17,4 @@ under {doc}`../sequences`.
 
 | Object | Description |
 | --- | --- |
-| {obj}`~pypulseqpp.sequences.SequenceApp` | A complete sequence: its events, its sampling order and the loop that plays them. |
+| {obj}`~pypulseqpp.sequences.SequenceApp` | A complete sequence, designed from a prescription and played one repetition at a time. |

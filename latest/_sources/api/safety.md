@@ -1,11 +1,11 @@
 # Gradient, PNS and SAR checks
 
-`pypulseqpp.safety`: checks of a complete sequence against gradient hardware
-limits, vendor forbidden gradient bands, a peripheral-nerve-stimulation model
-and a VOP SAR model. Every check applies each block's rotation and evaluates
-the three physical gradient axes, and takes its limits from the sequence's own
-{class}`pypulseqpp.Opts` or from one passed to it. They are estimates, not a
-complete scanner or patient-safety assessment.
+Checks of a complete sequence against the gradient hardware limits, the
+forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
+model and a VOP SAR model. Every check applies each block's rotation and
+evaluates the three physical gradient axes, and takes its limits from the
+sequence's own {class}`pypulseqpp.Opts` or from one passed to it. They are
+estimates, not a complete scanner or patient-safety assessment.
 {doc}`../explanations/safety/index` covers what each one computes and the
 criterion it applies.
 
@@ -44,7 +44,7 @@ otherwise.
 | --- | --- |
 | {obj}`~pypulseqpp.safety.check_mech_resonance` | Check the gradient amplitude spectrum against forbidden gradient bands. |
 | {obj}`~pypulseqpp.safety.read_forbidden_bands` | Read forbidden bands from a vendor table. |
-| {obj}`~pypulseqpp.safety.ForbiddenBand` | A forbidden gradient band: a frequency range on one physical axis. |
+| {obj}`~pypulseqpp.safety.ForbiddenBand` | A forbidden gradient band, a frequency range on one physical axis. |
 
 ## Nerve stimulation
 

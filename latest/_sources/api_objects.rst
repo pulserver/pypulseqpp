@@ -133,6 +133,9 @@ from.
 
    plot
    paper_plot
+   SAMPLING
+   MAGNITUDE
+   SIGNED
    plot_kspace
    plot_rf
 

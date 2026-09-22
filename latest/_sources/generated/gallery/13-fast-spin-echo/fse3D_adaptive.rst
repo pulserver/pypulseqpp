@@ -28,7 +28,7 @@ and radial view order vary smoothly between these limits. This coupling can
 reduce scan time while retaining a prescribed central-k-space contrast for
 high-resolution structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-47
+.. GENERATED FROM PYTHON SOURCE LINES 12-49
 
 .. code-block:: Python
 
@@ -71,7 +71,7 @@ high-resolution structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-54
+.. GENERATED FROM PYTHON SOURCE LINES 50-56
 
 Train parameters
 ----------------
@@ -80,7 +80,7 @@ Train length and TR follow a smooth transition from central to peripheral
 k-space. Representative schedules below retain only the refocusing pulses
 played by each selected shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-77
+.. GENERATED FROM PYTHON SOURCE LINES 56-79
 
 
 
@@ -94,7 +94,7 @@ played by each selected shot.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-84
+.. GENERATED FROM PYTHON SOURCE LINES 80-86
 
 Adaptive radial ordering
 ------------------------
@@ -103,7 +103,7 @@ The ordering ranks ``(shot, echo)`` slots jointly by distance from the
 effective-TE echo and by position in the central-to-peripheral transition.
 Colour therefore relates each acquired view to its train length and TR.
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-105
+.. GENERATED FROM PYTHON SOURCE LINES 86-107
 
 
 
@@ -120,7 +120,7 @@ Colour therefore relates each acquired view to its train length and TR.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.651 seconds)
+   **Total running time of the script:** (0 minutes 3.846 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

@@ -38,6 +38,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=66b41771" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -277,14 +278,42 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="examples/getting-started.html">Getting started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-getting-started/basic-pulseq-sequence.html">A basic Pulseq sequence</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-getting-started/safety-checks.html">Sequence constraint checks</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/pulseq-basics.html">Pulseq basics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-pulseq-basics/01_fid.html">Free induction decay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-pulseq-basics/02_spin_echo.html">Spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/01-pulseq-basics/03_gradient_echo.html">Gradient echo</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules/index.html">Sequence-module design studies</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/rf.html">RF design studies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/sequence-modules/non-cartesian-readouts.html">Non-Cartesian design studies</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/02-spoiling/01_gradient_spoiling.html">Gradient spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/02-spoiling/02_rf_spoiling.html">RF spoiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/gre-to-epi.html">From gradient echo to echo planar</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/03-gre-to-epi/01_multi_echo.html">Multi-echo readouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/03-gre-to-epi/02_segmented.html">Segmented echo planar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/03-gre-to-epi/03_epi.html">Single-shot echo planar</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/non-cartesian.html">Non-Cartesian trajectories</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/04-non-cartesian/02_spiral.html">Spiral readout</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/06-checks/01_constraint_checks.html">Sequence constraint checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/07-custom-modules/02_cartesian_readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/07-custom-modules/03_noncartesian_readout.html">A twisting radial readout module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -295,16 +324,6 @@
 <li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples/built-in-sequences/zte.html">Zero echo time</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="examples/building-sequences.html">Building sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/30-building-sequences/sequence-app-from-scratch.html">A SequenceApp from scratch</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="examples/custom-modules.html">Custom sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-excitation-module.html">A minimum-phase excitation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-cartesian-readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/40-custom-modules/custom-noncartesian-readout.html">A twisting radial readout module</a></li>
 </ul>
 </details></li>
 </ul>
@@ -606,7 +625,11 @@ checks does not establish scanner or patient safety.</p>
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
 <p>The <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html">user guide</a>
 covers installation and support, and lists what each documentation section
-holds. Every version of the documentation is published at
+holds. The
+<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/examples/index.html">examples</a>
+are a course in sequence design, from a pulse-acquire experiment to echo planar
+and non-Cartesian acquisitions, followed by a page for each shipped sequence.
+Every version of the documentation is published at
 <a class="reference external" href="https://pulserver.github.io/pypulseqpp/">https://pulserver.github.io/pypulseqpp/</a>.</p>
 </section>
 <section id="citation">

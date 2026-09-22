@@ -105,7 +105,7 @@ representative repetition; shaded traces show other gradient encodes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f825d9d2840>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f234182e2a0>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
@@ -202,7 +202,7 @@ streaking rather than Cartesian aliasing.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 20.145 seconds)
+   **Total running time of the script:** (0 minutes 20.148 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

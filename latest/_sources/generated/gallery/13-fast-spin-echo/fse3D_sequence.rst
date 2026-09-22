@@ -29,7 +29,7 @@ signal evolution. Radial view ordering assigns this evolution to k-space and
 therefore determines the modulation transfer function and image blurring. 3D
 FSE is used for T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-99
+.. GENERATED FROM PYTHON SOURCE LINES 13-101
 
 .. code-block:: Python
 
@@ -92,7 +92,7 @@ FSE is used for T2- and proton-density-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-106
+.. GENERATED FROM PYTHON SOURCE LINES 102-108
 
 Sequence diagram
 ----------------
@@ -101,7 +101,7 @@ Each echo comprises a variable-angle refocusing pulse, phase and partition
 prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-108
+.. GENERATED FROM PYTHON SOURCE LINES 108-110
 
 .. code-block:: Python
 
@@ -121,11 +121,11 @@ is the echo assigned to k-space centre.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8338fc40e0>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f225f5d07d0>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-116
+.. GENERATED FROM PYTHON SOURCE LINES 111-118
 
 Refocusing schedule and echo signal
 -----------------------------------
@@ -135,7 +135,7 @@ FSE simulator. The objective balances signal at the effective TE, peripheral
 k-space signal, and RF power for the tissue models defined by the sequence.
 The same simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-132
+.. GENERATED FROM PYTHON SOURCE LINES 118-134
 
 .. code-block:: Python
 
@@ -158,7 +158,7 @@ The same simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 133-140
+.. GENERATED FROM PYTHON SOURCE LINES 135-142
 
 Echo and shot order
 -------------------
@@ -168,7 +168,7 @@ and progressively larger radii to echoes farther from it. Echo index records
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-145
+.. GENERATED FROM PYTHON SOURCE LINES 142-147
 
 
 
@@ -188,7 +188,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 146-153
+.. GENERATED FROM PYTHON SOURCE LINES 148-155
 
 K-space weighting
 -----------------
@@ -198,7 +198,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 153-162
+.. GENERATED FROM PYTHON SOURCE LINES 155-164
 
 
 
@@ -215,7 +215,7 @@ image blurring along both phase-encode axes.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.187 seconds)
+   **Total running time of the script:** (0 minutes 1.194 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

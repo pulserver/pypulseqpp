@@ -25,9 +25,9 @@ Gallery source pages
 
     </div>
 
-===============
-Getting started
-===============
+=============
+Pulseq basics
+=============
 
 .. include:: _gallery_header.md
    :parser: myst_parser.sphinx_
@@ -46,31 +46,360 @@ Getting started
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A two-repetition slice-selective gradient-echo sequence illustrates system limits, event construction, block timing, sequence assembly and Pulseq output.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to build the smallest complete Pulseq sequence, a pulse-acquire experiment, and to establish the vocabulary the rest of the course adds to: the system limits a factory solves against, the events that carry a pulse and an acquisition window, the blocks that play them, the timing check, and the file that is written.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/01-getting-started/images/thumb/sphx_glr_basic-pulseq-sequence_thumb.png
+  .. image:: /generated/gallery/01-pulseq-basics/images/thumb/sphx_glr_01_fid_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/01-getting-started/basic-pulseq-sequence`
+  :doc:`/generated/gallery/01-pulseq-basics/01_fid`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">A basic Pulseq sequence</div>
+      <div class="sphx-glr-thumbnail-title">Free induction decay</div>
     </div>
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The package computes timing and six constraint checks over a finished sequence: event timing, gradient amplitude, slew rate, gradient continuity across block boundaries, peripheral nerve stimulation (PNS), mechanical resonance and specific absorption rate (SAR). Each check returns a verdict and the quantities used to determine it.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a refocusing pulse to the pulse-acquire experiment of the previous page, so that the acquisition is centred on an echo at a prescribed echo time, and to place the crusher pair that keeps the signal of an imperfect refocusing pulse out of that acquisition.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/01-getting-started/images/thumb/sphx_glr_safety-checks_thumb.png
+  .. image:: /generated/gallery/01-pulseq-basics/images/thumb/sphx_glr_02_spin_echo_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/01-getting-started/safety-checks`
+  :doc:`/generated/gallery/01-pulseq-basics/02_spin_echo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Spin echo</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to turn the non-imaging experiments of the two previous pages into a two-dimensional acquisition: the excitation becomes slice-selective, the echo is formed by a gradient rather than by a refocusing pulse, and a phase encode moves the acquired line from one repetition to the next. This is the structure every Cartesian sequence in the course is a variation on.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/01-pulseq-basics/images/thumb/sphx_glr_03_gradient_echo_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Gradient echo</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+========
+Spoiling
+========
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a spoiler gradient to the gradient echo of the previous section, and to establish what it does and does not achieve: a spoiler winds the transverse magnetisation left at the end of a repetition through several cycles across a voxel, so that it integrates to nothing there, but it winds every repetition by the same amount and therefore leaves a coherent pathway that survives into the steady state.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/02-spoiling/images/thumb/sphx_glr_01_gradient_spoiling_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/02-spoiling/01_gradient_spoiling`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Gradient spoiling</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to remove the coherent pathway the previous page was left with, by advancing the phase of the pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and to measure which phase increments do so.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/02-spoiling/images/thumb/sphx_glr_02_rf_spoiling_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">RF spoiling</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+=================================
+From gradient echo to echo planar
+=================================
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire more than one echo per excitation, by following the readout gradient with further readouts of alternating polarity. Nothing else about the repetition changes, and the echoes land on the same k-space line at increasing echo times, which is what a T_2^* estimate is made from.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/03-gre-to-epi/images/thumb/sphx_glr_01_multi_echo_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/03-gre-to-epi/01_multi_echo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Multi-echo readouts</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to put a phase-encode blip between the echoes of the train of the previous page, so that one excitation acquires several k-space lines instead of the same line several times. The number of excitations the matrix is divided over is then a free parameter, and it decides both the scan time and how far off-resonance displaces the image.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/03-gre-to-epi/images/thumb/sphx_glr_02_segmented_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/03-gre-to-epi/02_segmented`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Segmented echo planar</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to take the segmentation of the previous page to one shot, so that the whole matrix is acquired after a single excitation, and to measure the two things that limit such an acquisition: the decay of the signal over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient and the acquisition.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/03-gre-to-epi/images/thumb/sphx_glr_03_epi_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/03-gre-to-epi/03_epi`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Single-shot echo planar</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+==========================
+Non-Cartesian trajectories
+==========================
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the phase encode of the Cartesian gradient echo with a rotation of the readout itself, so that every repetition acquires a spoke through the centre of k-space, and to establish how many spokes such an acquisition needs and what ordering them by the golden angle changes.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/04-non-cartesian/images/thumb/sphx_glr_01_radial_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/04-non-cartesian/01_radial`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Radial sampling</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire k-space along a spiral arm rather than along straight lines, and to establish which of the system&#x27;s limits decides how long an arm takes. A spiral is the first trajectory of the course that cannot be written down as a trapezoid: its waveform is solved numerically against the limits, which is what SpiralReadout2D is for. The interface such a module presents is the subject of /generated/gallery/05-sequence-modules/02_readout; here it is used for the arms it designs.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/04-non-cartesian/images/thumb/sphx_glr_02_spiral_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/04-non-cartesian/02_spiral`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Spiral readout</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+================
+Sequence modules
+================
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to design slice-selective excitations with the module that solves them, and to measure what the three numbers a selective pulse is specified by — flip angle, slice thickness and time-bandwidth product — do to the slice profile, to the selection gradient and to the peak B_1, and which combinations of them a gradient system admits.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_01_excitation_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/05-sequence-modules/01_excitation`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Excitation modules</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the hand-built readout of the first sections with the module that designs one, and to use the two prescriptions the earlier pages solved by hand — a partial echo and a multi-echo train — as the check that the module reaches the same answers and states them.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_02_readout_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/05-sequence-modules/02_readout`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Readout modules</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to assemble the modules of the two previous pages into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates those three, and is the base class every shipped sequence is written against, so what is written here is what a sequence in /sequences is written as.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_03_sequence_app_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/05-sequence-modules/03_sequence_app`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">A sequence application</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+=================
+Constraint checks
+=================
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to run the checks the package computes over a finished sequence, and to read what each of them reports: the quantity it measured, the limit it compared it with, and where in the sequence the measurement came from.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/06-checks/images/thumb/sphx_glr_01_constraint_checks_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/06-checks/01_constraint_checks`
 
 .. raw:: html
 
@@ -84,9 +413,9 @@ Getting started
 
     </div>
 
-=========================
-RF and excitation modules
-=========================
+==============
+Custom modules
+==============
 
 .. include:: _gallery_header.md
    :parser: myst_parser.sphinx_
@@ -105,60 +434,52 @@ RF and excitation modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective SLR pulse is specified by three numbers: the flip angle, the slice thickness and the time-bandwidth product. The duration is a fourth, and it is not independent of the rest, because the selection gradient has to place the pulse&#x27;s bandwidth across the slice:">
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write an excitation module of one&#x27;s own, by subclassing RfModule, and to measure what the design it implements gains and costs against the shipped one.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/21-modules-rf/images/thumb/sphx_glr_slice-profile-and-time-bandwidth_thumb.png
+  .. image:: /generated/gallery/07-custom-modules/images/thumb/sphx_glr_01_excitation_module_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/21-modules-rf/slice-profile-and-time-bandwidth`
+  :doc:`/generated/gallery/07-custom-modules/01_excitation_module`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Time-bandwidth product, slice profile and pulse duration</div>
+      <div class="sphx-glr-thumbnail-title">A minimum-phase excitation module</div>
     </div>
 
 
-.. thumbnail-parent-div-close
-
 .. raw:: html
 
-    </div>
-
-=============================
-Non-Cartesian readout modules
-=============================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Three limits bound the traversal of a spiral arm. Two are properties of the gradient system: the maximum amplitude and the maximum slew rate. The third follows from the receiver: with a dwell time \Delta t the trajectory may not advance further than 1/\mathrm{FOV} between samples, which caps the gradient amplitude at">
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a Cartesian readout module of one&#x27;s own, by following the SequenceModule contract, and to measure what it changes against the shipped readout.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/24-modules-noncartesian/images/thumb/sphx_glr_spiral-readout-limits_thumb.png
+  .. image:: /generated/gallery/07-custom-modules/images/thumb/sphx_glr_02_cartesian_readout_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/24-modules-noncartesian/spiral-readout-limits`
+  :doc:`/generated/gallery/07-custom-modules/02_cartesian_readout`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Gradient, slew and receiver limits on a spiral readout</div>
+      <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a non-Cartesian readout module of one&#x27;s own: to state a trajectory as a k-space path, have it solved into a waveform under the gradient limits, and publish the result as a module.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/07-custom-modules/images/thumb/sphx_glr_03_noncartesian_readout_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/07-custom-modules/03_noncartesian_readout`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">A twisting radial readout module</div>
     </div>
 
 
@@ -853,133 +1174,19 @@ Zero echo time
 
     </div>
 
-==================
-Building sequences
-==================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="A complete sequence defines a prescription, sampling order and repetition kernel. SequenceApp separates these responsibilities and provides the base class for the shipped sequences. The architecture is described in /explanations/design/sequence-application.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/30-building-sequences/images/thumb/sphx_glr_sequence-app-from-scratch_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/30-building-sequences/sequence-app-from-scratch`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">A SequenceApp from scratch</div>
-    </div>
-
-
-.. thumbnail-parent-div-close
-
-.. raw:: html
-
-    </div>
-
-=======================
-Custom sequence modules
-=======================
-
-.. include:: _gallery_header.md
-   :parser: myst_parser.sphinx_
-
-
-.. raw:: html
-
-  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbnails">
-
-.. thumbnail-parent-div-open
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The shipped Cartesian readouts acquire on the flat top of the readout lobe, so the ramps carry area that is never sampled. Sampling through the ramps as well covers the same extent of k-space in a shorter lobe, with nonuniform ADC sampling locations that require regridding.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/40-custom-modules/images/thumb/sphx_glr_custom-cartesian-readout_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/40-custom-modules/custom-cartesian-readout`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">A ramp-sampled readout module</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The shipped excitation modules design linear-phase SLR pulses, whose energy is symmetric about the middle of the pulse. A minimum-phase design concentrates RF energy near the end of the waveform. For fixed duration and time-bandwidth product, this reduces the interval to the echo but increases peak B_1 and introduces nonlinear slice-profile phase.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/40-custom-modules/images/thumb/sphx_glr_custom-excitation-module_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/40-custom-modules/custom-excitation-module`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">A minimum-phase excitation module</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="A radial spoke samples the centre of k-space far more densely than the periphery: at radius k, adjacent spokes of an N-interleaf set are 2\pi k / N apart, which exceeds the Nyquist spacing 1/\mathrm{FOV} beyond a transition radius">
-
-.. only:: html
-
-  .. image:: /generated/gallery/40-custom-modules/images/thumb/sphx_glr_custom-noncartesian-readout_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/40-custom-modules/custom-noncartesian-readout`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">A twisting radial readout module</div>
-    </div>
-
-
-.. thumbnail-parent-div-close
-
-.. raw:: html
-
-    </div>
-
 
 .. toctree::
    :hidden:
    :includehidden:
 
 
-   /generated/gallery/01-getting-started/index.rst
-   /generated/gallery/21-modules-rf/index.rst
-   /generated/gallery/24-modules-noncartesian/index.rst
+   /generated/gallery/01-pulseq-basics/index.rst
+   /generated/gallery/02-spoiling/index.rst
+   /generated/gallery/03-gre-to-epi/index.rst
+   /generated/gallery/04-non-cartesian/index.rst
+   /generated/gallery/05-sequence-modules/index.rst
+   /generated/gallery/06-checks/index.rst
+   /generated/gallery/07-custom-modules/index.rst
    /generated/gallery/10-gradient-echo/index.rst
    /generated/gallery/11-spin-echo/index.rst
    /generated/gallery/13-fast-spin-echo/index.rst
@@ -987,8 +1194,6 @@ Custom sequence modules
    /generated/gallery/14-bssfp/index.rst
    /generated/gallery/15-epi/index.rst
    /generated/gallery/16-zte/index.rst
-   /generated/gallery/30-building-sequences/index.rst
-   /generated/gallery/40-custom-modules/index.rst
 
 
 .. only:: html

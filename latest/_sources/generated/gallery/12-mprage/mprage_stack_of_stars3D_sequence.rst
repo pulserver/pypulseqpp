@@ -28,7 +28,7 @@ in-plane k-space centre; spoke and partition order determine the recovery time
 of the acquired data within and between inversion cycles. Stack-of-stars
 MPRAGE provides T1-weighted 3D structural imaging with radial sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-66
+.. GENERATED FROM PYTHON SOURCE LINES 12-68
 
 
 
@@ -37,7 +37,7 @@ MPRAGE provides T1-weighted 3D structural imaging with radial sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-74
+.. GENERATED FROM PYTHON SOURCE LINES 69-76
 
 Timing structure
 ----------------
@@ -47,7 +47,7 @@ partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
 shortest timing supported by the modules. Angular undersampling leaves four
 spokes per partition and produces a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-87
+.. GENERATED FROM PYTHON SOURCE LINES 76-89
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ spokes per partition and produces a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
 
 .. code-block:: Python
 
@@ -97,11 +97,11 @@ spokes per partition and produces a compact timing diagram.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8321fbb860>, tr=1, underlays=[2, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f225f454a40>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-100
+.. GENERATED FROM PYTHON SOURCE LINES 93-102
 
 Sampling order
 --------------
@@ -113,7 +113,7 @@ coincident angles in neighbouring partitions. ``TI`` ends at the first
 excitation-pulse centre; the centre of
 k-space on its spoke is sampled at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-109
+.. GENERATED FROM PYTHON SOURCE LINES 102-111
 
 .. code-block:: Python
 
@@ -141,14 +141,14 @@ k-space on its spoke is sampled at ``TI + TE``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 110-114
+.. GENERATED FROM PYTHON SOURCE LINES 112-116
 
 Trajectory
 ----------
 
 The spokes of every partition, over the three k-space axes, coloured by shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-117
+.. GENERATED FROM PYTHON SOURCE LINES 116-119
 
 .. code-block:: Python
 
@@ -176,7 +176,7 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.421 seconds)
+   **Total running time of the script:** (0 minutes 8.464 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

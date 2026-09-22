@@ -29,7 +29,7 @@ Off-resonance phase accumulates during the train and produces geometric
 distortion along the phase-encode axis. EPI supports rapid structural imaging
 and functional MRI.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-91
+.. GENERATED FROM PYTHON SOURCE LINES 13-93
 
 
 
@@ -38,7 +38,7 @@ and functional MRI.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-98
+.. GENERATED FROM PYTHON SOURCE LINES 94-100
 
 Baseline: single shot
 ---------------------
@@ -47,7 +47,7 @@ One excitation acquires the complete phase-encode axis. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-116
+.. GENERATED FROM PYTHON SOURCE LINES 100-118
 
 .. code-block:: Python
 
@@ -82,12 +82,12 @@ off-resonance phase across k-space.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-119
+.. GENERATED FROM PYTHON SOURCE LINES 119-121
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-122
+.. GENERATED FROM PYTHON SOURCE LINES 121-124
 
 .. code-block:: Python
 
@@ -108,11 +108,11 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8341f87290>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f22621f8260>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 123-135
+.. GENERATED FROM PYTHON SOURCE LINES 125-137
 
 Segmentation and in-plane acceleration
 --------------------------------------
@@ -127,7 +127,7 @@ linear in :math:`k_y` and therefore a displacement of
 :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
 routes shorten the train, and both shorten the distortion with it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-160
+.. GENERATED FROM PYTHON SOURCE LINES 137-162
 
 .. code-block:: Python
 
@@ -154,7 +154,7 @@ routes shorten the train, and both shorten the distortion with it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 161-169
+.. GENERATED FROM PYTHON SOURCE LINES 163-171
 
 Echo traversal
 --------------
@@ -165,7 +165,7 @@ traverses the axis one line at a time; a segmented acquisition traverses it
 in steps of ``n_shots``, with each shot starting one line further on;
 acceleration traverses it in steps of ``ry`` and stops there.
 
-.. GENERATED FROM PYTHON SOURCE LINES 169-174
+.. GENERATED FROM PYTHON SOURCE LINES 171-176
 
 
 
@@ -185,7 +185,7 @@ acceleration traverses it in steps of ``ry`` and stops there.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 175-181
+.. GENERATED FROM PYTHON SOURCE LINES 177-183
 
 Which lines are acquired
 ------------------------
@@ -194,7 +194,7 @@ Segmentation and acceleration produce the same train length from different
 sets of lines: the segmented acquisition covers the axis, the accelerated one
 leaves two lines in three unread.
 
-.. GENERATED FROM PYTHON SOURCE LINES 181-186
+.. GENERATED FROM PYTHON SOURCE LINES 183-188
 
 
 
@@ -214,7 +214,7 @@ leaves two lines in three unread.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 187-193
+.. GENERATED FROM PYTHON SOURCE LINES 189-195
 
 Functional MRI time series
 ---------------------------
@@ -223,7 +223,7 @@ Repeated frames form an fMRI time series. The acquisition below uses eight
 slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
 identifies the group; acquisition times come from the actual ADC blocks.
 
-.. GENERATED FROM PYTHON SOURCE LINES 193-225
+.. GENERATED FROM PYTHON SOURCE LINES 195-227
 
 .. code-block:: Python
 
@@ -255,7 +255,7 @@ identifies the group; acquisition times come from the actual ADC blocks.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.819 seconds)
+   **Total running time of the script:** (0 minutes 0.822 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

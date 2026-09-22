@@ -99,7 +99,7 @@ the sequence, under a stated model and calibration, is within a stated limit.
 * {func}`~pypulseqpp.calc_rf_power` and
   {meth}`~pypulseqpp.Sequence.calc_rf_power` — the RF power the check
   integrates, in Pulseq's Hz units.
-* {doc}`../../examples/getting-started` — running the check over a
+* {doc}`../../examples/checks` — running the check over a
   sequence and reading its report.
 
 ## References

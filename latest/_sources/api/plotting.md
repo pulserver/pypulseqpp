@@ -1,9 +1,8 @@
 # Plotting
 
-`pypulseqpp.plot`: each figure is a function of the object it draws.
-{func}`plot` and {func}`paper_plot` are also {class}`pypulseqpp.Sequence`
-methods, for scripts written against upstream PyPulseq; the other figures are
-functions only.
+Each figure is a function of the object it draws. {func}`plot` and
+{func}`paper_plot` are also {class}`pypulseqpp.Sequence` methods, for scripts
+written against upstream PyPulseq; the other figures are functions only.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.plot
@@ -19,6 +18,19 @@ publication diagram, overlaid on the others.
 | --- | --- |
 | {obj}`~pypulseqpp.plot.plot` | Open ``seq`` in the SeqEyes viewer; see :meth:`pypulseqpp.Sequence.plot`. |
 | {obj}`~pypulseqpp.plot.paper_plot` | Draw a publication diagram of ``seq``; see :meth:`pypulseqpp.Sequence.paper_plot`. |
+
+## Colormaps
+
+The figures on this page are drawn with these. Every tone in them is held
+between two luminances, so that a figure drawn on a transparent canvas reads
+against white paper and against a dark page alike; a figure drawn beside one of
+these takes the same colormap so that the two agree.
+
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.plot.SAMPLING` | An acquisition order, first to last. |
+| {obj}`~pypulseqpp.plot.MAGNITUDE` | A magnitude from nothing, with zero drawn as the page. |
+| {obj}`~pypulseqpp.plot.SIGNED` | A signed quantity about zero, with zero drawn as the page. |
 
 ## k-space and RF profiles
 

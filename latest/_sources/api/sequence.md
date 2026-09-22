@@ -1,7 +1,7 @@
 # Sequence and system limits
 
-`pypulseqpp`: the sequence container, the system limits a sequence is designed
-under, and the geometry transforms applied to it.
+The sequence container, the system limits a sequence is designed under, and
+the geometry transforms applied to a finished one.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -37,7 +37,10 @@ doubles the field of view along it.
 {class}`Opts` holds the gradient amplitude, slew-rate, RF and ADC limits
 together with the RF, gradient, ADC and block duration rasters.
 {func}`apply_system_derates` and {func}`cap_system` return adjusted copies and
-leave the caller's limits unchanged.
+leave the caller's limits unchanged. `MAX_GRAD_DERATE` and `MAX_SLEW_DERATE`
+are the fractions {func}`apply_system_derates` applies by default, so that a
+design solved one axis at a time stays within the limit when more than one axis
+plays.
 
 | Object | Description |
 | --- | --- |
@@ -45,5 +48,5 @@ leave the caller's limits unchanged.
 | {obj}`~pypulseqpp.default_system` | Return ``system``, or the shared default system when it is ``None``. |
 | {obj}`~pypulseqpp.apply_system_derates` | Return a copy with gradient and slew limits scaled from their base values. |
 | {obj}`~pypulseqpp.cap_system` | Return a copy with gradient and slew limits lowered to the specified ceilings. |
-| {obj}`~pypulseqpp.MAX_GRAD_DERATE` | Convert a string or number to a floating-point number, if possible. |
-| {obj}`~pypulseqpp.MAX_SLEW_DERATE` | Convert a string or number to a floating-point number, if possible. |
+| {obj}`~pypulseqpp.MAX_GRAD_DERATE` | Fraction of the gradient amplitude limit a designed waveform may reach. |
+| {obj}`~pypulseqpp.MAX_SLEW_DERATE` | Fraction of the slew-rate limit a designed waveform may reach. |

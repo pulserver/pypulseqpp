@@ -29,7 +29,7 @@ sample occurs one TE later. The ordering assigns recovery times within each
 inversion cycle to ``(line, partition)`` views. MPRAGE is used for
 high-resolution 3D T1-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-67
+.. GENERATED FROM PYTHON SOURCE LINES 13-69
 
 
 
@@ -38,7 +38,7 @@ high-resolution 3D T1-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-77
+.. GENERATED FROM PYTHON SOURCE LINES 70-79
 
 Timing structure
 ----------------
@@ -50,7 +50,7 @@ partition provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-87
+.. GENERATED FROM PYTHON SOURCE LINES 79-89
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
 
 .. code-block:: Python
 
@@ -97,11 +97,11 @@ longer readout trains.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f8262aecad0>, tr=3, underlays=[1, 2, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f225cfe9700>, tr=3, underlays=[1, 2, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-101
+.. GENERATED FROM PYTHON SOURCE LINES 93-103
 
 Sampling order
 --------------
@@ -114,7 +114,7 @@ inversion-pulse centre to that view's excitation-pulse centre; the central
 ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
 acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 101-114
+.. GENERATED FROM PYTHON SOURCE LINES 103-116
 
 .. code-block:: Python
 
@@ -147,7 +147,7 @@ acquired later in the recovery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-124
+.. GENERATED FROM PYTHON SOURCE LINES 117-126
 
 Accelerated sampling
 --------------------
@@ -159,7 +159,7 @@ range of inversion-recovery weighting. Scan duration equals the number of
 inversion cycles multiplied by TR; the fully sampled calibration region still
 requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 124-140
+.. GENERATED FROM PYTHON SOURCE LINES 126-142
 
 .. code-block:: Python
 
@@ -193,7 +193,7 @@ requires every partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.808 seconds)
+   **Total running time of the script:** (0 minutes 0.819 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

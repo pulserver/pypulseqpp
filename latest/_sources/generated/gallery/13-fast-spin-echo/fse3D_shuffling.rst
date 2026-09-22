@@ -28,7 +28,7 @@ pattern. The resulting incoherent contrast distribution can support
 echo-resolved or subspace reconstruction; no reconstruction is performed
 here.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-49
+.. GENERATED FROM PYTHON SOURCE LINES 12-51
 
 .. code-block:: Python
 
@@ -66,7 +66,7 @@ here.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-56
+.. GENERATED FROM PYTHON SOURCE LINES 52-58
 
 Variable-density sampling
 -------------------------
@@ -75,7 +75,7 @@ A fully sampled calibration region is embedded in a variable-density
 Poisson-disc mask. The remaining samples are distributed across echo indices
 rather than assigned deterministically by k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-76
+.. GENERATED FROM PYTHON SOURCE LINES 58-78
 
 
 
@@ -89,7 +89,7 @@ rather than assigned deterministically by k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 77-85
+.. GENERATED FROM PYTHON SOURCE LINES 79-87
 
 Echo-time distribution
 ----------------------
@@ -100,7 +100,7 @@ index occurs throughout the sampled extent. Contrast evolution is
 consequently not locked to a radial k-space band, which is the sampling
 condition used by echo-resolved and subspace FSE reconstructions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-100
+.. GENERATED FROM PYTHON SOURCE LINES 87-102
 
 
 
@@ -117,7 +117,7 @@ condition used by echo-resolved and subspace FSE reconstructions.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.427 seconds)
+   **Total running time of the script:** (0 minutes 0.430 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

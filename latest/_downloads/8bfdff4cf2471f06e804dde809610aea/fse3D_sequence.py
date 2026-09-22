@@ -18,6 +18,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pypulseqpp.plot import SAMPLING
+
 PAGE_WIDTH = 8.6
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 
@@ -41,7 +43,7 @@ def order_figure(seq, ny, nz):
     for ax, value, label in zip(
         axes, (echo, shot), ("Echo index", "Shot index"), strict=True
     ):
-        art = ax.scatter(ky, kz, c=value, cmap="turbo", s=12, linewidth=0)
+        art = ax.scatter(ky, kz, c=value, cmap=SAMPLING, s=12, linewidth=0)
         fig.colorbar(art, ax=ax, label=label, pad=0.02)
         ax.set_xlabel(r"$k_y$ (lines from centre)")
         ax.grid(alpha=0.2)
@@ -154,7 +156,7 @@ order_figure(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 # sphinx_gallery_start_ignore
 ky, kz, echo, _ = views(seq, ANALYSIS["n_y"], ANALYSIS["n_z"])
 fig, ax = plt.subplots(figsize=(PAGE_WIDTH, 2.8))
-art = ax.scatter(ky, kz, c=signal[echo], cmap="viridis", s=16, linewidth=0)
+art = ax.scatter(ky, kz, c=signal[echo], cmap=SAMPLING, s=16, linewidth=0)
 fig.colorbar(art, ax=ax, label="Relative echo amplitude")
 ax.set(xlabel=r"$k_y$ (lines from centre)", ylabel=r"$k_z$ (partitions from centre)")
 fig.tight_layout()

@@ -28,7 +28,7 @@ partition order determine the recovery time of the acquired data within and
 between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted
 3D structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-66
+.. GENERATED FROM PYTHON SOURCE LINES 12-68
 
 
 
@@ -37,7 +37,7 @@ between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-74
+.. GENERATED FROM PYTHON SOURCE LINES 69-76
 
 Timing structure
 ----------------
@@ -47,7 +47,7 @@ partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
 shortest timing supported by the modules. Four interleaves per partition
 produce a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 74-87
+.. GENERATED FROM PYTHON SOURCE LINES 76-89
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ produce a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 90-92
 
 .. code-block:: Python
 
@@ -97,11 +97,11 @@ produce a compact timing diagram.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f825d906690>, tr=2, underlays=[1, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f2345b81be0>, tr=2, underlays=[1, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-99
+.. GENERATED FROM PYTHON SOURCE LINES 93-101
 
 Sampling order
 --------------
@@ -112,7 +112,7 @@ readouts than an equivalent Cartesian line train, reducing the range of
 inversion-recovery weighting. ``TI`` ends at the first excitation-pulse
 centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-108
+.. GENERATED FROM PYTHON SOURCE LINES 101-110
 
 .. code-block:: Python
 
@@ -140,7 +140,7 @@ centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-114
+.. GENERATED FROM PYTHON SOURCE LINES 111-116
 
 Trajectory
 ----------
@@ -148,7 +148,7 @@ Trajectory
 The interleaves of every partition, over the three k-space axes, coloured by
 shot. Each one is turned from the last so that the set covers the plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-117
+.. GENERATED FROM PYTHON SOURCE LINES 116-119
 
 .. code-block:: Python
 
@@ -176,7 +176,7 @@ shot. Each one is turned from the last so that the set covers the plane.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.215 seconds)
+   **Total running time of the script:** (0 minutes 11.168 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

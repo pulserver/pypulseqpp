@@ -1,17 +1,18 @@
 # User guide
 
-Installation and project-use logistics. Sequence physics and design concepts are
-covered in {doc}`../explanations/index`; executable workflows are in
+Installing the package, the platforms it is supported on, and how the project
+is used and cited. Sequence physics and design concepts are covered in
+{doc}`../explanations/index`; executable workflows are in
 {doc}`../examples/index`.
 
 ## Documentation sections
 
 | Section | Purpose |
 | --- | --- |
-| This page | Installation, support and project-use logistics. |
+| This page | Installation, supported platforms, and how to cite the project. |
 | {doc}`../developer-guide/index` | Development setup and contribution workflow. |
 | {doc}`../explanations/index` | Pulseq representation, sequence design and constraint models. |
-| {doc}`../examples/index` | Executable sequence workflows and design studies. |
+| {doc}`../examples/index` | A course in sequence design, and a page per shipped sequence. |
 | {doc}`../sequences` | Catalogue of the shipped sequences, one reference page each. |
 | {doc}`../api/index` | Exact interfaces, units and defaults. |
 | {doc}`../misc/index` | Licensing, related projects and contributors. |
