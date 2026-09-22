@@ -1,14 +1,10 @@
 # Pulseq representation
 
-A `.seq` file is a portable description of acquisition events, channel
-assignments and timing. It is the object `pypulseqpp` builds,
-analyses and writes, and its conventions are visible throughout the Python
-interface — in the units amplitudes are reported in, in the rasters event times
-are quantized to, and in the distinction between an event and the block that
-plays it.
-
-What the package adds on top of the representation is in
-{doc}`../design/index`.
+What a `.seq` file records, how it stores it, and the rasters its event times
+are addressed on. These conventions appear throughout the Python interface, in
+the units of amplitudes, the quantization of times and the distinction between
+an event and the block that plays it. What the package adds above the format is
+in {doc}`../design/index`.
 
 | Concept | What it covers |
 | --- | --- |

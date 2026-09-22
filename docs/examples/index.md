@@ -1,30 +1,30 @@
 # Examples
 
 Executable pages, run when the documentation is built, so every figure and
-every printed number on them is produced by the code as it stands.
+printed number is produced by the code as it stands. Concepts are in
+{doc}`/explanations/index`, interfaces in {doc}`/api/index`, and the
+prescriptions of the shipped sequences in the {doc}`catalogue </sequences>`.
 
-The first seven sections are a course. Each page starts from the sequence the
-previous one finished with and adds one thing to it, states what that thing
-changes, and measures it, so the sections are written to be read in order. The
-last section is not part of the course: it is one page per shipped sequence,
-each with a representative prescription and the figures that prescription
-produces.
+## Pulseq course
 
-| Section | What it covers |
+Lessons read in order: each starts from the sequence the previous one finished
+with and adds one construct.
+
+| Section | Lessons | Covers |
+| --- | --- | --- |
+| {doc}`/examples/pulseq-basics` | 3 | Events, blocks and timing, up to a slice-selective gradient echo. |
+| {doc}`/examples/spoiling` | 2 | Gradient and RF spoiling of the residual transverse magnetisation. |
+| {doc}`/examples/gre-to-epi` | 3 | Several echoes per excitation, up to single-shot echo planar imaging. |
+| {doc}`/examples/non-cartesian` | 2 | Radial spokes and spiral interleaves, and the limits on their traversal. |
+| {doc}`/examples/sequence-modules` | 3 | The excitation and readout modules, and the application that plays them. |
+| {doc}`/examples/checks` | 1 | The constraint checks applied to a finished sequence. |
+| {doc}`/examples/custom-modules` | 3 | New modules written against the base-class contract. |
+
+## Shipped sequences
+
+| Section | Covers |
 | --- | --- |
-| {doc}`/examples/pulseq-basics` | Events, blocks and timing, up to a slice-selective gradient echo. |
-| {doc}`/examples/spoiling` | What a repetition leaves behind, and the gradient and RF spoiling that keep it out of the next one. |
-| {doc}`/examples/gre-to-epi` | Several echoes per excitation, up to a single-shot echo planar acquisition. |
-| {doc}`/examples/non-cartesian` | Radial spokes and spiral arms, and the limits that bound their traversal. |
-| {doc}`/examples/sequence-modules` | The excitation and readout designers, and the application that plays them. |
-| {doc}`/examples/checks` | The checks a finished sequence is put through, and what each one reports. |
-| {doc}`/examples/custom-modules` | New modules written against the base-class contract. |
-| {doc}`/examples/built-in-sequences/index` | Every complete sequence the package ships, with its diagram and its acquisition order. |
-
-The concepts these pages rely on are in {doc}`/explanations/index`: the Pulseq
-representation, the design abstractions, and the gradient, stimulation and SAR
-constraints. The interfaces they call are documented in {doc}`/api/index`, and
-the prescriptions of the shipped sequences in the {doc}`catalogue </sequences>`.
+| {doc}`/examples/built-in-sequences/index` | Each complete sequence at a representative prescription: diagram, sampling and acquisition order. |
 
 ```{toctree}
 :hidden:

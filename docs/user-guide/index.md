@@ -10,7 +10,7 @@ Sequence physics and design concepts are covered in
 
 | Section | Purpose |
 | --- | --- |
-| This page | Installation, supported platforms, issue reporting and security. |
+| This page | Installation, supported platforms, running a shipped sequence, issue reporting and security. |
 | {doc}`../developer-guide/index` | Development setup and contribution workflow. |
 | {doc}`../explanations/index` | Pulseq representation, sequence design and constraint models. |
 | {doc}`../examples/index` | A course in sequence design, and a page per shipped sequence. |
@@ -55,6 +55,27 @@ Optional facilities are installed as extras:
 | FSE design | `pip install 'pypulseqpp[design]'` | `torchsim`, used by optimized fast-spin-echo refocusing schedules. |
 
 Developer installation is documented in {doc}`../developer-guide/index`.
+
+## Running a shipped sequence
+
+Each shipped sequence is a module of `pypulseqpp.sequences`. Calling the module
+designs the sequence at the prescription given as keyword arguments and returns
+it; the prescription each accepts is on its page in the
+{doc}`catalogue <../sequences>`.
+
+```python
+>>> from pypulseqpp import sequences
+>>> seq = sequences.gre2D_sequence(n_x=64, n_y=64, n_slices=1)
+>>> signature = seq.write("gre_2d.seq")
+
+```
+
+Every module is also a command-line entry point, whose options are derived from
+the same prescription:
+
+```bash
+python -m pypulseqpp.sequences.sequence.gre2D_sequence --help
+```
 
 ## Reporting issues
 
