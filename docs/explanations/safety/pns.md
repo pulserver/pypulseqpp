@@ -54,7 +54,7 @@ axis, so prescription orientation can change the estimate.
 
 * {func}`~pypulseqpp.safety.check_pns` — checker and diagnostic trace.
 * {doc}`slew_rate` — hardware slew-rate limit.
-* {doc}`../../examples/getting-started` — constraint-checking workflow.
+* {doc}`../../examples/checks` — constraint-checking workflow.
 
 ## References
 

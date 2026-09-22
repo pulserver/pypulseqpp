@@ -1,8 +1,8 @@
 # Gradient design
 
-`pypulseqpp`: gradient events on one logical gradient axis, and the operations
-on them. Amplitudes are in Hz/m, slew rates in Hz/m/s and gradient areas in
-1/m, except where a docstring states otherwise.
+Gradient events on one logical gradient axis, and the operations on them.
+Amplitudes are in Hz/m, slew rates in Hz/m/s and gradient areas in 1/m, except
+where a docstring states otherwise.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp

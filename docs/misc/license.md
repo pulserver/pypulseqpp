@@ -12,7 +12,7 @@ Vendored or transcribed third-party components retain their own licences:
 | [SeqEyes](https://github.com/xingwangyong/seqeyes) | BSD 3-Clause | [`LICENSE`](https://github.com/xingwangyong/seqeyes/blob/main/LICENSE) in the submodule |
 
 MRArbGrad and SeqEyes are Git submodules, under `external/` and `viewer/`, so
-their licence texts travel with the checkout rather than with this repository's
+their licence texts are part of the checkout rather than of this repository's
 own tree. [`external/NOTICE.md`](https://github.com/pulserver/pypulseqpp/blob/main/external/NOTICE.md)
 states which of MRArbGrad's files are compiled and cites the method.
 

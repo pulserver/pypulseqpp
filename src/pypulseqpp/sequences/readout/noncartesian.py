@@ -397,7 +397,7 @@ class RadialReadout2D(_RadialReadout):
 
 
 class RadialStackReadout(_RadialReadout):
-    """Radial spokes in-plane, Cartesian partitions along z: stack of stars.
+    """Radial spokes in-plane with Cartesian partitions along z, a stack of stars.
 
     Examples
     --------

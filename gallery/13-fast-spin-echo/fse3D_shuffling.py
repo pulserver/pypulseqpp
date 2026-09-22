@@ -17,6 +17,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pypulseqpp.plot import SAMPLING
+
 PAGE_WIDTH = 8.6
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 # sphinx_gallery_end_ignore
@@ -61,9 +63,9 @@ ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
 te_ms = (echo + 1) * app.fse.esp * 1e3
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.6), sharey=True)
-axes[0].scatter(ky, kz, s=13, color="0.2", linewidth=0)
+axes[0].scatter(ky, kz, s=13, color="0.5", linewidth=0)
 axes[0].set_title("Sampled views")
-art = axes[1].scatter(ky, kz, c=te_ms, cmap="turbo", s=14, linewidth=0)
+art = axes[1].scatter(ky, kz, c=te_ms, cmap=SAMPLING, s=14, linewidth=0)
 fig.colorbar(art, ax=axes[1], label="Echo time (ms)", pad=0.02)
 axes[1].set_title("Echo-time distribution")
 for ax in axes:
@@ -92,7 +94,7 @@ ax.hist(
         te_ms.max() + app.fse.esp * 1e3,
         app.fse.esp * 1e3,
     ),
-    color="0.25",
+    color="0.5",
 )
 ax.set(xlabel="Echo time (ms)", ylabel="Acquired views")
 fig.tight_layout()

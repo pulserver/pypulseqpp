@@ -1,4 +1,4 @@
-"""Base class of complete sequences: events designed once, one repetition per kernel call."""
+"""Base class of a complete sequence, designed once and played one repetition at a time."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ system : pypulseqpp.Opts, default=None
 
 
 class SequenceApp(ABC):
-    """A complete sequence: its events, its sampling order and the loop that plays them.
+    """A complete sequence, designed from a prescription and played one repetition at a time.
 
     Constructing an application designs it: ``init_sequence`` receives the
     prescription and builds the events and the sampling order. Nothing is

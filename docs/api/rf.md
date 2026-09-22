@@ -1,9 +1,10 @@
 # RF pulse design
 
-`pypulseqpp`: RF events, from the basic factories to designed pulses, and their
-analysis. A design function returns an RF event and, depending on its options, a slice-selection gradient, rephasing gradient and
-design metadata.
-RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in radians.
+RF events, from the basic factories to designed pulses, and the analysis of
+what they produce. A design function returns an RF event and, depending on its
+options, a slice-selection gradient, a rephasing gradient and the design's
+metadata. RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in
+radians.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -16,7 +17,7 @@ half-passage pair.
 
 | Object | Description |
 | --- | --- |
-| {obj}`~pypulseqpp.make_adiabatic_pulse` | Construct an adiabatic RF pulse: a frequency sweep whose rotation is insensitive to B1. |
+| {obj}`~pypulseqpp.make_adiabatic_pulse` | Construct an adiabatic RF pulse, a frequency sweep insensitive to B1. |
 | {obj}`~pypulseqpp.make_arbitrary_rf` | Create an RF pulse with the given pulse shape. |
 | {obj}`~pypulseqpp.make_block_pulse` | Create a block (RECT or hard) pulse. |
 | {obj}`~pypulseqpp.make_gauss_pulse` | Create a [optionally slice selective] Gauss pulse. |
@@ -68,7 +69,7 @@ one channel after another over a shared time base.
 | {obj}`~pypulseqpp.make_ptx_pulse` | Make a dynamic pTx pulse from one waveform per transmit channel. |
 | {obj}`~pypulseqpp.split_ptx_pulse` | Return a pulse's waveforms, one row per transmit channel, in Hz. |
 | {obj}`~pypulseqpp.calc_rf_shim` | Return per-channel weights whose combined B1 field has magnitude ``target``. |
-| {obj}`~pypulseqpp.make_spokes_pulse` | Design a spokes pTx pulse: one slice excited at several in-plane k positions. |
+| {obj}`~pypulseqpp.make_spokes_pulse` | Design a spokes pTx pulse, exciting one slice at several in-plane k positions. |
 
 ## Analysis and simulation
 

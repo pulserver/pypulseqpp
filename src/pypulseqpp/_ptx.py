@@ -1,4 +1,4 @@
-"""Parallel-transmit pulses: the multi-channel RF event, shims, and small-tip designs."""
+"""Parallel-transmit pulses, the shims that weight them, and small-tip design."""
 
 from __future__ import annotations
 
@@ -262,7 +262,7 @@ def make_spokes_pulse(
     system=None,
     use: str = "excitation",
 ):
-    """Design a spokes pTx pulse: one slice excited at several in-plane k positions.
+    """Design a spokes pTx pulse, exciting one slice at several in-plane k positions.
 
     Each spoke is a small-tip SLR sub-pulse on one lobe of an alternating
     slice gradient; in-plane blips between lobes move it through excitation

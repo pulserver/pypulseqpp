@@ -155,7 +155,7 @@ class _PropellerReadout(_EpiReadout):
 
 
 class PropellerReadout2D(_PropellerReadout):
-    """A 2D PROPELLER blade set: EPI blades turned about the centre of k-space.
+    """EPI blades turned about the centre of k-space, as a 2D PROPELLER set.
 
     Examples
     --------

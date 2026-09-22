@@ -4,35 +4,79 @@ from __future__ import annotations
 
 from matplotlib.colors import LinearSegmentedColormap
 
-INK = "#0b0b0b"
-MUTED = "#52514e"
-FAINT = "#b9b8b2"
+#: Axis furniture. Every colour on this page is held between two luminances,
+#: so that it clears 3:1 against white paper and against the dark
+#: documentation theme alike; a figure drawn in them needs no canvas of its
+#: own and is legible on either. `tests/test_plot_style.py` pins the bound.
+INK = "#717c8b"
+MUTED = "#7d8996"
+FAINT = "#7d899659"
 
 #: Categorical hues, assigned in order and never cycled.
 SERIES = (
     "#2a78d6",
     "#eb6834",
-    "#1baf7a",
-    "#eda100",
-    "#e87ba4",
+    "#169869",
+    "#b47900",
+    "#c5678b",
     "#008300",
-    "#4a3aa7",
+    "#7d6fd4",
     "#e34948",
 )
 
-#: An acquisition order, first to last.
-SAMPLING = "turbo"
-
-#: A magnitude from nothing, with zero drawn as paper.
-MAGNITUDE = LinearSegmentedColormap.from_list(
-    "pypulseqpp-magnitude",
-    ["#ffffff", "#cfe1f7", "#86b6ef", "#2a78d6", "#184f95", "#0d366b"],
+#: An acquisition order, first to last. The hue order is the one a reader
+#: knows from ``turbo``; the luminance rises gently across it instead of
+#: running from near-black to near-white, because both of those ends
+#: disappear into one background or the other.
+SAMPLING = LinearSegmentedColormap.from_list(
+    "pypulseqpp-sampling",
+    [
+        (0.000, "#4c62de"),
+        (0.125, "#3373cb"),
+        (0.250, "#128595"),
+        (0.375, "#118f66"),
+        (0.500, "#3d9436"),
+        (0.625, "#6a941c"),
+        (0.750, "#988d22"),
+        (0.875, "#c48225"),
+        (1.000, "#f56918"),
+    ],
 )
 
-#: A signed quantity about zero, with zero drawn as paper.
+#: A magnitude from nothing, with zero drawn as paper. Zero is transparent
+#: rather than white, so it is the paper of whichever background the figure is
+#: shown on. The transparent end carries the hue it fades into, so a small
+#: value is a faint tint of the ramp rather than a wash of grey. The far end
+#: turns towards indigo rather than darkening, which would take it into the
+#: dark theme's own background.
+MAGNITUDE = LinearSegmentedColormap.from_list(
+    "pypulseqpp-magnitude",
+    [
+        (0.0, "#cfe1f700"),
+        (0.2, "#cfe1f7"),
+        (0.4, "#86b6ef"),
+        (0.6, "#4a90e2"),
+        (0.8, "#2a78d6"),
+        (1.0, "#6657e9"),
+    ],
+)
+
+#: A signed quantity about zero, with zero drawn as paper. Each side fades into
+#: its own hue, so the transparent centre is approached from peach below and
+#: from blue above, and each far end stops at a tone that reads against either
+#: background.
 SIGNED = LinearSegmentedColormap.from_list(
     "pypulseqpp-signed",
-    ["#8a3a12", "#eb6834", "#f7c9b3", "#ffffff", "#cfe1f7", "#2a78d6", "#123f78"],
+    [
+        (0.0, "#bb511c"),
+        (1 / 6, "#eb6834"),
+        (2 / 6, "#f7c9b3"),
+        (0.5, "#f7c9b300"),
+        (0.5, "#cfe1f700"),
+        (4 / 6, "#cfe1f7"),
+        (5 / 6, "#2a78d6"),
+        (1.0, "#2670ce"),
+    ],
 )
 
 

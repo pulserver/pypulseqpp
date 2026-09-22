@@ -41,6 +41,25 @@ def _frame(axis, points: np.ndarray) -> None:
         low, high = float(np.min(values)), float(np.max(values))
         margin = 0.05 * max(high - low, 1e-12)
         setter(low - margin, high + margin)
+    _box(axis)
+
+
+def _box(axis) -> None:
+    """Draw the frame in the house furniture tone.
+
+    A 3D axis carries its own panes, axis lines and grid, in a light grey the
+    rcParams do not reach. Left as they are, they are invisible on white paper
+    and the brightest thing in the figure on a dark page.
+    """
+    if not hasattr(axis, "zaxis"):
+        _style.axis_style(axis)
+        return
+    for spatial in (axis.xaxis, axis.yaxis, axis.zaxis):
+        spatial.line.set_color(_style.FAINT)
+        spatial.set_pane_color((0.0, 0.0, 0.0, 0.0))
+        spatial._axinfo["grid"]["color"] = _style.FAINT
+        spatial.label.set_color(_style.MUTED)
+    axis.tick_params(colors=_style.MUTED, labelsize=8)
 
 
 def _within(path: np.ndarray, points: np.ndarray) -> np.ndarray:
@@ -197,7 +216,7 @@ def plot_kspace(
             axis = figure.add_subplot(1, len(panels), column, projection="3d")
             if path is not None:
                 inside = _within(path[:3], adc)
-                axis.plot(inside[0], inside[1], inside[2], lw=0.4, color="0.7")
+                axis.plot(inside[0], inside[1], inside[2], lw=0.4, color=_style.MUTED)
             drawn = axis.scatter(adc[0], adc[1], adc[2], **shared)
             axis.set_xlabel(_AXES["x"][1])
             axis.set_ylabel(_AXES["y"][1])
@@ -206,7 +225,7 @@ def plot_kspace(
             one, two = drawn_rows
             axis = figure.add_subplot(1, len(panels), column)
             if path is not None:
-                axis.plot(path[one], path[two], lw=0.4, color="0.7")
+                axis.plot(path[one], path[two], lw=0.4, color=_style.MUTED)
             drawn = axis.scatter(coords[one], coords[two], **shared)
             axis.set_xlabel(_AXES[plane[0]][1])
             axis.set_ylabel(_AXES[plane[1]][1])

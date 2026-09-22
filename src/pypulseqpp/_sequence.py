@@ -1882,16 +1882,16 @@ class Sequence:
         self,
         time_range=(0, np.inf),
         line_width: float = 1.2,
-        axes_color="0.9",
-        rf_color="black",
-        gx_color="black",
-        gy_color="black",
-        gz_color="black",
+        axes_color=None,
+        rf_color=None,
+        gx_color=None,
+        gy_color=None,
+        gz_color=None,
         rf_plot: str = "abs",
         *,
         tr=None,
         max_underlays: int = 16,
-        underlay_color="0.8",
+        underlay_color=None,
         ax=None,
     ) -> SimpleNamespace:
         """Draw a publication-style diagram of one repetition, using mrsd.
@@ -1911,16 +1911,18 @@ class Sequence:
             drawn alone, without repetitions underneath.
         line_width : float, default 1.2, default=1.2
             Width of every drawn line, in points.
-        axes_color : str | tuple[float, ...], default "0.9", default='0.9'
-            A Matplotlib colour for the baselines.
-        rf_color : str | tuple[float, ...], default "black", default='black'
-            A Matplotlib colour for the RF and ADC rows.
-        gx_color : str | tuple[float, ...], default "black", default='black'
-            A Matplotlib colour for the x gradient row.
-        gy_color : str | tuple[float, ...], default "black", default='black'
-            A Matplotlib colour for the y gradient row.
-        gz_color : str | tuple[float, ...], default "black", default='black'
-            A Matplotlib colour for the z gradient row.
+        axes_color : str | tuple[float, ...], default=None
+            A Matplotlib colour for the baselines and the repetition marker.
+            The package's faint ink by default.
+        rf_color : str | tuple[float, ...], default=None
+            A Matplotlib colour for the RF and ADC rows. The package's ink by
+            default, which reads against a light and a dark background alike.
+        gx_color : str | tuple[float, ...], default=None
+            A Matplotlib colour for the x gradient row, as ``rf_color``.
+        gy_color : str | tuple[float, ...], default=None
+            A Matplotlib colour for the y gradient row, as ``rf_color``.
+        gz_color : str | tuple[float, ...], default=None
+            A Matplotlib colour for the z gradient row, as ``rf_color``.
         rf_plot : {'abs', 'real', 'imag'}, default 'abs', default='abs'
             Which part of the RF waveform to draw.
         tr : int, default=None
@@ -1930,8 +1932,8 @@ class Sequence:
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
             most positive value; 0 draws none.
-        underlay_color : str | tuple[float, ...], default "0.8", default='0.8'
-            A Matplotlib colour.
+        underlay_color : str | tuple[float, ...], default=None
+            A Matplotlib colour. The package's muted ink by default.
         ax : matplotlib.axes.Axes, default=None
             Axes to draw in; a new figure by default.
 

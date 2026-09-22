@@ -18,6 +18,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pypulseqpp.plot import SAMPLING
+
 PAGE_WIDTH = 8.6  # inches, the width of the documentation column
 
 plt.rcParams.update(
@@ -52,7 +54,7 @@ def traversal_figure(designs, n_y):
     figure, axes = plt.subplots(1, len(designs), figsize=(PAGE_WIDTH, 3.0), sharey=True)
     for axis, (title, seq) in zip(np.atleast_1d(axes), designs.items(), strict=True):
         trains = _views(seq, n_y)
-        colours = plt.get_cmap("turbo")(
+        colours = SAMPLING(
             np.linspace(0.1, 0.9, max(len({shot for shot, _, _ in trains}), 2))
         )
         for shot, echo, line in trains:
@@ -76,7 +78,7 @@ def coverage_figure(designs, n_y):
             np.full(lines.size, row),
             "|",
             ms=9,
-            color=plt.get_cmap("turbo")(0.15 + 0.35 * row),
+            color=SAMPLING(0.15 + 0.35 * row),
         )
     axis.set_yticks(range(len(designs)), list(designs))
     axis.set_xlabel("$k_y$ (lines from centre)")
@@ -214,7 +216,7 @@ slc = np.asarray(labels["SLC"])[nav]
 time = adc_time[nav]
 first = np.r_[True, (rep[1:] != rep[:-1]) | (slc[1:] != slc[:-1])]
 figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
-art = axis.scatter(time[first], slc[first], c=rep[first], cmap="turbo", s=35)
+art = axis.scatter(time[first], slc[first], c=rep[first], cmap=SAMPLING, s=35)
 figure.colorbar(art, ax=axis, label="Frame (REP)", pad=0.02)
 axis.set_xlabel("acquisition time (s)")
 axis.set_ylabel("Multiband group (SLC)")

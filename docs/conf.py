@@ -4,9 +4,16 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from pathlib import Path
 
 from sphinx_gallery.sorting import ExplicitOrder
+
+# The generators and the figure style live beside this file rather than on the
+# path the build was started from.
+sys.path.insert(0, str(Path(__file__).parent))
+
+from figure_style import FIGURE_RCPARAMS, gallery_house_style  # noqa: E402
 
 project = "pypulseqpp"
 copyright = "2026, pypulseqpp contributors"  # noqa: A001
@@ -106,9 +113,13 @@ intersphinx_mapping = {
 #: directory per landing page under ``docs/examples``; sphinx-gallery nests one
 #: level only, so the hierarchy a reader navigates is built by those pages.
 GALLERY_SECTIONS = [
-    "../gallery/01-getting-started",
-    "../gallery/21-modules-rf",
-    "../gallery/24-modules-noncartesian",
+    "../gallery/01-pulseq-basics",
+    "../gallery/02-spoiling",
+    "../gallery/03-gre-to-epi",
+    "../gallery/04-non-cartesian",
+    "../gallery/05-sequence-modules",
+    "../gallery/06-checks",
+    "../gallery/07-custom-modules",
     "../gallery/10-gradient-echo",
     "../gallery/11-spin-echo",
     "../gallery/13-fast-spin-echo",
@@ -116,8 +127,6 @@ GALLERY_SECTIONS = [
     "../gallery/14-bssfp",
     "../gallery/15-epi",
     "../gallery/16-zte",
-    "../gallery/30-building-sequences",
-    "../gallery/40-custom-modules",
 ]
 
 sphinx_gallery_conf = {
@@ -132,6 +141,9 @@ sphinx_gallery_conf = {
     "nested_sections": True,
     "subsection_order": ExplicitOrder(GALLERY_SECTIONS),
     "within_subsection_order": "FileNameSortKey",
+    # sphinx-gallery calls rcdefaults() before each script, so the house style
+    # is re-applied behind its own resets rather than set once in this file.
+    "reset_modules": ("matplotlib", "seaborn", gallery_house_style),
     # Left off deliberately: it would strip the ignore flags before the page is
     # written, and _hide_ignored_code_from_the_page_only needs them there.
     "remove_config_comments": False,
@@ -145,6 +157,11 @@ sphinx_gallery_conf = {
     "copyfile_regex": r".*\.md",
     "exclude_implicit_doc": {"pypulseqpp.Sequence"},
 }
+
+# `reset_modules` holds a function, which Sphinx cannot pickle into its
+# configuration cache. The cache is an optimisation, and the build runs under
+# `-W`, so the note it emits would otherwise fail it.
+suppress_warnings = ["config.cache"]
 
 
 class _InventoryOutageFilter(logging.Filter):
@@ -389,7 +406,10 @@ html_title = "pypulseqpp documentation"
 # these copies by the handlers above, and the PDF cover reads the wordmark
 # from here as well.
 html_static_path = ["_static"]
+html_css_files = ["pypulseqpp.css"]
 html_logo = "_static/pypulseqpp-mark.svg"
 plot_include_source = True
 plot_html_show_source_link = False
 plot_formats = [("svg", 96)]
+plot_rcparams = FIGURE_RCPARAMS
+plot_apply_rcparams = True

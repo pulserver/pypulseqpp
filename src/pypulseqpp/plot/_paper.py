@@ -11,6 +11,7 @@ import numpy as np
 from .. import _ext as _cxx
 from .._waveforms import waveforms_and_times
 from . import _seqeyes as _plot
+from . import _style
 
 #: Diagram rows, top to bottom.
 _ROWS = ("RF", "Gz", "Gy", "Gx", "ADC")
@@ -159,21 +160,27 @@ def paper_plot(
     seq,
     time_range=(0, np.inf),
     line_width=1.2,
-    axes_color="0.9",
-    rf_color="black",
-    gx_color="black",
-    gy_color="black",
-    gz_color="black",
+    axes_color=None,
+    rf_color=None,
+    gx_color=None,
+    gy_color=None,
+    gz_color=None,
     rf_plot="abs",
     *,
     tr=None,
     max_underlays=16,
-    underlay_color="0.8",
+    underlay_color=None,
     ax=None,
 ):
     """Draw the diagram; see :meth:`pypulseqpp.Sequence.paper_plot`."""
     if rf_plot not in _RF_PARTS:
         raise ValueError(f"rf_plot is 'abs', 'real' or 'imag', not {rf_plot!r}")
+    axes_color = _style.FAINT if axes_color is None else axes_color
+    rf_color = _style.INK if rf_color is None else rf_color
+    gx_color = _style.INK if gx_color is None else gx_color
+    gy_color = _style.INK if gy_color is None else gy_color
+    gz_color = _style.INK if gz_color is None else gz_color
+    underlay_color = _style.MUTED if underlay_color is None else underlay_color
 
     import matplotlib.pyplot as plt
     import mrsd
@@ -214,6 +221,10 @@ def paper_plot(
     if ax is None:
         _, ax = plt.subplots(figsize=(12, 6))
     diagram = mrsd.Diagram(ax, _ROWS)
+    # mrsd fixes the colour of the channel baselines, of the TR arrow and of
+    # its end markers when the diagram is constructed. Setting it here reaches
+    # all three; the baselines exist already, the rest are drawn below.
+    diagram._background_line_style["color"] = axes_color
     for baseline in ax.lines:
         baseline.set_color(axes_color)
 
@@ -243,7 +254,11 @@ def paper_plot(
             "ADC", length, begin=begin, edgecolor=rf_color, linewidth=line_width
         )
     if main is not None:
-        diagram.interval(0.0, duration, -1.6, "TR")
+        diagram.interval(0.0, duration, -1.6, "TR", color=rf_color)
+        # mrsd sets the interval label on an opaque white box. The diagram
+        # carries no canvas of its own, so the label carries no fill either.
+        for label in ax.texts:
+            label.set_bbox(None)
 
     ax.autoscale_view()
     ax.set_xlim(-0.02 * duration, 1.02 * duration)

@@ -1,8 +1,8 @@
 # Sequence modules
 
-`pypulseqpp.sequences`: reusable block layouts with solved timing and gradient
-waveforms and named event templates for scan-loop encoding, together
-with the non-Cartesian interleaves used by the readout modules.
+Reusable block layouts, with their timing and gradient waveforms solved and
+their encoding events left as templates for the scan loop to scale, together
+with the non-Cartesian interleaves the readout modules play.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
@@ -61,7 +61,7 @@ A {class}`SequenceModule` lays its blocks out in `init_module`; an
 | {obj}`~pypulseqpp.sequences.FseReadout3D` | Single-slab CPMG train, phase-encoded along y and partition-encoded along z. |
 | {obj}`~pypulseqpp.sequences.BssfpReadout2D` | Slice-selective balanced SSFP, phase-encoded along y. |
 | {obj}`~pypulseqpp.sequences.BssfpReadout3D` | Slab-selective balanced SSFP, encoded along y and z. |
-| {obj}`~pypulseqpp.sequences.PropellerReadout2D` | A 2D PROPELLER blade set: EPI blades turned about the centre of k-space. |
+| {obj}`~pypulseqpp.sequences.PropellerReadout2D` | EPI blades turned about the centre of k-space, as a 2D PROPELLER set. |
 | {obj}`~pypulseqpp.sequences.PropellerStackReadout` | A stack of 2D PROPELLER blade sets, partition-encoded along z. |
 
 ## Non-Cartesian readouts
@@ -74,7 +74,7 @@ The spiral and rosette readouts design theirs from the prescription.
 | --- | --- |
 | {obj}`~pypulseqpp.sequences.NonCartesianReadout` | A solved interleaf with its prewinder, rewinder and repetition-time budget. |
 | {obj}`~pypulseqpp.sequences.RadialReadout2D` | A full radial spoke through the centre of a plane. |
-| {obj}`~pypulseqpp.sequences.RadialStackReadout` | Radial spokes in-plane, Cartesian partitions along z: stack of stars. |
+| {obj}`~pypulseqpp.sequences.RadialStackReadout` | Radial spokes in-plane with Cartesian partitions along z, a stack of stars. |
 | {obj}`~pypulseqpp.sequences.RadialProjectionReadout` | Radial spokes for a spherical projection acquisition. |
 | {obj}`~pypulseqpp.sequences.SpiralReadout2D` | One spiral arm in a plane. |
 | {obj}`~pypulseqpp.sequences.SpiralStackReadout` | Spiral arms in-plane, Cartesian partitions along z. |

@@ -17,6 +17,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pypulseqpp.plot import SAMPLING
+
 PAGE_WIDTH = 8.6
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 # sphinx_gallery_end_ignore
@@ -95,7 +97,7 @@ for ax, val, label in zip(
     ("Echo-train length", "TR (ms)"),
     strict=True,
 ):
-    art = ax.scatter(ky, kz, c=val, cmap="viridis", s=15, linewidth=0)
+    art = ax.scatter(ky, kz, c=val, cmap=SAMPLING, s=15, linewidth=0)
     fig.colorbar(art, ax=ax, label=label, pad=0.02)
     ax.set_xlabel(r"$k_y$ (lines from centre)")
     ax.set_aspect("equal")
