@@ -363,7 +363,7 @@ non-selective experiment, so the pair is the whole of that channel.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25e981430>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d718cdd0>, tr=1, underlays=[])
 
 
 
@@ -445,7 +445,7 @@ which is why the last doublings cost the most.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.113 seconds)
+   **Total running time of the script:** (0 minutes 0.147 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_02_spin_echo.py:

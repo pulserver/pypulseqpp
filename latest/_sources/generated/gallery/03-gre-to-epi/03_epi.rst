@@ -151,7 +151,7 @@ runs the length of the matrix. Nothing else changes.
 
     timing True, 66 blocks, echo spacing 0.700 ms, train 44.8 ms, blip 80 us
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25894fc20>, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d456a090>, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
 
 
 
@@ -346,7 +346,7 @@ package's.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.366 seconds)
+   **Total running time of the script:** (0 minutes 0.475 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_03_epi.py:

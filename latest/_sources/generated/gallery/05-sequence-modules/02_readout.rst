@@ -169,7 +169,7 @@ first because the module is the readout half of the repetition.
 
     timing True, 5 blocks, 9.640 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff2587dd970>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d44e6450>, tr=1, underlays=[])
 
 
 
@@ -314,7 +314,7 @@ echoes rather than as a shift common to all of them.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.228 seconds)
+   **Total running time of the script:** (0 minutes 0.295 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_02_readout.py:

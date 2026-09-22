@@ -97,7 +97,7 @@ spokes per partition and produces a compact timing diagram.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff17c5fcce0>, tr=1, underlays=[2, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f54f2367f50>, tr=1, underlays=[2, 3, 4])
 
 
 
@@ -176,7 +176,7 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.529 seconds)
+   **Total running time of the script:** (0 minutes 8.289 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

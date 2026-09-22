@@ -110,7 +110,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25bb59b80>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f54f28ea090>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
 
 
 
@@ -239,7 +239,7 @@ where the CAIPI shift puts them.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.376 seconds)
+   **Total running time of the script:** (0 minutes 0.478 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

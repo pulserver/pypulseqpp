@@ -410,14 +410,14 @@ One repetition of the module.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25bb1f290>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d8bdce00>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.183 seconds)
+   **Total running time of the script:** (0 minutes 0.236 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_02_cartesian_readout.py:

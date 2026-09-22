@@ -222,7 +222,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff25bb85c10>, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d45887a0>, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
 
 
 
@@ -291,7 +291,7 @@ declaring one.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.341 seconds)
+   **Total running time of the script:** (0 minutes 0.437 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_03_sequence_app.py:

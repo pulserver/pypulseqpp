@@ -94,7 +94,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff2587df5c0>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d8b74320>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -190,7 +190,7 @@ Every acquired view retains the prescribed spin-echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 18.123 seconds)
+   **Total running time of the script:** (0 minutes 23.309 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

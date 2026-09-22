@@ -229,7 +229,7 @@ gradient, ramps included.
 
     timing True, 1280 blocks, 5.120 s for 6 echoes on each of 128 lines
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7ff258e913d0>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d0201bb0>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
 
 
 
@@ -387,7 +387,7 @@ of echoes and for the shortest echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.244 seconds)
+   **Total running time of the script:** (0 minutes 0.317 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_01_multi_echo.py:
