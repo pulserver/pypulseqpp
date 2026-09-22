@@ -21,8 +21,8 @@ import math
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-#: The golden ratio, whose irrationality is what keeps any window of
-#: consecutive spokes near-uniformly distributed.
+#: The golden ratio. Its irrationality keeps any window of consecutive
+#: golden-angle spokes near-uniformly distributed.
 _PHI = (1.0 + math.sqrt(5.0)) / 2.0
 
 
@@ -134,8 +134,8 @@ def calc_raga_angles(
     if tiny_index < 1 or approximation_order < 2:
         raise ValueError("tiny_index must be >= 1 and approximation_order >= 2")
 
-    # The support is a finite, equidistant set of Fibonacci-many angles; the
-    # order they are visited in is what stays golden-like.
+    # The support is a finite, equidistant set of Fibonacci-many angles,
+    # visited in a golden-angle-like order.
     support_size = _generalized_fibonacci(approximation_order, tiny_index)
     step = _generalized_fibonacci(approximation_order - 1, 1)
     support = np.arange(support_size) * (2.0 * np.pi) / support_size

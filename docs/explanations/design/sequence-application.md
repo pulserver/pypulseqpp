@@ -51,5 +51,6 @@ a single repeating unit per file for repetition-based analyses.
 ## See also
 
 * {doc}`sequence-module` — reusable block layouts.
+* {doc}`sampling` — acquired support and temporal ordering.
 * {doc}`../../api/apps` — exact application interface.
 * {doc}`../../sequences` — shipped complete sequences.

@@ -73,7 +73,9 @@ def make_cartesian_axis_sampling(
         ``n_acs`` is 0.
     imaging : list of int
         Lattice views not in ``calibration``, ascending. The two lists are
-        disjoint; the acquired support is their union.
+        disjoint; the acquired support is their union. Neither list is an
+        acquisition order: the sequence application decides when each view is
+        acquired, and creates its labels.
 
     Raises
     ------
@@ -88,11 +90,11 @@ def make_cartesian_axis_sampling(
 
     Notes
     -----
-    The two groups are returned separately so that a sequence can acquire
-    and label them separately; the shipped sequences acquire the
-    calibration views first and mark them with the ``IMA`` label.
-    ``[*calibration, *imaging]`` is that acquisition order and
-    ``sorted(calibration + imaging)`` the ascending one.
+    The two groups are returned separately so that a sequence application
+    can treat them differently, for example by acquiring the calibration
+    views first or marking them with the ``IMA`` label. Both lists are in
+    ascending order; ``sorted(calibration + imaging)`` is the whole support in
+    ascending order.
 
     Examples
     --------
@@ -157,12 +159,17 @@ def make_cartesian_plane_sampling(
 
     With ``sampling='poisson'`` the support is a variable-density Poisson-disc
     draw at nominal acceleration ``R_y * R_z`` from
-    :func:`make_poisson_disc_mask`, which includes the calibration region and
-    is restricted to the ellipse inscribed in the grid. ``caipi_shift`` is
-    ignored.
+    :func:`make_poisson_disc_mask`. A rectangular calibration region is
+    seeded into the draw as a fully sampled block; an elliptical one
+    (``elliptical_acs=True``) is not, so the corners of its bounding
+    rectangle follow the draw and only the ellipse is acquired in full.
+    ``caipi_shift`` is ignored.
 
-    Partial Fourier and the ``elliptical`` crop are applied to either support,
-    and the calibration views are then separated from the rest.
+    For either scheme, partial Fourier and the ``elliptical`` crop are
+    applied to the views outside the calibration region, and the calibration
+    region is acquired in full within partial Fourier. ``elliptical`` has the
+    same meaning for both schemes: with ``False`` no view is removed for lying
+    outside the inscribed ellipse.
 
     Parameters
     ----------
@@ -180,10 +187,12 @@ def make_cartesian_plane_sampling(
         Fraction of each axis acquired, in ``(0.5, 1]``. The views with the
         lowest indices are removed.
     elliptical : bool, default=False
-        Restrict the imaging views to the ellipse inscribed in the grid.
+        Restrict the views outside the calibration region to the ellipse
+        inscribed in the grid, for both support schemes.
     elliptical_acs : bool, default=False
-        Restrict the calibration region to the ellipse inscribed in its
-        rectangle.
+        Make the fully sampled calibration region the ellipse inscribed in
+        its ``n_acs`` rectangle. The rectangle's corners are then acquired
+        only where the support scheme selects them.
     sampling : {'lattice', 'poisson'}, default='lattice'
         Support scheme: the deterministic CAIPIRINHA lattice, or a
         variable-density Poisson-disc draw.
@@ -198,6 +207,8 @@ def make_cartesian_plane_sampling(
     imaging : list of tuple of int
         Acquired views ``(y, z)`` not in ``calibration``, in the same order.
         The two lists are disjoint; the acquired support is their union.
+        Neither list is an acquisition order: the sequence application
+        decides when each view is acquired, and creates its labels.
 
     Raises
     ------
@@ -219,7 +230,9 @@ def make_cartesian_plane_sampling(
     shipped 3D Cartesian sequences. The mask generators produce support only;
     this routine combines a support scheme with the calibration region,
     partial Fourier and elliptical cropping, and returns the result as
-    coordinate lists separated by role.
+    coordinate lists separated by role. With ``sampling='poisson'`` the
+    realised acceleration can differ from ``R_y * R_z``: partial Fourier and
+    an elliptical calibration region are applied after the draw.
 
     Examples
     --------
@@ -285,9 +298,19 @@ def make_cartesian_plane_sampling(
     ]
     calibrating = set(calibration)
     if sampling == "poisson":
+        # A rectangular ACS region is seeded into the draw as its fully sampled
+        # block. An elliptical one is not: the draw then covers the corners of
+        # the rectangle like the rest of the plane, and only the ellipse is
+        # added in full. The ellipse cut below is applied to the imaging views
+        # of both schemes; ``crop_corner`` only makes the acceleration search
+        # count the same region.
         drawn = (
             make_poisson_disc_mask(
-                (n_y, n_z), float(r_y * r_z), calib=(n_acs_y, n_acs_z), seed=seed
+                (n_y, n_z),
+                float(r_y * r_z),
+                calib=(0, 0) if elliptical_acs else (n_acs_y, n_acs_z),
+                seed=seed,
+                crop_corner=elliptical,
             )
             if r_y * r_z > 1
             else np.ones((n_y, n_z), dtype=bool)
@@ -360,7 +383,8 @@ def make_random_mask(
     --------
     make_poisson_disc_mask : variable-density draw with a minimum distance.
     make_caipirinha_mask : deterministic lattice for parallel imaging.
-    make_linear_order : echo-train ordering, which accepts a mask as input.
+    make_linear_order : echo-train ordering of views taken from a mask with
+        ``np.argwhere`` and centred.
 
     Examples
     --------
@@ -495,8 +519,10 @@ def make_poisson_disc_mask(
     accel : float
         Target acceleration factor, greater than one.
     calib : tuple of int, default=(0, 0)
-        Extent of the fully sampled calibration block centred on
-        ``(n_y // 2, n_z // 2)``.
+        Extent ``(c_y, c_z)`` of the fully sampled calibration block: rows
+        ``n_y // 2 - c_y // 2`` to ``n_y // 2 + (c_y + 1) // 2 - 1``, and
+        likewise for columns. It is seeded into the draw, so no other view is
+        placed within the minimum distance of it.
     seed : int, default=0
         Seed of the random draw. Equal seeds give equal masks.
     max_attempts : int, default=30
@@ -504,7 +530,9 @@ def make_poisson_disc_mask(
     tol : float, default=0.1
         Allowed deviation of the realised acceleration from ``accel``.
     crop_corner : bool, default=True
-        Restrict the support to the ellipse inscribed in the grid.
+        Remove the views whose normalised distance outside the calibration
+        block is at least 1: with no calibration block, the views outside the
+        ellipse inscribed in the grid. The calibration block is kept.
 
     Returns
     -------

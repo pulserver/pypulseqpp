@@ -310,17 +310,6 @@ _SAMPLING = {
     ),
 }
 
-#: Former sampling names, resolved by :func:`__getattr__` to wrappers that warn
-#: with a DeprecationWarning and call the replacement. Not in ``__all__``.
-_DEPRECATED = frozenset(
-    (
-        "calc_epi_order",
-        "calc_sampled_lines",
-        "calc_sampled_pairs",
-        "calc_traversal_order",
-    )
-)
-
 for _module, _names in _SAMPLING.items():
     _imported = _importlib.import_module(f".{_module}", __name__)
     for _sampling_name in _names:
@@ -342,8 +331,6 @@ def __getattr__(name: str):
         module = _importlib.import_module(f".{name}", __name__)
         globals()[name] = module
         return module
-    if name in _DEPRECATED:
-        return getattr(_importlib.import_module("._deprecated", __name__), name)
     reason = _WITHHELD.get(name)
     if reason is not None:
         raise AttributeError(f"pypulseqpp does not export {name!r}: {reason}")

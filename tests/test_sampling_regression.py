@@ -2,10 +2,13 @@
 
 `sampling_regression.json` holds fingerprints of each configuration below:
 the sampling attributes the application stores (lines, views, partitions,
-calibration, trains, shots) and every label evaluated at every acquisition.
-They were recorded from the sampling routines before their public rename, so
-a difference here is a change of acquired support, ordering or labelling,
-not of naming.
+calibration, trains, shots), every label evaluated at every acquisition, and
+the results of direct calls of the support, traversal and EPI routines. The
+sequence fingerprints and the lattice calls were first recorded from the
+sampling routines before their rename and are unchanged by it. The Poisson
+calls were recorded again after two support fixes: ``elliptical=False`` no
+longer crops the draw to the inscribed ellipse, and an elliptical
+calibration region no longer fills its bounding rectangle.
 
 A deliberate change to one of these sequences is recorded again with
 
@@ -232,12 +235,11 @@ def fingerprint(name: str) -> dict:
     return found
 
 
-#: Direct calls of the renamed routines: ``name: (routine, former name, kwargs)``.
+#: Direct calls of the support, traversal and EPI routines: ``name: (routine, kwargs)``.
 CALLS = {
     **{
         f"axis-{n}-{r}-{acs}-{pf}": (
             "make_cartesian_axis_sampling",
-            "calc_sampled_lines",
             {"n": n, "acceleration": r, "n_acs": acs, "partial_fourier": pf},
         )
         for n in (15, 16)
@@ -248,7 +250,6 @@ CALLS = {
     **{
         f"plane-{r}-{shift}-{pf}-{ellipse}-{scheme}": (
             "make_cartesian_plane_sampling",
-            "calc_sampled_pairs",
             {
                 "shape": (24, 20),
                 "acceleration": r,
@@ -270,7 +271,6 @@ CALLS = {
     **{
         f"traversal-{order}-{n}": (
             "make_traversal_order",
-            "calc_traversal_order",
             {"n": n, "order": order, "seed": 2},
         )
         for n in (0, 1, 6, 7)
@@ -286,7 +286,6 @@ CALLS = {
     **{
         f"epi-{etl}-{scheme}-{r}-{segments}": (
             "make_epi_shot_offsets",
-            "calc_epi_order",
             {
                 "etl": etl,
                 "scheme": scheme,
@@ -306,30 +305,22 @@ CALLS = {
 
 
 def call(name: str):
-    """Digest one routine's result, by its current name or its former one."""
+    """Digest one routine's result."""
     import pypulseqpp as pp
 
-    routine, former, kwargs = CALLS[name]
-    if hasattr(pp, routine) and routine in pp.__all__:
-        return _digest(_plain(getattr(pp, routine)(**kwargs)))
-    # The former spellings, as they were called before the rename.
-    kwargs = dict(kwargs)
-    if "sampling" in kwargs:
-        kwargs["shuffling"] = kwargs.pop("sampling") == "poisson"
-    if "acceleration" in kwargs and former == "calc_sampled_lines":
-        kwargs["r"] = kwargs.pop("acceleration")
-    return _digest(_plain(getattr(pp, former)(**kwargs)))
+    routine, kwargs = CALLS[name]
+    return _digest(_plain(getattr(pp, routine)(**kwargs)))
 
 
 @pytest.mark.parametrize("name", sorted(CALLS))
-def test_a_renamed_routine_returns_what_it_did_before_the_rename(name):
+def test_a_sampling_routine_returns_its_recorded_result(name):
     expected = json.loads(FINGERPRINTS.read_text())["calls"][name]
 
     assert call(name) == expected
 
 
 @pytest.mark.parametrize("name", sorted(CONFIGURATIONS))
-def test_a_shipped_sequence_samples_and_labels_as_before_the_rename(name):
+def test_a_shipped_sequence_samples_and_labels_as_recorded(name):
     expected = json.loads(FINGERPRINTS.read_text())[name]
 
     assert fingerprint(name) == expected

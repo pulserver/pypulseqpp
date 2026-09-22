@@ -40,12 +40,13 @@ def make_epi_shot_offsets(
 ) -> np.ndarray:
     """Return the phase-encoding offsets of one EPI shot, relative to its first echo.
 
-    Row ``e`` is the offset ``(Δky, Δkz)``, in encoded lines and partitions,
-    of the view acquired at echo ``e`` from the view acquired at echo 0.
-    The first row is always ``(0, 0)``. For a shot whose first echo acquires
-    the view ``(y0, z0)``, echo ``e`` acquires ``(y0, z0) + offsets[e]``;
-    choosing ``(y0, z0)`` for each shot is the scan loop's role, so this
-    routine does not determine the global acquisition support.
+    ``result[e]`` is ``(Δky, Δkz)``, in encoded lines and partitions, of the
+    view acquired at echo ``e`` relative to the view acquired at echo 0 of
+    the same shot; ``result[0]`` is always ``(0, 0)``. For a shot whose first
+    echo acquires the view ``(y0, z0)``, echo ``e`` acquires
+    ``(y0, z0) + result[e]``. The routine does not select the global
+    acquisition support, does not choose the shot origin ``(y0, z0)``, which
+    the scan loop chooses, and creates no Pulseq labels.
 
     With ``R_y = acceleration`` and ``S = segments``, the line offset of
     ``'linear'`` and ``'caipi'`` is ``Δky_e = e S R_y``. ``S`` shots with
@@ -143,11 +144,10 @@ def make_epi_shot_offsets(
     acceleration, segments = int(acceleration), int(segments)
     if acceleration < 1 or segments < 1:
         raise ValueError("acceleration and segments must be positive")
-    if (extent is None) != (scheme != "zigzag"):
-        raise ValueError(
-            "extent is what a 'zigzag' turns around inside and means nothing to the "
-            "other schemes; give it for 'zigzag' and leave it unset otherwise"
-        )
+    if scheme == "zigzag" and extent is None:
+        raise ValueError("scheme='zigzag' requires extent")
+    if scheme != "zigzag" and extent is not None:
+        raise ValueError(f"extent applies only to scheme='zigzag', not {scheme!r}")
 
     if scheme == "zigzag":
         line = _zigzag(etl, acceleration * segments, int(extent))

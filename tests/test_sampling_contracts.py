@@ -1,14 +1,13 @@
-"""The contracts of the sampling API: support, masks, orderings, EPI offsets, renames.
+"""The contracts of the sampling API: support, masks, orderings and EPI offsets.
 
 Support routines return encoded coordinates or boolean masks and nothing else;
-ordering routines return indices into the coordinates they are given; the EPI
+ordering routines take centred coordinates, with the k-space centre at the
+origin, and return indices into the array they are given; the EPI
 routine returns offsets relative to a shot origin the caller chooses. These
 tests state those contracts rather than particular outputs.
 """
 
 from __future__ import annotations
-
-import warnings
 
 import numpy as np
 import pytest
@@ -107,7 +106,9 @@ def test_plane_poisson_support_is_the_poisson_disc_draw():
     calibration, imaging = pp.make_cartesian_plane_sampling(
         shape, (2, 2), (6, 6), sampling="poisson", seed=seed
     )
-    mask = pp.make_poisson_disc_mask(shape, 4.0, calib=(6, 6), seed=seed)
+    mask = pp.make_poisson_disc_mask(
+        shape, 4.0, calib=(6, 6), seed=seed, crop_corner=False
+    )
 
     assert sorted(calibration + imaging) == sorted(
         map(tuple, np.argwhere(mask).tolist())
@@ -117,6 +118,83 @@ def test_plane_poisson_support_is_the_poisson_disc_draw():
 def test_an_unknown_support_scheme_is_refused():
     with pytest.raises(ValueError, match="sampling"):
         pp.make_cartesian_plane_sampling((8, 8), (2, 2), sampling="shuffling")
+
+
+def _inside(views, shape, extent=None):
+    """Whether each view lies in the ellipse inscribed in ``extent`` about the centre."""
+    n_y, n_z = shape
+    e_y, e_z = extent or shape
+    views = np.asarray(views)
+    dy = (views[:, 0] - n_y // 2) / e_y
+    dz = (views[:, 1] - n_z // 2) / e_z
+    return dy * dy + dz * dz <= 0.25
+
+
+@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
+@pytest.mark.parametrize("elliptical", [False, True])
+@pytest.mark.parametrize("elliptical_acs", [False, True])
+def test_the_ellipse_arguments_mean_the_same_for_both_schemes(
+    sampling, elliptical, elliptical_acs
+):
+    shape, acs = (32, 32), (10, 10)
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape,
+        (2, 2),
+        acs,
+        elliptical=elliptical,
+        elliptical_acs=elliptical_acs,
+        sampling=sampling,
+        seed=2,
+    )
+    rows = range(16 - 5, 16 + 5)
+    block = {(y, z) for y in rows for z in rows}
+
+    # The calibration region is the rectangle, or the ellipse inscribed in it.
+    expected = (
+        {v for v in block if _inside([v], shape, acs)[0]} if elliptical_acs else block
+    )
+    assert set(calibration) == expected
+    # ``elliptical`` removes imaging views outside the inscribed ellipse, and
+    # only ``elliptical`` does.
+    outside = ~_inside(imaging, shape)
+    assert not outside.any() if elliptical else outside.any()
+
+
+def test_poisson_support_with_an_elliptical_acs_does_not_fill_its_rectangle():
+    shape, acs = (48, 48), (12, 12)
+    rows = range(24 - 6, 24 + 6)
+    corners = {
+        (y, z) for y in rows for z in rows if not _inside([(y, z)], shape, acs)[0]
+    }
+    filled = []
+    for seed in range(6):
+        calibration, imaging = pp.make_cartesian_plane_sampling(
+            shape, (2, 2), acs, elliptical_acs=True, sampling="poisson", seed=seed
+        )
+        filled.append(corners <= {*calibration, *imaging})
+    rectangular = pp.make_cartesian_plane_sampling(
+        shape, (2, 2), acs, sampling="poisson", seed=0
+    )
+
+    assert corners <= set(rectangular[0])
+    assert not all(filled)
+
+
+def test_poisson_support_without_an_ellipse_reaches_the_corners_of_the_grid():
+    _, imaging = pp.make_cartesian_plane_sampling(
+        (32, 32), (2, 2), (8, 8), sampling="poisson", seed=1
+    )
+
+    assert (~_inside(imaging, (32, 32))).sum() > 10
+
+
+@pytest.mark.parametrize(("n", "c"), [(16, 1), (16, 3), (15, 3), (15, 4), (16, 4)])
+def test_the_poisson_calibration_block_is_centred_on_the_centre_view(n, c):
+    mask = pp.make_poisson_disc_mask((n, n), 4.0, calib=(c, c), seed=0, tol=0.5)
+    rows = slice(n // 2 - c // 2, n // 2 + (c + 1) // 2)
+
+    assert mask[rows, rows].all()
+    assert mask[n // 2, n // 2]
 
 
 # Masks ---------------------------------------------------------------------
@@ -185,25 +263,50 @@ def test_padding_uses_none_only_for_unacquired_echoes(order):
 
 
 @pytest.mark.parametrize("order", ORDERINGS, ids=lambda f: f.__name__)
-def test_an_ordering_accepts_a_boolean_mask(order):
+def test_an_ordering_refuses_a_boolean_mask(order):
     mask = np.zeros((6, 5), dtype=bool)
     mask[GRID[:, 0] + 3, GRID[:, 1] + 2] = True
-    trains = order(mask, 4)
 
-    assert sorted(i for train in trains for i in train) == list(range(len(GRID)))
+    with pytest.raises(TypeError, match="argwhere"):
+        order(mask, 4)
 
 
-def test_a_one_dimensional_boolean_mask_is_a_set_of_lines():
-    trains = pp.make_linear_order(np.array([True, False, True, True]), 2)
+@pytest.mark.parametrize("order", ORDERINGS, ids=lambda f: f.__name__)
+def test_an_ordering_refuses_a_bare_count(order):
+    with pytest.raises(ValueError, match="shape"):
+        order(8, 4)
 
-    assert sorted(i for train in trains for i in train) == [0, 1, 2]
+
+@pytest.mark.parametrize("order", ORDERINGS, ids=lambda f: f.__name__)
+@pytest.mark.parametrize("train_length", [0, -1, 2.5])
+def test_an_ordering_refuses_a_train_length_that_is_not_a_positive_integer(
+    order, train_length
+):
+    with pytest.raises(ValueError, match="train_length"):
+        order(GRID, train_length)
+
+
+@pytest.mark.parametrize(
+    "order",
+    [pp.make_linear_order, pp.make_centric_order, pp.make_radial_adaptive_order],
+    ids=lambda f: f.__name__,
+)
+@pytest.mark.parametrize("center_echo", [-1, 4, 7])
+def test_a_center_echo_outside_the_train_is_refused_not_wrapped(order, center_echo):
+    with pytest.raises(ValueError, match="center_echo"):
+        order(GRID, 4, center_echo=center_echo)
+
+
+@pytest.mark.parametrize("order", ORDERINGS, ids=lambda f: f.__name__)
+@pytest.mark.parametrize("empty", [[], np.zeros((0, 2)), np.zeros(0)])
+def test_an_ordering_of_no_views_is_empty(order, empty):
+    assert order(empty, 4) == []
+    assert order(empty, 4, pad=True) == []
 
 
 @pytest.mark.parametrize("center_echo", [0, 1, 2, 3])
 def test_the_adaptive_order_acquires_the_centre_at_the_target_echo(center_echo):
-    trains = pp.make_radial_adaptive_order(
-        GRID, 4, center=(0, 0), center_echo=center_echo, pad=True
-    )
+    trains = pp.make_radial_adaptive_order(GRID, 4, center_echo=center_echo, pad=True)
     centre = int(np.flatnonzero((GRID == 0).all(axis=1))[0])
 
     assert any(train[center_echo] == centre for train in trains)
@@ -211,19 +314,76 @@ def test_the_adaptive_order_acquires_the_centre_at_the_target_echo(center_echo):
 
 @pytest.mark.parametrize("center_echo", [0, 2])
 def test_the_centric_order_acquires_the_centre_at_the_target_echo(center_echo):
-    trains = pp.make_centric_order(
-        GRID, 4, center=(0, 0), center_echo=center_echo, pad=True
-    )
+    trains = pp.make_centric_order(GRID, 4, center_echo=center_echo, pad=True)
     centre = int(np.flatnonzero((GRID == 0).all(axis=1))[0])
 
     assert any(train[center_echo] == centre for train in trains)
 
 
 def test_the_radial_order_starts_every_train_nearest_the_centre():
-    trains = pp.make_radial_order(GRID, 4, center=(0, 0))
+    trains = pp.make_radial_order(GRID, 4)
     radius = np.hypot(*GRID.T)
 
     assert all(radius[train[0]] == min(radius[i] for i in train) for train in trains)
+
+
+#: Encoded supports whose centroid is not the k-space centre: an even matrix,
+#: partial Fourier in both directions, and an asymmetric undersampled support.
+ASYMMETRIC = {
+    "even-matrix": pp.make_cartesian_plane_sampling((16, 8)),
+    "partial-fourier": pp.make_cartesian_plane_sampling(
+        (16, 12), partial_fourier=(0.625, 0.75)
+    ),
+    "asymmetric-undersampled": pp.make_cartesian_plane_sampling(
+        (20, 10), (2, 1), (4, 2), partial_fourier=(0.7, 1.0)
+    ),
+}
+
+
+def _centred(name):
+    calibration, imaging = ASYMMETRIC[name]
+    views = np.array(calibration + imaging)
+    shape = {"even-matrix": (16, 8), "partial-fourier": (16, 12)}.get(name, (20, 10))
+    return views - np.array(shape) // 2
+
+
+@pytest.mark.parametrize("name", sorted(ASYMMETRIC))
+def test_the_support_centroid_is_not_the_kspace_centre_in_these_cases(name):
+    assert np.linalg.norm(_centred(name).mean(axis=0)) > 0.1
+
+
+@pytest.mark.parametrize("name", sorted(ASYMMETRIC))
+@pytest.mark.parametrize("center_echo", [0, 2, 5])
+def test_the_adaptive_order_puts_the_kspace_centre_not_the_centroid_at_the_target(
+    name, center_echo
+):
+    centred = _centred(name)
+    centre = int(np.flatnonzero((centred == 0).all(axis=1))[0])
+    trains = pp.make_radial_adaptive_order(
+        centred, 6, center_echo=center_echo, pad=True
+    )
+
+    assert any(train[center_echo] == centre for train in trains)
+
+
+@pytest.mark.parametrize("name", sorted(ASYMMETRIC))
+def test_the_centric_order_starts_at_the_kspace_centre(name):
+    centred = _centred(name)
+    centre = int(np.flatnonzero((centred == 0).all(axis=1))[0])
+    trains = pp.make_centric_order(centred, 6, pad=True)
+
+    assert any(train[0] == centre for train in trains)
+
+
+@pytest.mark.parametrize("name", sorted(ASYMMETRIC))
+def test_the_radial_order_starts_every_shot_at_its_view_nearest_the_origin(name):
+    centred = _centred(name)
+    radius = np.hypot(*centred.T)
+    trains = pp.make_radial_order(centred, 6)
+    centre = int(np.flatnonzero((centred == 0).all(axis=1))[0])
+
+    assert all(radius[t[0]] == min(radius[i] for i in t) for t in trains)
+    assert any(t[0] == centre for t in trains)
 
 
 def test_shuffling_is_reproducible_by_seed_and_keeps_clustered_membership():
@@ -280,55 +440,3 @@ def test_caipi_offsets_tile_the_caipirinha_lattice():
     assert sorted(map(tuple, offsets.tolist())) == sorted(
         map(tuple, np.argwhere(mask).tolist())
     )
-
-
-# Renamed names ---------------------------------------------------------------
-
-RENAMED = {
-    "calc_sampled_lines": ("make_cartesian_axis_sampling", (16, 2, 4), {}),
-    "calc_sampled_pairs": (
-        "make_cartesian_plane_sampling",
-        ((8, 8), (2, 2), (2, 2)),
-        {},
-    ),
-    "calc_traversal_order": ("make_traversal_order", (7, "center_out"), {}),
-    "calc_epi_order": ("make_epi_shot_offsets", (5,), {"acceleration": 2}),
-}
-
-
-@pytest.mark.parametrize("old", sorted(RENAMED))
-def test_a_renamed_routine_still_resolves_warns_and_forwards(old):
-    new, args, kwargs = RENAMED[old]
-
-    with pytest.warns(DeprecationWarning, match=new):
-        result = getattr(pp, old)(*args, **kwargs)
-
-    assert repr(result) == repr(getattr(pp, new)(*args, **kwargs))
-    assert getattr(pp, old).__wrapped__ is getattr(pp, new)
-
-
-@pytest.mark.parametrize("old", sorted(RENAMED))
-def test_a_renamed_routine_is_importable_but_not_advertised(old):
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        # What ``from pypulseqpp import <old>`` does; resolving warns nothing.
-        imported = getattr(__import__("pypulseqpp", fromlist=[old]), old)
-
-    assert callable(imported)
-    assert old not in pp.__all__
-    assert RENAMED[old][0] in pp.__all__
-
-
-def test_the_former_shuffling_flag_selects_poisson_support():
-    kwargs = {"shape": (24, 24), "acceleration": (2, 2), "n_acs": (6, 6), "seed": 2}
-    with pytest.warns(DeprecationWarning):
-        former = pp.calc_sampled_pairs(shuffling=True, **kwargs)
-
-    assert former == pp.make_cartesian_plane_sampling(sampling="poisson", **kwargs)
-
-
-def test_the_former_r_argument_is_the_acceleration():
-    with pytest.warns(DeprecationWarning):
-        former = pp.calc_sampled_lines(16, r=2, n_acs=4)
-
-    assert former == pp.make_cartesian_axis_sampling(16, acceleration=2, n_acs=4)

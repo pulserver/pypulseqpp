@@ -2,9 +2,9 @@
 
 Two kinds of ordering are defined here. :func:`make_traversal_order` returns
 a permutation of the positions of one loop axis. The echo-train orderings
-(``make_*_order``) assign the rows of a coordinate array to shots and echoes
-and return indices into that array, never coordinates. None of them selects
-views or emits labels.
+(``make_*_order``) take centred view coordinates, with the k-space centre at
+the origin, assign their rows to shots and echoes, and return indices into
+that array, never coordinates. None of them selects views or creates labels.
 
 References
 ----------
@@ -137,33 +137,47 @@ def make_traversal_order(
         ) from None
 
 
-def _as_coords(coords) -> np.ndarray:
-    """Normalize a coordinate argument to an ``(N, 2)`` float array."""
+def _centred(coords) -> np.ndarray:
+    """Return centred view coordinates as an ``(N, 2)`` float array.
+
+    ``(N,)`` input is a set of ``ky`` offsets with ``kz = 0``. Boolean input is
+    refused: its indices would refer to an array the caller never sees.
+    """
     raw = np.asarray(coords)
-    if raw.dtype == bool and raw.ndim in (1, 2):
-        arr = np.argwhere(raw).astype(float)
-        if raw.ndim == 1:
-            arr = arr[:, 0]
-    else:
-        arr = np.asarray(coords, dtype=float)
+    if raw.dtype == bool:
+        raise TypeError(
+            "coords must be numeric centred coordinates, not a boolean mask; "
+            "convert a mask with np.argwhere(mask) and subtract the k-space centre"
+        )
+    if raw.size == 0:
+        return np.zeros((0, 2))
+    if not np.issubdtype(raw.dtype, np.number):
+        raise TypeError("coords must be a numeric array")
+    arr = raw.astype(float)
     if arr.ndim == 1:
         arr = np.column_stack([arr, np.zeros_like(arr)])
     if arr.ndim != 2 or arr.shape[1] != 2:
-        raise ValueError("coords must be shape (N,) or (N, 2)")
+        raise ValueError(f"coords must have shape (N,) or (N, 2), got {raw.shape}")
     return arr
 
 
-def _split_into_shots(order: list[int], etl: int) -> list[list[int]]:
-    """Consecutive chunks of ``etl``, the last one shorter when it has to be."""
-    etl = max(1, int(etl))
-    return [order[i : i + etl] for i in range(0, len(order), etl)]
+def _checked_train(train_length, center_echo=None) -> int:
+    """Validate the echo-train length and target echo shared by every ordering."""
+    if isinstance(train_length, bool) or int(train_length) != train_length:
+        raise ValueError(f"train_length must be an integer, got {train_length!r}")
+    train_length = int(train_length)
+    if train_length < 1:
+        raise ValueError(f"train_length must be at least 1, got {train_length}")
+    if center_echo is not None and not 0 <= center_echo < train_length:
+        raise ValueError(
+            f"center_echo must lie in [0, {train_length}), got {center_echo}"
+        )
+    return train_length
 
 
-def _polar(pts: np.ndarray, center) -> tuple[np.ndarray, np.ndarray]:
-    """Return per-point radius and angle about ``center`` (mean when ``None``)."""
-    origin = pts.mean(axis=0) if center is None else np.asarray(center, dtype=float)
-    rel = pts - origin
-    return np.hypot(rel[:, 0], rel[:, 1]), np.arctan2(rel[:, 1], rel[:, 0])
+def _polar(pts: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return each view's distance from, and polar angle about, the origin."""
+    return np.hypot(pts[:, 0], pts[:, 1]), np.arctan2(pts[:, 1], pts[:, 0])
 
 
 def _finish_trains(
@@ -190,11 +204,11 @@ def _deal_echo_major(
     ``order`` is the primary ranking. It is cut into ``etl`` groups of up to
     ``n_trains`` views; group ``g`` becomes one echo, and within a group the
     views are dealt across trains in ``secondary`` order so successive echoes
-    of one train stay neighbours. ``center_echo`` places the group holding the
-    k-space centre at that echo -- rolled for a monotone ranking, folded
-    (``adaptive``) so the radius grows away from the target echo in both
-    directions. This is the shared machinery behind the Cartesian echo-train
-    orderings (566-05-007, Fig. 2).
+    of one train stay neighbours. ``center_echo`` places the group containing
+    the view nearest the origin at that echo: by rotating the group order for
+    a monotone ranking, or by folding it (``adaptive``) so the radius grows
+    away from the target echo in both directions. This is the shared
+    implementation of the Cartesian echo-train orderings (566-05-007, Fig. 2).
     """
     groups = [order[g * n_trains : (g + 1) * n_trains] for g in range(etl)]
     echo_of_group = list(range(etl))
@@ -224,34 +238,34 @@ def make_linear_order(
     coords,
     train_length: int,
     *,
-    center=None,
     center_echo: int | None = None,
     pad: bool = False,
 ) -> list[list[int | None]]:
-    """Assign selected views to echo trains in linear (raster) order.
+    """Echo-train ordering of Cartesian views in linear (raster) order.
 
     The views are ranked in raster order, by ``kz`` and then by ``ky``, and
     the ranking is cut into ``train_length`` consecutive bands of
     ``ceil(N / train_length)`` views. Band ``e`` is acquired at echo ``e``,
-    one view per train, dealt across the trains in ``ky`` order. This is
+    one view per shot, dealt across the shots in ``ky`` order. This is
     scheme A (linear reordering) of Buonincontri et al., Fig. 2.
 
     Parameters
     ----------
-    coords : int or array_like
-        The selected views: an ``(N, 2)`` array of ``(ky, kz)`` coordinates,
-        an ``(N,)`` array of ``ky`` coordinates, or a boolean mask whose
-        ``True`` entries are taken in :func:`numpy.argwhere` order. An integer
-        ``N`` instead splits ``range(N)`` into consecutive trains.
+    coords : array_like
+        Centred coordinates of the selected views: an ``(N, 2)`` array of
+        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
+        centre, which is the origin. Encoded view indices ``(y, z)`` on an
+        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
+        Distances and angles are evaluated in the units supplied. Boolean
+        masks are not accepted.
     train_length : int
-        Echo-train length: the number of echoes per shot.
-    center : tuple of float or None, default=None
-        k-space centre, in the units of ``coords``. ``None`` uses the centroid
-        of ``coords``.
+        Echo-train length, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
     center_echo : int or None, default=None
-        Echo at which the view nearest ``center`` is acquired. ``None`` keeps
-        the bands in raster order; an integer rotates the band order so the
-        band containing that view is acquired at ``center_echo``.
+        Echo at which the view nearest the origin is acquired, in
+        ``[0, train_length)``. ``None`` keeps the bands in raster order; an
+        integer rotates the band order so that the band containing that view
+        is acquired at ``center_echo``.
     pad : bool, default=False
         Pad every train to ``train_length`` with ``None``, so that the
         position in a train is the echo index. With ``False`` the ``None``
@@ -263,13 +277,17 @@ def make_linear_order(
         ``trains[s][e]`` is the row index into ``coords`` of the view
         acquired at echo ``e`` of shot ``s``. The values are indices, not
         coordinates; every row of ``coords`` appears exactly once. With
-        ``pad=True``, ``None`` marks an echo that acquires no view.
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
 
     Raises
     ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
     ValueError
-        If ``coords`` is not a count, an ``(N,)`` or ``(N, 2)`` array, or a
-        boolean mask.
+        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,
+        ``train_length`` is not a positive integer, or ``center_echo`` is
+        outside ``[0, train_length)``.
 
     See Also
     --------
@@ -278,30 +296,24 @@ def make_linear_order(
 
     Examples
     --------
-    Four views, two echoes per train. Echo 0 acquires the ``kz = 0`` band and
-    echo 1 the ``kz = 1`` band:
+    Four centred views, two echoes per shot. Echo 0 acquires the ``kz = -1``
+    band and echo 1 the ``kz = 0`` band:
 
     >>> import pypulseqpp as pp
-    >>> views = [(0, 0), (1, 0), (0, 1), (1, 1)]
+    >>> views = [(-1, -1), (0, -1), (-1, 0), (0, 0)]
     >>> trains = pp.make_linear_order(views, 2)
     >>> trains
     [[0, 2], [1, 3]]
     >>> [[views[i] for i in train] for train in trains]
-    [[(0, 0), (0, 1)], [(1, 0), (1, 1)]]
+    [[(-1, -1), (-1, 0)], [(0, -1), (0, 0)]]
     """
-    if np.asarray(coords).ndim == 0:
-        count = int(coords)
-        if count < 0:
-            raise ValueError("coords must be nonnegative when given as a count")
-        return _finish_trains(
-            _split_into_shots(list(range(count)), train_length), train_length, pad
-        )
-    pts = _as_coords(coords)
+    train_length = _checked_train(train_length, center_echo)
+    pts = _centred(coords)
     n = len(pts)
     if n == 0:
         return []
     n_trains = int(np.ceil(n / train_length))
-    radius, _ = _polar(pts, center)
+    radius, _ = _polar(pts)
     order = np.lexsort((pts[:, 0], pts[:, 1]))
     trains = _deal_echo_major(
         order,
@@ -319,41 +331,58 @@ def make_centric_order(
     coords,
     train_length: int,
     *,
-    center=None,
     center_echo: int | None = None,
     pad: bool = False,
 ) -> list[list[int | None]]:
-    """Assign selected views to echo trains in centric order.
+    """Echo-train ordering of Cartesian views in centric order.
 
-    The views are ranked by their distance from ``center``, ties broken by
-    polar angle, and the ranking is cut into ``train_length`` consecutive
-    bands of ``ceil(N / train_length)`` views. Band ``e`` is acquired at echo
-    ``e``, one view per train, dealt across the trains in angle order. The
-    first echo of every train therefore acquires a view near the centre: the
-    conventional centric ordering of segmented gradient-echo and MPRAGE
-    acquisitions.
+    The views are ranked by their distance from the origin (the k-space
+    centre), ties broken by polar angle, and the ranking is cut into
+    ``train_length`` consecutive bands of ``ceil(N / train_length)`` views.
+    Band ``e`` is acquired at echo ``e``, one view per shot, dealt across the
+    shots in angle order. The first echo of every shot therefore acquires a
+    view near the centre: the conventional centric ordering of segmented
+    gradient-echo and MPRAGE acquisitions.
 
     Parameters
     ----------
     coords : array_like
-        The selected views, as for :func:`make_linear_order`.
+        Centred coordinates of the selected views: an ``(N, 2)`` array of
+        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
+        centre, which is the origin. Encoded view indices ``(y, z)`` on an
+        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
+        Distances and angles are evaluated in the units supplied. Boolean
+        masks are not accepted.
     train_length : int
-        Echo-train length; the number of shots is ``ceil(N / train_length)``.
-    center : tuple of float or None, default=None
-        k-space centre, in the units of ``coords``. ``None`` uses the centroid
-        of ``coords``.
+        Echo-train length, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
     center_echo : int or None, default=None
-        Echo at which the innermost band is acquired. ``None`` acquires it at
-        echo 0; an integer rotates the band order, which moves the effective
-        echo time without changing the train membership.
+        Echo at which the innermost band is acquired, in
+        ``[0, train_length)``. ``None`` acquires it at echo 0; an integer
+        rotates the band order, which moves the effective echo time without
+        changing the train membership.
     pad : bool, default=False
-        Pad every train to ``train_length`` with ``None``.
+        Pad every train to ``train_length`` with ``None``, so that the
+        position in a train is the echo index. With ``False`` the ``None``
+        entries are removed.
 
     Returns
     -------
     trains : list of list of int
-        ``trains[s][e]`` is the row index into ``coords`` of the view acquired
-        at echo ``e`` of shot ``s``, as for :func:`make_linear_order`.
+        ``trains[s][e]`` is the row index into ``coords`` of the view
+        acquired at echo ``e`` of shot ``s``. The values are indices, not
+        coordinates; every row of ``coords`` appears exactly once. With
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
+
+    Raises
+    ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
+    ValueError
+        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,
+        ``train_length`` is not a positive integer, or ``center_echo`` is
+        outside ``[0, train_length)``.
 
     See Also
     --------
@@ -362,26 +391,26 @@ def make_centric_order(
 
     Examples
     --------
-    Five views on the ky axis, one centre view and two per side, in trains of
-    length two:
+    Five centred ``ky`` views in shots of two echoes:
 
     >>> import pypulseqpp as pp
     >>> views = [-2, -1, 0, 1, 2]
-    >>> trains = pp.make_centric_order(views, 2, center=(0, 0))
+    >>> trains = pp.make_centric_order(views, 2)
     >>> trains
     [[2, 4], [3, 0], [1]]
     >>> [[views[i] for i in train] for train in trains]
     [[0, 2], [1, -2], [-1]]
 
-    Echo 0 acquires the three views nearest the centre, one per train, and
-    echo 1 the two outer views. The third train has no second view.
+    Echo 0 acquires the three views nearest the centre, one per shot, and
+    echo 1 the two outer views. The third shot has no second view.
     """
-    pts = _as_coords(coords)
+    train_length = _checked_train(train_length, center_echo)
+    pts = _centred(coords)
     n = len(pts)
     if n == 0:
         return []
     n_trains = int(np.ceil(n / train_length))
-    radius, angle = _polar(pts, center)
+    radius, angle = _polar(pts)
     order = sorted(range(n), key=lambda index: (radius[index], angle[index]))
     trains = _deal_echo_major(
         order,
@@ -399,36 +428,52 @@ def make_radial_order(
     coords,
     train_length: int,
     *,
-    center=None,
     pad: bool = False,
 ) -> list[list[int | None]]:
-    """Assign selected views to echo trains in centre-out radial order.
+    """Echo-train ordering of Cartesian views in centre-out radial order.
 
-    The views are sorted by polar angle about ``center`` and cut into
+    This orders Cartesian phase-encoding views, the radial view ordering of
+    3D fast spin echo; it does not concern radial (projection) trajectories.
+    The views are sorted by polar angle about the origin and cut into
     ``ceil(N / train_length)`` angular wedges of ``train_length`` views; each
     wedge is one shot. Within a wedge the views are acquired in order of
-    increasing distance from ``center``, so every train acquires its view
-    nearest the centre at echo 0. This is scheme B (radial wedge reordering)
-    of Buonincontri et al., Fig. 2, the centre-out ordering of 3D fast spin
-    echo with a short effective echo time.
+    increasing distance from the origin, so every shot acquires its view
+    nearest the centre at echo 0. This is scheme B (radial wedge
+    reordering) of Buonincontri et al., Fig. 2.
 
     Parameters
     ----------
     coords : array_like
-        The selected views, as for :func:`make_linear_order`.
+        Centred coordinates of the selected views: an ``(N, 2)`` array of
+        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
+        centre, which is the origin. Encoded view indices ``(y, z)`` on an
+        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
+        Distances and angles are evaluated in the units supplied. Boolean
+        masks are not accepted.
     train_length : int
-        Echo-train length; the number of wedges is ``ceil(N / train_length)``.
-    center : tuple of float or None, default=None
-        k-space centre, in the units of ``coords``. ``None`` uses the centroid
-        of ``coords``.
+        Echo-train length, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
     pad : bool, default=False
-        Pad every train to ``train_length`` with ``None``.
+        Pad every train to ``train_length`` with ``None``, so that the
+        position in a train is the echo index. With ``False`` the ``None``
+        entries are removed.
 
     Returns
     -------
     trains : list of list of int
-        ``trains[s][e]`` is the row index into ``coords`` of the view acquired
-        at echo ``e`` of shot ``s``, as for :func:`make_linear_order`.
+        ``trains[s][e]`` is the row index into ``coords`` of the view
+        acquired at echo ``e`` of shot ``s``. The values are indices, not
+        coordinates; every row of ``coords`` appears exactly once. With
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
+
+    Raises
+    ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
+    ValueError
+        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``, or
+        ``train_length`` is not a positive integer.
 
     See Also
     --------
@@ -436,24 +481,25 @@ def make_radial_order(
 
     Examples
     --------
-    Eight views on a 3 x 3 ky-kz grid without its centre, in trains of four.
-    Each train is a half-plane wedge, acquired from the inner to the outer
-    views:
+    Eight centred views on a 3 x 3 ky-kz grid without its centre, in shots
+    of four. Each shot is a half-plane wedge, acquired from the inner to the
+    outer views:
 
     >>> import pypulseqpp as pp
     >>> views = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
     ...          (0, 1), (1, -1), (1, 0), (1, 1)]
-    >>> trains = pp.make_radial_order(views, 4, center=(0, 0))
+    >>> trains = pp.make_radial_order(views, 4)
     >>> trains
     [[3, 6, 0, 5], [4, 1, 7, 2]]
     >>> [[views[i] for i in train] for train in trains]
     [[(0, -1), (1, 0), (-1, -1), (1, -1)], [(0, 1), (-1, 0), (1, 1), (-1, 1)]]
     """
-    pts = _as_coords(coords)
+    train_length = _checked_train(train_length)
+    pts = _centred(coords)
     n = len(pts)
     if n == 0:
         return []
-    radius, angle = _polar(pts, center)
+    radius, angle = _polar(pts)
     n_shots = int(np.ceil(n / train_length))
     # Angular wedges of equal view count keep every echo train the same length.
     by_angle = sorted(range(n), key=lambda i: angle[i])
@@ -469,42 +515,59 @@ def make_radial_adaptive_order(
     coords,
     train_length: int,
     *,
-    center=None,
     center_echo: int | None = None,
     pad: bool = False,
 ) -> list[list[int | None]]:
-    """Assign selected views to echo trains in radial order about a target echo.
+    """Echo-train ordering of Cartesian views in radial order about a target echo.
 
-    The views are ranked by their distance from ``center`` and cut into
-    ``train_length`` radius bands of ``ceil(N / train_length)`` views. The
-    innermost band is acquired at ``center_echo`` and successive bands at the
-    echoes increasingly distant from it, alternating before and after, so the
-    distance from the centre increases monotonically away from the target
-    echo in both directions. Within a band the views are dealt across the
-    trains in polar-angle order. This is scheme C (modified radial
-    reordering) of Buonincontri et al., Fig. 2C-D, which acquires the k-space
-    centre at a prescribed echo without a discontinuity at the centre.
+    The views are ranked by their distance from the origin (the k-space
+    centre) and cut into ``train_length`` radius bands of
+    ``ceil(N / train_length)`` views. The innermost band is acquired at
+    ``center_echo`` and successive bands at the echoes increasingly distant
+    from it, alternating before and after, so the distance from the centre
+    increases monotonically away from the target echo in both directions.
+    Within a band the views are dealt across the shots in polar-angle order.
+    This is scheme C (modified radial reordering) of Buonincontri et al.,
+    Fig. 2C-D, which acquires the k-space centre at a prescribed echo without
+    a discontinuity at the centre.
 
     Parameters
     ----------
     coords : array_like
-        The selected views, as for :func:`make_linear_order`.
+        Centred coordinates of the selected views: an ``(N, 2)`` array of
+        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
+        centre, which is the origin. Encoded view indices ``(y, z)`` on an
+        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
+        Distances and angles are evaluated in the units supplied. Boolean
+        masks are not accepted.
     train_length : int
-        Echo-train length; the number of shots is ``ceil(N / train_length)``.
-    center : tuple of float or None, default=None
-        k-space centre, in the units of ``coords``. ``None`` uses the centroid
-        of ``coords``.
+        Echo-train length, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
     center_echo : int or None, default=None
-        Echo at which the innermost band, and so the view nearest ``center``,
-        is acquired. ``None`` is echo 0.
+        Echo at which the innermost band, and so the view nearest the
+        origin, is acquired, in ``[0, train_length)``. ``None`` is echo 0.
     pad : bool, default=False
-        Pad every train to ``train_length`` with ``None``.
+        Pad every train to ``train_length`` with ``None``, so that the
+        position in a train is the echo index. With ``False`` the ``None``
+        entries are removed.
 
     Returns
     -------
     trains : list of list of int
-        ``trains[s][e]`` is the row index into ``coords`` of the view acquired
-        at echo ``e`` of shot ``s``, as for :func:`make_linear_order`.
+        ``trains[s][e]`` is the row index into ``coords`` of the view
+        acquired at echo ``e`` of shot ``s``. The values are indices, not
+        coordinates; every row of ``coords`` appears exactly once. With
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
+
+    Raises
+    ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
+    ValueError
+        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,
+        ``train_length`` is not a positive integer, or ``center_echo`` is
+        outside ``[0, train_length)``.
 
     See Also
     --------
@@ -513,15 +576,13 @@ def make_radial_adaptive_order(
 
     Examples
     --------
-    Nine views on the ky axis in three trains of three echoes, with the
+    Nine centred ``ky`` views in three shots of three echoes, with the
     centre view acquired at echo 1:
 
     >>> import numpy as np
     >>> import pypulseqpp as pp
     >>> views = np.arange(-4, 5)
-    >>> trains = pp.make_radial_adaptive_order(
-    ...     views, 3, center=(0, 0), center_echo=1
-    ... )
+    >>> trains = pp.make_radial_adaptive_order(views, 3, center_echo=1)
     >>> trains
     [[6, 4, 8], [7, 5, 1], [2, 3, 0]]
     >>> views[np.array(trains)]
@@ -529,17 +590,18 @@ def make_radial_adaptive_order(
            [ 3,  1, -3],
            [-2, -1, -4]])
 
-    The distance from the centre is smallest at echo 1 in every train:
+    The distance from the centre is smallest at echo 1 in every shot:
 
     >>> np.abs(views[np.array(trains)]).argmin(axis=1).tolist()
     [1, 1, 1]
     """
-    pts = _as_coords(coords)
+    train_length = _checked_train(train_length, center_echo)
+    pts = _centred(coords)
     n = len(pts)
     if n == 0:
         return []
     n_trains = int(np.ceil(n / train_length))
-    radius, angle = _polar(pts, center)
+    radius, angle = _polar(pts)
     order = sorted(range(n), key=lambda index: (radius[index], angle[index]))
     trains = _deal_echo_major(
         order,
@@ -561,51 +623,72 @@ def make_shuffling_order(
     cluster: bool = True,
     pad: bool = False,
 ) -> list[list[int | None]]:
-    """Assign selected views to echo trains in randomly shuffled echo order.
+    """Echo-train ordering of Cartesian views with random echo positions.
 
-    This is the echo ordering of T2 Shuffling: each view is acquired at a
-    random echo position, so that every echo time samples an incoherent
-    subset of the selected views and an echo-resolved reconstruction can
-    recover the signal evolution along the train. With ``cluster=True`` the
-    trains are consecutive raster-order (``kz``, then ``ky``) groups of
-    ``train_length`` views, which keeps the views of one train close
-    together as in the published method; only the echo positions within each
-    train are random. With ``cluster=False`` the train membership is random
-    as well.
+    This is the echo ordering used by T2 Shuffling [1]_. With
+    ``cluster=True``, train membership is formed from contiguous views in
+    raster order (``kz``, then ``ky``); echo positions within each train are
+    randomly permuted. With ``cluster=False``, train membership is a random
+    partition of the views as well.
 
-    The routine orders views that are already selected; it does not choose a
-    variable-density support. :func:`make_cartesian_plane_sampling` with
-    ``sampling='poisson'`` selects that support.
+    The routine orders views that are already selected; it does not select a
+    variable-density support. ``make_cartesian_plane_sampling`` with
+    ``sampling='poisson'`` selects such a support.
 
     Parameters
     ----------
     coords : array_like
-        The selected views, as for :func:`make_linear_order`.
+        Centred coordinates of the selected views: an ``(N, 2)`` array of
+        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
+        centre, which is the origin. Encoded view indices ``(y, z)`` on an
+        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
+        Distances and angles are evaluated in the units supplied. Boolean
+        masks are not accepted.
     train_length : int
-        Echo-train length; the number of shots is ``ceil(N / train_length)``.
+        Echo-train length, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
     seed : int or None, default=None
         Seed of the random permutations. Equal seeds give equal orders.
     cluster : bool, default=True
-        Form each train from a contiguous raster-order group of views; when
+        Form each train from contiguous views in raster order; when
         ``False``, assign views to trains at random.
     pad : bool, default=False
-        Pad every train to ``train_length`` with ``None``.
+        Pad every train to ``train_length`` with ``None``, so that the
+        position in a train is the echo index. With ``False`` the ``None``
+        entries are removed.
 
     Returns
     -------
     trains : list of list of int
-        ``trains[s][e]`` is the row index into ``coords`` of the view acquired
-        at echo ``e`` of shot ``s``, as for :func:`make_linear_order`.
+        ``trains[s][e]`` is the row index into ``coords`` of the view
+        acquired at echo ``e`` of shot ``s``. The values are indices, not
+        coordinates; every row of ``coords`` appears exactly once. With
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
+
+    Raises
+    ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
+    ValueError
+        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``, or
+        ``train_length`` is not a positive integer.
 
     See Also
     --------
     make_linear_order : the same train membership in raster echo order.
 
+    References
+    ----------
+    .. [1] Tamir JI, Uecker M, Chen W, et al. T2 shuffling: sharp,
+       multicontrast, volumetric fast spin-echo imaging. *Magnetic Resonance
+       in Medicine*. 2017;77(1):180-195. https://doi.org/10.1002/mrm.26102
+
     Examples
     --------
-    Six views on the ky axis in two trains of three. Each train contains a
-    contiguous group of views; the echo at which each view is acquired is
-    random:
+    Six centred ``ky`` views in two shots of three echoes. Each shot
+    contains a contiguous group of views; the echo at which each view is
+    acquired is random:
 
     >>> import pypulseqpp as pp
     >>> views = [-3, -2, -1, 0, 1, 2]
@@ -621,15 +704,16 @@ def make_shuffling_order(
     >>> [[views[i] for i in train] for train in other]
     [[-3, -2, -1], [2, 0, 1]]
     """
-    pts = _as_coords(coords)
+    train_length = _checked_train(train_length)
+    pts = _centred(coords)
     n = len(pts)
     if n == 0:
         return []
     rng = np.random.default_rng(seed)
     n_shots = int(np.ceil(n / train_length))
 
-    # Grid-strip clustering sorts by kz then ky so each train covers a
-    # spatially compact region; the alternative starts from a random order.
+    # Raster order, kz then ky, so each train is a contiguous group of views;
+    # without clustering the membership starts from a random order.
     base_order = (
         sorted(range(n), key=lambda i: (pts[i, 1], pts[i, 0]))
         if cluster
