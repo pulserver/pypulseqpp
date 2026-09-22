@@ -1,5 +1,3 @@
-# pypulseqpp
-
 [![Tests](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml/badge.svg)](https://github.com/pulserver/pypulseqpp/actions/workflows/test-ci.yml)
 [![codecov](https://codecov.io/gh/pulserver/pypulseqpp/branch/main/graph/badge.svg)](https://codecov.io/gh/pulserver/pypulseqpp)
 [![CodeFactor](https://www.codefactor.io/repository/github/pulserver/pypulseqpp/badge)](https://www.codefactor.io/repository/github/pulserver/pypulseqpp)
