@@ -155,15 +155,15 @@ class SequenceApp(ABC):
         The first file of the chain is written at ``path`` and the others
         beside it as ``<stem>_<prescan>.seq`` and ``<stem>_main.seq``; without
         prescans the main sequence alone is written at ``path``. ``offline``
-        selects signed text or binary, as :func:`pypulseqpp.cli.write_sequence`
-        takes it.
+        selects signed text, and False the binary form, which
+        :func:`pypulseqpp.io.write` takes the other way round.
 
         Returns
         -------
         list of str
             The written paths, in play order.
         """
-        from pypulseqpp.cli import write_sequence
+        from pypulseqpp.io import write
 
         path = Path(path)
         names = [*self.prescans(), None]
@@ -174,7 +174,7 @@ class SequenceApp(ABC):
             seq = self.design(name)
             if i + 1 < len(names):
                 seq.set_definition(key="NextSequence", value=paths[i + 1].name)
-            write_sequence(seq, str(paths[i]), offline=offline)
+            write(seq, str(paths[i]), binary=not offline)
         return [str(p) for p in paths]
 
     def labels(self, **values: int) -> list:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import functools as _functools
+import importlib as _importlib
 import inspect as _inspect
 from importlib.metadata import PackageNotFoundError as _PackageNotFoundError
 from importlib.metadata import version as _distribution_version
@@ -318,7 +319,18 @@ _WITHHELD.update(
 )
 
 
+#: The public subpackages, imported on first use. Importing them all here
+#: would pull the module designers, the checks and the shipped sequences into
+#: every ``import pypulseqpp``, which is most of the package for a caller who
+#: wants one factory.
+_SUBPACKAGES = ("cli", "io", "plot", "safety", "sequences")
+
+
 def __getattr__(name: str):
+    if name in _SUBPACKAGES:
+        module = _importlib.import_module(f".{name}", __name__)
+        globals()[name] = module
+        return module
     reason = _WITHHELD.get(name)
     if reason is not None:
         raise AttributeError(f"pypulseqpp does not export {name!r}: {reason}")

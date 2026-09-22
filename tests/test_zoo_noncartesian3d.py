@@ -22,7 +22,7 @@ SMALL = {
         "blade_width": 8,
         "tr": None,
     },
-    "zte3D_sequence": {"n_x": 32, "n_views": 24, "n_shots": 2, "n_dummy": 0},
+    "zte3D_sequence": {"n": 32, "n_shots": 2, "n_dummy": 0},
 }
 GRE = [
     "gre_stack_of_stars3D_sequence",
@@ -358,7 +358,7 @@ def test_an_unknown_choice_or_an_out_of_range_factor_is_refused(name, prescripti
 def test_every_zte_view_of_every_shot_is_acquired_once_in_order():
     zte = app("zte3D_sequence", n_shots=3, n_dummy=2)
     lin, seg, once = adc_labels(zte.design(), "LIN", "SEG", "ONCE")
-    n_views = len(zte.zte.directions)
+    n_views = len(zte.ro.directions)
 
     assert list(zip(lin, seg, strict=True)) == [
         (view, shot) for shot in range(3) for view in range(n_views)
@@ -373,16 +373,30 @@ def test_every_zte_acquisition_is_turned_by_its_shot_rotation():
 
     for block, shot in zip(acquisitions(seq), seg, strict=True):
         assert matrix_of(block.rotation.quaternion) == pytest.approx(
-            zte.zte.shot_rotations[shot], abs=1e-9
+            zte.ro.shot_rotations[shot], abs=1e-9
         )
     # A dummy shell is the first shot without the ADC.
     first = seq.get_block(1).rotation.quaternion
-    assert matrix_of(first) == pytest.approx(zte.zte.shot_rotations[0], abs=1e-9)
+    assert matrix_of(first) == pytest.approx(zte.ro.shot_rotations[0], abs=1e-9)
 
 
 def test_a_zte_pulse_too_long_for_its_dead_time_is_refused():
+    """The pulse duration is a class attribute, so a subclass is how it is changed."""
+    longer = type(
+        "LongPulseZte3D", (app_class("zte3D_sequence"),), {"HARD_PULSE_DURATION": 1e-3}
+    )
     with pytest.raises(ValueError):
-        module("zte3D_sequence").main(**SMALL["zte3D_sequence"], pulse_duration=1e-3)
+        longer.main(**SMALL["zte3D_sequence"])
+
+
+def test_playing_one_zte_shell_in_every_r_acquires_that_fraction_of_the_shots():
+    every = app("zte3D_sequence", n_shots=4, n_dummy=0)
+    every_other = app("zte3D_sequence", n_shots=4, r=2, n_dummy=0)
+
+    assert every.shots == [0, 1, 2, 3]
+    assert every_other.shots == [0, 2]
+    (seg,) = adc_labels(every_other.design(), "SEG")
+    assert sorted(set(seg)) == [0, 2]
 
 
 # -- the command line ----------------------------------------------------------------
@@ -398,7 +412,7 @@ def test_a_zte_pulse_too_long_for_its_dead_time_is_refused():
         ),
         ("se_stack_of_spirals3D_sequence", "--n-shots", "Interleaves that sample"),
         ("gre_stack_of_blades3D_sequence", "--blade-width", "Phase-encode lines"),
-        ("zte3D_sequence", "--n-views", "Views per shell."),
+        ("zte3D_sequence", "--scheme", "Shape of the shell"),
     ],
 )
 def test_a_flag_is_named_and_described_by_the_function_it_runs(
