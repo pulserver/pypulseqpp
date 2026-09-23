@@ -194,8 +194,8 @@ def calc_rf_bandwidth(
     >>> base = pp.make_sinc_pulse(flip_angle=np.pi / 6, duration=2e-3, time_bw_product=4)
     >>> sms, offsets, _ = pp.make_sms_pulse(base, 3, 5000.0)
     >>> result = pp.calc_rf_bandwidth(sms, compat=False)
-    >>> result.num_bands, np.round(result.band_offsets).tolist()
-    (3, [-5000.0, 0.0, 5000.0])
+    >>> result.num_bands, np.round(result.band_offsets).astype(int).tolist()
+    (3, [-5000, 0, 5000])
 
     See Also
     --------
