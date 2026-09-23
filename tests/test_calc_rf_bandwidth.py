@@ -131,3 +131,76 @@ def test_the_spectrum_and_its_axis_come_back_when_asked_for(kwargs, count):
     assert all(np.asarray(part).ndim == 1 for part in answer[1:])
     if count == 3:
         assert len(answer[1]) == len(answer[2])
+
+
+def _sinc():
+    return pp.make_sinc_pulse(math.pi / 6, duration=2e-3, time_bw_product=4)
+
+
+@pytest.mark.parametrize(
+    ("flags", "length"),
+    [
+        ({}, None),
+        ({"return_spectrum": True}, 2),
+        ({"return_axis": True}, 2),
+        ({"return_spectrum": True, "return_axis": True}, 3),
+    ],
+)
+def test_the_default_return_is_what_a_pypulseq_caller_unpacks(flags, length):
+    answer = pp.calc_rf_bandwidth(_sinc(), **flags)
+
+    if length is None:
+        assert isinstance(answer, float)
+    else:
+        assert isinstance(answer, tuple)
+        assert len(answer) == length
+
+
+@pytest.mark.parametrize("num_bands", [2, 3, 5])
+def test_each_band_of_a_multiband_pulse_is_found_at_its_offset_and_width(num_bands):
+    base = _sinc()
+    sms, offsets, _ = pp.make_sms_pulse(base, num_bands, 5000.0)
+
+    result = pp.calc_rf_bandwidth(sms, compat=False)
+
+    assert result.num_bands == num_bands
+    np.testing.assert_allclose(result.band_offsets, offsets, atol=10)
+    np.testing.assert_allclose(
+        result.band_bandwidths, pp.calc_rf_bandwidth(base), rtol=0.02
+    )
+    assert result.bandwidth == pytest.approx(pp.calc_rf_bandwidth(sms))
+
+
+def test_a_single_band_pulse_is_one_band_as_wide_as_the_pulse():
+    result = pp.calc_rf_bandwidth(_sinc(), compat=False)
+
+    assert result.num_bands == 1
+    assert result.band_offsets[0] == pytest.approx(0.0, abs=1)
+    assert result.band_bandwidths[0] == pytest.approx(result.bandwidth, rel=1e-3)
+
+
+def test_band_offsets_are_relative_to_the_carrier_a_retuned_pulse_moves_its_axis():
+    sms, _, _ = pp.make_sms_pulse(_sinc(), 3, 5000.0)
+    here = pp.calc_rf_bandwidth(sms, compat=False)
+    sms.freq_offset = 1200.0
+
+    tuned = pp.calc_rf_bandwidth(sms, compat=False)
+
+    np.testing.assert_allclose(tuned.band_offsets, here.band_offsets)
+    np.testing.assert_allclose(tuned.frequency, here.frequency + 1200.0)
+
+
+def test_the_named_axis_puts_an_on_resonance_pulse_at_zero():
+    """Upstream labels each bin one bin low; the named result does not."""
+    result = pp.calc_rf_bandwidth(_sinc(), compat=False)
+    height = np.abs(result.spectrum)
+
+    centroid = np.sum(result.frequency * height) / np.sum(height)
+
+    assert centroid == pytest.approx(0.0, abs=1.0)
+    _, _, upstream_axis = pp.calc_rf_bandwidth(
+        _sinc(), return_spectrum=True, return_axis=True
+    )
+    assert np.sum(upstream_axis * height) / np.sum(height) == pytest.approx(
+        -10.0, abs=1.0
+    )
