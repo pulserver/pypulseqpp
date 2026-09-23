@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build the single-page Sphinx manual and print it to docs/build/pypulseqpp-docs.pdf.
 #
-# Sphinx renders the sources as one HTML page, and scripts/print_pdf.py prints
+# Sphinx renders the sources as one HTML page, with the page of every API
+# object in it, and scripts/print_pdf.py prints
 # that page with headless Chromium once MathJax has typeset its equations. The
 # gallery outputs of the HTML build are reused, so no script runs twice.
 #
@@ -19,7 +20,9 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 if [ "${SKIP_HTML:-0}" != 1 ]; then
   bash scripts/build_docs.sh
 fi
-"$PYTHON_BIN" -m sphinx -W --keep-going -d docs/build/single-doctrees \
+# Its own doctrees: the page tree differs from the site's, which leaves the
+# object pages out of the navigation.
+PYPULSEQPP_DOCS_PDF=1 "$PYTHON_BIN" -m sphinx -W --keep-going -d docs/build/single-doctrees \
   -b singlehtml docs docs/build/singlehtml
 
 version="$("$PYTHON_BIN" -c 'import importlib.metadata as m; print(m.version("pypulseqpp"))' 2>/dev/null || true)"

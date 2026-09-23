@@ -78,7 +78,8 @@ bash scripts/build_docs.sh
 The gallery is executed as the pages are built, and the fast-spin-echo scripts
 design their refocusing trains with `torchsim`, which the `design` extra brings.
 `bash scripts/build_docs_pdf.sh` renders the single-file manual from the same
-build, printed by headless Chromium once MathJax has typeset it
+build, rooted at `docs/manual.md` so that it also carries every API object
+page (`PYPULSEQPP_DOCS_PDF=1`), printed by headless Chromium once MathJax has typeset it
 (`scripts/print_pdf.py`; `python -m playwright install chromium`), and is what
 the release workflow attaches to a tag.
 
