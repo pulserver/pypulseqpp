@@ -1,6 +1,7 @@
 """Rotation-extension parity with explicitly rotated gradients and file round trips."""
 
 import math
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -131,3 +132,55 @@ def test_a_turned_sequence_survives_being_rebuilt_block_by_block(system):
     assert len(rebuilt) == len(original)
     assert_plays_the_same(original, rebuilt, within=0.0)
     assert_samples_the_same(original, rebuilt, within=0.0)
+
+
+@pytest.mark.parametrize("start", [0.5, 2.0, 2.5, 3.1])
+def test_gradients_ending_together_in_a_turned_block_end_at_zero(system, start):
+    """An instant two axes reach by different sums is read as one corner.
+
+    A turned block is played on the union of its axes' corners, which keeps
+    one time for each instant. Two seconds into a sequence the same block end
+    reached through different ramps differs by a rounding step, and reading
+    the other axis there must give its own corner, not an interpolation a
+    rounding step before it.
+    """
+    sequence = pp.Sequence(system)
+    sequence.add_block(pp.make_delay(start))
+    read = pp.make_trapezoid(
+        "x",
+        amplitude=1e6,
+        rise_time=180e-6,
+        flat_time=0,
+        fall_time=180e-6,
+        system=system,
+    )
+    encode = pp.make_trapezoid(
+        "z",
+        amplitude=195312.5,
+        rise_time=80e-6,
+        flat_time=0,
+        fall_time=80e-6,
+        delay=200e-6,
+        system=system,
+    )
+    sequence.add_block(
+        read, encode, pp.make_rotation(Rotation.from_euler("z", 10, degrees=True))
+    )
+    sequence.add_block(pp.make_delay(2e-3))
+    sequence.add_block(
+        pp.make_trapezoid(
+            "z",
+            amplitude=-195312.5,
+            rise_time=80e-6,
+            flat_time=0,
+            fall_time=80e-6,
+            system=system,
+        )
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        times, values = sequence.waveforms()[2]
+
+    end = start + 360e-6
+    assert values[np.abs(times - end) < 1e-9].tolist() == [0.0]
