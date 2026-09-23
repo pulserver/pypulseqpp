@@ -48,6 +48,16 @@ exclude_patterns = [
     "generated/sequences/tables/*",
 ]
 
+#: Set by ``scripts/build_docs_pdf.sh``. The manual is built from ``manual.md``,
+#: which places the landing page and the six sections side by side and adds
+#: the page of every API object: the site reaches those from the API tables
+#: rather than from the navigation, and a printed page has no links to follow.
+PDF_MANUAL = os.environ.get("PYPULSEQPP_DOCS_PDF") == "1"
+if PDF_MANUAL:
+    root_doc = "manual"
+else:
+    exclude_patterns.append("manual.md")
+
 myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "linkify"]
 myst_footnote_transition = False
 
@@ -359,6 +369,30 @@ def _write_sequence_pages(app) -> None:
     render(app.srcdir)
 
 
+_TOCTREE = re.compile(r"```\{toctree\}.*?```\n?", re.S)
+
+
+def _landing_page_in_the_manual(_app, docname, source):
+    """Drop the landing page's toctree when ``manual.md`` holds the sections."""
+    if PDF_MANUAL and docname == "index":
+        source[0] = _TOCTREE.sub("", source[0])
+
+
+def _object_pages_in_the_manual(_app, doctree) -> None:
+    """Unwrap autosummary's toctrees, for the PDF only.
+
+    The single-page builder inlines each object's page where the toctree
+    naming it stands, and the HTML writer skips everything inside the node
+    autosummary wraps its toctree in.
+    """
+    if not PDF_MANUAL:
+        return
+    from sphinx.ext.autosummary import autosummary_toc
+
+    for node in list(doctree.findall(autosummary_toc)):
+        node.replace_self(node.children)
+
+
 def _colab_badge(_app, docname, source) -> None:
     """Put the Open in Colab badge under a gallery example's title."""
     source[0] = colab.with_badge(source[0], docname, DOCS_RELEASE)
@@ -366,7 +400,7 @@ def _colab_badge(_app, docname, source) -> None:
 
 def _colab_notebooks(app, exception) -> None:
     """Write the Colab copies of the gallery's notebooks into the built HTML site."""
-    if exception is None and app.builder.name == "html":
+    if exception is None and app.builder.name == "html" and not PDF_MANUAL:
         colab.write(Path(app.srcdir), Path(app.outdir), DOCS_RELEASE)
 
 
@@ -378,6 +412,8 @@ def setup(app):
     app.connect("source-read", _local_readme)
     app.connect("include-read", _included_readme)
     app.connect("source-read", _colab_badge)
+    app.connect("source-read", _landing_page_in_the_manual)
+    app.connect("doctree-read", _object_pages_in_the_manual)
     app.connect("build-finished", _colab_notebooks)
     app.connect("builder-inited", _draw_explanation_figures)
     # Ahead of autosummary's own handler, which reads the sources for the

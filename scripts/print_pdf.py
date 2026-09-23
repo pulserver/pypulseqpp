@@ -4,7 +4,7 @@
 
 Headless Chromium loads the page, waits for MathJax to typeset every equation,
 and prints it, so the manual shows the equations, figures and tables the site
-shows. A cover page with the six sections is put in front, each section starts
+shows. A cover page with the sections is put in front, each section starts
 a page, the navigation, the dark-mode variants of the figures and the controls
 that only work in a browser are left out, and the PDF carries an outline built
 from the headings.
@@ -31,13 +31,14 @@ SECTIONS = (
     ("Examples", "examples/index"),
     ("API reference", "api/index"),
     ("Miscellaneous", "misc/index"),
+    ("API objects", "api_objects"),
 )
 
 #: What a printed page does not need: the theme's navigation, the site's own
 #: title for the landing page, the figures meant for a dark background, and the
 #: controls that only work in a browser.
 PRINT_CSS = """
-#jb-print-docs-body, section#homepage > h1, #bd-header-version-warning,
+#jb-print-docs-body, section#pypulseqpp-documentation > h1, section#homepage > h1, #bd-header-version-warning,
 .version-switcher__container,
 .bd-header, .bd-sidebar-primary, .bd-sidebar-secondary, .header-article,
 .bd-footer, .bd-footer-article, .bd-footer-content, .prev-next-area,
@@ -125,7 +126,7 @@ def main(argv=None) -> int:
         return 1
 
     # The single-page builder names its page after the root document.
-    page_file = (args.site / "index.html").resolve()
+    page_file = (args.site / "manual.html").resolve()
     with sync_playwright() as playwright:
         executable = os.environ.get("PYPULSEQPP_PDF_CHROMIUM") or None
         browser = playwright.chromium.launch(executable_path=executable)
@@ -163,7 +164,7 @@ def main(argv=None) -> int:
                     if (start) start.style.breakBefore = 'page';
                 }
             }""",
-            [_cover(args.version), [target for _, target in SECTIONS]],
+            [_cover(args.version), ["index", *(target for _, target in SECTIONS)]],
         )
         page.emulate_media(media="print", color_scheme="light")
         page.wait_for_load_state("networkidle")
