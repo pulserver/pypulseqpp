@@ -37,7 +37,7 @@ that block's rotation:
 
 $$
 \max_{t}\;\max_{a \in \{x,y,z\}} \left| \frac{\mathrm{d}G_a}{\mathrm{d}t} \right|
-\;\le\; \texttt{max\_slew}.
+\;\le\; \mathtt{max\_slew}.
 $$
 
 For a trapezoid this is the amplitude divided by the rise or fall time. For an

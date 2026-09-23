@@ -33,7 +33,7 @@ The check reconstructs the physical-axis gradient waveforms, after each block's
 rotation, and evaluates
 
 $$
-\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \texttt{max\_grad}.
+\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad}.
 $$
 
 The report also states the peak of each axis, with its 1-based block, and the

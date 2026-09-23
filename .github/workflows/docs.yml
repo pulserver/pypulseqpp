@@ -74,6 +74,9 @@ jobs:
           PYPULSEQPP_DOCS_RELEASE: ${{ steps.version.outputs.dir }}
         run: bash scripts/build_docs.sh
 
+      - name: Install Chromium for the PDF manual
+        run: python -m playwright install --with-deps chromium
+
       - name: Build PDF manual
         env:
           SKIP_HTML: 1

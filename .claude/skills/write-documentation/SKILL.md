@@ -94,10 +94,11 @@ Then build and inspect the result, including the sidebar hierarchy:
 bash scripts/build_docs.sh          # docs/build/html/index.html
 bash scripts/build_docs_pdf.sh      # docs/build/pypulseqpp-docs.pdf
 pytest -q tests/test_docs_guides.py tests/test_docs_sequences.py \
-          tests/test_docs_reference.py tests/test_docstrings.py \
-          tests/test_docstring_defaults.py
+          tests/test_docs_reference.py tests/test_docs_explanations.py \
+          tests/test_docstrings.py tests/test_docstring_defaults.py
 ```
 
 The build runs under `-W`, so a broken reference or an unreachable page fails
-it. The gallery is executed as the pages are built, and the fast-spin-echo
+it. The PDF is the single-page build printed by headless Chromium once MathJax
+has typeset it, which needs `python -m playwright install chromium`. The gallery is executed as the pages are built, and the fast-spin-echo
 scripts need `torchsim` from the `design` extra.

@@ -6,7 +6,7 @@
 - Adjacent Pulseq blocks have no implicit gap, so the change between the
   physical-axis endpoint of one block and the initial amplitude of the next
   must satisfy the one-raster slew criterion
-  $|\Delta G| \leq \texttt{max\_slew}\,\texttt{grad\_raster\_time}$.
+  $|\Delta G| \leq \mathtt{max\_slew}\cdot\mathtt{grad\_raster\_time}$.
 - {func}`~pypulseqpp.safety.check_grad_continuity` evaluates every boundary and
   reports the 1-based block index, physical axis, endpoint amplitudes and
   implied slew rate.
@@ -22,8 +22,8 @@ endpoint of one block and the initial amplitude of the next must satisfy the
 one-raster slew criterion
 
 $$
-|\Delta G| \leq \texttt{max\_slew}\,
-                   \texttt{grad\_raster\_time}.
+|\Delta G| \leq \mathtt{max\_slew} \cdot
+                   \mathtt{grad\_raster\_time}.
 $$
 
 ```{figure} ../../generated/figures/continuity_seam.png
