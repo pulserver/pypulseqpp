@@ -1,0 +1,82 @@
+/* Minimal print styling for the theme-free single-page manual. */
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm;
+  @bottom-center {
+    content: counter(page);
+    font-size: 8pt;
+    color: #667085;
+  }
+}
+
+body {
+  color: #182230;
+  font: 9.5pt/1.45 sans-serif;
+}
+
+.pdf-cover {
+  break-after: page;
+  padding-top: 35mm;
+}
+
+.pdf-cover img {
+  width: 150mm;
+  margin-bottom: 15mm;
+}
+
+.pdf-cover h1 {
+  font-size: 24pt;
+}
+
+.pdf-cover li {
+  margin: 0.45em 0;
+}
+
+a {
+  color: #1769aa;
+  text-decoration: none;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+pre,
+table,
+figure {
+  break-inside: avoid;
+}
+
+pre {
+  padding: 0.6em;
+  border: 1px solid #d0d5dd;
+  white-space: pre-wrap;
+  font-size: 8pt;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.3em 0.45em;
+  border: 1px solid #d0d5dd;
+  vertical-align: top;
+}
+
+h1,
+h2,
+h3 {
+  break-after: avoid;
+}
+
+/* The landing page's heading names the sidebar entry of the HTML build; the
+   cover above already carries the title, so the manual does not repeat it. */
+
+section#homepage > h1 {
+  display: none;
+}
