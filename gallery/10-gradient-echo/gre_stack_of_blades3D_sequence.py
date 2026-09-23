@@ -30,10 +30,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Sixteen-line blades
+# -------------------
 #
-# Sixteen lines to a blade, at every partition.
+# Sixteen lines per blade, at every partition.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_stack_of_blades3D_sequence

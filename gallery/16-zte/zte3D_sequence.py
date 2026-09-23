@@ -31,10 +31,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Nyquist angular sampling
+# ------------------------
 #
-# Half-spokes turned over a sphere, at enough views to sample its surface.
+# ``ceil(pi * n**2)`` half-spoke directions over the sphere, which sample its
+# surface at the Nyquist spacing.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import zte3D_sequence
@@ -50,9 +51,9 @@ print(
 # Sequence diagram
 # ----------------
 #
-# The automatically detected repetition contains one complete set of
-# half-spoke directions. The readout gradient precedes the hard RF event, and the ADC window starts
-# after the transmit/receive dead time. The solid trace is a
+# The automatically detected repetition is one shell of half-spoke
+# directions. The readout gradient reaches amplitude before the hard RF event,
+# and the ADC window starts after the transmit/receive dead time. The solid trace is a
 # representative repetition; shaded traces show other gradient encodes.
 
 baseline.paper_plot()
@@ -70,11 +71,12 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # Angular undersampling
 # ---------------------
 #
-# The sphere is dealt into shells, each the same one turned about ``z``.
-# ``r`` plays one shell in every ``r`` of that set, which halves the
-# acquisitions at ``r = 2`` and leaves the angular spacing between the shells
-# that remain twice as wide. What that produces is streaking from the
-# periphery rather than the fold-over a Cartesian acquisition would give.
+# The Nyquist set of directions is divided into shells, each a copy of the
+# first rotated about ``z``. ``r`` acquires one shell in every ``r``: at
+# ``r = 2`` the number of acquisitions is halved and the azimuthal spacing
+# between acquired shells is doubled. Angular undersampling produces streak
+# artefacts from the k-space periphery rather than the fold-over of an
+# undersampled Cartesian acquisition.
 
 alternative = zte3D_sequence(n=64, r=2, n_dummy=0)
 

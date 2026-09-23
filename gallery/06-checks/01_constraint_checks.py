@@ -3,16 +3,16 @@
 Sequence constraint checks
 ==========================
 
-The scope of this notebook is to run the checks the package computes over a
-finished sequence, and to read what each of them reports: the quantity it
-measured, the limit it compared it with, and where in the sequence the
-measurement came from.
+The earlier lessons checked the timing of each sequence as it was built. This
+lesson runs every check the package computes over a finished sequence, and
+reads what each of them reports: the measured quantity, the limit it is
+compared with, and the part of the sequence the measurement comes from.
 
-The sequence they are run on is the shipped single-shot echo planar
-acquisition, :doc:`/generated/gallery/15-epi/epi2D_sequence`, of the kind
-:doc:`/generated/gallery/03-gre-to-epi/03_epi` builds by hand: it reaches high
-slew rates in a periodic pattern, which is the case the gradient, stimulation
-and resonance checks have something to say about.
+The checks are run on the shipped single-shot echo planar acquisition,
+:doc:`/generated/gallery/15-epi/epi2D_sequence`, of the kind built by hand in
+:doc:`/generated/gallery/03-gre-to-epi/03_epi`. Its readout reaches high slew
+rates in a periodic pattern, so the gradient, stimulation and resonance checks
+all report non-trivial values.
 
 A passing check does not establish that a sequence is safe to run on a scanner
 or on a subject. The PNS, mechanical-resonance and SAR models used here are
@@ -20,19 +20,19 @@ synthetic demonstrations. Scanner-specific checks and hardware monitoring are
 separate. The physical models are described in
 :doc:`/explanations/safety/index`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Echo-planar test sequence.** The sequence the checks are run over.
-#. **Timing and gradient hardware.** Event timing, amplitude, slew rate and
-   continuity across block boundaries.
-#. **Peripheral nerve stimulation.** The chronaxie model, and the response it
-   computes over the waveform.
-#. **Mechanical resonance.** Forbidden bands, and the spectrum the sequence
-   puts into them.
-#. **Specific absorption rate.** The power the transmit chain deposits, over
-   the averaging windows.
-#. **Every verdict together.** The six readings, and what the sequence would
-   have to change for them.
+After this lesson, you should be able to:
+
+- run the timing, gradient amplitude, slew-rate and boundary-continuity
+  checks, and distinguish per-axis from vector readings;
+- compute a peripheral nerve stimulation response with a chronaxie model and
+  inspect its trace;
+- compare the gradient spectrum with forbidden mechanical-resonance bands;
+- compute SAR over averaging windows with a set of virtual observation
+  points;
+- identify the design parameters that change a failing reading.
 """
 
 # sphinx_gallery_start_ignore
@@ -86,8 +86,8 @@ print(f"{seq.num_blocks} blocks, {seq.duration()[0] * 1e3:.1f} ms")
 # the system limits the sequence was designed under. They report the largest
 # per-axis reading and the largest vector reading, which is not the norm of the
 # per-axis peaks: two axes reach their own peaks at different times.
-# The verdict is on the per-axis reading, which is what the hardware limits;
-# the vector reading is reported beside it. ``check_grad_continuity`` looks for
+# The verdict uses the per-axis reading, because the hardware limits apply per
+# axis; the vector reading is reported beside it. ``check_grad_continuity`` looks for
 # discontinuities between adjacent blocks. A discontinuity corresponds to an
 # undefined instantaneous slew in the Pulseq waveform.
 
@@ -167,7 +167,7 @@ for band in mech.bands:
 
 # %%
 # ``mech_resonance_spectrum`` returns one window's spectrum through the same
-# windowed pass, so the figure and the verdict read the same numbers. The
+# windowed pass, so the figure and the verdict use the same numbers. The
 # readout train is periodic, so its spectrum is a comb at the echo-spacing
 # frequency and its harmonics.
 

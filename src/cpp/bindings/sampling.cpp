@@ -144,10 +144,10 @@ namespace
 
     void add_calibration(std::vector<std::uint8_t>& mask, const Geometry& geometry)
     {
-        const auto y0 = static_cast<std::size_t>(
-            static_cast<double>(geometry.ny) / 2.0 - static_cast<double>(geometry.cy) / 2.0);
-        const auto x0 = static_cast<std::size_t>(
-            static_cast<double>(geometry.nx) / 2.0 - static_cast<double>(geometry.cx) / 2.0);
+        // Centred on index n / 2, as every other calibration region in the
+        // package is: rows n / 2 - c / 2 up to n / 2 + (c + 1) / 2.
+        const auto y0 = geometry.ny / 2 - geometry.cy / 2;
+        const auto x0 = geometry.nx / 2 - geometry.cx / 2;
         for (std::size_t y = y0; y < y0 + geometry.cy; ++y)
         {
             for (std::size_t x = x0; x < x0 + geometry.cx; ++x)

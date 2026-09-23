@@ -30,10 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Four-echo train
+# ---------------
 #
-# Four echoes after one excitation, read in alternating directions.
+# Four echoes after each excitation, with readout gradients of alternating
+# polarity.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_multiecho2D_sequence
@@ -54,8 +55,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# Colouring by echo index separates the echoes of one excitation; colouring by
-# shot separates the excitations.
+# Colour encodes acquisition order. The echoes of one excitation sample the
+# same phase-encode line.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=False)
 

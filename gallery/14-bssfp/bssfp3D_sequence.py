@@ -30,10 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# A full Cartesian sampling of the slab.
+# Every ``(line, partition)`` view inside the ellipse inscribed in the
+# phase-encode plane is acquired.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import bssfp3D_sequence
@@ -52,7 +53,7 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# The phase-encode plane in the order it is read.
+# Colour encodes acquisition order in the phase-encode plane.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
 
@@ -61,8 +62,8 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # ---------------------------------
 #
 # Subsampling the line and partition axes reduces the number of repetitions.
-# For fixed TR and flip angle, the RF and gradient phase cycling that establishes
-# the steady state is unchanged.
+# TR, flip angle, RF phase alternation and the balanced gradient moments of
+# each repetition are unchanged, so the steady state is the same.
 
 alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
 

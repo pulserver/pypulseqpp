@@ -7,20 +7,18 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import _ext as cxx
-from pypulseqpp._angles import (
+from pypulseqpp import (
     calc_golden_angles,
     calc_raga_angles,
     calc_tiny_golden_angles,
     calc_uniform_angles,
-)
-from pypulseqpp._masks import (
     make_centric_order,
     make_linear_order,
     make_radial_adaptive_order,
     make_radial_order,
     make_shuffling_order,
+    make_traversal_order,
 )
-from pypulseqpp._ordering import calc_traversal_order
 
 
 @pytest.fixture
@@ -269,12 +267,12 @@ def test_every_traversal_order_visits_each_view_once():
         "outside_in",
         "random",
     ):
-        visited = calc_traversal_order(16, order)
+        visited = make_traversal_order(16, order)
         assert sorted(visited.tolist()) == list(range(16)), order
 
 
 def test_centre_out_starts_at_the_centre():
-    assert calc_traversal_order(6, "center_out")[0] in (2, 3)
+    assert make_traversal_order(6, "center_out")[0] in (2, 3)
 
 
 def test_golden_angles_never_repeat_and_tiny_ones_step_less_far():

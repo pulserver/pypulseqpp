@@ -7,8 +7,8 @@ import pytest
 from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
+from pypulseqpp import calc_projection_shell
 from pypulseqpp import sequences as design
-from pypulseqpp._angles import calc_projection_shell
 
 FOV = 0.24
 MATRIX = 96

@@ -91,10 +91,10 @@ def coverage_figure(designs, n_y):
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline: single shot
-# ---------------------
+# Single-shot acquisition
+# -----------------------
 #
-# One excitation acquires the complete phase-encode axis. Echo-train length
+# Every phase-encode line is acquired after one excitation. Echo-train length
 # equals the number of acquired lines and determines the accumulated
 # off-resonance phase across k-space.
 
@@ -128,12 +128,13 @@ diagram.paper_plot()
 # Segmentation and in-plane acceleration both reduce echo-train length.
 # ``n_shots`` interleaves the lines over several excitations, so every line is
 # still acquired. ``ry`` skips lines within one excitation and requires a
-# parallel-imaging reconstruction for the omitted lines. Both reduce the
-# echo-train duration. A spin at offset :math:`\Delta f`
-# gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
-# linear in :math:`k_y` and therefore a displacement of
-# :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
-# routes shorten the train, and both shorten the distortion with it.
+# parallel-imaging reconstruction for the omitted lines. Off-resonance
+# :math:`\Delta f` adds a phase of :math:`2\pi \Delta f\, \mathrm{esp}`
+# per echo spacing :math:`\mathrm{esp}`. This phase is linear in :math:`k_y`
+# and displaces the image along the phase-encode axis by
+# :math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels, where
+# :math:`N_\mathrm{etl}` is the echo-train length. Both segmentation and
+# acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
 
 segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)
 accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)
@@ -164,10 +165,9 @@ for title, seq in designs.items():
 # --------------
 #
 # The ordinate gives the phase-encode line acquired at each echo index. A
-# single shot
-# traverses the axis one line at a time; a segmented acquisition traverses it
-# in steps of ``n_shots``, with each shot starting one line further on;
-# acceleration traverses it in steps of ``ry`` and stops there.
+# single shot traverses the axis one line at a time. A segmented acquisition
+# traverses it in steps of ``n_shots``, each shot starting one line further
+# on. An accelerated acquisition traverses it once in steps of ``ry``.
 
 # sphinx_gallery_start_ignore
 traversal_figure(designs, 96)
@@ -178,8 +178,8 @@ traversal_figure(designs, 96)
 # ------------------------
 #
 # Segmentation and acceleration produce the same train length from different
-# sets of lines: the segmented acquisition covers the axis, the accelerated one
-# leaves two lines in three unread.
+# sets of lines: the segmented acquisition acquires every line, the accelerated
+# acquisition one line in three.
 
 # sphinx_gallery_start_ignore
 coverage_figure(designs, 96)
@@ -191,7 +191,8 @@ coverage_figure(designs, 96)
 #
 # Repeated frames form an fMRI time series. The acquisition below uses eight
 # slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
-# identifies the group; acquisition times come from the actual ADC blocks.
+# identifies the group; acquisition times are the start times of the ADC
+# blocks in the sequence.
 
 fmri = epi2D_sequence(
     n_x=64,

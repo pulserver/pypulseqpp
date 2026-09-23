@@ -274,10 +274,11 @@ _WITHHELD = {
 }
 
 
-#: The sampling surface: choosing which views a scan acquires, the order it
-#: plays them in, the angles a non-Cartesian trajectory turns through, and the
-#: per-repetition phase and flip schedules. The shipped sequences are written
-#: against these, which is what settled the set.
+#: The sampling and scan-loop surface, by private module: Cartesian support
+#: (coordinates and boolean masks), temporal ordering of a selected set
+#: (loop traversal and echo-train assignment), EPI within-shot offsets,
+#: non-Cartesian orientations, and per-repetition RF phase and flip
+#: schedules. The shipped sequences are written against these names.
 _SAMPLING = {
     "_angles": (
         "calc_golden_angles",
@@ -286,20 +287,22 @@ _SAMPLING = {
         "calc_tiny_golden_angles",
         "calc_uniform_angles",
     ),
-    "_epi": ("calc_epi_order",),
+    "_epi": ("make_epi_shot_offsets",),
     "_masks": (
-        "calc_sampled_lines",
-        "calc_sampled_pairs",
         "make_caipirinha_mask",
+        "make_cartesian_axis_sampling",
+        "make_cartesian_plane_sampling",
+        "make_poisson_disc_mask",
+        "make_random_mask",
+    ),
+    "_ordering": (
         "make_centric_order",
         "make_linear_order",
-        "make_poisson_disc_mask",
         "make_radial_adaptive_order",
         "make_radial_order",
-        "make_random_mask",
         "make_shuffling_order",
+        "make_traversal_order",
     ),
-    "_ordering": ("calc_traversal_order",),
     "_schedules": (
         "make_phase_cycling_schedule",
         "make_rf_spoiling_schedule",

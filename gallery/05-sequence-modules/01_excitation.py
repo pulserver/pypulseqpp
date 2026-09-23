@@ -3,11 +3,12 @@ r"""
 Excitation modules
 ==================
 
-The scope of this notebook is to design slice-selective excitations with the
-module that solves them, and to measure what the three numbers a selective
-pulse is specified by — flip angle, slice thickness and time-bandwidth product
-— do to the slice profile, to the selection gradient and to the peak
-:math:`B_1`, and which combinations of them a gradient system admits.
+The earlier sections built slice-selective excitations by hand with a pulse
+factory. This lesson designs them with the excitation module, and measures how
+the three numbers that specify a selective pulse — flip angle, slice thickness
+and time-bandwidth product — affect the slice profile, the selection gradient
+and the peak :math:`B_1`, and which combinations of them the gradient system
+permits.
 
 A slice-selective pulse and its selection gradient are not independent: the
 gradient has to place the pulse's bandwidth across the slice,
@@ -20,23 +21,24 @@ so a shorter pulse at the same thickness and the same time-bandwidth product
 needs a proportionally stronger selection gradient and a proportionally larger
 :math:`B_1`. The gradient amplitude limit therefore bounds the two together.
 
-The observable is the simulated slice profile — its transition width and the
-ripple on either side of it — together with the boundary in the
-duration/time-bandwidth plane that the module refuses to design beyond.
+The measured quantities are the simulated slice profile — its transition
+width and the ripple on either side of it — and the boundary in the
+duration/time-bandwidth plane beyond which the module raises an error. The
+module concept, and the reason the design is divided in this way, are
+described in :doc:`/explanations/design/sequence-module`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Simulating a design.** The module, and the Bloch simulation of the pulse
-   it holds.
-#. **The time-bandwidth product at a fixed duration.** What the profile gains,
-   and what the transmit chain pays.
-#. **The duration at a fixed time-bandwidth product.** What the profile does
-   not gain.
-#. **Designs admitted by the gradient amplitude limit.** The boundary in the
-   plane the two sweeps cross.
+After this lesson, you should be able to:
 
-What a module is, and why the design is split this way, is described in
-:doc:`/explanations/design/sequence-module`.
+- design a slice-selective excitation with the excitation module and simulate
+  its slice profile;
+- measure the transition width and the passband and stopband ripple of a
+  profile;
+- relate the time-bandwidth product and the pulse duration to the profile,
+  the selection gradient amplitude and the peak :math:`B_1`;
+- identify the designs the gradient amplitude limit permits.
 """
 
 # sphinx_gallery_start_ignore
@@ -157,7 +159,7 @@ system = pp.Opts(
 #
 # The excitation module designs the pulse, its selection gradient and the
 # rephaser that unwinds the second half of the selection. Its ``sim_rf``
-# simulates the Bloch response of the pulse it holds across off-resonance,
+# simulates the Bloch response of its pulse across off-resonance,
 # which under a selection gradient of amplitude ``selection_amplitude`` is the
 # slice profile, because a spin at position ``z`` is off-resonance by
 # ``selection_amplitude * z``.
@@ -273,8 +275,8 @@ profile_figure(
 # to three decimal places across an eightfold change of duration, and the small
 # residual differences in the ripple follow the number of samples the pulse is
 # written with: on a fixed RF raster a 1 ms envelope has an eighth of the
-# samples of an 8 ms one. What the duration sets is the selection gradient and
-# the peak :math:`B_1`, both of which scale as its reciprocal, and the time the
+# samples of an 8 ms one. The duration sets the selection gradient and the peak
+# :math:`B_1`, both of which scale as its reciprocal, and the time the
 # repetition spends on the excitation.
 
 # %%
@@ -283,9 +285,9 @@ profile_figure(
 #
 # The two sweeps are two lines through one plane, and the amplitude limit cuts
 # it along :math:`T = \mathrm{TBW} / (\gamma\, \Delta z\, G_\mathrm{max})`. A
-# design above that line is realizable; one below it asks for a selection
-# gradient the system does not have, and the module rejects it rather than
-# silently widening the slice.
+# design above that line is realizable; one below it requires a selection
+# gradient above the amplitude limit, and the module raises an error rather
+# than widening the slice.
 
 grid = []
 for product in (2.0, 4.0, 6.0, 8.0, 12.0, 16.0):
@@ -315,11 +317,11 @@ print(f"{len(grid) - rejected} of {len(grid)} designs realizable, {rejected} rej
 # The designs the module accepted are exactly those above the line. The bound
 # is on the amplitude alone: changing the slew limit over the range a gradient
 # system covers moves none of the points across it, because a lower slew rate
-# lengthens the ramps on either side of the selection plateau, and so the
-# module, without changing the amplitude the plateau has to reach.
+# lengthens the ramps on either side of the selection plateau, and hence the
+# duration of the module, without changing the plateau amplitude.
 #
 # The same plane read along its other axis gives the complementary statement: a
 # sharper profile at a fixed slice thickness is available at any duration the
 # gradient amplitude supports, and choosing between a long pulse and a strong
-# gradient decides the echo time and the peak :math:`B_1` rather than the
+# gradient determines the echo time and the peak :math:`B_1` rather than the
 # profile.

@@ -44,12 +44,14 @@ acquisition order rather than reconstructing it from the prescription.
 ## Prescans
 
 Loops returned by {meth}`~pypulseqpp.sequences.SequenceApp.prescans` are
-written as separate files before the imaging sequence. Each file names the
+written by {meth}`~pypulseqpp.sequences.SequenceApp.write` as separate files
+before the imaging sequence. Each file names the
 next with `NextSequence`. The chain represents one acquisition while retaining
 a single repeating unit per file for repetition-based analyses.
 
 ## See also
 
 * {doc}`sequence-module` — reusable block layouts.
+* {doc}`sampling` — acquired support and temporal ordering.
 * {doc}`../../api/apps` — exact application interface.
 * {doc}`../../sequences` — shipped complete sequences.

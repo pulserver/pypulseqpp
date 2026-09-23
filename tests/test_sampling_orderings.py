@@ -1,11 +1,15 @@
-"""Echo-train coverage, zero-based centre echoes and None padding."""
+"""Echo-train coverage, zero-based centre echoes and None padding.
+
+The orderings take centred coordinates, so the encoded grid is shifted by its
+k-space centre before it is ordered.
+"""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from pypulseqpp._masks import (
+from pypulseqpp import (
     make_centric_order,
     make_linear_order,
     make_radial_adaptive_order,
@@ -62,19 +66,19 @@ def test_pad_gives_every_train_the_train_length(order):
 )
 def test_center_echo_places_the_centre_on_the_target_echo(order):
     target = 3
-    trains = order(GRID, ETL, center=CENTER, center_echo=target, pad=True)
+    trains = order(GRID - CENTER, ETL, center_echo=target, pad=True)
     assert _centre_echo(trains) == target
 
 
 def test_radial_puts_the_centre_on_the_first_echo():
-    trains = make_radial_order(GRID, ETL, center=CENTER, pad=True)
+    trains = make_radial_order(GRID - CENTER, ETL, pad=True)
     assert _centre_echo(trains) == 0
 
 
 def test_radial_adaptive_radius_grows_away_from_the_target_echo():
     target = 3
     trains = make_radial_adaptive_order(
-        GRID, ETL, center=CENTER, center_echo=target, pad=True
+        GRID - CENTER, ETL, center_echo=target, pad=True
     )
     by_echo: dict[int, list[float]] = {}
     for train in trains:

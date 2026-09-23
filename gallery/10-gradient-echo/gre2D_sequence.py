@@ -31,10 +31,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# A full Cartesian sampling of one slice.
+# Every phase-encode line of one slice is acquired.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre2D_sequence
@@ -65,9 +65,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="xy", show_trajectory=Fals
 # In-plane acceleration
 # ---------------------
 #
-# ``ry`` reads one line in two and adds a fully sampled calibration region at
-# the centre, which a parallel-imaging reconstruction needs to estimate the
-# coil sensitivities from.
+# ``ry=2`` acquires one phase-encode line in two and adds a fully sampled
+# calibration region at the centre of k-space, from which a parallel-imaging
+# reconstruction estimates the coil sensitivities.
 
 alternative = gre2D_sequence(
     n_x=192, n_y=192, n_slices=1, ry=2, n_acs_y=24, te=None, tr=None, n_dummy=0

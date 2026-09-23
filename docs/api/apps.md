@@ -1,20 +1,19 @@
 # Complete sequences
 
-{class}`SequenceApp`, the base class every shipped sequence is written
-against.
+The base class every shipped complete sequence is written against. The
+sequences themselves are listed in {doc}`../sequences`; the structure of an
+application, its scan loop and its prescan chain are described in
+{doc}`../explanations/design/sequence-application`.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
 ```
 
-A {class}`SequenceApp` derives event modules and sampling order from its
-`init_sequence` prescription. {meth}`~SequenceApp.design` executes the scan
-`loop`, with one `kernel` call per repetition. Prescans listed by
-{meth}`~SequenceApp.prescans` are written by {meth}`~SequenceApp.write` as
-separate files linked through `NextSequence`. Each example sequence reached as
-`sequences.<name>` defines one subclass. The sequences themselves are listed
-under {doc}`../sequences`.
+## Base class
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.sequences.SequenceApp` | A complete sequence, designed from a prescription and played one repetition at a time. |
+Every concrete subclass sets `MAX_GRAD` (mT/m) and `MAX_SLEW` (T/m/s);
+`init_sequence`'s signature and Parameters section are the prescription.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.SequenceApp` | System limits, prescription keywords for `init_sequence` | Application; `design()` returns the `Sequence` | Base class of complete sequence implementations. |

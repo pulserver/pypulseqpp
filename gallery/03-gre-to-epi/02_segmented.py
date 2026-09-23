@@ -3,27 +3,31 @@ r"""
 Segmented echo planar
 ========================
 
-The scope of this notebook is to put a phase-encode blip between the echoes of
-the train of the previous page, so that one excitation acquires several k-space
-lines instead of the same line several times. The number of excitations the
-matrix is divided over is then a free parameter, and it decides both the scan
-time and how far off-resonance displaces the image.
+The multi-echo train of the previous lesson samples the same k-space line
+several times. This lesson adds a phase-encode blip between the echoes, so
+that one excitation acquires several k-space lines. The number of excitations
+(shots) over which the matrix is divided is then a free parameter, and it
+determines both the scan time and the off-resonance displacement in the image.
 
-The observable is that trade-off: the bandwidth per pixel along the
-phase-encode direction, which segmentation raises in proportion to the number
-of shots, against the number of excitations the scan then costs.
-
-Outline:
-
-#. **Blips between the echoes.** One blip per echo, of the area the
-   segmentation calls for.
-#. **One shot.** The blocks of a shot, and the lines it acquires.
-#. **The raster the shots build.** Which lines each excitation contributes.
-#. **Distortion against shot count.** Phase-encode bandwidth and displacement,
-   against the excitations they cost.
-
-The single-shot end of this trade-off is
+The measured relationship is the bandwidth per pixel along the phase-encode
+direction, which increases in proportion to the number of shots, against the
+number of excitations and hence the scan time. The single-shot limit of this
+relationship is the subject of the next lesson,
 :doc:`/generated/gallery/03-gre-to-epi/03_epi`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- create a phase-encode blip from the number of lines it advances and the
+  field of view;
+- assemble the blocks of one shot, with each blip in the block of the readout
+  gradient it follows;
+- verify from the k-space analysis that interleaved shots cover every line
+  once;
+- compute the phase-encode bandwidth per pixel and the off-resonance
+  displacement as functions of the shot count.
 """
 
 # sphinx_gallery_start_ignore
@@ -79,7 +83,7 @@ rf, gz, gz_reph = pp.make_sinc_pulse(
     return_gz=True,
 )
 
-# The readout of the previous page, at a fixed dwell time.
+# The readout of the previous lesson, at a fixed dwell time.
 acquisition = MATRIX * DWELL
 raster = system.grad_raster_time
 gx = pp.make_trapezoid(
@@ -111,9 +115,9 @@ print(
 #
 # A shot is the excitation, the prewinders, and then one block per echo. The
 # blip is played in the same block as the readout gradient it follows, on the
-# other axis, which is what keeps the echo spacing equal to the duration of one
-# readout gradient. The shot's phase-encode prewinder carries k-space to the
-# line that shot begins on.
+# other axis, so the echo spacing remains equal to the duration of one readout
+# gradient. The phase-encode prewinder of each shot moves the k-space position
+# to the first line of that shot.
 
 
 def segmented(shots, lines=MATRIX):
@@ -280,11 +284,11 @@ figure.tight_layout(rect=(0, 0, 1, 0.80))
 # Displacement and echo train fall as the reciprocal of the shot count, and the
 # scan time rises in proportion to it, so the segmentation is a straight
 # exchange of time for geometric fidelity. The other terms of it are the echo
-# spacing, which the previous page shortened with the receiver bandwidth and
+# spacing, which the previous lesson shortened with the receiver bandwidth and
 # which enters the displacement in the same way, and the number of lines, which
 # the prescription fixes.
 #
-# Two things segmentation does not fix. Each shot is excited separately, so any
+# Segmentation does not address two effects. Each shot is excited separately, so any
 # motion or phase change between them appears as an inconsistency between
 # interleaved lines rather than as blurring within one; and the displacement it
 # reduces is a property of the trajectory, not of the reconstruction, so an

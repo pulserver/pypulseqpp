@@ -91,7 +91,8 @@ def rotate_3d(rotation, *args, system=None) -> list:
     >>> import pypulseqpp as pp
     >>> gx = pp.make_trapezoid("x", area=1000, duration=2e-3)
 
-    A quarter turn about z carries a readout off x onto y, area and all:
+    A quarter turn about z moves a readout from x to y with its area
+    unchanged:
 
     >>> about_z = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
     >>> (rotated,) = pp.rotate_3d(about_z, gx)

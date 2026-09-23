@@ -34,7 +34,11 @@ diagram, is reference material and belongs on that sequence's page, not in the
 gallery. A gallery example exists because running it shows something
 scientifically or computationally useful; an API demonstration, a constructor
 catalogue or a set of configurations whose only result is that they run does
-not belong there.
+not belong there. The first gallery groups, from the pulse-acquire experiment
+to custom modules, are the exception: they are a sequential course, each lesson
+with a short introduction and explicit learning objectives, and transitions
+between lessons are allowed. The documentation guide's "Course lessons"
+section defines their register.
 
 ## Mechanics
 

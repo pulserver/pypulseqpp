@@ -1,4 +1,10 @@
-"""Projection angles in radians and rotation matrices for radial acquisitions."""
+"""Non-Cartesian orientations: in-plane rotation angles and 3D projection directions.
+
+The angle routines return one in-plane rotation angle in radians per shot
+(spoke, interleaf or blade); :func:`calc_projection_shell` returns 3D unit
+directions and rotation matrices. The scan loop applies them as rotations of
+a readout trajectory.
+"""
 
 from __future__ import annotations
 
@@ -15,8 +21,8 @@ import math
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-#: The golden ratio, whose irrationality is what keeps any window of
-#: consecutive spokes near-uniformly distributed.
+#: The golden ratio. Its irrationality keeps any window of consecutive
+#: golden-angle spokes near-uniformly distributed.
 _PHI = (1.0 + math.sqrt(5.0)) / 2.0
 
 
@@ -60,10 +66,10 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_golden_angles(4)).round(2)
+    >>> np.rad2deg(pp.calc_golden_angles(4)).round(2)
     array([  0.  , 111.25, 222.49, 333.74])
 
-    >>> np.rad2deg(calc_golden_angles(3, full_circle=True)).round(2)
+    >>> np.rad2deg(pp.calc_golden_angles(3, full_circle=True)).round(2)
     array([  0.  , 137.51, 275.02])
 
     References
@@ -110,7 +116,7 @@ def calc_raga_angles(
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> angles = calc_raga_angles(1000, approximation_order=8)
+    >>> angles = pp.calc_raga_angles(1000, approximation_order=8)
     >>> len(np.unique(angles.round(9)))
     21
 
@@ -128,8 +134,8 @@ def calc_raga_angles(
     if tiny_index < 1 or approximation_order < 2:
         raise ValueError("tiny_index must be >= 1 and approximation_order >= 2")
 
-    # The support is a finite, equidistant set of Fibonacci-many angles; the
-    # order they are visited in is what stays golden-like.
+    # The support is a finite, equidistant set of Fibonacci-many angles,
+    # visited in a golden-angle-like order.
     support_size = _generalized_fibonacci(approximation_order, tiny_index)
     step = _generalized_fibonacci(approximation_order - 1, 1)
     support = np.arange(support_size) * (2.0 * np.pi) / support_size
@@ -164,7 +170,7 @@ def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_tiny_golden_angles(3, index=2)).round(2)
+    >>> np.rad2deg(pp.calc_tiny_golden_angles(3, index=2)).round(2)
     array([  0.  ,  68.75, 137.51])
 
     References
@@ -206,13 +212,13 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> np.rad2deg(calc_uniform_angles(4))
+    >>> np.rad2deg(pp.calc_uniform_angles(4))
     array([  0.,  90., 180., 270.])
 
     A half-turn span spaces diametric spokes without covering a direction
     twice:
 
-    >>> np.rad2deg(calc_uniform_angles(4, span=np.pi))
+    >>> np.rad2deg(pp.calc_uniform_angles(4, span=np.pi))
     array([  0.,  45.,  90., 135.])
 
     See Also
@@ -260,7 +266,7 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     --------
     >>> import numpy as np
     >>> import pypulseqpp as pp
-    >>> directions, rotations = calc_projection_shell(32, n_shots=13)
+    >>> directions, rotations = pp.calc_projection_shell(32, n_shots=13)
     >>> directions.shape, rotations.shape
     ((32, 3), (13, 3, 3))
 

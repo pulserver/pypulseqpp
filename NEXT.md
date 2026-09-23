@@ -39,6 +39,23 @@ separate contracts.
   each spectral bin with its own frequency; upstream's axis, which the
   default return keeps, reads one bin low.
 
+## Renamed sampling routines (breaking)
+
+The sampling routines were renamed; the former names are removed.
+
+| Former name | New name | Argument change |
+| --- | --- | --- |
+| `calc_sampled_lines` | `make_cartesian_axis_sampling` | `r` is `acceleration`. |
+| `calc_sampled_pairs` | `make_cartesian_plane_sampling` | `shuffling=True` is `sampling='poisson'`. |
+| `calc_traversal_order` | `make_traversal_order` | None. |
+| `calc_epi_order` | `make_epi_shot_offsets` | None. |
+
+The echo-train orderings (`make_linear_order`, `make_centric_order`,
+`make_radial_order`, `make_radial_adaptive_order`, `make_shuffling_order`)
+take centred coordinates with the k-space centre at the origin. Their
+`center` argument, boolean-mask input and the integer-count form of
+`make_linear_order` are removed.
+
 ## Storage and structural analysis
 
 Stored blocks are snapshots: editing an event returned by `get_block` does

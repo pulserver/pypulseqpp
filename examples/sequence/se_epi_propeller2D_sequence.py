@@ -8,7 +8,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._ordering import calc_traversal_order
 
 
 class SeEpiPropeller2DApp(sequences.SequenceApp):
@@ -81,7 +80,7 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
             Gap between adjacent slices, in metres.
         slice_order : str, default='interleaved'
             Order the slices of one pass are excited in, as
-            ``calc_traversal_order`` accepts.
+            :func:`~pypulseqpp.make_traversal_order` accepts.
         te : float or None, default=0.08
             Effective echo time, excitation centre to the blade's central
             line, in seconds. ``None`` is as short as possible.
@@ -195,7 +194,7 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         n_passes = -(-n_slices // per_pass)
         groups = [list(range(start, n_slices, n_passes)) for start in range(n_passes)]
         self.passes = [
-            [group[i] for i in calc_traversal_order(len(group), slice_order)]
+            [group[i] for i in pp.make_traversal_order(len(group), slice_order)]
             for group in groups
         ]
         # Each slice of a pass closes with the wait that makes its shot tr / size.

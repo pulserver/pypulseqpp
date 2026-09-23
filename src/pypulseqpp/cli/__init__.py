@@ -135,6 +135,14 @@ def run(
     int
         The exit status: zero when the sequence was written.
 
+    Notes
+    -----
+    The sequence ``main`` returns is written to ``--output`` with
+    :func:`pypulseqpp.io.write`, in binary form under ``--binary``. The
+    ``main`` of a :class:`~pypulseqpp.sequences.SequenceApp` subclass instead
+    writes the application's chain of prescan and main-sequence files through
+    :meth:`~pypulseqpp.sequences.SequenceApp.write`.
+
     Examples
     --------
     >>> import pypulseqpp as pp

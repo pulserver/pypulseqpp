@@ -8,7 +8,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The line orders ``ordering`` selects from.
 ORDERINGS = ("radial", "shuffling")
@@ -168,7 +167,8 @@ class Mprage3DApp(sequences.SequenceApp):
         ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
         caipi_shift : int, default=0
-            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            CAIPIRINHA shift: partitions by which the lattice is displaced per
+            acquired line, in ``[0, rz)``.
             Unused by ``shuffling``.
         partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``.
@@ -192,9 +192,12 @@ class Mprage3DApp(sequences.SequenceApp):
             Make the calibration region the ellipse inscribed in the
             ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
         ordering : {'radial', 'shuffling'}, default='radial'
-            Line order within a partition: centre-out, with the views on the
-            CAIPIRINHA lattice; or shuffled, with the views a variable-density
-            Poisson-disc draw.
+            Line order within a partition, and the support it is drawn from.
+            ``'radial'``: CAIPIRINHA lattice support, lines of each partition
+            acquired centre-out. ``'shuffling'``: variable-density
+            Poisson-disc support (``sampling='poisson'`` of
+            :func:`~pypulseqpp.make_cartesian_plane_sampling`), lines of each
+            partition acquired in random order.
         wave : {'phase', 'partition', 'both'}, default='both'
             Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
             wave-encoding gradients the calibration region is acquired again
@@ -280,7 +283,7 @@ class Mprage3DApp(sequences.SequenceApp):
         self.esp = ro.duration
 
         # One shot per partition, every shot as long as the fullest partition.
-        calibrating, lattice = pp.calc_sampled_pairs(
+        calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
             (ry, rz),
             (n_acs_y, n_acs_z),
@@ -288,11 +291,11 @@ class Mprage3DApp(sequences.SequenceApp):
             partial_fourier=(partial_fourier_y, partial_fourier_z),
             elliptical=True,
             elliptical_acs=elliptical_acs,
-            shuffling=ordering == "shuffling",
+            sampling="poisson" if ordering == "shuffling" else "lattice",
             seed=self.SHUFFLE_SEED,
         )
         self.calibration = set(calibrating)
-        views = sorted({*calibrating, *lattice})
+        views = sorted({*calibrating, *imaging})
         rng = np.random.default_rng(self.SHUFFLE_SEED)
         by_partition: dict[int, list[int]] = {}
         for y, z in views:
@@ -365,7 +368,7 @@ class Mprage3DApp(sequences.SequenceApp):
         shots = [(blank, "dummy")] * self.n_dummy
         shots += [(shot, "reference") for shot in self.reference]
         shots += [(shot, "image") for shot in self.shots]
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(shots) * n, increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         ).reshape(len(shots), n)
         for ((partition, lines), kind), shot_phases in zip(shots, phases, strict=True):

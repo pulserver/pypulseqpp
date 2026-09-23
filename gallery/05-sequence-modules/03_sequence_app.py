@@ -3,29 +3,30 @@
 A sequence application
 =========================
 
-The scope of this notebook is to assemble the modules of the two previous pages
-into a complete acquisition: a prescription, a sampling order, and a kernel
-that is played once per repetition.
-:class:`~pypulseqpp.sequences.SequenceApp` separates those three, and is the
-base class every shipped sequence is written against, so what is written here
-is what a sequence in :doc:`/sequences` is written as.
+The two previous lessons designed an excitation and a readout with modules.
+This lesson assembles them into a complete acquisition: a prescription, a
+sampling order, and a kernel that is played once per repetition.
+:class:`~pypulseqpp.sequences.SequenceApp` separates these three and is the
+base class of every shipped sequence, so the application written here has the
+same form as a sequence in :doc:`/sequences`.
 
-The sequence built below is the RF-spoiled slice-selective gradient echo of
+The sequence is the RF-spoiled slice-selective gradient echo of
 :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as an
-application rather than as a loop over events.
+application rather than as a loop over events. The architecture is described
+in :doc:`/explanations/design/sequence-application`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Application methods.** What ``init_sequence``, ``loop``, ``kernel`` and
-   ``finalize`` are each responsible for.
-#. **Sequence construction.** Designing and playing one, and what it reports.
-#. **Sequence diagram.** One repetition of the result.
-#. **Acquisition order.** The line order the loop played, read back from the
-   sequence's own labels.
-#. **Command-line interface.** The flags the prescription's signature gives.
+After this lesson, you should be able to:
 
-The architecture is described in
-:doc:`/explanations/design/sequence-application`.
+- state the responsibilities of ``init_sequence``, ``loop``, ``kernel`` and
+  ``finalize`` in a sequence application;
+- subclass :class:`~pypulseqpp.sequences.SequenceApp` to design and play a
+  sequence from a prescription;
+- read the acquisition order back from the ``LIN`` labels of the sequence;
+- derive the command-line flags of an application from its ``init_sequence``
+  signature.
 """
 
 # %%
@@ -161,7 +162,7 @@ pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
 
 # %%
 # Command-line interface
-# -------------------------------------------
+# ----------------------
 #
 # ``main`` is derived from the class, and its parameters are those of
 # ``init_sequence``, so a subclass gets a command-line interface without

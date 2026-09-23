@@ -316,8 +316,8 @@ def check_sar(
     -----
     SAR is averaged over each window: the blocks before the first full
     repetition, each repetition the block definitions repeat with, and any
-    blocks after the last; or the whole sequence when it does not repeat. The
-    worst real repetition decides. A pulse drives channel ``c`` with
+    blocks after the last; or the whole sequence when it does not repeat.
+    Every window is compared with the limits. A pulse drives channel ``c`` with
     ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every
     microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform
     on every channel for a single-channel pulse), and ``s`` its block's RF shim,

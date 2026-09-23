@@ -9,7 +9,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: How far each partition turns its spokes, as a fraction of the half turn a
 #: spoke covers: not at all, by the golden ratio ``1 / phi``, or by the tiny
@@ -233,10 +232,10 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         self.angles = self.span * np.arange(0, n_nyquist, ry) / n_nyquist
         self.spokes = golden_order(len(self.angles))
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
-        calibrating, lattice = pp.calc_sampled_lines(
+        calibrating, imaging = pp.make_cartesian_axis_sampling(
             n_z, rz, n_acs_z, partial_fourier=partial_fourier_z
         )
-        self.partitions = sorted({*calibrating, *lattice})
+        self.partitions = sorted({*calibrating, *imaging})
         self.calibration = set(calibrating)
         self._rotations: dict[float, object] = {}
 
@@ -306,7 +305,7 @@ class MprageStackOfStars3DApp(sequences.SequenceApp):
         """Play the dummy shots, then every acquired partition in order."""
         shots = [None] * self.n_dummy + self.partitions
         n = len(self.spokes)
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(shots) * n, increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         ).reshape(len(shots), n)
         for partition, shot_phases in zip(shots, phases, strict=True):

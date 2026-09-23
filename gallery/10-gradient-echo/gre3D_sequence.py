@@ -31,11 +31,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# A full Cartesian sampling of the slab, with elliptical sampling of the
-# phase-encode plane.
+# Every ``(line, partition)`` view inside the ellipse inscribed in the
+# phase-encode plane is acquired.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre3D_sequence
@@ -54,8 +54,8 @@ baseline.paper_plot()
 # Sampling order
 # --------------
 #
-# Both phase-encode axes are shown. The order runs over the lines of one
-# partition before moving to the next.
+# Colour encodes acquisition order in the phase-encode plane. All lines of
+# one partition are acquired before the next partition.
 
 pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=False)
 
@@ -64,8 +64,9 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # ---------------------------------
 #
 # ``ry`` and ``rz`` subsample the line and partition axes independently.
-# With ``ry=rz=2``, the outer phase-encode plane requires approximately one
-# quarter as many repetitions; the central calibration region remains fully sampled.
+# With ``ry=rz=2``, the phase-encode plane outside the central calibration
+# region is acquired in approximately one quarter of the repetitions; the
+# calibration region remains fully sampled.
 
 alternative = gre3D_sequence(
     n_x=160, n_y=160, n_z=32, ry=2, rz=2, te=None, tr=None, n_dummy=0

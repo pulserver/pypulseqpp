@@ -1,8 +1,8 @@
 # MPRAGE
 
 An inversion, an inversion time, and then a spoiled gradient-echo train that
-reads one partition. The contrast follows from where in the recovery the
-central views are acquired.
+acquires one partition. The T1 contrast is determined by the inversion-recovery
+time at which the central k-space views are acquired.
 
 | Example | Scope |
 | --- | --- |

@@ -8,7 +8,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The spiral densities ``density`` selects from.
 DENSITIES = ("constant", "variable", "dual")
@@ -196,7 +195,7 @@ class GreSpiral2DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play each packet: its dummies, then every interleaf at each of its slices."""
         arms = [None] * self.n_dummy + list(range(len(self.angles)))
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(arms), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for packet in self.packets:

@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 import pypulseqpp as pp
+from pypulseqpp import make_traps_schedule
 from pypulseqpp import sequences as design
-from pypulseqpp._schedules import make_traps_schedule
 
 FOV = (0.22, 0.22, 0.16)
 MATRIX = (128, 128, 64)

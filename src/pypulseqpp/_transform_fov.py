@@ -198,7 +198,7 @@ class TransformFOV:
             Inclusive, 1-based block range; mutually exclusive with ``time_range``.
             Translation starts from this object's stored state, not from a scan
             of preceding blocks.
-        in_place : bool, default False, default=False
+        in_place : bool, default=False
             Modify ``seq`` rather than a copy. Nonzero translation updates this object's
             state in either case.
 

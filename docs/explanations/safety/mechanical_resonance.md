@@ -1,74 +1,48 @@
 # Mechanical resonance
 
-A gradient coil in the static field experiences a Lorentz force proportional to
-its current, and the assembly it is mounted in has mechanical modes with narrow
-resonances. A gradient waveform whose spectrum contains sustained power at a
-mode's frequency excites that mode, producing acoustic output far above what
-the same amplitude produces elsewhere in the spectrum, together with mechanical
-stress on the assembly. Vendors publish the frequency ranges the coil must not
-be driven in as **forbidden bands**, and
-{func}`~pypulseqpp.safety.check_mech_resonance` compares the sequence's gradient
-spectrum with them.
+The Lorentz force on a gradient coil in the static field is proportional to its
+current, and the gradient assembly has narrowly resonant mechanical modes.
+Sustained gradient drive at a mode's frequency produces acoustic output and
+mechanical stress well above those at other frequencies.[^hedeen] Vendors state
+the frequency ranges that must not be driven as **forbidden bands**.
+{func}`~pypulseqpp.safety.check_mech_resonance` compares a windowed amplitude
+spectrum of the physical-axis gradient waveforms with those bands.
 
-## Sustained drive and the analysis window
+## Windowed amplitude spectrum
 
-What excites a resonance is a **sustained** drive near the mode's frequency, not
-a single transition. A lightly damped mode reaches its steady-state amplitude
-over many cycles, so a waveform that crosses a band for one repetition and
-exits it deposits far less energy than one that remains within it for a second.
-A single transform of the whole sequence cannot express that distinction: it
-reports the total power at each frequency without saying whether it arrived all
-at once or was spread over the scan.
-
-The check therefore slides a window along each physical axis and transforms each
-window separately. The window length is the time scale over which a drive counts
-as sustained, and it is a parameter, `window_width`, rather than a constant: a
-mode with a high quality factor is driven by a shorter burst than a heavily
-damped one.
-
-Consecutive windows overlap by half the window length by default, so a burst
-falling on a window boundary is still contained whole in one window. `stride`
-sets the overlap.
-
-## Spectral amplitude normalization
-
-Each window is mean-subtracted, tapered with a Hann window and zero-padded to
-`frequency_oversampling` times its length before a real FFT. The amplitude
-reported for bin $k$ is
+Each physical axis is sampled at the centres of the sequence's own gradient
+raster, after each block's rotation and then the `rotation` argument. A window
+of `window_width` (40 ms by default) starts every `stride` (half the window by
+default); the last window is zero-filled to the end of the sequence. Each window
+is mean-subtracted, multiplied by a Hann taper $w$, zero-padded to
+`frequency_oversampling` times its length and transformed with a real FFT. The
+amplitude of bin $k$ is
 
 $$
 A_k = \frac{2\,|X_k|}{\sum_n w_n},
 $$
 
-where $w$ is the taper. The normalization makes the reading
-interpretable as a gradient amplitude: a sustained sinusoid of amplitude $A$ at
-a bin frequency reads $A$, so a threshold stated in mT/m is compared with a
-quantity in mT/m rather than with a spectral density.
+so a sustained sinusoid of amplitude $A$ at a bin frequency reads $A$, in mT/m.
+The window length sets the time scale over which drive counts as sustained; a
+single transform of the whole sequence would not distinguish one brief crossing
+of a band from drive held inside it. Mean subtraction removes the constant
+component, the taper limits leakage of low-frequency content into distant bins,
+and zero-padding interpolates the spectrum without adding information.
+{func}`~pypulseqpp.safety.mech_resonance_spectrum` returns the spectrum of one
+window from the same pass.
 
-Mean subtraction removes the constant component of the window, which is not a
-drive at any resonance. Tapering keeps a strong low-frequency component
-from leaking across the whole spectrum and producing a reading inside a band
-that no gradient in the window put there. Zero-padding does not add
-information; it interpolates the spectrum so that a line falling between bins
-is read at close to its true amplitude rather than split between neighbours.
+## Spectra of echo-planar and spiral readouts
 
-## Spectral content of echo-planar and spiral readouts
-
-An alternating readout train is periodic. A train of trapezoids of alternating
-polarity at echo spacing $\Delta t$ has its fundamental at
+A train of trapezoids of alternating polarity at echo spacing $\Delta t$ is
+periodic, with fundamental
 
 $$
-f = \frac{1}{2\,\Delta t},
+f = \frac{1}{2\,\Delta t}
 $$
 
-with harmonics at odd multiples of it, and the amplitude at the fundamental is
-a fixed fraction of the plateau amplitude — between $8/\pi^2$ for a triangular
-waveform and $4/\pi$ for a square one. An echo-planar train at a 500 µs echo
-spacing therefore concentrates most of its gradient power in a narrow line at
-1 kHz, and sustains it for the length of the train. A band either contains that
-line or does not. Echo spacing is therefore the parameter a vendor's table
-constrains, and some vendors publish their bands as forbidden **echo-spacing**
-ranges rather than as frequencies.
+and harmonics at odd multiples. The fundamental's amplitude lies between
+$8/\pi^2$ (triangular) and $4/\pi$ (square) of the plateau amplitude; a 500 µs
+echo spacing places it at 1 kHz for the length of the train.
 
 ```{figure} ../../generated/figures/gradient_spectra.png
 The readout-axis spectrum of a 40 ms window at the middle of two sequences, both
@@ -78,44 +52,48 @@ of twice its echo spacing, several times higher than anything the gradient echo
 reaches.
 ```
 
-A spiral readout sweeps its instantaneous frequency as the trajectory winds out,
-so it spreads its power over a range instead of concentrating it. The window has to be short
-enough to resolve the interval the sweep spends inside a band, and long enough
-that such an interval is not read as a sustained drive.
+Echo spacing is therefore the parameter a forbidden band constrains for an
+echo-planar readout. A spiral readout sweeps its instantaneous frequency and
+spreads its power over a range; the window length determines whether the
+interval the sweep spends inside a band is resolved.
 
-A conventional Cartesian gradient echo puts most of its gradient power below a
-few hundred hertz and is at zero amplitude for most of each repetition, so it
-rarely reaches a band at all.
+## Bands and thresholds
 
-## Thresholds
+A {class}`~pypulseqpp.safety.ForbiddenBand` is an axis (`None` for all three),
+an inclusive frequency range in Hz and a tolerance in mT/m. The threshold is the
+tolerance where it is positive and `min_threshold` (10 mT/m by default)
+otherwise. A band is violated by each window whose largest amplitude on a bin
+inside the band exceeds the threshold on any axis the band guards; a band
+narrower than one bin is read at the bin nearest its centre. The report states
+each band's worst window whether or not it violates.
 
-A band is an axis, an inclusive frequency range and a tolerance, as
-{class}`~pypulseqpp.safety.ForbiddenBand`. An axis of `None` guards all three.
-Where the table states a tolerance, it is the largest amplitude allowed inside
-the band; where it states none, the check uses `min_threshold`. A band is
-violated when any window exceeds its threshold on any axis the band guards, and
-the report states the worst window of every band whether or not it violates.
+| Source read by {func}`~pypulseqpp.safety.read_forbidden_bands` | Band | Axis | Tolerance |
+| --- | --- | --- | --- |
+| Siemens `.asc` acoustic resonances | centre ± bandwidth / 2 | all | 0, so `min_threshold` applies |
+| GE `epiesp.dat` forbidden echo-spacing ranges | $1/(2\,\mathrm{ESP})$ over the range | x, y or z, by table section | plateau amplitude, G/cm converted to mT/m |
 
-{func}`~pypulseqpp.safety.read_forbidden_bands` reads two vendor forms. A
-Siemens `.asc` hardware file states acoustic resonances as a centre frequency
-and a bandwidth, with no axis and no tolerance, so every band it yields guards
-every axis at tolerance zero. A GE `epiesp.dat` table states, per axis,
-forbidden echo-spacing ranges with a plateau amplitude; the range maps to the
-frequencies $1/(2\,\mathrm{ESP})$ of the alternating train it describes.
+The `epiesp.dat` tolerance is a plateau amplitude and is compared unscaled with
+the spectral amplitude, which for an alternating train is between $8/\pi^2$ and
+$4/\pi$ of the plateau.
 
-## Scope and limitations
+## Limitations
 
-The criterion is a spectral one applied to the commanded waveform. It does not
-model the coil's transfer function, the acoustic output of the assembly, or the
-scanner's own predownload gate, and a sequence that passes it is not thereby
-established as quiet or as within any acoustic-noise regulation. What it
-establishes is that the sequence does not sustain gradient amplitude inside a
-frequency range the table identifies as forbidden.
+The criterion is spectral and is applied to the commanded waveform. It does not
+model the coil's transfer function, the acoustic output of the assembly or the
+scanner's own predownload assessment, and a passing result does not establish
+that a sequence is quiet or within any acoustic-noise regulation. It states
+that no window's gradient amplitude spectrum exceeds a threshold inside a band
+of the supplied table.
 
 ## See also
 
 * {func}`~pypulseqpp.safety.check_mech_resonance`,
+  {func}`~pypulseqpp.safety.mech_resonance_spectrum`,
   {func}`~pypulseqpp.safety.read_forbidden_bands` and
   {class}`~pypulseqpp.safety.ForbiddenBand` — the calls.
 * {doc}`../../examples/checks` — running the check over a
   sequence and reading its report.
+
+## References
+
+[^hedeen]: Hedeen RA, Edelstein WA. Characterization and prediction of gradient acoustic noise in MR imagers. *Magnetic Resonance in Medicine*. 1997;37(1):7–10. [doi:10.1002/mrm.1910370103](https://doi.org/10.1002/mrm.1910370103).

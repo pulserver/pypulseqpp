@@ -287,7 +287,8 @@ class SequenceApp(ABC):
         Builds the application from keyword arguments, designs it, and on
         request reports, plots and writes the sequence. Its parameters are
         ``plot``, ``test_report``, ``write_seq``, ``seq_filename``, ``system``
-        and those of ``init_sequence``, which is what the command line reads.
+        and those of ``init_sequence``; the command line derives its flags
+        from this signature.
         """
 
         def __get__(self, instance: Any, owner: type[SequenceApp]):

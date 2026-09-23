@@ -30,10 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Sixteen-line blades
+# -------------------
 #
-# Sixteen lines to a blade, at enough blades to cover the disc.
+# Sixteen lines per blade, with the number of blade orientations chosen to
+# cover the k-space disc.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_propeller2D_sequence

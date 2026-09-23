@@ -282,9 +282,8 @@ class Sequence:
 
         Notes
         -----
-        The block lasts as long as the longest thing in it, rounded up onto
-        the block duration raster, which is what a caller passing a bare
-        delay is asking for directly.
+        The block lasts as long as its longest event, rounded up onto the
+        block duration raster.
 
         Examples
         --------
@@ -477,7 +476,7 @@ class Sequence:
 
         Parameters
         ----------
-        print_errors : bool, default False, default=False
+        print_errors : bool, default=False
             Print the report as well as returning it.
 
         Returns
@@ -779,9 +778,9 @@ class Sequence:
         ----------
         init : dict[str, int], default=None
             Initial value of each label before evaluation begins. A label named here is
-            reported whether or not the blocks touch it, which is what makes
-            evaluating a sequence a piece at a time work.
-        evolution : {'none', 'blocks', 'adc', 'label'}, default 'none', default='none'
+            reported whether or not the blocks touch it, so that a sequence
+            can be evaluated one range at a time.
+        evolution : {'none', 'blocks', 'adc', 'label'}, default='none'
             Where to record a value: at the end, at every block, at every
             block that acquires, or at every block that sets or increments
             one.
@@ -863,13 +862,13 @@ class Sequence:
 
         Parameters
         ----------
-        append_RF : bool, default False, default=False
+        append_RF : bool, default=False
             Also return the RF envelope, as a fourth waveform channel.
         time_range : Sequence[float], default=None
             Two times in seconds; only the blocks they touch are expanded.
         block_range : Sequence[int], default=None
             Two 1-based block indices. Not with ``time_range``.
-        compat : bool, default True, default=True
+        compat : bool, default=True
             Return upstream's five values, which a drop-in caller unpacks.
             False returns a named result covering all seven Pulseq RF uses,
             which those five values cannot carry.
@@ -913,7 +912,7 @@ class Sequence:
 
         Parameters
         ----------
-        append_RF : bool, default False, default=False
+        append_RF : bool, default=False
             Also return the RF envelope, as a fourth, complex channel in Hz.
         time_range : Sequence[float], default=None
             Two times in seconds; only the blocks they touch are expanded.
@@ -974,7 +973,7 @@ class Sequence:
         ----------
         time_range : Sequence[float], default=None
             Two times in seconds; only the blocks they touch are expanded.
-        compat : bool, default True, default=True
+        compat : bool, default=True
             Return upstream's four values, which describe two of Pulseq's
             seven RF uses. False returns a named result covering all seven.
 
@@ -1009,9 +1008,9 @@ class Sequence:
 
         Parameters
         ----------
-        trajectory_delay : float | ArrayLike, default 0, default=0.0
+        trajectory_delay : float | ArrayLike, default=0.0
             Per-axis timing correction (s); positive values advance the gradient.
-        gradient_offset : float | ArrayLike, default 0, default=0.0
+        gradient_offset : float | ArrayLike, default=0.0
             A background gradient per axis, in Hz/m.
         block_range : Sequence[int], default=None
             Two 1-based block indices; only those blocks are followed.
@@ -1075,10 +1074,10 @@ class Sequence:
 
         Parameters
         ----------
-        trajectory_delay : float | Sequence[float], default 0, default=0
+        trajectory_delay : float | Sequence[float], default=0
             Timing correction in seconds, one value for all axes or one per
             axis; positive values advance the gradients.
-        gradient_offset : float | Sequence[float], default 0, default=0
+        gradient_offset : float | Sequence[float], default=0
             A background gradient in Hz/m, one value for all axes or one per
             axis.
         time_range : Sequence[float], default=None
@@ -1651,14 +1650,14 @@ class Sequence:
         ----------
         name : str | os.PathLike[str]
             Where to write it.
-        create_signature : bool, default True, default=True
+        create_signature : bool, default=True
             Sign the file, so a reader can tell it has not been edited.
-        remove_duplicates : bool, default True, default=True
+        remove_duplicates : bool, default=True
             Collapse identical library rows first. Write a collapsed
             copy, leaving this sequence's event libraries unchanged.
-        check_timing : bool, default False, default=False
+        check_timing : bool, default=False
             Judge the timing first, and warn if anything is wrong.
-        v141_compat : bool, default False, default=False
+        v141_compat : bool, default=False
             Write 1.4.1 instead, for an interpreter that predates 1.5.
 
         Returns
@@ -1708,7 +1707,7 @@ class Sequence:
         ----------
         name : str | os.PathLike[str]
             Where to write it.
-        create_signature : bool, default True, default=True
+        create_signature : bool, default=True
             Append the signature section: an MD5 of everything above it, so a
             file says whether it is the file that was written.
 
@@ -1742,11 +1741,11 @@ class Sequence:
         ----------
         name : str | os.PathLike[str]
             Where to write it.
-        create_signature : bool, default True, default=True
+        create_signature : bool, default=True
             Sign the file, so a reader can tell it has not been edited.
-        gamma : float, default 42576000.0, default=42576000.0
+        gamma : float, default=42576000.0
             Gyromagnetic ratio in Hz/T.
-        field : float, default 1.5, default=1.5
+        field : float, default=1.5
             Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1
             has no column for, to absolute offsets.
 
@@ -1819,14 +1818,14 @@ class Sequence:
         ----------
         file_path : str | os.PathLike[str]
             The file to read.
-        detect_rf_use : bool, default False, default=False
+        detect_rf_use : bool, default=False
             Work out what each unlabelled pulse is for, from what it does.
             Before revision 1.5.0 the format had nowhere to record it, so a
             file older than that arrives with its pulses unlabelled. Pulses
             the file does label are left alone.
-        remove_duplicates : bool, default True, default=True
+        remove_duplicates : bool, default=True
             Collapse identical library rows after reading.
-        verify : bool, default False, default=False
+        verify : bool, default=False
             Check the file against the signature it carries.
 
         Raises
@@ -1942,28 +1941,28 @@ class Sequence:
 
         Parameters
         ----------
-        label : str, default '', default=''
+        label : str, default=''
             Upstream's ADC label display. Ignored.
-        show_blocks : bool, default False, default=False
+        show_blocks : bool, default=False
             Upstream's block-boundary grid. Ignored.
-        save : bool, default False, default=False
+        save : bool, default=False
             Upstream's figure saving. Ignored.
-        time_range : Sequence[float], default (0, inf), default=(0, np.inf)
+        time_range : Sequence[float], default=(0, np.inf)
             The seconds to draw, measured from the start of the scan.
-        time_disp : {'s', 'ms', 'us'}, default 's', default='s'
+        time_disp : {'s', 'ms', 'us'}, default='s'
             Upstream's time unit. Ignored.
-        grad_disp : {'kHz/m', 'mT/m'}, default 'kHz/m', default='kHz/m'
+        grad_disp : {'kHz/m', 'mT/m'}, default='kHz/m'
             Upstream's gradient unit. Ignored.
-        plot_now : bool, default True, default=True
+        plot_now : bool, default=True
             Wait for the window to be closed before returning. When False,
             the window is left open and the returned viewer is live.
-        clear : bool, default True, default=True
+        clear : bool, default=True
             Upstream's figure clearing. Ignored.
         overlay : object, default=None
             Upstream's plot to overlay. Ignored.
-        stacked : bool, default False, default=False
+        stacked : bool, default=False
             Upstream's single stacked figure. Ignored.
-        show_guides : bool, default False, default=False
+        show_guides : bool, default=False
             Upstream's cursor guides. Ignored.
         block_range : Sequence[int], default=None
             The first and last block to draw, 1-based and inclusive.
@@ -2052,10 +2051,10 @@ class Sequence:
 
         Parameters
         ----------
-        time_range : Sequence[float], default (0, inf), default=(0, np.inf)
+        time_range : Sequence[float], default=(0, np.inf)
             Upstream's window, in seconds. Given, the blocks it touches are
             drawn alone, without repetitions underneath.
-        line_width : float, default 1.2, default=1.2
+        line_width : float, default=1.2
             Width of every drawn line, in points.
         axes_color : str | tuple[float, ...], default=None
             A Matplotlib colour for the baselines and the repetition marker.
@@ -2069,12 +2068,12 @@ class Sequence:
             A Matplotlib colour for the y gradient row, as ``rf_color``.
         gz_color : str | tuple[float, ...], default=None
             A Matplotlib colour for the z gradient row, as ``rf_color``.
-        rf_plot : {'abs', 'real', 'imag'}, default 'abs', default='abs'
+        rf_plot : {'abs', 'real', 'imag'}, default='abs'
             Which part of the RF waveform to draw.
         tr : int, default=None
             1-based repetition to draw. By default, the one in which a
             physical axis reaches its largest magnitude.
-        max_underlays : int, default 16, default=16
+        max_underlays : int, default=16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
             most positive value; 0 draws none.
@@ -2141,7 +2140,7 @@ class Sequence:
 
         Parameters
         ----------
-        in_place : bool, default False, default=False
+        in_place : bool, default=False
             Collapse this sequence. Otherwise a copy is collapsed and this
             one is left as it is.
 

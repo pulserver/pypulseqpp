@@ -134,13 +134,13 @@ def waveforms_and_times(
     ----------
     seq : Sequence
         The sequence to expand.
-    append_RF : bool, default False, default=False
+    append_RF : bool, default=False
         Also return the RF envelope, as a fourth channel.
     time_range : list of float, default=None
         Two times in seconds; only the blocks they touch are expanded.
     block_range : sequence of int, default=None
         Two 1-based block indices. Not with ``time_range``.
-    compat : bool, default True, default=True
+    compat : bool, default=True
         Upstream's five values. False returns a
         :class:`pypulseqpp._results.WaveformsAndTimes`, which carries what
         those five cannot.
@@ -149,8 +149,7 @@ def waveforms_and_times(
     -------
     tuple or WaveformsAndTimes
         With ``compat``: ``(wave_data, tfp_excitation, tfp_refocusing, t_adc,
-        fp_adc)``, which is what upstream returns and what a script written
-        against it unpacks.
+        fp_adc)``, the tuple upstream PyPulseq returns.
 
     Notes
     -----
@@ -237,7 +236,7 @@ def rf_times(seq, time_range=None, *, compat: bool = True):
         The sequence to expand.
     time_range : list of float, default=None
         Two times in seconds; only the blocks they touch are expanded.
-    compat : bool, default True, default=True
+    compat : bool, default=True
         Upstream's four values, which describe two of Pulseq's seven RF uses
         and drop the rest. False returns a
         :class:`pypulseqpp._results.RfTimes` covering all of them.
@@ -247,7 +246,7 @@ def rf_times(seq, time_range=None, *, compat: bool = True):
     tuple or RfTimes
         With ``compat``: ``(t_excitation, fp_excitation, t_refocusing,
         fp_refocusing)``. A pulse whose row records no use is counted as an
-        excitation, which is what upstream does with one.
+        excitation, as in upstream PyPulseq.
     """
     expanded, elapsed = _expand(seq, time_range=time_range)
     pulses = _named(expanded, elapsed, False).rf
@@ -277,9 +276,9 @@ def get_gradients(
     ----------
     seq : Sequence
         The sequence to expand.
-    trajectory_delay : float or sequence of float, default 0, default=0
+    trajectory_delay : float or sequence of float, default=0
         Timing correction (s); positive values advance the gradient.
-    gradient_offset : float or sequence of float, default 0, default=0
+    gradient_offset : float or sequence of float, default=0
         A background gradient per axis, in Hz/m.
     time_range, block_range
         As for :func:`waveforms_and_times`.

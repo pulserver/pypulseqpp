@@ -26,7 +26,7 @@ _READOUT_GRAD_MARGIN = 0.8
 class _FseReadout(SequenceModule):
     """One excitation and a CPMG echo train, to the end of the TR.
 
-    Each refocusing pulse sits midway between the RF centre or echo before it
+    Each refocusing pulse is centred midway between the RF centre or echo before it
     and the echo after it. Echoes are ``esp`` apart, except that the first
     echo is ``esp_first`` after the excitation. Phase encodes, and the
     refocusing amplitude, are templates the loop may scale per echo; the
@@ -39,8 +39,8 @@ class _FseReadout(SequenceModule):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given, left-aligned in the block that carries
-        the prephaser so it runs straight off the selection lobe.
+        Its rephaser, if one was given, left-aligned in the block that contains
+        the prephaser, so that it starts at the end of the selection lobe.
     rf_ref : RfEvent
         The refocusing pulse, one event for the whole train.
     gz_ref : GradEvent
@@ -49,10 +49,10 @@ class _FseReadout(SequenceModule):
         Read prephaser, played once before the train and right-aligned in its
         block.
     gx_bridge_pre, gx_bridge_post : GradEvent
-        Read-axis lobes that carry the axis, together with the crushers, onto
-        and off the readout plateau, one on each side of every acquisition.
-        Each spans its whole block, so the echo timing holds when the loop
-        leaves an encode out.
+        Read-axis lobes, including the crushers, that ramp onto and off the
+        readout plateau, one on each side of every acquisition. Each spans its
+        whole block, so the echo timing is unchanged when the loop omits an
+        encode.
     gx : GradEvent
         The readout plateau, flat from end to end.
     gy_pre, gz_pre : TrapEvent
@@ -154,7 +154,8 @@ class _FseReadout(SequenceModule):
         Length the crushing is counted over (m). The read resolution by
         default.
     labels : sequence of str, default=None
-        Counters emitted on the acquisition block. The loop writes the values.
+        Counters emitted on the acquisition block. The acquisition loop
+        assigns their values.
     trigger : event, default=None
         A trigger or digital output armed on the prephaser block.
     wave : {'phase', 'partition', 'both'}, default=None

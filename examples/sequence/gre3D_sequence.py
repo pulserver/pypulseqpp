@@ -8,14 +8,13 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 
 class Gre3DApp(sequences.SequenceApp):
     """RF-spoiled 3D Cartesian gradient echo.
 
     One line per repetition, phase-encoded along y and z over a CAIPIRINHA
-    lattice that always holds the centre of k-space, optionally cropped to an
+    lattice that always contains the centre of k-space, optionally cropped to an
     ellipse. Under undersampling the fully sampled calibration region, a
     rectangle or an ellipse, leads, marked ``IMA``; under wave-CAIPI it is
     first acquired wave-free and marked ``REF``. Lines are played in order,
@@ -112,7 +111,8 @@ class Gre3DApp(sequences.SequenceApp):
         ry, rz : int, default=1
             Undersampling along the phase and the partition encode.
         caipi_shift : int, default=0
-            Partitions the lattice climbs per acquired line, in ``[0, rz)``.
+            CAIPIRINHA shift: partitions by which the lattice is displaced per
+            acquired line, in ``[0, rz)``.
         partial_fourier_x : float, default=1.0
             Fraction of the echo acquired, in ``[0.75, 1]``.
         partial_fourier_y, partial_fourier_z : float, default=1.0
@@ -206,7 +206,7 @@ class Gre3DApp(sequences.SequenceApp):
             wave_cycles=wave_cycles,
             wave_amplitude=wave_amplitude,
         )
-        calibrating, lattice = pp.calc_sampled_pairs(
+        calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
             (ry, rz),
             (n_acs_y, n_acs_z),
@@ -217,7 +217,7 @@ class Gre3DApp(sequences.SequenceApp):
         )
         # The calibration rectangle leads, so a reconstruction can
         # estimate coil sensitivities while the rest is still arriving.
-        self.views = [*calibrating, *lattice]
+        self.views = [*calibrating, *imaging]
         self.calibration = set(calibrating)
         # A wave-encoded view calibrates nothing, so with the wave on the
         # calibration region is acquired again wave-free ahead of the scan.
@@ -243,7 +243,7 @@ class Gre3DApp(sequences.SequenceApp):
         references[self.n_dummy : self.n_dummy + len(self.reference)] = [True] * len(
             self.reference
         )
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for view, reference, phase in zip(views, references, phases, strict=True):

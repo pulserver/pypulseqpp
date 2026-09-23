@@ -92,6 +92,16 @@ structure derives it from the content. The repetition detection underlying the
 SAR check does exactly that, and the shipped sequences record their encoding
 indices as labels rather than leaving a consumer to infer them.
 
+The same applies to the system a sequence was designed against. A file records
+the four rasters; it records a gradient amplitude limit, a slew-rate limit or a
+field strength only where the writer adds the `MaxGrad`, `MaxSlew` or `B0`
+definition, and it records no dead times.
+{meth}`~pypulseqpp.Sequence.read` takes the rasters from the file and keeps the
+system the sequence was constructed with. {func}`pypulseqpp.io.read` builds the
+system from the file instead, so the design helpers and the checks of
+{doc}`../safety/index` apply limits derived from the file rather than those of
+the shared default system.
+
 ## Revisions and the binary form
 
 `pypulseqpp` writes Pulseq 1.5.1 by default.

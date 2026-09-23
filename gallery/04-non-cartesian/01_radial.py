@@ -3,29 +3,28 @@ r"""
 Radial sampling
 ===============
 
-The scope of this notebook is to replace the phase encode of the Cartesian
-gradient echo with a rotation of the readout itself, so that every repetition
-acquires a spoke through the centre of k-space, and to establish how many
-spokes such an acquisition needs and what ordering them by the golden angle
-changes.
+The Cartesian gradient echo of
+:doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo` changes the
+acquired line with a phase encode. This lesson replaces the phase encode with
+a rotation of the readout gradient itself, so that every repetition acquires a
+spoke through the centre of k-space. It establishes how many spokes such an
+acquisition requires and what ordering them by the golden angle changes.
 
-The observable is the azimuthal gap between neighbouring spokes at the edge of
-k-space, measured from the trajectory the sequence produces, against the
-sample spacing along a spoke that the prescription asks for.
+The measured quantity is the azimuthal gap between neighbouring spokes at the
+edge of k-space, computed from the sampling locations of the sequence and
+compared with the sample spacing along a spoke that the prescription sets.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **A rotated readout.** The prewinder and readout of one spoke, rotated into
-   the imaging plane.
-#. **One repetition per spoke.** The sequence, and the angles it plays.
-#. **The trajectory.** What the spokes cover, and where they do not.
-#. **Spokes against azimuthal gap.** The Nyquist requirement, and what
-   undersampling costs.
-#. **Golden-angle ordering.** The same gap when the acquisition is stopped
-   early.
+After this lesson, you should be able to:
 
-The Cartesian sequence this is a variation on is
-:doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`.
+- rotate a readout gradient and its prewinder into the imaging plane;
+- build one repetition per spoke from the Cartesian gradient echo;
+- measure the azimuthal gap at the edge of k-space from the sampling
+  locations, and relate it to the Nyquist spoke count
+  :math:`P = \tfrac{\pi}{2} N`;
+- compare uniform and golden-angle orderings of truncated acquisitions.
 """
 
 # sphinx_gallery_start_ignore
@@ -42,7 +41,7 @@ PAGE_WIDTH = 8.6  # inches, the width of the documentation column
 # -----------------
 #
 # A spoke runs from one edge of k-space through the centre to the other, so the
-# prewinder carries half the readout area as it does on a Cartesian line, and
+# prewinder has half the readout area as it does on a Cartesian line, and
 # the echo is at the middle of the acquisition window. The pair is then rotated
 # about the slice axis by the angle of the spoke, which
 # :func:`~pypulseqpp.rotate` does by resolving each gradient onto the two
@@ -98,8 +97,8 @@ gx_pre = pp.make_trapezoid(
 )
 spoiler = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 
-# Both in-plane axes carry gradient for every spoke but a spoke's vector
-# amplitude is the readout amplitude at every angle, and each axis carries its
+# Both in-plane axes have a gradient for every spoke, but the vector amplitude
+# of a spoke is the readout amplitude at every angle, and each axis plays its
 # projection of it, so the per-axis limit binds where a spoke lies along an
 # axis and nowhere else.
 print(
@@ -112,7 +111,7 @@ print(
 # ------------------------
 #
 # The repetition is the Cartesian one with the phase encode removed and the
-# readout rotated. Both in-plane axes carry gradient for every spoke.
+# readout rotated. Both in-plane axes have a gradient for every spoke.
 
 GOLDEN_ANGLE = np.pi * (3.0 - np.sqrt(5.0)) / 2.0
 
@@ -166,8 +165,8 @@ pp.plot.plot_kspace(seq, color_by="shot", plane="xy", show_trajectory=False)
 # Spokes against azimuthal gap
 # ----------------------------
 #
-# Along a spoke the samples are :math:`1/\mathrm{FOV}` apart, which is what the
-# field of view requires. Between spokes the spacing grows with the distance
+# Along a spoke the samples are :math:`1/\mathrm{FOV}` apart, as the field of
+# view requires. Between spokes the spacing grows with the distance
 # from the centre, and at the edge it is the azimuthal arc between neighbouring
 # spokes,
 #
@@ -260,7 +259,7 @@ figure.tight_layout(rect=(0, 0, 1, 0.86))
 # Advancing the angle by :math:`\pi` times the golden ratio conjugate instead
 # of by :math:`\pi/P` gives an ordering whose every prefix is nearly uniform,
 # so the acquisition can be stopped, or divided into frames, at any length. The
-# price is that the gap of a prefix is never quite the uniform one.
+# gap of a prefix is, however, never exactly that of the uniform ordering.
 
 PREFIXES = np.arange(8, 257, 8)
 
@@ -295,5 +294,5 @@ print(
 # length, and no prefix leaves a gap of the kind a truncated uniform ordering
 # would: stopping a uniform acquisition after half its spokes leaves half the
 # angular range unsampled, while stopping a golden-angle one leaves the same
-# range covered at half the density. What a golden-angle acquisition gives up
-# is the exact uniformity of the complete set.
+# range covered at half the density. The complete golden-angle set is not
+# exactly uniform.

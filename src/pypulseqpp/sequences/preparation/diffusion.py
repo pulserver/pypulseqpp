@@ -88,8 +88,9 @@ class DiffusionPreparation(RfModule):
     0.5
 
     The whole module, pulses and diffusion lobes together. Both lobes have
-    the same sign, and the refocusing pulse between them is what makes the
-    pair sensitizing rather than balanced:
+    the same sign; the refocusing pulse between them inverts the phase
+    accrued during the first, so the pair produces diffusion weighting
+    rather than cancelling:
 
     .. plot::
        :include-source: false

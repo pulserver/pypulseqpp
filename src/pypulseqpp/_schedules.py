@@ -1,4 +1,9 @@
-"""RF phase and refocusing-flip schedules."""
+"""Per-repetition RF phase and refocusing flip-angle schedules.
+
+Each routine returns one value per repetition (or per echo), which the scan
+loop applies to the RF and ADC events of that repetition. They select no
+views and emit no labels.
+"""
 
 from __future__ import annotations
 
@@ -49,8 +54,8 @@ def make_rf_spoiling_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp._schedules import make_rf_spoiling_schedule
-    >>> np.rad2deg(make_rf_spoiling_schedule(4)).round(1)
+    >>> import pypulseqpp as pp
+    >>> np.rad2deg(pp.make_rf_spoiling_schedule(4)).round(1)
     array([  0.,   0., 117., 351.])
 
     See Also
@@ -96,10 +101,10 @@ def make_phase_cycling_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp._schedules import make_phase_cycling_schedule
-    >>> np.rad2deg(make_phase_cycling_schedule(5))
+    >>> import pypulseqpp as pp
+    >>> np.rad2deg(pp.make_phase_cycling_schedule(5))
     array([  0., 180.,   0., 180.,   0.])
-    >>> np.rad2deg(make_phase_cycling_schedule(4, (0.0, np.pi / 2)))
+    >>> np.rad2deg(pp.make_phase_cycling_schedule(4, (0.0, np.pi / 2)))
     array([ 0., 90.,  0., 90.])
 
     See Also
@@ -122,8 +127,13 @@ def make_traps_schedule(
 ) -> np.ndarray:
     """Return a variable refocusing flip-angle schedule in radians.
 
-    ``variable=False`` gives a constant target angle. Otherwise the sequence
-    approaches the target exponentially from an initial angle derived from it.
+    ``variable=False`` gives a constant target angle. Otherwise the first
+    refocusing angle is raised above the target, approximately
+    ``pi / 2 + target / 2`` as proposed for pseudo-steady-state
+    stabilisation [1]_, and the following angles decay towards the target by
+    a factor of two per echo. Flip-angle trains that vary smoothly along the
+    echo train are the subject of TRAPS [2]_; this routine implements only the
+    initial stabilising transition.
 
     Parameters
     ----------
@@ -149,14 +159,20 @@ def make_traps_schedule(
     Examples
     --------
     >>> import numpy as np
-    >>> from pypulseqpp._schedules import make_traps_schedule
-    >>> flips = make_traps_schedule(8, np.deg2rad(120))
+    >>> import pypulseqpp as pp
+    >>> flips = pp.make_traps_schedule(8, np.deg2rad(120))
     >>> np.rad2deg(flips)[[0, -1]].round(1)
     array([153. , 120.2])
 
     References
     ----------
-    Alsop, TRAPS / variable-flip refocusing, DOI ``10.1002/mrm.1910370422``.
+    .. [1] Alsop DC. The sensitivity of low flip angle RARE imaging.
+       *Magnetic Resonance in Medicine*. 1997;37(2):176-184.
+       https://doi.org/10.1002/mrm.1910370206
+    .. [2] Hennig J, Weigel M, Scheffler K. Multiecho sequences with variable
+       refocusing flip angles: optimization of signal behavior using smooth
+       transitions between pseudo steady states (TRAPS). *Magnetic Resonance
+       in Medicine*. 2003;49(3):527-535. https://doi.org/10.1002/mrm.10391
     """
     if length < 1:
         raise ValueError("length must be >= 1")

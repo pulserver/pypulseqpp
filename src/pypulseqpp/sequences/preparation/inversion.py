@@ -21,10 +21,10 @@ class InversionPreparation(RfModule):
     system : pypulseqpp.Opts
         System limits.
     duration_s : float, default=0.01
-        Inversion pulse duration (s). Adiabaticity is a condition on sweeping
-        slowly enough, so this is not free to shorten.
+        Inversion pulse duration (s). Shorter durations increase the required
+        sweep rate and may violate the adiabatic condition.
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing the crusher winds across ``voxel_size_m``. Zero
+        Dephasing of the crusher, in cycles across ``voxel_size_m``. Zero
         omits the crusher.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m) — the smallest voxel
@@ -38,9 +38,9 @@ class InversionPreparation(RfModule):
     adiabaticity : int, default=4
         Sweep-rate margin over the adiabatic condition.
     labels : sequence of str, default=None
-        Counters emitted on the inversion block. An inversion is where a shot
-        begins, so it is the natural place to say which shot this is; the loop
-        writes the values, this only makes the slots.
+        Counters emitted on the inversion block, which starts each shot. The
+        module creates the label events; the acquisition loop assigns their
+        per-shot values.
 
     Attributes
     ----------

@@ -1,95 +1,103 @@
 # Specific absorption rate
 
-RF transmission deposits energy in tissue. The regulated quantity is the
-specific absorption rate, in watts per kilogram, averaged over a stated mass and
-a stated time window: a **global** value over the exposed volume and a **local**
-value over any ten grams of tissue, both bounded by IEC 60601-2-33 according to
-the operating mode. {func}`~pypulseqpp.safety.check_sar` estimates both from a
-virtual-observation-point model and compares them with limits.
+RF transmission deposits energy in tissue. The specific absorption rate (SAR,
+W/kg) is regulated as a **global** value over the exposed mass and a **local**
+value over 10 g of tissue, each averaged over a stated time and bounded by
+IEC 60601-2-33 according to the operating mode.
+{func}`~pypulseqpp.safety.check_sar` computes time-averaged local and global
+SAR from a virtual-observation-point model and compares them with the
+`local_limit` and `global_limit` arguments. The check does not use the
+gradient system limits.
 
 ## Virtual observation points
 
-Local SAR is a field in space. For a transmit array with $N_c$ channels driven
-by a phasor vector $\mathbf{v}$, the SAR at a position $\mathbf{r}$ is a
-Hermitian quadratic form,
+For a transmit array with $N_c$ channels driven by a phasor vector
+$\mathbf{v}$, local SAR at position $\mathbf{r}$ is a Hermitian quadratic form,
 
 $$
 \mathrm{SAR}(\mathbf{r}) = \mathbf{v}^{\mathsf H} \, Q(\mathbf{r}) \, \mathbf{v},
 $$
 
-with one matrix $Q$ per position, obtained from an electromagnetic simulation on
-a body model. Evaluating the peak over every voxel for every candidate drive is
-not affordable online, and is not necessary: the matrices can be compressed into
-a small set of **virtual observation points**, each an upper bound over a cluster
-of positions, such that the largest value over the set bounds the largest value
-over the body.[^eichfelder]
+with one matrix $Q$ per position from an electromagnetic simulation on a body
+model. Virtual observation points (VOPs) compress these matrices into a small
+set $\{Q_k\}$ whose largest value bounds the largest value over the body
+model.[^eichfelder]
 
-{class}`~pypulseqpp.safety.VopModel` stores that set as an $(N, N_c, N_c)$ stack
-of Hermitian matrices, in W/kg per unit channel drive squared, and optionally a
-global matrix evaluated the same way over the whole exposed volume. The model is
-read from a `.mat` or `.npz` file by {func}`~pypulseqpp.safety.read_vops`.
+{class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ VOP stack, in
+W/kg per unit channel drive squared, and an optional global matrix;
+{func}`~pypulseqpp.safety.read_vops` reads it from a `.mat` or `.npz` file.
 {func}`~pypulseqpp.safety.example_vops` returns a synthetic eight-channel model
-of a loop array around a uniform cylinder, together with the drive calibration
-and circularly polarized shim that go with it. It models no tissue, no coil
-coupling and no conservative field, so its numbers are plausible in scale and
-nothing more, and it is for demonstrations only.
+of a loop array around a uniform cylinder, with no tissue, coil coupling or
+conservative field, for demonstration only.
 
-## Drive calibration from RF amplitude
+## Channel drive and time average
 
-A Pulseq RF event states an amplitude in Hz, which is a statement about the
-$B_1^+$ field it produces, not about the voltage or current that produces it.
-Converting between the two is a property of the transmit chain and the loading,
-and it is the calibration the check has to be given: `drive_per_hz`, one value
-or one per channel, in whatever unit the VOPs were computed in.
+An RF event states its amplitude in Hz of $B_1^+$. The conversion to channel
+drive is a property of the transmit chain and loading, and is supplied as
+`drive_per_hz`, one value or one per channel, in the drive unit of the VOPs.
+Channel $c$ is driven with
 
-A pulse then drives channel $c$ with $\texttt{drive}_c \, s_c \, b_c(t)$, where
-$b$ is the waveform in Hz, resampled every microsecond as
-{func}`~pypulseqpp.calc_rf_power` does, and $s$ is the block's RF shim, or
-`default_shim` where a single-channel pulse defines none. A single-channel pulse
-is treated as the same waveform on every channel, weighted by the shim.
+$$
+v_c(t) = d_c \, s_c \, b_c(t),
+$$
 
-## Averaging window
+where $d_c$ is `drive_per_hz`, $b_c$ the RF waveform in Hz resampled every
+microsecond as {func}`~pypulseqpp.calc_rf_power` does, and $s_c$ the block's
+RF shim, or `default_shim` for a single-channel pulse without one. A
+single-channel pulse is played as the same waveform on every channel. For each
+averaging window $W$ of duration $T_W$,
 
-SAR is defined per unit time, so the check needs an interval to average over.
-It uses the repetitions the sequence's own block definitions repeat with: the
-blocks before the first full repetition, each repetition, and any blocks after
-the last, or the whole sequence when it does not repeat. The largest local value
-over those windows, and the largest global value, are the verdict.
+$$
+\mathrm{SAR}_k(W) = \frac{1}{T_W} \int_W \mathbf{v}(t)^{\mathsf H} Q_k \, \mathbf{v}(t)\,\mathrm{d}t,
+\qquad
+\mathrm{SAR}_{\mathrm{local}}(W) = \max_k \mathrm{SAR}_k(W),
+$$
 
-A repetition rather than a fixed six-minute window is the right unit here
-because a scan's repetitions are what a longer average is built from, and
-because the worst repetition bounds every window a longer average could
-contain. The report states every window's values, so a caller averaging over a
-regulatory interval has the per-repetition energies required to do so.
+and global SAR is the same integral with the global matrix.
 
-The window is the sequence's own structure, so a sequence written with dummy
-repetitions or an unusual prologue reports those as their own windows rather
-than folding them into the steady-state ones.
+## Averaging windows
 
-## Relative comparison against a reference sequence
+`check_sar` evaluates RF energy over the repetitions detected from the
+sequence's block definitions, reported as `tr_size` blocks: consecutive windows
+of `tr_size` blocks from the first block, or the whole sequence as one window
+when its blocks do not divide into repetitions. A `TRsize` definition the
+sequence records is used when the blocks repeat with it, and the detected size
+is recorded otherwise.
+The result is `True` when every window's local SAR is at most `local_limit`
+and, with a global matrix, every window's global SAR is at most `global_limit`.
+The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head
+values.
 
-Absolute SAR from a stated model is only as good as the calibration behind it.
-Comparing two sequences under the *same* model and calibration is much more
-robust, because the scale of `drive_per_hz` and of the VOPs cancels in the
-ratio.
+The report states every window's first and last block, duration, local SAR,
+VOP index and global SAR. These per-window quantities may subsequently be
+aggregated over a regulatory averaging interval, such as the 6-minute interval
+of IEC 60601-2-33; the check itself does not perform that aggregation.
 
-`reference` takes a second sequence, usually a CP-mode free induction decay, or
-the report of an earlier call. The report then states
-`sar_ratio`, the largest ratio over windows and VOPs of a VOP's SAR to the same
-VOP's in the reference, and `energy_ratio`, that ratio weighted by the window
-durations. With a reference lasting its own minimum repetition time,
-`energy_ratio` scales that minimum to this sequence's repetition at the energy
-each repetition deposits, which is the form a protocol's SAR headroom is
-usually stated in. Relative channel gains do not cancel, so the reference has to
-be evaluated in the same calibration.
+## Comparison with a reference sequence
 
-## Scope and limitations
+With `reference`, a second sequence evaluated under the same model, drive and
+default shim, or the report of an earlier call, the report adds
 
-The estimate covers the RF energy the sequence's own waveforms deposit in a
-model of one subject. It does not cover RF coil heating, gradient heating, the
-scanner's own predownload assessment or its transmit monitor, and it does not
-make a statement about any particular patient. What it establishes is whether
-the sequence, under a stated model and calibration, is within a stated limit.
+$$
+r_{\mathrm{SAR}} = \max_{W,k} \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}},
+\qquad
+r_{\mathrm{E}} = \max_{W} \left[ \max_k \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}} \right] \frac{T_W}{T^{\mathrm{ref}}},
+$$
+
+as `sar_ratio` and `energy_ratio`, with the reference values taken from the
+reference's window of largest local SAR. The scale of `drive_per_hz` and of the
+VOPs cancels in both ratios; relative channel gains do not. For a reference
+lasting its minimum repetition time, $r_{\mathrm{E}}$ scales that repetition
+time to the energy per repetition of the checked sequence.
+
+## Limitations
+
+The estimate covers the RF energy of the sequence's own waveforms in a stated
+VOP model and drive calibration. It does not cover RF coil heating, gradient
+heating, the scanner's predownload assessment or transmit monitoring, and it
+makes no statement about a particular subject. A `True` result states only that
+the computed window-averaged SAR values do not exceed the supplied limits under
+that model and calibration.
 
 ## See also
 
@@ -97,8 +105,7 @@ the sequence, under a stated model and calibration, is within a stated limit.
   {func}`~pypulseqpp.safety.read_vops` and
   {func}`~pypulseqpp.safety.example_vops` — the calls.
 * {func}`~pypulseqpp.calc_rf_power` and
-  {meth}`~pypulseqpp.Sequence.calc_rf_power` — the RF power the check
-  integrates, in Pulseq's Hz units.
+  {meth}`~pypulseqpp.Sequence.calc_rf_power` — RF power in Pulseq's Hz units.
 * {doc}`../../examples/checks` — running the check over a
   sequence and reading its report.
 

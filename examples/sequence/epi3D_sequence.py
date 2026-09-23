@@ -483,8 +483,7 @@ class Epi3DApp(sequences.SequenceApp):
         frames : iterable of int
             The frames to acquire, in play order.
         reversed_encode : bool, default=False
-            Negate every line encode, which is what the reference prescan
-            plays.
+            Negate every line encode, as in the reference prescan.
         """
         shots = [(None, view) for view in self.dummies]
         shots += [(frame, view) for frame in frames for view in self.volume]

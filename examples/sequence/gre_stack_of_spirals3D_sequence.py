@@ -9,7 +9,6 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-from pypulseqpp._schedules import make_rf_spoiling_schedule
 
 #: The spiral densities ``density`` selects from.
 DENSITIES = ("constant", "variable", "dual")
@@ -222,15 +221,15 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
         self.span = 2 * np.pi
         self.angles = self.span * np.arange(0, n_shots, ry) / n_shots
         self.shift = PARTITION_SHIFTS[partition_angle_shift] * self.span
-        calibration, lattice = pp.calc_sampled_lines(
+        calibration, imaging = pp.make_cartesian_axis_sampling(
             n_z, rz, n_acs_z, partial_fourier=partial_fourier_z
         )
         self.calibration = set(calibration)
-        self.partitions = sorted([*calibration, *lattice])
+        self.partitions = sorted([*calibration, *imaging])
         # The calibration partitions lead, at every tilt, then the rest.
         self.views = [
             (arm, z)
-            for partitions in (calibration, lattice)
+            for partitions in (calibration, imaging)
             for arm in range(len(self.angles))
             for z in partitions
         ]
@@ -275,7 +274,7 @@ class GreStackOfSpirals3DApp(sequences.SequenceApp):
     def loop(self) -> None:
         """Play the dummies, then every acquired partition of each interleaf in turn."""
         views = [None] * self.n_dummy + self.views
-        phases = make_rf_spoiling_schedule(
+        phases = pp.make_rf_spoiling_schedule(
             len(views), increment=np.deg2rad(self.RF_SPOILING_INCREMENT_DEG)
         )
         for view, phase in zip(views, phases, strict=True):
