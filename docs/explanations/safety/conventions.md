@@ -1,5 +1,31 @@
 # Check conventions
 
+```{admonition} TL;DR
+:class: tldr
+
+- A `.seq` file records the system limits the sequence was designed against,
+  not the system it will be played on. The two differ when the file is used at
+  another site, when a site derates its gradient limits, or when a raster is
+  finer in the design script than on the amplifier.
+- The gradient-derived checks evaluate the physical gradient axes, after each
+  block's `ROTATIONS` extension; the SAR check evaluates the RF waveforms and
+  RF shims. A prescription rotation is passed as `rotation` to
+  {func}`~pypulseqpp.safety.check_pns` and
+  {func}`~pypulseqpp.safety.check_mech_resonance`, and applied with
+  {class}`~pypulseqpp.TransformFOV` before the other gradient checks.
+- Every check returns a boolean verdict and a report, whether or not it passes.
+  Gradient amplitude, slew-rate and continuity reports are in Hz/m and Hz/m/s,
+  mechanical-resonance amplitudes in mT/m, PNS responses as fractions of the
+  model threshold, and SAR in W/kg.
+- The gradient amplitude, slew-rate and continuity checks read only the
+  sequence and its system limits; the PNS, mechanical-resonance and SAR checks
+  require site or coil data supplied as arguments. Timing is checked
+  separately, by {meth}`~pypulseqpp.Sequence.check_timing`.
+- Gradient amplitude, slew rate and continuity are evaluated pointwise, PNS
+  over the whole sequence from rest, and mechanical resonance and SAR over
+  windows. Any window exceeding its threshold or limit makes the verdict false.
+```
+
 The conventions shared by the checks in {mod}`pypulseqpp.safety`: which system
 a check evaluates against, the frame it reads gradients in, the units of its
 report, and the interval it evaluates over.

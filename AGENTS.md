@@ -78,7 +78,9 @@ bash scripts/build_docs.sh
 The gallery is executed as the pages are built, and the fast-spin-echo scripts
 design their refocusing trains with `torchsim`, which the `design` extra brings.
 `bash scripts/build_docs_pdf.sh` renders the single-file manual from the same
-build and is what the release workflow attaches to a tag.
+build, printed by headless Chromium once MathJax has typeset it
+(`scripts/print_pdf.py`; `python -m playwright install chromium`), and is what
+the release workflow attaches to a tag.
 
 The development extra includes documentation dependencies. Do not add a new
 documentation or linting dependency solely for a cleanup.
@@ -285,6 +287,16 @@ own; a page being in both trees is a Sphinx info message, not a warning. Each
 `README.rst` carries its own reStructuredText title above the `.. include::` of
 its Markdown header, because a title arriving through an include leaves the
 toctree beneath it outside the page's section.
+
+Every example page carries an *Open in Colab* badge under its title, inserted
+at build time by `docs/colab.py`, which also writes a copy of each gallery
+notebook into the built site under `_colab/` with a note and a `%pip install`
+cell in front; the notebook the page offers for download is left as
+sphinx-gallery writes it. A section whose scripts import more than
+`pypulseqpp[plot]` and matplotlib lists the packages in `SECTION_PACKAGES`.
+Every explanation page, and no index page, opens with a TL;DR admonition
+(```` ```{admonition} TL;DR ```` with `:class: tldr`) directly under its
+title; `tests/test_docs_explanations.py` holds both conventions.
 
 Three generators run on `builder-inited` and write into `docs/generated/`, which
 is not tracked.

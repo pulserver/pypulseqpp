@@ -1,5 +1,27 @@
 # Gradient amplitude
 
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_max_grad` compares the largest per-axis
+  amplitude on the physical axes, after each block's rotation, with `max_grad`
+  from the system limits. A nonpositive `max_grad` disables the comparison.
+- The report also states each axis peak with its 1-based block and the largest
+  simultaneous vector magnitude. Only the per-axis quantity is compared with a
+  limit, because `max_grad` in a Pulseq system description is a per-axis limit.
+- The axis peaks are in general attained at different times, so their
+  root-sum-square is an upper bound on the vector magnitude, and usually a
+  loose one.
+- A rotation preserves the vector magnitude and changes its per-axis
+  components, so a sequence within `max_grad` unrotated can exceed it at an
+  oblique prescription. A prescription is evaluated by applying it with
+  {class}`~pypulseqpp.TransformFOV` and checking the result.
+- A readout traversing $\Delta k = N/\mathrm{FOV}$ at constant amplitude in a
+  window of duration $T$ requires $G = \Delta k/T$ in Hz/m. At fixed field of
+  view and matrix size, halving $T$ doubles both the receiver bandwidth and the
+  required amplitude.
+```
+
 A gradient amplifier has a maximum output current, and therefore a maximum
 gradient amplitude on the axis it drives.
 {func}`~pypulseqpp.safety.check_max_grad` compares the largest per-axis
@@ -11,7 +33,7 @@ The check reconstructs the physical-axis gradient waveforms, after each block's
 rotation, and evaluates
 
 $$
-\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \texttt{max\_grad}.
+\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad}.
 $$
 
 The report also states the peak of each axis, with its 1-based block, and the

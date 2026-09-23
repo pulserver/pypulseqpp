@@ -50,8 +50,9 @@ doc = [
   "sphinx-copybutton>=0.5",
   "sphinx-gallery>=0.18",
   "matplotlib>=3.7",
-  "weasyprint>=62",
-  "latex2mathml>=3.77",
+  # The PDF manual is printed by headless Chromium once MathJax has typeset
+  # the page; `python -m playwright install chromium` provides the browser.
+  "playwright>=1.42",
 ]
 # What the gallery's example scripts need beyond the documentation toolchain.
 # Every script is executed while the pages are built, and the fast spin echo

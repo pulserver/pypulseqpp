@@ -1,83 +1,28 @@
 #!/usr/bin/env bash
-# Build the single-page Sphinx manual and render it to PDF.
+# Build the single-page Sphinx manual and print it to docs/build/pypulseqpp-docs.pdf.
+#
+# Sphinx renders the sources as one HTML page, and scripts/print_pdf.py prints
+# that page with headless Chromium once MathJax has typeset its equations. The
+# gallery outputs of the HTML build are reused, so no script runs twice.
+#
+#   bash scripts/build_docs_pdf.sh          # the HTML build first, then the PDF
+#   SKIP_HTML=1 bash scripts/build_docs_pdf.sh   # after build_docs.sh has run
+#
+# Needs the documentation tools and Playwright's Chromium:
+#
+#   pip install '.[doc]' && python -m playwright install chromium
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 if [ "${SKIP_HTML:-0}" != 1 ]; then
   bash scripts/build_docs.sh
 fi
-python -m sphinx -W --keep-going -d docs/build/single-doctrees \
+"$PYTHON_BIN" -m sphinx -W --keep-going -d docs/build/single-doctrees \
   -b singlehtml docs docs/build/singlehtml
-cp docs/_static/pypulseqpp-logo.svg docs/_static/architecture.svg \
-  docs/build/singlehtml/_static/
-python - <<'PY'
-from pathlib import Path
 
-from bs4 import BeautifulSoup
-from latex2mathml.converter import convert
-
-source = Path("docs/build/singlehtml/index.html")
-soup = BeautifulSoup(source.read_text(encoding="utf-8"), "html.parser")
-for element in soup.select(
-    "script, style, link[rel=stylesheet], header, footer, nav, aside, button, "
-    "dialog, form, .skip-link, #pst-scroll-pixel-helper, .pst-async-banner-revealer"
-):
-    element.decompose()
-for image in soup.find_all("img"):
-    source_url = image.get("src", "")
-    prefix = "https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/"
-    if source_url.startswith(prefix):
-        image["src"] = "_static/" + source_url.removeprefix(prefix)
-    elif source_url.startswith(("http://", "https://")):
-        image.decompose()
-for equation in soup.select(".math"):
-    latex = equation.get_text().strip()
-    display = equation.name == "div"
-    delimiters = ("\\[", "\\]") if display else ("\\(", "\\)")
-    if latex.startswith(delimiters[0]) and latex.endswith(delimiters[1]):
-        latex = latex[len(delimiters[0]) : -len(delimiters[1])]
-    mathml = BeautifulSoup(
-        convert(latex, display="block" if display else "inline"), "html.parser"
-    ).math
-    equation.replace_with(mathml)
-targets = {element["id"] for element in soup.find_all(id=True)}
-for link in soup.find_all("a", href=True):
-    href = link["href"]
-    if not href.startswith("#") or href[1:] in targets:
-        continue
-    candidate = href.rsplit("#", 1)[-1]
-    if candidate in targets:
-        link["href"] = "#" + candidate
-    else:
-        del link["href"]
-cover = soup.new_tag("section", attrs={"class": "pdf-cover"})
-logo = soup.new_tag("img", src="_static/pypulseqpp-logo.svg", alt="pypulseqpp")
-cover.append(logo)
-title = soup.new_tag("h1")
-title.string = "pypulseqpp documentation"
-cover.append(title)
-heading = soup.new_tag("h2")
-heading.string = "Contents"
-cover.append(heading)
-contents = soup.new_tag("ul")
-for label, target in (
-    ("User guide", "document-user-guide/index"),
-    ("Developer guide", "document-developer-guide/index"),
-    ("Explanations", "document-explanations/index"),
-    ("Examples", "document-examples/index"),
-    ("API reference", "document-api/index"),
-    ("Miscellaneous", "document-misc/index"),
-):
-    item = soup.new_tag("li")
-    link = soup.new_tag("a", href=f"#{target}")
-    link.string = label
-    item.append(link)
-    contents.append(item)
-cover.append(contents)
-soup.body.insert(0, cover)
-output = Path("docs/build/singlehtml/print.html")
-output.write_text(str(soup), encoding="utf-8")
-PY
-weasyprint -s docs/_static/pdf.css \
-  docs/build/singlehtml/print.html docs/build/pypulseqpp-docs.pdf
+version="$("$PYTHON_BIN" -c 'import importlib.metadata as m; print(m.version("pypulseqpp"))' 2>/dev/null || true)"
+"$PYTHON_BIN" scripts/print_pdf.py docs/build/singlehtml docs/build/pypulseqpp-docs.pdf \
+  --version "${version:+Version ${version}}"
 echo "Built $PWD/docs/build/pypulseqpp-docs.pdf"

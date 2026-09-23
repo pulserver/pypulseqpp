@@ -1,5 +1,31 @@
 # Specific absorption rate
 
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_sar` computes time-averaged local and global
+  SAR in W/kg from a virtual-observation-point model and compares them with
+  `local_limit` and `global_limit`, by default 10 W/kg and 3.2 W/kg, the IEC
+  60601-2-33 normal-mode head values. The check does not use the gradient
+  system limits.
+- Channel $c$ is driven with $v_c(t) = d_c\,s_c\,b_c(t)$, the RF waveform in Hz
+  scaled by `drive_per_hz` and the block's RF shim. Local SAR in a window $W$
+  is the largest time-averaged quadratic form over the VOPs,
+  $\max_k \mathrm{SAR}_k(W)$.
+- The averaging windows are the repetitions detected from the block
+  definitions, reported as `tr_size` blocks, or the whole sequence when its
+  blocks do not divide into repetitions. The check does not aggregate the
+  per-window values over a regulatory averaging interval such as the 6-minute
+  interval of IEC 60601-2-33.
+- With `reference`, the report adds `sar_ratio` and `energy_ratio`. The scale
+  of `drive_per_hz` and of the VOPs cancels in both ratios; relative channel
+  gains do not.
+- A `True` result states only that the computed window-averaged SAR values do
+  not exceed the supplied limits under the stated VOP model and drive
+  calibration. {func}`~pypulseqpp.safety.example_vops` is a synthetic model for
+  demonstration only.
+```
+
 RF transmission deposits energy in tissue. The specific absorption rate (SAR,
 W/kg) is regulated as a **global** value over the exposed mass and a **local**
 value over 10 g of tissue, each averaged over a stated time and bounded by

@@ -14,6 +14,7 @@ from sphinx_gallery.sorting import ExplicitOrder
 # path the build was started from.
 sys.path.insert(0, str(Path(__file__).parent))
 
+import colab  # noqa: E402
 from figure_style import FIGURE_RCPARAMS, gallery_house_style  # noqa: E402
 
 project = "pypulseqpp"
@@ -358,6 +359,17 @@ def _write_sequence_pages(app) -> None:
     render(app.srcdir)
 
 
+def _colab_badge(_app, docname, source) -> None:
+    """Put the Open in Colab badge under a gallery example's title."""
+    source[0] = colab.with_badge(source[0], docname, DOCS_RELEASE)
+
+
+def _colab_notebooks(app, exception) -> None:
+    """Write the Colab copies of the gallery's notebooks into the built HTML site."""
+    if exception is None and app.builder.name == "html":
+        colab.write(Path(app.srcdir), Path(app.outdir), DOCS_RELEASE)
+
+
 def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
     _hide_ignored_code_from_the_page_only()
@@ -365,6 +377,8 @@ def setup(app):
     app.connect("autodoc-process-signature", _compact_signature)
     app.connect("source-read", _local_readme)
     app.connect("include-read", _included_readme)
+    app.connect("source-read", _colab_badge)
+    app.connect("build-finished", _colab_notebooks)
     app.connect("builder-inited", _draw_explanation_figures)
     # Ahead of autosummary's own handler, which reads the sources for the
     # objects it writes stubs for: a page written after it would only be read
@@ -423,6 +437,9 @@ html_theme_options = {
     # enter this tree.
     "max_navbar_depth": 3,
     "show_navbar_depth": 1,
+    # pydata-sphinx-theme puts a second search field in the header on wide
+    # screens; the one in the sidebar is enough.
+    "navbar_persistent": [],
 }
 
 #: The theme's own sidebar, with the version switcher under the title.
