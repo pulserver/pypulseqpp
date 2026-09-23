@@ -1,5 +1,28 @@
 # Events and blocks
 
+```{admonition} TL;DR
+:class: tldr
+
+- A sequence is an ordered list of blocks played back to back without a gap.
+  The file holds a flattened event schedule without loops, branches or nested
+  blocks.
+- A block has a duration and at most one event per channel, and its events are
+  played concurrently, each with its own delay. A block whose duration exceeds
+  the extent of its events is a delay, which is how an echo time or a
+  repetition time is realized.
+- Events are stored in libraries, one row per distinct event, and the block
+  table refers to them by integer id; indices are 1-based and a zero means no
+  event on that channel. A shape is stored normalized, and the amplitude that
+  scales it belongs to the event.
+- Amplitudes are in Hz for RF and Hz/m for gradients rather than in tesla and
+  tesla per metre. The gyromagnetic ratio in Hz/T, `gamma` on
+  {class}`~pypulseqpp.Opts`, enters only where a physical amplitude is
+  required.
+- Extensions carry information for which the block table has no column: labels
+  (`LABELSET`, `LABELINC`), whose values remain in force until set or
+  incremented again, rotations, triggers, RF shims and soft delays.
+```
+
 [Pulseq](https://pulseq.github.io) is an open file format for MR pulse
 sequences. A `.seq` file specifies event timing and channel assignment for a complete,
 portable acquisition. `pypulseqpp` builds, analyses and writes that description, and its
@@ -66,9 +89,9 @@ RF
 : An amplitude in Hz, ids into a magnitude, a phase and optionally a time
   shape, a delay, frequency and phase offsets, a centre time, and a `use` —
   excitation, refocusing, inversion, saturation or preparation. The `use`
-  identifies which pulses begin a shot and which refocus one, so the
-  pulse factories such as {func}`~pypulseqpp.make_slr_pulse` accept it and why
-  {meth}`~pypulseqpp.Sequence.rf_times` can report the two separately.
+  identifies which pulses begin a shot and which refocus one, which is why
+  the pulse factories such as {func}`~pypulseqpp.make_slr_pulse` accept it and
+  why {meth}`~pypulseqpp.Sequence.rf_times` can report the two separately.
 
 Gradients
 : Two kinds share one column. A *trapezoid* is an amplitude with rise, flat and
@@ -93,8 +116,9 @@ and tesla per metre. The same file therefore means the same thing on any
 nucleus a scanner is tuned to, and the gyromagnetic ratio enters only where a
 physical amplitude is required.
 
-Converting a reported amplitude to mT/m means dividing by the gyromagnetic
-ratio in Hz/T, which {class}`~pypulseqpp.Opts` holds as `gamma`. The constraint
+Converting a reported amplitude from Hz/m to mT/m means dividing by the
+gyromagnetic ratio in Hz/T, which {class}`~pypulseqpp.Opts` holds as `gamma`,
+and multiplying by 1000. The constraint
 checks in {doc}`../safety/index` report their values in the file's units and
 convert with that constant.
 

@@ -286,6 +286,16 @@ own; a page being in both trees is a Sphinx info message, not a warning. Each
 its Markdown header, because a title arriving through an include leaves the
 toctree beneath it outside the page's section.
 
+Every example page carries an *Open in Colab* badge under its title, inserted
+at build time by `docs/colab.py`, which also writes a copy of each gallery
+notebook into the built site under `_colab/` with a note and a `%pip install`
+cell in front; the notebook the page offers for download is left as
+sphinx-gallery writes it. A section whose scripts import more than
+`pypulseqpp[plot]` and matplotlib lists the packages in `SECTION_PACKAGES`.
+Every explanation page, and no index page, opens with a TL;DR admonition
+(```` ```{admonition} TL;DR ```` with `:class: tldr`) directly under its
+title; `tests/test_docs_explanations.py` holds both conventions.
+
 Three generators run on `builder-inited` and write into `docs/generated/`, which
 is not tracked.
 

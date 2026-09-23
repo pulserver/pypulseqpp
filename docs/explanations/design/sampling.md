@@ -1,5 +1,27 @@
 # Sampling support and ordering
 
+```{admonition} TL;DR
+:class: tldr
+
+- A Cartesian acquisition is specified by its support, the set of phase- and
+  partition-encoding views that are acquired, and its temporal ordering, the
+  repetition, shot and echo at which each acquired view is played. The sampling
+  routines keep the two separate and create neither events nor labels.
+- Encoded view indices, centred coordinates, boolean support masks and ordering
+  indices are distinct kinds of value. Ordering indices `trains[s][e]` are row
+  numbers into the array the caller passed, not coordinates.
+- The geometric echo-train orderings take centred coordinates, because the
+  k-space centre `(n_y // 2, n_z // 2)` is a property of the encoding grid.
+  With an even matrix, partial Fourier or an asymmetric undersampled support,
+  the centroid of the acquired views is not the centre.
+- Poisson-disc sampling determines which views are acquired; T2 Shuffling
+  determines when already selected views are acquired along the echo train.
+  Either can be used without the other.
+- Label events are created only by the sequence application, in `kernel`.
+  {meth}`~pypulseqpp.Sequence.evaluate_labels` recovers the labels actually
+  written, per acquisition.
+```
+
 A Cartesian acquisition is specified by two independent choices: its
 **support**, the set of phase- and partition-encoding views that are acquired,
 and its **temporal ordering**, the repetition, shot and echo at which each

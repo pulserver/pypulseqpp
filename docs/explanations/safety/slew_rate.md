@@ -1,5 +1,30 @@
 # Slew rate
 
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_max_slew` compares the largest per-axis slew
+  rate within each block, on the physical axes after that block's rotation,
+  with `max_slew` from the system limits. A nonpositive `max_slew` disables the
+  comparison.
+- For an arbitrary gradient, the slew rate is the difference between
+  neighbouring waveform corners divided by their spacing on the gradient raster
+  of the system limits, so the same samples on a finer raster imply a
+  proportionally higher slew rate.
+- The report also states the largest simultaneous vector slew rate and the peak
+  of each axis; only the per-axis quantity is compared with the limit. A step
+  across a block boundary is evaluated with the same limit by the gradient
+  continuity check.
+- For an area $A$ (1/m) at slew rate $S$ (Hz/m/s), the shortest waveform is a
+  triangle of duration $T_{\min} = 2\sqrt{A/S}$ while its peak $\sqrt{AS}$ does
+  not exceed `max_grad`. Halving the duration of a prewinder or phase-encode
+  blip requires four times the slew rate.
+- {func}`~pypulseqpp.apply_system_derates` and {func}`~pypulseqpp.cap_system`
+  return copies of the system limits with reduced `max_grad` and `max_slew`,
+  and repeated derating does not compound. A sequence that fails under reduced
+  limits must be redesigned at the lower limit, which lengthens its ramps.
+```
+
 The rate of change of a gradient amplifier's output is bounded by the voltage
 available across the coil inductance.
 {func}`~pypulseqpp.safety.check_max_slew` compares the largest per-axis slew

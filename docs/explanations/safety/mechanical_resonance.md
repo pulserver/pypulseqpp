@@ -1,5 +1,30 @@
 # Mechanical resonance
 
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_mech_resonance` compares a windowed amplitude
+  spectrum of the physical-axis gradient waveforms, after each block's rotation
+  and then the `rotation` argument, with the forbidden bands of a supplied
+  table.
+- Each window of `window_width` (40 ms by default) is mean-subtracted,
+  multiplied by a Hann taper, zero-padded and transformed with a real FFT. The
+  amplitude is scaled so that a sustained sinusoid of amplitude $A$ at a bin
+  frequency reads $A$, in mT/m.
+- A train of trapezoids of alternating polarity at echo spacing $\Delta t$ has
+  its fundamental at $f = 1/(2\,\Delta t)$, with an amplitude between $8/\pi^2$
+  and $4/\pi$ of the plateau amplitude. Echo spacing is therefore the parameter
+  a forbidden band constrains for an echo-planar readout.
+- A band is violated by each window whose largest amplitude on a bin inside the
+  band exceeds the threshold on any axis the band applies to. The threshold is
+  the band's tolerance where it is positive and `min_threshold` (10 mT/m by
+  default) otherwise.
+- The criterion is spectral and is applied to the commanded waveform. It does
+  not model the coil's transfer function or the acoustic output of the
+  assembly, and a passing result does not establish that a sequence is quiet or
+  within any acoustic-noise regulation.
+```
+
 The Lorentz force on a gradient coil in the static field is proportional to its
 current, and the gradient assembly has narrowly resonant mechanical modes.
 Sustained gradient drive at a mode's frequency produces acoustic output and
