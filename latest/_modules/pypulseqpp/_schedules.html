@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -499,7 +461,12 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._schedules</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""RF phase and refocusing-flip schedules."""</span>
+<span></span><span class="sd">"""Per-repetition RF phase and refocusing flip-angle schedules.</span>
+
+<span class="sd">Each routine returns one value per repetition (or per echo), which the scan</span>
+<span class="sd">loop applies to the RF and ADC events of that repetition. They select no</span>
+<span class="sd">views and emit no labels.</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -552,8 +519,8 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from pypulseqpp._schedules import make_rf_spoiling_schedule</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(make_rf_spoiling_schedule(4)).round(1)</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.make_rf_spoiling_schedule(4)).round(1)</span>
 <span class="sd">    array([  0.,   0., 117., 351.])</span>
 
 <span class="sd">    See Also</span>
@@ -602,10 +569,10 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from pypulseqpp._schedules import make_phase_cycling_schedule</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(make_phase_cycling_schedule(5))</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.make_phase_cycling_schedule(5))</span>
 <span class="sd">    array([  0., 180.,   0., 180.,   0.])</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(make_phase_cycling_schedule(4, (0.0, np.pi / 2)))</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.make_phase_cycling_schedule(4, (0.0, np.pi / 2)))</span>
 <span class="sd">    array([ 0., 90.,  0., 90.])</span>
 
 <span class="sd">    See Also</span>
@@ -631,8 +598,13 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return a variable refocusing flip-angle schedule in radians.</span>
 
-<span class="sd">    ``variable=False`` gives a constant target angle. Otherwise the sequence</span>
-<span class="sd">    approaches the target exponentially from an initial angle derived from it.</span>
+<span class="sd">    ``variable=False`` gives a constant target angle. Otherwise the first</span>
+<span class="sd">    refocusing angle is raised above the target, approximately</span>
+<span class="sd">    ``pi / 2 + target / 2`` as proposed for pseudo-steady-state</span>
+<span class="sd">    stabilisation [1]_, and the following angles decay towards the target by</span>
+<span class="sd">    a factor of two per echo. Flip-angle trains that vary smoothly along the</span>
+<span class="sd">    echo train are the subject of TRAPS [2]_; this routine implements only the</span>
+<span class="sd">    initial stabilising transition.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -658,14 +630,20 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from pypulseqpp._schedules import make_traps_schedule</span>
-<span class="sd">    &gt;&gt;&gt; flips = make_traps_schedule(8, np.deg2rad(120))</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; flips = pp.make_traps_schedule(8, np.deg2rad(120))</span>
 <span class="sd">    &gt;&gt;&gt; np.rad2deg(flips)[[0, -1]].round(1)</span>
 <span class="sd">    array([153. , 120.2])</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    Alsop, TRAPS / variable-flip refocusing, DOI ``10.1002/mrm.1910370422``.</span>
+<span class="sd">    .. [1] Alsop DC. The sensitivity of low flip angle RARE imaging.</span>
+<span class="sd">       *Magnetic Resonance in Medicine*. 1997;37(2):176-184.</span>
+<span class="sd">       https://doi.org/10.1002/mrm.1910370206</span>
+<span class="sd">    .. [2] Hennig J, Weigel M, Scheffler K. Multiecho sequences with variable</span>
+<span class="sd">       refocusing flip angles: optimization of signal behavior using smooth</span>
+<span class="sd">       transitions between pseudo steady states (TRAPS). *Magnetic Resonance</span>
+<span class="sd">       in Medicine*. 2003;49(3):527-535. https://doi.org/10.1002/mrm.10391</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"length must be &gt;= 1"</span><span class="p">)</span>

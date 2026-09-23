@@ -37,14 +37,15 @@ used for T2*/R2* mapping, susceptibility mapping, and structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Four-echo train
+---------------
 
-Four echoes after one excitation, read in alternating directions.
+Four echoes after each excitation, with readout gradients of alternating
+polarity.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 38-48
 
 .. code-block:: Python
 
@@ -72,12 +73,12 @@ Four echoes after one excitation, read in alternating directions.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 49-51
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 51-54
 
 .. code-block:: Python
 
@@ -93,24 +94,18 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f5236e70>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-59
+.. GENERATED FROM PYTHON SOURCE LINES 55-60
 
 Sampling order
 --------------
 
-Colouring by echo index separates the echoes of one excitation; colouring by
-shot separates the excitations.
+Colour encodes acquisition order. The echoes of one excitation sample the
+same phase-encode line.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
@@ -126,16 +121,10 @@ shot separates the excitations.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 1210x550 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-68
+.. GENERATED FROM PYTHON SOURCE LINES 64-69
 
 A longer echo train
 -------------------
@@ -143,7 +132,7 @@ A longer echo train
 Additional echoes extend the sampled decay curve and increase the minimum
 repetition time and final echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-82
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
 
 .. code-block:: Python
 
@@ -168,7 +157,7 @@ repetition time and final echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
 
 .. code-block:: Python
 
@@ -183,19 +172,13 @@ repetition time and final echo time.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 1210x550 with 4 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 14.757 seconds)
+   **Total running time of the script:** (0 minutes 24.354 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:

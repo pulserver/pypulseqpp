@@ -36,14 +36,15 @@ recovery weighting. 3D spin echo supports high-resolution structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-36
+.. GENERATED FROM PYTHON SOURCE LINES 32-37
 
-Baseline
---------
+Fully sampled acquisition
+-------------------------
 
-A full Cartesian sampling of the slab.
+Every ``(line, partition)`` view inside the ellipse inscribed in the
+phase-encode plane is acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-44
+.. GENERATED FROM PYTHON SOURCE LINES 37-45
 
 .. code-block:: Python
 
@@ -68,12 +69,12 @@ A full Cartesian sampling of the slab.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 45-47
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-50
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -89,23 +90,17 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f23f76e0>, tr=1, underlays=[251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-55
+.. GENERATED FROM PYTHON SOURCE LINES 52-56
 
 Sampling order
 --------------
 
-The phase-encode plane in the order it is read.
+Colour encodes acquisition order in the phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-58
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
@@ -121,24 +116,19 @@ The phase-encode plane in the order it is read.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-64
+.. GENERATED FROM PYTHON SOURCE LINES 60-66
 
 Acceleration on both encoded axes
 ---------------------------------
 
-Skipping lines and partitions reduces the number of repetitions by four.
-Every acquired view retains the prescribed spin-echo time.
+Subsampling lines and partitions by two each reduces the number of
+repetitions approximately fourfold outside the calibration region. Each
+acquired view has the prescribed echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-78
+.. GENERATED FROM PYTHON SOURCE LINES 66-80
 
 .. code-block:: Python
 
@@ -163,7 +153,7 @@ Every acquired view retains the prescribed spin-echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-81
+.. GENERATED FROM PYTHON SOURCE LINES 81-83
 
 .. code-block:: Python
 
@@ -178,19 +168,13 @@ Every acquired view retains the prescribed spin-echo time.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.606 seconds)
+   **Total running time of the script:** (0 minutes 23.665 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

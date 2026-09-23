@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>calc_traversal_order &#8212; pypulseqpp documentation</title>
+    <title>mech_resonance_spectrum &#8212; pypulseqpp documentation</title>
   
   
   
@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -53,7 +53,7 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.calc_traversal_order';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.safety.mech_resonance_spectrum';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
@@ -62,7 +62,7 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.calc_traversal_order.html" />
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.safety.mech_resonance_spectrum.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -424,7 +382,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.calc_traversal_order.rst" target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.safety.mech_resonance_spectrum.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -441,7 +399,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.calc_traversal_order.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.safety.mech_resonance_spectrum.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -471,7 +429,7 @@
       
       
       
-      <li><a href="../_sources/generated/pypulseqpp.calc_traversal_order.rst" target="_blank"
+      <li><a href="../_sources/generated/pypulseqpp.safety.mech_resonance_spectrum.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -554,7 +512,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>calc_traversal_order</h1>
+    <h1>mech_resonance_spectrum</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -564,7 +522,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_traversal_order"><code class="docutils literal notranslate"><span class="pre">calc_traversal_order()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.mech_resonance_spectrum"><code class="docutils literal notranslate"><span class="pre">mech_resonance_spectrum()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -576,41 +534,41 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="calc-traversal-order">
-<h1>calc_traversal_order<a class="headerlink" href="#calc-traversal-order" title="Link to this heading">#</a></h1>
+  <section id="mech-resonance-spectrum">
+<h1>mech_resonance_spectrum<a class="headerlink" href="#mech-resonance-spectrum" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="pypulseqpp.calc_traversal_order">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">calc_traversal_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_ordering.html#calc_traversal_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.calc_traversal_order" title="Link to this definition">#</a></dt>
-<dd><p>Return a permutation of zero-based positions for a one-dimensional loop.</p>
+<dt class="sig sig-object py" id="pypulseqpp.safety.mech_resonance_spectrum">
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">mech_resonance_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#mech_resonance_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.mech_resonance_spectrum" title="Link to this definition">#</a></dt>
+<dd><p>Return the gradient amplitude spectrum of one window, per physical axis.</p>
+<p>The window is taken, tapered and transformed by
+<a class="reference internal" href="pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a>’s own pass, so a diagram of a band and the
+verdict on it read the same numbers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of positions.</p></li>
-<li><p><strong>order</strong> (<em>{'sequential'</em><em>, </em><em>'reverse'</em><em>, </em><em>'interleaved'</em><em>, </em><em>'center_out'</em><em>, </em><em>'outside_in'</em><em>, </em><em>'random'}</em><em>, </em><em>default='sequential'</em>) – Traversal scheme. <code class="docutils literal notranslate"><span class="pre">'interleaved'</span></code> takes even positions then odd ones
-(the standard multi-slice choice, maximising the gap between
-neighbours); <code class="docutils literal notranslate"><span class="pre">'center_out'</span></code> starts at the middle, which is the usual
-choice for a partition loop whose contrast is set by the first echoes.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Seed for <code class="docutils literal notranslate"><span class="pre">order='random'</span></code>.</p></li>
+<li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to read.</p></li>
+<li><p><strong>window</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Which window, counted from zero. A report names the worst window of
+each band as <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p></li>
+<li><p><strong>window_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.04</em>) – Window length (s). Give the width the report was made with.</p></li>
+<li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Step between window starts (s); half the width by default.</p></li>
+<li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=3</em>) – Transform length as a multiple of the window’s sample count.</p></li>
+<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Integer permutation of <code class="docutils literal notranslate"><span class="pre">range(n)</span></code>.</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> (Hz), one per bin; <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>, <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">bins)</span></code> in mT/m
+for x, y and z; <code class="docutils literal notranslate"><span class="pre">axes</span></code>, the names in that order; <code class="docutils literal notranslate"><span class="pre">window</span></code>,
+<code class="docutils literal notranslate"><span class="pre">window_start</span></code> (s), <code class="docutils literal notranslate"><span class="pre">window_width</span></code> (s) and <code class="docutils literal notranslate"><span class="pre">frequency_step</span></code> (Hz).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
+<dd class="field-odd"><p>SimpleNamespace</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">n</span></code> is negative or <code class="docutils literal notranslate"><span class="pre">order</span></code> is unknown.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a width, stride or oversampling is out of range, or the sequence
+    has no window of that index.</p>
 </dd>
 </dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp._ordering</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_traversal_order</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">calc_traversal_order</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s2">"interleaved"</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="go">[0, 2, 4, 1, 3, 5]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">calc_traversal_order</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s2">"center_out"</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="go">[2, 1, 3, 0, 4]</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </section>
@@ -644,7 +602,7 @@ choice for a partition loop whose contrast is set by the first echoes.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_traversal_order"><code class="docutils literal notranslate"><span class="pre">calc_traversal_order()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.mech_resonance_spectrum"><code class="docutils literal notranslate"><span class="pre">mech_resonance_spectrum()</span></code></a></li>
 </ul>
   </nav></div>
 

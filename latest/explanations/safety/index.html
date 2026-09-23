@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Gradient amplitude" href="gradient_amplitude.html" />
-    <link rel="prev" title="Sequence applications" href="../design/sequence-application.html" />
+    <link rel="prev" title="Sampling support and ordering" href="../design/sampling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Gradient, PNS and SAR constraints</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -566,9 +524,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-conventions">Common conventions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-required-data">Checks and their required data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-interval">Evaluation interval</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks">Checks</a></li>
 </ul>
             </nav>
         </div>
@@ -582,39 +538,12 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="gradient-pns-and-sar-constraints">
 <h1>Gradient, PNS and SAR constraints<a class="headerlink" href="#gradient-pns-and-sar-constraints" title="Link to this heading">#</a></h1>
-<p>A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file records the system limits the sequence was <strong>designed</strong> against,
-in its <code class="docutils literal notranslate"><span class="pre">[DEFINITIONS]</span></code> and in the <code class="docutils literal notranslate"><span class="pre">system</span></code> its writer used. It does not record
-the system it will be <strong>played</strong> on. The two are identical when the designer
-entered the limits of the scanner the sequence will run on, and differ when the
-file is used at another site, when a site derates its gradient limits, or when
-a raster is finer in the design script than on the amplifier.</p>
-<p>The checks in <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code> evaluate a finished sequence against a
-stated set of limits, which is the sequence’s own
-<a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> or one passed to the check. They are <strong>design-time
-estimates</strong>. They do not replace the scanner’s own gate before download, nor
-its hardware monitor during the scan, and they do not establish patient safety.</p>
-<section id="common-conventions">
-<h2>Common conventions<a class="headerlink" href="#common-conventions" title="Link to this heading">#</a></h2>
-<p>Every check works on the <strong>physical gradient axes</strong>, after each block’s
-<code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension has been applied. The amplifier driving an axis produces
-the physical waveform, and a nerve or a mechanical mode responds to the physical
-field, so a limit on either applies in the physical frame.</p>
-<p>A prescription rotation is a further rotation, composed after each block’s own.
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> and
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> take one directly, as their
-<code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument. The gradient amplitude, slew-rate and continuity checks
-read the rotations the sequence carries, so a prescription is applied to them by
-transforming the sequence first with <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> and
-checking the result.</p>
-<p>Every check returns the same pair: a boolean verdict and a report naming where
-the extreme was found, with the extreme itself and the limit it was compared
-with. The report is returned whether or not the check passes, so a passing
-sequence’s margin is readable from the same call.</p>
-<p>Amplitudes in a report are in the file format’s own units, Hz/m and Hz/m/s;
-<code class="docutils literal notranslate"><span class="pre">gamma</span></code> on the system limits converts them to mT/m and T/m/s.</p>
-</section>
-<section id="checks-and-their-required-data">
-<h2>Checks and their required data<a class="headerlink" href="#checks-and-their-required-data" title="Link to this heading">#</a></h2>
+<p>The checks in <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code> evaluate a finished sequence against
+stated limits and models. They are <strong>design-time estimates</strong>. They do not
+replace the scanner’s own gate before download, nor its hardware monitor during
+the scan, and they do not establish patient safety.</p>
+<section id="checks">
+<h2>Checks<a class="headerlink" href="#checks" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Check</p></th>
@@ -625,19 +554,19 @@ sequence’s margin is readable from the same call.</p>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="gradient_amplitude.html"><span class="doc">Gradient amplitude</span></a></p></td>
 <td><p>the largest per-axis gradient amplitude</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">max_grad</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_grad</span></code> from the system limits</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="slew_rate.html"><span class="doc">Slew rate</span></a></p></td>
 <td><p>the largest per-axis slew rate within a block</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">max_slew</span></code>, the gradient raster</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_slew</span></code> and the gradient raster from the system limits</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gradient_continuity.html"><span class="doc">Gradient continuity</span></a></p></td>
 <td><p>the amplitude step across each block boundary</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">max_slew</span></code>, the gradient raster</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_slew</span></code> and the gradient raster from the system limits</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pns.html"><span class="doc">Peripheral nerve stimulation</span></a></p></td>
 <td><p>a nerve model’s response to the slew of each axis</p></td>
-<td><p>a coil response model</p></td>
+<td><p>a SAFE or chronaxie model</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mechanical_resonance.html"><span class="doc">Mechanical resonance</span></a></p></td>
 <td><p>the windowed gradient amplitude spectrum</p></td>
@@ -645,38 +574,15 @@ sequence’s margin is readable from the same call.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="sar.html"><span class="doc">Specific absorption rate</span></a></p></td>
 <td><p>window-averaged local and global SAR</p></td>
-<td><p>virtual observation points and a drive calibration</p></td>
+<td><p>virtual observation points, a drive calibration and SAR limits</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The first three checks read only the sequence and its system limits, so they
-can always run. The last three additionally require site or coil data that no
-sequence file contains — a nerve model’s coefficients, a magnet’s forbidden
-bands, a subject’s VOP model and the transmit chain’s calibration — and this
-data must be supplied explicitly.</p>
-<p>Timing is checked separately, by
-<a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a>, which establishes that every event
-time is addressable on the raster its event is played on and that the transmit
-and receive dead times are respected. A sequence whose gradients are within
-every limit can still be unplayable because one delay is off the raster.</p>
-</section>
-<section id="evaluation-interval">
-<h2>Evaluation interval<a class="headerlink" href="#evaluation-interval" title="Link to this heading">#</a></h2>
-<p>Gradient amplitude, slew rate and continuity are pointwise: every sample of the
-scan is either within the limit or outside it, and the largest value determines
-the verdict.</p>
-<p>The nerve models are dynamic. Their response at one sample depends on the
-preceding slew history, so the stimulation check is evaluated over the whole
-sequence in one pass, starting from rest, rather than over a representative
-repetition.</p>
-<p>The mechanical-resonance and SAR checks are defined over a <strong>window</strong> rather
-than over a sample. Both bound a sustained drive — the acoustic response to a
-periodic gradient waveform, and the energy deposited per unit time — and
-neither is determined by any single sample. The resonance check slides a window
-of a stated length along the sequence; the SAR check averages over each
-repetition the block definitions repeat with, and the largest window average
-determines the verdict.</p>
+<p>The first five checks are gradient-derived and evaluate the physical gradient
+axes; the SAR check is RF-derived and evaluates the RF waveforms and shims. The
+frames, report units and evaluation intervals common to the checks are in
+<a class="reference internal" href="conventions.html"><span class="doc">Check conventions</span></a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -694,12 +600,12 @@ determines the verdict.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../design/sequence-application.html"
+       href="../design/sampling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sequence applications</p>
+        <p class="prev-next-title">Sampling support and ordering</p>
       </div>
     </a>
     <a class="right-next"
@@ -729,9 +635,7 @@ determines the verdict.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-conventions">Common conventions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-required-data">Checks and their required data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-interval">Evaluation interval</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks">Checks</a></li>
 </ul>
   </nav></div>
 

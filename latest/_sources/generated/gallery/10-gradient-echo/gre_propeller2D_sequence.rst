@@ -37,14 +37,15 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Sixteen-line blades
+-------------------
 
-Sixteen lines to a blade, at enough blades to cover the disc.
+Sixteen lines per blade, with the number of blade orientations chosen to
+cover the k-space disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 38-48
 
 .. code-block:: Python
 
@@ -71,12 +72,12 @@ Sixteen lines to a blade, at enough blades to cover the disc.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 49-51
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 51-54
 
 .. code-block:: Python
 
@@ -92,16 +93,10 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2343470>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-59
+.. GENERATED FROM PYTHON SOURCE LINES 55-60
 
 Sampling order
 --------------
@@ -109,7 +104,7 @@ Sampling order
 The colour encodes blade acquisition order. Each blade is a band
 of parallel lines; the bands overlap at the centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
@@ -125,16 +120,10 @@ of parallel lines; the bands overlap at the centre.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-69
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
 
 Wider blades
 ------------
@@ -143,7 +132,7 @@ Increasing the blade width reduces the number of blade orientations and
 increases the duration of each blade. The larger shared central-k-space
 region provides additional data for motion estimation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-83
+.. GENERATED FROM PYTHON SOURCE LINES 70-84
 
 .. code-block:: Python
 
@@ -168,7 +157,7 @@ region provides additional data for motion estimation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 85-87
 
 .. code-block:: Python
 
@@ -183,19 +172,13 @@ region provides additional data for motion estimation.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.375 seconds)
+   **Total running time of the script:** (0 minutes 3.951 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

@@ -1,33 +1,13 @@
 # Sequence catalogue
 
 Complete sequences shipped with the package, grouped by sequence family. Each
-is a {class}`~pypulseqpp.sequences.SequenceApp` subclass in its own module, and
-each has a reference page giving the prescription it accepts. Import one as an
-attribute of `pypulseqpp.sequences`; the module is callable as its own `main`,
-which designs the sequence and returns it.
-
-```python
-from pypulseqpp import sequences
-
-seq = sequences.gre2D_sequence(n_x=128, n_y=128, n_slices=5)
-seq.write("gre_2d.seq")
-```
-
-Every module is also a command-line entry point. Its options are derived from
-the signature and NumPy-style `Parameters` section of `init_sequence`, so
-`--help` lists the prescription the sequence accepts:
-
-```bash
-python -m pypulseqpp.sequences.sequence.gre2D_sequence --help
-```
-
-Dimensionality and sampling distinguish the variants within a family: a
-gradient echo is the same family whether it samples a Cartesian grid, radial
-spokes or spiral interleaves. See {doc}`api/apps` for the
-{class}`~pypulseqpp.sequences.SequenceApp` contract these modules implement,
-and {doc}`api/modules` for the excitation, preparation and readout modules they
-are built from. Each sequence is designed and drawn at a representative
-prescription under {doc}`examples/built-in-sequences/index`.
+is a {class}`~pypulseqpp.sequences.SequenceApp` subclass in its own module of
+`pypulseqpp.sequences`, with a reference page giving the prescription it
+accepts; {doc}`user-guide/index` shows how to run one from Python or the
+command line. Within a family, the variants differ in dimensionality and
+sampling. Each sequence is designed and drawn at a representative prescription
+under {doc}`examples/built-in-sequences/index`; the contract the modules
+implement is in {doc}`api/apps`.
 
 ## Gradient echo
 

@@ -37,14 +37,15 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Nyquist angular sampling
+------------------------
 
-Enough spokes to sample the outer radius at the Nyquist spacing.
+``ceil(pi / 2 * n)`` spokes over half a turn, which sample the outer
+radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-45
+.. GENERATED FROM PYTHON SOURCE LINES 38-46
 
 .. code-block:: Python
 
@@ -69,12 +70,12 @@ Enough spokes to sample the outer radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-48
+.. GENERATED FROM PYTHON SOURCE LINES 47-49
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-51
+.. GENERATED FROM PYTHON SOURCE LINES 49-52
 
 .. code-block:: Python
 
@@ -90,23 +91,17 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f24431a0>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-56
+.. GENERATED FROM PYTHON SOURCE LINES 53-57
 
 Sampling order
 --------------
 
 Colour encodes spoke acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -122,16 +117,10 @@ Colour encodes spoke acquisition order.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Angular undersampling
 ---------------------
@@ -139,7 +128,7 @@ Angular undersampling
 Retaining one spoke angle in three reduces peripheral angular sampling;
 every acquired spoke still crosses the k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-77
+.. GENERATED FROM PYTHON SOURCE LINES 66-78
 
 .. code-block:: Python
 
@@ -162,7 +151,7 @@ every acquired spoke still crosses the k-space origin.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-80
+.. GENERATED FROM PYTHON SOURCE LINES 79-81
 
 .. code-block:: Python
 
@@ -177,19 +166,13 @@ every acquired spoke still crosses the k-space origin.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.600 seconds)
+   **Total running time of the script:** (0 minutes 2.702 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

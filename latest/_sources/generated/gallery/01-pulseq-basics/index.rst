@@ -23,7 +23,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to build the smallest complete Pulseq sequence, a pulse-acquire experiment, and to establish the vocabulary the rest of the course adds to: the system limits a factory solves against, the events that carry a pulse and an acquisition window, the blocks that play them, the timing check, and the file that is written.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The smallest complete Pulseq sequence is a pulse-acquire experiment: one excitation pulse followed by one acquisition window. This first lesson of the course builds it and introduces the objects every later lesson extends: the system limits against which a factory designs an event, the RF and ADC events, the blocks in which events are played, the timing check, and the .seq file. A Bloch simulation of the stored pulse relates the transverse magnetisation to the flip angle.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a refocusing pulse to the pulse-acquire experiment of the previous page, so that the acquisition is centred on an echo at a prescribed echo time, and to place the crusher pair that keeps the signal of an imperfect refocusing pulse out of that acquisition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson acquired a free induction decay directly after the excitation. This lesson adds a refocusing pulse, so that the acquisition is centred on a spin echo at a prescribed echo time, and a pair of crusher gradients about the refocusing pulse. The crushers leave the spin-echo pathway rephased and dephase the coherence pathways the pulse does not refocus, such as the free induction decay an imperfect refocusing pulse produces.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to turn the non-imaging experiments of the two previous pages into a two-dimensional acquisition: the excitation becomes slice-selective, the echo is formed by a gradient rather than by a refocusing pulse, and a phase encode moves the acquired line from one repetition to the next. This is the structure every Cartesian sequence in the course is a variation on.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons acquired signal without spatial encoding. This lesson turns the experiment into a two-dimensional acquisition: the excitation becomes slice-selective, the echo is formed by reversing a gradient rather than by a refocusing pulse, and a phase encode changes the acquired k-space line from one repetition to the next. Every Cartesian sequence in the later lessons extends this structure.">
 
 .. only:: html
 

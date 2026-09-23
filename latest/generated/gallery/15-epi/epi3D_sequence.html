@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -573,6 +531,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#skipped-caipi-traversal">Skipped-CAIPI traversal</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shot-comparison">Single-shot comparison</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plane-acceleration">In-plane acceleration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -591,15 +550,18 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-echo-planar-imaging">
 <span id="sphx-glr-generated-gallery-15-epi-epi3d-sequence-py"></span><h1>3D echo-planar imaging<a class="headerlink" href="#d-echo-planar-imaging" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/15-epi/epi3D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
 <p>A slab-selective excitation is followed by alternating readout gradients with
-phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes
-a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
+phase-encode and partition blips. The sampled <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> views form
+a CAIPIRINHA lattice <a class="reference internal" href="#bre06" id="id1"><span>[BRE06]</span></a>, and segmented skipped-CAIPI traversal <a class="reference internal" href="#sti21" id="id2"><span>[STI21]</span></a>
+distributes the lattice among shots. Spoilers suppress residual
 transverse coherence between repetitions; off-resonance accumulates during
 each echo train. 3D EPI supports rapid structural and functional imaging.</p>
 <section id="accelerated-acquisition">
 <h2>Accelerated acquisition<a class="headerlink" href="#accelerated-acquisition" title="Link to this heading">#</a></h2>
-<p>The baseline uses in-plane and partition acceleration, three shots per shell,
-and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
+<p>The first configuration uses in-plane and partition acceleration, three
+shots per shell, and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 successive echoes therefore contain both the skipped-line displacement and
 the partition jump.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi3D_sequence.html#pypulseqpp.sequences.epi3D_sequence" title="pypulseqpp.sequences.epi3D_sequence"><span class="n">epi3D_sequence</span></a><span class="w">
@@ -629,27 +591,28 @@ CAIPI shift 2, TE 8.83 ms, TR 189.4 ms
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">baseline</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi3D_sequence_001.png" srcset="../../../_images/sphx_glr_epi3D_sequence_001.png" alt="epi3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa91059a720&gt;, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_epi3D_sequence_001.png" srcset="../../../_images/sphx_glr_epi3D_sequence_001.png" alt="epi3D sequence" class = "sphx-glr-single-img"/></section>
 <section id="skipped-caipi-traversal">
 <h2>Skipped-CAIPI traversal<a class="headerlink" href="#skipped-caipi-traversal" title="Link to this heading">#</a></h2>
-<p>Each cell of the lattice is one <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> view, white where it is
-sampled. Lines and arrows connect consecutive echoes within each train. No
-line joins separate shots. The partition jumps between consecutive
-echoes are the CAIPI blips: they alternate between
-amplitudes <span class="math notranslate nohighlight">\(b^{(1)} = (S \cdot \Delta z) \bmod R_z\)</span> and
-<span class="math notranslate nohighlight">\(b^{(2)} = (R_z - b^{(1)}) \bmod R_z\)</span>, and the pattern repeats every
-<span class="math notranslate nohighlight">\(n\)</span> echoes. Equivalent shells are folded onto one lattice cell; a small
+<p>Each cell of the lattice is one <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> view, shaded where it
+is sampled. Lines and arrows connect consecutive echoes within each train. No
+line joins separate shots. The panel title gives the pattern as
+<span class="math notranslate nohighlight">\(S \cdot (R_y \times R_z)_{z\Delta z}\)</span>, with accelerations
+<span class="math notranslate nohighlight">\(R_y\)</span> and <span class="math notranslate nohighlight">\(R_z\)</span>, segmentation factor <span class="math notranslate nohighlight">\(S\)</span> (shots per shell)
+and CAIPI shift <span class="math notranslate nohighlight">\(\Delta z\)</span> as defined in <a class="reference internal" href="#sti21" id="id3"><span>[STI21]</span></a>. The partition jumps between consecutive echoes
+are the CAIPI blips: they alternate between amplitudes
+<span class="math notranslate nohighlight">\(b^{(1)} = (S \cdot \Delta z) \bmod R_z\)</span> and
+<span class="math notranslate nohighlight">\(b^{(2)} = (R_z - b^{(1)}) \bmod R_z\)</span> partitions, and the pattern
+repeats every <span class="math notranslate nohighlight">\(n\)</span> echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.</p>
 <img src="../../../_images/sphx_glr_epi3D_sequence_002.png" srcset="../../../_images/sphx_glr_epi3D_sequence_002.png" alt="$3\cdot{2\times4}_{z2}$:  $b^{(1)}=2,\ b^{(2)}=2,\ n=2$" class = "sphx-glr-single-img"/></section>
 <section id="single-shot-comparison">
 <h2>Single-shot comparison<a class="headerlink" href="#single-shot-comparison" title="Link to this heading">#</a></h2>
 <p>With <code class="docutils literal notranslate"><span class="pre">n_shots=1</span></code>, one longer echo train acquires the same lattice for
-each shell. Three shots shorten the readout window and the geometric distortion
-along the phase-encode axis; the inter-echo jumps grow because each shot
-steps three sampled lattice lines at a time.</p>
+each shell. Three shots shorten each echo train and therefore the geometric
+distortion along the phase-encode axis. The phase-encode step between
+consecutive echoes of a segmented train spans three sampled lattice lines,
+so its blips are larger than those of the single-shot train.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">single_shot</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi3D_sequence.html#pypulseqpp.sequences.epi3D_sequence" title="pypulseqpp.sequences.epi3D_sequence"><span class="n">epi3D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
 </span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
@@ -669,8 +632,9 @@ steps three sampled lattice lines at a time.</p>
 <section id="in-plane-acceleration">
 <h2>In-plane acceleration<a class="headerlink" href="#in-plane-acceleration" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">ry</span></code> subsamples phase-encode lines, reducing echo-train length and
-increasing lattice spacing along <span class="math notranslate nohighlight">\(k_y\)</span>. The sampled views stay on one lattice, so the aliases stay
-where the CAIPI shift puts them.</p>
+increasing lattice spacing along <span class="math notranslate nohighlight">\(k_y\)</span>. The sampled views remain on a
+single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
+aliases <a class="reference internal" href="#bre06" id="id4"><span>[BRE06]</span></a>.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">accelerated</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi3D_sequence.html#pypulseqpp.sequences.epi3D_sequence" title="pypulseqpp.sequences.epi3D_sequence"><span class="n">epi3D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
 </span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
@@ -688,7 +652,28 @@ where the CAIPI shift puts them.</p>
 <img src="../../../_images/sphx_glr_epi3D_sequence_004.png" srcset="../../../_images/sphx_glr_epi3D_sequence_004.png" alt="$3\cdot{3\times2}_{z1}$:  $b^{(1)}=1,\ b^{(2)}=1,\ n=2$" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>ry=3, rz=2: CAIPI shift 1, 384 blocks, 0.32 s
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.297 seconds)</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="bre06" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>BRE06<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Breuer FA, Blaimer M, Mueller MF, Seiberlich N, Heidemann RM,
+Griswold MA, Jakob PM. Controlled aliasing in volumetric parallel imaging
+(2D CAIPIRINHA). <em>Magnetic Resonance in Medicine</em>. 2006;55(3):549-556.
+<a class="reference external" href="https://doi.org/10.1002/mrm.20787">https://doi.org/10.1002/mrm.20787</a></p>
+</div>
+<div class="citation" id="sti21" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>STI21<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
+<p>Stirnberg R, Stöcker T. Segmented K-space blipped-controlled
+aliasing in parallel imaging for high spatiotemporal resolution EPI.
+<em>Magnetic Resonance in Medicine</em>. 2021;85(3):1540-1551.
+<a class="reference external" href="https://doi.org/10.1002/mrm.28486">https://doi.org/10.1002/mrm.28486</a></p>
+</div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.479 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-15-epi-epi3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/74f9dde2a864807bf2d3231280792e5e/epi3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">epi3D_sequence.ipynb</span></code></a></p>
@@ -756,6 +741,7 @@ where the CAIPI shift puts them.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#skipped-caipi-traversal">Skipped-CAIPI traversal</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shot-comparison">Single-shot comparison</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#in-plane-acceleration">In-plane acceleration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

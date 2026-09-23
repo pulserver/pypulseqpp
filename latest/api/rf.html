@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
@@ -585,39 +543,51 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="rf-pulse-design">
 <h1>RF pulse design<a class="headerlink" href="#rf-pulse-design" title="Link to this heading">#</a></h1>
-<p>RF events, from the basic factories to designed pulses, and the analysis of
-what they produce. A design function returns an RF event and, depending on its
-options, a slice-selection gradient, a rephasing gradient and the design’s
-metadata. RF amplitudes are in Hz, frequency offsets in Hz and phase offsets in
-radians.</p>
+<p>RF events, from the basic factories to designed pulses, and their analysis.
+Flip angles are in rad, RF amplitudes and frequency offsets in Hz, phase
+offsets in rad and durations in s. With <code class="docutils literal notranslate"><span class="pre">return_gz</span></code>, a slice-selective design
+also returns its slice-selection and rephasing gradients;
+<a class="reference internal" href="../explanations/pulseq/events-and-blocks.html"><span class="doc">Events and blocks</span></a> describes the RF event.</p>
 <section id="pulse-factories">
 <h2>Pulse factories<a class="headerlink" href="#pulse-factories" title="Link to this heading">#</a></h2>
-<p>Hard, arbitrary, Gaussian, sinc and adiabatic pulses, and the adiabatic
-half-passage pair.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse" title="pypulseqpp.make_adiabatic_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_adiabatic_pulse</span></code></a></p></td>
-<td><p>Construct an adiabatic RF pulse, a frequency sweep insensitive to B1.</p></td>
+<td><p>Sweep type, adiabaticity, bandwidth, duration</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>Adiabatic (B1-insensitive) frequency sweep.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_arbitrary_rf.html#pypulseqpp.make_arbitrary_rf" title="pypulseqpp.make_arbitrary_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_arbitrary_rf</span></code></a></p></td>
-<td><p>Create an RF pulse with the given pulse shape.</p></td>
+<td><p>Complex waveform, flip angle</p></td>
+<td><p>RF event; optional slice-select gradient</p></td>
+<td><p>RF event from a given waveform.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_block_pulse.html#pypulseqpp.make_block_pulse" title="pypulseqpp.make_block_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_block_pulse</span></code></a></p></td>
-<td><p>Create a block (RECT or hard) pulse.</p></td>
+<td><p>Flip angle, duration or bandwidth</p></td>
+<td><p>RF event</p></td>
+<td><p>Hard (rectangular) pulse.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_gauss_pulse.html#pypulseqpp.make_gauss_pulse" title="pypulseqpp.make_gauss_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gauss_pulse</span></code></a></p></td>
-<td><p>Create a [optionally slice selective] Gauss pulse.</p></td>
+<td><p>Flip angle, duration, time-bandwidth product</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>Gaussian pulse.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_half_passages.html#pypulseqpp.make_half_passages" title="pypulseqpp.make_half_passages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_half_passages</span></code></a></p></td>
-<td><p>Build the adiabatic half-passage pair that tips magnetisation down and back.</p></td>
+<td><p>Duration, adiabaticity, sweep type</p></td>
+<td><p>Two RF events, <code class="docutils literal notranslate"><span class="pre">down</span></code> and <code class="docutils literal notranslate"><span class="pre">up</span></code></p></td>
+<td><p>Adiabatic half-passage pair.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sinc_pulse.html#pypulseqpp.make_sinc_pulse" title="pypulseqpp.make_sinc_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></p></td>
-<td><p>Create a sinc RF event with optional slice-selection and rephasing gradients.</p></td>
+<td><p>Flip angle, duration, time-bandwidth product</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>Sinc pulse.</p></td>
 </tr>
 </tbody>
 </table>
@@ -628,24 +598,36 @@ half-passage pair.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_slr_pulse</span></code></a></p></td>
-<td><p>Design an RF pulse using the Shinnar-Le Roux algorithm.</p></td>
+<td><p>Flip angle, duration, time-bandwidth product, pulse and filter type</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>Shinnar-Le Roux design.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_recursive_slr_pulses.html#pypulseqpp.make_recursive_slr_pulses" title="pypulseqpp.make_recursive_slr_pulses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_recursive_slr_pulses</span></code></a></p></td>
-<td><p>Design SLR pulses that each excite the same transverse magnetisation.</p></td>
+<td><p>Number of segments, time-bandwidth product, T1, segment TR</p></td>
+<td><p>One RF event per segment; optional refocusing pulse</p></td>
+<td><p>Equal transverse magnetisation per segment.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_sms_pulse.html#pypulseqpp.make_sms_pulse" title="pypulseqpp.make_sms_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sms_pulse</span></code></a></p></td>
-<td><p>Modulate one RF pulse into equispaced spectral bands.</p></td>
+<td><p>RF event, number of bands, band spacing (Hz)</p></td>
+<td><p>Modulated RF event; band offsets (Hz); complex weights</p></td>
+<td><p>Simultaneous multi-slice modulation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_spsp_pulse.html#pypulseqpp.make_spsp_pulse" title="pypulseqpp.make_spsp_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_spsp_pulse</span></code></a></p></td>
-<td><p>Design a spectral-spatial pulse on an alternating slice gradient.</p></td>
+<td><p>Flip angle, slice thickness, spectral bandwidth</p></td>
+<td><p>RF event; alternating gradient; optional rephaser</p></td>
+<td><p>Spectral-spatial pulse.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_2d_selective_pulse.html#pypulseqpp.make_2d_selective_pulse" title="pypulseqpp.make_2d_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_2d_selective_pulse</span></code></a></p></td>
-<td><p>Design a small-tip 2D-selective pulse on a spiral excitation trajectory.</p></td>
+<td><p>Flip angle, FOV, matrix, target or size</p></td>
+<td><p>RF event; per-axis gradients; rephasers</p></td>
+<td><p>Small-tip 2D-selective pulse on a spiral.</p></td>
 </tr>
 </tbody>
 </table>
@@ -653,23 +635,29 @@ half-passage pair.</p>
 </section>
 <section id="slice-encoding">
 <h2>Slice encoding<a class="headerlink" href="#slice-encoding" title="Link to this heading">#</a></h2>
-<p>Slab pulses whose sub-slices are encoded across repeated acquisitions, by
-gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_gslider_pulse.html#pypulseqpp.make_gslider_pulse" title="pypulseqpp.make_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gslider_pulse</span></code></a></p></td>
-<td><p>Design a gSlider slab pulse with <code class="docutils literal notranslate"><span class="pre">subslice</span></code> at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+<td><p>Flip angle, sub-slice count, sub-slice index, phase (rad)</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>gSlider slab encoding.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_hadamard_pulse.html#pypulseqpp.make_hadamard_pulse" title="pypulseqpp.make_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_hadamard_pulse</span></code></a></p></td>
-<td><p>Design a slab pulse whose sub-bands are signed by row <code class="docutils literal notranslate"><span class="pre">row</span></code> of a Hadamard matrix.</p></td>
+<td><p>Flip angle, Hadamard order, row</p></td>
+<td><p>RF event; optional slice-select and rephasing gradients</p></td>
+<td><p>Hadamard slab encoding.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_pins_pulse.html#pypulseqpp.make_pins_pulse" title="pypulseqpp.make_pins_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_pins_pulse</span></code></a></p></td>
-<td><p>Design a PINS pulse exciting a slice every <code class="docutils literal notranslate"><span class="pre">slice_separation</span></code> along z.</p></td>
+<td><p>Flip angle, slice thickness, slice separation (m)</p></td>
+<td><p>RF event; blip gradient; rephaser</p></td>
+<td><p>PINS multiband excitation.</p></td>
 </tr>
 </tbody>
 </table>
@@ -677,26 +665,36 @@ gSlider phases or Hadamard signs, and PINS pulses that excite a comb of slices.<
 </section>
 <section id="b1-selection">
 <h2>B1 selection<a class="headerlink" href="#b1-selection" title="Link to this heading">#</a></h2>
-<p>Pulses selective in the transmit field’s amplitude rather than in position, and
-the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
+<p>B1 amplitudes of these designs are inputs in T; the returned RF events are in
+Hz.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_selective_pulse.html#pypulseqpp.make_b1_selective_pulse" title="pypulseqpp.make_b1_selective_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_selective_pulse</span></code></a></p></td>
-<td><p>Design a B1-selective RF pulse, excited only where the transmit amplitude lies in a band.</p></td>
+<td><p>Flip angle, amplitude (T), relative B1 passband</p></td>
+<td><p>RF event</p></td>
+<td><p>B1-selective excitation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_gslider_pulse.html#pypulseqpp.make_b1_gslider_pulse" title="pypulseqpp.make_b1_gslider_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_gslider_pulse</span></code></a></p></td>
-<td><p>Design a B1-selective gSlider pulse with one B1 sub-band at <code class="docutils literal notranslate"><span class="pre">subslice_phase</span></code>.</p></td>
+<td><p>Flip angle, amplitude (T), sub-band count and index</p></td>
+<td><p>RF event</p></td>
+<td><p>B1-selective gSlider encoding.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_b1_hadamard_pulse.html#pypulseqpp.make_b1_hadamard_pulse" title="pypulseqpp.make_b1_hadamard_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_b1_hadamard_pulse</span></code></a></p></td>
-<td><p>Design a B1-selective pulse whose B1 sub-bands are signed by a Hadamard row.</p></td>
+<td><p>Flip angle, amplitude (T), Hadamard order, row</p></td>
+<td><p>RF event</p></td>
+<td><p>B1-selective Hadamard encoding.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_bloch_siegert_pulse.html#pypulseqpp.make_bloch_siegert_pulse" title="pypulseqpp.make_bloch_siegert_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_bloch_siegert_pulse</span></code></a></p></td>
-<td><p>Design an adiabatic Bloch-Siegert encoding pulse.</p></td>
+<td><p>Amplitude (T), duration, sweep shape, side of resonance</p></td>
+<td><p>RF event</p></td>
+<td><p>Adiabatic Bloch-Siegert B1 encoding.</p></td>
 </tr>
 </tbody>
 </table>
@@ -704,28 +702,36 @@ the adiabatic Bloch-Siegert pulse that encodes B1 into phase.</p>
 </section>
 <section id="parallel-transmit">
 <h2>Parallel transmit<a class="headerlink" href="#parallel-transmit" title="Link to this heading">#</a></h2>
-<p>A dynamic pTx pulse holds every transmit channel’s waveform in one RF event,
-one channel after another over a shared time base.
-<a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html#pypulseqpp.calc_rf_shim" title="pypulseqpp.calc_rf_shim"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_shim()</span></code></a> computes static channel weights and
-<a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html#pypulseqpp.make_spokes_pulse" title="pypulseqpp.make_spokes_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_spokes_pulse()</span></code></a> designs spokes.</p>
+<p>A dynamic pTx pulse is one RF event holding each transmit channel’s waveform
+in turn over a shared time base.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_ptx_pulse.html#pypulseqpp.make_ptx_pulse" title="pypulseqpp.make_ptx_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_ptx_pulse</span></code></a></p></td>
-<td><p>Make a dynamic pTx pulse from one waveform per transmit channel.</p></td>
+<td><p>Complex waveforms <code class="docutils literal notranslate"><span class="pre">(channels,</span> <span class="pre">samples)</span></code> (Hz)</p></td>
+<td><p>pTx RF event</p></td>
+<td><p>Dynamic pTx pulse.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.split_ptx_pulse.html#pypulseqpp.split_ptx_pulse" title="pypulseqpp.split_ptx_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_ptx_pulse</span></code></a></p></td>
-<td><p>Return a pulse’s waveforms, one row per transmit channel, in Hz.</p></td>
+<td><p>pTx RF event</p></td>
+<td><p>Complex waveforms <code class="docutils literal notranslate"><span class="pre">(channels,</span> <span class="pre">samples)</span></code> (Hz)</p></td>
+<td><p>Per-channel waveforms of a pTx pulse.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_shim.html#pypulseqpp.calc_rf_shim" title="pypulseqpp.calc_rf_shim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_shim</span></code></a></p></td>
-<td><p>Return per-channel weights whose combined B1 field has magnitude <code class="docutils literal notranslate"><span class="pre">target</span></code>.</p></td>
+<td><p>Complex B1+ maps per channel, mask, target</p></td>
+<td><p>Complex weights <code class="docutils literal notranslate"><span class="pre">(channels,)</span></code></p></td>
+<td><p>Magnitude least-squares RF shim.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_spokes_pulse.html#pypulseqpp.make_spokes_pulse" title="pypulseqpp.make_spokes_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_spokes_pulse</span></code></a></p></td>
-<td><p>Design a spokes pTx pulse, exciting one slice at several in-plane k positions.</p></td>
+<td><p>Flip angle, B1+ maps, FOV, slice thickness</p></td>
+<td><p>pTx RF event; gradients; rephasers</p></td>
+<td><p>Spokes pTx excitation.</p></td>
 </tr>
 </tbody>
 </table>
@@ -736,24 +742,36 @@ one channel after another over a shared time base.
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_bandwidth.html#pypulseqpp.calc_rf_bandwidth" title="pypulseqpp.calc_rf_bandwidth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_bandwidth</span></code></a></p></td>
-<td><p>Estimate RF bandwidth from the envelope’s Fourier magnitude.</p></td>
+<td><p>RF event, cutoff</p></td>
+<td><p>Bandwidth (Hz); optional spectrum and frequency axis</p></td>
+<td><p>Bandwidth from the envelope spectrum.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_center.html#pypulseqpp.calc_rf_center" title="pypulseqpp.calc_rf_center"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_center</span></code></a></p></td>
-<td><p>Return the RF event’s effective rotation time and corresponding sample index.</p></td>
+<td><p>RF event</p></td>
+<td><p>Centre time (s); sample index</p></td>
+<td><p>RF pulse centre.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_rf_power</span></code></a></p></td>
-<td><p>Return an RF event’s energy, peak power and RMS amplitude, as MATLAB Pulseq’s <code class="docutils literal notranslate"><span class="pre">calcRfPower</span></code>.</p></td>
+<td><p>RF event, time step</p></td>
+<td><p>Energy (Hz² s), peak power (Hz²), RMS amplitude (Hz)</p></td>
+<td><p>RF power, as MATLAB Pulseq <code class="docutils literal notranslate"><span class="pre">calcRfPower</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sim_bloch.html#pypulseqpp.sim_bloch" title="pypulseqpp.sim_bloch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_bloch</span></code></a></p></td>
-<td><p>Simulate the Bloch equation without relaxation, in hard-pulse steps.</p></td>
+<td><p>Complex B1 (Hz), Bz (Hz), time step</p></td>
+<td><p>Final magnetisation <code class="docutils literal notranslate"><span class="pre">(P,</span> <span class="pre">3)</span></code></p></td>
+<td><p>Hard-pulse Bloch simulation, no relaxation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
-<td><p>Simulate an RF pulse versus off-resonance without relaxation.</p></td>
+<td><p>RF event, rephase factor</p></td>
+<td><p>Mz and Mxy profiles, frequency axis (Hz), refocusing efficiency</p></td>
+<td><p>Off-resonance profile, no relaxation.</p></td>
 </tr>
 </tbody>
 </table>

@@ -22,32 +22,30 @@
 Radial sampling
 ===============
 
-The scope of this notebook is to replace the phase encode of the Cartesian
-gradient echo with a rotation of the readout itself, so that every repetition
-acquires a spoke through the centre of k-space, and to establish how many
-spokes such an acquisition needs and what ordering them by the golden angle
-changes.
+The Cartesian gradient echo of
+:doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo` changes the
+acquired line with a phase encode. This lesson replaces the phase encode with
+a rotation of the readout gradient itself, so that every repetition acquires a
+spoke through the centre of k-space. It establishes how many spokes such an
+acquisition requires and what ordering them by the golden angle changes.
 
-The observable is the azimuthal gap between neighbouring spokes at the edge of
-k-space, measured from the trajectory the sequence produces, against the
-sample spacing along a spoke that the prescription asks for.
+The measured quantity is the azimuthal gap between neighbouring spokes at the
+edge of k-space, computed from the sampling locations of the sequence and
+compared with the sample spacing along a spoke that the prescription sets.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **A rotated readout.** The prewinder and readout of one spoke, rotated into
-   the imaging plane.
-#. **One repetition per spoke.** The sequence, and the angles it plays.
-#. **The trajectory.** What the spokes cover, and where they do not.
-#. **Spokes against azimuthal gap.** The Nyquist requirement, and what
-   undersampling costs.
-#. **Golden-angle ordering.** The same gap when the acquisition is stopped
-   early.
+After this lesson, you should be able to:
 
-The Cartesian sequence this is a variation on is
-:doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`.
+- rotate a readout gradient and its prewinder into the imaging plane;
+- build one repetition per spoke from the Cartesian gradient echo;
+- measure the azimuthal gap at the edge of k-space from the sampling
+  locations, and relate it to the Nyquist spoke count
+  :math:`P = \tfrac{\pi}{2} N`;
+- compare uniform and golden-angle orderings of truncated acquisitions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-40
-
+.. GENERATED FROM PYTHON SOURCE LINES 29-39
 
 
 
@@ -55,19 +53,20 @@ The Cartesian sequence this is a variation on is
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-50
+
+.. GENERATED FROM PYTHON SOURCE LINES 40-49
 
 A rotated readout
 -----------------
 
 A spoke runs from one edge of k-space through the centre to the other, so the
-prewinder carries half the readout area as it does on a Cartesian line, and
+prewinder has half the readout area as it does on a Cartesian line, and
 the echo is at the middle of the acquisition window. The pair is then rotated
 about the slice axis by the angle of the spoke, which
 :func:`~pypulseqpp.rotate` does by resolving each gradient onto the two
 in-plane axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-110
+.. GENERATED FROM PYTHON SOURCE LINES 49-109
 
 .. code-block:: Python
 
@@ -122,8 +121,8 @@ in-plane axes.
     )
     spoiler = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 
-    # Both in-plane axes carry gradient for every spoke but a spoke's vector
-    # amplitude is the readout amplitude at every angle, and each axis carries its
+    # Both in-plane axes have a gradient for every spoke, but the vector amplitude
+    # of a spoke is the readout amplitude at every angle, and each axis plays its
     # projection of it, so the per-axis limit binds where a spoke lies along an
     # axis and nowhere else.
     print(
@@ -144,15 +143,15 @@ in-plane axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-116
+.. GENERATED FROM PYTHON SOURCE LINES 110-115
 
 One repetition per spoke
 ------------------------
 
 The repetition is the Cartesian one with the phase encode removed and the
-readout rotated. Both in-plane axes carry gradient for every spoke.
+readout rotated. Both in-plane axes have a gradient for every spoke.
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-156
+.. GENERATED FROM PYTHON SOURCE LINES 115-155
 
 .. code-block:: Python
 
@@ -211,11 +210,10 @@ readout rotated. Both in-plane axes carry gradient for every spoke.
 
     timing True, 640 blocks, 128 spokes, 1.280 s
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6a2da60>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 157-162
+.. GENERATED FROM PYTHON SOURCE LINES 156-161
 
 The trajectory
 --------------
@@ -223,7 +221,7 @@ The trajectory
 Every spoke passes through the centre of k-space, so the centre is sampled
 once per repetition and the periphery only where a spoke reaches it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 162-165
+.. GENERATED FROM PYTHON SOURCE LINES 161-164
 
 .. code-block:: Python
 
@@ -239,22 +237,16 @@ once per repetition and the periphery only where a spoke reaches it.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 550x500 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 166-184
+.. GENERATED FROM PYTHON SOURCE LINES 165-183
 
 Spokes against azimuthal gap
 ----------------------------
 
-Along a spoke the samples are :math:`1/\mathrm{FOV}` apart, which is what the
-field of view requires. Between spokes the spacing grows with the distance
+Along a spoke the samples are :math:`1/\mathrm{FOV}` apart, as the field of
+view requires. Between spokes the spacing grows with the distance
 from the centre, and at the edge it is the azimuthal arc between neighbouring
 spokes,
 
@@ -269,7 +261,7 @@ needs lines.
 
 The gap is measured from the sampling locations the sequence produces.
 
-.. GENERATED FROM PYTHON SOURCE LINES 184-249
+.. GENERATED FROM PYTHON SOURCE LINES 183-248
 
 .. code-block:: Python
 
@@ -332,7 +324,7 @@ The gap is measured from the sampling locations the sequence produces.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 250-255
+.. GENERATED FROM PYTHON SOURCE LINES 249-254
 
 The measured gap falls as the reciprocal of the spoke count and crosses the
 radial sample spacing at the predicted count. An acquisition below it is
@@ -340,7 +332,7 @@ undersampled at the periphery and not at the centre, which is why the
 artefact it produces is a streak from the edge of the object rather than the
 fold-over a Cartesian acquisition produces.
 
-.. GENERATED FROM PYTHON SOURCE LINES 257-264
+.. GENERATED FROM PYTHON SOURCE LINES 256-263
 
 Golden-angle ordering
 ---------------------
@@ -348,9 +340,9 @@ Golden-angle ordering
 Advancing the angle by :math:`\pi` times the golden ratio conjugate instead
 of by :math:`\pi/P` gives an ordering whose every prefix is nearly uniform,
 so the acquisition can be stopped, or divided into frames, at any length. The
-price is that the gap of a prefix is never quite the uniform one.
+gap of a prefix is, however, never exactly that of the uniform ordering.
 
-.. GENERATED FROM PYTHON SOURCE LINES 264-293
+.. GENERATED FROM PYTHON SOURCE LINES 263-292
 
 .. code-block:: Python
 
@@ -384,19 +376,19 @@ price is that the gap of a prefix is never quite the uniform one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 294-300
+.. GENERATED FROM PYTHON SOURCE LINES 293-299
 
 Every prefix is within a small factor of the uniform ordering of the same
 length, and no prefix leaves a gap of the kind a truncated uniform ordering
 would: stopping a uniform acquisition after half its spokes leaves half the
 angular range unsampled, while stopping a golden-angle one leaves the same
-range covered at half the density. What a golden-angle acquisition gives up
-is the exact uniformity of the complete set.
+range covered at half the density. The complete golden-angle set is not
+exactly uniform.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.681 seconds)
+   **Total running time of the script:** (0 minutes 2.909 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_04-non-cartesian_01_radial.py:

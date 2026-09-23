@@ -3,32 +3,33 @@ r"""
 Gradient echo
 =============
 
-The scope of this notebook is to turn the non-imaging experiments of the two
-previous pages into a two-dimensional acquisition: the excitation becomes
-slice-selective, the echo is formed by a gradient rather than by a refocusing
-pulse, and a phase encode moves the acquired line from one repetition to the
-next. This is the structure every Cartesian sequence in the course is a
-variation on.
+The two previous lessons acquired signal without spatial encoding. This
+lesson turns the experiment into a two-dimensional acquisition: the excitation
+becomes slice-selective, the echo is formed by reversing a gradient rather than
+by a refocusing pulse, and a phase encode changes the acquired k-space line
+from one repetition to the next. Every Cartesian sequence in the later lessons
+extends this structure.
 
-The observable is where the echo lands. The prewinder area decides which
-sample of the readout window k-space crosses zero at, and the last section
-measures the echo time that follows from it.
-
-Outline:
-
-#. **Prescription.** Field of view, matrix, slice and flip angle.
-#. **Slice-selective excitation.** A sinc pulse with its selection gradient and
-   the rephaser that unwinds the second half of the selection.
-#. **Readout and phase encoding.** The readout gradient, its prewinder, the
-   phase-encode table and the acquisition window.
-#. **One repetition.** The four blocks that play them, and the repetition time.
-#. **Sequence diagram and k-space.** The line the repetition acquires, and the
-   raster the phase encodes build.
-#. **Echo position against prewinder area.** Where k-space crosses zero, and
-   what a partial prewinder costs and buys.
+The prewinder area determines the sample of the readout window at which the
+k-space trajectory crosses zero, and the last section measures the echo time
+that follows from it.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- create a slice-selective excitation with its selection gradient and
+  rephaser;
+- derive the readout gradient, the prewinder and the phase-encode steps from
+  the field of view and the matrix;
+- assemble one repetition from blocks and pad it to the repetition time;
+- read the sequence diagram and the Cartesian k-space raster;
+- relate the prewinder area to the echo position and the echo time of an
+  asymmetric echo.
 """
 
 # sphinx_gallery_start_ignore
@@ -79,8 +80,8 @@ REPETITION_TIME = 20e-3
 # second half of the selection lobe, which the rephaser unwinds; without it the
 # signal integrates to nothing across the slice.
 #
-# ``return_gz`` is what asks the factory for the two gradients beside the
-# pulse.
+# With ``return_gz=True`` the factory also returns the selection gradient and
+# the rephaser.
 
 rf, gz, gz_reph = pp.make_sinc_pulse(
     flip_angle=np.deg2rad(FLIP_ANGLE_DEG),
@@ -108,8 +109,8 @@ print(
 # the acquisition window is delayed into that flat top by the rise time, so
 # that every sample is taken at constant amplitude. The dwell and the flat time
 # come from :func:`~pypulseqpp.calc_adc_timing`, which puts the one on the ADC
-# raster and the other on the gradient raster. The prewinder carries k-space to one end of the
-# line before the readout traverses it, and the phase encode displaces the line
+# raster and the other on the gradient raster. The prewinder moves the k-space
+# position to one end of the line before the readout traverses it, and the phase encode displaces the line
 # perpendicular to it; one phase-encode step is :math:`1/\mathrm{FOV}`, so the
 # largest of them is half the k-space extent.
 
@@ -199,8 +200,8 @@ pp.plot.plot_kspace(seq, plane="xy")
 # Asymmetric echo
 # ---------------
 #
-# The prewinder decides how much of k-space the readout covers before the echo.
-# Carrying it only part of the way to the edge and shortening the readout by
+# The prewinder area sets how much of the line the readout covers before the
+# echo. Moving the k-space position only part of the way to the edge and shortening the readout by
 # the same amount keeps the far edge of the line where it was, so the
 # resolution is unchanged, and removes samples from the near side, which a
 # partial-Fourier reconstruction then has to supply from conjugate symmetry.
@@ -208,9 +209,9 @@ pp.plot.plot_kspace(seq, plane="xy")
 #
 # A sample advances k-space by :math:`1/\mathrm{FOV}`, so the prewinder has to
 # cancel the ramp of the readout gradient plus one such step per sample taken
-# before the echo. The half step beside them is the offset from the start of
-# the window to the centre of its first sample, and putting it in the prewinder
-# is what lands the echo on a sample rather than between two.
+# before the echo. The additional half step is the offset from the start of
+# the window to the centre of its first sample; including it in the prewinder
+# places the echo on a sample rather than between two.
 
 HALF_LINE = MATRIX // 2
 FRACTIONS = (1.0, 0.75, 0.5, 0.25)
@@ -308,11 +309,11 @@ figure.tight_layout(rect=(0, 0, 1, 0.88))
 # %%
 # Every line reaches the same :math:`+k_\mathrm{max}`, so all four have the
 # resolution the matrix prescribes; they differ in how far the near side is
-# measured and in when the echo occurs. A quarter of the near side costs three
-# quarters of the samples on that side and buys the echo time the figure
-# reports.
+# measured and in when the echo occurs. Acquiring a quarter of the near side
+# removes three quarters of the samples on that side and shortens the echo time
+# by the amount the figure reports.
 #
-# The repetition time is unchanged throughout, so what a shorter echo time
-# buys here is less time for the signal to decay in before it is measured, not
-# a shorter scan. Shortening the scan is the subject of
+# The repetition time is unchanged throughout, so a shorter echo time here
+# reduces the signal decay before the echo is measured; it does not shorten the
+# scan. Shortening the scan is the subject of
 # :doc:`/generated/gallery/03-gre-to-epi/02_segmented`.

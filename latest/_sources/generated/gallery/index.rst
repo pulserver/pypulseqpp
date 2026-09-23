@@ -46,7 +46,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to build the smallest complete Pulseq sequence, a pulse-acquire experiment, and to establish the vocabulary the rest of the course adds to: the system limits a factory solves against, the events that carry a pulse and an acquisition window, the blocks that play them, the timing check, and the file that is written.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The smallest complete Pulseq sequence is a pulse-acquire experiment: one excitation pulse followed by one acquisition window. This first lesson of the course builds it and introduces the objects every later lesson extends: the system limits against which a factory designs an event, the RF and ADC events, the blocks in which events are played, the timing check, and the .seq file. A Bloch simulation of the stored pulse relates the transverse magnetisation to the flip angle.">
 
 .. only:: html
 
@@ -63,7 +63,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a refocusing pulse to the pulse-acquire experiment of the previous page, so that the acquisition is centred on an echo at a prescribed echo time, and to place the crusher pair that keeps the signal of an imperfect refocusing pulse out of that acquisition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson acquired a free induction decay directly after the excitation. This lesson adds a refocusing pulse, so that the acquisition is centred on a spin echo at a prescribed echo time, and a pair of crusher gradients about the refocusing pulse. The crushers leave the spin-echo pathway rephased and dephase the coherence pathways the pulse does not refocus, such as the free induction decay an imperfect refocusing pulse produces.">
 
 .. only:: html
 
@@ -80,7 +80,7 @@ Pulseq basics
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to turn the non-imaging experiments of the two previous pages into a two-dimensional acquisition: the excitation becomes slice-selective, the echo is formed by a gradient rather than by a refocusing pulse, and a phase encode moves the acquired line from one repetition to the next. This is the structure every Cartesian sequence in the course is a variation on.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons acquired signal without spatial encoding. This lesson turns the experiment into a two-dimensional acquisition: the excitation becomes slice-selective, the echo is formed by reversing a gradient rather than by a refocusing pulse, and a phase encode changes the acquired k-space line from one repetition to the next. Every Cartesian sequence in the later lessons extends this structure.">
 
 .. only:: html
 
@@ -122,7 +122,7 @@ Spoiling
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a spoiler gradient to the gradient echo of the previous section, and to establish what it does and does not achieve: a spoiler winds the transverse magnetisation left at the end of a repetition through several cycles across a voxel, so that it integrates to nothing there, but it winds every repetition by the same amount and therefore leaves a coherent pathway that survives into the steady state.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the previous section leaves transverse magnetisation at the end of each repetition, and the following pulses refocus part of it. This lesson adds a spoiler gradient after the acquisition. The spoiler dephases the remaining transverse magnetisation through several cycles across a voxel, so that it integrates to nearly zero there; because every repetition applies the same dephasing, a coherent pathway remains and contributes to the steady state.">
 
 .. only:: html
 
@@ -139,7 +139,7 @@ Spoiling
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to remove the coherent pathway the previous page was left with, by advancing the phase of the pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and to measure which phase increments do so.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson showed that a spoiler gradient leaves a coherent pathway in the steady state. This lesson suppresses the coherent residual transverse pathways by advancing the phase of the RF pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and measures which phase increments bring the steady-state signal close to that of ideal spoiling.">
 
 .. only:: html
 
@@ -181,7 +181,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire more than one echo per excitation, by following the readout gradient with further readouts of alternating polarity. Nothing else about the repetition changes, and the echoes land on the same k-space line at increasing echo times, which is what a T_2^* estimate is made from.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the first section acquires one echo per excitation. This lesson acquires several, by following the readout gradient with further readout gradients of alternating polarity. The rest of the repetition is unchanged, and the echoes sample the same k-space line at increasing echo times, from which a T_2^* estimate is computed.">
 
 .. only:: html
 
@@ -198,7 +198,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to put a phase-encode blip between the echoes of the train of the previous page, so that one excitation acquires several k-space lines instead of the same line several times. The number of excitations the matrix is divided over is then a free parameter, and it decides both the scan time and how far off-resonance displaces the image.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo train of the previous lesson samples the same k-space line several times. This lesson adds a phase-encode blip between the echoes, so that one excitation acquires several k-space lines. The number of excitations (shots) over which the matrix is divided is then a free parameter, and it determines both the scan time and the off-resonance displacement in the image.">
 
 .. only:: html
 
@@ -215,7 +215,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to take the segmentation of the previous page to one shot, so that the whole matrix is acquired after a single excitation, and to measure the two things that limit such an acquisition: the decay of the signal over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient and the acquisition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson divided the matrix over several shots. This lesson takes the segmentation to one shot, so that the whole matrix is acquired after a single excitation, and measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The relationship between shot count, distortion and scan time is measured in /generated/gallery/03-gre-to-epi/02_segmented.">
 
 .. only:: html
 
@@ -257,7 +257,7 @@ Non-Cartesian trajectories
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the phase encode of the Cartesian gradient echo with a rotation of the readout itself, so that every repetition acquires a spoke through the centre of k-space, and to establish how many spokes such an acquisition needs and what ordering them by the golden angle changes.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The Cartesian gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo changes the acquired line with a phase encode. This lesson replaces the phase encode with a rotation of the readout gradient itself, so that every repetition acquires a spoke through the centre of k-space. It establishes how many spokes such an acquisition requires and what ordering them by the golden angle changes.">
 
 .. only:: html
 
@@ -274,7 +274,7 @@ Non-Cartesian trajectories
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire k-space along a spiral arm rather than along straight lines, and to establish which of the system&#x27;s limits decides how long an arm takes. A spiral is the first trajectory of the course that cannot be written down as a trapezoid: its waveform is solved numerically against the limits, which is what SpiralReadout2D is for. The interface such a module presents is the subject of /generated/gallery/05-sequence-modules/02_readout; here it is used for the arms it designs.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson, /generated/gallery/04-non-cartesian/01_radial, acquired k-space along straight spokes. This lesson acquires it along a spiral arm, and establishes which of the system limits determines the duration of an arm. A spiral is the first trajectory of the course that cannot be written as a trapezoid: its waveform is solved numerically against the limits by SpiralReadout2D. The interface of such a module is the subject of /generated/gallery/05-sequence-modules/02_readout; here the module is used only for the arms it designs.">
 
 .. only:: html
 
@@ -316,7 +316,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to design slice-selective excitations with the module that solves them, and to measure what the three numbers a selective pulse is specified by — flip angle, slice thickness and time-bandwidth product — do to the slice profile, to the selection gradient and to the peak B_1, and which combinations of them a gradient system admits.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier sections built slice-selective excitations by hand with a pulse factory. This lesson designs them with the excitation module, and measures how the three numbers that specify a selective pulse — flip angle, slice thickness and time-bandwidth product — affect the slice profile, the selection gradient and the peak B_1, and which combinations of them the gradient system permits.">
 
 .. only:: html
 
@@ -333,7 +333,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the hand-built readout of the first sections with the module that designs one, and to use the two prescriptions the earlier pages solved by hand — a partial echo and a multi-echo train — as the check that the module reaches the same answers and states them.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson replaced the hand-built excitation with a module. This lesson replaces the hand-built readout of the first sections with the readout module, and uses two prescriptions that the earlier lessons solved by hand — a partial echo and a multi-echo train — to check that the module reaches the same results and reports them.">
 
 .. only:: html
 
@@ -350,7 +350,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to assemble the modules of the two previous pages into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates those three, and is the base class every shipped sequence is written against, so what is written here is what a sequence in /sequences is written as.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates these three and is the base class of every shipped sequence, so the application written here has the same form as a sequence in /sequences.">
 
 .. only:: html
 
@@ -392,7 +392,7 @@ Constraint checks
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to run the checks the package computes over a finished sequence, and to read what each of them reports: the quantity it measured, the limit it compared it with, and where in the sequence the measurement came from.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons checked the timing of each sequence as it was built. This lesson runs every check the package computes over a finished sequence, and reads what each of them reports: the measured quantity, the limit it is compared with, and the part of the sequence the measurement comes from.">
 
 .. only:: html
 
@@ -434,7 +434,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write an excitation module of one&#x27;s own, by subclassing RfModule, and to measure what the design it implements gains and costs against the shipped one.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons used the shipped modules. This lesson writes an excitation module by subclassing RfModule, and compares the design it implements with the shipped one.">
 
 .. only:: html
 
@@ -451,7 +451,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a Cartesian readout module of one&#x27;s own, by following the SequenceModule contract, and to measure what it changes against the shipped readout.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote an excitation module. This lesson writes a Cartesian readout module that follows the SequenceModule contract, and compares it with the shipped readout.">
 
 .. only:: html
 
@@ -468,7 +468,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a non-Cartesian readout module of one&#x27;s own: to state a trajectory as a k-space path, have it solved into a waveform under the gradient limits, and publish the result as a module.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote a Cartesian readout module with trapezoidal gradients. This lesson writes a non-Cartesian readout module: the trajectory is stated as a k-space path, solved into a gradient waveform under the gradient limits, and published as a module.">
 
 .. only:: html
 
@@ -756,7 +756,7 @@ Spin echoes
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, which reads one line of a rotating PROPELLER blade. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting and TR controls longitudinal recovery. The overlapping blade centres support motion-robust structural imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation and 180-degree refocusing pulse form one spin echo, at which one line of a rotating PROPELLER blade is acquired. Spoilers suppress unwanted coherence before the next TR. TE controls T2 weighting and TR controls longitudinal recovery. The overlapping blade centres support motion-robust structural imaging.">
 
 .. only:: html
 
@@ -883,7 +883,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to central and peripheral k-space. The refocusing schedules and radial view order vary smoothly between these limits. This coupling can reduce scan time while retaining a prescribed central-k-space contrast for high-resolution structural imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to the shots that acquire central and peripheral k-space [BUO25]_. From the central to the peripheral shots, TR and the minimum and maximum angles of the refocusing schedule [BUS08b]_ follow a cubic smooth-step transition between their two limits; the echo-train length follows the same transition, rounded to integer values. The views are assigned by an adaptive radial order. Longer trains and a different TR at the periphery can reduce scan time, while the contrast at the centre of k-space is set by the parameters of the central shots.">
 
 .. only:: html
 
@@ -900,7 +900,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Variable refocusing angles control stimulated-echo pathways and T2-dependent signal evolution. Radial view ordering assigns this evolution to k-space and therefore determines the modulation transfer function and image blurring. 3D FSE is used for T2- and proton-density-weighted structural imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging.">
 
 .. only:: html
 
@@ -917,7 +917,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same optimized refocusing train as conventional FSE, but distributes echo times over a variable-density Poisson-disc sampling pattern. The resulting incoherent contrast distribution can support echo-resolved or subspace reconstruction; no reconstruction is performed here.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in raster order, and the echo position of each view within its train is random, which determines when each view is acquired. Together, the variable-density support and the random echo positions give each echo time a subset of views spread over the sampled extent without a regular pattern, the sampling condition of echo-resolved subspace reconstruction [TAM17]_; no reconstruction is performed here.">
 
 .. only:: html
 
@@ -1111,7 +1111,7 @@ Echo-planar imaging
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by alternating readout gradients with phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes a three-dimensional Cartesian lattice among shots. Spoilers suppress residual transverse coherence between repetitions; off-resonance accumulates during each echo train. 3D EPI supports rapid structural and functional imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by alternating readout gradients with phase-encode and partition blips. The sampled (line, partition) views form a CAIPIRINHA lattice [BRE06]_, and segmented skipped-CAIPI traversal [STI21]_ distributes the lattice among shots. Spoilers suppress residual transverse coherence between repetitions; off-resonance accumulates during each echo train. 3D EPI supports rapid structural and functional imaging.">
 
 .. only:: html
 

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#designing-one-arm">Designing one arm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-design-space">The design space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-waveform-in-each-regime">The waveform in each regime</a></li>
@@ -590,14 +549,17 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="spiral-readout">
 <span id="sphx-glr-generated-gallery-04-non-cartesian-02-spiral-py"></span><h1>Spiral readout<a class="headerlink" href="#spiral-readout" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to acquire k-space along a spiral arm rather than
-along straight lines, and to establish which of the system’s limits decides how
-long an arm takes. A spiral is the first trajectory of the course that cannot
-be written down as a trapezoid: its waveform is solved numerically against the
-limits, which is what <a class="reference internal" href="../../pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code></a> is for.
-The interface such a module presents is the subject of
-<a class="reference internal" href="../05-sequence-modules/02_readout.html"><span class="doc">Readout modules</span></a>; here it is used for
-the arms it designs.</p>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/04-non-cartesian/02_spiral.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The previous lesson, <a class="reference internal" href="01_radial.html"><span class="doc">Radial sampling</span></a>,
+acquired k-space along straight spokes. This lesson
+acquires it along a spiral arm, and establishes which of the system limits
+determines the duration of an arm. A spiral is the first trajectory of the
+course that cannot be written as a trapezoid: its waveform is solved
+numerically against the limits by
+<a class="reference internal" href="../../pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code></a>. The interface of such a module
+is the subject of <a class="reference internal" href="../05-sequence-modules/02_readout.html"><span class="doc">Readout modules</span></a>;
+here the module is used only for the arms it designs.</p>
 <p>Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from
 the receiver: with a dwell time <span class="math notranslate nohighlight">\(\Delta t\)</span> the trajectory may not advance
@@ -608,20 +570,20 @@ amplitude at</p>
 <p>whatever the gradient system could deliver. The solver applies the lowest of
 the three, so the readout duration depends on the slew rate over part of the
 design space and not over the rest.</p>
-<p>The observable is which of the three is binding, read off the waveform each
-design produces.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Designing one arm.</strong> The module, and the limits it is solved against.</p></li>
-<li><p><strong>The design space.</strong> Readout duration over a grid of slew limits and
-sampling rates, and the ceiling that binds each design.</p></li>
-<li><p><strong>The waveform in each regime.</strong> One design from each, against the ceilings
-that bound it.</p></li>
-<li><p><strong>Interleaves against arm duration.</strong> The remaining lever once a regime is
-fixed.</p></li>
-</ol>
-<p>The straight-line trajectory this is a departure from is
-<a class="reference internal" href="01_radial.html"><span class="doc">Radial sampling</span></a>.</p>
+<p>The binding limit of each design is read from the waveform it produces.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>state the amplitude, slew-rate and receiver limits on a spiral traversal,
+including the receiver cap <span class="math notranslate nohighlight">\(G_\mathrm{bw}\)</span>;</p></li>
+<li><p>design a spiral arm with a readout module and measure the vector amplitude
+and slew rate of its waveform;</p></li>
+<li><p>identify the binding limit of a design from its waveform, over a range of
+slew limits and sampling rates;</p></li>
+<li><p>relate the interleaf count to the arm duration and to the duration of a
+full set of interleaves.</p></li>
+</ul>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="w">
 </span><span class="w">
 </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
@@ -634,6 +596,7 @@ fixed.</p></li>
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">MATRIX</span></a> <span class="o">=</span> <span class="mi">128</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">MAX_GRAD_MT_M</span></a> <span class="o">=</span> <span class="mf">40.0</span><span class="w">
 </span></pre></div></div>
+</section>
 <section id="designing-one-arm">
 <h2>Designing one arm<a class="headerlink" href="#designing-one-arm" title="Link to this heading">#</a></h2>
 <p>The readout module designs the arm from the prescription and the system
@@ -720,7 +683,7 @@ gradient amplitude limit to above it.</p>
 </span>            <span class="p">{</span><span class="s2">&quot;</span><span class="s2">slew_limit</span><span class="s2">&quot;</span><span class="p">:</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">slew</span></a><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">regime</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">limiting_ceiling</span><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">measured</span></a><span class="p">)</span><span class="p">,</span> <span class="o">*</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">measured</span></a><span class="p">}</span><span class="w">
 </span>        <span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_02_spiral_001.png" srcset="../../../_images/sphx_glr_02_spiral_001.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+<img src="../../../_images/sphx_glr_02_spiral_001.png" srcset="../../../_images/sphx_glr_02_spiral_001.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
   made = factory(*args, **kwargs)
   slew         100 kHz         250 kHz         600 kHz
     40    10.96 ms band     7.49 ms slew     7.50 ms slew
@@ -731,8 +694,6 @@ gradient amplitude limit to above it.</p>
    150    11.00 ms band     4.40 ms band     3.88 ms slew
    180    11.00 ms band     4.40 ms band     3.54 ms slew
    210    10.92 ms band     4.35 ms band     3.26 ms ampl
-
-&lt;Figure size 946x440 with 1 Axes&gt;
 </pre></div>
 </div>
 <p>The three rates behave differently. At the lowest, the receiver’s cap is so
@@ -746,22 +707,19 @@ at the top of the slew range; below that the arm is still climbing when it
 ends.</p>
 <p>The flat part of the middle curve is not exactly flat, and the reason is that
 an arm at constant amplitude is still turning. Holding <span class="math notranslate nohighlight">\(|G|\)</span> while the
-direction rotates costs slew rate of its own, and the tighter the turn the
+direction rotates requires slew rate of its own, and the tighter the turn the
 more of it, so the slew limit continues to govern the first turns of an arm
 whose amplitude has already stopped growing.</p>
 </section>
 <section id="the-waveform-in-each-regime">
 <h2>The waveform in each regime<a class="headerlink" href="#the-waveform-in-each-regime" title="Link to this heading">#</a></h2>
 <p>One design from each regime, with the ceilings drawn on the axes they bound.</p>
-<img src="../../../_images/sphx_glr_02_spiral_002.png" srcset="../../../_images/sphx_glr_02_spiral_002.png" alt="slew-limited, receiver cap, amplitude cap" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 946x550 with 6 Axes&gt;
-</pre></div>
-</div>
-<p>In the slew-limited design the amplitude is still climbing when the arm ends.
+<img src="../../../_images/sphx_glr_02_spiral_002.png" srcset="../../../_images/sphx_glr_02_spiral_002.png" alt="slew-limited, receiver cap, amplitude cap" class = "sphx-glr-single-img"/><p>In the slew-limited design the amplitude is still climbing when the arm ends.
 In the other two it reaches a ceiling part way out and stays there, and the
 slew falls away from its limit once it does: the remaining traversal is at
 constant speed, and the only turning left is the angular one. The slew rate
-is at its limit early in every one of them, which is why reaching the slew
-limit is not by itself what tells the three apart.</p>
+is at its limit early in every one of them, so reaching the slew limit does
+not by itself distinguish the three.</p>
 <p>The ceilings are drawn at the system’s derated limits rather than at the
 numbers passed in. A design whose two in-plane axes play together is solved
 against a per-axis limit reduced by <span class="math notranslate nohighlight">\(\sqrt{2}\)</span>, so that the vector
@@ -769,9 +727,9 @@ magnitude drawn here respects the scalar limit.</p>
 </section>
 <section id="interleaves-against-arm-duration">
 <h2>Interleaves against arm duration<a class="headerlink" href="#interleaves-against-arm-duration" title="Link to this heading">#</a></h2>
-<p>Within one regime the pitch is the remaining lever: more interleaves cover
-k-space with shorter arms, and the set of them takes correspondingly longer
-to play.</p>
+<p>Within one regime the pitch is the remaining free parameter: more interleaves
+cover k-space with shorter arms, and the set of them takes correspondingly
+longer to play.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">interleaves</span></a> <span class="o">=</span> <span class="p">[</span><span class="p">]</span><span class="w">
 </span><span class="k">for</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">count</span></a> <span class="ow">in</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">48</span><span class="p">)</span><span class="p">:</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D"><span class="n">arm</span></a> <span class="o">=</span> <span class="n">spiral_arm</span><span class="p">(</span><span class="mf">150.0</span><span class="p">,</span> <span class="mf">250e3</span><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">interleaves</span></a><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">count</span></a><span class="p">)</span><span class="w">
@@ -783,23 +741,21 @@ to play.</p>
 </span>        <span class="p">}</span><span class="w">
 </span>    <span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_02_spiral_003.png" srcset="../../../_images/sphx_glr_02_spiral_003.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  arms      readout      per arm     full set
-     4     17.15 ms     20.96 ms     0.084 s
-     8      8.61 ms     12.42 ms     0.099 s
-    16      4.40 ms      8.20 ms     0.131 s
-    32      2.27 ms      6.08 ms     0.195 s
-    48      1.60 ms      5.60 ms     0.269 s
-
-&lt;Figure size 946x396 with 2 Axes&gt;
+<img src="../../../_images/sphx_glr_02_spiral_003.png" srcset="../../../_images/sphx_glr_02_spiral_003.png" alt="02 spiral" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>arms      readout      per arm     full set
+   4     17.15 ms     20.96 ms     0.084 s
+   8      8.61 ms     12.42 ms     0.099 s
+  16      4.40 ms      8.20 ms     0.131 s
+  32      2.27 ms      6.08 ms     0.195 s
+  48      1.60 ms      5.60 ms     0.269 s
 </pre></div>
 </div>
 <p>The arm duration falls almost as the reciprocal of the interleaf count while
 the time for a full set rises less than proportionally, because each
-repetition carries an excitation and a rewind whose duration does not depend
+repetition contains an excitation and a rewind whose duration does not depend
 on the pitch. Off-resonance and <span class="math notranslate nohighlight">\(T_2^*\)</span> act over the readout duration,
 so the interleaf count is the remaining way to shorten it once the slew rate
 no longer does.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.626 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.971 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-04-non-cartesian-02-spiral-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/8382e3215e834a1eb3a799cff2ae36a4/02_spiral.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_spiral.ipynb</span></code></a></p>
@@ -862,6 +818,7 @@ no longer does.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#designing-one-arm">Designing one arm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-design-space">The design space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-waveform-in-each-regime">The waveform in each regime</a></li>

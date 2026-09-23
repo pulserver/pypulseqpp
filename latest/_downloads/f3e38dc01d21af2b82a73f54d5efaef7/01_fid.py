@@ -3,26 +3,28 @@
 Free induction decay
 ====================
 
-The scope of this notebook is to build the smallest complete Pulseq sequence,
-a pulse-acquire experiment, and to establish the vocabulary the rest of the
-course adds to: the system limits a factory solves against, the events that
-carry a pulse and an acquisition window, the blocks that play them, the timing
-check, and the file that is written.
-
-Outline:
-
-#. **System limits.** The limits, rasters and dead times an event is built
-   against.
-#. **Two events.** A hard excitation pulse and an acquisition window, and the
-   relation between samples, dwell time and receiver bandwidth.
-#. **Two blocks.** Placing the events in time, and stating a repetition time.
-#. **Sequence diagram.** Reading the result as a pulse-sequence diagram.
-#. **Transverse magnetisation against flip angle.** Simulating the pulse the
-   sequence holds, against the closed form for a hard pulse on resonance.
-#. **Writing the file.** What a ``.seq`` file records beside the block table.
+The smallest complete Pulseq sequence is a pulse-acquire experiment: one
+excitation pulse followed by one acquisition window. This first lesson of the
+course builds it and introduces the objects every later lesson extends: the
+system limits against which a factory designs an event, the RF and ADC events,
+the blocks in which events are played, the timing check, and the ``.seq`` file.
+A Bloch simulation of the stored pulse relates the transverse magnetisation to
+the flip angle.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- define system limits, rasters and dead times;
+- create a hard RF pulse and an ADC event, and relate the number of samples,
+  the dwell time and the receiver bandwidth;
+- place events in blocks and set a repetition time with a delay;
+- read a pulse-sequence diagram of the result;
+- check the sequence timing and write the sequence to a ``.seq`` file.
 """
 
 # sphinx_gallery_start_ignore
@@ -65,7 +67,7 @@ system = pp.Opts(
 # samples. The dwell time is the sampling interval, and its reciprocal is the
 # receiver bandwidth; :func:`~pypulseqpp.calc_adc_timing` moves a requested
 # dwell onto the ADC raster and lands the acquisition duration on the gradient
-# raster, which is what the timing check requires of both.
+# raster. The timing check requires both.
 
 FLIP_ANGLES_DEG = (10.0, 30.0, 60.0, 90.0)
 
@@ -102,9 +104,9 @@ print(
 # together on the block's clock. Blocks are played back to back, so the
 # acquisition begins when the pulse's block ends.
 #
-# One repetition per flip angle. The acquisition block carries a delay longer
-# than the acquisition window, which is how a repetition time is stated: a
-# block longer than the events in it is a delay.
+# One repetition per flip angle. A block lasts as long as its longest event,
+# so a delay event longer than the acquisition window in the acquisition block
+# sets the repetition time.
 
 seq = pp.Sequence(system=system)
 for pulse in pulses:

@@ -1,7 +1,10 @@
 # Sequence and system limits
 
 The sequence container, the system limits a sequence is designed under, and
-the geometry transforms applied to a finished one.
+the geometry transforms applied to a finished sequence. Gradient amplitude
+limits are in Hz/m, slew-rate limits in Hz/m/s and rasters in s;
+{doc}`../explanations/pulseq/index` describes the format these objects
+represent.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -9,44 +12,26 @@ the geometry transforms applied to a finished one.
 
 ## Sequence container
 
-{doc}`../explanations/pulseq/index` describes the format these objects represent.
-
-{class}`Sequence` holds the event libraries, block table, definitions and
-system limits of one Pulseq sequence. It builds, reads and writes the sequence,
-expands its gradient and RF waveforms and its k-space trajectory, inspects its
-structure and checks its timing, over the compiled core.
-
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.Sequence` | A Pulseq sequence containing events, blocks and definitions. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.Sequence` | System limits | `Sequence` holding libraries, blocks, definitions, system limits | Block construction, file I/O, waveform, k-space and timing analysis. |
 
 ## Field-of-view transforms
 
-{class}`TransformFOV` applies a prescription to an existing sequence:
-per-axis gradient amplitude scaling in the logical frame, a rotation composed
-after each block's own rotation, and a translation in logical metres. Field of
-view scales inversely with gradient amplitude, so halving an axis's amplitude
-doubles the field of view along it.
-
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.TransformFOV` | Geometry prescription applied to an existing sequence. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.TransformFOV` | Rotation, translation (m), per-axis gradient scale, or 4-by-4 transform | `TransformFOV`; `apply_to_sequence` returns the transformed sequence | Prescription geometry in the logical frame. |
 
 ## System limits
 
-{class}`Opts` holds the gradient amplitude, slew-rate, RF and ADC limits
-together with the RF, gradient, ADC and block duration rasters.
-{func}`apply_system_derates` and {func}`cap_system` return adjusted copies and
-leave the caller's limits unchanged. `MAX_GRAD_DERATE` and `MAX_SLEW_DERATE`
-are the fractions {func}`apply_system_derates` applies by default, so that a
-design solved one axis at a time stays within the limit when more than one axis
-plays.
+{func}`apply_system_derates` and {func}`cap_system` return copies and do not
+modify their argument.
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.Opts` | PyPulseq system limits with shared raster defaults. |
-| {obj}`~pypulseqpp.default_system` | Return ``system``, or the shared default system when it is ``None``. |
-| {obj}`~pypulseqpp.apply_system_derates` | Return a copy with gradient and slew limits scaled from their base values. |
-| {obj}`~pypulseqpp.cap_system` | Return a copy with gradient and slew limits lowered to the specified ceilings. |
-| {obj}`~pypulseqpp.MAX_GRAD_DERATE` | Fraction of the gradient amplitude limit a designed waveform may reach. |
-| {obj}`~pypulseqpp.MAX_SLEW_DERATE` | Fraction of the slew-rate limit a designed waveform may reach. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.Opts` | Gradient and slew limits with units, rasters, dead times, `gamma`, `B0` | `Opts` holding limits in Hz/m, Hz/m/s and rasters in s | System limits and rasters. |
+| {obj}`~pypulseqpp.default_system` | `Opts` or `None` | The argument, or the shared default `Opts` | Default-system resolution. |
+| {obj}`~pypulseqpp.apply_system_derates` | `Opts`, gradient and slew fractions | `Opts` copy, limits scaled from base values | Derated design limits. |
+| {obj}`~pypulseqpp.cap_system` | `Opts`, gradient and slew ceilings with their units | `Opts` copy, limits lowered to the ceilings | Capped design limits. |
+| {obj}`~pypulseqpp.MAX_GRAD_DERATE` | — | `float` | Default `grad_derate` of `apply_system_derates`. |
+| {obj}`~pypulseqpp.MAX_SLEW_DERATE` | — | `float` | Default `slew_derate` of `apply_system_derates`. |

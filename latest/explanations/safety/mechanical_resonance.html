@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Gradient, PNS and SAR constraints</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,12 +526,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sustained-drive-and-the-analysis-window">Sustained drive and the analysis window</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-amplitude-normalization">Spectral amplitude normalization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-content-of-echo-planar-and-spiral-readouts">Spectral content of echo-planar and spiral readouts</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#thresholds">Thresholds</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windowed-amplitude-spectrum">Windowed amplitude spectrum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectra-of-echo-planar-and-spiral-readouts">Spectra of echo-planar and spiral readouts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bands-and-thresholds">Bands and thresholds</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitations">Limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -587,122 +545,151 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="mechanical-resonance">
 <h1>Mechanical resonance<a class="headerlink" href="#mechanical-resonance" title="Link to this heading">#</a></h1>
-<p>A gradient coil in the static field experiences a Lorentz force proportional to
-its current, and the assembly it is mounted in has mechanical modes with narrow
-resonances. A gradient waveform whose spectrum contains sustained power at a
-mode’s frequency excites that mode, producing acoustic output far above what
-the same amplitude produces elsewhere in the spectrum, together with mechanical
-stress on the assembly. Vendors publish the frequency ranges the coil must not
-be driven in as <strong>forbidden bands</strong>, and
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> compares the sequence’s gradient
-spectrum with them.</p>
-<section id="sustained-drive-and-the-analysis-window">
-<h2>Sustained drive and the analysis window<a class="headerlink" href="#sustained-drive-and-the-analysis-window" title="Link to this heading">#</a></h2>
-<p>What excites a resonance is a <strong>sustained</strong> drive near the mode’s frequency, not
-a single transition. A lightly damped mode reaches its steady-state amplitude
-over many cycles, so a waveform that crosses a band for one repetition and
-exits it deposits far less energy than one that remains within it for a second.
-A single transform of the whole sequence cannot express that distinction: it
-reports the total power at each frequency without saying whether it arrived all
-at once or was spread over the scan.</p>
-<p>The check therefore slides a window along each physical axis and transforms each
-window separately. The window length is the time scale over which a drive counts
-as sustained, and it is a parameter, <code class="docutils literal notranslate"><span class="pre">window_width</span></code>, rather than a constant: a
-mode with a high quality factor is driven by a shorter burst than a heavily
-damped one.</p>
-<p>Consecutive windows overlap by half the window length by default, so a burst
-falling on a window boundary is still contained whole in one window. <code class="docutils literal notranslate"><span class="pre">stride</span></code>
-sets the overlap.</p>
-</section>
-<section id="spectral-amplitude-normalization">
-<h2>Spectral amplitude normalization<a class="headerlink" href="#spectral-amplitude-normalization" title="Link to this heading">#</a></h2>
-<p>Each window is mean-subtracted, tapered with a Hann window and zero-padded to
-<code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> times its length before a real FFT. The amplitude
-reported for bin <span class="math notranslate nohighlight">\(k\)</span> is</p>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> compares a windowed amplitude
+spectrum of the physical-axis gradient waveforms, after each block’s rotation
+and then the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument, with the forbidden bands of a supplied
+table.</p></li>
+<li><p>Each window of <code class="docutils literal notranslate"><span class="pre">window_width</span></code> (40 ms by default) is mean-subtracted,
+multiplied by a Hann taper, zero-padded and transformed with a real FFT. The
+amplitude is scaled so that a sustained sinusoid of amplitude <span class="math notranslate nohighlight">\(A\)</span> at a bin
+frequency reads <span class="math notranslate nohighlight">\(A\)</span>, in mT/m.</p></li>
+<li><p>A train of trapezoids of alternating polarity at echo spacing <span class="math notranslate nohighlight">\(\Delta t\)</span> has
+its fundamental at <span class="math notranslate nohighlight">\(f = 1/(2\,\Delta t)\)</span>, with an amplitude between <span class="math notranslate nohighlight">\(8/\pi^2\)</span>
+and <span class="math notranslate nohighlight">\(4/\pi\)</span> of the plateau amplitude. Echo spacing is therefore the parameter
+a forbidden band constrains for an echo-planar readout.</p></li>
+<li><p>A band is violated by each window whose largest amplitude on a bin inside the
+band exceeds the threshold on any axis the band applies to. The threshold is
+the band’s tolerance where it is positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> (10 mT/m by
+default) otherwise.</p></li>
+<li><p>The criterion is spectral and is applied to the commanded waveform. It does
+not model the coil’s transfer function or the acoustic output of the
+assembly, and a passing result does not establish that a sequence is quiet or
+within any acoustic-noise regulation.</p></li>
+</ul>
+</div>
+<p>The Lorentz force on a gradient coil in the static field is proportional to its
+current, and the gradient assembly has narrowly resonant mechanical modes.
+Sustained gradient drive at a mode’s frequency produces acoustic output and
+mechanical stress well above those at other frequencies.<a class="footnote-reference brackets" href="#hedeen" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Vendors state
+the frequency ranges that must not be driven as <strong>forbidden bands</strong>.
+<a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> compares a windowed amplitude
+spectrum of the physical-axis gradient waveforms with those bands.</p>
+<section id="windowed-amplitude-spectrum">
+<h2>Windowed amplitude spectrum<a class="headerlink" href="#windowed-amplitude-spectrum" title="Link to this heading">#</a></h2>
+<p>Each physical axis is sampled at the centres of the sequence’s own gradient
+raster, after each block’s rotation and then the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument. A window
+of <code class="docutils literal notranslate"><span class="pre">window_width</span></code> (40 ms by default) starts every <code class="docutils literal notranslate"><span class="pre">stride</span></code> (half the window by
+default); the last window is zero-filled to the end of the sequence. Each window
+is mean-subtracted, multiplied by a Hann taper <span class="math notranslate nohighlight">\(w\)</span>, zero-padded to
+<code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> times its length and transformed with a real FFT. The
+amplitude of bin <span class="math notranslate nohighlight">\(k\)</span> is</p>
 <div class="math notranslate nohighlight">
 \[
 A_k = \frac{2\,|X_k|}{\sum_n w_n},
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(w\)</span> is the taper. The normalization makes the reading
-interpretable as a gradient amplitude: a sustained sinusoid of amplitude <span class="math notranslate nohighlight">\(A\)</span> at
-a bin frequency reads <span class="math notranslate nohighlight">\(A\)</span>, so a threshold stated in mT/m is compared with a
-quantity in mT/m rather than with a spectral density.</p>
-<p>Mean subtraction removes the constant component of the window, which is not a
-drive at any resonance. Tapering keeps a strong low-frequency component
-from leaking across the whole spectrum and producing a reading inside a band
-that no gradient in the window put there. Zero-padding does not add
-information; it interpolates the spectrum so that a line falling between bins
-is read at close to its true amplitude rather than split between neighbours.</p>
+<p>so a sustained sinusoid of amplitude <span class="math notranslate nohighlight">\(A\)</span> at a bin frequency reads <span class="math notranslate nohighlight">\(A\)</span>, in mT/m.
+The window length sets the time scale over which drive counts as sustained; a
+single transform of the whole sequence would not distinguish one brief crossing
+of a band from drive held inside it. Mean subtraction removes the constant
+component, the taper limits leakage of low-frequency content into distant bins,
+and zero-padding interpolates the spectrum without adding information.
+<a class="reference internal" href="../../generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">mech_resonance_spectrum()</span></code></a> returns the spectrum of one
+window from the same pass.</p>
 </section>
-<section id="spectral-content-of-echo-planar-and-spiral-readouts">
-<h2>Spectral content of echo-planar and spiral readouts<a class="headerlink" href="#spectral-content-of-echo-planar-and-spiral-readouts" title="Link to this heading">#</a></h2>
-<p>An alternating readout train is periodic. A train of trapezoids of alternating
-polarity at echo spacing <span class="math notranslate nohighlight">\(\Delta t\)</span> has its fundamental at</p>
+<section id="spectra-of-echo-planar-and-spiral-readouts">
+<h2>Spectra of echo-planar and spiral readouts<a class="headerlink" href="#spectra-of-echo-planar-and-spiral-readouts" title="Link to this heading">#</a></h2>
+<p>A train of trapezoids of alternating polarity at echo spacing <span class="math notranslate nohighlight">\(\Delta t\)</span> is
+periodic, with fundamental</p>
 <div class="math notranslate nohighlight">
 \[
-f = \frac{1}{2\,\Delta t},
+f = \frac{1}{2\,\Delta t}
 \]</div>
-<p>with harmonics at odd multiples of it, and the amplitude at the fundamental is
-a fixed fraction of the plateau amplitude — between <span class="math notranslate nohighlight">\(8/\pi^2\)</span> for a triangular
-waveform and <span class="math notranslate nohighlight">\(4/\pi\)</span> for a square one. An echo-planar train at a 500 µs echo
-spacing therefore concentrates most of its gradient power in a narrow line at
-1 kHz, and sustains it for the length of the train. A band either contains that
-line or does not. Echo spacing is therefore the parameter a vendor’s table
-constrains, and some vendors publish their bands as forbidden <strong>echo-spacing</strong>
-ranges rather than as frequencies.</p>
-<figure class="align-default" id="id1">
+<p>and harmonics at odd multiples. The fundamental’s amplitude lies between
+<span class="math notranslate nohighlight">\(8/\pi^2\)</span> (triangular) and <span class="math notranslate nohighlight">\(4/\pi\)</span> (square) of the plateau amplitude; a 500 µs
+echo spacing places it at 1 kHz for the length of the train.</p>
+<figure class="align-default" id="id2">
 <img alt="../../_images/gradient_spectra.png" src="../../_images/gradient_spectra.png" />
 <figcaption>
 <p><span class="caption-text">The readout-axis spectrum of a 40 ms window at the middle of two sequences, both
 64 x 64. The spoiled gradient echo spreads its power below a few hundred hertz;
 the single-shot echo-planar train concentrates it in one line at the reciprocal
 of twice its echo spacing, several times higher than anything the gradient echo
-reaches.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+reaches.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
-<p>A spiral readout sweeps its instantaneous frequency as the trajectory winds out,
-so it spreads its power over a range instead of concentrating it. The window has to be short
-enough to resolve the interval the sweep spends inside a band, and long enough
-that such an interval is not read as a sustained drive.</p>
-<p>A conventional Cartesian gradient echo puts most of its gradient power below a
-few hundred hertz and is at zero amplitude for most of each repetition, so it
-rarely reaches a band at all.</p>
+<p>Echo spacing is therefore the parameter a forbidden band constrains for an
+echo-planar readout. A spiral readout sweeps its instantaneous frequency and
+spreads its power over a range; the window length determines whether the
+interval the sweep spends inside a band is resolved.</p>
 </section>
-<section id="thresholds">
-<h2>Thresholds<a class="headerlink" href="#thresholds" title="Link to this heading">#</a></h2>
-<p>A band is an axis, an inclusive frequency range and a tolerance, as
-<a class="reference internal" href="../../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a>. An axis of <code class="docutils literal notranslate"><span class="pre">None</span></code> guards all three.
-Where the table states a tolerance, it is the largest amplitude allowed inside
-the band; where it states none, the check uses <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code>. A band is
-violated when any window exceeds its threshold on any axis the band guards, and
-the report states the worst window of every band whether or not it violates.</p>
-<p><a class="reference internal" href="../../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a> reads two vendor forms. A
-Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware file states acoustic resonances as a centre frequency
-and a bandwidth, with no axis and no tolerance, so every band it yields guards
-every axis at tolerance zero. A GE <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> table states, per axis,
-forbidden echo-spacing ranges with a plateau amplitude; the range maps to the
-frequencies <span class="math notranslate nohighlight">\(1/(2\,\mathrm{ESP})\)</span> of the alternating train it describes.</p>
+<section id="bands-and-thresholds">
+<h2>Bands and thresholds<a class="headerlink" href="#bands-and-thresholds" title="Link to this heading">#</a></h2>
+<p>A <a class="reference internal" href="../../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a> is an axis (<code class="docutils literal notranslate"><span class="pre">None</span></code> for all three),
+an inclusive frequency range in Hz and a tolerance in mT/m. The threshold is the
+tolerance where it is positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> (10 mT/m by default)
+otherwise. A band is violated by each window whose largest amplitude on a bin
+inside the band exceeds the threshold on any axis the band guards; a band
+narrower than one bin is read at the bin nearest its centre. The report states
+each band’s worst window whether or not it violates.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Source read by <a class="reference internal" href="../../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a></p></th>
+<th class="head"><p>Band</p></th>
+<th class="head"><p>Axis</p></th>
+<th class="head"><p>Tolerance</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> acoustic resonances</p></td>
+<td><p>centre ± bandwidth / 2</p></td>
+<td><p>all</p></td>
+<td><p>0, so <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> applies</p></td>
+</tr>
+<tr class="row-odd"><td><p>GE <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> forbidden echo-spacing ranges</p></td>
+<td><p><span class="math notranslate nohighlight">\(1/(2\,\mathrm{ESP})\)</span> over the range</p></td>
+<td><p>x, y or z, by table section</p></td>
+<td><p>plateau amplitude, G/cm converted to mT/m</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> tolerance is a plateau amplitude and is compared unscaled with
+the spectral amplitude, which for an alternating train is between <span class="math notranslate nohighlight">\(8/\pi^2\)</span> and
+<span class="math notranslate nohighlight">\(4/\pi\)</span> of the plateau.</p>
 </section>
-<section id="scope-and-limitations">
-<h2>Scope and limitations<a class="headerlink" href="#scope-and-limitations" title="Link to this heading">#</a></h2>
-<p>The criterion is a spectral one applied to the commanded waveform. It does not
-model the coil’s transfer function, the acoustic output of the assembly, or the
-scanner’s own predownload gate, and a sequence that passes it is not thereby
-established as quiet or as within any acoustic-noise regulation. What it
-establishes is that the sequence does not sustain gradient amplitude inside a
-frequency range the table identifies as forbidden.</p>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">#</a></h2>
+<p>The criterion is spectral and is applied to the commanded waveform. It does not
+model the coil’s transfer function, the acoustic output of the assembly or the
+scanner’s own predownload assessment, and a passing result does not establish
+that a sequence is quiet or within any acoustic-noise regulation. It states
+that no window’s gradient amplitude spectrum exceeds a threshold inside a band
+of the supplied table.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a>,
+<a class="reference internal" href="../../generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">mech_resonance_spectrum()</span></code></a>,
 <a class="reference internal" href="../../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a> and
 <a class="reference internal" href="../../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a> — the calls.</p></li>
 <li><p><a class="reference internal" href="../../examples/checks.html"><span class="doc">Constraint checks</span></a> — running the check over a
 sequence and reading its report.</p></li>
 </ul>
 </section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 </section>
+</section>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="hedeen" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Hedeen RA, Edelstein WA. Characterization and prediction of gradient acoustic noise in MR imagers. <em>Magnetic Resonance in Medicine</em>. 1997;37(1):7–10. <a class="reference external" href="https://doi.org/10.1002/mrm.1910370103">doi:10.1002/mrm.1910370103</a>.</p>
+</aside>
+</aside>
 
 
                 </article>
@@ -751,12 +738,12 @@ sequence and reading its report.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sustained-drive-and-the-analysis-window">Sustained drive and the analysis window</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-amplitude-normalization">Spectral amplitude normalization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-content-of-echo-planar-and-spiral-readouts">Spectral content of echo-planar and spiral readouts</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#thresholds">Thresholds</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windowed-amplitude-spectrum">Windowed amplitude spectrum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spectra-of-echo-planar-and-spiral-readouts">Spectra of echo-planar and spiral readouts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bands-and-thresholds">Bands and thresholds</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitations">Limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

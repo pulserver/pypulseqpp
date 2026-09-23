@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -511,7 +473,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..._epi</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_epi_order</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._epi</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_epi_shot_offsets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">as_tuple</span><span class="p">,</span>
@@ -531,8 +493,8 @@
 <span class="sd">    The scan loop sets the shot origin by scaling prewinders. Blips implement</span>
 <span class="sd">    the relative offsets and share the readout ramps; flyback blips instead</span>
 <span class="sd">    play in the rewind gaps. TE is measured to the train line ``te_line``,</span>
-<span class="sd">    the first by default: the loop knows which line samples the centre of</span>
-<span class="sd">    k-space, the module does not.</span>
+<span class="sd">    the first by default, because which line samples the centre of k-space</span>
+<span class="sd">    depends on the shot origin that the loop sets.</span>
 
 <span class="sd">    Navigator lines, when asked for, are read after the read prewinder and</span>
 <span class="sd">    before the phase-encode prewinder, without blips, so they sample the</span>
@@ -568,15 +530,16 @@
 <span class="sd">        Phase encodes at their largest step, to be scaled per shot. ``gz_pre``</span>
 <span class="sd">        is 3D only.</span>
 <span class="sd">    gy_rew, gz_rew : TrapEvent</span>
-<span class="sd">        The encodes negated, in the block that closes the repetition.</span>
+<span class="sd">        The encodes negated, in the last block of the repetition.</span>
 <span class="sd">    gx_spoil : GradEvent</span>
-<span class="sd">        The lobe that closes the read axis, bridged off the last line.</span>
+<span class="sd">        Read-axis trapezoid in the last block: returns the read axis from the</span>
+<span class="sd">        end of the last line through k = 0 and adds the requested spoiling.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition window, shared by every line.</span>
 <span class="sd">    shot_labels : tuple[LabelEvent, ...]</span>
 <span class="sd">        ``SET`` counters on the prewinder block, one per name in ``labels``.</span>
-<span class="sd">        The loop writes the shot's origin into them. Always a tuple, however</span>
-<span class="sd">        many names there are, because the loop splats it.</span>
+<span class="sd">        The acquisition loop sets them to the shot's origin. Always a tuple,</span>
+<span class="sd">        whatever the number of names, so that it can be unpacked into a block.</span>
 <span class="sd">    line_labels : tuple[tuple[LabelEvent, ...], ...]</span>
 <span class="sd">        Per line, the ``INC`` counters that step from the previous line to this</span>
 <span class="sd">        one -- the ordering, expressed as labels. Empty for the first line,</span>
@@ -601,7 +564,8 @@
 <span class="sd">        Each line's echo time (s) from the excitation isodelay, with no echo</span>
 <span class="sd">        shift.</span>
 <span class="sd">    echo_time : float</span>
-<span class="sd">        Echo time (s) of train line ``te_line``, which is what ``te`` sets.</span>
+<span class="sd">        Echo time (s) of train line ``te_line``, the echo time that ``te``</span>
+<span class="sd">        specifies.</span>
 <span class="sd">    echo_shift_step : float</span>
 <span class="sd">        Echo shift between successive shots (s), ``esp / echo_shifts`` on the</span>
 <span class="sd">        block raster; zero with one shift.</span>
@@ -631,8 +595,8 @@
 <span class="sd">        Matrix size, per encoded axis.</span>
 <span class="sd">    order : ArrayLike, default=None</span>
 <span class="sd">        ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one</span>
-<span class="sd">        row per line. Supplying one silences the generator arguments below; the</span>
-<span class="sd">        default takes a train from ``calc_epi_order``.</span>
+<span class="sd">        row per line. When supplied, the generator arguments below are ignored;</span>
+<span class="sd">        the default takes a train from :func:`~pypulseqpp.make_epi_shot_offsets`.</span>
 <span class="sd">    etl : int, default=None</span>
 <span class="sd">        Lines per repetition. Defaults to what one shot of the requested</span>
 <span class="sd">        scheme needs to cross the phase-encode matrix.</span>
@@ -681,13 +645,13 @@
 <span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
 <span class="sd">        achieved raster-compatible rate.</span>
 <span class="sd">    ramp_sampling : bool, default=True</span>
-<span class="sd">        Sample across the read ramps as well as the plateau, which is what</span>
-<span class="sd">        makes the echo spacing short. Turn it off for a rectangular window at</span>
-<span class="sd">        the cost of a longer train.</span>
+<span class="sd">        Sample across the read ramps as well as the plateau, which shortens</span>
+<span class="sd">        the echo spacing. When off, the window covers the plateau only and the</span>
+<span class="sd">        train is longer.</span>
 <span class="sd">    flyback : bool, default=False</span>
 <span class="sd">        Read every line in the same direction, rewinding between them, instead</span>
-<span class="sd">        of alternating polarity. It costs a rewind per line and buys away the</span>
-<span class="sd">        odd-even inconsistency that a bipolar train leaves behind.</span>
+<span class="sd">        of alternating polarity. This adds a rewind per line and removes the</span>
+<span class="sd">        odd-even echo inconsistency of a bipolar train.</span>
 <span class="sd">    spoiling_cycles : float, default=0.0</span>
 <span class="sd">        Read-axis spoiling at the end of the repetition, in cycles across</span>
 <span class="sd">        ``voxel_size_m``.</span>
@@ -768,7 +732,7 @@
         <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">etl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">etl</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">acceleration</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">segments</span><span class="p">)))</span>
-            <span class="n">order</span> <span class="o">=</span> <span class="n">calc_epi_order</span><span class="p">(</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">make_epi_shot_offsets</span><span class="p">(</span>
                 <span class="n">etl</span><span class="p">,</span>
                 <span class="n">scheme</span><span class="o">=</span><span class="n">scheme</span><span class="p">,</span>
                 <span class="n">acceleration</span><span class="o">=</span><span class="n">acceleration</span><span class="p">,</span>

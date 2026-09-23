@@ -39,10 +39,10 @@ motion-robust 3D structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-37
 
-Baseline
---------
+Nyquist angular sampling
+------------------------
 
-A spoke at every partition.
+The Nyquist set of spoke angles at every partition.
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-45
 
@@ -90,12 +90,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f0213470>, tr=305, underlays=[1, 77, 153, 229, 381, 457, 533, 601, 609, 685, 761, 837, 913, 989, 1065, 1141, 1201])
 
 
 
@@ -122,12 +116,6 @@ The spokes of every partition, over the three k-space axes.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
@@ -179,19 +167,13 @@ fourfold while preserving samples at each partition's k-space origin.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.206 seconds)
+   **Total running time of the script:** (0 minutes 5.268 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

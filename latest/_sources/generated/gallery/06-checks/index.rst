@@ -23,7 +23,7 @@ Constraint checks
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to run the checks the package computes over a finished sequence, and to read what each of them reports: the quantity it measured, the limit it compared it with, and where in the sequence the measurement came from.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons checked the timing of each sequence as it was built. This lesson runs every check the package computes over a finished sequence, and reads what each of them reports: the measured quantity, the limit it is compared with, and the part of the sequence the measurement comes from.">
 
 .. only:: html
 

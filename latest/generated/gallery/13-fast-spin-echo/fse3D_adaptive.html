@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -53,6 +53,8 @@
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/gallery/13-fast-spin-echo/fse3D_adaptive';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
@@ -116,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +528,7 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-parameters">Train parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adaptive-radial-ordering">Adaptive radial ordering</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -586,27 +547,34 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="individually-optimized-3d-fast-spin-echo">
 <span id="sphx-glr-generated-gallery-13-fast-spin-echo-fse3d-adaptive-py"></span><h1>Individually optimized 3D fast spin echo<a class="headerlink" href="#individually-optimized-3d-fast-spin-echo" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/13-fast-spin-echo/fse3D_adaptive.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
 <p>Individually parameterized 3D FSE assigns different echo-train lengths and
-repetition times to central and peripheral k-space. The refocusing schedules
-and radial view order vary smoothly between these limits. This coupling can
-reduce scan time while retaining a prescribed central-k-space contrast for
-high-resolution structural imaging.</p>
+repetition times to the shots that acquire central and peripheral k-space
+<a class="reference internal" href="#buo25" id="id1"><span>[BUO25]</span></a>. From the central to the peripheral shots, TR and the minimum and
+maximum angles of the refocusing schedule <a class="reference internal" href="#bus08b" id="id2"><span>[BUS08b]</span></a> follow a cubic
+smooth-step transition between their two limits; the echo-train length
+follows the same transition, rounded to integer values. The views are
+assigned by an adaptive radial order. Longer trains and a different TR at the
+periphery can reduce scan time, while the contrast at the centre of k-space
+is set by the parameters of the central shots.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><span class="n">Fse3DApp</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><span class="n">sequences</span><span class="o">.</span><span class="n">fse3D_sequence</span><span class="o">.</span><span class="n">Fse3DApp</span></a><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">P</span></a> <span class="o">=</span> <span class="p">{</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">n_x</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">n_y</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">n_z</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n_x</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">96</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n_y</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n_z</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">fov_x</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">fov_y</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">fov_z</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">etl</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">etl_periphery</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">te</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">36e-3</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">tr</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">0.45</span><span class="p">,</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">tr_periphery</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">0.65</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">etl</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">etl_periphery</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">te</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">200e-3</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">tr</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">tr_periphery</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">1.6</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">refocusing_angle_deg</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">120.0</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">n_dummy</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">ordering</span><span class="s2">&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="s2">radial</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
 </span>    <span class="s2">&quot;</span><span class="s2">flip_modulation</span><span class="s2">&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="s2">optimized</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
@@ -615,22 +583,44 @@ high-resolution structural imaging.</p>
 </span><span class="n">app</span> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><span class="n">Fse3DApp</span></a><span class="p">(</span><span class="o">*</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">P</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><span class="n">app</span><span class="o">.</span><span class="n">design</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
-  warnings.warn(
-</pre></div>
-</div>
 <section id="train-parameters">
 <h2>Train parameters<a class="headerlink" href="#train-parameters" title="Link to this heading">#</a></h2>
-<p>Train length and TR follow a smooth transition from central to peripheral
-k-space. Representative schedules below retain only the refocusing pulses
-played by each selected shot.</p>
+<p>TR and the schedule’s minimum and maximum angles follow a cubic smooth-step
+transition, <span class="math notranslate nohighlight">\(3u^2 - 2u^3\)</span> with <span class="math notranslate nohighlight">\(u\)</span> from 0 at the first (central)
+shot to 1 at the last (peripheral) shot <a class="reference internal" href="#buo25" id="id3"><span>[BUO25]</span></a>; the echo-train length
+follows the same transition rounded to integers. Every schedule passes
+through the prescribed 120 degrees at the effective-TE echo. The schedules
+of representative shots are plotted up to each shot’s own train length:
+the central shots reach lower minimum angles, and the peripheral shots have
+shallower minima and longer trains.</p>
 <img src="../../../_images/sphx_glr_fse3D_adaptive_001.png" srcset="../../../_images/sphx_glr_fse3D_adaptive_001.png" alt="fse3D adaptive" class = "sphx-glr-single-img"/></section>
 <section id="adaptive-radial-ordering">
 <h2>Adaptive radial ordering<a class="headerlink" href="#adaptive-radial-ordering" title="Link to this heading">#</a></h2>
 <p>The ordering ranks <code class="docutils literal notranslate"><span class="pre">(shot,</span> <span class="pre">echo)</span></code> slots jointly by distance from the
-effective-TE echo and by position in the central-to-peripheral transition.
-Colour therefore relates each acquired view to its train length and TR.</p>
-<img src="../../../_images/sphx_glr_fse3D_adaptive_002.png" srcset="../../../_images/sphx_glr_fse3D_adaptive_002.png" alt="fse3D adaptive" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 2.489 seconds)</p>
+effective-TE echo and by position in the central-to-peripheral transition
+<a class="reference internal" href="#buo25" id="id4"><span>[BUO25]</span></a>. Views are ranked by k-space radius; the innermost views fill the
+slots nearest the effective-TE echo of the central shots, and within each group of one view per shot the views
+are assigned to shots in order of angle. Colour gives the train length and
+TR of the shot that acquired each view.</p>
+<img src="../../../_images/sphx_glr_fse3D_adaptive_002.png" srcset="../../../_images/sphx_glr_fse3D_adaptive_002.png" alt="fse3D adaptive" class = "sphx-glr-single-img"/></section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="buo25" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>BUO25<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id3">2</a>,<a role="doc-backlink" href="#id4">3</a>)</span>
+<p>Buonincontri G, et al. <em>Proceedings of the International Society
+for Magnetic Resonance in Medicine</em>. 2025; abstract 566-05-007.</p>
+</div>
+<div class="citation" id="bus08b" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">BUS08b</a><span class="fn-bracket">]</span></span>
+<p>Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
+Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and
+view ordering in 3D fast spin echo. <em>Magnetic Resonance in Medicine</em>.
+2008;60(3):640-649. <a class="reference external" href="https://doi.org/10.1002/mrm.21680">https://doi.org/10.1002/mrm.21680</a></p>
+</div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 4.365 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-13-fast-spin-echo-fse3d-adaptive-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/50031c545fc46340717ee28e605854a8/fse3D_adaptive.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">fse3D_adaptive.ipynb</span></code></a></p>
@@ -695,6 +685,7 @@ Colour therefore relates each acquired view to its train length and TR.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-parameters">Train parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adaptive-radial-ordering">Adaptive radial ordering</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

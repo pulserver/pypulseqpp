@@ -2,8 +2,10 @@
 
 The block events other than RF and gradients, and the operations on blocks and
 events. Every factory returns a compiled event that
-{meth}`Sequence.add_block` accepts; the RF and the gradient factories have
-pages of their own.
+{meth}`Sequence.add_block` accepts; the RF and gradient factories are on
+{doc}`rf` and {doc}`gradients`. Times are in s, frequency offsets in Hz and
+phase offsets in rad; {doc}`../explanations/pulseq/events-and-blocks`
+describes the block and extension structure.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
@@ -11,43 +13,38 @@ pages of their own.
 
 ## Acquisition and control events
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.make_adc` | Create an ADC readout event. |
-| {obj}`~pypulseqpp.make_delay` | Create a delay event. |
-| {obj}`~pypulseqpp.make_digital_output_pulse` | Create a digital-output pulse on a supported channel. |
-| {obj}`~pypulseqpp.make_label` | Create a label event. |
-| {obj}`~pypulseqpp.make_rf_shim` | Create complex per-transmit-channel weights for a block's RF envelope. |
-| {obj}`~pypulseqpp.make_rotation` | Create a rotation extension event for a block's gradients. |
-| {obj}`~pypulseqpp.make_soft_delay` | Create a soft delay extension event for dynamic timing adjustment. |
-| {obj}`~pypulseqpp.make_trigger` | Create an external-input trigger event. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.make_adc` | Samples, dwell or duration, delay, offsets | ADC event | Acquisition window. |
+| {obj}`~pypulseqpp.make_delay` | Duration (s) | Delay event | Minimum block duration. |
+| {obj}`~pypulseqpp.make_digital_output_pulse` | Output channel, delay, duration | Trigger event (output) | Digital output pulse. |
+| {obj}`~pypulseqpp.make_label` | Label name, `SET` or `INC`, value | Label event | `LABELSET` / `LABELINC` extension. |
+| {obj}`~pypulseqpp.make_rf_shim` | Complex weights, one per transmit channel | RF shim extension event | Static per-channel RF weights. |
+| {obj}`~pypulseqpp.make_rotation` | Angles (rad), axis-angle, quaternion or matrices | Rotation extension event, or one per matrix | Block gradient rotation. |
+| {obj}`~pypulseqpp.make_soft_delay` | Hint, ID, offset, factor, default duration | Soft delay extension event | Console-adjustable block duration. |
+| {obj}`~pypulseqpp.make_trigger` | Input channel, delay, duration | Trigger event (input) | Wait for an external signal. |
 
 ## Block and event operations
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.align` | Align event start, centre or end times within a block. |
-| {obj}`~pypulseqpp.block_to_events` | Split a block into its events, or pass events through unchanged. |
-| {obj}`~pypulseqpp.calc_duration` | Calculate the duration of an event or block. |
-| {obj}`~pypulseqpp.rotate` | Rotate gradient events about a logical axis. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.align` | Events keyed by `left`, `center`, `right` | Events with delays set | Alignment within a block. |
+| {obj}`~pypulseqpp.block_to_events` | Block or events | Tuple of events | Event extraction from a block. |
+| {obj}`~pypulseqpp.calc_duration` | Events or block | Duration (s) | Longest event extent. |
+| {obj}`~pypulseqpp.rotate` | Gradient events, angle (rad), axis `x`/`y`/`z` | Rotated gradient events | Rotation about a logical axis. |
 
 ## Labels and tracing
 
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.get_supported_labels` | Return the supported label identifiers. |
-| {obj}`~pypulseqpp.enable_trace` | Record source locations when events and blocks are created. |
-| {obj}`~pypulseqpp.disable_trace` | Stop recording event and block source locations. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.get_supported_labels` | — | Tuple of label names | Supported label identifiers. |
+| {obj}`~pypulseqpp.enable_trace` | Stack depth | `None` | Record event and block source locations. |
+| {obj}`~pypulseqpp.disable_trace` | — | `None` | Stop recording source locations. |
 
 ## Interoperability with PyPulseq
 
-Upstream PyPulseq functions take and return plain namespaces.
-{func}`interoperating` wraps such a function so that it accepts and returns
-compiled events; {func}`convert` and {func}`as_namespace` convert one event
-each way.
-
-| Object | Description |
-| --- | --- |
-| {obj}`~pypulseqpp.interoperating` | Wrap a callable with recursive event conversion. |
-| {obj}`~pypulseqpp.convert` | Convert a PyPulseq event to a compiled event; return other objects unchanged. |
-| {obj}`~pypulseqpp.as_namespace` | Convert a compiled event to a PyPulseq-compatible SimpleNamespace. |
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.interoperating` | Callable taking or returning PyPulseq events | Wrapped callable with event conversion | Compiled events through upstream functions. |
+| {obj}`~pypulseqpp.convert` | PyPulseq namespace event | Compiled event; other objects unchanged | Namespace to compiled event. |
+| {obj}`~pypulseqpp.as_namespace` | Compiled event | `SimpleNamespace`; other objects unchanged | Compiled event to namespace. |

@@ -191,6 +191,7 @@ from.
    check_max_slew
    check_grad_continuity
    check_mech_resonance
+   mech_resonance_spectrum
    read_forbidden_bands
    ForbiddenBand
    check_pns
@@ -207,18 +208,18 @@ from.
    :toctree: generated
    :nosignatures:
 
-   calc_sampled_lines
-   calc_sampled_pairs
+   make_cartesian_axis_sampling
+   make_cartesian_plane_sampling
    make_caipirinha_mask
    make_poisson_disc_mask
    make_random_mask
-   calc_traversal_order
-   calc_epi_order
+   make_traversal_order
    make_linear_order
    make_centric_order
    make_radial_order
    make_radial_adaptive_order
    make_shuffling_order
+   make_epi_shot_offsets
    calc_uniform_angles
    calc_golden_angles
    calc_tiny_golden_angles

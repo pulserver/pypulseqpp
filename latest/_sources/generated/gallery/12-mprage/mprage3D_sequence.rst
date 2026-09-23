@@ -92,21 +92,16 @@ longer readout trains.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa910496f90>, tr=3, underlays=[1, 2, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-103
+.. GENERATED FROM PYTHON SOURCE LINES 93-104
 
 Sampling order
 --------------
 
-At a protocol matrix, one inversion reads the sampled lines of one partition:
+At a protocol matrix, each inversion cycle acquires the sampled lines of one
+partition:
 the inversion cycle is constant along each row of the map, and the index
 within the train runs outward from the centre of the line axis. The centre of
 k-space is therefore the first view in a train. ``TI`` is measured from the
@@ -114,7 +109,7 @@ inversion-pulse centre to that view's excitation-pulse centre; the central
 ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
 acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 103-116
+.. GENERATED FROM PYTHON SOURCE LINES 104-117
 
 .. code-block:: Python
 
@@ -143,11 +138,10 @@ acquired later in the recovery.
 
     55.2 s, 128 readouts in the longest train, central ADC at 904.0 ms
 
-    <Figure size 946x396 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-126
+.. GENERATED FROM PYTHON SOURCE LINES 118-127
 
 Accelerated sampling
 --------------------
@@ -159,7 +153,7 @@ range of inversion-recovery weighting. Scan duration equals the number of
 inversion cycles multiplied by TR; the fully sampled calibration region still
 requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 126-142
+.. GENERATED FROM PYTHON SOURCE LINES 127-143
 
 .. code-block:: Python
 
@@ -186,14 +180,13 @@ requires every partition.
     1 x 1             2391       24       99.6      55.2
     2 x 2, shift 1     883       24       36.8      55.2
 
-    <Figure size 946x396 with 4 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.437 seconds)
+   **Total running time of the script:** (0 minutes 0.738 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

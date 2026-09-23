@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -581,49 +539,66 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.make_caipirinha_mask">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_caipirinha_mask</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_masks.html#make_caipirinha_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_caipirinha_mask" title="Link to this definition">#</a></dt>
-<dd><p>Generate a 2D CAIPIRINHA lattice undersampling mask.</p>
-<p>Standard CAIPI shift pattern: row <code class="docutils literal notranslate"><span class="pre">ky</span></code> is sampled on the <code class="docutils literal notranslate"><span class="pre">rz</span></code>-grid
-with a per-<code class="docutils literal notranslate"><span class="pre">ky</span></code>-block shift of <code class="docutils literal notranslate"><span class="pre">delta</span></code> along kz, spreading aliasing
-in both phase-encode directions (Breuer et al., MRM 2006).</p>
+<dd><p>Generate a CAIPIRINHA lattice sampling mask.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mask[y,</span> <span class="pre">z]</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> when the view <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> is acquired: line
+<code class="docutils literal notranslate"><span class="pre">y</span></code> is acquired when <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">mod</span> <span class="pre">ry</span> <span class="pre">=</span> <span class="pre">0</span></code>, and on it partition <code class="docutils literal notranslate"><span class="pre">z</span></code> when
+<code class="docutils literal notranslate"><span class="pre">(z</span> <span class="pre">-</span> <span class="pre">delta</span> <span class="pre">*</span> <span class="pre">(y</span> <span class="pre">//</span> <span class="pre">ry))</span> <span class="pre">mod</span> <span class="pre">rz</span> <span class="pre">=</span> <span class="pre">0</span></code>. The lattice is anchored at
+<code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">0)</span></code> and spreads the aliasing along both phase-encoding directions
+<a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Mask shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nz)</span></code>.</p></li>
-<li><p><strong>ry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Acceleration along the first axis.</p></li>
-<li><p><strong>rz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Acceleration along the second axis.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – CAIPI shift applied per sampled-ky step (<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">delta</span> <span class="pre">&lt;</span> <span class="pre">rz</span></code>;
-<code class="docutils literal notranslate"><span class="pre">delta=0</span></code> degenerates to a regular <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">x</span> <span class="pre">rz</span></code> lattice).</p></li>
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Mask shape <code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code>.</p></li>
+<li><p><strong>ry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Undersampling factor along the first axis.</p></li>
+<li><p><strong>rz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Undersampling factor along the second axis.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – CAIPIRINHA shift: partitions the lattice is displaced by per acquired
+line. <code class="docutils literal notranslate"><span class="pre">delta=0</span></code> gives a rectangular <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">x</span> <span class="pre">rz</span></code> lattice.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Boolean mask with nominal acceleration <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">*</span> <span class="pre">rz</span></code>; finite grid
-boundaries can change the realised factor.</p>
+<dd class="field-even"><p>Boolean support mask of shape <code class="docutils literal notranslate"><span class="pre">shape</span></code>, with nominal acceleration
+<code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">*</span> <span class="pre">rz</span></code>; the finite grid can change the realised factor. It
+encodes no acquisition order.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If an acceleration is below one, or the shift is not smaller than the
-    partition acceleration.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If an undersampling factor is below one.</p>
 </dd>
 </dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">make_caipirinha_mask</span><span class="p">((</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-<span class="go">16</span>
-</pre></div>
-</div>
-<div class="admonition-references admonition">
-<p class="admonition-title">References</p>
-<p>Breuer et al., CAIPIRINHA, DOI <code class="docutils literal notranslate"><span class="pre">10.1002/mrm.20787</span></code>.</p>
-</div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_skipped_caipi_order</span></code></dt><dd><p>segmented EPI ordering over this lattice.</p>
+<dt><a class="reference internal" href="pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling" title="pypulseqpp.make_cartesian_plane_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling</span></code></a></dt><dd><p>the same lattice anchored on the k-space centre, with calibration and partial Fourier.</p>
+</dd>
+<dt><a class="reference internal" href="pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets" title="pypulseqpp.make_epi_shot_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_epi_shot_offsets</span></code></a></dt><dd><p>segmented blipped-CAIPI shot offsets that tile this lattice.</p>
 </dd>
 </dl>
+</div>
+<div class="admonition-references admonition">
+<p class="admonition-title">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Breuer FA, Blaimer M, Mueller MF, et al. Controlled aliasing in
+volumetric parallel imaging (2D CAIPIRINHA). <em>Magnetic Resonance in
+Medicine</em>. 2006;55(3):549-556. <a class="reference external" href="https://doi.org/10.1002/mrm.20787">https://doi.org/10.1002/mrm.20787</a></p>
+</aside>
+</aside>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_caipirinha_mask</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="go">array([[1, 0, 1, 0],</span>
+<span class="go">       [0, 0, 0, 0],</span>
+<span class="go">       [0, 1, 0, 1],</span>
+<span class="go">       [0, 0, 0, 0]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="go">[[0, 0], [0, 2], [2, 1], [2, 3]]</span>
+</pre></div>
 </div>
 </dd></dl>
 

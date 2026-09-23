@@ -40,11 +40,11 @@ imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 34-39
 
-Baseline
---------
+Fully sampled acquisition
+-------------------------
 
-A full Cartesian sampling of the slab, with elliptical sampling of the
-phase-encode plane.
+Every ``(line, partition)`` view inside the ellipse inscribed in the
+phase-encode plane is acquired.
 
 .. GENERATED FROM PYTHON SOURCE LINES 39-47
 
@@ -93,12 +93,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2423a70>, tr=3885, underlays=[1, 251, 501, 751, 1001, 1251, 1501, 1751, 1983, 2001, 2251, 2501, 2751, 3001, 3251, 3501, 3751])
 
 
 
@@ -107,8 +101,8 @@ Sequence diagram
 Sampling order
 --------------
 
-Both phase-encode axes are shown. The order runs over the lines of one
-partition before moving to the next.
+Colour encodes acquisition order in the phase-encode plane. All lines of
+one partition are acquired before the next partition.
 
 .. GENERATED FROM PYTHON SOURCE LINES 59-62
 
@@ -126,25 +120,20 @@ partition before moving to the next.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-69
+.. GENERATED FROM PYTHON SOURCE LINES 63-70
 
 Acceleration on both encoded axes
 ---------------------------------
 
 ``ry`` and ``rz`` subsample the line and partition axes independently.
-With ``ry=rz=2``, the outer phase-encode plane requires approximately one
-quarter as many repetitions; the central calibration region remains fully sampled.
+With ``ry=rz=2``, the phase-encode plane outside the central calibration
+region is acquired in approximately one quarter of the repetitions; the
+calibration region remains fully sampled.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-83
+.. GENERATED FROM PYTHON SOURCE LINES 70-84
 
 .. code-block:: Python
 
@@ -169,7 +158,7 @@ quarter as many repetitions; the central calibration region remains fully sample
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 85-87
 
 .. code-block:: Python
 
@@ -184,19 +173,13 @@ quarter as many repetitions; the central calibration region remains fully sample
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.681 seconds)
+   **Total running time of the script:** (0 minutes 23.427 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

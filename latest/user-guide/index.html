@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -569,6 +527,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-sections">Documentation sections</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites-and-supported-platforms">Prerequisites and supported platforms</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-a-shipped-sequence">Running a shipped sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reporting-issues">Reporting issues</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discussions">Discussions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#security">Security</a></li>
@@ -586,7 +545,8 @@
   <section class="tex2jax_ignore mathjax_ignore" id="user-guide">
 <h1>User guide<a class="headerlink" href="#user-guide" title="Link to this heading">#</a></h1>
 <p>Installing the package, the platforms it is supported on, and how the project
-is used and cited. Sequence physics and design concepts are covered in
+is used. The references to cite are on the <a class="reference internal" href="../index.html"><span class="doc">homepage</span></a>.
+Sequence physics and design concepts are covered in
 <a class="reference internal" href="../explanations/index.html"><span class="doc">Explanations</span></a>; executable workflows are in
 <a class="reference internal" href="../examples/index.html"><span class="doc">Examples</span></a>.</p>
 <section id="documentation-sections">
@@ -599,7 +559,7 @@ is used and cited. Sequence physics and design concepts are covered in
 </thead>
 <tbody>
 <tr class="row-even"><td><p>This page</p></td>
-<td><p>Installation, supported platforms, and how to cite the project.</p></td>
+<td><p>Installation, supported platforms, running a shipped sequence, issue reporting and security.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../developer-guide/index.html"><span class="doc">Developer guide</span></a></p></td>
 <td><p>Development setup and contribution workflow.</p></td>
@@ -690,6 +650,24 @@ checked-out Git submodules.</p>
 </div>
 <p>Developer installation is documented in <a class="reference internal" href="../developer-guide/index.html"><span class="doc">Developer guide</span></a>.</p>
 </section>
+<section id="running-a-shipped-sequence">
+<h2>Running a shipped sequence<a class="headerlink" href="#running-a-shipped-sequence" title="Link to this heading">#</a></h2>
+<p>Each shipped sequence is a module of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>. Calling the module
+designs the sequence at the prescription given as keyword arguments and returns
+it; the prescription each accepts is on its page in the
+<a class="reference internal" href="../sequences.html"><span class="doc">catalogue</span></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">gre2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">signature</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"gre_2d.seq"</span><span class="p">)</span>
+
+</pre></div>
+</div>
+<p>Every module is also a command-line entry point, whose options are derived from
+the same prescription:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pypulseqpp.sequences.sequence.gre2D_sequence<span class="w"> </span>--help
+</pre></div>
+</div>
+</section>
 <section id="reporting-issues">
 <h2>Reporting issues<a class="headerlink" href="#reporting-issues" title="Link to this heading">#</a></h2>
 <p>Use the <a class="reference external" href="https://github.com/pulserver/pypulseqpp/issues">GitHub issue tracker</a>
@@ -766,6 +744,7 @@ not through a public issue.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-sections">Documentation sections</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites-and-supported-platforms">Prerequisites and supported platforms</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-a-shipped-sequence">Running a shipped sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reporting-issues">Reporting issues</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discussions">Discussions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#security">Security</a></li>

@@ -23,7 +23,7 @@ Spoiling
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to add a spoiler gradient to the gradient echo of the previous section, and to establish what it does and does not achieve: a spoiler winds the transverse magnetisation left at the end of a repetition through several cycles across a voxel, so that it integrates to nothing there, but it winds every repetition by the same amount and therefore leaves a coherent pathway that survives into the steady state.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the previous section leaves transverse magnetisation at the end of each repetition, and the following pulses refocus part of it. This lesson adds a spoiler gradient after the acquisition. The spoiler dephases the remaining transverse magnetisation through several cycles across a voxel, so that it integrates to nearly zero there; because every repetition applies the same dephasing, a coherent pathway remains and contributes to the steady state.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Spoiling
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to remove the coherent pathway the previous page was left with, by advancing the phase of the pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and to measure which phase increments do so.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson showed that a spoiler gradient leaves a coherent pathway in the steady state. This lesson suppresses the coherent residual transverse pathways by advancing the phase of the RF pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and measures which phase increments bring the steady-state signal close to that of ideal spoiling.">
 
 .. only:: html
 

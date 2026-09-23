@@ -22,29 +22,33 @@
 Segmented echo planar
 ========================
 
-The scope of this notebook is to put a phase-encode blip between the echoes of
-the train of the previous page, so that one excitation acquires several k-space
-lines instead of the same line several times. The number of excitations the
-matrix is divided over is then a free parameter, and it decides both the scan
-time and how far off-resonance displaces the image.
+The multi-echo train of the previous lesson samples the same k-space line
+several times. This lesson adds a phase-encode blip between the echoes, so
+that one excitation acquires several k-space lines. The number of excitations
+(shots) over which the matrix is divided is then a free parameter, and it
+determines both the scan time and the off-resonance displacement in the image.
 
-The observable is that trade-off: the bandwidth per pixel along the
-phase-encode direction, which segmentation raises in proportion to the number
-of shots, against the number of excitations the scan then costs.
-
-Outline:
-
-#. **Blips between the echoes.** One blip per echo, of the area the
-   segmentation calls for.
-#. **One shot.** The blocks of a shot, and the lines it acquires.
-#. **The raster the shots build.** Which lines each excitation contributes.
-#. **Distortion against shot count.** Phase-encode bandwidth and displacement,
-   against the excitations they cost.
-
-The single-shot end of this trade-off is
+The measured relationship is the bandwidth per pixel along the phase-encode
+direction, which increases in proportion to the number of shots, against the
+number of excitations and hence the scan time. The single-shot limit of this
+relationship is the subject of the next lesson,
 :doc:`/generated/gallery/03-gre-to-epi/03_epi`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-38
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- create a phase-encode blip from the number of lines it advances and the
+  field of view;
+- assemble the blocks of one shot, with each blip in the block of the readout
+  gradient it follows;
+- verify from the k-space analysis that interleaved shots cover every line
+  once;
+- compute the phase-encode bandwidth per pixel and the off-resonance
+  displacement as functions of the shot count.
+
+.. GENERATED FROM PYTHON SOURCE LINES 32-42
 
 
 
@@ -53,7 +57,7 @@ The single-shot end of this trade-off is
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-47
+.. GENERATED FROM PYTHON SOURCE LINES 43-51
 
 Blips between the echoes
 ------------------------
@@ -64,7 +68,7 @@ there are shots, so that the shots interleave and together cover every line.
 of view rather than an area, and solves the shortest gradient that delivers
 it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-108
+.. GENERATED FROM PYTHON SOURCE LINES 51-112
 
 .. code-block:: Python
 
@@ -103,7 +107,7 @@ it.
         return_gz=True,
     )
 
-    # The readout of the previous page, at a fixed dwell time.
+    # The readout of the previous lesson, at a fixed dwell time.
     acquisition = MATRIX * DWELL
     raster = system.grad_raster_time
     gx = pp.make_trapezoid(
@@ -142,18 +146,18 @@ it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-117
+.. GENERATED FROM PYTHON SOURCE LINES 113-121
 
 One shot
 --------
 
 A shot is the excitation, the prewinders, and then one block per echo. The
 blip is played in the same block as the readout gradient it follows, on the
-other axis, which is what keeps the echo spacing equal to the duration of one
-readout gradient. The shot's phase-encode prewinder carries k-space to the
-line that shot begins on.
+other axis, so the echo spacing remains equal to the duration of one readout
+gradient. The phase-encode prewinder of each shot moves the k-space position
+to the first line of that shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-164
+.. GENERATED FROM PYTHON SOURCE LINES 121-168
 
 .. code-block:: Python
 
@@ -219,11 +223,10 @@ line that shot begins on.
 
     timing True, 76 blocks, 16 echoes per shot, 0.400 s
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6b13a40>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 165-170
+.. GENERATED FROM PYTHON SOURCE LINES 169-174
 
 The raster the shots build
 --------------------------
@@ -231,7 +234,7 @@ The raster the shots build
 Each excitation contributes every fourth line, and the four together cover
 the matrix, each line once.
 
-.. GENERATED FROM PYTHON SOURCE LINES 170-182
+.. GENERATED FROM PYTHON SOURCE LINES 174-186
 
 .. code-block:: Python
 
@@ -262,11 +265,10 @@ the matrix, each line once.
 
     64 lines from -32 to 31, each acquired 1 to 1 times
 
-    <Figure size 550x500 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 183-200
+.. GENERATED FROM PYTHON SOURCE LINES 187-204
 
 Distortion against shot count
 -----------------------------
@@ -286,7 +288,7 @@ with :math:`S` shots, :math:`N` lines and an echo spacing
 the number of echoes in a shot, which is why an echo planar image is
 distorted along the phase-encode direction and not along the readout.
 
-.. GENERATED FROM PYTHON SOURCE LINES 200-279
+.. GENERATED FROM PYTHON SOURCE LINES 204-283
 
 .. code-block:: Python
 
@@ -335,16 +337,16 @@ distorted along the phase-encode direction and not along the readout.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 280-292
+.. GENERATED FROM PYTHON SOURCE LINES 284-296
 
 Displacement and echo train fall as the reciprocal of the shot count, and the
 scan time rises in proportion to it, so the segmentation is a straight
 exchange of time for geometric fidelity. The other terms of it are the echo
-spacing, which the previous page shortened with the receiver bandwidth and
+spacing, which the previous lesson shortened with the receiver bandwidth and
 which enters the displacement in the same way, and the number of lines, which
 the prescription fixes.
 
-Two things segmentation does not fix. Each shot is excited separately, so any
+Segmentation does not address two effects. Each shot is excited separately, so any
 motion or phase change between them appears as an inconsistency between
 interleaved lines rather than as blurring within one; and the displacement it
 reduces is a property of the trajectory, not of the reconstruction, so an
@@ -353,7 +355,7 @@ image acquired in one shot is distorted whatever is done to it afterwards.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.250 seconds)
+   **Total running time of the script:** (0 minutes 0.438 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_02_segmented.py:

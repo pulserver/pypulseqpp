@@ -39,10 +39,10 @@ motion-robust structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-37
 
-Baseline
---------
+Sixteen-line blades
+-------------------
 
-Sixteen lines to a blade, each blade read after one excitation.
+Sixteen lines per blade, each blade acquired after one excitation.
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-47
 
@@ -92,12 +92,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f24d4ad0>, tr=15, underlays=[1, 3, 5, 7, 9, 10, 11, 13, 17, 19])
 
 
 
@@ -125,24 +119,19 @@ acquired in a single echo train.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-68
+.. GENERATED FROM PYTHON SOURCE LINES 63-69
 
 Wider blades
 ------------
 
-A wider blade is a longer echo-planar train, so the blade covers more of
-the disc and accumulates more off-resonance phase across itself.
+A wider blade requires a longer echo-planar train. Each blade covers more
+of the k-space disc, and more off-resonance phase accumulates across the
+blade's phase-encode direction.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-82
+.. GENERATED FROM PYTHON SOURCE LINES 69-83
 
 .. code-block:: Python
 
@@ -167,7 +156,7 @@ the disc and accumulates more off-resonance phase across itself.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 84-86
 
 .. code-block:: Python
 
@@ -182,19 +171,13 @@ the disc and accumulates more off-resonance phase across itself.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.303 seconds)
+   **Total running time of the script:** (0 minutes 2.177 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

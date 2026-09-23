@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blips-between-the-echoes">Blips between the echoes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-shot">One shot</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-raster-the-shots-build">The raster the shots build</a></li>
@@ -590,25 +549,32 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="segmented-echo-planar">
 <span id="sphx-glr-generated-gallery-03-gre-to-epi-02-segmented-py"></span><h1>Segmented echo planar<a class="headerlink" href="#segmented-echo-planar" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to put a phase-encode blip between the echoes of
-the train of the previous page, so that one excitation acquires several k-space
-lines instead of the same line several times. The number of excitations the
-matrix is divided over is then a free parameter, and it decides both the scan
-time and how far off-resonance displaces the image.</p>
-<p>The observable is that trade-off: the bandwidth per pixel along the
-phase-encode direction, which segmentation raises in proportion to the number
-of shots, against the number of excitations the scan then costs.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Blips between the echoes.</strong> One blip per echo, of the area the
-segmentation calls for.</p></li>
-<li><p><strong>One shot.</strong> The blocks of a shot, and the lines it acquires.</p></li>
-<li><p><strong>The raster the shots build.</strong> Which lines each excitation contributes.</p></li>
-<li><p><strong>Distortion against shot count.</strong> Phase-encode bandwidth and displacement,
-against the excitations they cost.</p></li>
-</ol>
-<p>The single-shot end of this trade-off is
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/03-gre-to-epi/02_segmented.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The multi-echo train of the previous lesson samples the same k-space line
+several times. This lesson adds a phase-encode blip between the echoes, so
+that one excitation acquires several k-space lines. The number of excitations
+(shots) over which the matrix is divided is then a free parameter, and it
+determines both the scan time and the off-resonance displacement in the image.</p>
+<p>The measured relationship is the bandwidth per pixel along the phase-encode
+direction, which increases in proportion to the number of shots, against the
+number of excitations and hence the scan time. The single-shot limit of this
+relationship is the subject of the next lesson,
 <a class="reference internal" href="03_epi.html"><span class="doc">Single-shot echo planar</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>create a phase-encode blip from the number of lines it advances and the
+field of view;</p></li>
+<li><p>assemble the blocks of one shot, with each blip in the block of the readout
+gradient it follows;</p></li>
+<li><p>verify from the k-space analysis that interleaved shots cover every line
+once;</p></li>
+<li><p>compute the phase-encode bandwidth per pixel and the off-resonance
+displacement as functions of the shot count.</p></li>
+</ul>
+</section>
 <section id="blips-between-the-echoes">
 <h2>Blips between the echoes<a class="headerlink" href="#blips-between-the-echoes" title="Link to this heading">#</a></h2>
 <p>Within a shot, consecutive echoes are separated by as many k-space lines as
@@ -650,7 +616,7 @@ it.</p>
 </span>    <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span><span class="w">
-</span><span class="c1"># The readout of the previous page, at a fixed dwell time.</span><span class="w">
+</span><span class="c1"># The readout of the previous lesson, at a fixed dwell time.</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">acquisition</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">MATRIX</span></a> <span class="o">*</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">DWELL</span></a><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">raster</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span></a><span class="w">
 </span><span class="n">gx</span> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span></a><span class="p">(</span><span class="w">
@@ -684,9 +650,9 @@ it.</p>
 <h2>One shot<a class="headerlink" href="#one-shot" title="Link to this heading">#</a></h2>
 <p>A shot is the excitation, the prewinders, and then one block per echo. The
 blip is played in the same block as the readout gradient it follows, on the
-other axis, which is what keeps the echo spacing equal to the duration of one
-readout gradient. The shot’s phase-encode prewinder carries k-space to the
-line that shot begins on.</p>
+other axis, so the echo spacing remains equal to the duration of one readout
+gradient. The phase-encode prewinder of each shot moves the k-space position
+to the first line of that shot.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">segmented</span><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">shots</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">lines</span></a><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">MATRIX</span></a><span class="p">)</span><span class="p">:</span><span class="w">
 </span><span class="w">    </span><span class="sd">&quot;&quot;&quot;A segmented echo planar acquisition covering ``lines`` k-space lines.&quot;&quot;&quot;</span><span class="w">
 </span>    <span class="n">step</span> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.make_phase_blip.html#pypulseqpp.make_phase_blip" title="pypulseqpp.make_phase_blip"><span class="n">pp</span><span class="o">.</span><span class="n">make_phase_blip</span></a><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">y</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fov</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">FOV</span></a><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">shots</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="o">=</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">)</span><span class="w">
@@ -733,8 +699,6 @@ line that shot begins on.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_02_segmented_001.png" srcset="../../../_images/sphx_glr_02_segmented_001.png" alt="02 segmented" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing True, 76 blocks, 16 echoes per shot, 0.400 s
-
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f6b13a40&gt;, tr=1, underlays=[2, 3, 4])
 </pre></div>
 </div>
 </section>
@@ -754,8 +718,6 @@ the matrix, each line once.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_02_segmented_002.png" srcset="../../../_images/sphx_glr_02_segmented_002.png" alt="02 segmented" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>64 lines from -32 to 31, each acquired 1 to 1 times
-
-&lt;Figure size 550x500 with 2 Axes&gt;
 </pre></div>
 </div>
 </section>
@@ -802,15 +764,15 @@ distorted along the phase-encode direction and not along the readout.</p>
 <p>Displacement and echo train fall as the reciprocal of the shot count, and the
 scan time rises in proportion to it, so the segmentation is a straight
 exchange of time for geometric fidelity. The other terms of it are the echo
-spacing, which the previous page shortened with the receiver bandwidth and
+spacing, which the previous lesson shortened with the receiver bandwidth and
 which enters the displacement in the same way, and the number of lines, which
 the prescription fixes.</p>
-<p>Two things segmentation does not fix. Each shot is excited separately, so any
+<p>Segmentation does not address two effects. Each shot is excited separately, so any
 motion or phase change between them appears as an inconsistency between
 interleaved lines rather than as blurring within one; and the displacement it
 reduces is a property of the trajectory, not of the reconstruction, so an
 image acquired in one shot is distorted whatever is done to it afterwards.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.250 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.438 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-03-gre-to-epi-02-segmented-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/c9bb3b153d50e5873f887623405eb5a9/02_segmented.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_segmented.ipynb</span></code></a></p>
@@ -873,6 +835,7 @@ image acquired in one shot is distorted whatever is done to it afterwards.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#blips-between-the-echoes">Blips between the echoes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-shot">One shot</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-raster-the-shots-build">The raster the shots build</a></li>

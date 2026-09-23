@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -787,9 +749,8 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        The block lasts as long as the longest thing in it, rounded up onto</span>
-<span class="sd">        the block duration raster, which is what a caller passing a bare</span>
-<span class="sd">        delay is asking for directly.</span>
+<span class="sd">        The block lasts as long as its longest event, rounded up onto the</span>
+<span class="sd">        block duration raster.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -997,7 +958,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        print_errors : bool, default False, default=False</span>
+<span class="sd">        print_errors : bool, default=False</span>
 <span class="sd">            Print the report as well as returning it.</span>
 
 <span class="sd">        Returns</span>
@@ -1323,9 +1284,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        init : dict[str, int], default=None</span>
 <span class="sd">            Initial value of each label before evaluation begins. A label named here is</span>
-<span class="sd">            reported whether or not the blocks touch it, which is what makes</span>
-<span class="sd">            evaluating a sequence a piece at a time work.</span>
-<span class="sd">        evolution : {'none', 'blocks', 'adc', 'label'}, default 'none', default='none'</span>
+<span class="sd">            reported whether or not the blocks touch it, so that a sequence</span>
+<span class="sd">            can be evaluated one range at a time.</span>
+<span class="sd">        evolution : {'none', 'blocks', 'adc', 'label'}, default='none'</span>
 <span class="sd">            Where to record a value: at the end, at every block, at every</span>
 <span class="sd">            block that acquires, or at every block that sets or increments</span>
 <span class="sd">            one.</span>
@@ -1410,13 +1371,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        append_RF : bool, default False, default=False</span>
+<span class="sd">        append_RF : bool, default=False</span>
 <span class="sd">            Also return the RF envelope, as a fourth waveform channel.</span>
 <span class="sd">        time_range : Sequence[float], default=None</span>
 <span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
 <span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Two 1-based block indices. Not with ``time_range``.</span>
-<span class="sd">        compat : bool, default True, default=True</span>
+<span class="sd">        compat : bool, default=True</span>
 <span class="sd">            Return upstream's five values, which a drop-in caller unpacks.</span>
 <span class="sd">            False returns a named result covering all seven Pulseq RF uses,</span>
 <span class="sd">            which those five values cannot carry.</span>
@@ -1463,7 +1424,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        append_RF : bool, default False, default=False</span>
+<span class="sd">        append_RF : bool, default=False</span>
 <span class="sd">            Also return the RF envelope, as a fourth, complex channel in Hz.</span>
 <span class="sd">        time_range : Sequence[float], default=None</span>
 <span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
@@ -1530,7 +1491,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        time_range : Sequence[float], default=None</span>
 <span class="sd">            Two times in seconds; only the blocks they touch are expanded.</span>
-<span class="sd">        compat : bool, default True, default=True</span>
+<span class="sd">        compat : bool, default=True</span>
 <span class="sd">            Return upstream's four values, which describe two of Pulseq's</span>
 <span class="sd">            seven RF uses. False returns a named result covering all seven.</span>
 
@@ -1568,9 +1529,9 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        trajectory_delay : float | ArrayLike, default 0, default=0.0</span>
+<span class="sd">        trajectory_delay : float | ArrayLike, default=0.0</span>
 <span class="sd">            Per-axis timing correction (s); positive values advance the gradient.</span>
-<span class="sd">        gradient_offset : float | ArrayLike, default 0, default=0.0</span>
+<span class="sd">        gradient_offset : float | ArrayLike, default=0.0</span>
 <span class="sd">            A background gradient per axis, in Hz/m.</span>
 <span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Two 1-based block indices; only those blocks are followed.</span>
@@ -1637,10 +1598,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        trajectory_delay : float | Sequence[float], default 0, default=0</span>
+<span class="sd">        trajectory_delay : float | Sequence[float], default=0</span>
 <span class="sd">            Timing correction in seconds, one value for all axes or one per</span>
 <span class="sd">            axis; positive values advance the gradients.</span>
-<span class="sd">        gradient_offset : float | Sequence[float], default 0, default=0</span>
+<span class="sd">        gradient_offset : float | Sequence[float], default=0</span>
 <span class="sd">            A background gradient in Hz/m, one value for all axes or one per</span>
 <span class="sd">            axis.</span>
 <span class="sd">        time_range : Sequence[float], default=None</span>
@@ -2231,14 +2192,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
-<span class="sd">        create_signature : bool, default True, default=True</span>
+<span class="sd">        create_signature : bool, default=True</span>
 <span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
-<span class="sd">        remove_duplicates : bool, default True, default=True</span>
+<span class="sd">        remove_duplicates : bool, default=True</span>
 <span class="sd">            Collapse identical library rows first. Write a collapsed</span>
 <span class="sd">            copy, leaving this sequence's event libraries unchanged.</span>
-<span class="sd">        check_timing : bool, default False, default=False</span>
+<span class="sd">        check_timing : bool, default=False</span>
 <span class="sd">            Judge the timing first, and warn if anything is wrong.</span>
-<span class="sd">        v141_compat : bool, default False, default=False</span>
+<span class="sd">        v141_compat : bool, default=False</span>
 <span class="sd">            Write 1.4.1 instead, for an interpreter that predates 1.5.</span>
 
 <span class="sd">        Returns</span>
@@ -2291,7 +2252,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
-<span class="sd">        create_signature : bool, default True, default=True</span>
+<span class="sd">        create_signature : bool, default=True</span>
 <span class="sd">            Append the signature section: an MD5 of everything above it, so a</span>
 <span class="sd">            file says whether it is the file that was written.</span>
 
@@ -2328,11 +2289,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
-<span class="sd">        create_signature : bool, default True, default=True</span>
+<span class="sd">        create_signature : bool, default=True</span>
 <span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
-<span class="sd">        gamma : float, default 42576000.0, default=42576000.0</span>
+<span class="sd">        gamma : float, default=42576000.0</span>
 <span class="sd">            Gyromagnetic ratio in Hz/T.</span>
-<span class="sd">        field : float, default 1.5, default=1.5</span>
+<span class="sd">        field : float, default=1.5</span>
 <span class="sd">            Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1</span>
 <span class="sd">            has no column for, to absolute offsets.</span>
 
@@ -2408,14 +2369,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        file_path : str | os.PathLike[str]</span>
 <span class="sd">            The file to read.</span>
-<span class="sd">        detect_rf_use : bool, default False, default=False</span>
+<span class="sd">        detect_rf_use : bool, default=False</span>
 <span class="sd">            Work out what each unlabelled pulse is for, from what it does.</span>
 <span class="sd">            Before revision 1.5.0 the format had nowhere to record it, so a</span>
 <span class="sd">            file older than that arrives with its pulses unlabelled. Pulses</span>
 <span class="sd">            the file does label are left alone.</span>
-<span class="sd">        remove_duplicates : bool, default True, default=True</span>
+<span class="sd">        remove_duplicates : bool, default=True</span>
 <span class="sd">            Collapse identical library rows after reading.</span>
-<span class="sd">        verify : bool, default False, default=False</span>
+<span class="sd">        verify : bool, default=False</span>
 <span class="sd">            Check the file against the signature it carries.</span>
 
 <span class="sd">        Raises</span>
@@ -2534,28 +2495,28 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        label : str, default '', default=''</span>
+<span class="sd">        label : str, default=''</span>
 <span class="sd">            Upstream's ADC label display. Ignored.</span>
-<span class="sd">        show_blocks : bool, default False, default=False</span>
+<span class="sd">        show_blocks : bool, default=False</span>
 <span class="sd">            Upstream's block-boundary grid. Ignored.</span>
-<span class="sd">        save : bool, default False, default=False</span>
+<span class="sd">        save : bool, default=False</span>
 <span class="sd">            Upstream's figure saving. Ignored.</span>
-<span class="sd">        time_range : Sequence[float], default (0, inf), default=(0, np.inf)</span>
+<span class="sd">        time_range : Sequence[float], default=(0, np.inf)</span>
 <span class="sd">            The seconds to draw, measured from the start of the scan.</span>
-<span class="sd">        time_disp : {'s', 'ms', 'us'}, default 's', default='s'</span>
+<span class="sd">        time_disp : {'s', 'ms', 'us'}, default='s'</span>
 <span class="sd">            Upstream's time unit. Ignored.</span>
-<span class="sd">        grad_disp : {'kHz/m', 'mT/m'}, default 'kHz/m', default='kHz/m'</span>
+<span class="sd">        grad_disp : {'kHz/m', 'mT/m'}, default='kHz/m'</span>
 <span class="sd">            Upstream's gradient unit. Ignored.</span>
-<span class="sd">        plot_now : bool, default True, default=True</span>
+<span class="sd">        plot_now : bool, default=True</span>
 <span class="sd">            Wait for the window to be closed before returning. When False,</span>
 <span class="sd">            the window is left open and the returned viewer is live.</span>
-<span class="sd">        clear : bool, default True, default=True</span>
+<span class="sd">        clear : bool, default=True</span>
 <span class="sd">            Upstream's figure clearing. Ignored.</span>
 <span class="sd">        overlay : object, default=None</span>
 <span class="sd">            Upstream's plot to overlay. Ignored.</span>
-<span class="sd">        stacked : bool, default False, default=False</span>
+<span class="sd">        stacked : bool, default=False</span>
 <span class="sd">            Upstream's single stacked figure. Ignored.</span>
-<span class="sd">        show_guides : bool, default False, default=False</span>
+<span class="sd">        show_guides : bool, default=False</span>
 <span class="sd">            Upstream's cursor guides. Ignored.</span>
 <span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            The first and last block to draw, 1-based and inclusive.</span>
@@ -2647,10 +2608,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        time_range : Sequence[float], default (0, inf), default=(0, np.inf)</span>
+<span class="sd">        time_range : Sequence[float], default=(0, np.inf)</span>
 <span class="sd">            Upstream's window, in seconds. Given, the blocks it touches are</span>
 <span class="sd">            drawn alone, without repetitions underneath.</span>
-<span class="sd">        line_width : float, default 1.2, default=1.2</span>
+<span class="sd">        line_width : float, default=1.2</span>
 <span class="sd">            Width of every drawn line, in points.</span>
 <span class="sd">        axes_color : str | tuple[float, ...], default=None</span>
 <span class="sd">            A Matplotlib colour for the baselines and the repetition marker.</span>
@@ -2664,12 +2625,12 @@
 <span class="sd">            A Matplotlib colour for the y gradient row, as ``rf_color``.</span>
 <span class="sd">        gz_color : str | tuple[float, ...], default=None</span>
 <span class="sd">            A Matplotlib colour for the z gradient row, as ``rf_color``.</span>
-<span class="sd">        rf_plot : {'abs', 'real', 'imag'}, default 'abs', default='abs'</span>
+<span class="sd">        rf_plot : {'abs', 'real', 'imag'}, default='abs'</span>
 <span class="sd">            Which part of the RF waveform to draw.</span>
 <span class="sd">        tr : int, default=None</span>
 <span class="sd">            1-based repetition to draw. By default, the one in which a</span>
 <span class="sd">            physical axis reaches its largest magnitude.</span>
-<span class="sd">        max_underlays : int, default 16, default=16</span>
+<span class="sd">        max_underlays : int, default=16</span>
 <span class="sd">            At most this many repetitions, evenly spaced, are drawn underneath,</span>
 <span class="sd">            together with those in which each axis reaches its most negative and</span>
 <span class="sd">            most positive value; 0 draws none.</span>
@@ -2739,7 +2700,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        in_place : bool, default False, default=False</span>
+<span class="sd">        in_place : bool, default=False</span>
 <span class="sd">            Collapse this sequence. Otherwise a copy is collapsed and this</span>
 <span class="sd">            one is left as it is.</span>
 

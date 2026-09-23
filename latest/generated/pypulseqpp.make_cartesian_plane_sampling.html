@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>calc_sampled_pairs &#8212; pypulseqpp documentation</title>
+    <title>make_cartesian_plane_sampling &#8212; pypulseqpp documentation</title>
   
   
   
@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -53,7 +53,7 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.calc_sampled_pairs';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.make_cartesian_plane_sampling';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
@@ -62,7 +62,7 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.calc_sampled_pairs.html" />
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.make_cartesian_plane_sampling.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -424,7 +382,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.calc_sampled_pairs.rst" target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.make_cartesian_plane_sampling.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -441,7 +399,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.calc_sampled_pairs.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.make_cartesian_plane_sampling.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -471,7 +429,7 @@
       
       
       
-      <li><a href="../_sources/generated/pypulseqpp.calc_sampled_pairs.rst" target="_blank"
+      <li><a href="../_sources/generated/pypulseqpp.make_cartesian_plane_sampling.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -554,7 +512,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>calc_sampled_pairs</h1>
+    <h1>make_cartesian_plane_sampling</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -564,7 +522,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_sampled_pairs"><code class="docutils literal notranslate"><span class="pre">calc_sampled_pairs()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.make_cartesian_plane_sampling"><code class="docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -576,65 +534,120 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="calc-sampled-pairs">
-<h1>calc_sampled_pairs<a class="headerlink" href="#calc-sampled-pairs" title="Link to this heading">#</a></h1>
+  <section id="make-cartesian-plane-sampling">
+<h1>make_cartesian_plane_sampling<a class="headerlink" href="#make-cartesian-plane-sampling" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="pypulseqpp.calc_sampled_pairs">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">calc_sampled_pairs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_masks.html#calc_sampled_pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.calc_sampled_pairs" title="Link to this definition">#</a></dt>
-<dd><p>Return the calibration <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> pairs, and the others acquired.</p>
-<p>Lines keep <code class="docutils literal notranslate"><span class="pre">(y</span> <span class="pre">-</span> <span class="pre">n_y</span> <span class="pre">//</span> <span class="pre">2)</span> <span class="pre">%</span> <span class="pre">r_y</span> <span class="pre">==</span> <span class="pre">0</span></code>. The partitions of the <code class="docutils literal notranslate"><span class="pre">j</span></code>-th
-acquired line from the centre keep
-<code class="docutils literal notranslate"><span class="pre">(z</span> <span class="pre">-</span> <span class="pre">n_z</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">-</span> <span class="pre">caipi_shift</span> <span class="pre">*</span> <span class="pre">j)</span> <span class="pre">%</span> <span class="pre">r_z</span> <span class="pre">==</span> <span class="pre">0</span></code>, so the centre pair is
-always acquired and the partition lattice climbs <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> per
-acquired line, which spreads the aliasing into both encoded directions
-rather than along one. Partial Fourier drops the lines and the partitions
-before the centre.</p>
+<dt class="sig sig-object py" id="pypulseqpp.make_cartesian_plane_sampling">
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_cartesian_plane_sampling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_masks.html#make_cartesian_plane_sampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_cartesian_plane_sampling" title="Link to this definition">#</a></dt>
+<dd><p>Select the acquired <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> views of a Cartesian ky-kz plane.</p>
+<p>A view is a zero-based encoded coordinate <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> on the
+<code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code> grid, whose k-space centre is <code class="docutils literal notranslate"><span class="pre">(n_y</span> <span class="pre">//</span> <span class="pre">2,</span> <span class="pre">n_z</span> <span class="pre">//</span> <span class="pre">2)</span></code>.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">sampling='lattice'</span></code> the support is the CAIPIRINHA lattice. With
+<code class="docutils literal notranslate"><span class="pre">R_y,</span> <span class="pre">R_z</span> <span class="pre">=</span> <span class="pre">acceleration</span></code> and <code class="docutils literal notranslate"><span class="pre">Δ</span> <span class="pre">=</span> <span class="pre">caipi_shift</span></code>, line <code class="docutils literal notranslate"><span class="pre">y</span></code> is
+acquired when <code class="docutils literal notranslate"><span class="pre">(y</span> <span class="pre">-</span> <span class="pre">n_y</span> <span class="pre">//</span> <span class="pre">2)</span> <span class="pre">mod</span> <span class="pre">R_y</span> <span class="pre">=</span> <span class="pre">0</span></code>; on the <code class="docutils literal notranslate"><span class="pre">j</span></code>-th acquired line
+counted from the centre line, <code class="docutils literal notranslate"><span class="pre">j</span> <span class="pre">=</span> <span class="pre">(y</span> <span class="pre">-</span> <span class="pre">n_y</span> <span class="pre">//</span> <span class="pre">2)</span> <span class="pre">//</span> <span class="pre">R_y</span></code>, partition
+<code class="docutils literal notranslate"><span class="pre">z</span></code> is acquired when <code class="docutils literal notranslate"><span class="pre">(z</span> <span class="pre">-</span> <span class="pre">n_z</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">-</span> <span class="pre">Δ</span> <span class="pre">j)</span> <span class="pre">mod</span> <span class="pre">R_z</span> <span class="pre">=</span> <span class="pre">0</span></code>. The centre
+view is always acquired; <code class="docutils literal notranslate"><span class="pre">Δ</span> <span class="pre">=</span> <span class="pre">0</span></code> gives a rectangular lattice.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code> the support is a variable-density Poisson-disc
+draw at nominal acceleration <code class="docutils literal notranslate"><span class="pre">R_y</span> <span class="pre">*</span> <span class="pre">R_z</span></code> from
+<a class="reference internal" href="pypulseqpp.make_poisson_disc_mask.html#pypulseqpp.make_poisson_disc_mask" title="pypulseqpp.make_poisson_disc_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_poisson_disc_mask()</span></code></a>. A rectangular calibration region is
+seeded into the draw as a fully sampled block; an elliptical one
+(<code class="docutils literal notranslate"><span class="pre">elliptical_acs=True</span></code>) is not, so the corners of its bounding
+rectangle follow the draw and only the ellipse is acquired in full.
+<code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is ignored.</p>
+<p>For either scheme, partial Fourier and the <code class="docutils literal notranslate"><span class="pre">elliptical</span></code> crop are
+applied to the views outside the calibration region, and the calibration
+region is acquired in full within partial Fourier. <code class="docutils literal notranslate"><span class="pre">elliptical</span></code> has the
+same meaning for both schemes: with <code class="docutils literal notranslate"><span class="pre">False</span></code> no view is removed for lying
+outside the inscribed ellipse.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code>, the lines and the partitions.</p></li>
-<li><p><strong>acceleration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>1</em><em>, </em><em>1</em><em>)</em>) – <code class="docutils literal notranslate"><span class="pre">(r_y,</span> <span class="pre">r_z)</span></code>, the undersampling on each axis.</p></li>
-<li><p><strong>n_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>)</em>) – <code class="docutils literal notranslate"><span class="pre">(n_acs_y,</span> <span class="pre">n_acs_z)</span></code>, the calibration region centred on the centre
-pair. Ignored when neither axis is undersampled.</p></li>
-<li><p><strong>caipi_shift</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Partitions the lattice climbs per acquired line. Zero is a plain
-rectangular lattice.</p></li>
-<li><p><strong>partial_fourier</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=</em><em>(</em><em>1.0</em><em>, </em><em>1.0</em><em>)</em>) – Fraction of each axis acquired, in <code class="docutils literal notranslate"><span class="pre">(0.5,</span> <span class="pre">1]</span></code>.</p></li>
-<li><p><strong>elliptical</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Keep only the pairs inside the ellipse inscribed in the grid, whose
-corners carry no resolution the axes do not already give.</p></li>
-<li><p><strong>elliptical_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Shape the calibration region as the ellipse inscribed in it rather
-than as a rectangle.</p></li>
-<li><p><strong>shuffling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Draw the pairs from a variable-density Poisson disc at <code class="docutils literal notranslate"><span class="pre">r_y</span> <span class="pre">*</span> <span class="pre">r_z</span></code>
-instead of from the lattice, which spreads the aliasing incoherently
-rather than into a fixed replica and is what a reconstruction with a
-sparsity prior wants. <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> then does nothing.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Seed for that draw.</p></li>
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code>, the number of lines and partitions.</p></li>
+<li><p><strong>acceleration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>1</em><em>, </em><em>1</em><em>)</em>) – <code class="docutils literal notranslate"><span class="pre">(R_y,</span> <span class="pre">R_z)</span></code>, the undersampling factor on each axis.</p></li>
+<li><p><strong>n_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>)</em>) – <code class="docutils literal notranslate"><span class="pre">(n_acs_y,</span> <span class="pre">n_acs_z)</span></code>, extent of the fully sampled calibration region
+centred on the centre view. Ignored when <code class="docutils literal notranslate"><span class="pre">R_y</span> <span class="pre">*</span> <span class="pre">R_z</span></code> is 1.</p></li>
+<li><p><strong>caipi_shift</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – CAIPIRINHA shift <code class="docutils literal notranslate"><span class="pre">Δ</span></code>: partitions the lattice is displaced by per
+acquired line. <code class="docutils literal notranslate"><span class="pre">sampling='lattice'</span></code> only.</p></li>
+<li><p><strong>partial_fourier</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=</em><em>(</em><em>1.0</em><em>, </em><em>1.0</em><em>)</em>) – Fraction of each axis acquired, in <code class="docutils literal notranslate"><span class="pre">(0.5,</span> <span class="pre">1]</span></code>. The views with the
+lowest indices are removed.</p></li>
+<li><p><strong>elliptical</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Restrict the views outside the calibration region to the ellipse
+inscribed in the grid, for both support schemes.</p></li>
+<li><p><strong>elliptical_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Make the fully sampled calibration region the ellipse inscribed in
+its <code class="docutils literal notranslate"><span class="pre">n_acs</span></code> rectangle. The rectangle’s corners are then acquired
+only where the support scheme selects them.</p></li>
+<li><p><strong>sampling</strong> (<em>{'lattice'</em><em>, </em><em>'poisson'}</em><em>, </em><em>default='lattice'</em>) – Support scheme: the deterministic CAIPIRINHA lattice, or a
+variable-density Poisson-disc draw.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Random seed of the Poisson-disc draw. <code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code> only.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>calibration</strong> (<em>list of tuple of int</em>) – The calibration region, line by line, each line’s partitions
-ascending. Empty when there is none.</p></li>
-<li><p><strong>lattice</strong> (<em>list of tuple of int</em>) – The other pairs acquired, in the same traversal.</p></li>
+<li><p><strong>calibration</strong> (<em>list of tuple of int</em>) – Calibration views <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code>, ordered by line and then by partition.
+Empty when there is no calibration region.</p></li>
+<li><p><strong>imaging</strong> (<em>list of tuple of int</em>) – Acquired views <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> not in <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, in the same order.
+The two lists are disjoint; the acquired support is their union.
+Neither list is an acquisition order: the sequence application
+decides when each view is acquired, and creates its labels.</p></li>
 </ul>
 </p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If an undersampling factor is below one, a calibration extent is
-    negative, or a partial-Fourier fraction is outside <code class="docutils literal notranslate"><span class="pre">(0.5,</span> <span class="pre">1]</span></code>.</p>
+    negative, a partial-Fourier fraction is outside <code class="docutils literal notranslate"><span class="pre">(0.5,</span> <span class="pre">1]</span></code>, or
+    <code class="docutils literal notranslate"><span class="pre">sampling</span></code> is unknown.</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="pypulseqpp.make_cartesian_axis_sampling.html#pypulseqpp.make_cartesian_axis_sampling" title="pypulseqpp.make_cartesian_axis_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_cartesian_axis_sampling</span></code></a></dt><dd><p>the same selection over one encoding axis.</p>
+</dd>
+<dt><a class="reference internal" href="pypulseqpp.make_caipirinha_mask.html#pypulseqpp.make_caipirinha_mask" title="pypulseqpp.make_caipirinha_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_caipirinha_mask</span></code></a></dt><dd><p>the lattice as a boolean mask, without calibration.</p>
+</dd>
+<dt><a class="reference internal" href="pypulseqpp.make_poisson_disc_mask.html#pypulseqpp.make_poisson_disc_mask" title="pypulseqpp.make_poisson_disc_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_poisson_disc_mask</span></code></a></dt><dd><p>the Poisson-disc support as a boolean mask.</p>
+</dd>
+<dt><a class="reference internal" href="pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a></dt><dd><p>assignment of the selected views to echo trains.</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>This routine is the prescription-level support selection used by the
+shipped 3D Cartesian sequences. The mask generators produce support only;
+this routine combines a support scheme with the calibration region,
+partial Fourier and elliptical cropping, and returns the result as
+coordinate lists separated by role. With <code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code> the
+realised acceleration can differ from <code class="docutils literal notranslate"><span class="pre">R_y</span> <span class="pre">*</span> <span class="pre">R_z</span></code>: partial Fourier and
+an elliptical calibration region are applied after the draw.</p>
 <p class="rubric">Examples</p>
+<p>Twofold undersampling on both axes of a 4 x 4 grid, with a 2 x 2
+calibration region at the centre view <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">calibration</span><span class="p">,</span> <span class="n">lattice</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_sampled_pairs</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">calibration</span><span class="p">,</span> <span class="n">imaging</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_cartesian_plane_sampling</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">acceleration</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">n_acs</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">calibration</span>
 <span class="go">[(1, 1), (1, 2), (2, 1), (2, 2)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lattice</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imaging</span>
 <span class="go">[(0, 0), (0, 2), (2, 0)]</span>
 </pre></div>
 </div>
-<p>A CAIPIRINHA shift moves each acquired line’s partitions up by one:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">calc_sampled_pairs</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">caipi_shift</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<p>The view <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code> is on the lattice and in the calibration region; it is
+listed once, in <code class="docutils literal notranslate"><span class="pre">calibration</span></code>. A CAIPIRINHA shift of one partition per
+acquired line displaces the partitions of line 0 relative to line 2:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">make_cartesian_plane_sampling</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">caipi_shift</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 <span class="go">[(0, 1), (0, 3), (2, 0), (2, 2)]</span>
+</pre></div>
+</div>
+<p>The coordinates convert directly to a boolean mask:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">calibration</span> <span class="o">+</span> <span class="n">imaging</span><span class="p">))]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="go">array([[1, 0, 1, 0],</span>
+<span class="go">       [0, 1, 1, 0],</span>
+<span class="go">       [1, 1, 1, 0],</span>
+<span class="go">       [0, 0, 0, 0]])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -670,7 +683,7 @@ ascending. Empty when there is none.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.calc_sampled_pairs"><code class="docutils literal notranslate"><span class="pre">calc_sampled_pairs()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.make_cartesian_plane_sampling"><code class="docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling()</span></code></a></li>
 </ul>
   </nav></div>
 

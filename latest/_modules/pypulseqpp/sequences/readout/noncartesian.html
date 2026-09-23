@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -618,12 +580,12 @@
 <span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
 <span class="sd">    gz_reph : GradEvent, default=None</span>
-<span class="sd">        The rephaser that unwinds ``gz``. Carried left-aligned in the first</span>
+<span class="sd">        The rephaser that unwinds ``gz``. Played left-aligned in the first</span>
 <span class="sd">        block after the pulse -- the TE wait when there is one, otherwise</span>
-<span class="sd">        alongside the prephaser at the head of the spoke, where it costs no</span>
-<span class="sd">        echo time at all. Only an axis the loop's rotation leaves alone can</span>
-<span class="sd">        carry one, so an in-plane acquisition takes a rephaser on z and a</span>
-<span class="sd">        projection takes none.</span>
+<span class="sd">        alongside the prephaser at the head of the spoke, where it adds no</span>
+<span class="sd">        echo time. It is accepted only on an axis that the loop's rotation</span>
+<span class="sd">        leaves unchanged, so an in-plane acquisition takes a rephaser on z and</span>
+<span class="sd">        a projection takes none.</span>
 <span class="sd">    fov : float</span>
 <span class="sd">        Isotropic in-plane field of view (m).</span>
 <span class="sd">    matrix : int</span>
@@ -652,8 +614,9 @@
 <span class="sd">    explicit : bool, default=False</span>
 <span class="sd">        Write out one spoke per entry of ``angles`` instead of one base spoke.</span>
 <span class="sd">    angles : array-like, default=None</span>
-<span class="sd">        In-plane rotations (rad). Required when ``explicit``, refused</span>
-<span class="sd">        otherwise -- a sampling pattern is not the readout's to hold.</span>
+<span class="sd">        In-plane rotations (rad). Required when ``explicit`` and rejected</span>
+<span class="sd">        otherwise; without ``explicit``, the acquisition loop applies the</span>
+<span class="sd">        per-shot rotation.</span>
 <span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Counters emitted on the acquisition block.</span>
 <span class="sd">    trigger : event, default=None</span>
@@ -1046,9 +1009,9 @@
 <span class="sd">    gz : GradEvent, default=None</span>
 <span class="sd">        A selection gradient played in the same block as ``rf``.</span>
 <span class="sd">    gz_reph : GradEvent, default=None</span>
-<span class="sd">        The rephaser that unwinds ``gz``, carried left-aligned in the first</span>
-<span class="sd">        block after the pulse. Only an axis the loop's rotation leaves alone</span>
-<span class="sd">        can carry one.</span>
+<span class="sd">        The rephaser that unwinds ``gz``, played left-aligned in the first</span>
+<span class="sd">        block after the pulse. Accepted only on an axis that the loop's</span>
+<span class="sd">        rotation leaves unchanged.</span>
 <span class="sd">    trajectory : NonCartesianGradient</span>
 <span class="sd">        Solved gradient interleaf with its ADC, prewinder and rewinder.</span>
 <span class="sd">    fov_z : float, default=None</span>
@@ -1075,7 +1038,7 @@
 <span class="sd">        Write out one interleaf per entry of ``angles`` instead of one base</span>
 <span class="sd">        interleaf.</span>
 <span class="sd">    angles : ArrayLike, default=None</span>
-<span class="sd">        In-plane rotations (rad). Required when ``explicit``, refused</span>
+<span class="sd">        In-plane rotations (rad). Required when ``explicit`` and rejected</span>
 <span class="sd">        otherwise.</span>
 <span class="sd">    labels : Sequence[str], default=None</span>
 <span class="sd">        Counters emitted on the acquisition block.</span>

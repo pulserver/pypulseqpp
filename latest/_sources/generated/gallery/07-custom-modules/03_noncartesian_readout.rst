@@ -22,9 +22,10 @@
 A twisting radial readout module
 ================================
 
-The scope of this notebook is to write a non-Cartesian readout module of one's
-own: to state a trajectory as a k-space path, have it solved into a waveform
-under the gradient limits, and publish the result as a module.
+The previous lesson wrote a Cartesian readout module with trapezoidal
+gradients. This lesson writes a non-Cartesian readout module: the trajectory
+is stated as a k-space path, solved into a gradient waveform under the
+gradient limits, and published as a module.
 
 A radial spoke samples the centre of k-space far more densely than the
 periphery: at radius :math:`k`, adjacent spokes of an :math:`N`-interleaf set
@@ -39,32 +40,36 @@ A twisting radial line [JNM92]_ departs from the spoke beyond that radius and
 accumulates azimuth with radius, so that the perpendicular distance between
 neighbouring interleaves stays at the Nyquist spacing.
 
-Outline:
-
-#. **The path.** The trajectory, written as a polyline in k-space.
-#. **The interleaf.** The waveform the solver returns, and the limits it
-   respects.
-#. **The readout module.** The path and the solver behind a module interface.
-#. **Readout duration against a spiral.** The two trajectories at the same
-   coverage.
-#. **One repetition.** The blocks the module publishes.
-#. **Scan loop.** One arm, turned per shot by a rotation extension.
-
-What a module is, and what it must publish, is described in
+The module concept, and the events a module publishes, are described in
 :doc:`/explanations/design/sequence-module`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-47
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- state a twisting radial interleaf as a polyline in k-space from the
+  transition radius :math:`k_t`;
+- solve the path into a time-optimal gradient waveform under the amplitude
+  and slew limits;
+- subclass :class:`~pypulseqpp.sequences.NonCartesianReadout` so that a
+  module designs its own interleaf;
+- compare the readout duration with that of a constant-density spiral of the
+  same coverage;
+- rotate one solved arm per shot with a rotation extension in a scan loop.
+
+.. GENERATED FROM PYTHON SOURCE LINES 44-52
 
 The path
 --------
 
 The arm is a polyline in k-space: its samples set the geometry and nothing
-else. :class:`~pypulseqpp.sequences.Arbitrary` hands it to the time-optimal
+else. :class:`~pypulseqpp.sequences.Arbitrary` passes it to the time-optimal
 solver, which assigns the timing under the amplitude and slew limits and
 builds the gradient events, the acquisition window and the rewinder back to
 k = 0.
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-69
+.. GENERATED FROM PYTHON SOURCE LINES 52-74
 
 .. code-block:: Python
 
@@ -97,7 +102,7 @@ k = 0.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-78
+.. GENERATED FROM PYTHON SOURCE LINES 75-83
 
 The interleaf
 -------------
@@ -108,7 +113,7 @@ duration is not known until the arm is solved, so it is solved once at two
 samples to measure that duration and once more with the number of samples the
 duration holds at the requested rate.
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-99
+.. GENERATED FROM PYTHON SOURCE LINES 83-104
 
 .. code-block:: Python
 
@@ -140,7 +145,7 @@ duration holds at the requested rate.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-109
+.. GENERATED FROM PYTHON SOURCE LINES 105-114
 
 The readout module
 ------------------
@@ -152,7 +157,7 @@ the spoiler. A family that designs its own interleaf subclasses it, builds
 the trajectory in ``init_module`` and forwards the rest, which is how the
 shipped spiral and rosette readouts are written.
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-150
+.. GENERATED FROM PYTHON SOURCE LINES 114-155
 
 .. code-block:: Python
 
@@ -204,17 +209,17 @@ shipped spiral and rosette readouts are written.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-158
+.. GENERATED FROM PYTHON SOURCE LINES 156-163
 
 Readout duration against a spiral
 ---------------------------------
 
 A constant-density spiral designed for the same interleaf count samples the
-same field of view at the same resolution, and spends longer doing it: the
+same field of view at the same resolution with a longer readout: the
 twisting arm crosses the centre of k-space radially, where the spiral has to
 wind through it at the Nyquist pitch.
 
-.. GENERATED FROM PYTHON SOURCE LINES 158-186
+.. GENERATED FROM PYTHON SOURCE LINES 163-191
 
 .. code-block:: Python
 
@@ -261,12 +266,12 @@ wind through it at the Nyquist pitch.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 187-189
+.. GENERATED FROM PYTHON SOURCE LINES 192-194
 
 One repetition
 --------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-216
+.. GENERATED FROM PYTHON SOURCE LINES 194-221
 
 .. code-block:: Python
 
@@ -310,16 +315,15 @@ One repetition
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
     TE 2.080 ms over a 9.240 ms repetition
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6b10410>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 217-222
+.. GENERATED FROM PYTHON SOURCE LINES 222-227
 
 Scan loop
 ---------
@@ -327,7 +331,7 @@ Scan loop
 One solved arm is turned per shot by a rotation extension, which the loop
 adds to every block that drives an in-plane gradient.
 
-.. GENERATED FROM PYTHON SOURCE LINES 222-240
+.. GENERATED FROM PYTHON SOURCE LINES 227-245
 
 .. code-block:: Python
 
@@ -362,11 +366,11 @@ adds to every block that drives an in-plane gradient.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 241-242
+.. GENERATED FROM PYTHON SOURCE LINES 246-247
 
 The arms the loop acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 242-245
+.. GENERATED FROM PYTHON SOURCE LINES 247-250
 
 .. code-block:: Python
 
@@ -382,19 +386,13 @@ The arms the loop acquired.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 550x500 with 1 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-253
+.. GENERATED FROM PYTHON SOURCE LINES 251-258
 
 References
-==========
+----------
 
 .. [JNM92] Jackson JI, Nishimura DG, Macovski A. Twisting radial lines with
    application to robust magnetic resonance imaging of irregular flow.
@@ -404,7 +402,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.143 seconds)
+   **Total running time of the script:** (0 minutes 0.247 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_03_noncartesian_readout.py:

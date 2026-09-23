@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-train-of-readouts">A train of readouts</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-echoes-land">Where the echoes land</a></li>
@@ -590,26 +549,31 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="multi-echo-readouts">
 <span id="sphx-glr-generated-gallery-03-gre-to-epi-01-multi-echo-py"></span><h1>Multi-echo readouts<a class="headerlink" href="#multi-echo-readouts" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to acquire more than one echo per excitation, by
-following the readout gradient with further readouts of alternating polarity.
-Nothing else about the repetition changes, and the echoes land on the same
-k-space line at increasing echo times, which is what a <span class="math notranslate nohighlight">\(T_2^*\)</span> estimate
-is made from.</p>
-<p>The train is also the structure the rest of this section builds on: an echo
-planar readout is this train with a phase-encode blip between the echoes.</p>
-<p>The observable is the echo spacing, which the receiver bandwidth sets, and the
-number of echoes the repetition time admits at each bandwidth.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>A train of readouts.</strong> Alternating polarity, one acquisition window each.</p></li>
-<li><p><strong>One repetition.</strong> The blocks, and what the train costs.</p></li>
-<li><p><strong>Where the echoes land.</strong> The trajectory of the train, from the k-space
-analysis.</p></li>
-<li><p><strong>Echo spacing against receiver bandwidth.</strong> The train length a repetition
-admits, and what it is paid for with.</p></li>
-</ol>
-<p>The single-shot case is
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/03-gre-to-epi/01_multi_echo.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The gradient echo of the first section acquires one echo per excitation. This
+lesson acquires several, by following the readout gradient with further
+readout gradients of alternating polarity. The rest of the repetition is
+unchanged, and the echoes sample the same k-space line at increasing echo
+times, from which a <span class="math notranslate nohighlight">\(T_2^*\)</span> estimate is computed.</p>
+<p>The train is also the basis of the rest of this section: an echo planar
+readout is this train with a phase-encode blip between the echoes, which the
+next two lessons add. The measured quantities here are the echo spacing, which
+depends on the receiver bandwidth, and the number of echoes that fit in the
+repetition time at each bandwidth. The single-shot case is
 <a class="reference internal" href="03_epi.html"><span class="doc">Single-shot echo planar</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>build a train of readout gradients of alternating polarity, each with its
+own ADC event;</p></li>
+<li><p>locate the echoes of the train from the k-space analysis;</p></li>
+<li><p>explain why the even echoes are acquired in reverse order;</p></li>
+<li><p>relate the echo spacing and the train length to the receiver bandwidth,
+the gradient amplitude limit and the ramp times.</p></li>
+</ul>
+</section>
 <section id="a-train-of-readouts">
 <h2>A train of readouts<a class="headerlink" href="#a-train-of-readouts" title="Link to this heading">#</a></h2>
 <p>A readout gradient traverses one k-space line from one end to the other. A
@@ -742,8 +706,6 @@ gradient, ramps included.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_01_multi_echo_001.png" srcset="../../../_images/sphx_glr_01_multi_echo_001.png" alt="01 multi echo" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing True, 1280 blocks, 5.120 s for 6 echoes on each of 128 lines
-
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9e9a3b1a0&gt;, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
 </pre></div>
 </div>
 </section>
@@ -836,12 +798,13 @@ gradient, and a stronger gradient takes longer to ramp, at both ends of every
 echo. Over the sweep the window shortens fourfold and the spacing by a factor
 of little more than two, with the ramps growing from a sixteenth of the echo
 spacing to nearly half of it. Beyond the last point the amplitude the readout
-would need is above the limit and the design is rejected rather than widened.</p>
-<p>What the shorter spacing costs is signal. The noise a sample carries grows as
-the square root of the bandwidth, so the fourfold bandwidth of the sweep is a
-factor of two in the signal-to-noise ratio of each echo, traded for the number
-of echoes and for the shortest echo time.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.177 seconds)</p>
+would need is above the limit, and the factory raises an error rather than
+lengthening the flat top.</p>
+<p>The shorter spacing reduces the signal-to-noise ratio. The noise in a sample
+grows as the square root of the bandwidth, so the fourfold bandwidth of the
+sweep halves the signal-to-noise ratio of each echo, in exchange for the
+number of echoes and a shorter shortest echo time.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.324 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-03-gre-to-epi-01-multi-echo-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/58ca4dcf8219bcef538f92a5b6ae660b/01_multi_echo.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">01_multi_echo.ipynb</span></code></a></p>
@@ -904,6 +867,7 @@ of echoes and for the shortest echo time.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-train-of-readouts">A train of readouts</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-echoes-land">Where the echoes land</a></li>

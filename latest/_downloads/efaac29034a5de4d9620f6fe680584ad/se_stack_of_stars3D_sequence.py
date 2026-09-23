@@ -30,10 +30,10 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Nyquist angular sampling
+# ------------------------
 #
-# A spoke at every partition.
+# The Nyquist set of spoke angles at every partition.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import se_stack_of_stars3D_sequence

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -546,20 +508,21 @@
 <span class="sd">        Per view, the plateau the pulse runs on, held through the dead-time gap.</span>
 <span class="sd">    g_read : list of list of GradEvent</span>
 <span class="sd">        Per view, the plateau under the acquisition and then the turn onto the</span>
-<span class="sd">        next view. The last entry slews to zero instead, closing the shell.</span>
+<span class="sd">        next view. The last entry slews to zero instead, ending the shell.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition, delayed past the gap.</span>
 <span class="sd">    adc_labels : LabelSetEvent or list of LabelSetEvent</span>
 <span class="sd">        One per name in ``labels``; a bare event when there is one.</span>
 <span class="sd">    shot_rotations : numpy.ndarray</span>
-<span class="sd">        ``(n_shots, 3, 3)``, the turn about ``z`` that puts the shell where</span>
-<span class="sd">        each shot samples. Published only when the module generated the shell;</span>
-<span class="sd">        a supplied ordering brings its own.</span>
+<span class="sd">        ``(n_shots, 3, 3)``, the rotation about ``z`` that maps the shell onto</span>
+<span class="sd">        each shot's spoke directions. Published only when the module generated</span>
+<span class="sd">        the shell, not when ``directions`` is supplied.</span>
 <span class="sd">    directions : numpy.ndarray</span>
 <span class="sd">        ``(n_views, 3)``, the spoke directions of one shell, in play order.</span>
 <span class="sd">    step_rad : float</span>
-<span class="sd">        The widest angle between consecutive views. The turn between views is</span>
-<span class="sd">        budgeted for it, so a shell whose steps are equal wastes none of it.</span>
+<span class="sd">        The widest angle between consecutive views. Every turn between views</span>
+<span class="sd">        is allotted the duration of this step, so a shell with equal steps has</span>
+<span class="sd">        no unused turn time.</span>
 <span class="sd">    tr : float</span>
 <span class="sd">        Pulse centre to pulse centre (s).</span>
 <span class="sd">    view_duration : float</span>
@@ -587,11 +550,11 @@
 <span class="sd">        Isotropic matrix size.</span>
 <span class="sd">    directions : array_like, default=None</span>
 <span class="sd">        ``(n_views, 3)`` unit spoke directions, in the order the shell visits</span>
-<span class="sd">        them. Supplying one silences the four generator arguments below; the</span>
-<span class="sd">        default asks ``calc_projection_shell`` for a</span>
-<span class="sd">        shell. An ordering whose steps vary is accepted, but every turn is</span>
-<span class="sd">        given the widest one's slot, so the repetition pays for the worst step</span>
-<span class="sd">        throughout.</span>
+<span class="sd">        them. When supplied, the four generator arguments below are ignored;</span>
+<span class="sd">        by default the shell is generated by ``calc_projection_shell``. An</span>
+<span class="sd">        ordering whose steps vary is accepted, but every turn is allotted the</span>
+<span class="sd">        duration of the widest step, so the repetition is timed for the</span>
+<span class="sd">        largest step throughout.</span>
 <span class="sd">    n_views : int, default=None</span>
 <span class="sd">        Spokes in one shell. Defaults to a Nyquist-matched sphere,</span>
 <span class="sd">        ``ceil(pi * matrix ** 2)``, split evenly between the shots -- so</span>
@@ -623,7 +586,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If a count is out of range, the pulse is too long for the dwell, the</span>
-<span class="sd">        gap swallows the whole spoke, two consecutive views coincide, or the</span>
+<span class="sd">        dead-time gap covers the whole spoke, two consecutive views coincide, or the</span>
 <span class="sd">        requested TR is shorter than the turn needs.</span>
 
 <span class="sd">    Examples</span>

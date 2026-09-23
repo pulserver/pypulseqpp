@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -586,6 +544,31 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="timing-and-rasterization">
 <h1>Timing and rasterization<a class="headerlink" href="#timing-and-rasterization" title="Link to this heading">#</a></h1>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p>Every event time in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized to one of four rasters
+declared in <code class="docutils literal notranslate"><span class="pre">[DEFINITIONS]</span></code>: RF, gradient, ADC and block duration. The
+<a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> defaults are 2 µs for the RF and ADC rasters and 20
+µs for the gradient and block-duration rasters.</p></li>
+<li><p>A block’s duration is independent of the extent of its events, subject to
+being at least as long. A block longer than its events is a delay and is not
+reported; a gradient that ends at a nonzero amplitude before its block ends
+is reported by <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> as <code class="docutils literal notranslate"><span class="pre">GRADIENT_END_NONZERO</span></code>.</p></li>
+<li><p>When the ADC window must coincide with the readout flat top, the smallest
+admissible dwell for <span class="math notranslate nohighlight">\(N\)</span> samples is <span class="math notranslate nohighlight">\(d_{\min} = a\,r/\gcd(N, r)\)</span>, with <span class="math notranslate nohighlight">\(a\)</span>
+the ADC raster, <span class="math notranslate nohighlight">\(g\)</span> the gradient raster and <span class="math notranslate nohighlight">\(r = g/a\)</span>. At the default
+rasters, 128 samples therefore admit at most 100 kHz of receiver bandwidth
+and 100 samples admit 500 kHz.</p></li>
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.calc_adc_timing.html#pypulseqpp.calc_adc_timing" title="pypulseqpp.calc_adc_timing"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_adc_timing()</span></code></a> returns the achieved dwell, so the
+achieved bandwidth <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> may be lower than the one requested; the
+readout modules report it as <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code>.</p></li>
+<li><p>Raster addressability and the dead and ringdown times of the transmit and
+receive chains are separate constraints, and <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> reports both.
+<code class="docutils literal notranslate"><span class="pre">check_timing</span></code> and the constraint checks establish different properties and
+are separate calls.</p></li>
+</ul>
+</div>
 <p>A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
 in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file is quantized before it is written.</p>

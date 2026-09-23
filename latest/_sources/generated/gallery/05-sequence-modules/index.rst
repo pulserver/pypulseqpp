@@ -23,7 +23,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to design slice-selective excitations with the module that solves them, and to measure what the three numbers a selective pulse is specified by — flip angle, slice thickness and time-bandwidth product — do to the slice profile, to the selection gradient and to the peak B_1, and which combinations of them a gradient system admits.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier sections built slice-selective excitations by hand with a pulse factory. This lesson designs them with the excitation module, and measures how the three numbers that specify a selective pulse — flip angle, slice thickness and time-bandwidth product — affect the slice profile, the selection gradient and the peak B_1, and which combinations of them the gradient system permits.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the hand-built readout of the first sections with the module that designs one, and to use the two prescriptions the earlier pages solved by hand — a partial echo and a multi-echo train — as the check that the module reaches the same answers and states them.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson replaced the hand-built excitation with a module. This lesson replaces the hand-built readout of the first sections with the readout module, and uses two prescriptions that the earlier lessons solved by hand — a partial echo and a multi-echo train — to check that the module reaches the same results and reports them.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to assemble the modules of the two previous pages into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates those three, and is the base class every shipped sequence is written against, so what is written here is what a sequence in /sequences is written as.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates these three and is the base class of every shipped sequence, so the application written here has the same form as a sequence in /sequences.">
 
 .. only:: html
 

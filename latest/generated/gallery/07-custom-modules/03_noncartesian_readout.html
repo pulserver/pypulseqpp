@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,15 +526,14 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path">The path</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-interleaf">The interleaf</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-readout-module">The readout module</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration-against-a-spiral">Readout duration against a spiral</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -595,9 +552,12 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="a-twisting-radial-readout-module">
 <span id="sphx-glr-generated-gallery-07-custom-modules-03-noncartesian-readout-py"></span><h1>A twisting radial readout module<a class="headerlink" href="#a-twisting-radial-readout-module" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to write a non-Cartesian readout module of one’s
-own: to state a trajectory as a k-space path, have it solved into a waveform
-under the gradient limits, and publish the result as a module.</p>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/07-custom-modules/03_noncartesian_readout.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The previous lesson wrote a Cartesian readout module with trapezoidal
+gradients. This lesson writes a non-Cartesian readout module: the trajectory
+is stated as a k-space path, solved into a gradient waveform under the
+gradient limits, and published as a module.</p>
 <p>A radial spoke samples the centre of k-space far more densely than the
 periphery: at radius <span class="math notranslate nohighlight">\(k\)</span>, adjacent spokes of an <span class="math notranslate nohighlight">\(N\)</span>-interleaf set
 are <span class="math notranslate nohighlight">\(2\pi k / N\)</span> apart, which exceeds the Nyquist spacing
@@ -607,23 +567,27 @@ are <span class="math notranslate nohighlight">\(2\pi k / N\)</span> apart, whic
 <p>A twisting radial line <a class="reference internal" href="#jnm92" id="id1"><span>[JNM92]</span></a> departs from the spoke beyond that radius and
 accumulates azimuth with radius, so that the perpendicular distance between
 neighbouring interleaves stays at the Nyquist spacing.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>The path.</strong> The trajectory, written as a polyline in k-space.</p></li>
-<li><p><strong>The interleaf.</strong> The waveform the solver returns, and the limits it
-respects.</p></li>
-<li><p><strong>The readout module.</strong> The path and the solver behind a module interface.</p></li>
-<li><p><strong>Readout duration against a spiral.</strong> The two trajectories at the same
-coverage.</p></li>
-<li><p><strong>One repetition.</strong> The blocks the module publishes.</p></li>
-<li><p><strong>Scan loop.</strong> One arm, turned per shot by a rotation extension.</p></li>
-</ol>
-<p>What a module is, and what it must publish, is described in
+<p>The module concept, and the events a module publishes, are described in
 <a class="reference internal" href="../../../explanations/design/sequence-module.html"><span class="doc">Sequence modules</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>state a twisting radial interleaf as a polyline in k-space from the
+transition radius <span class="math notranslate nohighlight">\(k_t\)</span>;</p></li>
+<li><p>solve the path into a time-optimal gradient waveform under the amplitude
+and slew limits;</p></li>
+<li><p>subclass <a class="reference internal" href="../../pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a> so that a
+module designs its own interleaf;</p></li>
+<li><p>compare the readout duration with that of a constant-density spiral of the
+same coverage;</p></li>
+<li><p>rotate one solved arm per shot with a rotation extension in a scan loop.</p></li>
+</ul>
+</section>
 <section id="the-path">
 <h2>The path<a class="headerlink" href="#the-path" title="Link to this heading">#</a></h2>
 <p>The arm is a polyline in k-space: its samples set the geometry and nothing
-else. <a class="reference internal" href="../../pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary" title="pypulseqpp.sequences.Arbitrary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Arbitrary</span></code></a> hands it to the time-optimal
+else. <a class="reference internal" href="../../pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary" title="pypulseqpp.sequences.Arbitrary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Arbitrary</span></code></a> passes it to the time-optimal
 solver, which assigns the timing under the amplitude and slew limits and
 builds the gradient events, the acquisition window and the rewinder back to
 k = 0.</p>
@@ -724,7 +688,7 @@ shipped spiral and rosette readouts are written.</p>
 <section id="readout-duration-against-a-spiral">
 <h2>Readout duration against a spiral<a class="headerlink" href="#readout-duration-against-a-spiral" title="Link to this heading">#</a></h2>
 <p>A constant-density spiral designed for the same interleaf count samples the
-same field of view at the same resolution, and spends longer doing it: the
+same field of view at the same resolution with a longer readout: the
 twisting arm crosses the centre of k-space radially, where the spiral has to
 wind through it at the Nyquist pitch.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span></a><span class="p">(</span><span class="w">
@@ -788,12 +752,10 @@ transition radius 11.6 of 290.9 1/m
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.add_block.html#pypulseqpp.Sequence.add_block" title="pypulseqpp.Sequence.add_block"><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span></a><span class="p">(</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">block</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_03_noncartesian_readout_001.png" srcset="../../../_images/sphx_glr_03_noncartesian_readout_001.png" alt="03 noncartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+<img src="../../../_images/sphx_glr_03_noncartesian_readout_001.png" srcset="../../../_images/sphx_glr_03_noncartesian_readout_001.png" alt="03 noncartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
   made = factory(*args, **kwargs)
 events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
 TE 2.080 ms over a 9.240 ms repetition
-
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f6b10410&gt;, tr=1, underlays=[])
 </pre></div>
 </div>
 </section>
@@ -824,11 +786,9 @@ adds to every block that drives an in-plane gradient.</p>
 <p>The arms the loop acquired.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">scan</span></a><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_03_noncartesian_readout_002.png" srcset="../../../_images/sphx_glr_03_noncartesian_readout_002.png" alt="03 noncartesian readout" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x500 with 1 Axes&gt;
-</pre></div>
-</div>
+<img src="../../../_images/sphx_glr_03_noncartesian_readout_002.png" srcset="../../../_images/sphx_glr_03_noncartesian_readout_002.png" alt="03 noncartesian readout" class = "sphx-glr-single-img"/></section>
 <section id="references">
-<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <div role="list" class="citation-list">
 <div class="citation" id="jnm92" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">JNM92</a><span class="fn-bracket">]</span></span>
@@ -838,7 +798,7 @@ application to robust magnetic resonance imaging of irregular flow.
 <a class="reference external" href="https://doi.org/10.1002/mrm.1910280209">https://doi.org/10.1002/mrm.1910280209</a></p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.143 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.247 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-07-custom-modules-03-noncartesian-readout-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/494378829458929739af1af1e3e782f7/03_noncartesian_readout.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_noncartesian_readout.ipynb</span></code></a></p>
@@ -851,7 +811,6 @@ application to robust magnetic resonance imaging of irregular flow.
 </div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
-</section>
 </section>
 </section>
 
@@ -902,15 +861,14 @@ application to robust magnetic resonance imaging of irregular flow.
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path">The path</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-interleaf">The interleaf</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-readout-module">The readout module</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#readout-duration-against-a-spiral">Readout duration against a spiral</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-repetition">One repetition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scan-loop">Scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
@@ -583,23 +541,25 @@
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-and-system-limits">
 <h1>Sequence and system limits<a class="headerlink" href="#sequence-and-system-limits" title="Link to this heading">#</a></h1>
 <p>The sequence container, the system limits a sequence is designed under, and
-the geometry transforms applied to a finished one.</p>
+the geometry transforms applied to a finished sequence. Gradient amplitude
+limits are in Hz/m, slew-rate limits in Hz/m/s and rasters in s;
+<a class="reference internal" href="../explanations/pulseq/index.html"><span class="doc">Pulseq representation</span></a> describes the format these objects
+represent.</p>
 <section id="sequence-container">
 <h2>Sequence container<a class="headerlink" href="#sequence-container" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../explanations/pulseq/index.html"><span class="doc">Pulseq representation</span></a> describes the format these objects represent.</p>
-<p><a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a> holds the event libraries, block table, definitions and
-system limits of one Pulseq sequence. It builds, reads and writes the sequence,
-expands its gradient and RF waveforms and its k-space trajectory, inspects its
-structure and checks its timing, over the compiled core.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sequence</span></code></a></p></td>
-<td><p>A Pulseq sequence containing events, blocks and definitions.</p></td>
+<td><p>System limits</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Sequence</span></code> holding libraries, blocks, definitions, system limits</p></td>
+<td><p>Block construction, file I/O, waveform, k-space and timing analysis.</p></td>
 </tr>
 </tbody>
 </table>
@@ -607,20 +567,19 @@ structure and checks its timing, over the compiled core.</p>
 </section>
 <section id="field-of-view-transforms">
 <h2>Field-of-view transforms<a class="headerlink" href="#field-of-view-transforms" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> applies a prescription to an existing sequence:
-per-axis gradient amplitude scaling in the logical frame, a rotation composed
-after each block’s own rotation, and a translation in logical metres. Field of
-view scales inversely with gradient amplitude, so halving an axis’s amplitude
-doubles the field of view along it.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></p></td>
-<td><p>Geometry prescription applied to an existing sequence.</p></td>
+<td><p>Rotation, translation (m), per-axis gradient scale, or 4-by-4 transform</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code>; <code class="docutils literal notranslate"><span class="pre">apply_to_sequence</span></code> returns the transformed sequence</p></td>
+<td><p>Prescription geometry in the logical frame.</p></td>
 </tr>
 </tbody>
 </table>
@@ -628,37 +587,46 @@ doubles the field of view along it.</p>
 </section>
 <section id="system-limits">
 <h2>System limits<a class="headerlink" href="#system-limits" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> holds the gradient amplitude, slew-rate, RF and ADC limits
-together with the RF, gradient, ADC and block duration rasters.
-<a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> and <a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> return adjusted copies and
-leave the caller’s limits unchanged. <code class="docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code>
-are the fractions <a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> applies by default, so that a
-design solved one axis at a time stays within the limit when more than one axis
-plays.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> and <a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> return copies and do not
+modify their argument.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opts</span></code></a></p></td>
-<td><p>PyPulseq system limits with shared raster defaults.</p></td>
+<td><p>Gradient and slew limits with units, rasters, dead times, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> holding limits in Hz/m, Hz/m/s and rasters in s</p></td>
+<td><p>System limits and rasters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.default_system.html#pypulseqpp.default_system" title="pypulseqpp.default_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_system</span></code></a></p></td>
-<td><p>Return <code class="docutils literal notranslate"><span class="pre">system</span></code>, or the shared default system when it is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The argument, or the shared default <code class="docutils literal notranslate"><span class="pre">Opts</span></code></p></td>
+<td><p>Default-system resolution.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></p></td>
-<td><p>Return a copy with gradient and slew limits scaled from their base values.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew fractions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits scaled from base values</p></td>
+<td><p>Derated design limits.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cap_system</span></code></a></p></td>
-<td><p>Return a copy with gradient and slew limits lowered to the specified ceilings.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew ceilings with their units</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits lowered to the ceilings</p></td>
+<td><p>Capped design limits.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_GRAD_DERATE.html#pypulseqpp.MAX_GRAD_DERATE" title="pypulseqpp.MAX_GRAD_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code></a></p></td>
-<td><p>Fraction of the gradient amplitude limit a designed waveform may reach.</p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Default <code class="docutils literal notranslate"><span class="pre">grad_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a></p></td>
-<td><p>Fraction of the slew-rate limit a designed waveform may reach.</p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Default <code class="docutils literal notranslate"><span class="pre">slew_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>.</p></td>
 </tr>
 </tbody>
 </table>

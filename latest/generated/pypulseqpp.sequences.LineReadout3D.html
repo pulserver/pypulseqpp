@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -619,14 +577,14 @@ achieved rate, subject to both ADC and gradient raster constraints.</p></li>
 <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero is balanced.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Length the spoiling is counted over (m). Defaults to the readout
 resolution.</p></li>
-<li><p><strong>spoiling_position</strong> (<em>{'post'</em><em>, </em><em>'pre'}</em><em>, </em><em>default='post'</em>) – Which side of the acquisition the dephasing lobe sits on.</p></li>
+<li><p><strong>spoiling_position</strong> (<em>{'post'</em><em>, </em><em>'pre'}</em><em>, </em><em>default='post'</em>) – Side of the acquisition on which the dephasing lobe is played.</p></li>
 <li><p><strong>n_echoes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – Echoes per repetition.</p></li>
 <li><p><strong>flyback</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – With more than one echo: rewind between echoes so every one is read in
 the same direction (monopolar, the default), or alternate the readout
 sign (bipolar), which is faster but reads even echoes backwards and
 puts any gradient-delay error into a phase difference between them.
 A bipolar train needs as many samples before the echo as after it, so
-it refuses partial echo and an odd sample count.</p></li>
+partial echo and an odd sample count are rejected.</p></li>
 <li><p><strong>echo_spacing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Echo spacing (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible: the readout lobe
 of a bipolar train, the lobe and its rewinder for a monopolar one.
 Ignored with one echo.</p></li>
@@ -637,7 +595,8 @@ is zero, which builds no wave-encoding gradients.</p></li>
 <li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.008</em>) – Requested peak wave-encoding gradient amplitude, in T/m rather than the
 Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
 module’s <code class="docutils literal notranslate"><span class="pre">wave_amplitude</span></code> attribute reports the amplitude built.</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the acquisition block. The loop writes the values.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the acquisition block. The acquisition loop
+assigns their values.</p></li>
 <li><p><strong>trigger</strong> (<em>event</em><em>, </em><em>default=None</em>) – A trigger or digital output armed on the prewinder block.</p></li>
 </ul>
 </dd>
@@ -647,15 +606,15 @@ module’s <code class="docutils literal notranslate"><span class="pre">wave_amp
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
 <li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given, left-aligned in whichever block follows
 the pulse.</p></li>
-<li><p><strong>gx_pre</strong> (<em>GradEvent</em>) – Readout prephaser, right-aligned in the prewinder block. Carries the
-spoiler under <code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>.</p></li>
+<li><p><strong>gx_pre</strong> (<em>GradEvent</em>) – Readout prephaser, right-aligned in the prewinder block. Includes the
+spoiler area under <code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>.</p></li>
 <li><p><strong>gx</strong> (<em>GradEvent</em>) – Readout lobe. A spoiler is bridged onto it when there is one echo: the
 lobe then lacks the ramp on the spoiler’s side, which <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code> or
 <code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> plays instead. Where the spoiler is bridged onto the end,
 the plateau is held to the end of the acquisition block, past the last
-sample by the ADC dead time, so that the spoiler has a plateau to leave
-from; <code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> carries correspondingly less area.</p></li>
-<li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Closes the TR on the read axis: rewinds the part of the line after the
+sample by the ADC dead time, so that the spoiler starts at the plateau
+amplitude; <code class="docutils literal notranslate"><span class="pre">gx_spoil</span></code> has correspondingly less area.</p></li>
+<li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Last read-axis gradient of the TR: rewinds the part of the line after the
 echo and, under <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.
 Left-aligned with <code class="docutils literal notranslate"><span class="pre">gy_rew</span></code>.</p></li>
 <li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>

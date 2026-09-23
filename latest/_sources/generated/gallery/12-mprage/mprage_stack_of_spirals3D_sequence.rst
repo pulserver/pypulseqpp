@@ -92,12 +92,6 @@ produce a compact timing diagram.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9d1f231a0>, tr=2, underlays=[1, 3, 4])
 
 
 
@@ -106,7 +100,7 @@ produce a compact timing diagram.
 Sampling order
 --------------
 
-One inversion reads the interleaves of one partition, so the inversion cycle
+Each inversion cycle acquires the interleaves of one partition, so the cycle
 is constant along each row. The interleaf train contains substantially fewer
 readouts than an equivalent Cartesian line train, reducing the range of
 inversion-recovery weighting. ``TI`` ends at the first excitation-pulse
@@ -131,24 +125,19 @@ centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x374 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-116
+.. GENERATED FROM PYTHON SOURCE LINES 111-117
 
 Trajectory
 ----------
 
 The interleaves of every partition, over the three k-space axes, coloured by
-shot. Each one is turned from the last so that the set covers the plane.
+shot. Each interleaf is the same spiral gradient waveform rotated to its own
+angle; the rotated set covers the in-plane k-space disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-119
+.. GENERATED FROM PYTHON SOURCE LINES 117-120
 
 .. code-block:: Python
 
@@ -164,19 +153,13 @@ shot. Each one is turned from the last so that the set covers the plane.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.694 seconds)
+   **Total running time of the script:** (0 minutes 11.127 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

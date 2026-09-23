@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -597,11 +555,11 @@ the inter-view slew rather than adding an idle delay.</p>
 <li><p><strong>fov</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Isotropic field of view (m).</p></li>
 <li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Isotropic matrix size.</p></li>
 <li><p><strong>directions</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(n_views,</span> <span class="pre">3)</span></code> unit spoke directions, in the order the shell visits
-them. Supplying one silences the four generator arguments below; the
-default asks <code class="docutils literal notranslate"><span class="pre">calc_projection_shell</span></code> for a
-shell. An ordering whose steps vary is accepted, but every turn is
-given the widest one’s slot, so the repetition pays for the worst step
-throughout.</p></li>
+them. When supplied, the four generator arguments below are ignored;
+by default the shell is generated by <code class="docutils literal notranslate"><span class="pre">calc_projection_shell</span></code>. An
+ordering whose steps vary is accepted, but every turn is allotted the
+duration of the widest step, so the repetition is timed for the
+largest step throughout.</p></li>
 <li><p><strong>n_views</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=None</em>) – Spokes in one shell. Defaults to a Nyquist-matched sphere,
 <code class="docutils literal notranslate"><span class="pre">ceil(pi</span> <span class="pre">*</span> <span class="pre">matrix</span> <span class="pre">**</span> <span class="pre">2)</span></code>, split evenly between the shots – so
 raising <code class="docutils literal notranslate"><span class="pre">n_shots</span></code> shortens the shell rather than adding spokes.</p></li>
@@ -630,15 +588,16 @@ it plays on a gradient, so its bandwidth has to cover the whole spoke.</p></li>
 One event per axis.</p></li>
 <li><p><strong>g_hold</strong> (<em>list of list of GradEvent</em>) – Per view, the plateau the pulse runs on, held through the dead-time gap.</p></li>
 <li><p><strong>g_read</strong> (<em>list of list of GradEvent</em>) – Per view, the plateau under the acquisition and then the turn onto the
-next view. The last entry slews to zero instead, closing the shell.</p></li>
+next view. The last entry slews to zero instead, ending the shell.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition, delayed past the gap.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>; a bare event when there is one.</p></li>
-<li><p><strong>shot_rotations</strong> (<em>numpy.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n_shots,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>, the turn about <code class="docutils literal notranslate"><span class="pre">z</span></code> that puts the shell where
-each shot samples. Published only when the module generated the shell;
-a supplied ordering brings its own.</p></li>
+<li><p><strong>shot_rotations</strong> (<em>numpy.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n_shots,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>, the rotation about <code class="docutils literal notranslate"><span class="pre">z</span></code> that maps the shell onto
+each shot’s spoke directions. Published only when the module generated
+the shell, not when <code class="docutils literal notranslate"><span class="pre">directions</span></code> is supplied.</p></li>
 <li><p><strong>directions</strong> (<em>numpy.ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(n_views,</span> <span class="pre">3)</span></code>, the spoke directions of one shell, in play order.</p></li>
-<li><p><strong>step_rad</strong> (<em>float</em>) – The widest angle between consecutive views. The turn between views is
-budgeted for it, so a shell whose steps are equal wastes none of it.</p></li>
+<li><p><strong>step_rad</strong> (<em>float</em>) – The widest angle between consecutive views. Every turn between views
+is allotted the duration of this step, so a shell with equal steps has
+no unused turn time.</p></li>
 <li><p><strong>tr</strong> (<em>float</em>) – Pulse centre to pulse centre (s).</p></li>
 <li><p><strong>view_duration</strong> (<em>float</em>) – Plateau held for one view, before the turn (s).</p></li>
 <li><p><strong>n_samples, n_missing, n_nominal</strong> (<em>int</em>) – Samples acquired, lost to the gap, and the full half-spoke.</p></li>
@@ -650,7 +609,7 @@ budgeted for it, so a shell whose steps are equal wastes none of it.</p></li>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a count is out of range, the pulse is too long for the dwell, the
-    gap swallows the whole spoke, two consecutive views coincide, or the
+    dead-time gap covers the whole spoke, two consecutive views coincide, or the
     requested TR is shorter than the turn needs.</p>
 </dd>
 </dl>

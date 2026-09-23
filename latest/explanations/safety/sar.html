@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -67,7 +67,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/explanations/safety/sar.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Examples" href="../../examples/index.html" />
+    <link rel="next" title="Check conventions" href="conventions.html" />
     <link rel="prev" title="Mechanical resonance" href="mechanical_resonance.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Gradient, PNS and SAR constraints</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -569,10 +527,10 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-observation-points">Virtual observation points</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#drive-calibration-from-rf-amplitude">Drive calibration from RF amplitude</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-window">Averaging window</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#channel-drive-and-time-average">Channel drive and time average</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-windows">Averaging windows</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-with-a-reference-sequence">Comparison with a reference sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitations">Limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
@@ -588,89 +546,123 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="specific-absorption-rate">
 <h1>Specific absorption rate<a class="headerlink" href="#specific-absorption-rate" title="Link to this heading">#</a></h1>
-<p>RF transmission deposits energy in tissue. The regulated quantity is the
-specific absorption rate, in watts per kilogram, averaged over a stated mass and
-a stated time window: a <strong>global</strong> value over the exposed volume and a <strong>local</strong>
-value over any ten grams of tissue, both bounded by IEC 60601-2-33 according to
-the operating mode. <a class="reference internal" href="../../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> estimates both from a
-virtual-observation-point model and compares them with limits.</p>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> computes time-averaged local and global
+SAR in W/kg from a virtual-observation-point model and compares them with
+<code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>, by default 10 W/kg and 3.2 W/kg, the IEC
+60601-2-33 normal-mode head values. The check does not use the gradient
+system limits.</p></li>
+<li><p>Channel <span class="math notranslate nohighlight">\(c\)</span> is driven with <span class="math notranslate nohighlight">\(v_c(t) = d_c\,s_c\,b_c(t)\)</span>, the RF waveform in Hz
+scaled by <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and the block’s RF shim. Local SAR in a window <span class="math notranslate nohighlight">\(W\)</span>
+is the largest time-averaged quadratic form over the VOPs,
+<span class="math notranslate nohighlight">\(\max_k \mathrm{SAR}_k(W)\)</span>.</p></li>
+<li><p>The averaging windows are the repetitions detected from the block
+definitions, reported as <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks, or the whole sequence when its
+blocks do not divide into repetitions. The check does not aggregate the
+per-window values over a regulatory averaging interval such as the 6-minute
+interval of IEC 60601-2-33.</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">reference</span></code>, the report adds <code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>. The scale
+of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the VOPs cancels in both ratios; relative channel
+gains do not.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">True</span></code> result states only that the computed window-averaged SAR values do
+not exceed the supplied limits under the stated VOP model and drive
+calibration. <a class="reference internal" href="../../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> is a synthetic model for
+demonstration only.</p></li>
+</ul>
+</div>
+<p>RF transmission deposits energy in tissue. The specific absorption rate (SAR,
+W/kg) is regulated as a <strong>global</strong> value over the exposed mass and a <strong>local</strong>
+value over 10 g of tissue, each averaged over a stated time and bounded by
+IEC 60601-2-33 according to the operating mode.
+<a class="reference internal" href="../../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> computes time-averaged local and global
+SAR from a virtual-observation-point model and compares them with the
+<code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and <code class="docutils literal notranslate"><span class="pre">global_limit</span></code> arguments. The check does not use the
+gradient system limits.</p>
 <section id="virtual-observation-points">
 <h2>Virtual observation points<a class="headerlink" href="#virtual-observation-points" title="Link to this heading">#</a></h2>
-<p>Local SAR is a field in space. For a transmit array with <span class="math notranslate nohighlight">\(N_c\)</span> channels driven
-by a phasor vector <span class="math notranslate nohighlight">\(\mathbf{v}\)</span>, the SAR at a position <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is a
-Hermitian quadratic form,</p>
+<p>For a transmit array with <span class="math notranslate nohighlight">\(N_c\)</span> channels driven by a phasor vector
+<span class="math notranslate nohighlight">\(\mathbf{v}\)</span>, local SAR at position <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is a Hermitian quadratic form,</p>
 <div class="math notranslate nohighlight">
 \[
 \mathrm{SAR}(\mathbf{r}) = \mathbf{v}^{\mathsf H} \, Q(\mathbf{r}) \, \mathbf{v},
 \]</div>
-<p>with one matrix <span class="math notranslate nohighlight">\(Q\)</span> per position, obtained from an electromagnetic simulation on
-a body model. Evaluating the peak over every voxel for every candidate drive is
-not affordable online, and is not necessary: the matrices can be compressed into
-a small set of <strong>virtual observation points</strong>, each an upper bound over a cluster
-of positions, such that the largest value over the set bounds the largest value
-over the body.<a class="footnote-reference brackets" href="#eichfelder" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
-<p><a class="reference internal" href="../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> stores that set as an <span class="math notranslate nohighlight">\((N, N_c, N_c)\)</span> stack
-of Hermitian matrices, in W/kg per unit channel drive squared, and optionally a
-global matrix evaluated the same way over the whole exposed volume. The model is
-read from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file by <a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a>.
+<p>with one matrix <span class="math notranslate nohighlight">\(Q\)</span> per position from an electromagnetic simulation on a body
+model. Virtual observation points (VOPs) compress these matrices into a small
+set <span class="math notranslate nohighlight">\(\{Q_k\}\)</span> whose largest value bounds the largest value over the body
+model.<a class="footnote-reference brackets" href="#eichfelder" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+<p><a class="reference internal" href="../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> holds the <span class="math notranslate nohighlight">\((N, N_c, N_c)\)</span> VOP stack, in
+W/kg per unit channel drive squared, and an optional global matrix;
+<a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> reads it from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.
 <a class="reference internal" href="../../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> returns a synthetic eight-channel model
-of a loop array around a uniform cylinder, together with the drive calibration
-and circularly polarized shim that go with it. It models no tissue, no coil
-coupling and no conservative field, so its numbers are plausible in scale and
-nothing more, and it is for demonstrations only.</p>
+of a loop array around a uniform cylinder, with no tissue, coil coupling or
+conservative field, for demonstration only.</p>
 </section>
-<section id="drive-calibration-from-rf-amplitude">
-<h2>Drive calibration from RF amplitude<a class="headerlink" href="#drive-calibration-from-rf-amplitude" title="Link to this heading">#</a></h2>
-<p>A Pulseq RF event states an amplitude in Hz, which is a statement about the
-<span class="math notranslate nohighlight">\(B_1^+\)</span> field it produces, not about the voltage or current that produces it.
-Converting between the two is a property of the transmit chain and the loading,
-and it is the calibration the check has to be given: <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, one value
-or one per channel, in whatever unit the VOPs were computed in.</p>
-<p>A pulse then drives channel <span class="math notranslate nohighlight">\(c\)</span> with <span class="math notranslate nohighlight">\(\texttt{drive}_c \, s_c \, b_c(t)\)</span>, where
-<span class="math notranslate nohighlight">\(b\)</span> is the waveform in Hz, resampled every microsecond as
-<a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> does, and <span class="math notranslate nohighlight">\(s\)</span> is the block’s RF shim, or
-<code class="docutils literal notranslate"><span class="pre">default_shim</span></code> where a single-channel pulse defines none. A single-channel pulse
-is treated as the same waveform on every channel, weighted by the shim.</p>
+<section id="channel-drive-and-time-average">
+<h2>Channel drive and time average<a class="headerlink" href="#channel-drive-and-time-average" title="Link to this heading">#</a></h2>
+<p>An RF event states its amplitude in Hz of <span class="math notranslate nohighlight">\(B_1^+\)</span>. The conversion to channel
+drive is a property of the transmit chain and loading, and is supplied as
+<code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, one value or one per channel, in the drive unit of the VOPs.
+Channel <span class="math notranslate nohighlight">\(c\)</span> is driven with</p>
+<div class="math notranslate nohighlight">
+\[
+v_c(t) = d_c \, s_c \, b_c(t),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(d_c\)</span> is <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, <span class="math notranslate nohighlight">\(b_c\)</span> the RF waveform in Hz resampled every
+microsecond as <a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> does, and <span class="math notranslate nohighlight">\(s_c\)</span> the block’s
+RF shim, or <code class="docutils literal notranslate"><span class="pre">default_shim</span></code> for a single-channel pulse without one. A
+single-channel pulse is played as the same waveform on every channel. For each
+averaging window <span class="math notranslate nohighlight">\(W\)</span> of duration <span class="math notranslate nohighlight">\(T_W\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{SAR}_k(W) = \frac{1}{T_W} \int_W \mathbf{v}(t)^{\mathsf H} Q_k \, \mathbf{v}(t)\,\mathrm{d}t,
+\qquad
+\mathrm{SAR}_{\mathrm{local}}(W) = \max_k \mathrm{SAR}_k(W),
+\]</div>
+<p>and global SAR is the same integral with the global matrix.</p>
 </section>
-<section id="averaging-window">
-<h2>Averaging window<a class="headerlink" href="#averaging-window" title="Link to this heading">#</a></h2>
-<p>SAR is defined per unit time, so the check needs an interval to average over.
-It uses the repetitions the sequence’s own block definitions repeat with: the
-blocks before the first full repetition, each repetition, and any blocks after
-the last, or the whole sequence when it does not repeat. The largest local value
-over those windows, and the largest global value, are the verdict.</p>
-<p>A repetition rather than a fixed six-minute window is the right unit here
-because a scan’s repetitions are what a longer average is built from, and
-because the worst repetition bounds every window a longer average could
-contain. The report states every window’s values, so a caller averaging over a
-regulatory interval has the per-repetition energies required to do so.</p>
-<p>The window is the sequence’s own structure, so a sequence written with dummy
-repetitions or an unusual prologue reports those as their own windows rather
-than folding them into the steady-state ones.</p>
+<section id="averaging-windows">
+<h2>Averaging windows<a class="headerlink" href="#averaging-windows" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">check_sar</span></code> evaluates RF energy over the repetitions detected from the
+sequence’s block definitions, reported as <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks: consecutive windows
+of <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks from the first block, or the whole sequence as one window
+when its blocks do not divide into repetitions. A <code class="docutils literal notranslate"><span class="pre">TRsize</span></code> definition the
+sequence records is used when the blocks repeat with it, and the detected size
+is recorded otherwise.
+The result is <code class="docutils literal notranslate"><span class="pre">True</span></code> when every window’s local SAR is at most <code class="docutils literal notranslate"><span class="pre">local_limit</span></code>
+and, with a global matrix, every window’s global SAR is at most <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>.
+The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head
+values.</p>
+<p>The report states every window’s first and last block, duration, local SAR,
+VOP index and global SAR. These per-window quantities may subsequently be
+aggregated over a regulatory averaging interval, such as the 6-minute interval
+of IEC 60601-2-33; the check itself does not perform that aggregation.</p>
 </section>
-<section id="relative-comparison-against-a-reference-sequence">
-<h2>Relative comparison against a reference sequence<a class="headerlink" href="#relative-comparison-against-a-reference-sequence" title="Link to this heading">#</a></h2>
-<p>Absolute SAR from a stated model is only as good as the calibration behind it.
-Comparing two sequences under the <em>same</em> model and calibration is much more
-robust, because the scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the VOPs cancels in the
-ratio.</p>
-<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> takes a second sequence, usually a CP-mode free induction decay, or
-the report of an earlier call. The report then states
-<code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code>, the largest ratio over windows and VOPs of a VOP’s SAR to the same
-VOP’s in the reference, and <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>, that ratio weighted by the window
-durations. With a reference lasting its own minimum repetition time,
-<code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code> scales that minimum to this sequence’s repetition at the energy
-each repetition deposits, which is the form a protocol’s SAR headroom is
-usually stated in. Relative channel gains do not cancel, so the reference has to
-be evaluated in the same calibration.</p>
+<section id="comparison-with-a-reference-sequence">
+<h2>Comparison with a reference sequence<a class="headerlink" href="#comparison-with-a-reference-sequence" title="Link to this heading">#</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">reference</span></code>, a second sequence evaluated under the same model, drive and
+default shim, or the report of an earlier call, the report adds</p>
+<div class="math notranslate nohighlight">
+\[
+r_{\mathrm{SAR}} = \max_{W,k} \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}},
+\qquad
+r_{\mathrm{E}} = \max_{W} \left[ \max_k \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}} \right] \frac{T_W}{T^{\mathrm{ref}}},
+\]</div>
+<p>as <code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>, with the reference values taken from the
+reference’s window of largest local SAR. The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the
+VOPs cancels in both ratios; relative channel gains do not. For a reference
+lasting its minimum repetition time, <span class="math notranslate nohighlight">\(r_{\mathrm{E}}\)</span> scales that repetition
+time to the energy per repetition of the checked sequence.</p>
 </section>
-<section id="scope-and-limitations">
-<h2>Scope and limitations<a class="headerlink" href="#scope-and-limitations" title="Link to this heading">#</a></h2>
-<p>The estimate covers the RF energy the sequence’s own waveforms deposit in a
-model of one subject. It does not cover RF coil heating, gradient heating, the
-scanner’s own predownload assessment or its transmit monitor, and it does not
-make a statement about any particular patient. What it establishes is whether
-the sequence, under a stated model and calibration, is within a stated limit.</p>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">#</a></h2>
+<p>The estimate covers the RF energy of the sequence’s own waveforms in a stated
+VOP model and drive calibration. It does not cover RF coil heating, gradient
+heating, the scanner’s predownload assessment or transmit monitoring, and it
+makes no statement about a particular subject. A <code class="docutils literal notranslate"><span class="pre">True</span></code> result states only that
+the computed window-averaged SAR values do not exceed the supplied limits under
+that model and calibration.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
@@ -679,8 +671,7 @@ the sequence, under a stated model and calibration, is within a stated limit.</p
 <a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> and
 <a class="reference internal" href="../../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> — the calls.</p></li>
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> and
-<a class="reference internal" href="../../generated/pypulseqpp.Sequence.calc_rf_power.html#pypulseqpp.Sequence.calc_rf_power" title="pypulseqpp.Sequence.calc_rf_power"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> — the RF power the check
-integrates, in Pulseq’s Hz units.</p></li>
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.calc_rf_power.html#pypulseqpp.Sequence.calc_rf_power" title="pypulseqpp.Sequence.calc_rf_power"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> — RF power in Pulseq’s Hz units.</p></li>
 <li><p><a class="reference internal" href="../../examples/checks.html"><span class="doc">Constraint checks</span></a> — running the check over a
 sequence and reading its report.</p></li>
 </ul>
@@ -717,11 +708,11 @@ sequence and reading its report.</p></li>
       </div>
     </a>
     <a class="right-next"
-       href="../../examples/index.html"
+       href="conventions.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Check conventions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -744,10 +735,10 @@ sequence and reading its report.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-observation-points">Virtual observation points</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#drive-calibration-from-rf-amplitude">Drive calibration from RF amplitude</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-window">Averaging window</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relative-comparison-against-a-reference-sequence">Relative comparison against a reference sequence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-and-limitations">Scope and limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#channel-drive-and-time-average">Channel drive and time average</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#averaging-windows">Averaging windows</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-with-a-reference-sequence">Comparison with a reference sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitations">Limitations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>

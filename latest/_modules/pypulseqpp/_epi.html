@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -499,25 +461,28 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._epi</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Within-shot echo orderings for EPI trains.</span>
+<span></span><span class="sd">"""Within-shot phase-encoding offsets of EPI echo trains.</span>
 
-<span class="sd">An EPI shot traverses a fixed pattern of phase-encode steps and repeats it</span>
-<span class="sd">every repetition, translated to the region that shot samples. These functions</span>
-<span class="sd">build the pattern as offsets from the shot's own origin, one row per echo.</span>
+<span class="sd">An EPI shot acquires one echo per phase-encoding blip. The routine here</span>
+<span class="sd">returns the offsets of the shot's echoes from the shot's first echo, one row</span>
+<span class="sd">per echo. It does not select the acquisition support and does not place the</span>
+<span class="sd">shot: the scan loop chooses each shot's origin, and the views a shot</span>
+<span class="sd">acquires are that origin plus the offsets.</span>
 
 <span class="sd">References</span>
 <span class="sd">----------</span>
-<span class="sd">Segmented blipped-CAIPI (``'caipi'``) follows Stirnberg and Stocker, "Segmented</span>
-<span class="sd">k-space blipped-controlled aliasing in parallel imaging for high spatiotemporal</span>
-<span class="sd">resolution EPI", Magn Reson Med 2021;85:1540-1551 (DOI 10.1002/mrm.28486).</span>
-<span class="sd">The ``'zigzag'`` traversal follows Dong et al., "Single-shot echo planar</span>
-<span class="sd">time-resolved imaging for multi-echo functional MRI", Magn Reson Med</span>
-<span class="sd">2025;93:993-1013 (DOI 10.1002/mrm.30327).</span>
+<span class="sd">Segmented blipped-CAIPI (``'caipi'``) follows Stirnberg R, Stöcker T.</span>
+<span class="sd">Segmented k-space blipped-controlled aliasing in parallel imaging for high</span>
+<span class="sd">spatiotemporal resolution EPI. Magn Reson Med. 2021;85(3):1540-1551.</span>
+<span class="sd">doi:10.1002/mrm.28486. The ``'zigzag'`` traversal follows Dong Z, Wald LL,</span>
+<span class="sd">Polimeni JR, Wang F. Single-shot echo planar time-resolved imaging for</span>
+<span class="sd">multi-echo functional MRI and distortion-free diffusion imaging. Magn Reson</span>
+<span class="sd">Med. 2025;93(3):993-1013. doi:10.1002/mrm.30327.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"calc_epi_order"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"make_epi_shot_offsets"</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -526,9 +491,9 @@
 <span class="n">_SCHEMES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"linear"</span><span class="p">,</span> <span class="s2">"caipi"</span><span class="p">,</span> <span class="s2">"zigzag"</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="calc_epi_order">
-<a class="viewcode-back" href="../../generated/pypulseqpp.calc_epi_order.html#pypulseqpp.calc_epi_order">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">calc_epi_order</span><span class="p">(</span>
+<div class="viewcode-block" id="make_epi_shot_offsets">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_epi_shot_offsets</span><span class="p">(</span>
     <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">scheme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"linear"</span><span class="p">,</span>
@@ -538,80 +503,103 @@
     <span class="n">caipi_shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">extent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return the phase-encode offsets of an EPI shot, relative to its first echo.</span>
+<span class="w">    </span><span class="sd">"""Return the phase-encoding offsets of one EPI shot, relative to its first echo.</span>
 
-<span class="sd">    The first row is always ``(0, 0)``: the pattern says where the shot goes</span>
-<span class="sd">    *from* its origin, and placing that origin is the scan loop's job. The</span>
-<span class="sd">    second column is the partition offset, zero throughout for the schemes</span>
-<span class="sd">    that do not encode one.</span>
+<span class="sd">    ``result[e]`` is ``(Δky, Δkz)``, in encoded lines and partitions, of the</span>
+<span class="sd">    view acquired at echo ``e`` relative to the view acquired at echo 0 of</span>
+<span class="sd">    the same shot; ``result[0]`` is always ``(0, 0)``. For a shot whose first</span>
+<span class="sd">    echo acquires the view ``(y0, z0)``, echo ``e`` acquires</span>
+<span class="sd">    ``(y0, z0) + result[e]``. The routine does not select the global</span>
+<span class="sd">    acquisition support, does not choose the shot origin ``(y0, z0)``, which</span>
+<span class="sd">    the scan loop chooses, and creates no Pulseq labels.</span>
+
+<span class="sd">    With ``R_y = acceleration`` and ``S = segments``, the line offset of</span>
+<span class="sd">    ``'linear'`` and ``'caipi'`` is ``Δky_e = e S R_y``. ``S`` shots with</span>
+<span class="sd">    origins ``y0, y0 + R_y, ..., y0 + (S - 1) R_y`` therefore interleave to</span>
+<span class="sd">    acquire every ``R_y``-th line. ``'caipi'`` adds the partition offset of</span>
+<span class="sd">    the CAIPIRINHA lattice with ``R_z = partition_acceleration`` and shift</span>
+<span class="sd">    ``Δz = caipi_shift``, reduced modulo ``R_z``, so the partition blips</span>
+<span class="sd">    cycle through one lattice period; the offsets tile</span>
+<span class="sd">    :func:`make_caipirinha_mask` exactly. ``'zigzag'`` alternates between an</span>
+<span class="sd">    outward and a return pass across ``extent`` lines, the return pass</span>
+<span class="sd">    displaced by half a blip.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    etl : int</span>
-<span class="sd">        Echoes in the train.</span>
+<span class="sd">        Echo-train length: the number of echoes, and of rows returned.</span>
 <span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'</span>
-<span class="sd">        ``'linear'`` steps by ``segments * acceleration`` every echo and never</span>
-<span class="sd">        leaves its partition -- plain segmented EPI, and plain single-shot EPI</span>
-<span class="sd">        at the defaults. ``'caipi'`` adds the partition sawtooth that turns</span>
-<span class="sd">        that into segmented blipped-CAIPI. ``'zigzag'`` traverses up and down a</span>
-<span class="sd">        phase-encode segment instead of across the whole matrix, which is what</span>
-<span class="sd">        lets a shot sample the same lines at many echo times.</span>
+<span class="sd">        ``'linear'``: segmented or single-shot EPI, ``Δkz = 0``.</span>
+<span class="sd">        ``'caipi'``: segmented blipped-CAIPI. ``'zigzag'``: repeated</span>
+<span class="sd">        up-and-down traversal of one phase-encoding segment, which acquires</span>
+<span class="sd">        the same lines at several echo times; ``Δkz = 0``.</span>
 <span class="sd">    acceleration : int, default=1</span>
-<span class="sd">        Phase-encode undersampling, ``Ry``: lines the blip skips.</span>
+<span class="sd">        In-plane undersampling factor ``R_y``.</span>
 <span class="sd">    segments : int, default=1</span>
-<span class="sd">        Shots the train is interleaved across, ``S``. The blip becomes</span>
-<span class="sd">        ``S * Ry``, which shortens the train and widens the phase-encode</span>
-<span class="sd">        bandwidth without changing the lattice sampled.</span>
+<span class="sd">        Number of shots ``S`` among which the lines are interleaved. The blip</span>
+<span class="sd">        is ``S R_y`` lines.</span>
 <span class="sd">    partition_acceleration : int, default=1</span>
-<span class="sd">        Partition undersampling ``Rz``, the height of the CAIPI cycle.</span>
-<span class="sd">        ``'caipi'`` only.</span>
+<span class="sd">        Partition undersampling factor ``R_z``, the period of the partition</span>
+<span class="sd">        offsets. ``'caipi'`` only.</span>
 <span class="sd">    caipi_shift : int, default=1</span>
-<span class="sd">        Partitions the pattern climbs per acquired line, ``delta_z``.</span>
-<span class="sd">        ``'caipi'`` only.</span>
-<span class="sd">    extent : int, default=None</span>
-<span class="sd">        Phase-encode lines one pass spans, ``R_seg``. Required by</span>
-<span class="sd">        ``'zigzag'``, refused by the others.</span>
+<span class="sd">        CAIPIRINHA shift ``Δz``: partitions the lattice is displaced by per</span>
+<span class="sd">        acquired line. ``'caipi'`` only.</span>
+<span class="sd">    extent : int or None, default=None</span>
+<span class="sd">        Phase-encoding lines spanned by one pass. Required by ``'zigzag'``</span>
+<span class="sd">        and rejected by the other schemes.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    numpy.ndarray</span>
-<span class="sd">        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.</span>
+<span class="sd">        Integer array of shape ``(etl, 2)``: ``[Δky, Δkz]`` of each echo,</span>
+<span class="sd">        relative to echo 0.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If a count is out of range, ``scheme`` is unknown, or ``extent`` is</span>
-<span class="sd">        given for a scheme that has no use for it and vice versa.</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; calc_epi_order(4, acceleration=2)[:, 0]</span>
-<span class="sd">    array([0, 2, 4, 6])</span>
-
-<span class="sd">    Segmenting widens the blip without moving the lattice, so two shots of</span>
-<span class="sd">    three cover what one shot of six did:</span>
-
-<span class="sd">    &gt;&gt;&gt; calc_epi_order(3, acceleration=2, segments=2)[:, 0]</span>
-<span class="sd">    array([0, 4, 8])</span>
-
-<span class="sd">    A CAIPI shell climbs the partitions and wraps, which is what makes the</span>
-<span class="sd">    partition blips take only two values:</span>
-
-<span class="sd">    &gt;&gt;&gt; order = calc_epi_order(6, scheme="caipi", partition_acceleration=3)</span>
-<span class="sd">    &gt;&gt;&gt; order[:, 1]</span>
-<span class="sd">    array([0, 1, 2, 0, 1, 2])</span>
-
-<span class="sd">    A zigzag turns inside its segment, and the return pass is offset by half a</span>
-<span class="sd">    blip so it samples between the outward one:</span>
-
-<span class="sd">    &gt;&gt;&gt; calc_epi_order(9, scheme="zigzag", acceleration=4, extent=12)[:, 0]</span>
-<span class="sd">    array([ 0,  4,  8, 12, 10,  6,  2,  0,  4])</span>
+<span class="sd">        given for a scheme other than ``'zigzag'`` or omitted for it.</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
-<span class="sd">    calc_traversal_order : orderings over a single axis, for an outer loop.</span>
-<span class="sd">    make_caipirinha_mask : the lattice a ``'caipi'`` train tiles.</span>
+<span class="sd">    make_caipirinha_mask : the lattice the ``'caipi'`` offsets tile.</span>
+<span class="sd">    make_cartesian_plane_sampling : acquisition support of a Cartesian plane.</span>
+<span class="sd">    make_traversal_order : loop order over shots or slices.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Four echoes at twofold acceleration step two lines per echo:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; offsets = pp.make_epi_shot_offsets(4, acceleration=2)</span>
+<span class="sd">    &gt;&gt;&gt; offsets.tolist()</span>
+<span class="sd">    [[0, 0], [2, 0], [4, 0], [6, 0]]</span>
+
+<span class="sd">    The offsets are relative. With two segments the blip is four lines, and</span>
+<span class="sd">    shots with origins at lines 3 and 5 acquire interleaved lines:</span>
+
+<span class="sd">    &gt;&gt;&gt; offsets = pp.make_epi_shot_offsets(4, acceleration=2, segments=2)</span>
+<span class="sd">    &gt;&gt;&gt; (offsets + [3, 0])[:, 0].tolist()</span>
+<span class="sd">    [3, 7, 11, 15]</span>
+<span class="sd">    &gt;&gt;&gt; (offsets + [5, 0])[:, 0].tolist()</span>
+<span class="sd">    [5, 9, 13, 17]</span>
+
+<span class="sd">    Segmented blipped-CAIPI with ``R_z = 3`` cycles the partition offset</span>
+<span class="sd">    through one lattice period:</span>
+
+<span class="sd">    &gt;&gt;&gt; pp.make_epi_shot_offsets(</span>
+<span class="sd">    ...     6, scheme="caipi", acceleration=2, partition_acceleration=3</span>
+<span class="sd">    ... ).tolist()</span>
+<span class="sd">    [[0, 0], [2, 1], [4, 2], [6, 0], [8, 1], [10, 2]]</span>
+
+<span class="sd">    A zigzag pass turns at ``extent``, and the return pass is displaced by</span>
+<span class="sd">    half a blip:</span>
+
+<span class="sd">    &gt;&gt;&gt; offsets = pp.make_epi_shot_offsets(</span>
+<span class="sd">    ...     9, scheme="zigzag", acceleration=4, extent=12</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; offsets[:, 0].tolist()</span>
+<span class="sd">    [0, 4, 8, 12, 10, 6, 2, 0, 4]</span>
 <span class="sd">    """</span>
     <span class="n">etl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">etl</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -621,11 +609,10 @@
     <span class="n">acceleration</span><span class="p">,</span> <span class="n">segments</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">acceleration</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">acceleration</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">segments</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"acceleration and segments must be positive"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">extent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">"zigzag"</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"extent is what a 'zigzag' turns around inside and means nothing to the "</span>
-            <span class="s2">"other schemes; give it for 'zigzag' and leave it unset otherwise"</span>
-        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s2">"zigzag"</span> <span class="ow">and</span> <span class="n">extent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"scheme='zigzag' requires extent"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scheme</span> <span class="o">!=</span> <span class="s2">"zigzag"</span> <span class="ow">and</span> <span class="n">extent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"extent applies only to scheme='zigzag', not </span><span class="si">{</span><span class="n">scheme</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s2">"zigzag"</span><span class="p">:</span>
         <span class="n">line</span> <span class="o">=</span> <span class="n">_zigzag</span><span class="p">(</span><span class="n">etl</span><span class="p">,</span> <span class="n">acceleration</span> <span class="o">*</span> <span class="n">segments</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">extent</span><span class="p">))</span>

@@ -37,14 +37,15 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Nyquist angular sampling
+------------------------
 
-Enough spokes to sample the outer radius at the Nyquist spacing.
+``ceil(pi / 2 * n)`` spokes over half a turn, which sample the outer
+radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-45
+.. GENERATED FROM PYTHON SOURCE LINES 38-46
 
 .. code-block:: Python
 
@@ -69,12 +70,12 @@ Enough spokes to sample the outer radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-48
+.. GENERATED FROM PYTHON SOURCE LINES 47-49
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-51
+.. GENERATED FROM PYTHON SOURCE LINES 49-52
 
 .. code-block:: Python
 
@@ -90,16 +91,10 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2434440>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-57
+.. GENERATED FROM PYTHON SOURCE LINES 53-58
 
 Sampling order
 --------------
@@ -107,7 +102,7 @@ Sampling order
 Colour encodes spoke acquisition order. Consecutive spokes use a
 distributed angular ordering rather than adjacent angles.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -123,16 +118,10 @@ distributed angular ordering rather than adjacent angles.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Angular undersampling
 ---------------------
@@ -140,7 +129,7 @@ Angular undersampling
 ``ry=3`` retains one third of the spoke angles. Every spoke crosses the
 origin, whereas angular sampling density decreases with k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-80
+.. GENERATED FROM PYTHON SOURCE LINES 67-81
 
 .. code-block:: Python
 
@@ -165,7 +154,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-83
+.. GENERATED FROM PYTHON SOURCE LINES 82-84
 
 .. code-block:: Python
 
@@ -180,19 +169,13 @@ origin, whereas angular sampling density decreases with k-space radius.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.618 seconds)
+   **Total running time of the script:** (0 minutes 2.665 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

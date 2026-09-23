@@ -1,5 +1,30 @@
 # Timing and rasterization
 
+```{admonition} TL;DR
+:class: tldr
+
+- Every event time in a `.seq` file is quantized to one of four rasters
+  declared in `[DEFINITIONS]`: RF, gradient, ADC and block duration. The
+  {class}`~pypulseqpp.Opts` defaults are 2 µs for the RF and ADC rasters and 20
+  µs for the gradient and block-duration rasters.
+- A block's duration is independent of the extent of its events, subject to
+  being at least as long. A block longer than its events is a delay and is not
+  reported; a gradient that ends at a nonzero amplitude before its block ends
+  is reported by `check_timing` as `GRADIENT_END_NONZERO`.
+- When the ADC window must coincide with the readout flat top, the smallest
+  admissible dwell for $N$ samples is $d_{\min} = a\,r/\gcd(N, r)$, with $a$
+  the ADC raster, $g$ the gradient raster and $r = g/a$. At the default
+  rasters, 128 samples therefore admit at most 100 kHz of receiver bandwidth
+  and 100 samples admit 500 kHz.
+- {func}`~pypulseqpp.calc_adc_timing` returns the achieved dwell, so the
+  achieved bandwidth `1 / dwell` may be lower than the one requested; the
+  readout modules report it as `bandwidth_hz`.
+- Raster addressability and the dead and ringdown times of the transmit and
+  receive chains are separate constraints, and `check_timing` reports both.
+  `check_timing` and the constraint checks establish different properties and
+  are separate calls.
+```
+
 A sequencer starts and stops events on a discrete time grid. A time that is not
 an integer multiple of the grid period cannot be addressed, so every event time
 in a `.seq` file is quantized before it is written.

@@ -23,12 +23,13 @@
 ========================
 
 A slab-selective excitation is followed by alternating readout gradients with
-phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes
-a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
+phase-encode and partition blips. The sampled ``(line, partition)`` views form
+a CAIPIRINHA lattice [BRE06]_, and segmented skipped-CAIPI traversal [STI21]_
+distributes the lattice among shots. Spoilers suppress residual
 transverse coherence between repetitions; off-resonance accumulates during
 each echo train. 3D EPI supports rapid structural and functional imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-143
+.. GENERATED FROM PYTHON SOURCE LINES 13-144
 
 
 
@@ -37,17 +38,17 @@ each echo train. 3D EPI supports rapid structural and functional imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 144-151
+.. GENERATED FROM PYTHON SOURCE LINES 145-152
 
 Accelerated acquisition
 -----------------------
 
-The baseline uses in-plane and partition acceleration, three shots per shell,
-and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
+The first configuration uses in-plane and partition acceleration, three
+shots per shell, and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 successive echoes therefore contain both the skipped-line displacement and
 the partition jump.
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-170
+.. GENERATED FROM PYTHON SOURCE LINES 152-171
 
 .. code-block:: Python
 
@@ -84,12 +85,12 @@ the partition jump.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 171-173
+.. GENERATED FROM PYTHON SOURCE LINES 172-174
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 173-176
+.. GENERATED FROM PYTHON SOURCE LINES 174-177
 
 .. code-block:: Python
 
@@ -105,30 +106,27 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa91059a720>, tr=4, underlays=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-188
+.. GENERATED FROM PYTHON SOURCE LINES 178-192
 
 Skipped-CAIPI traversal
 -----------------------
 
-Each cell of the lattice is one ``(line, partition)`` view, white where it is
-sampled. Lines and arrows connect consecutive echoes within each train. No
-line joins separate shots. The partition jumps between consecutive
-echoes are the CAIPI blips: they alternate between
-amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
-:math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z`, and the pattern repeats every
-:math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
+Each cell of the lattice is one ``(line, partition)`` view, shaded where it
+is sampled. Lines and arrows connect consecutive echoes within each train. No
+line joins separate shots. The panel title gives the pattern as
+:math:`S \cdot (R_y \times R_z)_{z\Delta z}`, with accelerations
+:math:`R_y` and :math:`R_z`, segmentation factor :math:`S` (shots per shell)
+and CAIPI shift :math:`\Delta z` as defined in [STI21]_. The partition jumps between consecutive echoes
+are the CAIPI blips: they alternate between amplitudes
+:math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
+:math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z` partitions, and the pattern
+repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 188-195
+.. GENERATED FROM PYTHON SOURCE LINES 192-199
 
 
 
@@ -142,17 +140,18 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-203
+.. GENERATED FROM PYTHON SOURCE LINES 200-208
 
 Single-shot comparison
 ----------------------
 
 With ``n_shots=1``, one longer echo train acquires the same lattice for
-each shell. Three shots shorten the readout window and the geometric distortion
-along the phase-encode axis; the inter-echo jumps grow because each shot
-steps three sampled lattice lines at a time.
+each shell. Three shots shorten each echo train and therefore the geometric
+distortion along the phase-encode axis. The phase-encode step between
+consecutive echoes of a segmented train spans three sampled lattice lines,
+so its blips are larger than those of the single-shot train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-240
+.. GENERATED FROM PYTHON SOURCE LINES 208-245
 
 .. code-block:: Python
 
@@ -189,16 +188,17 @@ steps three sampled lattice lines at a time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 241-247
+.. GENERATED FROM PYTHON SOURCE LINES 246-253
 
 In-plane acceleration
 ---------------------
 
 ``ry`` subsamples phase-encode lines, reducing echo-train length and
-increasing lattice spacing along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
-where the CAIPI shift puts them.
+increasing lattice spacing along :math:`k_y`. The sampled views remain on a
+single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
+aliases [BRE06]_.
 
-.. GENERATED FROM PYTHON SOURCE LINES 247-268
+.. GENERATED FROM PYTHON SOURCE LINES 253-274
 
 .. code-block:: Python
 
@@ -236,10 +236,25 @@ where the CAIPI shift puts them.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 275-287
+
+References
+----------
+
+.. [BRE06] Breuer FA, Blaimer M, Mueller MF, Seiberlich N, Heidemann RM,
+   Griswold MA, Jakob PM. Controlled aliasing in volumetric parallel imaging
+   (2D CAIPIRINHA). *Magnetic Resonance in Medicine*. 2006;55(3):549-556.
+   https://doi.org/10.1002/mrm.20787
+
+.. [STI21] Stirnberg R, Stöcker T. Segmented K-space blipped-controlled
+   aliasing in parallel imaging for high spatiotemporal resolution EPI.
+   *Magnetic Resonance in Medicine*. 2021;85(3):1540-1551.
+   https://doi.org/10.1002/mrm.28486
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.297 seconds)
+   **Total running time of the script:** (0 minutes 0.479 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

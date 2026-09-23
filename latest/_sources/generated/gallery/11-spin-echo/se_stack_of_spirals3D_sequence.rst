@@ -39,8 +39,8 @@ T2-weighted imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-37
 
-Baseline
---------
+Sixteen interleaves
+-------------------
 
 Sixteen interleaves at every partition.
 
@@ -92,12 +92,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2a431a0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -124,12 +118,6 @@ The interleaves of every partition, over the three k-space axes.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
@@ -181,19 +169,13 @@ peripheral k-space disc.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.917 seconds)
+   **Total running time of the script:** (0 minutes 3.133 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

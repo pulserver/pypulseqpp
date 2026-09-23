@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Gradient, PNS and SAR checks</a></li>
@@ -585,37 +543,38 @@
 <h1>Gradient, PNS and SAR checks<a class="headerlink" href="#gradient-pns-and-sar-checks" title="Link to this heading">#</a></h1>
 <p>Checks of a complete sequence against the gradient hardware limits, the
 forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
-model and a VOP SAR model. Every check applies each block’s rotation and
-evaluates the three physical gradient axes, and takes its limits from the
-sequence’s own <a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a> or from one passed to it. They are
-estimates, not a complete scanner or patient-safety assessment.
-<a class="reference internal" href="../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> covers what each one computes and the
-criterion it applies.</p>
+model and a VOP SAR model. They are estimates, not a complete scanner or
+patient-safety assessment. <a class="reference internal" href="../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> covers what each
+one computes and the criterion it applies.</p>
 <section id="gradient-limits">
 <h2>Gradient limits<a class="headerlink" href="#gradient-limits" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a> checks the peak gradient amplitude,
-<a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> the slew rate within blocks, and
-<a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_grad_continuity()</span></code></a> the gradient amplitude across block boundaries
-and at the end of the sequence.</p>
-<p>The amplitude and slew-rate checks compare the largest <strong>per-axis</strong> peak with
-<code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>. They also report the largest simultaneous vector
-magnitude over the three physical axes, but do not compare it with a limit;
-that magnitude is not the norm of independently attained axis peaks.</p>
+<p>Gradient-derived: the checks evaluate the three physical gradient axes after
+each block’s rotation, against the limits of <code class="docutils literal notranslate"><span class="pre">system</span></code> or of the sequence’s own
+<a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a>. Only the largest per-axis peak is compared with the
+limit; the simultaneous vector magnitude is reported but not compared.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_max_grad</span></code></a></p></td>
-<td><p>Check the peak gradient amplitude against <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p></td>
+<td><p>Sequence, system limits (<code class="docutils literal notranslate"><span class="pre">max_grad</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; peaks in Hz/m</p></td>
+<td><p>Peak gradient amplitude.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_max_slew</span></code></a></p></td>
-<td><p>Check the within-block slew rate against <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p></td>
+<td><p>Sequence, system limits (<code class="docutils literal notranslate"><span class="pre">max_slew</span></code>, gradient raster)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; peaks in Hz/m/s</p></td>
+<td><p>Within-block slew rate.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_grad_continuity</span></code></a></p></td>
-<td><p>Check gradient amplitude continuity across block boundaries.</p></td>
+<td><p>Sequence, system limits (<code class="docutils literal notranslate"><span class="pre">max_slew</span></code>, gradient raster)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; steps in Hz/m and Hz/m/s</p></td>
+<td><p>Amplitude continuity across block boundaries and at the end.</p></td>
 </tr>
 </tbody>
 </table>
@@ -623,27 +582,38 @@ that magnitude is not the norm of independently attained axis peaks.</p>
 </section>
 <section id="mechanical-resonance">
 <h2>Mechanical resonance<a class="headerlink" href="#mechanical-resonance" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> slides a Hann-tapered window along each physical
-axis and compares every window’s amplitude spectrum with the forbidden bands
-guarding that axis. Bands come as <a class="reference internal" href="../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a> entries or from a
-vendor table through <a class="reference internal" href="../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a>. The transform is MKL’s
-when the optional <code class="docutils literal notranslate"><span class="pre">mkl</span></code> extra is installed, and the compiled-in pocketfft
-otherwise.</p>
+<p>Gradient-derived: the check evaluates the physical gradient axes after the block
+rotations and the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument, sampled on the sequence’s gradient
+raster. The forbidden bands are an argument; only <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is read from
+<code class="docutils literal notranslate"><span class="pre">system</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_mech_resonance</span></code></a></p></td>
-<td><p>Check the gradient amplitude spectrum against forbidden gradient bands.</p></td>
+<td><p>Sequence, forbidden bands, window width (s), <code class="docutils literal notranslate"><span class="pre">rotation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; amplitudes in mT/m</p></td>
+<td><p>Windowed gradient spectrum against forbidden bands.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_forbidden_bands</span></code></a></p></td>
-<td><p>Read forbidden bands from a vendor table.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mech_resonance_spectrum</span></code></a></p></td>
+<td><p>Sequence, window index, window width (s), <code class="docutils literal notranslate"><span class="pre">rotation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> (Hz) and <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">bins)</span></code> <code class="docutils literal notranslate"><span class="pre">amplitude</span></code> (mT/m)</p></td>
+<td><p>Gradient amplitude spectrum of one window.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></p></td>
-<td><p>A forbidden gradient band, a frequency range on one physical axis.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_forbidden_bands</span></code></a></p></td>
+<td><p>Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> or GE <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> path</p></td>
+<td><p>List of <code class="docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></p></td>
+<td><p>Forbidden bands from a vendor table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></p></td>
+<td><p>Axis, <code class="docutils literal notranslate"><span class="pre">f_min</span></code>, <code class="docutils literal notranslate"><span class="pre">f_max</span></code> (Hz), tolerance (mT/m)</p></td>
+<td><p>Band record</p></td>
+<td><p>Forbidden band on one or every physical axis.</p></td>
 </tr>
 </tbody>
 </table>
@@ -651,26 +621,33 @@ otherwise.</p>
 </section>
 <section id="nerve-stimulation">
 <h2>Nerve stimulation<a class="headerlink" href="#nerve-stimulation" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> runs a nerve model over the slew of each physical axis and
-compares the root-sum-square response with its threshold. The model is either
-SAFE, as upstream PyPulseq computes it, from a description shaped like
-upstream’s <code class="docutils literal notranslate"><span class="pre">safe_example_hw()</span></code> or a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file read by
-<a class="reference internal" href="../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_safe_model()</span></code></a>; or a rheobase-chronaxie <a class="reference internal" href="../generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a>.</p>
+<p>Gradient-derived: the check evaluates the slew of each physical gradient axis
+after the block rotations and the <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument, sampled on the
+sequence’s gradient raster. The nerve model is an argument; only <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is
+read from <code class="docutils literal notranslate"><span class="pre">system</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_pns</span></code></a></p></td>
-<td><p>Check peripheral nerve stimulation against a SAFE or chronaxie model.</p></td>
+<td><p>Sequence, SAFE or chronaxie model, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">trace</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; responses as fractions of threshold</p></td>
+<td><p>Peripheral nerve stimulation estimate.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_safe_model</span></code></a></p></td>
-<td><p>Read a SAFE nerve model from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p></td>
+<td><p>Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> path</p></td>
+<td><p>SAFE model, per-axis coefficients</p></td>
+<td><p>SAFE model from a hardware description.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a></p></td>
-<td><p>Rheobase-chronaxie nerve model, one coefficient set for every physical axis.</p></td>
+<td><p>Chronaxie (s), rheobase (T/m/s), <code class="docutils literal notranslate"><span class="pre">alpha</span></code></p></td>
+<td><p>Model for <code class="docutils literal notranslate"><span class="pre">check_pns</span></code></p></td>
+<td><p>Rheobase–chronaxie nerve model, all axes alike.</p></td>
 </tr>
 </tbody>
 </table>
@@ -678,32 +655,38 @@ upstream’s <code class="docutils literal notranslate"><span class="pre">safe_e
 </section>
 <section id="sar">
 <h2>SAR<a class="headerlink" href="#sar" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> averages SAR from virtual observation points over each real
-repetition, and compares the worst repetition’s largest VOP SAR with a local
-limit and, given a global matrix, its global SAR with a global limit. VOPs come
-as a <a class="reference internal" href="../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a>, read from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file by
-<a class="reference internal" href="../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a>, or from <a class="reference internal" href="../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a>, a synthetic model for
-demonstration only. RF power in Pulseq’s Hz units is
-<a class="reference internal" href="../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.calc_rf_power()</span></code></a> for one pulse and <code class="docutils literal notranslate"><span class="pre">Sequence.calc_rf_power</span></code>
-for a sequence.</p>
+<p>RF-derived: the check evaluates the RF waveforms and RF shims, and reads no
+gradient, rotation or <code class="docutils literal notranslate"><span class="pre">system</span></code>. It takes the VOPs as a <a class="reference internal" href="../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a>, the
+channel drive calibration <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, and <code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and
+<code class="docutils literal notranslate"><span class="pre">global_limit</span></code> in W/kg.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_sar</span></code></a></p></td>
-<td><p>Check window-averaged local and global SAR against their limits.</p></td>
+<td><p>Sequence, <code class="docutils literal notranslate"><span class="pre">VopModel</span></code>, <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, limits (W/kg)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(is_ok,</span> <span class="pre">report)</span></code>; window-averaged SAR in W/kg</p></td>
+<td><p>Local and global SAR per window.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_vops</span></code></a></p></td>
-<td><p>Read VOPs and a global SAR matrix from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> path</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VopModel</span></code></p></td>
+<td><p>VOPs and global SAR matrix from a file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">example_vops</span></code></a></p></td>
-<td><p>Build a synthetic VOP model, for demonstrations and tests only.</p></td>
+<td><p>Channel count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> (V/Hz), <code class="docutils literal notranslate"><span class="pre">cp_shim</span></code></p></td>
+<td><p>Synthetic VOP model, for demonstrations and tests only.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VopModel</span></code></a></p></td>
-<td><p>Virtual observation points, and an optional global SAR matrix.</p></td>
+<td><p>VOPs <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code>, optional global matrix <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code></p></td>
+<td><p>Model for <code class="docutils literal notranslate"><span class="pre">check_sar</span></code>, W/kg per unit drive squared</p></td>
+<td><p>Virtual observation points.</p></td>
 </tr>
 </tbody>
 </table>

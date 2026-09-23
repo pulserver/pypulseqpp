@@ -38,8 +38,8 @@ readout. Spiral spin echo supports rapid T2-weighted structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 32-36
 
-Baseline
---------
+Constant-density spiral
+-----------------------
 
 Sixteen interleaves at a constant pitch.
 
@@ -91,23 +91,18 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f24985f0>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-57
+.. GENERATED FROM PYTHON SOURCE LINES 53-58
 
 Sampling order
 --------------
 
-Each interleaf is the solved arm turned to its own angle.
+Each interleaf is the same spiral gradient waveform, rotated to its own
+angle by a rotation extension.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -123,24 +118,18 @@ Each interleaf is the solved arm turned to its own angle.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Variable density
 ----------------
 
-A dual-density arm retains the Nyquist spacing near the origin and increases
+A dual-density interleaf retains the Nyquist spacing near the origin and increases
 the pitch at larger radii, reducing the readout duration.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-87
+.. GENERATED FROM PYTHON SOURCE LINES 67-88
 
 .. code-block:: Python
 
@@ -172,7 +161,7 @@ the pitch at larger radii, reducing the readout duration.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 88-90
+.. GENERATED FROM PYTHON SOURCE LINES 89-91
 
 .. code-block:: Python
 
@@ -187,19 +176,13 @@ the pitch at larger radii, reducing the readout duration.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.803 seconds)
+   **Total running time of the script:** (0 minutes 1.367 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

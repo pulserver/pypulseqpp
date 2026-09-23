@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-excitation-every-line">One excitation, every line</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-trajectory">The trajectory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decay-across-the-train">Decay across the train</a></li>
@@ -590,23 +549,28 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="single-shot-echo-planar">
 <span id="sphx-glr-generated-gallery-03-gre-to-epi-03-epi-py"></span><h1>Single-shot echo planar<a class="headerlink" href="#single-shot-echo-planar" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to take the segmentation of the previous page to
-one shot, so that the whole matrix is acquired after a single excitation, and
-to measure the two things that limit such an acquisition: the decay of the
-signal over an echo train tens of milliseconds long, and the sensitivity of a
-train of alternating readouts to a delay between the gradient and the
-acquisition.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>One excitation, every line.</strong> The train, and the blip between its echoes.</p></li>
-<li><p><strong>The trajectory.</strong> What one shot traverses, and in what order.</p></li>
-<li><p><strong>Decay across the train.</strong> The point-spread function the decay produces
-along the phase-encode direction, against <span class="math notranslate nohighlight">\(T_2^*\)</span>.</p></li>
-<li><p><strong>Gradient delay and the odd echoes.</strong> The k-space displacement a delay
-introduces, measured with the analysis’s own delay parameter.</p></li>
-</ol>
-<p>The trade-off this page sits at one end of is measured in
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/03-gre-to-epi/03_epi.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The previous lesson divided the matrix over several shots. This lesson takes
+the segmentation to one shot, so that the whole matrix is acquired after a
+single excitation, and measures the two effects that limit such an
+acquisition: the signal decay over an echo train tens of milliseconds long,
+and the sensitivity of a train of alternating readouts to a delay between the
+gradient waveform and the acquisition. The relationship between shot count,
+distortion and scan time is measured in
 <a class="reference internal" href="02_segmented.html"><span class="doc">Segmented echo planar</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>build a single-shot echo planar readout with a one-line phase-encode blip;</p></li>
+<li><p>read the traversal order of the echo train from the k-space trajectory;</p></li>
+<li><p>compute the point-spread function that <span class="math notranslate nohighlight">\(T_2^*\)</span> decay across the
+train produces along the phase-encode direction;</p></li>
+<li><p>measure the alternating k-space displacement a gradient delay introduces,
+and relate it to the half-field-of-view ghost.</p></li>
+</ul>
+</section>
 <section id="one-excitation-every-line">
 <h2>One excitation, every line<a class="headerlink" href="#one-excitation-every-line" title="Link to this heading">#</a></h2>
 <p>The blip advances one line rather than the number of shots, and the train
@@ -685,8 +649,6 @@ runs the length of the matrix. Nothing else changes.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_03_epi_001.png" srcset="../../../_images/sphx_glr_03_epi_001.png" alt="03 epi" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing True, 66 blocks, echo spacing 0.700 ms, train 44.8 ms, blip 80 us
-
-namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f6a2e5d0&gt;, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
 </pre></div>
 </div>
 </section>
@@ -697,10 +659,7 @@ starts at one corner of k-space and works across it, reversing direction at
 every line.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">echo</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_03_epi_002.png" srcset="../../../_images/sphx_glr_03_epi_002.png" alt="03 epi" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x500 with 2 Axes&gt;
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_03_epi_002.png" srcset="../../../_images/sphx_glr_03_epi_002.png" alt="03 epi" class = "sphx-glr-single-img"/></section>
 <section id="decay-across-the-train">
 <h2>Decay across the train<a class="headerlink" href="#decay-across-the-train" title="Link to this heading">#</a></h2>
 <p>The last line is acquired tens of milliseconds after the first, and the
@@ -744,13 +703,13 @@ the k-space it reports, so the envelope follows the sequence’s own ordering.</
 </div>
 <p>The envelope is not centred on the middle of k-space: the train runs from one
 edge to the other, so the decay is monotonic across the lines rather than
-symmetric about the line the echo is on. What that produces is a point-spread
-function that is both wider than one pixel and asymmetric, which is the
-blurring along the phase-encode direction an echo planar image carries. At
+symmetric about the line the echo is on. The result is a point-spread
+function that is both wider than one pixel and asymmetric: the blurring along
+the phase-encode direction of an echo planar image. At
 the shortest <span class="math notranslate nohighlight">\(T_2^*\)</span> here the signal at the last line is a tenth of
 the first and the point spread is half again as wide as a pixel; at the
 longest it is within a tenth of a pixel of the unblurred width.</p>
-<p>The remedies are the ones the previous page measured — a shorter echo
+<p>The remedies are the ones the previous lesson measured — a shorter echo
 spacing, or fewer lines per shot — together with acquiring fewer lines
 outright, by partial Fourier or by parallel imaging.</p>
 </section>
@@ -788,14 +747,12 @@ reports rather than computed beside it.</p>
 </pre></div>
 </div>
 <p>The displacement is the delay divided by the dwell time, and it is the same
-for every line, so what distinguishes the odd lines from the even ones is its
-sign. A quantity that alternates from one line to the next along the
+for every line, so the odd and the even lines differ only in its sign. A quantity that alternates from one line to the next along the
 phase-encode direction is, after the transform, an image displaced by half
 the field of view, which is the ghost an uncorrected echo planar acquisition
-shows. Measuring the delay and correcting for it belongs to the
-reconstruction, which is Pulserver’s part of the stack rather than this
-package’s.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.266 seconds)</p>
+shows. Measuring the delay and correcting for it are reconstruction steps,
+outside the scope of this package.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.476 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-03-gre-to-epi-03-epi-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/a6c81643df39b2cd05316ca71f0aec8a/03_epi.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_epi.ipynb</span></code></a></p>
@@ -858,6 +815,7 @@ package’s.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-excitation-every-line">One excitation, every line</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-trajectory">The trajectory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decay-across-the-train">Decay across the train</a></li>

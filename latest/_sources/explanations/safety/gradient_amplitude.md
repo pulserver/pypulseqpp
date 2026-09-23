@@ -1,75 +1,74 @@
 # Gradient amplitude
 
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_max_grad` compares the largest per-axis
+  amplitude on the physical axes, after each block's rotation, with `max_grad`
+  from the system limits. A nonpositive `max_grad` disables the comparison.
+- The report also states each axis peak with its 1-based block and the largest
+  simultaneous vector magnitude. Only the per-axis quantity is compared with a
+  limit, because `max_grad` in a Pulseq system description is a per-axis limit.
+- The axis peaks are in general attained at different times, so their
+  root-sum-square is an upper bound on the vector magnitude, and usually a
+  loose one.
+- A rotation preserves the vector magnitude and changes its per-axis
+  components, so a sequence within `max_grad` unrotated can exceed it at an
+  oblique prescription. A prescription is evaluated by applying it with
+  {class}`~pypulseqpp.TransformFOV` and checking the result.
+- A readout traversing $\Delta k = N/\mathrm{FOV}$ at constant amplitude in a
+  window of duration $T$ requires $G = \Delta k/T$ in Hz/m. At fixed field of
+  view and matrix size, halving $T$ doubles both the receiver bandwidth and the
+  required amplitude.
+```
+
 A gradient amplifier has a maximum output current, and therefore a maximum
-gradient amplitude on the axis it drives. {func}`~pypulseqpp.safety.check_max_grad`
-establishes whether any axis exceeds `max_grad` at any point in the sequence.
+gradient amplitude on the axis it drives.
+{func}`~pypulseqpp.safety.check_max_grad` compares the largest per-axis
+amplitude of the sequence with `max_grad` from the system limits.
 
 ## Quantity compared with the limit
 
-The check expands the block table into physical-axis gradient waveforms,
-applies each block's rotation, and compares the **largest per-axis amplitude**
-with the limit:
+The check reconstructs the physical-axis gradient waveforms, after each block's
+rotation, and evaluates
 
 $$
-\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \texttt{max\_grad}.
+\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad}.
 $$
 
-The report also states the largest simultaneous **vector magnitude**,
+The report also states the peak of each axis, with its 1-based block, and the
+largest simultaneous vector magnitude
 
 $$
-\max_{t}\;\sqrt{G_x(t)^2 + G_y(t)^2 + G_z(t)^2},
+\max_{t}\;\sqrt{G_x(t)^2 + G_y(t)^2 + G_z(t)^2}.
 $$
 
-and the peak of each axis on its own, with the block each was found in. Only
-the per-axis quantity is compared with a limit. A nonpositive `max_grad`
+Only the per-axis quantity is compared with a limit, because `max_grad` in a
+Pulseq system description is a per-axis limit. Whether a system also constrains
+the vector magnitude is a property of its gradient chain; the reported vector
+peak permits that comparison outside the check. A nonpositive `max_grad`
 disables the comparison, and the report is returned regardless.
 
-Which of the two quantities a system's limit applies to is a property of the
-gradient chain, and vendors differ. The verdict is the per-axis one, because
-`max_grad` in a Pulseq system description is a per-axis limit; the vector
-magnitude is reported beside it so that a caller whose system constrains the
-vector can apply that criterion itself.
+## Simultaneous vector magnitude and per-axis peaks
 
-## Simultaneous vector magnitude against per-axis peaks
-
-The three axis peaks in the report are in general attained at different times.
-Their root-sum-square is therefore an upper bound on the vector magnitude the
-sequence actually plays, and usually a loose one: a Cartesian gradient echo
-reaches its readout peak on x while y is idle, and its phase-encode peak on y
-while x is idle, so the norm of the axis peaks describes an instant the
-sequence never plays.
+The three axis peaks are in general attained at different times, so their
+root-sum-square is an upper bound on the vector magnitude, and usually a loose
+one. The reported vector peak is evaluated at each instant.
 
 ```{figure} ../../generated/figures/axis_peaks_against_vector.png
 A radial gradient echo. The slice-selection lobe reaches 40 mT/m on z while x
 and y are idle, and the rotated readout reaches 22 mT/m on each of x and y at
 angles the slice lobe is not played at. The root-sum-square of the three axis
-peaks is 50 mT/m; the largest magnitude the three amplifiers are simultaneously
-asked for is 40 mT/m.
+peaks is 50 mT/m; the largest simultaneous vector magnitude is 40 mT/m.
 ```
 
-The reported vector peak is computed sample by sample and is the largest
-magnitude the amplifiers are *simultaneously* asked for. Reading it as the norm
-of independent maxima, or computing it that way from the axis entries,
-overstates the demand.
+## Dependence on rotation
 
-## Dependence on block rotation
-
-A rotation redistributes one logical waveform over the physical axes. Because a
-rotation is an isometry, the vector magnitude at every instant is unchanged;
-the per-axis values are not, because the components change.
-
-A radial or spiral trajectory therefore reaches its largest per-axis amplitude
-at some particular set of angles and not at others, and a sequence that is
-within `max_grad` when checked unrotated can exceed it at a prescribed
-orientation. This is why the check applies the block rotations rather than
-reading the logical waveforms, and why a sequence that will be prescribed
-obliquely is worth checking at that orientation.
-
-A rotation about z moves the in-plane gradient vector around a circle of its
-own magnitude. The per-axis limit is a square in that plane, and the largest
-circle the square contains is the one of radius `max_grad`, so a vector shorter
-than `max_grad` stays inside the limit at every orientation and a longer one
-leaves it at some.
+A rotation preserves the vector magnitude at every instant and changes its
+per-axis components. In a plane, a vector of magnitude $|G| \le$ `max_grad` is
+within the per-axis limit at every orientation; a longer one exceeds it at some
+orientations. A sequence within `max_grad` unrotated can therefore exceed it at
+an oblique prescription.
 
 ```{figure} ../../generated/figures/rotation_against_per_axis_limit.png
 The in-plane gradient vector of a Cartesian gradient echo at the instant its
@@ -84,33 +83,27 @@ the largest per-axis amplitude over the whole scan against the prescription
 angle.
 ```
 
-The vector magnitude is therefore the bound on what a prescription can place on
-a single physical axis at that instant, and a design that shares `max_grad`
-between two simultaneous axes has no rotational headroom at all.
-{func}`~pypulseqpp.apply_system_derates` returns the limits to solve such a
-design against. For a sequence that already exists, applying the prescription
-with {class}`~pypulseqpp.TransformFOV` and checking the result answers the same
-question at the orientation the scan will run at.
+The check reads the rotations the sequence holds. A prescription is evaluated
+by applying it with {class}`~pypulseqpp.TransformFOV` and checking the result;
+{func}`~pypulseqpp.apply_system_derates` returns reduced limits to design
+against.
 
-## Relationship between gradient amplitude and spatial resolution
+## Readout amplitude and resolution
 
-The amplitude a readout needs follows from the resolution and the acquisition
-duration. Traversing a k-space extent $\Delta k = N/\mathrm{FOV}$ in a window
-of duration $T$ at constant amplitude requires
+A readout traversing $\Delta k = N/\mathrm{FOV}$ in an acquisition window of
+duration $T$ at constant amplitude requires
 
 $$
 G = \frac{\Delta k}{T}
 $$
 
-in the file format's Hz/m, or $\Delta k/(\gamma T)$ in T/m. At a fixed field of
-view and matrix size, halving the acquisition window doubles the receiver
-bandwidth and doubles the gradient amplitude required. A readout that exceeds
-`max_grad` therefore encodes its resolution faster than the amplifier allows,
-and lengthening the acquisition window is the direct remedy.
+in Hz/m, or $\Delta k/(\gamma T)$ in T/m. At fixed field of view and matrix
+size, halving $T$ doubles both the receiver bandwidth and the required
+amplitude.
 
 ## See also
 
 * {func}`~pypulseqpp.safety.check_max_grad` — the call and its report.
 * {func}`~pypulseqpp.apply_system_derates` and {func}`~pypulseqpp.cap_system` —
-  checking against limits other than the ones the sequence was designed under.
-* {doc}`slew_rate` — the limit on how fast that amplitude may be reached.
+  limits other than the ones the sequence was designed under.
+* {doc}`slew_rate` — the limit on the rate of change of amplitude.

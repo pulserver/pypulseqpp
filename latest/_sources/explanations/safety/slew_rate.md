@@ -1,90 +1,90 @@
 # Slew rate
 
-The rate at which a gradient amplifier can change its output is bounded by the
-voltage available across the coil's inductance.
-{func}`~pypulseqpp.safety.check_max_slew` determines whether any physical
-gradient axis exceeds `max_slew`.
+```{admonition} TL;DR
+:class: tldr
+
+- {func}`~pypulseqpp.safety.check_max_slew` compares the largest per-axis slew
+  rate within each block, on the physical axes after that block's rotation,
+  with `max_slew` from the system limits. A nonpositive `max_slew` disables the
+  comparison.
+- For an arbitrary gradient, the slew rate is the difference between
+  neighbouring waveform corners divided by their spacing on the gradient raster
+  of the system limits, so the same samples on a finer raster imply a
+  proportionally higher slew rate.
+- The report also states the largest simultaneous vector slew rate and the peak
+  of each axis; only the per-axis quantity is compared with the limit. A step
+  across a block boundary is evaluated with the same limit by the gradient
+  continuity check.
+- For an area $A$ (1/m) at slew rate $S$ (Hz/m/s), the shortest waveform is a
+  triangle of duration $T_{\min} = 2\sqrt{A/S}$ while its peak $\sqrt{AS}$ does
+  not exceed `max_grad`. Halving the duration of a prewinder or phase-encode
+  blip requires four times the slew rate.
+- {func}`~pypulseqpp.apply_system_derates` and {func}`~pypulseqpp.cap_system`
+  return copies of the system limits with reduced `max_grad` and `max_slew`,
+  and repeated derating does not compound. A sequence that fails under reduced
+  limits must be redesigned at the lower limit, which lengthens its ramps.
+```
+
+The rate of change of a gradient amplifier's output is bounded by the voltage
+available across the coil inductance.
+{func}`~pypulseqpp.safety.check_max_slew` compares the largest per-axis slew
+rate within blocks with `max_slew` from the system limits.
 
 ## Quantity compared with the limit
 
-The check evaluates the slew rate **within each block**, on the physical axes
-after that block's rotation, and compares the largest per-axis value with the
-limit:
+The slew rate is evaluated **within each block**, on the physical axes after
+that block's rotation:
 
 $$
 \max_{t}\;\max_{a \in \{x,y,z\}} \left| \frac{\mathrm{d}G_a}{\mathrm{d}t} \right|
-\;\le\; \texttt{max\_slew}.
+\;\le\; \mathtt{max\_slew}.
 $$
 
-For a trapezoid the quantity is the amplitude divided by the rise or fall time.
-For an arbitrary gradient it is the difference between neighbouring waveform
-samples divided by the gradient raster period, so the raster the check is given
-is part of the criterion rather than an implementation detail: the same sample
-array on a finer raster implies a proportionally higher slew rate.
+For a trapezoid this is the amplitude divided by the rise or fall time. For an
+arbitrary gradient it is the difference between neighbouring waveform corners
+divided by their spacing on the gradient raster given by the system limits, so
+the same samples on a finer raster imply a proportionally higher slew rate.
 
-As with {doc}`gradient_amplitude`, the report states the largest simultaneous
-vector slew rate and the peak of each axis on its own, and only the per-axis
+As in {doc}`gradient_amplitude`, the report also states the largest
+simultaneous vector slew rate and the peak of each axis; only the per-axis
 quantity is compared with the limit. A nonpositive `max_slew` disables the
 comparison.
 
-## Scope of the within-block evaluation
+## Within-block and boundary evaluation
 
-The check looks inside blocks. A gradient that ends one block at a nonzero
-amplitude and is followed by a block starting at a different amplitude is a step
-across one raster period, which no waveform in either block contains. That case
-belongs to {doc}`gradient_continuity`, which applies the same inequality to the
-pair of samples straddling the boundary.
+A gradient that ends one block at a nonzero amplitude, followed by a block that
+starts at a different amplitude, is a step over one raster period that neither
+block's waveform contains. {doc}`gradient_continuity` evaluates that step with
+the same limit. Trapezoids begin and end at zero, so the boundary condition
+constrains mainly readouts that do not return to zero between blocks, such as
+zero-echo-time and joined spiral readouts.
 
-Separating them is not a redundancy. The interior question is a property of a
-**shape**: the normalised waveform's own sample-to-sample differences, scaled by
-whatever amplitude an instance plays it at, so it is answered once per distinct
-shape and reused by every playout. The boundary question can only be answered
-where two neighbours meet, at the amplitudes and rotations they each actually
-run, so it is evaluated by traversing the block table.
+## Minimum-duration gradient lobe
 
-Most Cartesian sequences satisfy the boundary condition trivially, because
-trapezoids and simple arbitrary gradients begin and end at zero. It becomes the
-binding constraint on families whose readout does not return to zero between
-blocks — zero echo time, spirals joined by bridges, a trajectory whose
-rewinders were solved per rotation angle.
-
-## Minimum-duration gradient lobe under amplitude and slew limits
-
-Amplitude and slew rate together bound how quickly a gradient can deliver a
-zeroth moment. In the file format's units, where an area is in 1/m and a slew
-rate in Hz/m/s, the shortest waveform delivering an area $A$ at slew rate $S$ is
-the triangular one, whose peak amplitude is $\sqrt{AS}$ and whose duration is
+For an area $A$ (1/m) at slew rate $S$ (Hz/m/s), the shortest waveform is the
+triangle with peak amplitude $\sqrt{AS}$ and duration
 
 $$
 T_{\min} = 2\sqrt{A/S}.
 $$
 
-No amplitude delivers the same area in less time, and once $\sqrt{AS}$ exceeds
-`max_grad` the waveform acquires a flat top and takes longer still. Halving the
-duration of a prewinder or a phase-encode blip therefore requires four times
-the slew rate, so the echo spacing of an echo-planar train is bounded by the
-slew limit rather than by the amplitude limit. The gradient factories solve this
-relation from the system limits, so {func}`~pypulseqpp.make_trapezoid` raises
-for an `area` and a `duration` that cannot be satisfied together rather than
-returning a waveform that would fail this check.
+When $\sqrt{AS}$ exceeds `max_grad`, the waveform acquires a flat top and is
+longer. Halving the duration of a prewinder or phase-encode blip requires four
+times the slew rate. {func}`~pypulseqpp.make_trapezoid` raises for an `area`
+and `duration` that cannot be satisfied together under the system limits.
 
 ## Derating
 
-Sites commonly run the gradient chain below its nameplate limits — for thermal
-headroom, for acoustic reasons, or because a stimulation model bounds it.
 {func}`~pypulseqpp.apply_system_derates` returns a copy of the system limits
-scaled by a fraction, and {func}`~pypulseqpp.cap_system` a copy lowered to a
-stated ceiling; both retain the base limits, so repeated derating does not
-compound. Passing the result to the check re-answers the question against the
-system the sequence will be played on, without redesigning anything.
-
-A sequence that fails only under a derate is not repaired by the check. Its
-gradients have to be redesigned at the lower limit, which lengthens every ramp
-and, through the ramps, the echo spacing.
+with `max_grad` and `max_slew` scaled from their base values, which the copy
+retains, so repeated derating does not compound.
+{func}`~pypulseqpp.cap_system` returns a copy with the limits lowered to stated
+ceilings. Passing either to the check evaluates the sequence against the reduced
+limits; a sequence that fails under them must be redesigned at the lower limit,
+which lengthens its ramps.
 
 ## See also
 
 * {func}`~pypulseqpp.safety.check_max_slew` — the call and its report.
-* {doc}`gradient_continuity` — the same inequality across a block boundary.
-* {doc}`pns` — the physiological bound on switching, which is usually reached
-  first.
+* {doc}`gradient_continuity` — the same limit across a block boundary.
+* {doc}`pns` — the nerve-stimulation estimate for switching gradients.

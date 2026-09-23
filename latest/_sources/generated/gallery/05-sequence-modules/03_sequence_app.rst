@@ -22,31 +22,32 @@
 A sequence application
 =========================
 
-The scope of this notebook is to assemble the modules of the two previous pages
-into a complete acquisition: a prescription, a sampling order, and a kernel
-that is played once per repetition.
-:class:`~pypulseqpp.sequences.SequenceApp` separates those three, and is the
-base class every shipped sequence is written against, so what is written here
-is what a sequence in :doc:`/sequences` is written as.
+The two previous lessons designed an excitation and a readout with modules.
+This lesson assembles them into a complete acquisition: a prescription, a
+sampling order, and a kernel that is played once per repetition.
+:class:`~pypulseqpp.sequences.SequenceApp` separates these three and is the
+base class of every shipped sequence, so the application written here has the
+same form as a sequence in :doc:`/sequences`.
 
-The sequence built below is the RF-spoiled slice-selective gradient echo of
+The sequence is the RF-spoiled slice-selective gradient echo of
 :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as an
-application rather than as a loop over events.
+application rather than as a loop over events. The architecture is described
+in :doc:`/explanations/design/sequence-application`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Application methods.** What ``init_sequence``, ``loop``, ``kernel`` and
-   ``finalize`` are each responsible for.
-#. **Sequence construction.** Designing and playing one, and what it reports.
-#. **Sequence diagram.** One repetition of the result.
-#. **Acquisition order.** The line order the loop played, read back from the
-   sequence's own labels.
-#. **Command-line interface.** The flags the prescription's signature gives.
+After this lesson, you should be able to:
 
-The architecture is described in
-:doc:`/explanations/design/sequence-application`.
+- state the responsibilities of ``init_sequence``, ``loop``, ``kernel`` and
+  ``finalize`` in a sequence application;
+- subclass :class:`~pypulseqpp.sequences.SequenceApp` to design and play a
+  sequence from a prescription;
+- read the acquisition order back from the ``LIN`` labels of the sequence;
+- derive the command-line flags of an application from its ``init_sequence``
+  signature.
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-40
+.. GENERATED FROM PYTHON SOURCE LINES 33-41
 
 Application methods
 -------------------
@@ -57,7 +58,7 @@ sampling order from it. ``loop`` calls ``kernel`` once per repetition.
 does not prescribe are class attributes, and ``MAX_GRAD`` and ``MAX_SLEW``
 have no default, so every application states them.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-133
+.. GENERATED FROM PYTHON SOURCE LINES 41-134
 
 .. code-block:: Python
 
@@ -161,7 +162,7 @@ have no default, so every application states them.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 134-140
+.. GENERATED FROM PYTHON SOURCE LINES 135-141
 
 Sequence construction
 ---------------------
@@ -170,7 +171,7 @@ Construction calls ``init_sequence`` to prepare the modules and sampling
 order. ``design`` creates a new sequence, executes ``loop`` and records the
 reconstruction definitions in ``finalize``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-147
+.. GENERATED FROM PYTHON SOURCE LINES 141-148
 
 .. code-block:: Python
 
@@ -196,12 +197,12 @@ reconstruction definitions in ``finalize``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-150
+.. GENERATED FROM PYTHON SOURCE LINES 149-151
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-153
+.. GENERATED FROM PYTHON SOURCE LINES 151-154
 
 .. code-block:: Python
 
@@ -217,16 +218,10 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6ad2810>, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 154-159
+.. GENERATED FROM PYTHON SOURCE LINES 155-160
 
 Acquisition order
 -----------------
@@ -234,7 +229,7 @@ Acquisition order
 ``kernel`` writes a ``LIN`` label on every acquisition, so the order the loop
 played is read back from the sequence rather than reconstructed.
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-162
+.. GENERATED FROM PYTHON SOURCE LINES 160-163
 
 .. code-block:: Python
 
@@ -250,25 +245,19 @@ played is read back from the sequence rather than reconstructed.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 550x500 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 163-169
+.. GENERATED FROM PYTHON SOURCE LINES 164-170
 
 Command-line interface
--------------------------------------------
+----------------------
 
 ``main`` is derived from the class, and its parameters are those of
 ``init_sequence``, so a subclass gets a command-line interface without
 declaring one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 169-172
+.. GENERATED FROM PYTHON SOURCE LINES 170-173
 
 .. code-block:: Python
 
@@ -291,7 +280,7 @@ declaring one.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.252 seconds)
+   **Total running time of the script:** (0 minutes 0.435 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_03_sequence_app.py:

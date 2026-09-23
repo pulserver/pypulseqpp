@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -499,13 +461,31 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._ordering</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Traversal orders over a single encoded axis.</span>
+<span></span><span class="sd">"""Temporal ordering of an already selected set of views.</span>
 
-<span class="sd">Each traversal is reached through :func:`calc_traversal_order`, which names</span>
-<span class="sd">them, so the individual ones are private to this module.</span>
+<span class="sd">Two kinds of ordering are defined here. :func:`make_traversal_order` returns</span>
+<span class="sd">a permutation of the positions of one loop axis. The echo-train orderings</span>
+<span class="sd">(``make_*_order``) take centred view coordinates, with the k-space centre at</span>
+<span class="sd">the origin, assign their rows to shots and echoes, and return indices into</span>
+<span class="sd">that array, never coordinates. None of them selects views or creates labels.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">Linear, radial and adaptive radial echo-train reordering follow schemes A-C of</span>
+<span class="sd">Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2. Shuffled echo trains</span>
+<span class="sd">follow Tamir et al., Magn Reson Med 2017;77:180-195.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"make_centric_order"</span><span class="p">,</span>
+    <span class="s2">"make_linear_order"</span><span class="p">,</span>
+    <span class="s2">"make_radial_adaptive_order"</span><span class="p">,</span>
+    <span class="s2">"make_radial_order"</span><span class="p">,</span>
+    <span class="s2">"make_shuffling_order"</span><span class="p">,</span>
+    <span class="s2">"make_traversal_order"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -556,42 +536,61 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="calc_traversal_order">
-<a class="viewcode-back" href="../../generated/pypulseqpp.calc_traversal_order.html#pypulseqpp.calc_traversal_order">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">calc_traversal_order</span><span class="p">(</span>
+<div class="viewcode-block" id="make_traversal_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_traversal_order.html#pypulseqpp.make_traversal_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_traversal_order</span><span class="p">(</span>
     <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sequential"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return a permutation of zero-based positions for a one-dimensional loop.</span>
+<span class="w">    </span><span class="sd">"""Return the order in which a loop visits ``n`` positions.</span>
+
+<span class="sd">    The result is a permutation ``p`` of ``range(n)``: the loop visits</span>
+<span class="sd">    position ``p[0]`` first, ``p[1]`` second, and so on. The positions are</span>
+<span class="sd">    abstract indices, typically slices, or the entries of a list of selected</span>
+<span class="sd">    lines or partitions; ``[items[i] for i in p]`` reorders such a list.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    n : int</span>
 <span class="sd">        Number of positions.</span>
 <span class="sd">    order : {'sequential', 'reverse', 'interleaved', 'center_out', 'outside_in', 'random'}, default='sequential'</span>
-<span class="sd">        Traversal scheme. ``'interleaved'`` takes even positions then odd ones</span>
-<span class="sd">        (the standard multi-slice choice, maximising the gap between</span>
-<span class="sd">        neighbours); ``'center_out'`` starts at the middle, which is the usual</span>
-<span class="sd">        choice for a partition loop whose contrast is set by the first echoes.</span>
+<span class="sd">        Traversal scheme. ``'interleaved'`` visits the even positions and</span>
+<span class="sd">        then the odd ones, the conventional multi-slice order.</span>
+<span class="sd">        ``'center_out'`` starts at the middle position and alternates</span>
+<span class="sd">        outward, the lower position first on a tie; ``'outside_in'`` is its</span>
+<span class="sd">        reverse. ``'random'`` is a seeded random permutation.</span>
 <span class="sd">    seed : int, default=0</span>
 <span class="sd">        Seed for ``order='random'``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    numpy.ndarray</span>
-<span class="sd">        Integer permutation of ``range(n)``.</span>
+<span class="sd">        Integer permutation of ``range(n)``, in visiting order.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If ``n`` is negative or ``order`` is unknown.</span>
 
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_cartesian_axis_sampling : selection of the views on one axis.</span>
+<span class="sd">    make_centric_order : assignment of views to echo trains.</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; from pypulseqpp._ordering import calc_traversal_order</span>
-<span class="sd">    &gt;&gt;&gt; calc_traversal_order(6, "interleaved").tolist()</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; pp.make_traversal_order(6, "interleaved").tolist()</span>
 <span class="sd">    [0, 2, 4, 1, 3, 5]</span>
-<span class="sd">    &gt;&gt;&gt; calc_traversal_order(5, "center_out").tolist()</span>
+
+<span class="sd">    The permutation reorders an existing list, here the partitions of a</span>
+<span class="sd">    stack-of-stars acquisition:</span>
+
+<span class="sd">    &gt;&gt;&gt; partitions = [10, 11, 12, 13, 14]</span>
+<span class="sd">    &gt;&gt;&gt; order = pp.make_traversal_order(len(partitions), "center_out")</span>
+<span class="sd">    &gt;&gt;&gt; order.tolist()</span>
 <span class="sd">    [2, 1, 3, 0, 4]</span>
+<span class="sd">    &gt;&gt;&gt; [partitions[i] for i in order]</span>
+<span class="sd">    [12, 11, 13, 10, 14]</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s2">"random"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_random_order</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
@@ -601,6 +600,611 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"unknown order </span><span class="si">{</span><span class="n">order</span><span class="si">!r}</span><span class="s2">; expected one of </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="o">*</span><span class="n">_TRAVERSALS</span><span class="p">,</span><span class="w"> </span><span class="s1">'random'</span><span class="p">)))</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return centred view coordinates as an ``(N, 2)`` float array.</span>
+
+<span class="sd">    ``(N,)`` input is a set of ``ky`` offsets with ``kz = 0``. Boolean input is</span>
+<span class="sd">    refused: its indices would refer to an array the caller never sees.</span>
+<span class="sd">    """</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">"coords must be numeric centred coordinates, not a boolean mask; "</span>
+            <span class="s2">"convert a mask with np.argwhere(mask) and subtract the k-space centre"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"coords must be a numeric array"</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"coords must have shape (N,) or (N, 2), got </span><span class="si">{</span><span class="n">raw</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="n">center_echo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Validate the echo-train length and target echo shared by every ordering."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">train_length</span><span class="p">)</span> <span class="o">!=</span> <span class="n">train_length</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"train_length must be an integer, got </span><span class="si">{</span><span class="n">train_length</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">train_length</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">train_length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"train_length must be at least 1, got </span><span class="si">{</span><span class="n">train_length</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">center_echo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">center_echo</span> <span class="o">&lt;</span> <span class="n">train_length</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"center_echo must lie in [0, </span><span class="si">{</span><span class="n">train_length</span><span class="si">}</span><span class="s2">), got </span><span class="si">{</span><span class="n">center_echo</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_length</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_polar</span><span class="p">(</span><span class="n">pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return each view's distance from, and polar angle about, the origin."""</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_finish_trains</span><span class="p">(</span>
+    <span class="n">trains</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]],</span> <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Pad each train to ``etl`` with ``None`` (``pad``), or drop the gaps."""</span>
+    <span class="k">if</span> <span class="n">pad</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">train</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">etl</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="p">))</span> <span class="k">for</span> <span class="n">train</span> <span class="ow">in</span> <span class="n">trains</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[[</span><span class="n">index</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">train</span> <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">train</span> <span class="ow">in</span> <span class="n">trains</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_deal_echo_major</span><span class="p">(</span>
+    <span class="n">order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">secondary</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">n_trains</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">center_echo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">adaptive</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Deal a ranked index list into echo-major echo trains.</span>
+
+<span class="sd">    ``order`` is the primary ranking. It is cut into ``etl`` groups of up to</span>
+<span class="sd">    ``n_trains`` views; group ``g`` becomes one echo, and within a group the</span>
+<span class="sd">    views are dealt across trains in ``secondary`` order so successive echoes</span>
+<span class="sd">    of one train stay neighbours. ``center_echo`` places the group containing</span>
+<span class="sd">    the view nearest the origin at that echo: by rotating the group order for</span>
+<span class="sd">    a monotone ranking, or by folding it (``adaptive``) so the radius grows</span>
+<span class="sd">    away from the target echo in both directions. This is the shared</span>
+<span class="sd">    implementation of the Cartesian echo-train orderings (566-05-007, Fig. 2).</span>
+<span class="sd">    """</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="n">g</span> <span class="o">*</span> <span class="n">n_trains</span> <span class="p">:</span> <span class="p">(</span><span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_trains</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">)]</span>
+    <span class="n">echo_of_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">center_echo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">adaptive</span><span class="p">:</span>
+            <span class="c1"># Innermost group (rank 0) at the target echo, then outward.</span>
+            <span class="n">echo_of_group</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">echo</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">echo</span> <span class="o">-</span> <span class="n">center_echo</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">centre</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">radius</span><span class="p">))</span>
+            <span class="n">holds_centre</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span> <span class="k">if</span> <span class="n">centre</span> <span class="ow">in</span> <span class="n">group</span>
+            <span class="p">)</span>
+            <span class="n">roll</span> <span class="o">=</span> <span class="p">(</span><span class="n">holds_centre</span> <span class="o">-</span> <span class="n">center_echo</span><span class="p">)</span> <span class="o">%</span> <span class="n">etl</span>
+            <span class="n">groups</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="n">roll</span><span class="p">:]</span> <span class="o">+</span> <span class="n">groups</span><span class="p">[:</span><span class="n">roll</span><span class="p">]</span>
+
+    <span class="n">trains</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">etl</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_trains</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
+        <span class="n">echo</span> <span class="o">=</span> <span class="n">echo_of_group</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">dealt</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">secondary</span><span class="p">[</span><span class="n">group</span><span class="p">],</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"stable"</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dealt</span><span class="o">.</span><span class="n">tolist</span><span class="p">()):</span>
+            <span class="n">trains</span><span class="p">[</span><span class="n">train</span><span class="p">][</span><span class="n">echo</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
+    <span class="k">return</span> <span class="n">trains</span>
+
+
+<div class="viewcode-block" id="make_linear_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_linear_order.html#pypulseqpp.make_linear_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_linear_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">center_echo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Echo-train ordering of Cartesian views in linear (raster) order.</span>
+
+<span class="sd">    The views are ranked in raster order, by ``kz`` and then by ``ky``, and</span>
+<span class="sd">    the ranking is cut into ``train_length`` consecutive bands of</span>
+<span class="sd">    ``ceil(N / train_length)`` views. Band ``e`` is acquired at echo ``e``,</span>
+<span class="sd">    one view per shot, dealt across the shots in ``ky`` order. This is</span>
+<span class="sd">    scheme A (linear reordering) of Buonincontri et al., Fig. 2.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred coordinates of the selected views: an ``(N, 2)`` array of</span>
+<span class="sd">        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space</span>
+<span class="sd">        centre, which is the origin. Encoded view indices ``(y, z)`` on an</span>
+<span class="sd">        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.</span>
+<span class="sd">        Distances and angles are evaluated in the units supplied. Boolean</span>
+<span class="sd">        masks are not accepted.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Echo-train length, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    center_echo : int or None, default=None</span>
+<span class="sd">        Echo at which the view nearest the origin is acquired, in</span>
+<span class="sd">        ``[0, train_length)``. ``None`` keeps the bands in raster order; an</span>
+<span class="sd">        integer rotates the band order so that the band containing that view</span>
+<span class="sd">        is acquired at ``center_echo``.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Pad every train to ``train_length`` with ``None``, so that the</span>
+<span class="sd">        position in a train is the echo index. With ``False`` the ``None``</span>
+<span class="sd">        entries are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trains : list of list of int</span>
+<span class="sd">        ``trains[s][e]`` is the row index into ``coords`` of the view</span>
+<span class="sd">        acquired at echo ``e`` of shot ``s``. The values are indices, not</span>
+<span class="sd">        coordinates; every row of ``coords`` appears exactly once. With</span>
+<span class="sd">        ``pad=True``, ``None`` marks an echo that acquires no view. Empty</span>
+<span class="sd">        ``coords`` give ``[]``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``coords`` is a boolean mask or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,</span>
+<span class="sd">        ``train_length`` is not a positive integer, or ``center_echo`` is</span>
+<span class="sd">        outside ``[0, train_length)``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_centric_order, make_radial_order, make_radial_adaptive_order,</span>
+<span class="sd">    make_shuffling_order</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Four centred views, two echoes per shot. Echo 0 acquires the ``kz = -1``</span>
+<span class="sd">    band and echo 1 the ``kz = 0`` band:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; views = [(-1, -1), (0, -1), (-1, 0), (0, 0)]</span>
+<span class="sd">    &gt;&gt;&gt; trains = pp.make_linear_order(views, 2)</span>
+<span class="sd">    &gt;&gt;&gt; trains</span>
+<span class="sd">    [[0, 2], [1, 3]]</span>
+<span class="sd">    &gt;&gt;&gt; [[views[i] for i in train] for train in trains]</span>
+<span class="sd">    [[(-1, -1), (-1, 0)], [(0, -1), (0, 0)]]</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="n">center_echo</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">n_trains</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">train_length</span><span class="p">))</span>
+    <span class="n">radius</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_polar</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+    <span class="n">trains</span> <span class="o">=</span> <span class="n">_deal_echo_major</span><span class="p">(</span>
+        <span class="n">order</span><span class="p">,</span>
+        <span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">n_trains</span><span class="p">,</span>
+        <span class="n">train_length</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">,</span>
+        <span class="n">center_echo</span><span class="o">=</span><span class="n">center_echo</span><span class="p">,</span>
+        <span class="n">adaptive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">trains</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_centric_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_centric_order.html#pypulseqpp.make_centric_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_centric_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">center_echo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Echo-train ordering of Cartesian views in centric order.</span>
+
+<span class="sd">    The views are ranked by their distance from the origin (the k-space</span>
+<span class="sd">    centre), ties broken by polar angle, and the ranking is cut into</span>
+<span class="sd">    ``train_length`` consecutive bands of ``ceil(N / train_length)`` views.</span>
+<span class="sd">    Band ``e`` is acquired at echo ``e``, one view per shot, dealt across the</span>
+<span class="sd">    shots in angle order. The first echo of every shot therefore acquires a</span>
+<span class="sd">    view near the centre: the conventional centric ordering of segmented</span>
+<span class="sd">    gradient-echo and MPRAGE acquisitions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred coordinates of the selected views: an ``(N, 2)`` array of</span>
+<span class="sd">        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space</span>
+<span class="sd">        centre, which is the origin. Encoded view indices ``(y, z)`` on an</span>
+<span class="sd">        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.</span>
+<span class="sd">        Distances and angles are evaluated in the units supplied. Boolean</span>
+<span class="sd">        masks are not accepted.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Echo-train length, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    center_echo : int or None, default=None</span>
+<span class="sd">        Echo at which the innermost band is acquired, in</span>
+<span class="sd">        ``[0, train_length)``. ``None`` acquires it at echo 0; an integer</span>
+<span class="sd">        rotates the band order, which moves the effective echo time without</span>
+<span class="sd">        changing the train membership.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Pad every train to ``train_length`` with ``None``, so that the</span>
+<span class="sd">        position in a train is the echo index. With ``False`` the ``None``</span>
+<span class="sd">        entries are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trains : list of list of int</span>
+<span class="sd">        ``trains[s][e]`` is the row index into ``coords`` of the view</span>
+<span class="sd">        acquired at echo ``e`` of shot ``s``. The values are indices, not</span>
+<span class="sd">        coordinates; every row of ``coords`` appears exactly once. With</span>
+<span class="sd">        ``pad=True``, ``None`` marks an echo that acquires no view. Empty</span>
+<span class="sd">        ``coords`` give ``[]``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``coords`` is a boolean mask or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,</span>
+<span class="sd">        ``train_length`` is not a positive integer, or ``center_echo`` is</span>
+<span class="sd">        outside ``[0, train_length)``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_radial_order : centre-out order within angular wedges.</span>
+<span class="sd">    make_radial_adaptive_order : distance order folded about a target echo.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Five centred ``ky`` views in shots of two echoes:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; views = [-2, -1, 0, 1, 2]</span>
+<span class="sd">    &gt;&gt;&gt; trains = pp.make_centric_order(views, 2)</span>
+<span class="sd">    &gt;&gt;&gt; trains</span>
+<span class="sd">    [[2, 4], [3, 0], [1]]</span>
+<span class="sd">    &gt;&gt;&gt; [[views[i] for i in train] for train in trains]</span>
+<span class="sd">    [[0, 2], [1, -2], [-1]]</span>
+
+<span class="sd">    Echo 0 acquires the three views nearest the centre, one per shot, and</span>
+<span class="sd">    echo 1 the two outer views. The third shot has no second view.</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="n">center_echo</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">n_trains</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">train_length</span><span class="p">))</span>
+    <span class="n">radius</span><span class="p">,</span> <span class="n">angle</span> <span class="o">=</span> <span class="n">_polar</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">index</span><span class="p">:</span> <span class="p">(</span><span class="n">radius</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">angle</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+    <span class="n">trains</span> <span class="o">=</span> <span class="n">_deal_echo_major</span><span class="p">(</span>
+        <span class="n">order</span><span class="p">,</span>
+        <span class="n">angle</span><span class="p">,</span>
+        <span class="n">n_trains</span><span class="p">,</span>
+        <span class="n">train_length</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">,</span>
+        <span class="n">center_echo</span><span class="o">=</span><span class="n">center_echo</span><span class="p">,</span>
+        <span class="n">adaptive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">trains</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_radial_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_radial_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Echo-train ordering of Cartesian views in centre-out radial order.</span>
+
+<span class="sd">    This orders Cartesian phase-encoding views, the radial view ordering of</span>
+<span class="sd">    3D fast spin echo; it does not concern radial (projection) trajectories.</span>
+<span class="sd">    The views are sorted by polar angle about the origin and cut into</span>
+<span class="sd">    ``ceil(N / train_length)`` angular wedges of ``train_length`` views; each</span>
+<span class="sd">    wedge is one shot. Within a wedge the views are acquired in order of</span>
+<span class="sd">    increasing distance from the origin, so every shot acquires its view</span>
+<span class="sd">    nearest the centre at echo 0. This is scheme B (radial wedge</span>
+<span class="sd">    reordering) of Buonincontri et al., Fig. 2.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred coordinates of the selected views: an ``(N, 2)`` array of</span>
+<span class="sd">        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space</span>
+<span class="sd">        centre, which is the origin. Encoded view indices ``(y, z)`` on an</span>
+<span class="sd">        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.</span>
+<span class="sd">        Distances and angles are evaluated in the units supplied. Boolean</span>
+<span class="sd">        masks are not accepted.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Echo-train length, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Pad every train to ``train_length`` with ``None``, so that the</span>
+<span class="sd">        position in a train is the echo index. With ``False`` the ``None``</span>
+<span class="sd">        entries are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trains : list of list of int</span>
+<span class="sd">        ``trains[s][e]`` is the row index into ``coords`` of the view</span>
+<span class="sd">        acquired at echo ``e`` of shot ``s``. The values are indices, not</span>
+<span class="sd">        coordinates; every row of ``coords`` appears exactly once. With</span>
+<span class="sd">        ``pad=True``, ``None`` marks an echo that acquires no view. Empty</span>
+<span class="sd">        ``coords`` give ``[]``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``coords`` is a boolean mask or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``, or</span>
+<span class="sd">        ``train_length`` is not a positive integer.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_radial_adaptive_order : a target echo other than the first.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Eight centred views on a 3 x 3 ky-kz grid without its centre, in shots</span>
+<span class="sd">    of four. Each shot is a half-plane wedge, acquired from the inner to the</span>
+<span class="sd">    outer views:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; views = [(-1, -1), (-1, 0), (-1, 1), (0, -1),</span>
+<span class="sd">    ...          (0, 1), (1, -1), (1, 0), (1, 1)]</span>
+<span class="sd">    &gt;&gt;&gt; trains = pp.make_radial_order(views, 4)</span>
+<span class="sd">    &gt;&gt;&gt; trains</span>
+<span class="sd">    [[3, 6, 0, 5], [4, 1, 7, 2]]</span>
+<span class="sd">    &gt;&gt;&gt; [[views[i] for i in train] for train in trains]</span>
+<span class="sd">    [[(0, -1), (1, 0), (-1, -1), (1, -1)], [(0, 1), (-1, 0), (1, 1), (-1, 1)]]</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">radius</span><span class="p">,</span> <span class="n">angle</span> <span class="o">=</span> <span class="n">_polar</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">n_shots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">train_length</span><span class="p">))</span>
+    <span class="c1"># Angular wedges of equal view count keep every echo train the same length.</span>
+    <span class="n">by_angle</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">shots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_shots</span><span class="p">):</span>
+        <span class="n">wedge</span> <span class="o">=</span> <span class="n">by_angle</span><span class="p">[</span><span class="n">s</span> <span class="o">*</span> <span class="n">train_length</span> <span class="p">:</span> <span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">train_length</span><span class="p">]</span>
+        <span class="n">wedge</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">radius</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wedge</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_radial_adaptive_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_radial_adaptive_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">center_echo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Echo-train ordering of Cartesian views in radial order about a target echo.</span>
+
+<span class="sd">    The views are ranked by their distance from the origin (the k-space</span>
+<span class="sd">    centre) and cut into ``train_length`` radius bands of</span>
+<span class="sd">    ``ceil(N / train_length)`` views. The innermost band is acquired at</span>
+<span class="sd">    ``center_echo`` and successive bands at the echoes increasingly distant</span>
+<span class="sd">    from it, alternating before and after, so the distance from the centre</span>
+<span class="sd">    increases monotonically away from the target echo in both directions.</span>
+<span class="sd">    Within a band the views are dealt across the shots in polar-angle order.</span>
+<span class="sd">    This is scheme C (modified radial reordering) of Buonincontri et al.,</span>
+<span class="sd">    Fig. 2C-D, which acquires the k-space centre at a prescribed echo without</span>
+<span class="sd">    a discontinuity at the centre.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred coordinates of the selected views: an ``(N, 2)`` array of</span>
+<span class="sd">        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space</span>
+<span class="sd">        centre, which is the origin. Encoded view indices ``(y, z)`` on an</span>
+<span class="sd">        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.</span>
+<span class="sd">        Distances and angles are evaluated in the units supplied. Boolean</span>
+<span class="sd">        masks are not accepted.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Echo-train length, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    center_echo : int or None, default=None</span>
+<span class="sd">        Echo at which the innermost band, and so the view nearest the</span>
+<span class="sd">        origin, is acquired, in ``[0, train_length)``. ``None`` is echo 0.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Pad every train to ``train_length`` with ``None``, so that the</span>
+<span class="sd">        position in a train is the echo index. With ``False`` the ``None``</span>
+<span class="sd">        entries are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trains : list of list of int</span>
+<span class="sd">        ``trains[s][e]`` is the row index into ``coords`` of the view</span>
+<span class="sd">        acquired at echo ``e`` of shot ``s``. The values are indices, not</span>
+<span class="sd">        coordinates; every row of ``coords`` appears exactly once. With</span>
+<span class="sd">        ``pad=True``, ``None`` marks an echo that acquires no view. Empty</span>
+<span class="sd">        ``coords`` give ``[]``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``coords`` is a boolean mask or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``,</span>
+<span class="sd">        ``train_length`` is not a positive integer, or ``center_echo`` is</span>
+<span class="sd">        outside ``[0, train_length)``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_radial_order : centre-out order within angular wedges.</span>
+<span class="sd">    make_centric_order : distance order rotated rather than folded.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Nine centred ``ky`` views in three shots of three echoes, with the</span>
+<span class="sd">    centre view acquired at echo 1:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; views = np.arange(-4, 5)</span>
+<span class="sd">    &gt;&gt;&gt; trains = pp.make_radial_adaptive_order(views, 3, center_echo=1)</span>
+<span class="sd">    &gt;&gt;&gt; trains</span>
+<span class="sd">    [[6, 4, 8], [7, 5, 1], [2, 3, 0]]</span>
+<span class="sd">    &gt;&gt;&gt; views[np.array(trains)]</span>
+<span class="sd">    array([[ 2,  0,  4],</span>
+<span class="sd">           [ 3,  1, -3],</span>
+<span class="sd">           [-2, -1, -4]])</span>
+
+<span class="sd">    The distance from the centre is smallest at echo 1 in every shot:</span>
+
+<span class="sd">    &gt;&gt;&gt; np.abs(views[np.array(trains)]).argmin(axis=1).tolist()</span>
+<span class="sd">    [1, 1, 1]</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="n">center_echo</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">n_trains</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">train_length</span><span class="p">))</span>
+    <span class="n">radius</span><span class="p">,</span> <span class="n">angle</span> <span class="o">=</span> <span class="n">_polar</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">index</span><span class="p">:</span> <span class="p">(</span><span class="n">radius</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">angle</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+    <span class="n">trains</span> <span class="o">=</span> <span class="n">_deal_echo_major</span><span class="p">(</span>
+        <span class="n">order</span><span class="p">,</span>
+        <span class="n">angle</span><span class="p">,</span>
+        <span class="n">n_trains</span><span class="p">,</span>
+        <span class="n">train_length</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">,</span>
+        <span class="n">center_echo</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">center_echo</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">center_echo</span><span class="p">,</span>
+        <span class="n">adaptive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">trains</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_shuffling_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_shuffling_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cluster</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Echo-train ordering of Cartesian views with random echo positions.</span>
+
+<span class="sd">    This is the echo ordering used by T2 Shuffling [1]_. With</span>
+<span class="sd">    ``cluster=True``, train membership is formed from contiguous views in</span>
+<span class="sd">    raster order (``kz``, then ``ky``); echo positions within each train are</span>
+<span class="sd">    randomly permuted. With ``cluster=False``, train membership is a random</span>
+<span class="sd">    partition of the views as well.</span>
+
+<span class="sd">    The routine orders views that are already selected; it does not select a</span>
+<span class="sd">    variable-density support. ``make_cartesian_plane_sampling`` with</span>
+<span class="sd">    ``sampling='poisson'`` selects such a support.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred coordinates of the selected views: an ``(N, 2)`` array of</span>
+<span class="sd">        ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space</span>
+<span class="sd">        centre, which is the origin. Encoded view indices ``(y, z)`` on an</span>
+<span class="sd">        ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.</span>
+<span class="sd">        Distances and angles are evaluated in the units supplied. Boolean</span>
+<span class="sd">        masks are not accepted.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Echo-train length, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    seed : int or None, default=None</span>
+<span class="sd">        Seed of the random permutations. Equal seeds give equal orders.</span>
+<span class="sd">    cluster : bool, default=True</span>
+<span class="sd">        Form each train from contiguous views in raster order; when</span>
+<span class="sd">        ``False``, assign views to trains at random.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Pad every train to ``train_length`` with ``None``, so that the</span>
+<span class="sd">        position in a train is the echo index. With ``False`` the ``None``</span>
+<span class="sd">        entries are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trains : list of list of int</span>
+<span class="sd">        ``trains[s][e]`` is the row index into ``coords`` of the view</span>
+<span class="sd">        acquired at echo ``e`` of shot ``s``. The values are indices, not</span>
+<span class="sd">        coordinates; every row of ``coords`` appears exactly once. With</span>
+<span class="sd">        ``pad=True``, ``None`` marks an echo that acquires no view. Empty</span>
+<span class="sd">        ``coords`` give ``[]``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``coords`` is a boolean mask or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``coords`` does not have shape ``(N,)`` or ``(N, 2)``, or</span>
+<span class="sd">        ``train_length`` is not a positive integer.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_linear_order : the same train membership in raster echo order.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Tamir JI, Uecker M, Chen W, et al. T2 shuffling: sharp,</span>
+<span class="sd">       multicontrast, volumetric fast spin-echo imaging. *Magnetic Resonance</span>
+<span class="sd">       in Medicine*. 2017;77(1):180-195. https://doi.org/10.1002/mrm.26102</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Six centred ``ky`` views in two shots of three echoes. Each shot</span>
+<span class="sd">    contains a contiguous group of views; the echo at which each view is</span>
+<span class="sd">    acquired is random:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; views = [-3, -2, -1, 0, 1, 2]</span>
+<span class="sd">    &gt;&gt;&gt; trains = pp.make_shuffling_order(views, 3, seed=0)</span>
+<span class="sd">    &gt;&gt;&gt; trains</span>
+<span class="sd">    [[2, 0, 1], [5, 4, 3]]</span>
+<span class="sd">    &gt;&gt;&gt; [[views[i] for i in train] for train in trains]</span>
+<span class="sd">    [[-1, -3, -2], [2, 1, 0]]</span>
+
+<span class="sd">    Another seed keeps the train membership and changes the echo positions:</span>
+
+<span class="sd">    &gt;&gt;&gt; other = pp.make_shuffling_order(views, 3, seed=1)</span>
+<span class="sd">    &gt;&gt;&gt; [[views[i] for i in train] for train in other]</span>
+<span class="sd">    [[-3, -2, -1], [2, 0, 1]]</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_centred</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">n_shots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">train_length</span><span class="p">))</span>
+
+    <span class="c1"># Raster order, kz then ky, so each train is a contiguous group of views;</span>
+    <span class="c1"># without clustering the membership starts from a random order.</span>
+    <span class="n">base_order</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">cluster</span>
+        <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="n">shots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_shots</span><span class="p">):</span>
+        <span class="n">train</span> <span class="o">=</span> <span class="n">base_order</span><span class="p">[</span><span class="n">s</span> <span class="o">*</span> <span class="n">train_length</span> <span class="p">:</span> <span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">train_length</span><span class="p">]</span>
+        <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">train</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -22,13 +22,18 @@
 Shuffled echo-resolved 3D FSE
 =============================
 
-Shuffled 3D FSE uses the same optimized refocusing train as conventional FSE,
-but distributes echo times over a variable-density Poisson-disc sampling
-pattern. The resulting incoherent contrast distribution can support
-echo-resolved or subspace reconstruction; no reconstruction is performed
-here.
+Shuffled 3D FSE uses the same refocusing-train design as conventional FSE
+and differs in two separate choices. The support is a variable-density
+Poisson-disc draw, which determines which views are acquired. The ordering
+is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in
+raster order, and the echo position of each view within its train is random,
+which determines when each view is acquired. Together, the variable-density
+support and the random echo positions give each echo time a subset of views
+spread over the sampled extent without a regular pattern, the sampling
+condition of echo-resolved subspace reconstruction [TAM17]_; no
+reconstruction is performed here.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-51
+.. GENERATED FROM PYTHON SOURCE LINES 17-62
 
 .. code-block:: Python
 
@@ -38,15 +43,15 @@ here.
     Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
     P = {
-        "n_x": 80,
-        "n_y": 48,
-        "n_z": 24,
+        "n_x": 128,
+        "n_y": 96,
+        "n_z": 48,
         "fov_x": 0.20,
         "fov_y": 0.20,
         "fov_z": 0.12,
-        "etl": 16,
-        "te": 48e-3,
-        "tr": 0.5,
+        "etl": 64,
+        "te": 100e-3,
+        "tr": 1.4,
         "ry": 2,
         "rz": 2,
         "n_acs_y": 8,
@@ -66,16 +71,18 @@ here.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-58
+.. GENERATED FROM PYTHON SOURCE LINES 63-71
 
 Variable-density sampling
 -------------------------
 
 A fully sampled calibration region is embedded in a variable-density
-Poisson-disc mask. The remaining samples are distributed across echo indices
-rather than assigned deterministically by k-space radius.
+Poisson-disc support, selected with
+``make_cartesian_plane_sampling(..., sampling="poisson")``. The echo index of
+each view is then assigned by :func:`~pypulseqpp.make_shuffling_order` rather
+than by its distance from the k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-78
+.. GENERATED FROM PYTHON SOURCE LINES 71-92
 
 
 
@@ -89,18 +96,21 @@ rather than assigned deterministically by k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-87
+.. GENERATED FROM PYTHON SOURCE LINES 93-104
 
 Echo-time distribution
 ----------------------
 
-The optimized train is the same type analysed in the conventional FSE example;
-shuffling changes its assignment to sampled views, not the RF model. Each echo
-index occurs throughout the sampled extent. Contrast evolution is
-consequently not locked to a radial k-space band, which is the sampling
-condition used by echo-resolved and subspace FSE reconstructions.
+The refocusing train is designed as in
+:doc:`/generated/gallery/13-fast-spin-echo/fse3D_sequence`, whose figures
+show the schedule; shuffling changes the assignment of views to echoes, not
+the refocusing schedule. With a 64-echo train, each echo index occurs
+throughout the sampled extent, so the contrast evolution along the train is
+not confined to a radial k-space band. The figure gives the distance of
+every acquired view from the k-space centre against its echo time: every
+echo time samples views from the centre to the edge of the support.
 
-.. GENERATED FROM PYTHON SOURCE LINES 87-102
+.. GENERATED FROM PYTHON SOURCE LINES 104-117
 
 
 
@@ -114,10 +124,20 @@ condition used by echo-resolved and subspace FSE reconstructions.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 118-125
+
+References
+----------
+
+.. [TAM17] Tamir JI, Uecker M, Chen W, Lai P, Alley MT, Vasanawala SS,
+   Lustig M. T2 shuffling: sharp, multicontrast, volumetric fast spin-echo
+   imaging. *Magnetic Resonance in Medicine*. 2017;77(1):180-195.
+   https://doi.org/10.1002/mrm.26102
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.228 seconds)
+   **Total running time of the script:** (0 minutes 0.645 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

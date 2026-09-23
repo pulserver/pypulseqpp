@@ -23,13 +23,16 @@ Four broad forms are useful:
 
 These forms may link extensively to one another, but they should not be collapsed into a single style of documentation.
 
-The three principal modes have distinct levels of detail:
+The principal modes have distinct levels of detail:
 
-* **Explanation** is concise scientific prose organised around equations, figures, tables, schematics, or explicit criteria. Each object is introduced and interpreted briefly.
-* **Examples** are executable MRI workflows that connect sequence physics, acquisition strategy, and application to observable output.
-* **API reference** is terse and exhaustive. Accurate NumPy-style docstrings carry interface semantics, units, types, and defaults.
+| Mode | Form | Register |
+| --- | --- | --- |
+| **Course (tutorial)** | Sequential lessons in the gallery that teach a workflow progressively, each with explicit learning objectives. | Teaching prose; a lesson may refer to the previous and the next one. |
+| **Scientific gallery example** | A standalone executable workflow that investigates a scientific or design concept and produces an observable result. | Concise methodological prose; no tutorial narration; not an API tour. |
+| **Explanation** | A concept-centred page organised around equations, figures, tables, schematics, or explicit criteria. | Brief; each object is introduced and interpreted briefly. |
+| **API reference** | NumPy-style docstrings and reference pages. | Terse and exhaustive: exact semantics, types, units, defaults, and the meaning of every return value, with small object-centred examples. |
 
-Cross-link these modes rather than repeating the same account in all three.
+Cross-link these modes rather than repeating the same account in each.
 
 ### API reference
 
@@ -138,7 +141,7 @@ An example should address one question. Where it compares configurations, hold e
 
 Prefer a small number of strong examples to broad coverage. A gallery is not an inventory of the public interface, and no example is warranted merely because a feature would otherwise go unrepresented.
 
-An example is **not a conversational tutorial**. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation.
+A scientific gallery example is **not a conversational tutorial**. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation. The course described under {ref}`course-lessons` is the one intentional exception, and its register is defined there.
 
 A substantial example will often include:
 
@@ -253,9 +256,26 @@ The intended result is **a reproducible scientific example with concise methodol
 
 When a sentence merely describes what the next line of code does, it can usually be removed.
 
+(course-lessons)=
+#### Course lessons
+
+The first gallery groups, from the pulse-acquire experiment to custom sequence modules, form a course in Pulseq sequence construction, adapted from the progression of the Pulseq tutorials: system limits, events and blocks, RF and ADC events, gradients, gradient echoes, spoiling, segmentation, EPI, non-Cartesian sampling, reusable modules, complete applications and custom modules. A lesson is part of that sequence rather than a standalone study, and it is written as teaching material.
+
+A lesson normally contains:
+
+1. a concise introductory paragraph stating the concept the lesson introduces;
+2. a short **Learning objectives** section listing what the reader can do after the lesson;
+3. the progressive executable lesson;
+4. the figures, equations and results used to explain the workflow;
+5. where useful, one sentence relating the lesson to the previous or next one, for example: "The previous lesson formed a gradient echo. This lesson adds phase encoding so that successive repetitions acquire different Cartesian lines."
+
+The section headings are the outline of the lesson; a separate outline that restates them is not added. Pedagogical transitions are allowed. Generated scaffolding is not: "The scope of this notebook is...", "The observable is...", an "Outline:" block that repeats the headings, and figurative phrasing such as "what X costs and buys". The prose rules of this guide apply otherwise unchanged: no enthusiasm, rhetorical questions, personification, code narration without teaching value, or repeated previews and recaps.
+
+The complete sequences that follow the course are scientific gallery examples and reference material, not lessons.
+
 #### API examples and gallery examples
 
-Two kinds of example are legitimate, and they are not interchangeable.
+Three kinds of example are legitimate, and they are not interchangeable: the course lesson described above, the scientific gallery example, and the API example.
 
 An **API example** shows how an object is constructed and used. It belongs in the `Examples` section of a docstring or on the reference page for that object, it is a few lines long, and it needs no experiment, sweep or scientific result. Reference material that illustrates one object belongs here; where an executed configuration and the figures it produces are large enough to be a page of their own, the reference page links the gallery example that carries them rather than repeating it.
 
@@ -307,6 +327,10 @@ Give each category a name that states what its examples have in common. Do not a
 
 Prefer the mechanisms the documentation builder supports — landing-page construction, hidden toctrees, navigation depth settings — over hiding generated pages with CSS.
 
+#### Running an example in Colab
+
+Every example page carries an **Open in Colab** badge under its title; `docs/colab.py` inserts it when the page is built, so a script does not carry one itself. The badge opens a copy of the example's notebook, published with the site under `<version>/_colab/`, whose first two cells are a note and a `%pip install` of pypulseqpp with its `plot` extra and the packages the example imports. The notebook offered for download on the page has no such cells. A section whose examples import more than the common set lists those packages in `SECTION_PACKAGES` in `docs/colab.py`.
+
 ### Explanation and concepts
 
 Explanatory documentation answers questions about concepts, theory, terminology, relationships between methods, architecture, and design rationale.
@@ -338,6 +362,8 @@ Explanatory documentation may:
 * discuss architectural or API design decisions;
 * explain numerical or scientific trade-offs;
 * connect implementations to literature or upstream software.
+
+Every explanation page opens with a **TL;DR** block directly under its title: a short list of the page's conclusions, each stated as the page states it, with no claim the page does not support. It lets a reader decide whether the page answers their question. Landing pages, API reference pages and gallery examples have none.
 
 Where possible, begin from the scientific, mathematical, or computational concept rather than from the Python class hierarchy.
 
@@ -654,6 +680,8 @@ Do not use Notes as a place for general background theory that belongs in explan
 
 Docstring examples should be short and API-focused.
 
+Where the shape or the meaning of a return value is not obvious from its type, the example makes it evident: it uses a deliberately small deterministic input, and it prints the returned value itself rather than an incidental property such as its length or shape. If a routine returns indices into its input, the example shows the indices and the values they select; if it returns relative offsets, it shows how they combine with the origin they are relative to; if it returns a mask, it shows the selected entries, for example with `numpy.argwhere`. Examples use the public namespace (`import pypulseqpp as pp`, then `pp.<name>`), never a private module.
+
 Useful examples demonstrate:
 
 * basic invocation;
@@ -728,6 +756,12 @@ A successful documentation build establishes that the documentation can be rende
 * Is background theory limited to what is needed to specify the interface?
 * Have implementation details displaced the scientific abstraction?
 
+### Course lessons
+
+* Does the lesson state its concept and its learning objectives?
+* Does it follow from the previous lesson, and is any transition one sentence rather than a recap?
+* Is the scaffolding free of templated phrases and outline blocks that restate the headings?
+
 ### Examples and gallery
 
 * Is this a meaningful and reproducible scientific workflow?
@@ -745,6 +779,7 @@ A successful documentation build establishes that the documentation can be rende
 
 ### Explanation
 
+* Does the page open with a TL;DR that states only what the page establishes?
 * Does the page teach the underlying concept rather than narrate the API?
 * Are standard terms introduced accurately and then used consistently?
 * Are motivation, relationships, assumptions, and design choices clear?

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
@@ -582,26 +540,32 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="plotting">
 <h1>Plotting<a class="headerlink" href="#plotting" title="Link to this heading">#</a></h1>
-<p>Each figure is a function of the object it draws. <code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code> and
+<p>Figures of a sequence, of its ADC sampling locations in k-space and of its RF
+pulses. Each figure is a function of the object it draws. <code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code> and
 <code class="xref py py-func docutils literal notranslate"><span class="pre">paper_plot()</span></code> are also <a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Sequence</span></code></a> methods, for scripts
 written against upstream PyPulseq; the other figures are functions only.</p>
 <section id="sequence-views">
 <h2>Sequence views<a class="headerlink" href="#sequence-views" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot" title="pypulseqpp.plot.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> opens the sequence in SeqEyes, an optional viewer installed with
-<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'pypulseqpp[plot]'</span></code>. <a class="reference internal" href="../generated/pypulseqpp.plot.paper_plot.html#pypulseqpp.plot.paper_plot" title="pypulseqpp.plot.paper_plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">paper_plot()</span></code></a> draws one repetition as a
-publication diagram, overlaid on the others.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot" title="pypulseqpp.plot.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> requires SeqEyes, an optional viewer installed with
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'pypulseqpp[plot]'</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot" title="pypulseqpp.plot.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a></p></td>
-<td><p>Open <code class="docutils literal notranslate"><span class="pre">seq</span></code> in the SeqEyes viewer; see :meth:<code class="docutils literal notranslate"><span class="pre">pypulseqpp.Sequence.plot</span></code>.</p></td>
+<td><p>Sequence, arguments of <code class="docutils literal notranslate"><span class="pre">Sequence.plot</span></code></p></td>
+<td><p>SeqEyes viewer process</p></td>
+<td><p>Interactive view of the sequence.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.paper_plot.html#pypulseqpp.plot.paper_plot" title="pypulseqpp.plot.paper_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paper_plot</span></code></a></p></td>
-<td><p>Draw a publication diagram of <code class="docutils literal notranslate"><span class="pre">seq</span></code>; see :meth:<code class="docutils literal notranslate"><span class="pre">pypulseqpp.Sequence.paper_plot</span></code>.</p></td>
+<td><p>Sequence, arguments of <code class="docutils literal notranslate"><span class="pre">Sequence.paper_plot</span></code></p></td>
+<td><p>Matplotlib <code class="docutils literal notranslate"><span class="pre">Axes</span></code></p></td>
+<td><p>Publication diagram of one repetition over the others.</p></td>
 </tr>
 </tbody>
 </table>
@@ -609,25 +573,31 @@ publication diagram, overlaid on the others.</p>
 </section>
 <section id="colormaps">
 <h2>Colormaps<a class="headerlink" href="#colormaps" title="Link to this heading">#</a></h2>
-<p>The figures on this page are drawn with these. Every tone in them is held
-between two luminances, so that a figure drawn on a transparent canvas reads
-against white paper and against a dark page alike; a figure drawn beside one of
-these takes the same colormap so that the two agree.</p>
+<p>The colormaps the figures on this page are drawn with, for figures drawn beside
+them.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.SAMPLING.html#pypulseqpp.plot.SAMPLING" title="pypulseqpp.plot.SAMPLING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SAMPLING</span></code></a></p></td>
-<td><p>An acquisition order, first to last.</p></td>
+<td><p>Normalised value in [0, 1]</p></td>
+<td><p>RGBA colour</p></td>
+<td><p>Acquisition order, first to last.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.MAGNITUDE.html#pypulseqpp.plot.MAGNITUDE" title="pypulseqpp.plot.MAGNITUDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAGNITUDE</span></code></a></p></td>
-<td><p>A magnitude from nothing, with zero drawn as the page.</p></td>
+<td><p>Normalised value in [0, 1]</p></td>
+<td><p>RGBA colour, transparent at zero</p></td>
+<td><p>Magnitude from zero.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.SIGNED.html#pypulseqpp.plot.SIGNED" title="pypulseqpp.plot.SIGNED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIGNED</span></code></a></p></td>
-<td><p>A signed quantity about zero, with zero drawn as the page.</p></td>
+<td><p>Normalised value in [0, 1]</p></td>
+<td><p>RGBA colour, transparent at 0.5</p></td>
+<td><p>Signed quantity about zero.</p></td>
 </tr>
 </tbody>
 </table>
@@ -635,22 +605,24 @@ these takes the same colormap so that the two agree.</p>
 </section>
 <section id="k-space-and-rf-profiles">
 <h2>k-space and RF profiles<a class="headerlink" href="#k-space-and-rf-profiles" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_kspace()</span></code></a> draws the ADC sampling locations in physical-axis k-space,
-in 1/m, optionally coloured by shot or echo index. <a class="reference internal" href="../generated/pypulseqpp.plot.plot_rf.html#pypulseqpp.plot.plot_rf" title="pypulseqpp.plot.plot_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_rf()</span></code></a> draws an RF
-pulse’s envelope beside the magnetisation profile it produces, against position
-or off-resonance, or over a plane.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_kspace</span></code></a></p></td>
-<td><p>Plot the ADC sampling locations in k-space.</p></td>
+<td><p>Sequence, range, projection plane, <code class="docutils literal notranslate"><span class="pre">color_by</span></code></p></td>
+<td><p>Matplotlib <code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p>ADC sampling locations in physical-axis k-space (1/m).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.plot.plot_rf.html#pypulseqpp.plot.plot_rf" title="pypulseqpp.plot.plot_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_rf</span></code></a></p></td>
-<td><p>Draw an RF pulse’s ``</p></td>
+<td><p>Sequence, module or RF event; pulse; profile axis or plane</p></td>
+<td><p>Matplotlib <code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p>RF envelope beside its magnetisation profile.</p></td>
 </tr>
 </tbody>
 </table>

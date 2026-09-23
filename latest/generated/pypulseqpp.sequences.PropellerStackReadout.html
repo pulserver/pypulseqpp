@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -592,8 +550,8 @@ its encoding gradients. Slice and partition axes remain along z.</p>
 <p>The scan loop sets the shot origin by scaling prewinders. Blips implement
 the relative offsets and share the readout ramps; flyback blips instead
 play in the rewind gaps. TE is measured to the train line <code class="docutils literal notranslate"><span class="pre">te_line</span></code>,
-the first by default: the loop knows which line samples the centre of
-k-space, the module does not.</p>
+the first by default, because which line samples the centre of k-space
+depends on the shot origin that the loop sets.</p>
 <p>Navigator lines, when asked for, are read after the read prewinder and
 before the phase-encode prewinder, without blips, so they sample the
 centre line at alternating polarities. The train then continues the
@@ -649,12 +607,12 @@ interleaved lines. The module plays no shift; the loop lengthens
 view grows, while resolution is fixed by <code class="docutils literal notranslate"><span class="pre">fov</span></code> and <code class="docutils literal notranslate"><span class="pre">matrix</span></code>.</p></li>
 <li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=500000.0</em>) – Requested ADC sampling rate (Hz). <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code> reports the
 achieved raster-compatible rate.</p></li>
-<li><p><strong>ramp_sampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Sample across the read ramps as well as the plateau, which is what
-makes the echo spacing short. Turn it off for a rectangular window at
-the cost of a longer train.</p></li>
+<li><p><strong>ramp_sampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Sample across the read ramps as well as the plateau, which shortens
+the echo spacing. When off, the window covers the plateau only and the
+train is longer.</p></li>
 <li><p><strong>flyback</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Read every line in the same direction, rewinding between them, instead
-of alternating polarity. It costs a rewind per line and buys away the
-odd-even inconsistency that a bipolar train leaves behind.</p></li>
+of alternating polarity. This adds a rewind per line and removes the
+odd-even echo inconsistency of a bipolar train.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Read-axis spoiling at the end of the repetition, in cycles across
 <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Length the spoiling is counted over (m). The read resolution by
@@ -683,12 +641,13 @@ it; a flyback train’s is the whole step, played in the rewind block
 <code class="docutils literal notranslate"><span class="pre">gz_blips</span></code> is 3D only.</p></li>
 <li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
 is 3D only.</p></li>
-<li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The encodes negated, in the block that closes the repetition.</p></li>
-<li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – The lobe that closes the read axis, bridged off the last line.</p></li>
+<li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The encodes negated, in the last block of the repetition.</p></li>
+<li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Read-axis trapezoid in the last block: returns the read axis from the
+end of the last line through k = 0 and adds the requested spoiling.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, shared by every line.</p></li>
 <li><p><strong>shot_labels</strong> (<em>tuple[LabelEvent, …]</em>) – <code class="docutils literal notranslate"><span class="pre">SET</span></code> counters on the prewinder block, one per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.
-The loop writes the shot’s origin into them. Always a tuple, however
-many names there are, because the loop splats it.</p></li>
+The acquisition loop sets them to the shot’s origin. Always a tuple,
+whatever the number of names, so that it can be unpacked into a block.</p></li>
 <li><p><strong>line_labels</strong> (<em>tuple[tuple[LabelEvent, …], …]</em>) – Per line, the <code class="docutils literal notranslate"><span class="pre">INC</span></code> counters that step from the previous line to this
 one – the ordering, expressed as labels. Empty for the first line,
 which the <code class="docutils literal notranslate"><span class="pre">SET</span></code> already placed.</p></li>
@@ -704,7 +663,8 @@ lengthens it by <code class="docutils literal notranslate"><span class="pre">s</
 <li><p><strong>esp</strong> (<em>float</em>) – Echo spacing (s).</p></li>
 <li><p><strong>echo_times</strong> (<em>NDArray[np.float64]</em>) – Each line’s echo time (s) from the excitation isodelay, with no echo
 shift.</p></li>
-<li><p><strong>echo_time</strong> (<em>float</em>) – Echo time (s) of train line <code class="docutils literal notranslate"><span class="pre">te_line</span></code>, which is what <code class="docutils literal notranslate"><span class="pre">te</span></code> sets.</p></li>
+<li><p><strong>echo_time</strong> (<em>float</em>) – Echo time (s) of train line <code class="docutils literal notranslate"><span class="pre">te_line</span></code>, the echo time that <code class="docutils literal notranslate"><span class="pre">te</span></code>
+specifies.</p></li>
 <li><p><strong>echo_shift_step</strong> (<em>float</em>) – Echo shift between successive shots (s), <code class="docutils literal notranslate"><span class="pre">esp</span> <span class="pre">/</span> <span class="pre">echo_shifts</span></code> on the
 block raster; zero with one shift.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate (Hz).</p></li>

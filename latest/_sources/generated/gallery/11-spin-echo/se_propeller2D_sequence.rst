@@ -23,7 +23,7 @@
 ========================
 
 A slice-selective excitation and 180-degree refocusing pulse form one spin echo,
-which reads one line of a rotating PROPELLER blade. Spoilers suppress unwanted
+at which one line of a rotating PROPELLER blade is acquired. Spoilers suppress unwanted
 coherence before the next TR. TE controls T2 weighting and TR controls
 longitudinal recovery. The overlapping blade centres support motion-robust
 structural imaging.
@@ -39,10 +39,10 @@ structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-37
 
-Baseline
---------
+Sixteen-line blades
+-------------------
 
-Sixteen lines to a blade.
+Sixteen lines per blade.
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-47
 
@@ -92,12 +92,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2c9a450>, tr=225, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 145, 153, 172, 191, 210, 229, 248, 267, 286, 289])
 
 
 
@@ -124,12 +118,6 @@ Colour encodes blade acquisition order.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
@@ -138,8 +126,8 @@ Colour encodes blade acquisition order.
 Wider blades
 ------------
 
-A wider blade needs fewer turns to cover the disc and samples more of the
-centre in each.
+Wider blades cover the k-space disc with fewer blade orientations, and
+each blade samples a larger central region.
 
 .. GENERATED FROM PYTHON SOURCE LINES 67-81
 
@@ -181,19 +169,13 @@ centre in each.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.397 seconds)
+   **Total running time of the script:** (0 minutes 3.990 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

@@ -22,26 +22,28 @@
 Single-shot echo planar
 =======================
 
-The scope of this notebook is to take the segmentation of the previous page to
-one shot, so that the whole matrix is acquired after a single excitation, and
-to measure the two things that limit such an acquisition: the decay of the
-signal over an echo train tens of milliseconds long, and the sensitivity of a
-train of alternating readouts to a delay between the gradient and the
-acquisition.
-
-Outline:
-
-#. **One excitation, every line.** The train, and the blip between its echoes.
-#. **The trajectory.** What one shot traverses, and in what order.
-#. **Decay across the train.** The point-spread function the decay produces
-   along the phase-encode direction, against :math:`T_2^*`.
-#. **Gradient delay and the odd echoes.** The k-space displacement a delay
-   introduces, measured with the analysis's own delay parameter.
-
-The trade-off this page sits at one end of is measured in
+The previous lesson divided the matrix over several shots. This lesson takes
+the segmentation to one shot, so that the whole matrix is acquired after a
+single excitation, and measures the two effects that limit such an
+acquisition: the signal decay over an echo train tens of milliseconds long,
+and the sensitivity of a train of alternating readouts to a delay between the
+gradient waveform and the acquisition. The relationship between shot count,
+distortion and scan time is measured in
 :doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 25-35
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- build a single-shot echo planar readout with a one-line phase-encode blip;
+- read the traversal order of the echo train from the k-space trajectory;
+- compute the point-spread function that :math:`T_2^*` decay across the
+  train produces along the phase-encode direction;
+- measure the alternating k-space displacement a gradient delay introduces,
+  and relate it to the half-field-of-view ghost.
+
+.. GENERATED FROM PYTHON SOURCE LINES 27-37
 
 
 
@@ -50,7 +52,7 @@ The trade-off this page sits at one end of is measured in
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-41
+.. GENERATED FROM PYTHON SOURCE LINES 38-43
 
 One excitation, every line
 --------------------------
@@ -58,7 +60,7 @@ One excitation, every line
 The blip advances one line rather than the number of shots, and the train
 runs the length of the matrix. Nothing else changes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-115
+.. GENERATED FROM PYTHON SOURCE LINES 43-117
 
 .. code-block:: Python
 
@@ -151,11 +153,10 @@ runs the length of the matrix. Nothing else changes.
 
     timing True, 66 blocks, echo spacing 0.700 ms, train 44.8 ms, blip 80 us
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6a2e5d0>, tr=63, underlays=[1, 2, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-122
+.. GENERATED FROM PYTHON SOURCE LINES 118-124
 
 The trajectory
 --------------
@@ -164,7 +165,7 @@ One shot, coloured by the rank of each echo in the train: the acquisition
 starts at one corner of k-space and works across it, reversing direction at
 every line.
 
-.. GENERATED FROM PYTHON SOURCE LINES 122-125
+.. GENERATED FROM PYTHON SOURCE LINES 124-127
 
 .. code-block:: Python
 
@@ -180,16 +181,10 @@ every line.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 550x500 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 126-136
+.. GENERATED FROM PYTHON SOURCE LINES 128-138
 
 Decay across the train
 ----------------------
@@ -202,7 +197,7 @@ decaying envelope, and the image is convolved with that envelope's transform.
 The echo times come from the analysis, and the line each echo lands on from
 the k-space it reports, so the envelope follows the sequence's own ordering.
 
-.. GENERATED FROM PYTHON SOURCE LINES 136-197
+.. GENERATED FROM PYTHON SOURCE LINES 138-199
 
 .. code-block:: Python
 
@@ -257,22 +252,22 @@ the k-space it reports, so the envelope follows the sequence's own ordering.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 198-210
+.. GENERATED FROM PYTHON SOURCE LINES 200-212
 
 The envelope is not centred on the middle of k-space: the train runs from one
 edge to the other, so the decay is monotonic across the lines rather than
-symmetric about the line the echo is on. What that produces is a point-spread
-function that is both wider than one pixel and asymmetric, which is the
-blurring along the phase-encode direction an echo planar image carries. At
+symmetric about the line the echo is on. The result is a point-spread
+function that is both wider than one pixel and asymmetric: the blurring along
+the phase-encode direction of an echo planar image. At
 the shortest :math:`T_2^*` here the signal at the last line is a tenth of
 the first and the point spread is half again as wide as a pixel; at the
 longest it is within a tenth of a pixel of the unblurred width.
 
-The remedies are the ones the previous page measured — a shorter echo
+The remedies are the ones the previous lesson measured — a shorter echo
 spacing, or fewer lines per shot — together with acquiring fewer lines
 outright, by partial Fourier or by parallel imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 212-224
+.. GENERATED FROM PYTHON SOURCE LINES 214-226
 
 Gradient delay and the odd echoes
 ---------------------------------
@@ -287,7 +282,7 @@ directions.
 parameter, so the displacement is measured from the trajectory the analysis
 reports rather than computed beside it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 224-260
+.. GENERATED FROM PYTHON SOURCE LINES 226-262
 
 .. code-block:: Python
 
@@ -332,21 +327,19 @@ reports rather than computed beside it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 261-269
+.. GENERATED FROM PYTHON SOURCE LINES 263-269
 
 The displacement is the delay divided by the dwell time, and it is the same
-for every line, so what distinguishes the odd lines from the even ones is its
-sign. A quantity that alternates from one line to the next along the
+for every line, so the odd and the even lines differ only in its sign. A quantity that alternates from one line to the next along the
 phase-encode direction is, after the transform, an image displaced by half
 the field of view, which is the ghost an uncorrected echo planar acquisition
-shows. Measuring the delay and correcting for it belongs to the
-reconstruction, which is Pulserver's part of the stack rather than this
-package's.
+shows. Measuring the delay and correcting for it are reconstruction steps,
+outside the scope of this package.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.266 seconds)
+   **Total running time of the script:** (0 minutes 0.476 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_03_epi.py:

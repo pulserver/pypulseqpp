@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -566,6 +524,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-methods">Application methods</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-construction">Sequence construction</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
@@ -589,27 +548,31 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="a-sequence-application">
 <span id="sphx-glr-generated-gallery-05-sequence-modules-03-sequence-app-py"></span><h1>A sequence application<a class="headerlink" href="#a-sequence-application" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to assemble the modules of the two previous pages
-into a complete acquisition: a prescription, a sampling order, and a kernel
-that is played once per repetition.
-<a class="reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> separates those three, and is the
-base class every shipped sequence is written against, so what is written here
-is what a sequence in <a class="reference internal" href="../../../sequences.html"><span class="doc">Sequence catalogue</span></a> is written as.</p>
-<p>The sequence built below is the RF-spoiled slice-selective gradient echo of
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/05-sequence-modules/03_sequence_app.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The two previous lessons designed an excitation and a readout with modules.
+This lesson assembles them into a complete acquisition: a prescription, a
+sampling order, and a kernel that is played once per repetition.
+<a class="reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> separates these three and is the
+base class of every shipped sequence, so the application written here has the
+same form as a sequence in <a class="reference internal" href="../../../sequences.html"><span class="doc">Sequence catalogue</span></a>.</p>
+<p>The sequence is the RF-spoiled slice-selective gradient echo of
 <a class="reference internal" href="../02-spoiling/02_rf_spoiling.html"><span class="doc">RF spoiling</span></a>, expressed as an
-application rather than as a loop over events.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Application methods.</strong> What <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>, <code class="docutils literal notranslate"><span class="pre">loop</span></code>, <code class="docutils literal notranslate"><span class="pre">kernel</span></code> and
-<code class="docutils literal notranslate"><span class="pre">finalize</span></code> are each responsible for.</p></li>
-<li><p><strong>Sequence construction.</strong> Designing and playing one, and what it reports.</p></li>
-<li><p><strong>Sequence diagram.</strong> One repetition of the result.</p></li>
-<li><p><strong>Acquisition order.</strong> The line order the loop played, read back from the
-sequence’s own labels.</p></li>
-<li><p><strong>Command-line interface.</strong> The flags the prescription’s signature gives.</p></li>
-</ol>
-<p>The architecture is described in
-<a class="reference internal" href="../../../explanations/design/sequence-application.html"><span class="doc">Sequence applications</span></a>.</p>
+application rather than as a loop over events. The architecture is described
+in <a class="reference internal" href="../../../explanations/design/sequence-application.html"><span class="doc">Sequence applications</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>state the responsibilities of <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>, <code class="docutils literal notranslate"><span class="pre">loop</span></code>, <code class="docutils literal notranslate"><span class="pre">kernel</span></code> and
+<code class="docutils literal notranslate"><span class="pre">finalize</span></code> in a sequence application;</p></li>
+<li><p>subclass <a class="reference internal" href="../../pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> to design and play a
+sequence from a prescription;</p></li>
+<li><p>read the acquisition order back from the <code class="docutils literal notranslate"><span class="pre">LIN</span></code> labels of the sequence;</p></li>
+<li><p>derive the command-line flags of an application from its <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>
+signature.</p></li>
+</ul>
+</section>
 <section id="application-methods">
 <h2>Application methods<a class="headerlink" href="#application-methods" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> receives the prescription and designs the modules and the
@@ -730,20 +693,14 @@ definitions: ['FOV', 'Matrix', 'Name', 'TotalDuration']
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_03_sequence_app_001.png" srcset="../../../_images/sphx_glr_03_sequence_app_001.png" alt="03 sequence app" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f6ad2810&gt;, tr=32, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121])
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_03_sequence_app_001.png" srcset="../../../_images/sphx_glr_03_sequence_app_001.png" alt="03 sequence app" class = "sphx-glr-single-img"/></section>
 <section id="acquisition-order">
 <h2>Acquisition order<a class="headerlink" href="#acquisition-order" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">kernel</span></code> writes a <code class="docutils literal notranslate"><span class="pre">LIN</span></code> label on every acquisition, so the order the loop
 played is read back from the sequence rather than reconstructed.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">order</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">xy</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">show_trajectory</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_03_sequence_app_002.png" srcset="../../../_images/sphx_glr_03_sequence_app_002.png" alt="03 sequence app" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 550x500 with 2 Axes&gt;
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_03_sequence_app_002.png" srcset="../../../_images/sphx_glr_03_sequence_app_002.png" alt="03 sequence app" class = "sphx-glr-single-img"/></section>
 <section id="command-line-interface">
 <h2>Command-line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">main</span></code> is derived from the class, and its parameters are those of
@@ -755,7 +712,7 @@ declaring one.</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>(plot: 'bool' = False, test_report: 'bool' = False, write_seq: 'bool' = False, seq_filename: 'str | None' = None, *, sys ...
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.252 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.435 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-05-sequence-modules-03-sequence-app-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/3dd5f43975d2afa507dbc6163beb5d5e/03_sequence_app.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_sequence_app.ipynb</span></code></a></p>
@@ -818,6 +775,7 @@ declaring one.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-methods">Application methods</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-construction">Sequence construction</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>

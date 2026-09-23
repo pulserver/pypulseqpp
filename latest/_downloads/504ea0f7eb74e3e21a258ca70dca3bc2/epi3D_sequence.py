@@ -4,8 +4,9 @@
 ========================
 
 A slab-selective excitation is followed by alternating readout gradients with
-phase-encode and partition blips. Segmented skipped-CAIPI traversal distributes
-a three-dimensional Cartesian lattice among shots. Spoilers suppress residual
+phase-encode and partition blips. The sampled ``(line, partition)`` views form
+a CAIPIRINHA lattice [BRE06]_, and segmented skipped-CAIPI traversal [STI21]_
+distributes the lattice among shots. Spoilers suppress residual
 transverse coherence between repetitions; off-resonance accumulates during
 each echo train. 3D EPI supports rapid structural and functional imaging.
 """
@@ -144,8 +145,8 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
 # Accelerated acquisition
 # -----------------------
 #
-# The baseline uses in-plane and partition acceleration, three shots per shell,
-# and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
+# The first configuration uses in-plane and partition acceleration, three
+# shots per shell, and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 # successive echoes therefore contain both the skipped-line displacement and
 # the partition jump.
 
@@ -177,13 +178,16 @@ baseline.paper_plot()
 # Skipped-CAIPI traversal
 # -----------------------
 #
-# Each cell of the lattice is one ``(line, partition)`` view, white where it is
-# sampled. Lines and arrows connect consecutive echoes within each train. No
-# line joins separate shots. The partition jumps between consecutive
-# echoes are the CAIPI blips: they alternate between
-# amplitudes :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
-# :math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z`, and the pattern repeats every
-# :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
+# Each cell of the lattice is one ``(line, partition)`` view, shaded where it
+# is sampled. Lines and arrows connect consecutive echoes within each train. No
+# line joins separate shots. The panel title gives the pattern as
+# :math:`S \cdot (R_y \times R_z)_{z\Delta z}`, with accelerations
+# :math:`R_y` and :math:`R_z`, segmentation factor :math:`S` (shots per shell)
+# and CAIPI shift :math:`\Delta z` as defined in [STI21]_. The partition jumps between consecutive echoes
+# are the CAIPI blips: they alternate between amplitudes
+# :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
+# :math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z` partitions, and the pattern
+# repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 # vertical display offset separates coincident paths from different shots.
 
 # sphinx_gallery_start_ignore
@@ -197,9 +201,10 @@ figure.tight_layout()
 # ----------------------
 #
 # With ``n_shots=1``, one longer echo train acquires the same lattice for
-# each shell. Three shots shorten the readout window and the geometric distortion
-# along the phase-encode axis; the inter-echo jumps grow because each shot
-# steps three sampled lattice lines at a time.
+# each shell. Three shots shorten each echo train and therefore the geometric
+# distortion along the phase-encode axis. The phase-encode step between
+# consecutive echoes of a segmented train spans three sampled lattice lines,
+# so its blips are larger than those of the single-shot train.
 
 single_shot = epi3D_sequence(
     n_x=64,
@@ -242,8 +247,9 @@ figure.tight_layout()
 # ---------------------
 #
 # ``ry`` subsamples phase-encode lines, reducing echo-train length and
-# increasing lattice spacing along :math:`k_y`. The sampled views stay on one lattice, so the aliases stay
-# where the CAIPI shift puts them.
+# increasing lattice spacing along :math:`k_y`. The sampled views remain on a
+# single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
+# aliases [BRE06]_.
 
 accelerated = epi3D_sequence(
     n_x=64,
@@ -266,3 +272,15 @@ figure.tight_layout()
 # sphinx_gallery_end_ignore
 
 # %%
+# References
+# ----------
+#
+# .. [BRE06] Breuer FA, Blaimer M, Mueller MF, Seiberlich N, Heidemann RM,
+#    Griswold MA, Jakob PM. Controlled aliasing in volumetric parallel imaging
+#    (2D CAIPIRINHA). *Magnetic Resonance in Medicine*. 2006;55(3):549-556.
+#    https://doi.org/10.1002/mrm.20787
+#
+# .. [STI21] Stirnberg R, Stöcker T. Segmented K-space blipped-controlled
+#    aliasing in parallel imaging for high spatiotemporal resolution EPI.
+#    *Magnetic Resonance in Medicine*. 2021;85(3):1540-1551.
+#    https://doi.org/10.1002/mrm.28486

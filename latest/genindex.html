@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -707,8 +669,6 @@
 </li>
       <li><a href="generated/pypulseqpp.calc_duration.html#pypulseqpp.calc_duration">calc_duration() (in module pypulseqpp)</a>
 </li>
-      <li><a href="generated/pypulseqpp.calc_epi_order.html#pypulseqpp.calc_epi_order">calc_epi_order() (in module pypulseqpp)</a>
-</li>
       <li><a href="generated/pypulseqpp.calc_golden_angles.html#pypulseqpp.calc_golden_angles">calc_golden_angles() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.calc_projection_shell.html#pypulseqpp.calc_projection_shell">calc_projection_shell() (in module pypulseqpp)</a>
@@ -733,20 +693,14 @@
 </li>
       <li><a href="generated/pypulseqpp.calc_rosette_trajectory.html#pypulseqpp.calc_rosette_trajectory">calc_rosette_trajectory() (in module pypulseqpp)</a>
 </li>
-      <li><a href="generated/pypulseqpp.calc_sampled_lines.html#pypulseqpp.calc_sampled_lines">calc_sampled_lines() (in module pypulseqpp)</a>
-</li>
-      <li><a href="generated/pypulseqpp.calc_sampled_pairs.html#pypulseqpp.calc_sampled_pairs">calc_sampled_pairs() (in module pypulseqpp)</a>
-</li>
       <li><a href="generated/pypulseqpp.calc_spiral_trajectory.html#pypulseqpp.calc_spiral_trajectory">calc_spiral_trajectory() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.calc_tiny_golden_angles.html#pypulseqpp.calc_tiny_golden_angles">calc_tiny_golden_angles() (in module pypulseqpp)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/pypulseqpp.calc_traversal_order.html#pypulseqpp.calc_traversal_order">calc_traversal_order() (in module pypulseqpp)</a>
-</li>
       <li><a href="generated/pypulseqpp.calc_uniform_angles.html#pypulseqpp.calc_uniform_angles">calc_uniform_angles() (in module pypulseqpp)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace">calculate_kspace() (pypulseqpp.Sequence method)</a>
 </li>
       <li><a href="generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system">cap_system() (in module pypulseqpp)</a>
@@ -1211,6 +1165,10 @@
 </li>
       <li><a href="generated/pypulseqpp.make_caipirinha_mask.html#pypulseqpp.make_caipirinha_mask">make_caipirinha_mask() (in module pypulseqpp)</a>
 </li>
+      <li><a href="generated/pypulseqpp.make_cartesian_axis_sampling.html#pypulseqpp.make_cartesian_axis_sampling">make_cartesian_axis_sampling() (in module pypulseqpp)</a>
+</li>
+      <li><a href="generated/pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling">make_cartesian_plane_sampling() (in module pypulseqpp)</a>
+</li>
       <li><a href="generated/pypulseqpp.make_centric_order.html#pypulseqpp.make_centric_order">make_centric_order() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_crusher.html#pypulseqpp.make_crusher">make_crusher() (in module pypulseqpp)</a>
@@ -1218,6 +1176,8 @@
       <li><a href="generated/pypulseqpp.make_delay.html#pypulseqpp.make_delay">make_delay() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_digital_output_pulse.html#pypulseqpp.make_digital_output_pulse">make_digital_output_pulse() (in module pypulseqpp)</a>
+</li>
+      <li><a href="generated/pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets">make_epi_shot_offsets() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_extended_trapezoid.html#pypulseqpp.make_extended_trapezoid">make_extended_trapezoid() (in module pypulseqpp)</a>
 </li>
@@ -1243,10 +1203,10 @@
 </li>
       <li><a href="generated/pypulseqpp.make_phase_encoding.html#pypulseqpp.make_phase_encoding">make_phase_encoding() (in module pypulseqpp)</a>
 </li>
-      <li><a href="generated/pypulseqpp.make_pins_pulse.html#pypulseqpp.make_pins_pulse">make_pins_pulse() (in module pypulseqpp)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.make_pins_pulse.html#pypulseqpp.make_pins_pulse">make_pins_pulse() (in module pypulseqpp)</a>
+</li>
       <li><a href="generated/pypulseqpp.make_poisson_disc_mask.html#pypulseqpp.make_poisson_disc_mask">make_poisson_disc_mask() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_ptx_pulse.html#pypulseqpp.make_ptx_pulse">make_ptx_pulse() (in module pypulseqpp)</a>
@@ -1283,6 +1243,8 @@
 </li>
       <li><a href="generated/pypulseqpp.make_traps_schedule.html#pypulseqpp.make_traps_schedule">make_traps_schedule() (in module pypulseqpp)</a>
 </li>
+      <li><a href="generated/pypulseqpp.make_traversal_order.html#pypulseqpp.make_traversal_order">make_traversal_order() (in module pypulseqpp)</a>
+</li>
       <li><a href="generated/pypulseqpp.make_trigger.html#pypulseqpp.make_trigger">make_trigger() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.make_wave_gradients.html#pypulseqpp.make_wave_gradients">make_wave_gradients() (in module pypulseqpp)</a>
@@ -1294,6 +1256,8 @@
       <li><a href="generated/pypulseqpp.sequences.SequenceApp.MAX_SLEW.html#pypulseqpp.sequences.SequenceApp.MAX_SLEW">MAX_SLEW (pypulseqpp.sequences.SequenceApp attribute)</a>
 </li>
       <li><a href="generated/pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE">MAX_SLEW_DERATE (in module pypulseqpp)</a>
+</li>
+      <li><a href="generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum">mech_resonance_spectrum() (in module pypulseqpp.safety)</a>
 </li>
       <li><a href="generated/pypulseqpp.Sequence.mod_grad_axis.html#pypulseqpp.Sequence.mod_grad_axis">mod_grad_axis() (pypulseqpp.Sequence method)</a>
 </li>

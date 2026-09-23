@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -580,46 +538,66 @@
 <h1>make_linear_order<a class="headerlink" href="#make-linear-order" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.make_linear_order">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_linear_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_masks.html#make_linear_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_linear_order" title="Link to this definition">#</a></dt>
-<dd><p>Linear (raster) train ordering over a Cartesian point set.</p>
-<p>Views are ranked in raster order and dealt echo-major into trains: each
-echo is a raster band, and successive echoes of one train stay neighbours.
-This is scheme A (“linear reordering”) of ISMRM abstract 566-05-007,
-Fig. 2.</p>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_linear_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_ordering.html#make_linear_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_linear_order" title="Link to this definition">#</a></dt>
+<dd><p>Echo-train ordering of Cartesian views in linear (raster) order.</p>
+<p>The views are ranked in raster order, by <code class="docutils literal notranslate"><span class="pre">kz</span></code> and then by <code class="docutils literal notranslate"><span class="pre">ky</span></code>, and
+the ranking is cut into <code class="docutils literal notranslate"><span class="pre">train_length</span></code> consecutive bands of
+<code class="docutils literal notranslate"><span class="pre">ceil(N</span> <span class="pre">/</span> <span class="pre">train_length)</span></code> views. Band <code class="docutils literal notranslate"><span class="pre">e</span></code> is acquired at echo <code class="docutils literal notranslate"><span class="pre">e</span></code>,
+one view per shot, dealt across the shots in <code class="docutils literal notranslate"><span class="pre">ky</span></code> order. This is
+scheme A (linear reordering) of Buonincontri et al., Fig. 2.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>coords</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>array_like</em>) – Number of sequential views, or phase-encode locations with shape
-<code class="docutils literal notranslate"><span class="pre">(N,)</span></code> (ky only) or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code> (ky, kz).</p></li>
-<li><p><strong>train_length</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Echo-train or segment length.</p></li>
-<li><p><strong>center</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – The k-space centre the target echo is placed on. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
-centroid of <code class="docutils literal notranslate"><span class="pre">coords</span></code>; a caller with a fixed grid passes its centre.</p></li>
-<li><p><strong>center_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Echo the k-space centre is acquired at. <code class="docutils literal notranslate"><span class="pre">None</span></code> leaves the raster
-bands in order (centre wherever it falls); an integer rolls the bands
-so the one holding the centre plays at that echo – the effective-TE
-control an echo train needs.</p></li>
-<li><p><strong>pad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – When True every train is padded to <code class="docutils literal notranslate"><span class="pre">train_length</span></code> with <code class="docutils literal notranslate"><span class="pre">None</span></code> so
-the echo index is the position in the train; when False (the default)
-the gaps are dropped and each train holds only its real views.</p></li>
+<li><p><strong>coords</strong> (<em>array_like</em>) – Centred coordinates of the selected views: an <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code> array of
+<code class="docutils literal notranslate"><span class="pre">(ky,</span> <span class="pre">kz)</span></code> or an <code class="docutils literal notranslate"><span class="pre">(N,)</span></code> array of <code class="docutils literal notranslate"><span class="pre">ky</span></code>, relative to the k-space
+centre, which is the origin. Encoded view indices <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> on an
+<code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code> grid convert as <code class="docutils literal notranslate"><span class="pre">views</span> <span class="pre">-</span> <span class="pre">(n_y</span> <span class="pre">//</span> <span class="pre">2,</span> <span class="pre">n_z</span> <span class="pre">//</span> <span class="pre">2)</span></code>.
+Distances and angles are evaluated in the units supplied. Boolean
+masks are not accepted.</p></li>
+<li><p><strong>train_length</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Echo-train length, at least 1. The number of shots is
+<code class="docutils literal notranslate"><span class="pre">ceil(N</span> <span class="pre">/</span> <span class="pre">train_length)</span></code>.</p></li>
+<li><p><strong>center_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Echo at which the view nearest the origin is acquired, in
+<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">train_length)</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> keeps the bands in raster order; an
+integer rotates the band order so that the band containing that view
+is acquired at <code class="docutils literal notranslate"><span class="pre">center_echo</span></code>.</p></li>
+<li><p><strong>pad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Pad every train to <code class="docutils literal notranslate"><span class="pre">train_length</span></code> with <code class="docutils literal notranslate"><span class="pre">None</span></code>, so that the
+position in a train is the echo index. With <code class="docutils literal notranslate"><span class="pre">False</span></code> the <code class="docutils literal notranslate"><span class="pre">None</span></code>
+entries are removed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Shots of view indices (indices into <code class="docutils literal notranslate"><span class="pre">coords</span></code>); echo index is the
-position within the shot.</p>
+<dd class="field-even"><p><strong>trains</strong> – <code class="docutils literal notranslate"><span class="pre">trains[s][e]</span></code> is the row index into <code class="docutils literal notranslate"><span class="pre">coords</span></code> of the view
+acquired at echo <code class="docutils literal notranslate"><span class="pre">e</span></code> of shot <code class="docutils literal notranslate"><span class="pre">s</span></code>. The values are indices, not
+coordinates; every row of <code class="docutils literal notranslate"><span class="pre">coords</span></code> appears exactly once. With
+<code class="docutils literal notranslate"><span class="pre">pad=True</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code> marks an echo that acquires no view. Empty
+<code class="docutils literal notranslate"><span class="pre">coords</span></code> give <code class="docutils literal notranslate"><span class="pre">[]</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the train length is below one, or the coordinates are not a
-    two-column array.</p>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.14)"><strong>TypeError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">coords</span></code> is a boolean mask or not numeric.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">coords</span></code> does not have shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code>,
+    <code class="docutils literal notranslate"><span class="pre">train_length</span></code> is not a positive integer, or <code class="docutils literal notranslate"><span class="pre">center_echo</span></code> is
+    outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">train_length)</span></code>.</p></li>
+</ul>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="pypulseqpp.make_centric_order.html#pypulseqpp.make_centric_order" title="pypulseqpp.make_centric_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_centric_order</span></code></a>, <a class="reference internal" href="pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a>, <a class="reference internal" href="pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order" title="pypulseqpp.make_radial_adaptive_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_adaptive_order</span></code></a>, <a class="reference internal" href="pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p>
+</div>
 <p class="rubric">Examples</p>
+<p>Four centred views, two echoes per shot. Echo 0 acquires the <code class="docutils literal notranslate"><span class="pre">kz</span> <span class="pre">=</span> <span class="pre">-1</span></code>
+band and echo 1 the <code class="docutils literal notranslate"><span class="pre">kz</span> <span class="pre">=</span> <span class="pre">0</span></code> band:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">shots</span> <span class="o">=</span> <span class="n">make_linear_order</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">shots</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">shot</span><span class="p">)</span>
-<span class="go">[0, 1, 2, 3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">views</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trains</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_linear_order</span><span class="p">(</span><span class="n">views</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trains</span>
+<span class="go">[[0, 2], [1, 3]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[[</span><span class="n">views</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train</span><span class="p">]</span> <span class="k">for</span> <span class="n">train</span> <span class="ow">in</span> <span class="n">trains</span><span class="p">]</span>
+<span class="go">[[(-1, -1), (-1, 0)], [(0, -1), (0, 0)]]</span>
 </pre></div>
 </div>
 </dd></dl>

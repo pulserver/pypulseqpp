@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -566,6 +524,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-test-sequence">Echo-planar test sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-and-gradient-hardware">Timing and gradient hardware</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
@@ -590,34 +549,36 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="sequence-constraint-checks">
 <span id="sphx-glr-generated-gallery-06-checks-01-constraint-checks-py"></span><h1>Sequence constraint checks<a class="headerlink" href="#sequence-constraint-checks" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to run the checks the package computes over a
-finished sequence, and to read what each of them reports: the quantity it
-measured, the limit it compared it with, and where in the sequence the
-measurement came from.</p>
-<p>The sequence they are run on is the shipped single-shot echo planar
-acquisition, <a class="reference internal" href="../15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a>, of the kind
-<a class="reference internal" href="../03-gre-to-epi/03_epi.html"><span class="doc">Single-shot echo planar</span></a> builds by hand: it reaches high
-slew rates in a periodic pattern, which is the case the gradient, stimulation
-and resonance checks have something to say about.</p>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/06-checks/01_constraint_checks.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The earlier lessons checked the timing of each sequence as it was built. This
+lesson runs every check the package computes over a finished sequence, and
+reads what each of them reports: the measured quantity, the limit it is
+compared with, and the part of the sequence the measurement comes from.</p>
+<p>The checks are run on the shipped single-shot echo planar acquisition,
+<a class="reference internal" href="../15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a>, of the kind built by hand in
+<a class="reference internal" href="../03-gre-to-epi/03_epi.html"><span class="doc">Single-shot echo planar</span></a>. Its readout reaches high slew
+rates in a periodic pattern, so the gradient, stimulation and resonance checks
+all report non-trivial values.</p>
 <p>A passing check does not establish that a sequence is safe to run on a scanner
 or on a subject. The PNS, mechanical-resonance and SAR models used here are
 synthetic demonstrations. Scanner-specific checks and hardware monitoring are
 separate. The physical models are described in
 <a class="reference internal" href="../../../explanations/safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Echo-planar test sequence.</strong> The sequence the checks are run over.</p></li>
-<li><p><strong>Timing and gradient hardware.</strong> Event timing, amplitude, slew rate and
-continuity across block boundaries.</p></li>
-<li><p><strong>Peripheral nerve stimulation.</strong> The chronaxie model, and the response it
-computes over the waveform.</p></li>
-<li><p><strong>Mechanical resonance.</strong> Forbidden bands, and the spectrum the sequence
-puts into them.</p></li>
-<li><p><strong>Specific absorption rate.</strong> The power the transmit chain deposits, over
-the averaging windows.</p></li>
-<li><p><strong>Every verdict together.</strong> The six readings, and what the sequence would
-have to change for them.</p></li>
-</ol>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>run the timing, gradient amplitude, slew-rate and boundary-continuity
+checks, and distinguish per-axis from vector readings;</p></li>
+<li><p>compute a peripheral nerve stimulation response with a chronaxie model and
+inspect its trace;</p></li>
+<li><p>compare the gradient spectrum with forbidden mechanical-resonance bands;</p></li>
+<li><p>compute SAR over averaging windows with a set of virtual observation
+points;</p></li>
+<li><p>identify the design parameters that change a failing reading.</p></li>
+</ul>
+</section>
 <section id="echo-planar-test-sequence">
 <h2>Echo-planar test sequence<a class="headerlink" href="#echo-planar-test-sequence" title="Link to this heading">#</a></h2>
 <p>A single-shot echo-planar readout provides high slew rates and a periodic
@@ -640,8 +601,8 @@ The amplitude and slew checks compare the physical, rotated waveform against
 the system limits the sequence was designed under. They report the largest
 per-axis reading and the largest vector reading, which is not the norm of the
 per-axis peaks: two axes reach their own peaks at different times.
-The verdict is on the per-axis reading, which is what the hardware limits;
-the vector reading is reported beside it. <code class="docutils literal notranslate"><span class="pre">check_grad_continuity</span></code> looks for
+The verdict uses the per-axis reading, because the hardware limits apply per
+axis; the vector reading is reported beside it. <code class="docutils literal notranslate"><span class="pre">check_grad_continuity</span></code> looks for
 discontinuities between adjacent blocks. A discontinuity corresponds to an
 undefined instantaneous slew in the Pulseq waveform.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">timing_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">timing_errors</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span></a><span class="p">(</span><span class="p">)</span><span class="w">
@@ -707,10 +668,10 @@ and reports the largest amplitude within each band.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">mech_resonance_spectrum</span></code> returns one window’s spectrum through the same
-windowed pass, so the figure and the verdict read the same numbers. The
+windowed pass, so the figure and the verdict use the same numbers. The
 readout train is periodic, so its spectrum is a comb at the echo-spacing
 frequency and its harmonics.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">spectrum</span></a> <span class="o">=</span> <span class="n">safety</span><span class="o">.</span><span class="n">mech_resonance_spectrum</span><span class="p">(</span><span class="w">
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">spectrum</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><span class="n">safety</span><span class="o">.</span><span class="n">mech_resonance_spectrum</span></a><span class="p">(</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <span class="n">window</span><span class="o">=</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">mech</span><span class="o">.</span><span class="n">bands</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mf">20e-3</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
@@ -760,7 +721,7 @@ Lengthening the echo spacing, reducing the echo-train length or lowering the
 prescribed slew limit changes the response. These design parameters are
 compared in the
 <a class="reference internal" href="../15-epi/epi2D_sequence.html"><span class="doc">echo-planar imaging example</span></a>.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.161 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.291 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-06-checks-01-constraint-checks-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/eb70faa5e624580bb1d635c4d8236de6/01_constraint_checks.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">01_constraint_checks.ipynb</span></code></a></p>
@@ -823,6 +784,7 @@ compared in the
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-planar-test-sequence">Echo-planar test sequence</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timing-and-gradient-hardware">Timing and gradient hardware</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>

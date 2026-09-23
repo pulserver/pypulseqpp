@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#published-events">Published events</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulse-envelope-and-slice-profile">Pulse envelope and slice profile</a></li>
@@ -590,27 +549,34 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="a-minimum-phase-excitation-module">
 <span id="sphx-glr-generated-gallery-07-custom-modules-01-excitation-module-py"></span><h1>A minimum-phase excitation module<a class="headerlink" href="#a-minimum-phase-excitation-module" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to write an excitation module of one’s own, by
-subclassing <a class="reference internal" href="../../pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a>, and to measure what the
-design it implements gains and costs against the shipped one.</p>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/07-custom-modules/01_excitation_module.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The earlier lessons used the shipped modules. This lesson writes an
+excitation module by subclassing <a class="reference internal" href="../../pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a>, and
+compares the design it implements with the shipped one.</p>
 <p>The shipped excitation modules design linear-phase SLR pulses, whose energy is
-symmetric about the middle of the pulse. A minimum-phase design concentrates RF
-energy near the end of the waveform, so that at a fixed duration and
-time-bandwidth product the interval from the pulse to the echo is shorter, at
-the price of a larger peak <span class="math notranslate nohighlight">\(B_1\)</span> and a slice profile whose phase is not
-linear.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Module interface.</strong> What subclassing <code class="docutils literal notranslate"><span class="pre">RfModule</span></code> requires, and what it
-provides.</p></li>
-<li><p><strong>Published events.</strong> The pulse, the selection gradient and the rephaser the
-module publishes, and the timing they imply.</p></li>
-<li><p><strong>Pulse envelope and slice profile.</strong> The two designs simulated side by
-side.</p></li>
-<li><p><strong>Echo time.</strong> What the asymmetric envelope buys.</p></li>
-</ol>
-<p>What a module is, and what it must publish, is described in
+symmetric about the middle of the pulse. A minimum-phase design concentrates
+RF energy near the end of the waveform, so that at a fixed duration and
+time-bandwidth product the interval from the pulse to the echo is shorter. The
+peak <span class="math notranslate nohighlight">\(B_1\)</span> is larger, and the phase of the slice profile is not linear.
+The module concept, and the events a module publishes, are described in
 <a class="reference internal" href="../../../explanations/design/sequence-module.html"><span class="doc">Sequence modules</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>subclass <a class="reference internal" href="../../pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a> and implement
+<code class="docutils literal notranslate"><span class="pre">init_module</span></code>;</p></li>
+<li><p>publish the pulse, selection gradient and rephaser of a module and set its
+timing reference <code class="docutils literal notranslate"><span class="pre">center</span></code>;</p></li>
+<li><p>place the effective RF centre of a minimum-phase SLR pulse with
+<code class="docutils literal notranslate"><span class="pre">center_pos</span></code>;</p></li>
+<li><p>compare the envelope, slice profile and peak <span class="math notranslate nohighlight">\(B_1\)</span> of linear-phase
+and minimum-phase designs;</p></li>
+<li><p>measure the shortest echo time a readout module reaches with each
+excitation.</p></li>
+</ul>
+</section>
 <section id="module-interface">
 <h2>Module interface<a class="headerlink" href="#module-interface" title="Link to this heading">#</a></h2>
 <p>A module implements <code class="docutils literal notranslate"><span class="pre">init_module</span></code>: it assigns <code class="docutils literal notranslate"><span class="pre">self.seq</span></code>, adds the blocks
@@ -731,7 +697,7 @@ measures its echo time from. A minimum-phase pulse is used at
 </span>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">module</span><span class="o">.</span><span class="n">gz_reph</span><span class="o">.</span><span class="n">area</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> 1/m</span><span class="s2">&quot;</span><span class="w">
 </span>    <span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
   made = factory(*args, **kwargs)
 events: gz, gz_reph, rf
 linear-phase: center at 1.600 ms of 3.680 ms, rephaser area -408.0 1/m
@@ -739,10 +705,9 @@ minimum-phase: center at 3.100 ms of 3.240 ms, rephaser area -8.0 1/m
 </pre></div>
 </div>
 <p>The rephaser compensates the slice-selection moment accumulated after the
-effective RF centre.
-At <code class="docutils literal notranslate"><span class="pre">center_pos=1.0</span></code> that is the fall ramp alone, so the rephaser block
-collapses to its shortest and the pulse ends a gradient raster or two before
-the encoding starts.</p>
+effective RF centre. At <code class="docutils literal notranslate"><span class="pre">center_pos=1.0</span></code> that moment is the fall ramp
+alone, so the rephaser block has its minimum duration and the pulse ends a
+gradient raster period or two before the encoding starts.</p>
 </section>
 <section id="pulse-envelope-and-slice-profile">
 <h2>Pulse envelope and slice profile<a class="headerlink" href="#pulse-envelope-and-slice-profile" title="Link to this heading">#</a></h2>
@@ -764,8 +729,6 @@ selection amplitude reads the result as a position.</p>
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_01_excitation_module_001.png" srcset="../../../_images/sphx_glr_01_excitation_module_001.png" alt="nominal slice in grey" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>linear phase: peak B1 73 Hz, slice 4.83 mm
 minimum phase: peak B1 336 Hz, slice 4.87 mm
-
-&lt;Figure size 946x374 with 2 Axes&gt;
 </pre></div>
 </div>
 </section>
@@ -773,8 +736,8 @@ minimum phase: peak B1 336 Hz, slice 4.87 mm
 <h2>Echo time<a class="headerlink" href="#echo-time" title="Link to this heading">#</a></h2>
 <p>A readout module takes the pulse, its selection gradient and its rephaser,
 and measures the echo time from the pulse’s effective centre. Applying the
-same readout to each excitation isolates the resulting
-difference in echo time.</p>
+same readout to each excitation isolates the resulting difference in echo
+time.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">readouts</span></a> <span class="o">=</span> <span class="p">{</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="str"><span class="n">name</span></a><span class="p">:</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.sequences.LineReadout2D.html#pypulseqpp.sequences.LineReadout2D" title="pypulseqpp.sequences.LineReadout2D"><span class="n">design</span><span class="o">.</span><span class="n">LineReadout2D</span></a><span class="p">(</span><span class="w">
 </span>        <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span><span class="w">
@@ -807,10 +770,7 @@ minimum phase: shortest TE 1.660 ms, repetition 6.360 ms
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.add_block.html#pypulseqpp.Sequence.add_block" title="pypulseqpp.Sequence.add_block"><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span></a><span class="p">(</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">block</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="n">tr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_01_excitation_module_002.png" srcset="../../../_images/sphx_glr_01_excitation_module_002.png" alt="01 excitation module" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f6b119d0&gt;, tr=1, underlays=[])
-</pre></div>
-</div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.431 seconds)</p>
+<img src="../../../_images/sphx_glr_01_excitation_module_002.png" srcset="../../../_images/sphx_glr_01_excitation_module_002.png" alt="01 excitation module" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.790 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-07-custom-modules-01-excitation-module-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/95144ba6a7b33b146a954c088a6c3466/01_excitation_module.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">01_excitation_module.ipynb</span></code></a></p>
@@ -873,6 +833,7 @@ minimum phase: shortest TE 1.660 ms, repetition 6.360 ms
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#published-events">Published events</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulse-envelope-and-slice-profile">Pulse envelope and slice profile</a></li>

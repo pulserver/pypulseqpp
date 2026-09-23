@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Pulseq basics" href="pulseq-basics.html" />
-    <link rel="prev" title="Specific absorption rate" href="../explanations/safety/sar.html" />
+    <link rel="prev" title="Check conventions" href="../explanations/safety/conventions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -116,46 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -259,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -268,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -331,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -539,7 +501,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -555,6 +519,15 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulseq-course">Pulseq course</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shipped-sequences">Shipped sequences</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -567,53 +540,71 @@
   <section class="tex2jax_ignore mathjax_ignore" id="examples">
 <h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h1>
 <p>Executable pages, run when the documentation is built, so every figure and
-every printed number on them is produced by the code as it stands.</p>
-<p>The first seven sections are a course. Each page starts from the sequence the
-previous one finished with and adds one thing to it, states what that thing
-changes, and measures it, so the sections are written to be read in order. The
-last section is not part of the course: it is one page per shipped sequence,
-each with a representative prescription and the figures that prescription
-produces.</p>
+printed number is produced by the code as it stands. Concepts are in
+<a class="reference internal" href="../explanations/index.html"><span class="doc">Explanations</span></a>, interfaces in <a class="reference internal" href="../api/index.html"><span class="doc">API reference</span></a>, and the
+prescriptions of the shipped sequences in the <a class="reference internal" href="../sequences.html"><span class="doc">catalogue</span></a>.</p>
+<section id="pulseq-course">
+<h2>Pulseq course<a class="headerlink" href="#pulseq-course" title="Link to this heading">#</a></h2>
+<p>Lessons read in order: each starts from the sequence the previous one finished
+with and adds one construct.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Section</p></th>
-<th class="head"><p>What it covers</p></th>
+<th class="head"><p>Lessons</p></th>
+<th class="head"><p>Covers</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="pulseq-basics.html"><span class="doc">Pulseq basics</span></a></p></td>
+<td><p>3</p></td>
 <td><p>Events, blocks and timing, up to a slice-selective gradient echo.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="spoiling.html"><span class="doc">Spoiling</span></a></p></td>
-<td><p>What a repetition leaves behind, and the gradient and RF spoiling that keep it out of the next one.</p></td>
+<td><p>2</p></td>
+<td><p>Gradient and RF spoiling of the residual transverse magnetisation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="gre-to-epi.html"><span class="doc">From gradient echo to echo planar</span></a></p></td>
-<td><p>Several echoes per excitation, up to a single-shot echo planar acquisition.</p></td>
+<td><p>3</p></td>
+<td><p>Several echoes per excitation, up to single-shot echo planar imaging.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="non-cartesian.html"><span class="doc">Non-Cartesian trajectories</span></a></p></td>
-<td><p>Radial spokes and spiral arms, and the limits that bound their traversal.</p></td>
+<td><p>2</p></td>
+<td><p>Radial spokes and spiral interleaves, and the limits on their traversal.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="sequence-modules.html"><span class="doc">Sequence modules</span></a></p></td>
-<td><p>The excitation and readout designers, and the application that plays them.</p></td>
+<td><p>3</p></td>
+<td><p>The excitation and readout modules, and the application that plays them.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="checks.html"><span class="doc">Constraint checks</span></a></p></td>
-<td><p>The checks a finished sequence is put through, and what each one reports.</p></td>
+<td><p>1</p></td>
+<td><p>The constraint checks applied to a finished sequence.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="custom-modules.html"><span class="doc">Custom modules</span></a></p></td>
+<td><p>3</p></td>
 <td><p>New modules written against the base-class contract.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="built-in-sequences/index.html"><span class="doc">Built-in sequences</span></a></p></td>
-<td><p>Every complete sequence the package ships, with its diagram and its acquisition order.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The concepts these pages rely on are in <a class="reference internal" href="../explanations/index.html"><span class="doc">Explanations</span></a>: the Pulseq
-representation, the design abstractions, and the gradient, stimulation and SAR
-constraints. The interfaces they call are documented in <a class="reference internal" href="../api/index.html"><span class="doc">API reference</span></a>, and
-the prescriptions of the shipped sequences in the <a class="reference internal" href="../sequences.html"><span class="doc">catalogue</span></a>.</p>
+</section>
+<section id="shipped-sequences">
+<h2>Shipped sequences<a class="headerlink" href="#shipped-sequences" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>Covers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="built-in-sequences/index.html"><span class="doc">Built-in sequences</span></a></p></td>
+<td><p>Each complete sequence at a representative prescription: diagram, sampling and acquisition order.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 
 
@@ -628,12 +619,12 @@ the prescriptions of the shipped sequences in the <a class="reference internal" 
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../explanations/safety/sar.html"
+       href="../explanations/safety/conventions.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Specific absorption rate</p>
+        <p class="prev-next-title">Check conventions</p>
       </div>
     </a>
     <a class="right-next"
@@ -651,6 +642,24 @@ the prescriptions of the shipped sequences in the <a class="reference internal" 
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulseq-course">Pulseq course</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shipped-sequences">Shipped sequences</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

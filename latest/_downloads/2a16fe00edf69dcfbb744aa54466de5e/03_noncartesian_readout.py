@@ -3,9 +3,10 @@ r"""
 A twisting radial readout module
 ================================
 
-The scope of this notebook is to write a non-Cartesian readout module of one's
-own: to state a trajectory as a k-space path, have it solved into a waveform
-under the gradient limits, and publish the result as a module.
+The previous lesson wrote a Cartesian readout module with trapezoidal
+gradients. This lesson writes a non-Cartesian readout module: the trajectory
+is stated as a k-space path, solved into a gradient waveform under the
+gradient limits, and published as a module.
 
 A radial spoke samples the centre of k-space far more densely than the
 periphery: at radius :math:`k`, adjacent spokes of an :math:`N`-interleaf set
@@ -20,19 +21,23 @@ A twisting radial line [JNM92]_ departs from the spoke beyond that radius and
 accumulates azimuth with radius, so that the perpendicular distance between
 neighbouring interleaves stays at the Nyquist spacing.
 
-Outline:
-
-#. **The path.** The trajectory, written as a polyline in k-space.
-#. **The interleaf.** The waveform the solver returns, and the limits it
-   respects.
-#. **The readout module.** The path and the solver behind a module interface.
-#. **Readout duration against a spiral.** The two trajectories at the same
-   coverage.
-#. **One repetition.** The blocks the module publishes.
-#. **Scan loop.** One arm, turned per shot by a rotation extension.
-
-What a module is, and what it must publish, is described in
+The module concept, and the events a module publishes, are described in
 :doc:`/explanations/design/sequence-module`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- state a twisting radial interleaf as a polyline in k-space from the
+  transition radius :math:`k_t`;
+- solve the path into a time-optimal gradient waveform under the amplitude
+  and slew limits;
+- subclass :class:`~pypulseqpp.sequences.NonCartesianReadout` so that a
+  module designs its own interleaf;
+- compare the readout duration with that of a constant-density spiral of the
+  same coverage;
+- rotate one solved arm per shot with a rotation extension in a scan loop.
 """
 
 # %%
@@ -40,7 +45,7 @@ What a module is, and what it must publish, is described in
 # --------
 #
 # The arm is a polyline in k-space: its samples set the geometry and nothing
-# else. :class:`~pypulseqpp.sequences.Arbitrary` hands it to the time-optimal
+# else. :class:`~pypulseqpp.sequences.Arbitrary` passes it to the time-optimal
 # solver, which assigns the timing under the amplitude and slew limits and
 # builds the gradient events, the acquisition window and the rewinder back to
 # k = 0.
@@ -152,7 +157,7 @@ class TwirlReadout2D(design.NonCartesianReadout):
 # ---------------------------------
 #
 # A constant-density spiral designed for the same interleaf count samples the
-# same field of view at the same resolution, and spends longer doing it: the
+# same field of view at the same resolution with a longer readout: the
 # twisting arm crosses the centre of k-space radially, where the spiral has to
 # wind through it at the Nyquist pitch.
 
@@ -244,7 +249,7 @@ pp.plot.plot_kspace(scan, plane="xy")
 
 # %%
 # References
-# ==========
+# ----------
 #
 # .. [JNM92] Jackson JI, Nishimura DG, Macovski A. Twisting radial lines with
 #    application to robust magnetic resonance imaging of irregular flow.

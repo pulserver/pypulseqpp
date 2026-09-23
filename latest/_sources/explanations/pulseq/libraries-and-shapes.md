@@ -1,5 +1,30 @@
 # Storage, deduplication and file revisions
 
+```{admonition} TL;DR
+:class: tldr
+
+- An event is stored as a definition, which holds the timing and shape data,
+  and instances, which hold the playout parameters. The separation allows
+  repeating runs of blocks to be detected, and the SAR check averages over
+  them.
+- Writing deduplicates: equal shapes and equal events are merged and the block
+  table is renumbered. Registration ids are therefore local to a sequence and
+  are not stable across a write.
+- With a `ROTATIONS` extension per block, a non-Cartesian readout is written
+  once as one interleaf and each shot adds one quaternion, so the shape library
+  stays the size of a single repetition. Any quantity evaluated on played
+  gradient waveforms must apply the block rotation first.
+- The format does not identify repetitions, shots or calibration regions, and
+  records a gradient amplitude limit, slew-rate limit or field strength only
+  where the writer adds the `MaxGrad`, `MaxSlew` or `B0` definition.
+  {func}`pypulseqpp.io.read` builds the system from the file;
+  {meth}`~pypulseqpp.Sequence.read` takes the rasters from the file and keeps
+  the system the sequence was constructed with.
+- Pulseq 1.5.1 is written by default. {meth}`~pypulseqpp.Sequence.write_v141`
+  folds ppm offsets into absolute offsets and rejects rotation and RF-shim
+  extensions, which revision 1.4.1 cannot express.
+```
+
 The block table of {doc}`events-and-blocks` refers to events by id, and the
 events refer to shapes by id.
 
@@ -11,10 +36,10 @@ that does not vary between playouts; each instance holds the playout
 parameters.
 
 A phase-encode gradient scaled per line is one definition and one instance per
-line: the shape and the timing are identical and only the amplitude differs. An
-arbitrary gradient whose waveform differs between playouts is a new definition,
-because the waveform belongs to the instance only in the sense of being scaled,
-not reshaped.
+line: the shape and the timing are identical and only the amplitude differs.
+An arbitrary gradient is defined by its time shape and its delay, and its
+waveform belongs to the instance, so arbitrary gradients that share a time base
+and a delay share one definition even where their waveforms differ.
 
 For RF events, the magnitude, phase and time shapes belong to the definition;
 frequency offset, phase offset and amplitude belong to the instance.
@@ -91,6 +116,16 @@ shot, or which acquisitions form a calibration region. A consumer that requires 
 structure derives it from the content. The repetition detection underlying the
 SAR check does exactly that, and the shipped sequences record their encoding
 indices as labels rather than leaving a consumer to infer them.
+
+The same applies to the system a sequence was designed against. A file records
+the four rasters; it records a gradient amplitude limit, a slew-rate limit or a
+field strength only where the writer adds the `MaxGrad`, `MaxSlew` or `B0`
+definition, and it records no dead times.
+{meth}`~pypulseqpp.Sequence.read` takes the rasters from the file and keeps the
+system the sequence was constructed with. {func}`pypulseqpp.io.read` builds the
+system from the file instead, so the design helpers and the checks of
+{doc}`../safety/index` apply limits derived from the file rather than those of
+the shared default system.
 
 ## Revisions and the binary form
 

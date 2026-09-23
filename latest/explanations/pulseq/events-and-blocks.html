@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -584,6 +542,29 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="events-and-blocks">
 <h1>Events and blocks<a class="headerlink" href="#events-and-blocks" title="Link to this heading">#</a></h1>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p>A sequence is an ordered list of blocks played back to back without a gap.
+The file holds a flattened event schedule without loops, branches or nested
+blocks.</p></li>
+<li><p>A block has a duration and at most one event per channel, and its events are
+played concurrently, each with its own delay. A block whose duration exceeds
+the extent of its events is a delay, which is how an echo time or a
+repetition time is realized.</p></li>
+<li><p>Events are stored in libraries, one row per distinct event, and the block
+table refers to them by integer id; indices are 1-based and a zero means no
+event on that channel. A shape is stored normalized, and the amplitude that
+scales it belongs to the event.</p></li>
+<li><p>Amplitudes are in Hz for RF and Hz/m for gradients rather than in tesla and
+tesla per metre. The gyromagnetic ratio in Hz/T, <code class="docutils literal notranslate"><span class="pre">gamma</span></code> on
+<a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a>, enters only where a physical amplitude is
+required.</p></li>
+<li><p>Extensions carry information for which the block table has no column: labels
+(<code class="docutils literal notranslate"><span class="pre">LABELSET</span></code>, <code class="docutils literal notranslate"><span class="pre">LABELINC</span></code>), whose values remain in force until set or
+incremented again, rotations, triggers, RF shims and soft delays.</p></li>
+</ul>
+</div>
 <p><a class="reference external" href="https://pulseq.github.io">Pulseq</a> is an open file format for MR pulse
 sequences. A <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file specifies event timing and channel assignment for a complete,
 portable acquisition. <code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code> builds, analyses and writes that description, and its
@@ -647,9 +628,9 @@ tables below the block table are far shorter than it is.</span><a class="headerl
 <dt>RF</dt><dd><p>An amplitude in Hz, ids into a magnitude, a phase and optionally a time
 shape, a delay, frequency and phase offsets, a centre time, and a <code class="docutils literal notranslate"><span class="pre">use</span></code> —
 excitation, refocusing, inversion, saturation or preparation. The <code class="docutils literal notranslate"><span class="pre">use</span></code>
-identifies which pulses begin a shot and which refocus one, so the
-pulse factories such as <a class="reference internal" href="../../generated/pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a> accept it and why
-<a class="reference internal" href="../../generated/pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rf_times()</span></code></a> can report the two separately.</p>
+identifies which pulses begin a shot and which refocus one, which is why
+the pulse factories such as <a class="reference internal" href="../../generated/pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a> accept it and
+why <a class="reference internal" href="../../generated/pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rf_times()</span></code></a> can report the two separately.</p>
 </dd>
 <dt>Gradients</dt><dd><p>Two kinds share one column. A <em>trapezoid</em> is an amplitude with rise, flat and
 fall times. An <em>arbitrary</em> gradient is a shape id, with an optional time
@@ -672,8 +653,9 @@ the samples.</p>
 and tesla per metre. The same file therefore means the same thing on any
 nucleus a scanner is tuned to, and the gyromagnetic ratio enters only where a
 physical amplitude is required.</p>
-<p>Converting a reported amplitude to mT/m means dividing by the gyromagnetic
-ratio in Hz/T, which <a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> holds as <code class="docutils literal notranslate"><span class="pre">gamma</span></code>. The constraint
+<p>Converting a reported amplitude from Hz/m to mT/m means dividing by the
+gyromagnetic ratio in Hz/T, which <a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> holds as <code class="docutils literal notranslate"><span class="pre">gamma</span></code>,
+and multiplying by 1000. The constraint
 checks in <a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a> report their values in the file’s units and
 convert with that constant.</p>
 </section>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Gradient, PNS and SAR constraints</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -569,8 +527,8 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantity-compared-with-the-limit">Quantity compared with the limit</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-of-the-within-block-evaluation">Scope of the within-block evaluation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimum-duration-gradient-lobe-under-amplitude-and-slew-limits">Minimum-duration gradient lobe under amplitude and slew limits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#within-block-and-boundary-evaluation">Within-block and boundary evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimum-duration-gradient-lobe">Minimum-duration gradient lobe</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derating">Derating</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
@@ -586,88 +544,91 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="slew-rate">
 <h1>Slew rate<a class="headerlink" href="#slew-rate" title="Link to this heading">#</a></h1>
-<p>The rate at which a gradient amplifier can change its output is bounded by the
-voltage available across the coil’s inductance.
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> determines whether any physical
-gradient axis exceeds <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> compares the largest per-axis slew
+rate within each block, on the physical axes after that block’s rotation,
+with <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> from the system limits. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> disables the
+comparison.</p></li>
+<li><p>For an arbitrary gradient, the slew rate is the difference between
+neighbouring waveform corners divided by their spacing on the gradient raster
+of the system limits, so the same samples on a finer raster imply a
+proportionally higher slew rate.</p></li>
+<li><p>The report also states the largest simultaneous vector slew rate and the peak
+of each axis; only the per-axis quantity is compared with the limit. A step
+across a block boundary is evaluated with the same limit by the gradient
+continuity check.</p></li>
+<li><p>For an area <span class="math notranslate nohighlight">\(A\)</span> (1/m) at slew rate <span class="math notranslate nohighlight">\(S\)</span> (Hz/m/s), the shortest waveform is a
+triangle of duration <span class="math notranslate nohighlight">\(T_{\min} = 2\sqrt{A/S}\)</span> while its peak <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> does
+not exceed <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>. Halving the duration of a prewinder or phase-encode
+blip requires four times the slew rate.</p></li>
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> and <a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a>
+return copies of the system limits with reduced <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>,
+and repeated derating does not compound. A sequence that fails under reduced
+limits must be redesigned at the lower limit, which lengthens its ramps.</p></li>
+</ul>
+</div>
+<p>The rate of change of a gradient amplifier’s output is bounded by the voltage
+available across the coil inductance.
+<a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> compares the largest per-axis slew
+rate within blocks with <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> from the system limits.</p>
 <section id="quantity-compared-with-the-limit">
 <h2>Quantity compared with the limit<a class="headerlink" href="#quantity-compared-with-the-limit" title="Link to this heading">#</a></h2>
-<p>The check evaluates the slew rate <strong>within each block</strong>, on the physical axes
-after that block’s rotation, and compares the largest per-axis value with the
-limit:</p>
+<p>The slew rate is evaluated <strong>within each block</strong>, on the physical axes after
+that block’s rotation:</p>
 <div class="math notranslate nohighlight">
 \[
 \max_{t}\;\max_{a \in \{x,y,z\}} \left| \frac{\mathrm{d}G_a}{\mathrm{d}t} \right|
-\;\le\; \texttt{max\_slew}.
+\;\le\; \mathtt{max\_slew}.
 \]</div>
-<p>For a trapezoid the quantity is the amplitude divided by the rise or fall time.
-For an arbitrary gradient it is the difference between neighbouring waveform
-samples divided by the gradient raster period, so the raster the check is given
-is part of the criterion rather than an implementation detail: the same sample
-array on a finer raster implies a proportionally higher slew rate.</p>
-<p>As with <a class="reference internal" href="gradient_amplitude.html"><span class="doc">Gradient amplitude</span></a>, the report states the largest simultaneous
-vector slew rate and the peak of each axis on its own, and only the per-axis
+<p>For a trapezoid this is the amplitude divided by the rise or fall time. For an
+arbitrary gradient it is the difference between neighbouring waveform corners
+divided by their spacing on the gradient raster given by the system limits, so
+the same samples on a finer raster imply a proportionally higher slew rate.</p>
+<p>As in <a class="reference internal" href="gradient_amplitude.html"><span class="doc">Gradient amplitude</span></a>, the report also states the largest
+simultaneous vector slew rate and the peak of each axis; only the per-axis
 quantity is compared with the limit. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> disables the
 comparison.</p>
 </section>
-<section id="scope-of-the-within-block-evaluation">
-<h2>Scope of the within-block evaluation<a class="headerlink" href="#scope-of-the-within-block-evaluation" title="Link to this heading">#</a></h2>
-<p>The check looks inside blocks. A gradient that ends one block at a nonzero
-amplitude and is followed by a block starting at a different amplitude is a step
-across one raster period, which no waveform in either block contains. That case
-belongs to <a class="reference internal" href="gradient_continuity.html"><span class="doc">Gradient continuity</span></a>, which applies the same inequality to the
-pair of samples straddling the boundary.</p>
-<p>Separating them is not a redundancy. The interior question is a property of a
-<strong>shape</strong>: the normalised waveform’s own sample-to-sample differences, scaled by
-whatever amplitude an instance plays it at, so it is answered once per distinct
-shape and reused by every playout. The boundary question can only be answered
-where two neighbours meet, at the amplitudes and rotations they each actually
-run, so it is evaluated by traversing the block table.</p>
-<p>Most Cartesian sequences satisfy the boundary condition trivially, because
-trapezoids and simple arbitrary gradients begin and end at zero. It becomes the
-binding constraint on families whose readout does not return to zero between
-blocks — zero echo time, spirals joined by bridges, a trajectory whose
-rewinders were solved per rotation angle.</p>
+<section id="within-block-and-boundary-evaluation">
+<h2>Within-block and boundary evaluation<a class="headerlink" href="#within-block-and-boundary-evaluation" title="Link to this heading">#</a></h2>
+<p>A gradient that ends one block at a nonzero amplitude, followed by a block that
+starts at a different amplitude, is a step over one raster period that neither
+block’s waveform contains. <a class="reference internal" href="gradient_continuity.html"><span class="doc">Gradient continuity</span></a> evaluates that step with
+the same limit. Trapezoids begin and end at zero, so the boundary condition
+constrains mainly readouts that do not return to zero between blocks, such as
+zero-echo-time and joined spiral readouts.</p>
 </section>
-<section id="minimum-duration-gradient-lobe-under-amplitude-and-slew-limits">
-<h2>Minimum-duration gradient lobe under amplitude and slew limits<a class="headerlink" href="#minimum-duration-gradient-lobe-under-amplitude-and-slew-limits" title="Link to this heading">#</a></h2>
-<p>Amplitude and slew rate together bound how quickly a gradient can deliver a
-zeroth moment. In the file format’s units, where an area is in 1/m and a slew
-rate in Hz/m/s, the shortest waveform delivering an area <span class="math notranslate nohighlight">\(A\)</span> at slew rate <span class="math notranslate nohighlight">\(S\)</span> is
-the triangular one, whose peak amplitude is <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> and whose duration is</p>
+<section id="minimum-duration-gradient-lobe">
+<h2>Minimum-duration gradient lobe<a class="headerlink" href="#minimum-duration-gradient-lobe" title="Link to this heading">#</a></h2>
+<p>For an area <span class="math notranslate nohighlight">\(A\)</span> (1/m) at slew rate <span class="math notranslate nohighlight">\(S\)</span> (Hz/m/s), the shortest waveform is the
+triangle with peak amplitude <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> and duration</p>
 <div class="math notranslate nohighlight">
 \[
 T_{\min} = 2\sqrt{A/S}.
 \]</div>
-<p>No amplitude delivers the same area in less time, and once <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> exceeds
-<code class="docutils literal notranslate"><span class="pre">max_grad</span></code> the waveform acquires a flat top and takes longer still. Halving the
-duration of a prewinder or a phase-encode blip therefore requires four times
-the slew rate, so the echo spacing of an echo-planar train is bounded by the
-slew limit rather than by the amplitude limit. The gradient factories solve this
-relation from the system limits, so <a class="reference internal" href="../../generated/pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_trapezoid()</span></code></a> raises
-for an <code class="docutils literal notranslate"><span class="pre">area</span></code> and a <code class="docutils literal notranslate"><span class="pre">duration</span></code> that cannot be satisfied together rather than
-returning a waveform that would fail this check.</p>
+<p>When <span class="math notranslate nohighlight">\(\sqrt{AS}\)</span> exceeds <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>, the waveform acquires a flat top and is
+longer. Halving the duration of a prewinder or phase-encode blip requires four
+times the slew rate. <a class="reference internal" href="../../generated/pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_trapezoid()</span></code></a> raises for an <code class="docutils literal notranslate"><span class="pre">area</span></code>
+and <code class="docutils literal notranslate"><span class="pre">duration</span></code> that cannot be satisfied together under the system limits.</p>
 </section>
 <section id="derating">
 <h2>Derating<a class="headerlink" href="#derating" title="Link to this heading">#</a></h2>
-<p>Sites commonly run the gradient chain below its nameplate limits — for thermal
-headroom, for acoustic reasons, or because a stimulation model bounds it.
-<a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> returns a copy of the system limits
-scaled by a fraction, and <a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> a copy lowered to a
-stated ceiling; both retain the base limits, so repeated derating does not
-compound. Passing the result to the check re-answers the question against the
-system the sequence will be played on, without redesigning anything.</p>
-<p>A sequence that fails only under a derate is not repaired by the check. Its
-gradients have to be redesigned at the lower limit, which lengthens every ramp
-and, through the ramps, the echo spacing.</p>
+<p><a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> returns a copy of the system limits
+with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> scaled from their base values, which the copy
+retains, so repeated derating does not compound.
+<a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> returns a copy with the limits lowered to stated
+ceilings. Passing either to the check evaluates the sequence against the reduced
+limits; a sequence that fails under them must be redesigned at the lower limit,
+which lengthens its ramps.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> — the call and its report.</p></li>
-<li><p><a class="reference internal" href="gradient_continuity.html"><span class="doc">Gradient continuity</span></a> — the same inequality across a block boundary.</p></li>
-<li><p><a class="reference internal" href="pns.html"><span class="doc">Peripheral nerve stimulation</span></a> — the physiological bound on switching, which is usually reached
-first.</p></li>
+<li><p><a class="reference internal" href="gradient_continuity.html"><span class="doc">Gradient continuity</span></a> — the same limit across a block boundary.</p></li>
+<li><p><a class="reference internal" href="pns.html"><span class="doc">Peripheral nerve stimulation</span></a> — the nerve-stimulation estimate for switching gradients.</p></li>
 </ul>
 </section>
 </section>
@@ -720,8 +681,8 @@ first.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantity-compared-with-the-limit">Quantity compared with the limit</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scope-of-the-within-block-evaluation">Scope of the within-block evaluation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimum-duration-gradient-lobe-under-amplitude-and-slew-limits">Minimum-duration gradient lobe under amplitude and slew limits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#within-block-and-boundary-evaluation">Within-block and boundary evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimum-duration-gradient-lobe">Minimum-duration gradient lobe</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derating">Derating</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>

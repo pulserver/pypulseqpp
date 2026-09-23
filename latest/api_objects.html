@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,46 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -259,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -268,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -331,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -981,31 +943,34 @@ from.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_mech_resonance</span></code></a></p></td>
 <td><p>Check the gradient amplitude spectrum against forbidden gradient bands.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_forbidden_bands</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mech_resonance_spectrum</span></code></a></p></td>
+<td><p>Return the gradient amplitude spectrum of one window, per physical axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_forbidden_bands</span></code></a></p></td>
 <td><p>Read forbidden bands from a vendor table.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a></p></td>
 <td><p>A forbidden gradient band, a frequency range on one physical axis.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_pns</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_pns</span></code></a></p></td>
 <td><p>Check peripheral nerve stimulation against a SAFE or chronaxie model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_safe_model</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_safe_model</span></code></a></p></td>
 <td><p>Read a SAFE nerve model from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a></p></td>
 <td><p>Rheobase-chronaxie nerve model, one coefficient set for every physical axis.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_sar</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_sar</span></code></a></p></td>
 <td><p>Check window-averaged local and global SAR against their limits.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_vops</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_vops</span></code></a></p></td>
 <td><p>Read VOPs and a global SAR matrix from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">example_vops</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">example_vops</span></code></a></p></td>
 <td><p>Build a synthetic VOP model, for demonstrations and tests only.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VopModel</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VopModel</span></code></a></p></td>
 <td><p>Virtual observation points, and an optional global SAR matrix.</p></td>
 </tr>
 </tbody>
@@ -1013,41 +978,41 @@ from.</p>
 </div>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_sampled_lines.html#pypulseqpp.calc_sampled_lines" title="pypulseqpp.calc_sampled_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_sampled_lines</span></code></a></p></td>
-<td><p>Return the calibration views of one encoded axis, and the others acquired.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_cartesian_axis_sampling.html#pypulseqpp.make_cartesian_axis_sampling" title="pypulseqpp.make_cartesian_axis_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_cartesian_axis_sampling</span></code></a></p></td>
+<td><p>Select the acquired views of one Cartesian encoding axis.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_sampled_pairs.html#pypulseqpp.calc_sampled_pairs" title="pypulseqpp.calc_sampled_pairs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_sampled_pairs</span></code></a></p></td>
-<td><p>Return the calibration <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> pairs, and the others acquired.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling" title="pypulseqpp.make_cartesian_plane_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling</span></code></a></p></td>
+<td><p>Select the acquired <code class="docutils literal notranslate"><span class="pre">(line,</span> <span class="pre">partition)</span></code> views of a Cartesian ky-kz plane.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_caipirinha_mask.html#pypulseqpp.make_caipirinha_mask" title="pypulseqpp.make_caipirinha_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_caipirinha_mask</span></code></a></p></td>
-<td><p>Generate a 2D CAIPIRINHA lattice undersampling mask.</p></td>
+<td><p>Generate a CAIPIRINHA lattice sampling mask.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_poisson_disc_mask.html#pypulseqpp.make_poisson_disc_mask" title="pypulseqpp.make_poisson_disc_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_poisson_disc_mask</span></code></a></p></td>
-<td><p>Generate a variable-density Poisson-disc undersampling mask.</p></td>
+<td><p>Generate a variable-density Poisson-disc Cartesian sampling mask.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_random_mask.html#pypulseqpp.make_random_mask" title="pypulseqpp.make_random_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_random_mask</span></code></a></p></td>
-<td><p>Generate a uniform-random undersampling mask with a calibration region.</p></td>
+<td><p>Generate a uniform-random Cartesian sampling mask with a calibration region.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_traversal_order.html#pypulseqpp.calc_traversal_order" title="pypulseqpp.calc_traversal_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_traversal_order</span></code></a></p></td>
-<td><p>Return a permutation of zero-based positions for a one-dimensional loop.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_traversal_order.html#pypulseqpp.make_traversal_order" title="pypulseqpp.make_traversal_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_traversal_order</span></code></a></p></td>
+<td><p>Return the order in which a loop visits <code class="docutils literal notranslate"><span class="pre">n</span></code> positions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_epi_order.html#pypulseqpp.calc_epi_order" title="pypulseqpp.calc_epi_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_epi_order</span></code></a></p></td>
-<td><p>Return the phase-encode offsets of an EPI shot, relative to its first echo.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_linear_order.html#pypulseqpp.make_linear_order" title="pypulseqpp.make_linear_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_linear_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views in linear (raster) order.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_linear_order.html#pypulseqpp.make_linear_order" title="pypulseqpp.make_linear_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_linear_order</span></code></a></p></td>
-<td><p>Linear (raster) train ordering over a Cartesian point set.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_centric_order.html#pypulseqpp.make_centric_order" title="pypulseqpp.make_centric_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_centric_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views in centric order.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_centric_order.html#pypulseqpp.make_centric_order" title="pypulseqpp.make_centric_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_centric_order</span></code></a></p></td>
-<td><p>Globally center-out Cartesian ordering, dealt into trains.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views in centre-out radial order.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a></p></td>
-<td><p>Center-out radial (wedge) echo-train ordering.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order" title="pypulseqpp.make_radial_adaptive_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_adaptive_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views in radial order about a target echo.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order" title="pypulseqpp.make_radial_adaptive_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_adaptive_order</span></code></a></p></td>
-<td><p>Adaptive radial echo-train ordering (individually parameterized trains).</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views with random echo positions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p></td>
-<td><p>Randomly shuffled echo-train ordering (T2 Shuffling).</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets" title="pypulseqpp.make_epi_shot_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_epi_shot_offsets</span></code></a></p></td>
+<td><p>Return the phase-encoding offsets of one EPI shot, relative to its first echo.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_uniform_angles.html#pypulseqpp.calc_uniform_angles" title="pypulseqpp.calc_uniform_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_uniform_angles</span></code></a></p></td>
 <td><p>Return equally spaced rotations in the half-open interval [0, span).</p></td>

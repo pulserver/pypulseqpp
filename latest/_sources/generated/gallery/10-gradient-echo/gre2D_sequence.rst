@@ -40,10 +40,10 @@ structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 34-38
 
-Baseline
---------
+Fully sampled acquisition
+-------------------------
 
-A full Cartesian sampling of one slice.
+Every phase-encode line of one slice is acquired.
 
 .. GENERATED FROM PYTHON SOURCE LINES 38-49
 
@@ -95,12 +95,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f01e5fd0>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -128,12 +122,6 @@ the scan. Colour encodes repetition index.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
@@ -142,9 +130,9 @@ the scan. Colour encodes repetition index.
 In-plane acceleration
 ---------------------
 
-``ry`` reads one line in two and adds a fully sampled calibration region at
-the centre, which a parallel-imaging reconstruction needs to estimate the
-coil sensitivities from.
+``ry=2`` acquires one phase-encode line in two and adds a fully sampled
+calibration region at the centre of k-space, from which a parallel-imaging
+reconstruction estimates the coil sensitivities.
 
 .. GENERATED FROM PYTHON SOURCE LINES 71-85
 
@@ -186,19 +174,13 @@ coil sensitivities from.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.123 seconds)
+   **Total running time of the script:** (0 minutes 1.925 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

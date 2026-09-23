@@ -93,7 +93,8 @@ compact.paper_plot()
 # Sampling order
 # --------------
 #
-# At a protocol matrix, one inversion reads the sampled lines of one partition:
+# At a protocol matrix, each inversion cycle acquires the sampled lines of one
+# partition:
 # the inversion cycle is constant along each row of the map, and the index
 # within the train runs outward from the centre of the line axis. The centre of
 # k-space is therefore the first view in a train. ``TI`` is measured from the

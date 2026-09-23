@@ -1,7 +1,8 @@
 # Pulseq basics
 
-Events, blocks and timing, from the two-event experiment every later page
-is a variation on to a slice-selective gradient echo.
+The first lessons of the course: events, blocks and timing, from the
+two-event experiment that every later lesson extends to a slice-selective
+gradient echo.
 
 | Page | What it establishes |
 | --- | --- |

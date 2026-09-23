@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -551,17 +513,17 @@
 <span class="sd">        Its rephaser, if one was given, left-aligned in whichever block follows</span>
 <span class="sd">        the pulse.</span>
 <span class="sd">    gx_pre : GradEvent</span>
-<span class="sd">        Readout prephaser, right-aligned in the prewinder block. Carries the</span>
-<span class="sd">        spoiler under ``spoiling_position='pre'``.</span>
+<span class="sd">        Readout prephaser, right-aligned in the prewinder block. Includes the</span>
+<span class="sd">        spoiler area under ``spoiling_position='pre'``.</span>
 <span class="sd">    gx : GradEvent</span>
 <span class="sd">        Readout lobe. A spoiler is bridged onto it when there is one echo: the</span>
 <span class="sd">        lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or</span>
 <span class="sd">        ``gx_spoil`` plays instead. Where the spoiler is bridged onto the end,</span>
 <span class="sd">        the plateau is held to the end of the acquisition block, past the last</span>
-<span class="sd">        sample by the ADC dead time, so that the spoiler has a plateau to leave</span>
-<span class="sd">        from; ``gx_spoil`` carries correspondingly less area.</span>
+<span class="sd">        sample by the ADC dead time, so that the spoiler starts at the plateau</span>
+<span class="sd">        amplitude; ``gx_spoil`` has correspondingly less area.</span>
 <span class="sd">    gx_spoil : GradEvent</span>
-<span class="sd">        Closes the TR on the read axis: rewinds the part of the line after the</span>
+<span class="sd">        Last read-axis gradient of the TR: rewinds the part of the line after the</span>
 <span class="sd">        echo and, under ``spoiling_position='post'``, adds the spoiler.</span>
 <span class="sd">        Left-aligned with ``gy_rew``.</span>
 <span class="sd">    gy_pre, gz_pre : TrapEvent</span>
@@ -644,7 +606,7 @@
 <span class="sd">        Length the spoiling is counted over (m). Defaults to the readout</span>
 <span class="sd">        resolution.</span>
 <span class="sd">    spoiling_position : {'post', 'pre'}, default='post'</span>
-<span class="sd">        Which side of the acquisition the dephasing lobe sits on.</span>
+<span class="sd">        Side of the acquisition on which the dephasing lobe is played.</span>
 <span class="sd">    n_echoes : int, default=1</span>
 <span class="sd">        Echoes per repetition.</span>
 <span class="sd">    flyback : bool, default=True</span>
@@ -653,7 +615,7 @@
 <span class="sd">        sign (bipolar), which is faster but reads even echoes backwards and</span>
 <span class="sd">        puts any gradient-delay error into a phase difference between them.</span>
 <span class="sd">        A bipolar train needs as many samples before the echo as after it, so</span>
-<span class="sd">        it refuses partial echo and an odd sample count.</span>
+<span class="sd">        partial echo and an odd sample count are rejected.</span>
 <span class="sd">    echo_spacing : float, default=None</span>
 <span class="sd">        Echo spacing (s). ``None`` is as short as possible: the readout lobe</span>
 <span class="sd">        of a bipolar train, the lobe and its rewinder for a monopolar one.</span>
@@ -669,7 +631,8 @@
 <span class="sd">        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the</span>
 <span class="sd">        module's ``wave_amplitude`` attribute reports the amplitude built.</span>
 <span class="sd">    labels : sequence of str, default=None</span>
-<span class="sd">        Counters emitted on the acquisition block. The loop writes the values.</span>
+<span class="sd">        Counters emitted on the acquisition block. The acquisition loop</span>
+<span class="sd">        assigns their values.</span>
 <span class="sd">    trigger : event, default=None</span>
 <span class="sd">        A trigger or digital output armed on the prewinder block.</span>
 

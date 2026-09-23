@@ -22,14 +22,15 @@
 Spiral readout
 ==============
 
-The scope of this notebook is to acquire k-space along a spiral arm rather than
-along straight lines, and to establish which of the system's limits decides how
-long an arm takes. A spiral is the first trajectory of the course that cannot
-be written down as a trapezoid: its waveform is solved numerically against the
-limits, which is what :class:`~pypulseqpp.sequences.SpiralReadout2D` is for.
-The interface such a module presents is the subject of
-:doc:`/generated/gallery/05-sequence-modules/02_readout`; here it is used for
-the arms it designs.
+The previous lesson, :doc:`/generated/gallery/04-non-cartesian/01_radial`,
+acquired k-space along straight spokes. This lesson
+acquires it along a spiral arm, and establishes which of the system limits
+determines the duration of an arm. A spiral is the first trajectory of the
+course that cannot be written as a trapezoid: its waveform is solved
+numerically against the limits by
+:class:`~pypulseqpp.sequences.SpiralReadout2D`. The interface of such a module
+is the subject of :doc:`/generated/gallery/05-sequence-modules/02_readout`;
+here the module is used only for the arms it designs.
 
 Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from
@@ -45,23 +46,23 @@ whatever the gradient system could deliver. The solver applies the lowest of
 the three, so the readout duration depends on the slew rate over part of the
 design space and not over the rest.
 
-The observable is which of the three is binding, read off the waveform each
-design produces.
+The binding limit of each design is read from the waveform it produces.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Designing one arm.** The module, and the limits it is solved against.
-#. **The design space.** Readout duration over a grid of slew limits and
-   sampling rates, and the ceiling that binds each design.
-#. **The waveform in each regime.** One design from each, against the ceilings
-   that bound it.
-#. **Interleaves against arm duration.** The remaining lever once a regime is
-   fixed.
+After this lesson, you should be able to:
 
-The straight-line trajectory this is a departure from is
-:doc:`/generated/gallery/04-non-cartesian/01_radial`.
+- state the amplitude, slew-rate and receiver limits on a spiral traversal,
+  including the receiver cap :math:`G_\mathrm{bw}`;
+- design a spiral arm with a readout module and measure the vector amplitude
+  and slew rate of its waveform;
+- identify the binding limit of a design from its waveform, over a range of
+  slew limits and sampling rates;
+- relate the interleaf count to the arm duration and to the duration of a
+  full set of interleaves.
 
-.. GENERATED FROM PYTHON SOURCE LINES 45-181
+.. GENERATED FROM PYTHON SOURCE LINES 46-182
 
 .. code-block:: Python
 
@@ -85,7 +86,7 @@ The straight-line trajectory this is a departure from is
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 182-190
+.. GENERATED FROM PYTHON SOURCE LINES 183-191
 
 Designing one arm
 -----------------
@@ -96,7 +97,7 @@ an attribute. ``design_interleaves`` sets the pitch of the
 spiral, against which the readout duration is measured. It is not the number
 of arms a scan plays.
 
-.. GENERATED FROM PYTHON SOURCE LINES 190-217
+.. GENERATED FROM PYTHON SOURCE LINES 191-218
 
 .. code-block:: Python
 
@@ -134,13 +135,13 @@ of arms a scan plays.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 218-221
+.. GENERATED FROM PYTHON SOURCE LINES 219-222
 
 The amplitude and slew the design reached are measured on the waveform it
 wrote, on its own raster and along the vector rather than per axis, because
 the two in-plane axes play at once.
 
-.. GENERATED FROM PYTHON SOURCE LINES 221-257
+.. GENERATED FROM PYTHON SOURCE LINES 222-258
 
 .. code-block:: Python
 
@@ -187,7 +188,7 @@ the two in-plane axes play at once.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 258-264
+.. GENERATED FROM PYTHON SOURCE LINES 259-265
 
 The design space
 ----------------
@@ -196,7 +197,7 @@ The slew limit is swept over the range a body gradient system covers, and the
 sampling rate over a range whose receiver cap runs from well below the
 gradient amplitude limit to above it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 264-283
+.. GENERATED FROM PYTHON SOURCE LINES 265-284
 
 .. code-block:: Python
 
@@ -228,7 +229,7 @@ gradient amplitude limit to above it.
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
       slew         100 kHz         250 kHz         600 kHz
         40    10.96 ms band     7.49 ms slew     7.50 ms slew
@@ -240,11 +241,10 @@ gradient amplitude limit to above it.
        180    11.00 ms band     4.40 ms band     3.54 ms slew
        210    10.92 ms band     4.35 ms band     3.26 ms ampl
 
-    <Figure size 946x440 with 1 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 284-299
+.. GENERATED FROM PYTHON SOURCE LINES 285-300
 
 The three rates behave differently. At the lowest, the receiver's cap is so
 far below the gradient amplitude limit that the arm reaches it within the
@@ -258,18 +258,18 @@ ends.
 
 The flat part of the middle curve is not exactly flat, and the reason is that
 an arm at constant amplitude is still turning. Holding :math:`|G|` while the
-direction rotates costs slew rate of its own, and the tighter the turn the
+direction rotates requires slew rate of its own, and the tighter the turn the
 more of it, so the slew limit continues to govern the first turns of an arm
 whose amplitude has already stopped growing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 301-305
+.. GENERATED FROM PYTHON SOURCE LINES 302-306
 
 The waveform in each regime
 ---------------------------
 
 One design from each regime, with the ceilings drawn on the axes they bound.
 
-.. GENERATED FROM PYTHON SOURCE LINES 305-316
+.. GENERATED FROM PYTHON SOURCE LINES 306-317
 
 
 
@@ -280,39 +280,33 @@ One design from each regime, with the ceilings drawn on the axes they bound.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x550 with 6 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 317-328
+.. GENERATED FROM PYTHON SOURCE LINES 318-329
 
 In the slew-limited design the amplitude is still climbing when the arm ends.
 In the other two it reaches a ceiling part way out and stays there, and the
 slew falls away from its limit once it does: the remaining traversal is at
 constant speed, and the only turning left is the angular one. The slew rate
-is at its limit early in every one of them, which is why reaching the slew
-limit is not by itself what tells the three apart.
+is at its limit early in every one of them, so reaching the slew limit does
+not by itself distinguish the three.
 
 The ceilings are drawn at the system's derated limits rather than at the
 numbers passed in. A design whose two in-plane axes play together is solved
 against a per-axis limit reduced by :math:`\sqrt{2}`, so that the vector
 magnitude drawn here respects the scalar limit.
 
-.. GENERATED FROM PYTHON SOURCE LINES 330-336
+.. GENERATED FROM PYTHON SOURCE LINES 331-337
 
 Interleaves against arm duration
 --------------------------------
 
-Within one regime the pitch is the remaining lever: more interleaves cover
-k-space with shorter arms, and the set of them takes correspondingly longer
-to play.
+Within one regime the pitch is the remaining free parameter: more interleaves
+cover k-space with shorter arms, and the set of them takes correspondingly
+longer to play.
 
-.. GENERATED FROM PYTHON SOURCE LINES 336-359
+.. GENERATED FROM PYTHON SOURCE LINES 337-360
 
 .. code-block:: Python
 
@@ -350,15 +344,14 @@ to play.
         32      2.27 ms      6.08 ms     0.195 s
         48      1.60 ms      5.60 ms     0.269 s
 
-    <Figure size 946x396 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 360-366
+.. GENERATED FROM PYTHON SOURCE LINES 361-367
 
 The arm duration falls almost as the reciprocal of the interleaf count while
 the time for a full set rises less than proportionally, because each
-repetition carries an excitation and a rewind whose duration does not depend
+repetition contains an excitation and a rewind whose duration does not depend
 on the pitch. Off-resonance and :math:`T_2^*` act over the readout duration,
 so the interleaf count is the remaining way to shorten it once the slew rate
 no longer does.
@@ -366,7 +359,7 @@ no longer does.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.626 seconds)
+   **Total running time of the script:** (0 minutes 0.971 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_04-non-cartesian_02_spiral.py:

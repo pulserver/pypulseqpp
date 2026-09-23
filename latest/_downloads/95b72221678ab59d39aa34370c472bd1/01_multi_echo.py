@@ -3,29 +3,30 @@ r"""
 Multi-echo readouts
 ====================
 
-The scope of this notebook is to acquire more than one echo per excitation, by
-following the readout gradient with further readouts of alternating polarity.
-Nothing else about the repetition changes, and the echoes land on the same
-k-space line at increasing echo times, which is what a :math:`T_2^*` estimate
-is made from.
+The gradient echo of the first section acquires one echo per excitation. This
+lesson acquires several, by following the readout gradient with further
+readout gradients of alternating polarity. The rest of the repetition is
+unchanged, and the echoes sample the same k-space line at increasing echo
+times, from which a :math:`T_2^*` estimate is computed.
 
-The train is also the structure the rest of this section builds on: an echo
-planar readout is this train with a phase-encode blip between the echoes.
-
-The observable is the echo spacing, which the receiver bandwidth sets, and the
-number of echoes the repetition time admits at each bandwidth.
-
-Outline:
-
-#. **A train of readouts.** Alternating polarity, one acquisition window each.
-#. **One repetition.** The blocks, and what the train costs.
-#. **Where the echoes land.** The trajectory of the train, from the k-space
-   analysis.
-#. **Echo spacing against receiver bandwidth.** The train length a repetition
-   admits, and what it is paid for with.
-
-The single-shot case is
+The train is also the basis of the rest of this section: an echo planar
+readout is this train with a phase-encode blip between the echoes, which the
+next two lessons add. The measured quantities here are the echo spacing, which
+depends on the receiver bandwidth, and the number of echoes that fit in the
+repetition time at each bandwidth. The single-shot case is
 :doc:`/generated/gallery/03-gre-to-epi/03_epi`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- build a train of readout gradients of alternating polarity, each with its
+  own ADC event;
+- locate the echoes of the train from the k-space analysis;
+- explain why the even echoes are acquired in reverse order;
+- relate the echo spacing and the train length to the receiver bandwidth,
+  the gradient amplitude limit and the ramp times.
 """
 
 # sphinx_gallery_start_ignore
@@ -324,9 +325,10 @@ figure.tight_layout(rect=(0, 0, 1, 0.84))
 # echo. Over the sweep the window shortens fourfold and the spacing by a factor
 # of little more than two, with the ramps growing from a sixteenth of the echo
 # spacing to nearly half of it. Beyond the last point the amplitude the readout
-# would need is above the limit and the design is rejected rather than widened.
+# would need is above the limit, and the factory raises an error rather than
+# lengthening the flat top.
 #
-# What the shorter spacing costs is signal. The noise a sample carries grows as
-# the square root of the bandwidth, so the fourfold bandwidth of the sweep is a
-# factor of two in the signal-to-noise ratio of each echo, traded for the number
-# of echoes and for the shortest echo time.
+# The shorter spacing reduces the signal-to-noise ratio. The noise in a sample
+# grows as the square root of the bandwidth, so the fourfold bandwidth of the
+# sweep halves the signal-to-noise ratio of each echo, in exchange for the
+# number of echoes and a shorter shortest echo time.

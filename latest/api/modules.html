@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Complete sequences" href="apps.html" />
-    <link rel="prev" title="Sampling and ordering" href="sampling.html" />
+    <link rel="prev" title="Sampling and scan-loop schedules" href="sampling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
@@ -585,28 +543,32 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-modules">
 <h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
-<p>Reusable block layouts, with their timing and gradient waveforms solved and
-their encoding events left as templates for the scan loop to scale, together
-with the non-Cartesian interleaves the readout modules play.</p>
+<p>Reusable block layouts with their timing and gradient waveforms solved, and
+the non-Cartesian base interleaves the readout modules play. Every module takes
+the system limits, a <a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a>, as its first argument; flip
+angles are in degrees, times in s, lengths in m and frequencies in Hz. The
+published encoding events are templates the scan loop scales before adding the
+blocks, as <a class="reference internal" href="../explanations/design/sequence-module.html"><span class="doc">Sequence modules</span></a> describes.</p>
 <section id="base-classes">
 <h2>Base classes<a class="headerlink" href="#base-classes" title="Link to this heading">#</a></h2>
-<p>A module is a reusable block layout with named, mutable event templates. The
-scan loop chooses the views, scales the encoding events and adds the blocks.
-A <a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> lays its blocks out in <code class="docutils literal notranslate"><span class="pre">init_module</span></code>; an
-<a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a> is a module built around one RF event, which
-<a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.sim_rf.html#pypulseqpp.sequences.RfModule.sim_rf" title="pypulseqpp.sequences.RfModule.sim_rf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> simulates against off-resonance.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></p></td>
-<td><p>A reusable block layout with named, mutable event templates.</p></td>
+<td><p>Arguments forwarded to <code class="docutils literal notranslate"><span class="pre">init_module</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">blocks</span></code>, named events on <code class="docutils literal notranslate"><span class="pre">events</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code> (s)</p></td>
+<td><p>Base class of reusable block layouts.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RfModule</span></code></a></p></td>
-<td><p>Sequence module with off-resonance simulation of an individual RF pulse.</p></td>
+<td><p>Arguments forwarded to <code class="docutils literal notranslate"><span class="pre">init_module</span></code></p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">SequenceModule</span></code>, plus <code class="docutils literal notranslate"><span class="pre">sim_rf</span></code> of its RF event</p></td>
+<td><p>Base class of every excitation and preparation module.</p></td>
 </tr>
 </tbody>
 </table>
@@ -617,36 +579,56 @@ A <a class="reference internal" href="../generated/pypulseqpp.sequences.Sequence
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonSelectiveExcitation.html#pypulseqpp.sequences.NonSelectiveExcitation" title="pypulseqpp.sequences.NonSelectiveExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonSelectiveExcitation</span></code></a></p></td>
-<td><p>Rectangular RF excitation without a selection gradient.</p></td>
+<td><p>Flip angle, duration, frequency and phase offsets</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code></p></td>
+<td><p>Rectangular non-selective excitation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonSelectiveRefocusing.html#pypulseqpp.sequences.NonSelectiveRefocusing" title="pypulseqpp.sequences.NonSelectiveRefocusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonSelectiveRefocusing</span></code></a></p></td>
-<td><p>Rectangular refocusing pulse between two identical crushers.</p></td>
+<td><p>Flip angle, duration, crusher cycles and axis</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, crusher <code class="docutils literal notranslate"><span class="pre">gz_spoil</span></code></p></td>
+<td><p>Rectangular refocusing between two identical crushers.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSelectiveExcitation.html#pypulseqpp.sequences.SpatialSelectiveExcitation" title="pypulseqpp.sequences.SpatialSelectiveExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSelectiveExcitation</span></code></a></p></td>
-<td><p>SLR excitation with a selection gradient and optional rephasing.</p></td>
+<td><p>Flip angle, thickness, duration, time-bandwidth product</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, <code class="docutils literal notranslate"><span class="pre">gz</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code>, <code class="docutils literal notranslate"><span class="pre">selection_amplitude</span></code> (Hz/m)</p></td>
+<td><p>SLR slice or slab excitation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSelectiveRefocusing.html#pypulseqpp.sequences.SpatialSelectiveRefocusing" title="pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a></p></td>
-<td><p>SLR refocusing with matched crushers joined to the selection plateau.</p></td>
+<td><p>Thickness, flip angle, duration, crusher cycles</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, crusher–plateau–crusher <code class="docutils literal notranslate"><span class="pre">gz</span></code>, <code class="docutils literal notranslate"><span class="pre">selection_amplitude</span></code> (Hz/m)</p></td>
+<td><p>SLR refocusing with crushers joined to the plateau.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSelective2DExcitation.html#pypulseqpp.sequences.SpatialSelective2DExcitation" title="pypulseqpp.sequences.SpatialSelective2DExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSelective2DExcitation</span></code></a></p></td>
+<td><p>Flip angle, excitation FOV and matrix, disc or target</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, one spiral gradient per axis</p></td>
 <td><p>Small-tip spiral excitation selective in two dimensions.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FrequencySelectiveExcitation.html#pypulseqpp.sequences.FrequencySelectiveExcitation" title="pypulseqpp.sequences.FrequencySelectiveExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FrequencySelectiveExcitation</span></code></a></p></td>
-<td><p>SLR excitation of a spectral band without spatial selection.</p></td>
+<td><p>Flip angle, bandwidth, offset (ppm and Hz)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, <code class="docutils literal notranslate"><span class="pre">duration_s</span></code></p></td>
+<td><p>SLR excitation of a spectral band.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpspExcitation.html#pypulseqpp.sequences.SpspExcitation" title="pypulseqpp.sequences.SpspExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a></p></td>
-<td><p>Spectral-spatial excitation using SLR subpulses on an alternating gradient.</p></td>
+<td><p>Flip angle, thickness, spectral bandwidth, subpulse count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, alternating <code class="docutils literal notranslate"><span class="pre">gz</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code></p></td>
+<td><p>Spectral-spatial excitation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SmsExcitation.html#pypulseqpp.sequences.SmsExcitation" title="pypulseqpp.sequences.SmsExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a></p></td>
-<td><p>SLR slice excitation modulated into simultaneous spectral bands.</p></td>
+<td><p>Flip angle, thickness, slice gap, band count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, <code class="docutils literal notranslate"><span class="pre">gz</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code>, band offsets (Hz) and positions (m)</p></td>
+<td><p>Simultaneous multi-slice SLR excitation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.MultibandExcitation.html#pypulseqpp.sequences.MultibandExcitation" title="pypulseqpp.sequences.MultibandExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultibandExcitation</span></code></a></p></td>
-<td><p>Non-spatially-selective RF excitation with off-resonance sidebands.</p></td>
+<td><p>Flip angle, duration, sideband offset, band count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf</span></code>, band offsets (Hz), band power fractions</p></td>
+<td><p>Non-selective excitation with off-resonance sidebands.</p></td>
 </tr>
 </tbody>
 </table>
@@ -657,36 +639,56 @@ A <a class="reference internal" href="../generated/pypulseqpp.sequences.Sequence
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation" title="pypulseqpp.sequences.InversionPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InversionPreparation</span></code></a></p></td>
-<td><p>Non-selective adiabatic inversion, followed by an optional crusher.</p></td>
+<td><p>Duration, adiabatic pulse type, bandwidth, crusher cycles</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_spoil</span></code>, <code class="docutils literal notranslate"><span class="pre">prep_labels</span></code></p></td>
+<td><p>Non-selective adiabatic inversion.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.BlochSiegertPreparation.html#pypulseqpp.sequences.BlochSiegertPreparation" title="pypulseqpp.sequences.BlochSiegertPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlochSiegertPreparation</span></code></a></p></td>
+<td><p>Frequency offset, duration, peak B1 (Hz)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers, <code class="docutils literal notranslate"><span class="pre">kbs</span></code> (rad/Hz²)</p></td>
 <td><p>Off-resonance Fermi pulse for Bloch-Siegert B1 mapping.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.DiffusionPreparation.html#pypulseqpp.sequences.DiffusionPreparation" title="pypulseqpp.sequences.DiffusionPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiffusionPreparation</span></code></a></p></td>
-<td><p>Non-selective diffusion preparation with hard tip-down and storage pulses.</p></td>
+<td><p>b-value (s/mm²), gradient duration and separation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>, <code class="docutils literal notranslate"><span class="pre">g_diff</span></code>, spoilers</p></td>
+<td><p>Non-selective diffusion preparation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FatSaturation.html#pypulseqpp.sequences.FatSaturation" title="pypulseqpp.sequences.FatSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></p></td>
-<td><p>SLR fat saturation with a three-axis spoiler and optional spatial selection.</p></td>
+<td><p>Offset (ppm), flip angle, bandwidth, optional thickness</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers, <code class="docutils literal notranslate"><span class="pre">gz</span></code> when selective</p></td>
+<td><p>SLR fat saturation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation" title="pypulseqpp.sequences.IhMtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></p></td>
-<td><p>Simultaneous dual-offset saturation for ihMT measurements.</p></td>
+<td><p>Flip angle, frequency offset, duration, pulse count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers, <code class="docutils literal notranslate"><span class="pre">band_offsets_hz</span></code></p></td>
+<td><p>Dual-offset saturation for ihMT.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.MtPreparation.html#pypulseqpp.sequences.MtPreparation" title="pypulseqpp.sequences.MtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MtPreparation</span></code></a></p></td>
-<td><p>Off-resonance SLR saturation followed by an optional spoiler.</p></td>
+<td><p>Flip angle, frequency offset, duration, pulse count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
+<td><p>Off-resonance SLR saturation for MT.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation" title="pypulseqpp.sequences.OffResonanceSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffResonanceSaturation</span></code></a></p></td>
-<td><p>Repeat one off-resonance pulse, followed by an optional three-axis spoiler.</p></td>
+<td><p>RF event, pulse count, spoiler cycles</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
+<td><p>Repeated off-resonance saturation pulse.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a></p></td>
-<td><p>T2 preparation with storage on -z to initiate T1 recovery.</p></td>
+<td><p>Preparation echo time, refocusing count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>, spoilers</p></td>
+<td><p>T2 preparation stored on −z.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T2Preparation.html#pypulseqpp.sequences.T2Preparation" title="pypulseqpp.sequences.T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2Preparation</span></code></a></p></td>
-<td><p>Adiabatic T2 preparation with tip-down, refocusing and storage pulses.</p></td>
+<td><p>Preparation echo time, final tip, refocusing count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>, spoilers</p></td>
+<td><p>Adiabatic T2 preparation.</p></td>
 </tr>
 </tbody>
 </table>
@@ -694,42 +696,67 @@ A <a class="reference internal" href="../generated/pypulseqpp.sequences.Sequence
 </section>
 <section id="cartesian-readouts">
 <h2>Cartesian readouts<a class="headerlink" href="#cartesian-readouts" title="Link to this heading">#</a></h2>
+<p>Each readout takes the excitation RF event with its selection gradient events,
+and a field of view and matrix per encoded axis, readout first; a fast
+spin-echo readout also takes the refocusing events.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.LineReadout2D.html#pypulseqpp.sequences.LineReadout2D" title="pypulseqpp.sequences.LineReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LineReadout2D</span></code></a></p></td>
-<td><p>One Cartesian line, frequency-encoded along x and phase-encoded along y.</p></td>
+<td><p>Excitation, FOV, matrix, TE, TR, bandwidth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code>, rewinders, spoiler</p></td>
+<td><p>Cartesian line, phase-encoded along y.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.LineReadout3D.html#pypulseqpp.sequences.LineReadout3D" title="pypulseqpp.sequences.LineReadout3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LineReadout3D</span></code></a></p></td>
-<td><p>One Cartesian line of a 3D slab, phase-encoded along y and z.</p></td>
+<td><p>Excitation, FOV, matrix, TE, TR, bandwidth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>, rewinders</p></td>
+<td><p>Cartesian line of a 3D slab.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.EpiReadout2D.html#pypulseqpp.sequences.EpiReadout2D" title="pypulseqpp.sequences.EpiReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EpiReadout2D</span></code></a></p></td>
-<td><p>A single- or multi-shot EPI train, frequency-encoded along x.</p></td>
+<td><p>Excitation, FOV, matrix, ETL, scheme, acceleration</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code> lobes, <code class="docutils literal notranslate"><span class="pre">gy_blips</span></code>, prephasers, <code class="docutils literal notranslate"><span class="pre">echo_times</span></code> (s)</p></td>
+<td><p>Single- or multi-shot EPI train.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.EpiReadout3D.html#pypulseqpp.sequences.EpiReadout3D" title="pypulseqpp.sequences.EpiReadout3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EpiReadout3D</span></code></a></p></td>
-<td><p>A slab-selective EPI train, phase-encoded along y and partition-encoded along z.</p></td>
+<td><p>Excitation, FOV, matrix, ETL, scheme, acceleration</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code> lobes, <code class="docutils literal notranslate"><span class="pre">gy_blips</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_blips</span></code>, prephasers</p></td>
+<td><p>Slab-selective EPI train, partition-encoded along z.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FseReadout2D.html#pypulseqpp.sequences.FseReadout2D" title="pypulseqpp.sequences.FseReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FseReadout2D</span></code></a></p></td>
-<td><p>A slice-selective CPMG train, frequency-encoded along x.</p></td>
+<td><p>Excitation, refocusing, FOV, matrix, ETL, ESP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, phase encodes, <code class="docutils literal notranslate"><span class="pre">echo_times</span></code> (s)</p></td>
+<td><p>Slice-selective CPMG echo train.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FseReadout3D.html#pypulseqpp.sequences.FseReadout3D" title="pypulseqpp.sequences.FseReadout3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FseReadout3D</span></code></a></p></td>
-<td><p>Single-slab CPMG train, phase-encoded along y and partition-encoded along z.</p></td>
+<td><p>Excitation, refocusing, FOV, matrix, ETL, ESP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">echo_times</span></code> (s)</p></td>
+<td><p>Single-slab CPMG echo train.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.BssfpReadout2D.html#pypulseqpp.sequences.BssfpReadout2D" title="pypulseqpp.sequences.BssfpReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BssfpReadout2D</span></code></a></p></td>
-<td><p>Slice-selective balanced SSFP, phase-encoded along y.</p></td>
+<td><p>Excitation, FOV, matrix, TR, half-flip preparation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, balanced phase encodes and rewinders</p></td>
+<td><p>Slice-selective balanced SSFP.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.BssfpReadout3D.html#pypulseqpp.sequences.BssfpReadout3D" title="pypulseqpp.sequences.BssfpReadout3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BssfpReadout3D</span></code></a></p></td>
-<td><p>Slab-selective balanced SSFP, encoded along y and z.</p></td>
+<td><p>Excitation, FOV, matrix, TR, half-flip preparation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, phase and partition encodes, rewinders</p></td>
+<td><p>Slab-selective balanced SSFP.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.PropellerReadout2D.html#pypulseqpp.sequences.PropellerReadout2D" title="pypulseqpp.sequences.PropellerReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropellerReadout2D</span></code></a></p></td>
-<td><p>EPI blades turned about the centre of k-space, as a 2D PROPELLER set.</p></td>
+<td><p>Excitation, FOV, matrix, blade width, blade count</p></td>
+<td><p>EPI train events, <code class="docutils literal notranslate"><span class="pre">blade_angles</span></code> (rad)</p></td>
+<td><p>2D PROPELLER blade set.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.PropellerStackReadout.html#pypulseqpp.sequences.PropellerStackReadout" title="pypulseqpp.sequences.PropellerStackReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropellerStackReadout</span></code></a></p></td>
-<td><p>A stack of 2D PROPELLER blade sets, partition-encoded along z.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">PropellerReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">fov_z</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix_z</span></code></p></td>
+<td><p>EPI train events, <code class="docutils literal notranslate"><span class="pre">blade_angles</span></code> (rad), partition encodes</p></td>
+<td><p>Stack of 2D PROPELLER blade sets.</p></td>
 </tr>
 </tbody>
 </table>
@@ -737,51 +764,77 @@ A <a class="reference internal" href="../generated/pypulseqpp.sequences.Sequence
 </section>
 <section id="non-cartesian-readouts">
 <h2>Non-Cartesian readouts<a class="headerlink" href="#non-cartesian-readouts" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a> plays any interleaf from
-<a class="reference internal" href="#non-cartesian-interleaves"><span class="std std-ref">Non-Cartesian interleaves</span></a> as a whole repetition.
-The spiral and rosette readouts design theirs from the prescription.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a> takes a solved two-channel interleaf from
+<a class="reference internal" href="#non-cartesian-interleaves"><span class="std std-ref">Non-Cartesian interleaves</span></a>; the spiral and rosette readouts design theirs
+from the prescription.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianReadout.html#pypulseqpp.sequences.NonCartesianReadout" title="pypulseqpp.sequences.NonCartesianReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonCartesianReadout</span></code></a></p></td>
-<td><p>A solved interleaf with its prewinder, rewinder and repetition-time budget.</p></td>
+<td><p>Excitation, a <code class="docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code>, TE, TR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, prewinders, rewinders, <code class="docutils literal notranslate"><span class="pre">gz_spoil</span></code></p></td>
+<td><p>Readout of a solved interleaf with its TR budget.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RadialReadout2D.html#pypulseqpp.sequences.RadialReadout2D" title="pypulseqpp.sequences.RadialReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadialReadout2D</span></code></a></p></td>
-<td><p>A full radial spoke through the centre of a plane.</p></td>
+<td><p>Excitation, FOV, matrix, TE, TR, bandwidth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_spoil</span></code></p></td>
+<td><p>Full radial spoke through the centre of a plane.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RadialStackReadout.html#pypulseqpp.sequences.RadialStackReadout" title="pypulseqpp.sequences.RadialStackReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadialStackReadout</span></code></a></p></td>
-<td><p>Radial spokes in-plane with Cartesian partitions along z, a stack of stars.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">RadialReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">fov_z</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix_z</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code></p></td>
+<td><p>Radial spokes with Cartesian partitions (stack of stars).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RadialProjectionReadout.html#pypulseqpp.sequences.RadialProjectionReadout" title="pypulseqpp.sequences.RadialProjectionReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadialProjectionReadout</span></code></a></p></td>
-<td><p>Radial spokes for a spherical projection acquisition.</p></td>
+<td><p>Excitation, FOV, matrix, TE, TR, bandwidth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_spoil</span></code></p></td>
+<td><p>Radial spokes of a 3D projection acquisition.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpiralReadout2D.html#pypulseqpp.sequences.SpiralReadout2D" title="pypulseqpp.sequences.SpiralReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code></a></p></td>
+<td><p>Excitation, FOV, matrix, design interleaves, density</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, prewinders, rewinders, <code class="docutils literal notranslate"><span class="pre">trajectory</span></code></p></td>
 <td><p>One spiral arm in a plane.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpiralStackReadout.html#pypulseqpp.sequences.SpiralStackReadout" title="pypulseqpp.sequences.SpiralStackReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpiralStackReadout</span></code></a></p></td>
-<td><p>Spiral arms in-plane, Cartesian partitions along z.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">fov_z</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix_z</span></code></p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code></p></td>
+<td><p>Spiral arms with Cartesian partitions along z.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpiralProjectionReadout.html#pypulseqpp.sequences.SpiralProjectionReadout" title="pypulseqpp.sequences.SpiralProjectionReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpiralProjectionReadout</span></code></a></p></td>
-<td><p>Spiral arms turned over a sphere.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code></p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">SpiralReadout2D</span></code></p></td>
+<td><p>Spiral arms rotated over a sphere.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpiralNavigator.html#pypulseqpp.sequences.SpiralNavigator" title="pypulseqpp.sequences.SpiralNavigator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpiralNavigator</span></code></a></p></td>
+<td><p>FOV, matrix, slab thickness, flip angle, navigator TR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">excitation</span></code>, <code class="docutils literal notranslate"><span class="pre">readout</span></code>, per-plane <code class="docutils literal notranslate"><span class="pre">rotations</span></code></p></td>
 <td><p>Three orthogonal thick-slab spiral navigators.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RosetteReadout2D.html#pypulseqpp.sequences.RosetteReadout2D" title="pypulseqpp.sequences.RosetteReadout2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code></a></p></td>
+<td><p>Excitation, FOV, matrix, petals, frequency ratio</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>, <code class="docutils literal notranslate"><span class="pre">trajectory</span></code></p></td>
 <td><p>One multi-petal rosette interleaf in a plane.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RosetteStackReadout.html#pypulseqpp.sequences.RosetteStackReadout" title="pypulseqpp.sequences.RosetteStackReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RosetteStackReadout</span></code></a></p></td>
-<td><p>Rosette petals in-plane, Cartesian partitions along z.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">fov_z</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix_z</span></code></p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code>, plus <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code></p></td>
+<td><p>Rosette petals with Cartesian partitions along z.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.RosetteProjectionReadout.html#pypulseqpp.sequences.RosetteProjectionReadout" title="pypulseqpp.sequences.RosetteProjectionReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RosetteProjectionReadout</span></code></a></p></td>
-<td><p>Rosette petals turned over a sphere.</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code></p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">RosetteReadout2D</span></code></p></td>
+<td><p>Rosette petals rotated over a sphere.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.ZteReadout.html#pypulseqpp.sequences.ZteReadout" title="pypulseqpp.sequences.ZteReadout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZteReadout</span></code></a></p></td>
-<td><p>Continuous-gradient ZTE shell, including its initial and final ramps.</p></td>
+<td><p>Non-selective <code class="docutils literal notranslate"><span class="pre">rf</span></code>, FOV, matrix, spoke directions or count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">g_ramp</span></code>, <code class="docutils literal notranslate"><span class="pre">g_hold</span></code>, <code class="docutils literal notranslate"><span class="pre">g_read</span></code>, <code class="docutils literal notranslate"><span class="pre">adc</span></code>, <code class="docutils literal notranslate"><span class="pre">shot_rotations</span></code></p></td>
+<td><p>Continuous-gradient ZTE shell with its initial and final ramps.</p></td>
 </tr>
 </tbody>
 </table>
@@ -789,26 +842,38 @@ The spiral and rosette readouts design theirs from the prescription.</p>
 </section>
 <section id="non-cartesian-interleaves">
 <span id="id1"></span><h2>Non-Cartesian interleaves<a class="headerlink" href="#non-cartesian-interleaves" title="Link to this heading">#</a></h2>
-<p>One base interleaf each, with its ADC and the prewinding and rewinding
-gradients to and from k = 0. The scan loop rotates it per shot.</p>
+<p>Each object holds one base interleaf: its readout <code class="docutils literal notranslate"><span class="pre">gradients</span></code>, its <code class="docutils literal notranslate"><span class="pre">adc</span></code>, and
+the <code class="docutils literal notranslate"><span class="pre">prewinders</span></code> and <code class="docutils literal notranslate"><span class="pre">rewinders</span></code> to and from k = 0 at zero gradient amplitude.
+<code class="docutils literal notranslate"><span class="pre">trajectory</span></code> is in 1/m. The scan loop rotates the interleaf per shot;
+<code class="docutils literal notranslate"><span class="pre">rotated</span></code> returns a copy rotated in its plane.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Publishes</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.NonCartesianGradient.html#pypulseqpp.sequences.NonCartesianGradient" title="pypulseqpp.sequences.NonCartesianGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></p></td>
-<td><p>One canonical non-Cartesian base interleaf, independent of its acquisition schedule.</p></td>
+<td><p>Designed gradient events, ADC event, k-space path</p></td>
+<td><p>The interleaf, as given</p></td>
+<td><p>Base interleaf from events designed elsewhere.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary" title="pypulseqpp.sequences.Arbitrary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Arbitrary</span></code></a></p></td>
-<td><p>Base interleaf from a caller-supplied 2D or 3D k-space path.</p></td>
+<td><p>k-space path <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code> (1/m), matrix</p></td>
+<td><p>Solved interleaf, with prewinders and rewinders as needed</p></td>
+<td><p>Base interleaf from a caller-supplied path.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Spiral.html#pypulseqpp.sequences.Spiral" title="pypulseqpp.sequences.Spiral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Spiral</span></code></a></p></td>
-<td><p>Constant-, variable- or dual-density spiral base interleaf.</p></td>
+<td><p>FOV, matrix, design interleaves, direction, density</p></td>
+<td><p>Solved spiral interleaf</p></td>
+<td><p>Constant-, variable- or dual-density spiral.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Rosette.html#pypulseqpp.sequences.Rosette" title="pypulseqpp.sequences.Rosette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rosette</span></code></a></p></td>
-<td><p>Multi-petal rosette base interleaf, starting and ending at k = 0.</p></td>
+<td><p>FOV, matrix, petals, frequency ratio, echo spacing</p></td>
+<td><p>Solved interleaf from and to k = 0</p></td>
+<td><p>Multi-petal rosette.</p></td>
 </tr>
 </tbody>
 </table>
@@ -833,7 +898,7 @@ gradients to and from k = 0. The scan loop rotates it per shot.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sampling and ordering</p>
+        <p class="prev-next-title">Sampling and scan-loop schedules</p>
       </div>
     </a>
     <a class="right-next"

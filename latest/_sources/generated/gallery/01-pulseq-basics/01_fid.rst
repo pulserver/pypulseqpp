@@ -22,28 +22,30 @@
 Free induction decay
 ====================
 
-The scope of this notebook is to build the smallest complete Pulseq sequence,
-a pulse-acquire experiment, and to establish the vocabulary the rest of the
-course adds to: the system limits a factory solves against, the events that
-carry a pulse and an acquisition window, the blocks that play them, the timing
-check, and the file that is written.
-
-Outline:
-
-#. **System limits.** The limits, rasters and dead times an event is built
-   against.
-#. **Two events.** A hard excitation pulse and an acquisition window, and the
-   relation between samples, dwell time and receiver bandwidth.
-#. **Two blocks.** Placing the events in time, and stating a repetition time.
-#. **Sequence diagram.** Reading the result as a pulse-sequence diagram.
-#. **Transverse magnetisation against flip angle.** Simulating the pulse the
-   sequence holds, against the closed form for a hard pulse on resonance.
-#. **Writing the file.** What a ``.seq`` file records beside the block table.
+The smallest complete Pulseq sequence is a pulse-acquire experiment: one
+excitation pulse followed by one acquisition window. This first lesson of the
+course builds it and introduces the objects every later lesson extends: the
+system limits against which a factory designs an event, the RF and ADC events,
+the blocks in which events are played, the timing check, and the ``.seq`` file.
+A Bloch simulation of the stored pulse relates the transverse magnetisation to
+the flip angle.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-37
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- define system limits, rasters and dead times;
+- create a hard RF pulse and an ADC event, and relate the number of samples,
+  the dwell time and the receiver bandwidth;
+- place events in blocks and set a repetition time with a delay;
+- read a pulse-sequence diagram of the result;
+- check the sequence timing and write the sequence to a ``.seq`` file.
+
+.. GENERATED FROM PYTHON SOURCE LINES 29-39
 
 
 
@@ -52,7 +54,7 @@ The representation these objects belong to is described in
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-45
+.. GENERATED FROM PYTHON SOURCE LINES 40-47
 
 System limits
 -------------
@@ -62,7 +64,7 @@ time is quantized to the rasters those limits declare. The dead times bound
 what the transmit and receive chains can do rather than what the sequencer
 can address, and the timing check reports them separately.
 
-.. GENERATED FROM PYTHON SOURCE LINES 45-60
+.. GENERATED FROM PYTHON SOURCE LINES 47-62
 
 .. code-block:: Python
 
@@ -88,7 +90,7 @@ can address, and the timing check reports them separately.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-69
+.. GENERATED FROM PYTHON SOURCE LINES 63-71
 
 Two events
 ----------
@@ -97,9 +99,9 @@ A rectangular pulse of constant amplitude, and an acquisition window of 8192
 samples. The dwell time is the sampling interval, and its reciprocal is the
 receiver bandwidth; :func:`~pypulseqpp.calc_adc_timing` moves a requested
 dwell onto the ADC raster and lands the acquisition duration on the gradient
-raster, which is what the timing check requires of both.
+raster. The timing check requires both.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-97
+.. GENERATED FROM PYTHON SOURCE LINES 71-99
 
 .. code-block:: Python
 
@@ -144,7 +146,7 @@ raster, which is what the timing check requires of both.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 98-108
+.. GENERATED FROM PYTHON SOURCE LINES 100-110
 
 Two blocks
 ----------
@@ -153,11 +155,11 @@ A block holds at most one event per channel, and the events in it start
 together on the block's clock. Blocks are played back to back, so the
 acquisition begins when the pulse's block ends.
 
-One repetition per flip angle. The acquisition block carries a delay longer
-than the acquisition window, which is how a repetition time is stated: a
-block longer than the events in it is a delay.
+One repetition per flip angle. A block lasts as long as its longest event,
+so a delay event longer than the acquisition window in the acquisition block
+sets the repetition time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-117
+.. GENERATED FROM PYTHON SOURCE LINES 110-119
 
 .. code-block:: Python
 
@@ -183,7 +185,7 @@ block longer than the events in it is a delay.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-123
+.. GENERATED FROM PYTHON SOURCE LINES 120-125
 
 Sequence diagram
 ----------------
@@ -191,7 +193,7 @@ Sequence diagram
 The solid trace is one repetition; the shaded traces are the others, which
 differ only in the amplitude of the pulse.
 
-.. GENERATED FROM PYTHON SOURCE LINES 123-126
+.. GENERATED FROM PYTHON SOURCE LINES 125-128
 
 .. code-block:: Python
 
@@ -207,16 +209,10 @@ differ only in the amplitude of the pulse.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9e9a3bfb0>, tr=4, underlays=[1, 2, 3])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-134
+.. GENERATED FROM PYTHON SOURCE LINES 129-136
 
 Transverse magnetisation against flip angle
 -------------------------------------------
@@ -226,7 +222,7 @@ sequence holds. On resonance a rectangular pulse rotates the magnetisation by
 its nominal flip angle, so the transverse component follows
 :math:`|M_{xy}| = \sin\alpha`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 134-151
+.. GENERATED FROM PYTHON SOURCE LINES 136-153
 
 .. code-block:: Python
 
@@ -249,7 +245,7 @@ its nominal flip angle, so the transverse component follows
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 152-157
+.. GENERATED FROM PYTHON SOURCE LINES 154-159
 
 Writing the file
 ----------------
@@ -257,7 +253,7 @@ Writing the file
 The definitions are written beside the block table and are what a
 reconstruction reads to interpret the acquisition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 157-165
+.. GENERATED FROM PYTHON SOURCE LINES 159-167
 
 .. code-block:: Python
 
@@ -285,7 +281,7 @@ reconstruction reads to interpret the acquisition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.127 seconds)
+   **Total running time of the script:** (0 minutes 0.220 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_01_fid.py:

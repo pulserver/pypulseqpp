@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -527,7 +489,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">_FseReadout</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One excitation and a CPMG echo train, to the end of the TR.</span>
 
-<span class="sd">    Each refocusing pulse sits midway between the RF centre or echo before it</span>
+<span class="sd">    Each refocusing pulse is centred midway between the RF centre or echo before it</span>
 <span class="sd">    and the echo after it. Echoes are ``esp`` apart, except that the first</span>
 <span class="sd">    echo is ``esp_first`` after the excitation. Phase encodes, and the</span>
 <span class="sd">    refocusing amplitude, are templates the loop may scale per echo; the</span>
@@ -540,8 +502,8 @@
 <span class="sd">    gz : GradEvent</span>
 <span class="sd">        Its selection gradient, if one was given.</span>
 <span class="sd">    gz_reph : GradEvent</span>
-<span class="sd">        Its rephaser, if one was given, left-aligned in the block that carries</span>
-<span class="sd">        the prephaser so it runs straight off the selection lobe.</span>
+<span class="sd">        Its rephaser, if one was given, left-aligned in the block that contains</span>
+<span class="sd">        the prephaser, so that it starts at the end of the selection lobe.</span>
 <span class="sd">    rf_ref : RfEvent</span>
 <span class="sd">        The refocusing pulse, one event for the whole train.</span>
 <span class="sd">    gz_ref : GradEvent</span>
@@ -550,10 +512,10 @@
 <span class="sd">        Read prephaser, played once before the train and right-aligned in its</span>
 <span class="sd">        block.</span>
 <span class="sd">    gx_bridge_pre, gx_bridge_post : GradEvent</span>
-<span class="sd">        Read-axis lobes that carry the axis, together with the crushers, onto</span>
-<span class="sd">        and off the readout plateau, one on each side of every acquisition.</span>
-<span class="sd">        Each spans its whole block, so the echo timing holds when the loop</span>
-<span class="sd">        leaves an encode out.</span>
+<span class="sd">        Read-axis lobes, including the crushers, that ramp onto and off the</span>
+<span class="sd">        readout plateau, one on each side of every acquisition. Each spans its</span>
+<span class="sd">        whole block, so the echo timing is unchanged when the loop omits an</span>
+<span class="sd">        encode.</span>
 <span class="sd">    gx : GradEvent</span>
 <span class="sd">        The readout plateau, flat from end to end.</span>
 <span class="sd">    gy_pre, gz_pre : TrapEvent</span>
@@ -655,7 +617,8 @@
 <span class="sd">        Length the crushing is counted over (m). The read resolution by</span>
 <span class="sd">        default.</span>
 <span class="sd">    labels : sequence of str, default=None</span>
-<span class="sd">        Counters emitted on the acquisition block. The loop writes the values.</span>
+<span class="sd">        Counters emitted on the acquisition block. The acquisition loop</span>
+<span class="sd">        assigns their values.</span>
 <span class="sd">    trigger : event, default=None</span>
 <span class="sd">        A trigger or digital output armed on the prephaser block.</span>
 <span class="sd">    wave : {'phase', 'partition', 'both'}, default=None</span>

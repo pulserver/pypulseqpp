@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -113,46 +113,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-</div>
-
     </header>
   
 
@@ -258,6 +218,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -267,6 +228,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -330,7 +292,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -499,7 +461,13 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp._angles</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Projection angles in radians and rotation matrices for radial acquisitions."""</span>
+<span></span><span class="sd">"""Non-Cartesian orientations: in-plane rotation angles and 3D projection directions.</span>
+
+<span class="sd">The angle routines return one in-plane rotation angle in radians per shot</span>
+<span class="sd">(spoke, interleaf or blade); :func:`calc_projection_shell` returns 3D unit</span>
+<span class="sd">directions and rotation matrices. The scan loop applies them as rotations of</span>
+<span class="sd">a readout trajectory.</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -516,8 +484,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rotation</span>
 
-<span class="c1">#: The golden ratio, whose irrationality is what keeps any window of</span>
-<span class="c1">#: consecutive spokes near-uniformly distributed.</span>
+<span class="c1">#: The golden ratio. Its irrationality keeps any window of consecutive</span>
+<span class="c1">#: golden-angle spokes near-uniformly distributed.</span>
 <span class="n">_PHI</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">5.0</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span>
 
 
@@ -563,10 +531,10 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(calc_golden_angles(4)).round(2)</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.calc_golden_angles(4)).round(2)</span>
 <span class="sd">    array([  0.  , 111.25, 222.49, 333.74])</span>
 
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(calc_golden_angles(3, full_circle=True)).round(2)</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.calc_golden_angles(3, full_circle=True)).round(2)</span>
 <span class="sd">    array([  0.  , 137.51, 275.02])</span>
 
 <span class="sd">    References</span>
@@ -616,7 +584,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; angles = calc_raga_angles(1000, approximation_order=8)</span>
+<span class="sd">    &gt;&gt;&gt; angles = pp.calc_raga_angles(1000, approximation_order=8)</span>
 <span class="sd">    &gt;&gt;&gt; len(np.unique(angles.round(9)))</span>
 <span class="sd">    21</span>
 
@@ -634,8 +602,8 @@
     <span class="k">if</span> <span class="n">tiny_index</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">approximation_order</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"tiny_index must be &gt;= 1 and approximation_order &gt;= 2"</span><span class="p">)</span>
 
-    <span class="c1"># The support is a finite, equidistant set of Fibonacci-many angles; the</span>
-    <span class="c1"># order they are visited in is what stays golden-like.</span>
+    <span class="c1"># The support is a finite, equidistant set of Fibonacci-many angles,</span>
+    <span class="c1"># visited in a golden-angle-like order.</span>
     <span class="n">support_size</span> <span class="o">=</span> <span class="n">_generalized_fibonacci</span><span class="p">(</span><span class="n">approximation_order</span><span class="p">,</span> <span class="n">tiny_index</span><span class="p">)</span>
     <span class="n">step</span> <span class="o">=</span> <span class="n">_generalized_fibonacci</span><span class="p">(</span><span class="n">approximation_order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">support_size</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">support_size</span>
@@ -673,7 +641,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(calc_tiny_golden_angles(3, index=2)).round(2)</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.calc_tiny_golden_angles(3, index=2)).round(2)</span>
 <span class="sd">    array([  0.  ,  68.75, 137.51])</span>
 
 <span class="sd">    References</span>
@@ -718,13 +686,13 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(calc_uniform_angles(4))</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.calc_uniform_angles(4))</span>
 <span class="sd">    array([  0.,  90., 180., 270.])</span>
 
 <span class="sd">    A half-turn span spaces diametric spokes without covering a direction</span>
 <span class="sd">    twice:</span>
 
-<span class="sd">    &gt;&gt;&gt; np.rad2deg(calc_uniform_angles(4, span=np.pi))</span>
+<span class="sd">    &gt;&gt;&gt; np.rad2deg(pp.calc_uniform_angles(4, span=np.pi))</span>
 <span class="sd">    array([  0.,  45.,  90., 135.])</span>
 
 <span class="sd">    See Also</span>
@@ -775,7 +743,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
-<span class="sd">    &gt;&gt;&gt; directions, rotations = calc_projection_shell(32, n_shots=13)</span>
+<span class="sd">    &gt;&gt;&gt; directions, rotations = pp.calc_projection_shell(32, n_shots=13)</span>
 <span class="sd">    &gt;&gt;&gt; directions.shape, rotations.shape</span>
 <span class="sd">    ((32, 3), (13, 3, 3))</span>
 

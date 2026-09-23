@@ -39,11 +39,11 @@ structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Fully sampled acquisition
+-------------------------
 
-A full Cartesian sampling of one slice, at the shortest echo time the
-pulses and the readout allow.
+Every phase-encode line of one slice is acquired, at the minimum echo time
+permitted by the RF pulse and readout durations.
 
 .. GENERATED FROM PYTHON SOURCE LINES 38-49
 
@@ -95,12 +95,6 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2c23260>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
@@ -109,7 +103,7 @@ Sequence diagram
 Sampling order
 --------------
 
-The lines in the order they are read.
+Colour encodes phase-encode line acquisition order.
 
 .. GENERATED FROM PYTHON SOURCE LINES 60-63
 
@@ -127,12 +121,6 @@ The lines in the order they are read.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
@@ -185,19 +173,13 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.330 seconds)
+   **Total running time of the script:** (0 minutes 2.235 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

@@ -24,12 +24,14 @@ Conventional 3D fast spin echo
 
 A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing
 train, with one Cartesian ``(line, partition)`` view acquired at each echo.
-Variable refocusing angles control stimulated-echo pathways and T2-dependent
-signal evolution. Radial view ordering assigns this evolution to k-space and
-therefore determines the modulation transfer function and image blurring. 3D
-FSE is used for T2- and proton-density-weighted structural imaging.
+Refocusing angles below 180 degrees add stimulated-echo pathways to the echo
+signal [HEN88]_, and variable refocusing angles modulate the T2-dependent
+signal evolution along the train [BUS08a]_. Radial view ordering maps this
+evolution onto the ``(k_y, k_z)`` plane and therefore determines the
+modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for
+T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-101
+.. GENERATED FROM PYTHON SOURCE LINES 15-109
 
 .. code-block:: Python
 
@@ -92,7 +94,7 @@ FSE is used for T2- and proton-density-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 102-108
+.. GENERATED FROM PYTHON SOURCE LINES 110-116
 
 Sequence diagram
 ----------------
@@ -101,7 +103,7 @@ Each echo comprises a variable-angle refocusing pulse, phase and partition
 prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-110
+.. GENERATED FROM PYTHON SOURCE LINES 116-118
 
 .. code-block:: Python
 
@@ -116,26 +118,25 @@ is the echo assigned to k-space centre.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa910f83290>, tr=23, underlays=[1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-118
+.. GENERATED FROM PYTHON SOURCE LINES 119-131
 
 Refocusing schedule and echo signal
 -----------------------------------
 
-The optimized schedule is obtained with ``torchsim``'s configuration-state
-FSE simulator. The objective balances signal at the effective TE, peripheral
-k-space signal, and RF power for the tissue models defined by the sequence.
-The same simulator evaluates the resulting T2-dependent echo envelope.
+The refocusing schedule has the form of [BUS08a]_: the angle decreases from
+a maximum to a minimum over the first five echoes, increases to the
+prescribed angle at the effective-TE echo and returns to the maximum at the
+end of the train. The minimum and maximum angles, bounded by the prescribed
+angle, are optimized with the extended phase graph (EPG) FSE simulator of ``torchsim`` [HEN88]_ [WEI15]_.
+The cost combines an echo-to-echo signal-variation measure of blurring, the
+contrast between two of the sequence's design tissues at the effective-TE
+echo, and a penalty on RF power above that of the initial schedule. The same
+simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-134
+.. GENERATED FROM PYTHON SOURCE LINES 131-147
 
 .. code-block:: Python
 
@@ -158,17 +159,17 @@ The same simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-142
+.. GENERATED FROM PYTHON SOURCE LINES 148-155
 
 Echo and shot order
 -------------------
 
-Radial ordering assigns views near k-space centre to the effective-TE echo
-and progressively larger radii to echoes farther from it. Echo index records
+Radial ordering [BUS08a]_ assigns views near k-space centre to the
+effective-TE echo and progressively larger radii to echoes farther from it. Echo index records
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-147
+.. GENERATED FROM PYTHON SOURCE LINES 155-160
 
 
 
@@ -179,16 +180,10 @@ excitation.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x385 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-155
+.. GENERATED FROM PYTHON SOURCE LINES 161-168
 
 K-space weighting
 -----------------
@@ -198,7 +193,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-164
+.. GENERATED FROM PYTHON SOURCE LINES 168-178
 
 
 
@@ -212,10 +207,28 @@ image blurring along both phase-encode axes.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 179-194
+
+References
+----------
+
+.. [HEN88] Hennig J. Multiecho imaging sequences with low refocusing flip
+   angles. *Journal of Magnetic Resonance*. 1988;78(3):397-407.
+   https://doi.org/10.1016/0022-2364(88)90128-X
+
+.. [WEI15] Weigel M. Extended phase graphs: dephasing, RF pulses, and
+   echoes - pure and simple. *Journal of Magnetic Resonance Imaging*.
+   2015;41(2):266-295. https://doi.org/10.1002/jmri.24619
+
+.. [BUS08a] Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
+   Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and
+   view ordering in 3D fast spin echo. *Magnetic Resonance in Medicine*.
+   2008;60(3):640-649. https://doi.org/10.1002/mrm.21680
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.619 seconds)
+   **Total running time of the script:** (0 minutes 1.122 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

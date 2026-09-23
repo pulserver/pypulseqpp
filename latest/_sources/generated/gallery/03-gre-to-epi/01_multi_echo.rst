@@ -22,31 +22,32 @@
 Multi-echo readouts
 ====================
 
-The scope of this notebook is to acquire more than one echo per excitation, by
-following the readout gradient with further readouts of alternating polarity.
-Nothing else about the repetition changes, and the echoes land on the same
-k-space line at increasing echo times, which is what a :math:`T_2^*` estimate
-is made from.
+The gradient echo of the first section acquires one echo per excitation. This
+lesson acquires several, by following the readout gradient with further
+readout gradients of alternating polarity. The rest of the repetition is
+unchanged, and the echoes sample the same k-space line at increasing echo
+times, from which a :math:`T_2^*` estimate is computed.
 
-The train is also the structure the rest of this section builds on: an echo
-planar readout is this train with a phase-encode blip between the echoes.
-
-The observable is the echo spacing, which the receiver bandwidth sets, and the
-number of echoes the repetition time admits at each bandwidth.
-
-Outline:
-
-#. **A train of readouts.** Alternating polarity, one acquisition window each.
-#. **One repetition.** The blocks, and what the train costs.
-#. **Where the echoes land.** The trajectory of the train, from the k-space
-   analysis.
-#. **Echo spacing against receiver bandwidth.** The train length a repetition
-   admits, and what it is paid for with.
-
-The single-shot case is
+The train is also the basis of the rest of this section: an echo planar
+readout is this train with a phase-encode blip between the echoes, which the
+next two lessons add. The measured quantities here are the echo spacing, which
+depends on the receiver bandwidth, and the number of echoes that fit in the
+repetition time at each bandwidth. The single-shot case is
 :doc:`/generated/gallery/03-gre-to-epi/03_epi`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-40
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- build a train of readout gradients of alternating polarity, each with its
+  own ADC event;
+- locate the echoes of the train from the k-space analysis;
+- explain why the even echoes are acquired in reverse order;
+- relate the echo spacing and the train length to the receiver bandwidth,
+  the gradient amplitude limit and the ramp times.
+
+.. GENERATED FROM PYTHON SOURCE LINES 31-41
 
 
 
@@ -55,7 +56,7 @@ The single-shot case is
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-49
+.. GENERATED FROM PYTHON SOURCE LINES 42-50
 
 A train of readouts
 -------------------
@@ -66,7 +67,7 @@ them needs no rewinder between the echoes and forms one echo per gradient.
 Every second echo is acquired in the opposite direction, and its samples are
 in the reverse order of the odd echoes'.
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-128
+.. GENERATED FROM PYTHON SOURCE LINES 50-129
 
 .. code-block:: Python
 
@@ -162,7 +163,7 @@ in the reverse order of the odd echoes'.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-135
+.. GENERATED FROM PYTHON SOURCE LINES 130-136
 
 One repetition
 --------------
@@ -171,7 +172,7 @@ The train replaces the single readout block. The gradients of the train are
 played back to back, so the echo spacing is the duration of one readout
 gradient, ramps included.
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-174
+.. GENERATED FROM PYTHON SOURCE LINES 136-175
 
 .. code-block:: Python
 
@@ -229,11 +230,10 @@ gradient, ramps included.
 
     timing True, 1280 blocks, 5.120 s for 6 echoes on each of 128 lines
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9e9a3b1a0>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 175-181
+.. GENERATED FROM PYTHON SOURCE LINES 176-182
 
 Where the echoes land
 ---------------------
@@ -242,7 +242,7 @@ The analysis gives the k-space location of every sample of every acquisition
 window. Along the readout axis the train is a triangle wave between the two
 ends of the line, and an echo is where it crosses zero.
 
-.. GENERATED FROM PYTHON SOURCE LINES 181-220
+.. GENERATED FROM PYTHON SOURCE LINES 182-221
 
 .. code-block:: Python
 
@@ -284,7 +284,7 @@ ends of the line, and an echo is where it crosses zero.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 221-227
+.. GENERATED FROM PYTHON SOURCE LINES 222-228
 
 The samples the analysis reports are not one line acquired six times: the
 even echoes run from :math:`+k_\mathrm{max}` to :math:`-k_\mathrm{max}`, so
@@ -293,7 +293,7 @@ matrix. Any delay between the gradient and the acquisition then displaces the
 odd and the even echoes in opposite directions, which is the origin of the
 ghost a multi-echo or echo planar acquisition is corrected for.
 
-.. GENERATED FROM PYTHON SOURCE LINES 229-237
+.. GENERATED FROM PYTHON SOURCE LINES 230-238
 
 Echo spacing against receiver bandwidth
 ---------------------------------------
@@ -304,7 +304,7 @@ limit is reached and the flat top can shorten no further. The echo spacing
 follows the flat top, and the train that fits in a repetition follows the
 echo spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 237-320
+.. GENERATED FROM PYTHON SOURCE LINES 238-321
 
 .. code-block:: Python
 
@@ -369,7 +369,7 @@ echo spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 321-333
+.. GENERATED FROM PYTHON SOURCE LINES 322-335
 
 The acquisition window falls as the reciprocal of the bandwidth; the echo
 spacing does not. A shorter window at the same k-space extent is a stronger
@@ -377,17 +377,18 @@ gradient, and a stronger gradient takes longer to ramp, at both ends of every
 echo. Over the sweep the window shortens fourfold and the spacing by a factor
 of little more than two, with the ramps growing from a sixteenth of the echo
 spacing to nearly half of it. Beyond the last point the amplitude the readout
-would need is above the limit and the design is rejected rather than widened.
+would need is above the limit, and the factory raises an error rather than
+lengthening the flat top.
 
-What the shorter spacing costs is signal. The noise a sample carries grows as
-the square root of the bandwidth, so the fourfold bandwidth of the sweep is a
-factor of two in the signal-to-noise ratio of each echo, traded for the number
-of echoes and for the shortest echo time.
+The shorter spacing reduces the signal-to-noise ratio. The noise in a sample
+grows as the square root of the bandwidth, so the fourfold bandwidth of the
+sweep halves the signal-to-noise ratio of each echo, in exchange for the
+number of echoes and a shorter shortest echo time.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.177 seconds)
+   **Total running time of the script:** (0 minutes 0.324 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_01_multi_echo.py:

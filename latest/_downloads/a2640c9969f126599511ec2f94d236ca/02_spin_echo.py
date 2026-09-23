@@ -3,32 +3,33 @@ r"""
 Spin echo
 =========
 
-The scope of this notebook is to add a refocusing pulse to the pulse-acquire
-experiment of the previous page, so that the acquisition is centred on an echo
-at a prescribed echo time, and to place the crusher pair that keeps the signal
-of an imperfect refocusing pulse out of that acquisition.
+The previous lesson acquired a free induction decay directly after the
+excitation. This lesson adds a refocusing pulse, so that the acquisition is
+centred on a spin echo at a prescribed echo time, and a pair of crusher
+gradients about the refocusing pulse. The crushers leave the spin-echo pathway
+rephased and dephase the coherence pathways the pulse does not refocus, such
+as the free induction decay an imperfect refocusing pulse produces.
 
-Echo time is set by the interval between pulse centres rather than by block
-edges, and the crusher pair is what has to fit inside it. The last section
-measures that trade-off: the shortest echo time the system admits, against the
-dephasing the crushers are asked for.
-
-Outline:
-
-#. **Prescription.** The echo time, the voxel the crushers are counted across
-   and the dephasing they are asked for.
-#. **The refocusing pulse.** A second hard pulse, at twice the flip angle of
-   the first.
-#. **Crushers about the refocusing pulse.** One gradient on either side, of
-   equal area and equal polarity.
-#. **Timing the echo.** The delays that place the refocusing centre at
-   :math:`\mathrm{TE}/2` and the acquisition centre at :math:`\mathrm{TE}`.
-#. **Sequence diagram.** The seven blocks of one repetition.
-#. **Shortest echo time against crusher dephasing.** What the crusher pair
-   costs.
+The echo time is defined between pulse centres rather than between block
+edges, and the crusher pair has to fit within it. The last section measures
+the resulting relationship: the shortest echo time the system limits allow,
+against the dephasing prescribed for the crushers.
 
 The representation these objects belong to is described in
 :doc:`/explanations/pulseq/events-and-blocks`.
+
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- create a refocusing pulse and tag its RF use;
+- prescribe a crusher gradient by its dephasing across a voxel;
+- compute the delay blocks that place the refocusing pulse centre at
+  :math:`\mathrm{TE}/2` and the acquisition centre at :math:`\mathrm{TE}`,
+  on the block duration raster;
+- read the pulse centres back from the k-space analysis;
+- relate the shortest echo time to the crusher dephasing.
 """
 
 # sphinx_gallery_start_ignore
@@ -104,8 +105,8 @@ print(
 # Two gradients of equal area and equal polarity, one before the refocusing
 # pulse and one after it. The refocused pathway has its accumulated gradient
 # integral inverted by the pulse, so the second crusher unwinds what the first
-# wound. A pathway that crosses the pulse without that inversion — the free
-# induction decay a refocusing pulse of imperfect flip angle produces — sees
+# wound. A pathway that crosses the pulse without that inversion, such as the
+# free induction decay a refocusing pulse of imperfect flip angle produces, sees
 # the two areas add, and is left wound through ``CRUSHER_CYCLES`` cycles across
 # a voxel.
 #
@@ -220,9 +221,9 @@ print(
 # The refocusing pulse lands on the prescription and the acquisition midpoint
 # lands half a block raster period from it. Rounding a delay to the raster
 # moves what follows it by at most half a period, and the echo time is
-# realisable only to that resolution; what the prescription cannot do is move
-# the two pulse centres and the window independently of the raster they are all
-# addressed on.
+# realisable only to that resolution: the pulse centres and the acquisition
+# window cannot be placed independently of the raster on which they are all
+# addressed.
 
 # %%
 # Sequence diagram
@@ -305,6 +306,6 @@ figure.tight_layout(rect=(0, 0, 1, 0.88))
 # Half of the acquisition window sits between the refocusing pulse and the
 # echo, so the shortest echo time is bounded below by the acquisition duration
 # whatever the crushers do, and the crusher pair is what is added to that
-# floor. The pair grows as the square root of the dephasing while it is
-# slew-limited and in proportion to it once the amplitude limit is reached,
-# which is why the last doublings cost the most.
+# floor. The duration of the pair grows as the square root of the dephasing while it is
+# slew-limited and in proportion to it once the amplitude limit is reached, so
+# the last doublings add the most to the echo time.

@@ -93,10 +93,11 @@ compact.paper_plot()
 # Sampling order
 # --------------
 #
-# One inversion reads the spokes of one partition, so the inversion cycle is
+# Each inversion cycle acquires the spokes of one partition, so the cycle is
 # constant along each row. Readout index specifies spoke order within the train.
-# ``partition_angle_shift`` rotates the spoke set between partitions to avoid
-# coincident angles in neighbouring partitions. ``TI`` ends at the first
+# ``partition_angle_shift``, ``'golden'`` by default, rotates the spoke set
+# between partitions so that neighbouring partitions do not share spoke
+# angles. ``TI`` ends at the first
 # excitation-pulse centre; the centre of
 # k-space on its spoke is sampled at ``TI + TE``.
 

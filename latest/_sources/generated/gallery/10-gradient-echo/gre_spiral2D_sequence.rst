@@ -39,8 +39,8 @@ structural imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-38
 
-Baseline
---------
+Constant-density spiral
+-----------------------
 
 Sixteen interleaves at a constant pitch, which sample the disc at the
 Nyquist spacing.
@@ -93,23 +93,18 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f32ba930>, tr=7, underlays=[1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-59
+.. GENERATED FROM PYTHON SOURCE LINES 55-60
 
 Sampling order
 --------------
 
-Each interleaf is the same solved arm turned to its own angle.
+Each interleaf is the same spiral gradient waveform, rotated to its own
+angle by a rotation extension.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 60-63
 
 .. code-block:: Python
 
@@ -125,16 +120,10 @@ Each interleaf is the same solved arm turned to its own angle.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-69
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
 
 Variable density
 ----------------
@@ -143,7 +132,7 @@ Variable density
 increases the pitch at larger radii. The shorter readout requires a
 reconstruction that accounts for peripheral undersampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-90
+.. GENERATED FROM PYTHON SOURCE LINES 70-91
 
 .. code-block:: Python
 
@@ -175,7 +164,7 @@ reconstruction that accounts for peripheral undersampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-93
+.. GENERATED FROM PYTHON SOURCE LINES 92-94
 
 .. code-block:: Python
 
@@ -190,19 +179,13 @@ reconstruction that accounts for peripheral undersampling.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.795 seconds)
+   **Total running time of the script:** (0 minutes 1.336 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

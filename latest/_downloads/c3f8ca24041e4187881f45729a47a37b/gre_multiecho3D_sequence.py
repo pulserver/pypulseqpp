@@ -30,10 +30,11 @@ plt.rcParams.update(
 # sphinx_gallery_end_ignore
 
 # %%
-# Baseline
-# --------
+# Fully sampled acquisition
+# -------------------------
 #
-# Four echoes per excitation over a slab.
+# Four echoes per excitation, over every ``(line, partition)`` view inside
+# the ellipse inscribed in the phase-encode plane.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import gre_multiecho3D_sequence

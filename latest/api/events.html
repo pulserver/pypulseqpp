@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -116,50 +116,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -263,6 +219,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,6 +229,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -335,7 +293,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
@@ -585,40 +543,60 @@
 <h1>Events and blocks<a class="headerlink" href="#events-and-blocks" title="Link to this heading">#</a></h1>
 <p>The block events other than RF and gradients, and the operations on blocks and
 events. Every factory returns a compiled event that
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code> accepts; the RF and the gradient factories have
-pages of their own.</p>
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code> accepts; the RF and gradient factories are on
+<a class="reference internal" href="rf.html"><span class="doc">RF pulse design</span></a> and <a class="reference internal" href="gradients.html"><span class="doc">Gradient design</span></a>. Times are in s, frequency offsets in Hz and
+phase offsets in rad; <a class="reference internal" href="../explanations/pulseq/events-and-blocks.html"><span class="doc">Events and blocks</span></a>
+describes the block and extension structure.</p>
 <section id="acquisition-and-control-events">
 <h2>Acquisition and control events<a class="headerlink" href="#acquisition-and-control-events" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_adc.html#pypulseqpp.make_adc" title="pypulseqpp.make_adc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_adc</span></code></a></p></td>
-<td><p>Create an ADC readout event.</p></td>
+<td><p>Samples, dwell or duration, delay, offsets</p></td>
+<td><p>ADC event</p></td>
+<td><p>Acquisition window.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_delay.html#pypulseqpp.make_delay" title="pypulseqpp.make_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_delay</span></code></a></p></td>
-<td><p>Create a delay event.</p></td>
+<td><p>Duration (s)</p></td>
+<td><p>Delay event</p></td>
+<td><p>Minimum block duration.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_digital_output_pulse.html#pypulseqpp.make_digital_output_pulse" title="pypulseqpp.make_digital_output_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_digital_output_pulse</span></code></a></p></td>
-<td><p>Create a digital-output pulse on a supported channel.</p></td>
+<td><p>Output channel, delay, duration</p></td>
+<td><p>Trigger event (output)</p></td>
+<td><p>Digital output pulse.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_label.html#pypulseqpp.make_label" title="pypulseqpp.make_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_label</span></code></a></p></td>
-<td><p>Create a label event.</p></td>
+<td><p>Label name, <code class="docutils literal notranslate"><span class="pre">SET</span></code> or <code class="docutils literal notranslate"><span class="pre">INC</span></code>, value</p></td>
+<td><p>Label event</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LABELSET</span></code> / <code class="docutils literal notranslate"><span class="pre">LABELINC</span></code> extension.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_rf_shim.html#pypulseqpp.make_rf_shim" title="pypulseqpp.make_rf_shim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rf_shim</span></code></a></p></td>
-<td><p>Create complex per-transmit-channel weights for a block’s RF envelope.</p></td>
+<td><p>Complex weights, one per transmit channel</p></td>
+<td><p>RF shim extension event</p></td>
+<td><p>Static per-channel RF weights.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_rotation.html#pypulseqpp.make_rotation" title="pypulseqpp.make_rotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rotation</span></code></a></p></td>
-<td><p>Create a rotation extension event for a block’s gradients.</p></td>
+<td><p>Angles (rad), axis-angle, quaternion or matrices</p></td>
+<td><p>Rotation extension event, or one per matrix</p></td>
+<td><p>Block gradient rotation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_soft_delay.html#pypulseqpp.make_soft_delay" title="pypulseqpp.make_soft_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_soft_delay</span></code></a></p></td>
-<td><p>Create a soft delay extension event for dynamic timing adjustment.</p></td>
+<td><p>Hint, ID, offset, factor, default duration</p></td>
+<td><p>Soft delay extension event</p></td>
+<td><p>Console-adjustable block duration.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_trigger.html#pypulseqpp.make_trigger" title="pypulseqpp.make_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_trigger</span></code></a></p></td>
-<td><p>Create an external-input trigger event.</p></td>
+<td><p>Input channel, delay, duration</p></td>
+<td><p>Trigger event (input)</p></td>
+<td><p>Wait for an external signal.</p></td>
 </tr>
 </tbody>
 </table>
@@ -629,21 +607,31 @@ pages of their own.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.align.html#pypulseqpp.align" title="pypulseqpp.align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code></a></p></td>
-<td><p>Align event start, centre or end times within a block.</p></td>
+<td><p>Events keyed by <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code></p></td>
+<td><p>Events with delays set</p></td>
+<td><p>Alignment within a block.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.block_to_events.html#pypulseqpp.block_to_events" title="pypulseqpp.block_to_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_to_events</span></code></a></p></td>
-<td><p>Split a block into its events, or pass events through unchanged.</p></td>
+<td><p>Block or events</p></td>
+<td><p>Tuple of events</p></td>
+<td><p>Event extraction from a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.calc_duration.html#pypulseqpp.calc_duration" title="pypulseqpp.calc_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_duration</span></code></a></p></td>
-<td><p>Calculate the duration of an event or block.</p></td>
+<td><p>Events or block</p></td>
+<td><p>Duration (s)</p></td>
+<td><p>Longest event extent.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.rotate.html#pypulseqpp.rotate" title="pypulseqpp.rotate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate</span></code></a></p></td>
-<td><p>Rotate gradient events about a logical axis.</p></td>
+<td><p>Gradient events, angle (rad), axis <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code>/<code class="docutils literal notranslate"><span class="pre">z</span></code></p></td>
+<td><p>Rotated gradient events</p></td>
+<td><p>Rotation about a logical axis.</p></td>
 </tr>
 </tbody>
 </table>
@@ -654,18 +642,26 @@ pages of their own.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.get_supported_labels.html#pypulseqpp.get_supported_labels" title="pypulseqpp.get_supported_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_supported_labels</span></code></a></p></td>
-<td><p>Return the supported label identifiers.</p></td>
+<td><p>—</p></td>
+<td><p>Tuple of label names</p></td>
+<td><p>Supported label identifiers.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.enable_trace.html#pypulseqpp.enable_trace" title="pypulseqpp.enable_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable_trace</span></code></a></p></td>
-<td><p>Record source locations when events and blocks are created.</p></td>
+<td><p>Stack depth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Record event and block source locations.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.disable_trace.html#pypulseqpp.disable_trace" title="pypulseqpp.disable_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_trace</span></code></a></p></td>
-<td><p>Stop recording event and block source locations.</p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Stop recording source locations.</p></td>
 </tr>
 </tbody>
 </table>
@@ -673,25 +669,29 @@ pages of their own.</p>
 </section>
 <section id="interoperability-with-pypulseq">
 <h2>Interoperability with PyPulseq<a class="headerlink" href="#interoperability-with-pypulseq" title="Link to this heading">#</a></h2>
-<p>Upstream PyPulseq functions take and return plain namespaces.
-<a class="reference internal" href="../generated/pypulseqpp.interoperating.html#pypulseqpp.interoperating" title="pypulseqpp.interoperating"><code class="xref py py-func docutils literal notranslate"><span class="pre">interoperating()</span></code></a> wraps such a function so that it accepts and returns
-compiled events; <a class="reference internal" href="../generated/pypulseqpp.convert.html#pypulseqpp.convert" title="pypulseqpp.convert"><code class="xref py py-func docutils literal notranslate"><span class="pre">convert()</span></code></a> and <a class="reference internal" href="../generated/pypulseqpp.as_namespace.html#pypulseqpp.as_namespace" title="pypulseqpp.as_namespace"><code class="xref py py-func docutils literal notranslate"><span class="pre">as_namespace()</span></code></a> convert one event
-each way.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
-<th class="head"><p>Description</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.interoperating.html#pypulseqpp.interoperating" title="pypulseqpp.interoperating"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interoperating</span></code></a></p></td>
-<td><p>Wrap a callable with recursive event conversion.</p></td>
+<td><p>Callable taking or returning PyPulseq events</p></td>
+<td><p>Wrapped callable with event conversion</p></td>
+<td><p>Compiled events through upstream functions.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.convert.html#pypulseqpp.convert" title="pypulseqpp.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a></p></td>
-<td><p>Convert a PyPulseq event to a compiled event; return other objects unchanged.</p></td>
+<td><p>PyPulseq namespace event</p></td>
+<td><p>Compiled event; other objects unchanged</p></td>
+<td><p>Namespace to compiled event.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.as_namespace.html#pypulseqpp.as_namespace" title="pypulseqpp.as_namespace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_namespace</span></code></a></p></td>
-<td><p>Convert a compiled event to a PyPulseq-compatible SimpleNamespace.</p></td>
+<td><p>Compiled event</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SimpleNamespace</span></code>; other objects unchanged</p></td>
+<td><p>Compiled event to namespace.</p></td>
 </tr>
 </tbody>
 </table>

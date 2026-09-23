@@ -23,7 +23,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write an excitation module of one&#x27;s own, by subclassing RfModule, and to measure what the design it implements gains and costs against the shipped one.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons used the shipped modules. This lesson writes an excitation module by subclassing RfModule, and compares the design it implements with the shipped one.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a Cartesian readout module of one&#x27;s own, by following the SequenceModule contract, and to measure what it changes against the shipped readout.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote an excitation module. This lesson writes a Cartesian readout module that follows the SequenceModule contract, and compares it with the shipped readout.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to write a non-Cartesian readout module of one&#x27;s own: to state a trajectory as a k-space path, have it solved into a waveform under the gradient limits, and publish the result as a module.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote a Cartesian readout module with trapezoidal gradients. This lesson writes a non-Cartesian readout module: the trajectory is stated as a k-space path, solved into a gradient waveform under the gradient limits, and published as a module.">
 
 .. only:: html
 

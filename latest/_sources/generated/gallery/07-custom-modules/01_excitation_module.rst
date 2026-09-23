@@ -22,31 +22,35 @@
 A minimum-phase excitation module
 =================================
 
-The scope of this notebook is to write an excitation module of one's own, by
-subclassing :class:`~pypulseqpp.sequences.RfModule`, and to measure what the
-design it implements gains and costs against the shipped one.
+The earlier lessons used the shipped modules. This lesson writes an
+excitation module by subclassing :class:`~pypulseqpp.sequences.RfModule`, and
+compares the design it implements with the shipped one.
 
 The shipped excitation modules design linear-phase SLR pulses, whose energy is
-symmetric about the middle of the pulse. A minimum-phase design concentrates RF
-energy near the end of the waveform, so that at a fixed duration and
-time-bandwidth product the interval from the pulse to the echo is shorter, at
-the price of a larger peak :math:`B_1` and a slice profile whose phase is not
-linear.
-
-Outline:
-
-#. **Module interface.** What subclassing ``RfModule`` requires, and what it
-   provides.
-#. **Published events.** The pulse, the selection gradient and the rephaser the
-   module publishes, and the timing they imply.
-#. **Pulse envelope and slice profile.** The two designs simulated side by
-   side.
-#. **Echo time.** What the asymmetric envelope buys.
-
-What a module is, and what it must publish, is described in
+symmetric about the middle of the pulse. A minimum-phase design concentrates
+RF energy near the end of the waveform, so that at a fixed duration and
+time-bandwidth product the interval from the pulse to the echo is shorter. The
+peak :math:`B_1` is larger, and the phase of the slice profile is not linear.
+The module concept, and the events a module publishes, are described in
 :doc:`/explanations/design/sequence-module`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-85
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- subclass :class:`~pypulseqpp.sequences.RfModule` and implement
+  ``init_module``;
+- publish the pulse, selection gradient and rephaser of a module and set its
+  timing reference ``center``;
+- place the effective RF centre of a minimum-phase SLR pulse with
+  ``center_pos``;
+- compare the envelope, slice profile and peak :math:`B_1` of linear-phase
+  and minimum-phase designs;
+- measure the shortest echo time a readout module reaches with each
+  excitation.
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-89
 
 
 
@@ -55,10 +59,10 @@ What a module is, and what it must publish, is described in
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-104
+.. GENERATED FROM PYTHON SOURCE LINES 90-108
 
 Module interface
------------------
+----------------
 
 A module implements ``init_module``: it assigns ``self.seq``, adds the blocks
 of its layout to it, and sets :attr:`~pypulseqpp.sequences.SequenceModule.center`,
@@ -76,7 +80,7 @@ pulse against off-resonance.
 measures its echo time from. A minimum-phase pulse is used at
 ``center_pos=1.0``, its own end.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-181
+.. GENERATED FROM PYTHON SOURCE LINES 108-185
 
 .. code-block:: Python
 
@@ -164,12 +168,12 @@ measures its echo time from. A minimum-phase pulse is used at
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 182-184
+.. GENERATED FROM PYTHON SOURCE LINES 186-188
 
 Published events
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 184-212
+.. GENERATED FROM PYTHON SOURCE LINES 188-216
 
 .. code-block:: Python
 
@@ -209,7 +213,7 @@ Published events
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: gz, gz_reph, rf
     linear-phase: center at 1.600 ms of 3.680 ms, rephaser area -408.0 1/m
@@ -218,13 +222,12 @@ Published events
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 213-224
+.. GENERATED FROM PYTHON SOURCE LINES 217-227
 
 The rephaser compensates the slice-selection moment accumulated after the
-effective RF centre.
-At ``center_pos=1.0`` that is the fall ramp alone, so the rephaser block
-collapses to its shortest and the pulse ends a gradient raster or two before
-the encoding starts.
+effective RF centre. At ``center_pos=1.0`` that moment is the fall ramp
+alone, so the rephaser block has its minimum duration and the pulse ends a
+gradient raster period or two before the encoding starts.
 
 Pulse envelope and slice profile
 --------------------------------
@@ -232,7 +235,7 @@ Pulse envelope and slice profile
 ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 selection amplitude reads the result as a position.
 
-.. GENERATED FROM PYTHON SOURCE LINES 224-243
+.. GENERATED FROM PYTHON SOURCE LINES 227-246
 
 .. code-block:: Python
 
@@ -268,21 +271,20 @@ selection amplitude reads the result as a position.
     linear phase: peak B1 73 Hz, slice 4.83 mm
     minimum phase: peak B1 336 Hz, slice 4.87 mm
 
-    <Figure size 946x374 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 244-251
+.. GENERATED FROM PYTHON SOURCE LINES 247-254
 
 Echo time
 ---------
 
 A readout module takes the pulse, its selection gradient and its rephaser,
 and measures the echo time from the pulse's effective centre. Applying the
-same readout to each excitation isolates the resulting
-difference in echo time.
+same readout to each excitation isolates the resulting difference in echo
+time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 251-274
+.. GENERATED FROM PYTHON SOURCE LINES 254-277
 
 .. code-block:: Python
 
@@ -323,11 +325,11 @@ difference in echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 275-276
+.. GENERATED FROM PYTHON SOURCE LINES 278-279
 
 One repetition of the short-TE design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 276-281
+.. GENERATED FROM PYTHON SOURCE LINES 279-284
 
 .. code-block:: Python
 
@@ -345,19 +347,13 @@ One repetition of the short-TE design.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6b119d0>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.431 seconds)
+   **Total running time of the script:** (0 minutes 0.790 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_01_excitation_module.py:

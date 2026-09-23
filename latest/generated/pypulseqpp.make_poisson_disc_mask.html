@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -114,50 +114,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -261,6 +217,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,6 +227,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -333,7 +291,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -581,44 +539,72 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.make_poisson_disc_mask">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_poisson_disc_mask</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_masks.html#make_poisson_disc_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_poisson_disc_mask" title="Link to this definition">#</a></dt>
-<dd><p>Generate a variable-density Poisson-disc undersampling mask.</p>
-<p>Adapted from SigPy’s <code class="docutils literal notranslate"><span class="pre">sigpy.mri.samp.poisson</span></code>: sampling
-density falls off as <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">+</span> <span class="pre">s|r|)</span></code> with the slope <code class="docutils literal notranslate"><span class="pre">s</span></code> found by
-binary search so the realized acceleration matches <code class="docutils literal notranslate"><span class="pre">accel</span></code> within
-<code class="docutils literal notranslate"><span class="pre">tol</span></code>; points are placed with Bridson dart throwing.</p>
+<dd><p>Generate a variable-density Poisson-disc Cartesian sampling mask.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mask[y,</span> <span class="pre">z]</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> when the view <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> is acquired. The
+minimum distance between acquired views grows with the distance <code class="docutils literal notranslate"><span class="pre">r</span></code>
+from the k-space centre as <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">s</span> <span class="pre">r</span></code>; the slope <code class="docutils literal notranslate"><span class="pre">s</span></code> is found by
+bisection so that the realised acceleration matches <code class="docutils literal notranslate"><span class="pre">accel</span></code> within
+<code class="docutils literal notranslate"><span class="pre">tol</span></code>. Views are placed by Bridson’s dart throwing <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. The algorithm
+is adapted from <code class="docutils literal notranslate"><span class="pre">sigpy.mri.samp.poisson</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Mask shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nz)</span></code>.</p></li>
-<li><p><strong>accel</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Target acceleration factor (&gt; 1).</p></li>
-<li><p><strong>calib</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>)</em>) – Fully sampled centered calibration shape.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Random seed.</p></li>
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Mask shape <code class="docutils literal notranslate"><span class="pre">(n_y,</span> <span class="pre">n_z)</span></code>.</p></li>
+<li><p><strong>accel</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Target acceleration factor, greater than one.</p></li>
+<li><p><strong>calib</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>)</em>) – Extent <code class="docutils literal notranslate"><span class="pre">(c_y,</span> <span class="pre">c_z)</span></code> of the fully sampled calibration block: rows
+<code class="docutils literal notranslate"><span class="pre">n_y</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">-</span> <span class="pre">c_y</span> <span class="pre">//</span> <span class="pre">2</span></code> to <code class="docutils literal notranslate"><span class="pre">n_y</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">(c_y</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">-</span> <span class="pre">1</span></code>, and
+likewise for columns. It is seeded into the draw, so no other view is
+placed within the minimum distance of it.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Seed of the random draw. Equal seeds give equal masks.</p></li>
 <li><p><strong>max_attempts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=30</em>) – Bridson candidate attempts per active point.</p></li>
-<li><p><strong>tol</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.1</em>) – Allowed deviation of the realized acceleration.</p></li>
-<li><p><strong>crop_corner</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Restrict sampling to the inscribed k-space ellipse.</p></li>
+<li><p><strong>tol</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.1</em>) – Allowed deviation of the realised acceleration from <code class="docutils literal notranslate"><span class="pre">accel</span></code>.</p></li>
+<li><p><strong>crop_corner</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Remove the views whose normalised distance outside the calibration
+block is at least 1: with no calibration block, the views outside the
+ellipse inscribed in the grid. The calibration block is kept.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Boolean mask of <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p>
+<dd class="field-even"><p>Boolean support mask of shape <code class="docutils literal notranslate"><span class="pre">shape</span></code>. It encodes no acquisition
+order; <a class="reference internal" href="pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_shuffling_order()</span></code></a> is an echo ordering, not a
+support.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the acceleration is below one, or the draw cannot reach it within
-    the shape given.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the acceleration is not greater than one, or the draw cannot reach
+    it within the shape given.</p>
 </dd>
 </dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">make_poisson_disc_mask</span><span class="p">((</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">calib</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span>
-<span class="go">(48, 48)</span>
-</pre></div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling" title="pypulseqpp.make_cartesian_plane_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling</span></code></a></dt><dd><p>Poisson-disc support with calibration and partial Fourier, as coordinate lists (<code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code>).</p>
+</dd>
+</dl>
 </div>
 <div class="admonition-references admonition">
 <p class="admonition-title">References</p>
-<p>SigPy <code class="docutils literal notranslate"><span class="pre">sigpy.mri.samp.poisson</span></code> (BSD 3-Clause); Bridson, SIGGRAPH 2007.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Bridson R. Fast Poisson disk sampling in arbitrary dimensions.
+<em>ACM SIGGRAPH 2007 Sketches</em>. 2007:22.
+<a class="reference external" href="https://doi.org/10.1145/1278780.1278807">https://doi.org/10.1145/1278780.1278807</a></p>
+</aside>
+</aside>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_poisson_disc_mask</span><span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">calib</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(dtype('bool'), (24, 24))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">15</span><span class="p">,</span> <span class="mi">9</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">again</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_poisson_disc_mask</span><span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">calib</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">((</span><span class="n">again</span> <span class="o">==</span> <span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+<span class="go">True</span>
+</pre></div>
 </div>
 </dd></dl>
 

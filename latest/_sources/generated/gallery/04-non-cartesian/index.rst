@@ -23,7 +23,7 @@ Non-Cartesian trajectories
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to replace the phase encode of the Cartesian gradient echo with a rotation of the readout itself, so that every repetition acquires a spoke through the centre of k-space, and to establish how many spokes such an acquisition needs and what ordering them by the golden angle changes.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The Cartesian gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo changes the acquired line with a phase encode. This lesson replaces the phase encode with a rotation of the readout gradient itself, so that every repetition acquires a spoke through the centre of k-space. It establishes how many spokes such an acquisition requires and what ordering them by the golden angle changes.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ Non-Cartesian trajectories
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire k-space along a spiral arm rather than along straight lines, and to establish which of the system&#x27;s limits decides how long an arm takes. A spiral is the first trajectory of the course that cannot be written down as a trapezoid: its waveform is solved numerically against the limits, which is what SpiralReadout2D is for. The interface such a module presents is the subject of /generated/gallery/05-sequence-modules/02_readout; here it is used for the arms it designs.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson, /generated/gallery/04-non-cartesian/01_radial, acquired k-space along straight spokes. This lesson acquires it along a spiral arm, and establishes which of the system limits determines the duration of an arm. A spiral is the first trajectory of the course that cannot be written as a trapezoid: its waveform is solved numerically against the limits by SpiralReadout2D. The interface of such a module is the subject of /generated/gallery/05-sequence-modules/02_readout; here the module is used only for the arms it designs.">
 
 .. only:: html
 

@@ -40,10 +40,10 @@ and functional MRI.
 
 .. GENERATED FROM PYTHON SOURCE LINES 94-100
 
-Baseline: single shot
----------------------
+Single-shot acquisition
+-----------------------
 
-One excitation acquires the complete phase-encode axis. Echo-train length
+Every phase-encode line is acquired after one excitation. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.
 
@@ -103,16 +103,10 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2340ef0>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-137
+.. GENERATED FROM PYTHON SOURCE LINES 125-138
 
 Segmentation and in-plane acceleration
 --------------------------------------
@@ -120,14 +114,15 @@ Segmentation and in-plane acceleration
 Segmentation and in-plane acceleration both reduce echo-train length.
 ``n_shots`` interleaves the lines over several excitations, so every line is
 still acquired. ``ry`` skips lines within one excitation and requires a
-parallel-imaging reconstruction for the omitted lines. Both reduce the
-echo-train duration. A spin at offset :math:`\Delta f`
-gains :math:`2\pi \Delta f\, \mathrm{esp}` of phase per echo, which is
-linear in :math:`k_y` and therefore a displacement of
-:math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels: both
-routes shorten the train, and both shorten the distortion with it.
+parallel-imaging reconstruction for the omitted lines. Off-resonance
+:math:`\Delta f` adds a phase of :math:`2\pi \Delta f\, \mathrm{esp}`
+per echo spacing :math:`\mathrm{esp}`. This phase is linear in :math:`k_y`
+and displaces the image along the phase-encode axis by
+:math:`\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}` pixels, where
+:math:`N_\mathrm{etl}` is the echo-train length. Both segmentation and
+acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
 
-.. GENERATED FROM PYTHON SOURCE LINES 137-162
+.. GENERATED FROM PYTHON SOURCE LINES 138-163
 
 .. code-block:: Python
 
@@ -154,16 +149,15 @@ routes shorten the train, and both shorten the distortion with it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 163-171
+.. GENERATED FROM PYTHON SOURCE LINES 164-171
 
 Echo traversal
 --------------
 
 The ordinate gives the phase-encode line acquired at each echo index. A
-single shot
-traverses the axis one line at a time; a segmented acquisition traverses it
-in steps of ``n_shots``, with each shot starting one line further on;
-acceleration traverses it in steps of ``ry`` and stops there.
+single shot traverses the axis one line at a time. A segmented acquisition
+traverses it in steps of ``n_shots``, each shot starting one line further
+on. An accelerated acquisition traverses it once in steps of ``ry``.
 
 .. GENERATED FROM PYTHON SOURCE LINES 171-176
 
@@ -176,12 +170,6 @@ acceleration traverses it in steps of ``ry`` and stops there.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x330 with 3 Axes>
 
 
 
@@ -191,8 +179,8 @@ Which lines are acquired
 ------------------------
 
 Segmentation and acceleration produce the same train length from different
-sets of lines: the segmented acquisition covers the axis, the accelerated one
-leaves two lines in three unread.
+sets of lines: the segmented acquisition acquires every line, the accelerated
+acquisition one line in three.
 
 .. GENERATED FROM PYTHON SOURCE LINES 183-188
 
@@ -205,25 +193,20 @@ leaves two lines in three unread.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x253 with 1 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-195
+.. GENERATED FROM PYTHON SOURCE LINES 189-196
 
 Functional MRI time series
 ---------------------------
 
 Repeated frames form an fMRI time series. The acquisition below uses eight
 slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
-identifies the group; acquisition times come from the actual ADC blocks.
+identifies the group; acquisition times are the start times of the ADC
+blocks in the sequence.
 
-.. GENERATED FROM PYTHON SOURCE LINES 195-227
+.. GENERATED FROM PYTHON SOURCE LINES 196-228
 
 .. code-block:: Python
 
@@ -255,7 +238,7 @@ identifies the group; acquisition times come from the actual ADC blocks.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.460 seconds)
+   **Total running time of the script:** (0 minutes 0.743 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

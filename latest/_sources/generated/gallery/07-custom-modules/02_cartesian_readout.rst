@@ -22,42 +22,46 @@
 A ramp-sampled readout module
 =============================
 
-The scope of this notebook is to write a Cartesian readout module of one's own,
-by following the :class:`~pypulseqpp.sequences.SequenceModule` contract, and to
-measure what it changes against the shipped readout.
+The previous lesson wrote an excitation module. This lesson writes a
+Cartesian readout module that follows the
+:class:`~pypulseqpp.sequences.SequenceModule` contract, and compares it with
+the shipped readout.
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
-the ramps carry area that is never sampled. Sampling through the ramps as well
-covers the same extent of k-space in a shorter lobe, and the sampling locations
-it produces are not evenly spaced, so the data need regridding before a
-transform.
+the area under the ramps is not sampled. Sampling through the ramps as well
+covers the same extent of k-space in a shorter lobe; the resulting sampling
+locations are not evenly spaced, so the data require regridding before a
+Fourier transform. The module concept, and the events a module publishes, are
+described in :doc:`/explanations/design/sequence-module`.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **Module interface.** What the contract requires of a readout module.
-#. **Readout duration.** The two designs at the same resolution and the same
-   sampling rate.
-#. **One repetition.** The blocks each of them publishes.
-#. **Sample spacing along the line.** Where the samples land, and what that
-   asks of the reconstruction.
-#. **Scan loop.** The module played over a matrix.
+After this lesson, you should be able to:
 
-What a module is, and what it must publish, is described in
-:doc:`/explanations/design/sequence-module`.
+- implement ``init_module`` for a readout module and set its ``center`` to
+  the echo;
+- design a prephaser and an acquisition window that sample through the ramps
+  of the readout lobe;
+- compare the readout duration of ramp-sampled and flat-top designs at the
+  same resolution and sampling rate;
+- measure the nonuniform sample spacing along the line from the k-space
+  analysis;
+- play the module over a matrix in a scan loop.
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-70
-
-
-
-
-
+.. GENERATED FROM PYTHON SOURCE LINES 33-74
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-85
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 75-89
 
 Module interface
------------------
+----------------
 
 ``init_module`` assigns ``self.seq``, adds the blocks of the layout to it and
 sets :attr:`~pypulseqpp.sequences.SequenceModule.center`, which for a readout
@@ -65,13 +69,13 @@ is the interval from the start of the module to the echo. Events bound to
 local variables are published under those names, so a scan loop reaches the
 phase encode as ``readout.gy_pre`` without the module returning anything.
 
-The prephaser carries half the area of the whole lobe, ramps included, so the
+The prephaser has half the area of the whole lobe, ramps included, so the
 echo lands at the middle of the lobe rather than the middle of its flat top.
 The acquisition window is centred on the lobe and sampled at a fixed rate:
 equal steps in time over a gradient that is not constant are unequal steps in
 k.
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-198
+.. GENERATED FROM PYTHON SOURCE LINES 89-202
 
 .. code-block:: Python
 
@@ -195,16 +199,16 @@ k.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 199-205
+.. GENERATED FROM PYTHON SOURCE LINES 203-209
 
 Readout duration
 ----------------
 
 Both designs sample the same extent of k-space, so both resolve the same
-matrix over the same field of view. The flat-top design carries that extent
+matrix over the same field of view. The flat-top design covers that extent
 on its plateau alone, and its ramps add duration without adding samples.
 
-.. GENERATED FROM PYTHON SOURCE LINES 205-235
+.. GENERATED FROM PYTHON SOURCE LINES 209-239
 
 .. code-block:: Python
 
@@ -252,12 +256,12 @@ on its plateau alone, and its ramps add duration without adding samples.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 236-238
+.. GENERATED FROM PYTHON SOURCE LINES 240-242
 
 One repetition
 --------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 238-261
+.. GENERATED FROM PYTHON SOURCE LINES 242-265
 
 .. code-block:: Python
 
@@ -292,7 +296,7 @@ One repetition
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: adc, gx, gx_pre, gx_spoil, gy_pre, gy_rew, gz, gz_reph, rf
     388 samples at 500 kHz, echo at sample 194
@@ -301,7 +305,7 @@ One repetition
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 262-273
+.. GENERATED FROM PYTHON SOURCE LINES 266-277
 
 Sample spacing along the line
 -----------------------------
@@ -310,12 +314,12 @@ Sample spacing along the line
 it built, so the sample positions come from the events themselves rather than
 from the design arithmetic. The spacing is finest on the ramps, where the
 gradient is weakest, and largest on the plateau, where it remains below the
-Nyquist spacing for the prescribed field of view. The
-first and last samples, taken while the gradient is still near zero, are
-almost coincident in k: the edge samples are redundant. The nonuniform sampling locations require
-regridding during reconstruction.
+Nyquist spacing for the prescribed field of view. Consecutive samples at the
+start and at the end of the window, taken while the gradient is near zero,
+are almost coincident in k, so these edge samples are redundant. The
+nonuniform sampling locations require regridding during reconstruction.
 
-.. GENERATED FROM PYTHON SOURCE LINES 273-286
+.. GENERATED FROM PYTHON SOURCE LINES 277-290
 
 .. code-block:: Python
 
@@ -344,11 +348,10 @@ regridding during reconstruction.
 
     k spacing from 0.17 to 3.36 1/m, Nyquist 4.55 1/m
 
-    <Figure size 946x374 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 287-292
+.. GENERATED FROM PYTHON SOURCE LINES 291-296
 
 Scan loop
 ---------
@@ -356,7 +359,7 @@ Scan loop
 The loop scales the published phase encode per line and labels the
 acquisition; the rest of the layout is played as the module laid it out.
 
-.. GENERATED FROM PYTHON SOURCE LINES 292-305
+.. GENERATED FROM PYTHON SOURCE LINES 296-309
 
 .. code-block:: Python
 
@@ -386,11 +389,11 @@ acquisition; the rest of the layout is played as the module laid it out.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 306-307
+.. GENERATED FROM PYTHON SOURCE LINES 310-311
 
 One repetition of the module.
 
-.. GENERATED FROM PYTHON SOURCE LINES 307-309
+.. GENERATED FROM PYTHON SOURCE LINES 311-313
 
 .. code-block:: Python
 
@@ -405,19 +408,13 @@ One repetition of the module.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f00c4410>, tr=1, underlays=[13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 145, 157, 169, 181])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.148 seconds)
+   **Total running time of the script:** (0 minutes 0.238 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_02_cartesian_readout.py:

@@ -22,32 +22,35 @@
 Readout modules
 ===============
 
-The scope of this notebook is to replace the hand-built readout of the first
-sections with the module that designs one, and to use the two prescriptions the
-earlier pages solved by hand — a partial echo and a multi-echo train — as the
-check that the module reaches the same answers and states them.
+The previous lesson replaced the hand-built excitation with a module. This
+lesson replaces the hand-built readout of the first sections with the readout
+module, and uses two prescriptions that the earlier lessons solved by hand — a
+partial echo and a multi-echo train — to check that the module reaches the
+same results and reports them.
 
-A readout module is given the system, the pulse that opens the repetition and
-a prescription, and solves the gradients, the acquisition window and the timing
-from them. What it does not do is decide the order the lines are acquired in;
-that belongs to the loop, which is the subject of
-:doc:`/generated/gallery/05-sequence-modules/03_sequence_app`.
-
-Outline:
-
-#. **What a module holds.** The prescription in, and the events, the timing and
-   the sampling that come out.
-#. **One repetition.** The blocks the module publishes, played into a sequence.
-#. **Shortest echo time against partial echo.** The same measurement as
-   :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`, from the
-   module's own solution.
-#. **Monopolar against bipolar trains.** The two ways to read several echoes,
-   and what each costs.
-
-What a module is, and why the design is split this way, is described in
+A readout module takes the system limits, the excitation pulse of the
+repetition and a prescription, and solves the gradients, the acquisition
+window and the timing from them. The order in which lines are acquired is not
+part of the module; it belongs to the loop, which is the subject of
+:doc:`/generated/gallery/05-sequence-modules/03_sequence_app`. The module
+concept, and the reason the design is divided in this way, are described in
 :doc:`/explanations/design/sequence-module`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 31-41
+Learning objectives
+-------------------
+
+After this lesson, you should be able to:
+
+- design a readout with the readout module and read its events, timing,
+  sampling and achieved receiver bandwidth;
+- play the blocks of the module into a sequence for one repetition;
+- relate the partial-echo fraction to the shortest echo time, as measured by
+  hand in :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`;
+- explain why the achieved receiver bandwidth depends on the number of
+  samples;
+- compare monopolar and bipolar multi-echo trains.
+
+.. GENERATED FROM PYTHON SOURCE LINES 34-44
 
 
 
@@ -56,18 +59,18 @@ What a module is, and why the design is split this way, is described in
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-50
+.. GENERATED FROM PYTHON SOURCE LINES 45-53
 
 What a module holds
 -------------------
 
 The excitation module designs the pulse, its selection gradient and the
-rephaser; the readout module takes those and the prescription. The echo time
-is left unset, which asks for the shortest the prescription admits, and the
-requested receiver bandwidth is what the rasters allow rather than what was
-asked for — the module reports what it achieved.
+rephaser; the readout module takes those and the prescription. With the echo
+time unset, the module uses the shortest echo time the prescription allows.
+The achieved receiver bandwidth is constrained by the rasters and can differ
+from the requested one; the module reports the achieved value.
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-92
+.. GENERATED FROM PYTHON SOURCE LINES 53-95
 
 .. code-block:: Python
 
@@ -121,7 +124,7 @@ asked for — the module reports what it achieved.
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:269: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
+    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     echo time 2.800 ms, module 6.480 ms
     128 samples at 100.0 kHz, echo on sample 64, line spacing 4.55 1/m
@@ -129,7 +132,7 @@ asked for — the module reports what it achieved.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-100
+.. GENERATED FROM PYTHON SOURCE LINES 96-103
 
 One repetition
 --------------
@@ -139,7 +142,7 @@ them to a sequence, scaling the phase-encode template to the line it is
 acquiring; here the largest step is played, and the pulse's block is added
 first because the module is the readout half of the repetition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-111
+.. GENERATED FROM PYTHON SOURCE LINES 103-114
 
 .. code-block:: Python
 
@@ -169,11 +172,10 @@ first because the module is the readout half of the repetition.
 
     timing True, 5 blocks, 9.640 ms
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f00c6540>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 112-119
+.. GENERATED FROM PYTHON SOURCE LINES 115-122
 
 Shortest echo time against partial echo
 ---------------------------------------
@@ -183,7 +185,7 @@ samples before it. The shortest echo time follows, as it did when the same
 readout was built by hand: the samples that are no longer taken are the ones
 that stood between the excitation and the echo.
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-186
+.. GENERATED FROM PYTHON SOURCE LINES 122-189
 
 .. code-block:: Python
 
@@ -241,7 +243,7 @@ that stood between the excitation and the echo.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 187-198
+.. GENERATED FROM PYTHON SOURCE LINES 190-201
 
 The sample the echo lands on moves with the fraction, and the echo time falls
 with it.
@@ -253,22 +255,22 @@ satisfies both depends on how many samples are taken: at 80 samples the
 requested 250 kHz lands on both rasters and is used, and at the neighbouring
 counts the fastest rate that does is 100 kHz. That is why the module duration
 does not fall monotonically while the echo time does, and why the module
-reports the rate it achieved rather than the one it was asked for.
+reports the achieved rate rather than the requested one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 200-210
+.. GENERATED FROM PYTHON SOURCE LINES 203-213
 
 Monopolar against bipolar trains
 --------------------------------
 
-``n_echoes`` asks for a train. ``flyback`` decides how it is played: a
+``n_echoes`` sets the train length, and ``flyback`` selects how it is played: a
 monopolar train rewinds between the echoes so that every one is read in the
 same direction, and a bipolar train alternates the readout sign, as the
 hand-built train of
 :doc:`/generated/gallery/03-gre-to-epi/01_multi_echo` did. The bipolar train
-is shorter by the rewinders it does not play, and reads its even echoes
+is shorter by the duration of the rewinders, and its even echoes are read
 backwards.
 
-.. GENERATED FROM PYTHON SOURCE LINES 210-240
+.. GENERATED FROM PYTHON SOURCE LINES 213-243
 
 .. code-block:: Python
 
@@ -302,19 +304,19 @@ backwards.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 241-247
+.. GENERATED FROM PYTHON SOURCE LINES 244-250
 
 Every echo of the monopolar train is traversed in the same direction and the
 gaps between them are the rewinders; the bipolar train has no gaps and every
-second echo runs backwards. Which to prefer is the trade the earlier page
-measured: the bipolar train is shorter, and any delay between the gradient
+second echo runs backwards. The choice between them follows from the
+relationship measured in the earlier lesson: the bipolar train is shorter, and any delay between the gradient
 and the acquisition enters it as a difference between the odd and the even
 echoes rather than as a shift common to all of them.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.164 seconds)
+   **Total running time of the script:** (0 minutes 0.293 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_02_readout.py:

@@ -23,7 +23,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to acquire more than one echo per excitation, by following the readout gradient with further readouts of alternating polarity. Nothing else about the repetition changes, and the echoes land on the same k-space line at increasing echo times, which is what a T_2^* estimate is made from.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the first section acquires one echo per excitation. This lesson acquires several, by following the readout gradient with further readout gradients of alternating polarity. The rest of the repetition is unchanged, and the echoes sample the same k-space line at increasing echo times, from which a T_2^* estimate is computed.">
 
 .. only:: html
 
@@ -40,7 +40,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to put a phase-encode blip between the echoes of the train of the previous page, so that one excitation acquires several k-space lines instead of the same line several times. The number of excitations the matrix is divided over is then a free parameter, and it decides both the scan time and how far off-resonance displaces the image.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo train of the previous lesson samples the same k-space line several times. This lesson adds a phase-encode blip between the echoes, so that one excitation acquires several k-space lines. The number of excitations (shots) over which the matrix is divided is then a free parameter, and it determines both the scan time and the off-resonance displacement in the image.">
 
 .. only:: html
 
@@ -57,7 +57,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The scope of this notebook is to take the segmentation of the previous page to one shot, so that the whole matrix is acquired after a single excitation, and to measure the two things that limit such an acquisition: the decay of the signal over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient and the acquisition.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson divided the matrix over several shots. This lesson takes the segmentation to one shot, so that the whole matrix is acquired after a single excitation, and measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The relationship between shot count, distortion and scan time is measured in /generated/gallery/03-gre-to-epi/02_segmented.">
 
 .. only:: html
 

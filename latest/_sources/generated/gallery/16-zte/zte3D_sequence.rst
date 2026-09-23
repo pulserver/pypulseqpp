@@ -38,14 +38,15 @@ short-T2 tissues and other minimal-TE applications.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-38
+.. GENERATED FROM PYTHON SOURCE LINES 34-39
 
-Baseline
---------
+Nyquist angular sampling
+------------------------
 
-Half-spokes turned over a sphere, at enough views to sample its surface.
+``ceil(pi * n**2)`` half-spoke directions over the sphere, which sample its
+surface at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-49
+.. GENERATED FROM PYTHON SOURCE LINES 39-50
 
 .. code-block:: Python
 
@@ -74,17 +75,17 @@ Half-spokes turned over a sphere, at enough views to sample its surface.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-57
+.. GENERATED FROM PYTHON SOURCE LINES 51-58
 
 Sequence diagram
 ----------------
 
-The automatically detected repetition contains one complete set of
-half-spoke directions. The readout gradient precedes the hard RF event, and the ADC window starts
-after the transmit/receive dead time. The solid trace is a
+The automatically detected repetition is one shell of half-spoke
+directions. The readout gradient reaches amplitude before the hard RF event,
+and the ADC window starts after the transmit/receive dead time. The solid trace is a
 representative repetition; shaded traces show other gradient encodes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -100,16 +101,10 @@ representative repetition; shaded traces show other gradient encodes.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2342030>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Sampling order
 --------------
@@ -117,7 +112,7 @@ Sampling order
 The half-spokes over the three k-space axes. Each starts at the centre of
 k-space and runs outward to the surface of the sampled sphere.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-69
+.. GENERATED FROM PYTHON SOURCE LINES 67-70
 
 .. code-block:: Python
 
@@ -133,27 +128,22 @@ k-space and runs outward to the surface of the sampled sphere.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-78
+.. GENERATED FROM PYTHON SOURCE LINES 71-80
 
 Angular undersampling
 ---------------------
 
-The sphere is dealt into shells, each the same one turned about ``z``.
-``r`` plays one shell in every ``r`` of that set, which halves the
-acquisitions at ``r = 2`` and leaves the angular spacing between the shells
-that remain twice as wide. What that produces is streaking from the
-periphery rather than the fold-over a Cartesian acquisition would give.
+The Nyquist set of directions is divided into shells, each a copy of the
+first rotated about ``z``. ``r`` acquires one shell in every ``r``: at
+``r = 2`` the number of acquisitions is halved and the azimuthal spacing
+between acquired shells is doubled. Angular undersampling produces streak
+artefacts from the k-space periphery rather than the fold-over of an
+undersampled Cartesian acquisition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-90
+.. GENERATED FROM PYTHON SOURCE LINES 80-92
 
 .. code-block:: Python
 
@@ -176,7 +166,7 @@ periphery rather than the fold-over a Cartesian acquisition would give.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-93
+.. GENERATED FROM PYTHON SOURCE LINES 93-95
 
 .. code-block:: Python
 
@@ -191,19 +181,13 @@ periphery rather than the fold-over a Cartesian acquisition would give.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.244 seconds)
+   **Total running time of the script:** (0 minutes 20.017 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

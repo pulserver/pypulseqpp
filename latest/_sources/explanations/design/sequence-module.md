@@ -1,5 +1,29 @@
 # Sequence modules
 
+```{admonition} TL;DR
+:class: tldr
+
+- A {class}`~pypulseqpp.sequences.SequenceModule` solves a reusable block
+  layout independently of the acquisition loop. It contains block tuples, named
+  mutable event templates and a timing reference, `center`.
+- `center` is the module timing reference in seconds from its start, usually an
+  RF pulse centre or an echo. For an inversion module followed by an excitation
+  module, the recovery delay for inversion time $T_I$ is
+  $T_I - (t_{\mathrm{inv}} - t_{\mathrm{centre,inv}}) - t_{\mathrm{centre,exc}}$,
+  independent of block boundaries.
+- An acquisition loop may change a named event template before `add_block`, for
+  example by setting an RF phase offset or scaling a phase-encode gradient.
+  Previously registered blocks and the module's internal sequence remain
+  unchanged.
+- A readout constructed with `te=None` uses its shortest realizable echo time.
+  Requested bandwidths and times are rasterized, and the module reports the
+  achieved values.
+- Module construction separates fixed waveform and timing design from per-view
+  encoding, which mirrors the Pulseq distinction between event definitions and
+  playout instances. Sampling order and repetition structure belong to the
+  sequence application.
+```
+
 A {class}`~pypulseqpp.sequences.SequenceModule` solves a reusable block layout
 independently of the acquisition loop. The module contains block tuples, named
 mutable event templates, and a timing reference.

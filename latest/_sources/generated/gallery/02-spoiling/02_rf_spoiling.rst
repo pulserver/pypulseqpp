@@ -22,28 +22,28 @@
 RF spoiling
 ===========
 
-The scope of this notebook is to remove the coherent pathway the previous page
-was left with, by advancing the phase of the pulse and of the receiver by a
-quadratically increasing amount from one repetition to the next, and to measure
-which phase increments do so.
+The previous lesson showed that a spoiler gradient leaves a coherent pathway
+in the steady state. This lesson suppresses the coherent residual transverse
+pathways by advancing the phase of the RF pulse and of the receiver by a
+quadratically increasing amount from one repetition to the next, and measures
+which phase increments bring the steady-state signal close to that of ideal
+spoiling.
 
-The observable is the steady-state signal against the phase increment, summed
-across a voxel as before. The increment in common use is read off that curve
-rather than assumed.
+The steady-state signal is computed against the phase increment, summed across
+a voxel as in :doc:`/generated/gallery/02-spoiling/01_gradient_spoiling`. The
+increment in common use is read from that curve rather than assumed.
 
-Outline:
+Learning objectives
+-------------------
 
-#. **The phase cycle.** The quadratic increment, and where it is written in the
-   RF and ADC events.
-#. **One repetition.** The sequence, and the phase offsets read back from the
-   blocks it holds.
-#. **Steady state against phase increment.** The sweep the increment is chosen
-   from.
-#. **The chosen increment against flip angle.** What it gives, against the
-   ideally spoiled signal, over the flip angles a T1-weighted acquisition uses.
+After this lesson, you should be able to:
 
-The residual this page removes is measured in
-:doc:`/generated/gallery/02-spoiling/01_gradient_spoiling`.
+- write the quadratic phase cycle of RF spoiling;
+- set the phase offset of the RF and ADC events per repetition, and read it
+  back from the blocks;
+- identify phase increments that leave the residual pathway coherent;
+- compare the RF-spoiled steady state with the ideally spoiled signal over
+  flip angle.
 
 .. GENERATED FROM PYTHON SOURCE LINES 29-39
 
@@ -120,9 +120,9 @@ unaffected, because the receiver is advanced by the same amount.
 One repetition
 --------------
 
-``phase_offset`` carries the phase of an RF event and of an ADC event, both
-in radians. Setting the two to the same value per repetition is what makes
-the receiver follow the transmitter; the events are otherwise those of the
+``phase_offset`` is the phase of an RF event or an ADC event, in radians.
+Setting the two to the same value in each repetition advances the receiver
+phase with the transmit phase; the events are otherwise those of the
 gradient echo.
 
 .. GENERATED FROM PYTHON SOURCE LINES 95-148
@@ -228,7 +228,7 @@ is where an interpreter and a reconstruction find it.
 Steady state against phase increment
 ------------------------------------
 
-The summation is the one of the previous page with the transmit phase of each
+The summation is the one of the previous lesson with the transmit phase of each
 repetition applied to the pulse and removed from the signal.
 
 .. GENERATED FROM PYTHON SOURCE LINES 163-263
@@ -323,8 +323,8 @@ The curve is spiky rather than smooth. An increment that returns to a small
 set of phases leaves the residual as coherent as no phase cycle at all: zero
 and 180 degrees are the clearest, and each of the flip angles swept here has
 others of its own. An increment of 117 degrees is within a few percent of the
-ideally spoiled value at every one of them, which is what recommends it, and
-its neighbourhood is narrow — at 60 degrees of flip, an increment of 82
+ideally spoiled value at every one of them, which is the reason for its
+common use, and its neighbourhood is narrow — at 60 degrees of flip, an increment of 82
 degrees gives a quarter less signal than the ideal and 117 gives it to two
 percent.
 
@@ -333,7 +333,7 @@ percent.
 The chosen increment against flip angle
 ---------------------------------------
 
-The comparison of the previous page, repeated with the phase cycle in place.
+The comparison of the previous lesson, repeated with the phase cycle in place.
 
 .. GENERATED FROM PYTHON SOURCE LINES 278-304
 
@@ -370,15 +370,15 @@ The comparison of the previous page, repeated with the phase cycle in place.
 .. GENERATED FROM PYTHON SOURCE LINES 305-310
 
 The two curves lie together over the whole range, and the peak is back at the
-Ernst angle. What remains is a departure of a few percent that depends on T2
-and on the flip angle, which is the residual the phase cycle cancels rather
-than removes; a T1 estimated from this signal under an ideally spoiled model
-carries it as a bias.
+Ernst angle. A departure of a few percent remains, which depends on T2 and on
+the flip angle: the phase cycle cancels the residual pathway approximately
+rather than removing it, and a T1 estimated from this signal under an ideally
+spoiled model is biased by the remainder.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.028 seconds)
+   **Total running time of the script:** (0 minutes 8.495 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-spoiling_02_rf_spoiling.py:

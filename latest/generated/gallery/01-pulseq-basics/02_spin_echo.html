@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription">Prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-refocusing-pulse">The refocusing pulse</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crushers-about-the-refocusing-pulse">Crushers about the refocusing pulse</a></li>
@@ -592,30 +551,33 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="spin-echo">
 <span id="sphx-glr-generated-gallery-01-pulseq-basics-02-spin-echo-py"></span><h1>Spin echo<a class="headerlink" href="#spin-echo" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to add a refocusing pulse to the pulse-acquire
-experiment of the previous page, so that the acquisition is centred on an echo
-at a prescribed echo time, and to place the crusher pair that keeps the signal
-of an imperfect refocusing pulse out of that acquisition.</p>
-<p>Echo time is set by the interval between pulse centres rather than by block
-edges, and the crusher pair is what has to fit inside it. The last section
-measures that trade-off: the shortest echo time the system admits, against the
-dephasing the crushers are asked for.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>Prescription.</strong> The echo time, the voxel the crushers are counted across
-and the dephasing they are asked for.</p></li>
-<li><p><strong>The refocusing pulse.</strong> A second hard pulse, at twice the flip angle of
-the first.</p></li>
-<li><p><strong>Crushers about the refocusing pulse.</strong> One gradient on either side, of
-equal area and equal polarity.</p></li>
-<li><p><strong>Timing the echo.</strong> The delays that place the refocusing centre at
-<span class="math notranslate nohighlight">\(\mathrm{TE}/2\)</span> and the acquisition centre at <span class="math notranslate nohighlight">\(\mathrm{TE}\)</span>.</p></li>
-<li><p><strong>Sequence diagram.</strong> The seven blocks of one repetition.</p></li>
-<li><p><strong>Shortest echo time against crusher dephasing.</strong> What the crusher pair
-costs.</p></li>
-</ol>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/01-pulseq-basics/02_spin_echo.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The previous lesson acquired a free induction decay directly after the
+excitation. This lesson adds a refocusing pulse, so that the acquisition is
+centred on a spin echo at a prescribed echo time, and a pair of crusher
+gradients about the refocusing pulse. The crushers leave the spin-echo pathway
+rephased and dephase the coherence pathways the pulse does not refocus, such
+as the free induction decay an imperfect refocusing pulse produces.</p>
+<p>The echo time is defined between pulse centres rather than between block
+edges, and the crusher pair has to fit within it. The last section measures
+the resulting relationship: the shortest echo time the system limits allow,
+against the dephasing prescribed for the crushers.</p>
 <p>The representation these objects belong to is described in
 <a class="reference internal" href="../../../explanations/pulseq/events-and-blocks.html"><span class="doc">Events and blocks</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>create a refocusing pulse and tag its RF use;</p></li>
+<li><p>prescribe a crusher gradient by its dephasing across a voxel;</p></li>
+<li><p>compute the delay blocks that place the refocusing pulse centre at
+<span class="math notranslate nohighlight">\(\mathrm{TE}/2\)</span> and the acquisition centre at <span class="math notranslate nohighlight">\(\mathrm{TE}\)</span>,
+on the block duration raster;</p></li>
+<li><p>read the pulse centres back from the k-space analysis;</p></li>
+<li><p>relate the shortest echo time to the crusher dephasing.</p></li>
+</ul>
+</section>
 <section id="prescription">
 <h2>Prescription<a class="headerlink" href="#prescription" title="Link to this heading">#</a></h2>
 <p>A crusher is prescribed as the phase it winds across a voxel, because that is
@@ -677,8 +639,8 @@ pulse’s centre, and what an interpreter reads to identify it.</p>
 <p>Two gradients of equal area and equal polarity, one before the refocusing
 pulse and one after it. The refocused pathway has its accumulated gradient
 integral inverted by the pulse, so the second crusher unwinds what the first
-wound. A pathway that crosses the pulse without that inversion — the free
-induction decay a refocusing pulse of imperfect flip angle produces — sees
+wound. A pathway that crosses the pulse without that inversion, such as the
+free induction decay a refocusing pulse of imperfect flip angle produces, sees
 the two areas add, and is left wound through <code class="docutils literal notranslate"><span class="pre">CRUSHER_CYCLES</span></code> cycles across
 a voxel.</p>
 <p><a class="reference internal" href="../../pypulseqpp.make_crusher.html#pypulseqpp.make_crusher" title="pypulseqpp.make_crusher"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_crusher()</span></code></a> takes the dephasing and the voxel rather
@@ -797,9 +759,9 @@ prescribed TE   24.000 ms, acquisition midpoint 24.010 ms
 <p>The refocusing pulse lands on the prescription and the acquisition midpoint
 lands half a block raster period from it. Rounding a delay to the raster
 moves what follows it by at most half a period, and the echo time is
-realisable only to that resolution; what the prescription cannot do is move
-the two pulse centres and the window independently of the raster they are all
-addressed on.</p>
+realisable only to that resolution: the pulse centres and the acquisition
+window cannot be placed independently of the raster on which they are all
+addressed.</p>
 </section>
 <section id="sequence-diagram">
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
@@ -807,10 +769,7 @@ addressed on.</p>
 non-selective experiment, so the pair is the whole of that channel.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_02_spin_echo_001.png" srcset="../../../_images/sphx_glr_02_spin_echo_001.png" alt="02 spin echo" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9e9870b00&gt;, tr=1, underlays=[])
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_02_spin_echo_001.png" srcset="../../../_images/sphx_glr_02_spin_echo_001.png" alt="02 spin echo" class = "sphx-glr-single-img"/></section>
 <section id="shortest-echo-time-against-crusher-dephasing">
 <h2>Shortest echo time against crusher dephasing<a class="headerlink" href="#shortest-echo-time-against-crusher-dephasing" title="Link to this heading">#</a></h2>
 <p>Both delays shrink as the echo time is shortened, and the first of them to
@@ -854,10 +813,10 @@ refocusing pulse.</p>
 <p>Half of the acquisition window sits between the refocusing pulse and the
 echo, so the shortest echo time is bounded below by the acquisition duration
 whatever the crushers do, and the crusher pair is what is added to that
-floor. The pair grows as the square root of the dephasing while it is
-slew-limited and in proportion to it once the amplitude limit is reached,
-which is why the last doublings cost the most.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.081 seconds)</p>
+floor. The duration of the pair grows as the square root of the dephasing while it is
+slew-limited and in proportion to it once the amplitude limit is reached, so
+the last doublings add the most to the echo time.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.145 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-pulseq-basics-02-spin-echo-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/f9384fd1a924c73887f8ab43616524ea/02_spin_echo.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_spin_echo.ipynb</span></code></a></p>
@@ -920,6 +879,7 @@ which is why the last doublings cost the most.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription">Prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-refocusing-pulse">The refocusing pulse</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crushers-about-the-refocusing-pulse">Crushers about the refocusing pulse</a></li>

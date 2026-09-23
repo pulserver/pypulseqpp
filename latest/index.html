@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -115,50 +115,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -264,6 +220,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -273,6 +230,7 @@
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -336,7 +294,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -604,8 +562,11 @@
 PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
 and trajectory design, reusable sequence modules, complete sequence
 applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
-Unsupported PyPulseq features are not presented as available. Passing these
-checks does not establish scanner or patient safety.</p>
+Its event factories and <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> methods keep PyPulseq’s signatures and event
+conventions; it reads Pulseq text files from version 1.2 onward and writes
+Pulseq 1.5.1 text and binary files, or 1.4.1 text for older interpreters. Not
+every PyPulseq feature is implemented, and the API reference lists what is.
+Passing these checks does not establish scanner or patient safety.</p>
 <section id="features">
 <h2>Features<a class="headerlink" href="#features" title="Link to this heading">#</a></h2>
 <ul class="simple">
@@ -632,10 +593,10 @@ checks does not establish scanner or patient safety.</p>
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
-<p>The <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/user-guide/index.html">user guide</a>
+<p>The <a class="reference internal" href="user-guide/index.html"><span class="std std-doc">user guide</span></a>
 covers installation and support, and lists what each documentation section
-holds. The
-<a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/examples/index.html">examples</a>
+contains. The
+<a class="reference internal" href="examples/index.html"><span class="std std-doc">examples</span></a>
 are a course in sequence design, from a pulse-acquire experiment to echo planar
 and non-Cartesian acquisitions, followed by a page for each shipped sequence.
 Every version of the documentation is published at
@@ -674,7 +635,7 @@ used in work built with it:</p>
 <section id="license">
 <h2>License<a class="headerlink" href="#license" title="Link to this heading">#</a></h2>
 <p>MIT, except bundled or vendored third-party components that retain their own
-licences. See <a class="reference external" href="https://pulserver.github.io/pypulseqpp/latest/misc/license.html">License and third-party notices</a>.</p>
+licences. See <a class="reference internal" href="misc/license.html"><span class="std std-doc">License and third-party notices</span></a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>

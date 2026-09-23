@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,6 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-limits">System limits</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-events">Two events</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-blocks">Two blocks</a></li>
@@ -592,25 +551,29 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="free-induction-decay">
 <span id="sphx-glr-generated-gallery-01-pulseq-basics-01-fid-py"></span><h1>Free induction decay<a class="headerlink" href="#free-induction-decay" title="Link to this heading">#</a></h1>
-<p>The scope of this notebook is to build the smallest complete Pulseq sequence,
-a pulse-acquire experiment, and to establish the vocabulary the rest of the
-course adds to: the system limits a factory solves against, the events that
-carry a pulse and an acquisition window, the blocks that play them, the timing
-check, and the file that is written.</p>
-<p>Outline:</p>
-<ol class="arabic simple">
-<li><p><strong>System limits.</strong> The limits, rasters and dead times an event is built
-against.</p></li>
-<li><p><strong>Two events.</strong> A hard excitation pulse and an acquisition window, and the
-relation between samples, dwell time and receiver bandwidth.</p></li>
-<li><p><strong>Two blocks.</strong> Placing the events in time, and stating a repetition time.</p></li>
-<li><p><strong>Sequence diagram.</strong> Reading the result as a pulse-sequence diagram.</p></li>
-<li><p><strong>Transverse magnetisation against flip angle.</strong> Simulating the pulse the
-sequence holds, against the closed form for a hard pulse on resonance.</p></li>
-<li><p><strong>Writing the file.</strong> What a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file records beside the block table.</p></li>
-</ol>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/01-pulseq-basics/01_fid.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>The smallest complete Pulseq sequence is a pulse-acquire experiment: one
+excitation pulse followed by one acquisition window. This first lesson of the
+course builds it and introduces the objects every later lesson extends: the
+system limits against which a factory designs an event, the RF and ADC events,
+the blocks in which events are played, the timing check, and the <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file.
+A Bloch simulation of the stored pulse relates the transverse magnetisation to
+the flip angle.</p>
 <p>The representation these objects belong to is described in
 <a class="reference internal" href="../../../explanations/pulseq/events-and-blocks.html"><span class="doc">Events and blocks</span></a>.</p>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this lesson, you should be able to:</p>
+<ul class="simple">
+<li><p>define system limits, rasters and dead times;</p></li>
+<li><p>create a hard RF pulse and an ADC event, and relate the number of samples,
+the dwell time and the receiver bandwidth;</p></li>
+<li><p>place events in blocks and set a repetition time with a delay;</p></li>
+<li><p>read a pulse-sequence diagram of the result;</p></li>
+<li><p>check the sequence timing and write the sequence to a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file.</p></li>
+</ul>
+</section>
 <section id="system-limits">
 <h2>System limits<a class="headerlink" href="#system-limits" title="Link to this heading">#</a></h2>
 <p>Every factory solves its waveforms against a set of limits, and every event
@@ -638,7 +601,7 @@ can address, and the timing check reports them separately.</p>
 samples. The dwell time is the sampling interval, and its reciprocal is the
 receiver bandwidth; <a class="reference internal" href="../../pypulseqpp.calc_adc_timing.html#pypulseqpp.calc_adc_timing" title="pypulseqpp.calc_adc_timing"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_adc_timing()</span></code></a> moves a requested
 dwell onto the ADC raster and lands the acquisition duration on the gradient
-raster, which is what the timing check requires of both.</p>
+raster. The timing check requires both.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="tuple"><span class="n">FLIP_ANGLES_DEG</span></a> <span class="o">=</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)</span><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">pulses</span></a> <span class="o">=</span> <span class="p">[</span><span class="w">
@@ -675,9 +638,9 @@ raster, which is what the timing check requires of both.</p>
 <p>A block holds at most one event per channel, and the events in it start
 together on the block’s clock. Blocks are played back to back, so the
 acquisition begins when the pulse’s block ends.</p>
-<p>One repetition per flip angle. The acquisition block carries a delay longer
-than the acquisition window, which is how a repetition time is stated: a
-block longer than the events in it is a delay.</p>
+<p>One repetition per flip angle. A block lasts as long as its longest event,
+so a delay event longer than the acquisition window in the acquisition block
+sets the repetition time.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="o">=</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">)</span><span class="w">
 </span><span class="k">for</span> <span class="n">pulse</span> <span class="ow">in</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">pulses</span></a><span class="p">:</span><span class="w">
 </span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.add_block.html#pypulseqpp.Sequence.add_block" title="pypulseqpp.Sequence.add_block"><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span></a><span class="p">(</span><span class="n">pulse</span><span class="p">)</span><span class="w">
@@ -696,10 +659,7 @@ block longer than the events in it is a delay.</p>
 differ only in the amplitude of the pulse.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">seq</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_01_fid_001.png" srcset="../../../_images/sphx_glr_01_fid_001.png" alt="01 fid" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9e9a3bfb0&gt;, tr=4, underlays=[1, 2, 3])
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_01_fid_001.png" srcset="../../../_images/sphx_glr_01_fid_001.png" alt="01 fid" class = "sphx-glr-single-img"/></section>
 <section id="transverse-magnetisation-against-flip-angle">
 <h2>Transverse magnetisation against flip angle<a class="headerlink" href="#transverse-magnetisation-against-flip-angle" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../../pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> integrates the Bloch equations over the pulse the
@@ -727,7 +687,7 @@ reconstruction reads to interpret the acquisition.</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span># Pulseq sequence file
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.127 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.220 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-pulseq-basics-01-fid-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/4cd737988be6a683b820830a3dd677b3/01_fid.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">01_fid.ipynb</span></code></a></p>
@@ -790,6 +750,7 @@ reconstruction reads to interpret the acquisition.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-limits">System limits</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-events">Two events</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-blocks">Two blocks</a></li>

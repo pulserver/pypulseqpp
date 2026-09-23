@@ -92,28 +92,23 @@ spokes per partition and produces a compact timing diagram.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9104e3020>, tr=1, underlays=[2, 3, 4])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-102
+.. GENERATED FROM PYTHON SOURCE LINES 93-103
 
 Sampling order
 --------------
 
-One inversion reads the spokes of one partition, so the inversion cycle is
+Each inversion cycle acquires the spokes of one partition, so the cycle is
 constant along each row. Readout index specifies spoke order within the train.
-``partition_angle_shift`` rotates the spoke set between partitions to avoid
-coincident angles in neighbouring partitions. ``TI`` ends at the first
+``partition_angle_shift``, ``'golden'`` by default, rotates the spoke set
+between partitions so that neighbouring partitions do not share spoke
+angles. ``TI`` ends at the first
 excitation-pulse centre; the centre of
 k-space on its spoke is sampled at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 102-111
+.. GENERATED FROM PYTHON SOURCE LINES 103-112
 
 .. code-block:: Python
 
@@ -132,23 +127,17 @@ k-space on its spoke is sampled at ``TI + TE``.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 946x374 with 4 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 112-116
+.. GENERATED FROM PYTHON SOURCE LINES 113-117
 
 Trajectory
 ----------
 
 The spokes of every partition, over the three k-space axes, coloured by shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-119
+.. GENERATED FROM PYTHON SOURCE LINES 117-120
 
 .. code-block:: Python
 
@@ -164,19 +153,13 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.990 seconds)
+   **Total running time of the script:** (0 minutes 8.396 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

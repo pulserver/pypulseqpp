@@ -39,10 +39,10 @@ is widely used for cardiac cine and dynamic cardiac imaging.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-37
 
-Baseline
---------
+Fully sampled acquisition
+-------------------------
 
-One cardiac phase over a full Cartesian sampling.
+One cardiac phase, with every phase-encode line acquired.
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-56
 
@@ -102,23 +102,18 @@ Sequence diagram
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa90df94ad0>, tr=1, underlays=[])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-67
+.. GENERATED FROM PYTHON SOURCE LINES 63-68
 
 Sampling order
 --------------
 
-The lines in the order they are read, in segments of ``views_per_segment``.
+Colour encodes phase-encode line acquisition order; lines are acquired in
+segments of ``views_per_segment``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-70
+.. GENERATED FROM PYTHON SOURCE LINES 68-71
 
 .. code-block:: Python
 
@@ -134,16 +129,10 @@ The lines in the order they are read, in segments of ``views_per_segment``.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-78
+.. GENERATED FROM PYTHON SOURCE LINES 72-79
 
 Cine
 ----
@@ -153,7 +142,7 @@ after a trigger. Retrospective gating cycles the segment throughout one
 heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
 Segment length sets the temporal footprint of each cardiac phase.
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-113
+.. GENERATED FROM PYTHON SOURCE LINES 79-114
 
 .. code-block:: Python
 
@@ -196,7 +185,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-116
+.. GENERATED FROM PYTHON SOURCE LINES 115-117
 
 .. code-block:: Python
 
@@ -211,19 +200,13 @@ Segment length sets the temporal footprint of each cardiac phase.
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <Figure size 605x550 with 2 Axes>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.773 seconds)
+   **Total running time of the script:** (0 minutes 1.362 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

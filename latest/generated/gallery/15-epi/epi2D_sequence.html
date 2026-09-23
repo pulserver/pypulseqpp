@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=36f0fcfd" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=fddf5300" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -118,50 +118,6 @@
 
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-9 navbar-header-items">
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-        </div>
-      
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
     </header>
   
 
@@ -265,6 +221,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -274,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
 </ul>
@@ -337,7 +295,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
@@ -568,7 +526,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#baseline-single-shot">Baseline: single shot</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shot-acquisition">Single-shot acquisition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#segmentation-and-in-plane-acceleration">Segmentation and in-plane acceleration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-traversal">Echo traversal</a></li>
@@ -592,15 +550,17 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-echo-planar-imaging">
 <span id="sphx-glr-generated-gallery-15-epi-epi2d-sequence-py"></span><h1>2D echo-planar imaging<a class="headerlink" href="#d-echo-planar-imaging" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/15-epi/epi2D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
 <p>A slice-selective excitation is followed by alternating readout gradients and
 phase-encode blips that acquire multiple Cartesian lines in one echo train.
 Spoilers suppress residual transverse coherence between repetitions.
 Off-resonance phase accumulates during the train and produces geometric
 distortion along the phase-encode axis. EPI supports rapid structural imaging
 and functional MRI.</p>
-<section id="baseline-single-shot">
-<h2>Baseline: single shot<a class="headerlink" href="#baseline-single-shot" title="Link to this heading">#</a></h2>
-<p>One excitation acquires the complete phase-encode axis. Echo-train length
+<section id="single-shot-acquisition">
+<h2>Single-shot acquisition<a class="headerlink" href="#single-shot-acquisition" title="Link to this heading">#</a></h2>
+<p>Every phase-encode line is acquired after one excitation. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="w">
@@ -628,21 +588,19 @@ off-resonance phase across k-space.</p>
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">diagram</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi2D_sequence_001.png" srcset="../../../_images/sphx_glr_epi2D_sequence_001.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>namespace(diagram=&lt;mrsd.diagram.Diagram object at 0x7fa9f2340ef0&gt;, tr=1, underlays=[])
-</pre></div>
-</div>
-</section>
+<img src="../../../_images/sphx_glr_epi2D_sequence_001.png" srcset="../../../_images/sphx_glr_epi2D_sequence_001.png" alt="epi2D sequence" class = "sphx-glr-single-img"/></section>
 <section id="segmentation-and-in-plane-acceleration">
 <h2>Segmentation and in-plane acceleration<a class="headerlink" href="#segmentation-and-in-plane-acceleration" title="Link to this heading">#</a></h2>
 <p>Segmentation and in-plane acceleration both reduce echo-train length.
 <code class="docutils literal notranslate"><span class="pre">n_shots</span></code> interleaves the lines over several excitations, so every line is
 still acquired. <code class="docutils literal notranslate"><span class="pre">ry</span></code> skips lines within one excitation and requires a
-parallel-imaging reconstruction for the omitted lines. Both reduce the
-echo-train duration. A spin at offset <span class="math notranslate nohighlight">\(\Delta f\)</span>
-gains <span class="math notranslate nohighlight">\(2\pi \Delta f\, \mathrm{esp}\)</span> of phase per echo, which is
-linear in <span class="math notranslate nohighlight">\(k_y\)</span> and therefore a displacement of
-<span class="math notranslate nohighlight">\(\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}\)</span> pixels: both
-routes shorten the train, and both shorten the distortion with it.</p>
+parallel-imaging reconstruction for the omitted lines. Off-resonance
+<span class="math notranslate nohighlight">\(\Delta f\)</span> adds a phase of <span class="math notranslate nohighlight">\(2\pi \Delta f\, \mathrm{esp}\)</span>
+per echo spacing <span class="math notranslate nohighlight">\(\mathrm{esp}\)</span>. This phase is linear in <span class="math notranslate nohighlight">\(k_y\)</span>
+and displaces the image along the phase-encode axis by
+<span class="math notranslate nohighlight">\(\Delta f \cdot \mathrm{esp} \cdot N_\mathrm{etl}\)</span> pixels, where
+<span class="math notranslate nohighlight">\(N_\mathrm{etl}\)</span> is the echo-train length. Both segmentation and
+acceleration reduce <span class="math notranslate nohighlight">\(N_\mathrm{etl}\)</span> and therefore the displacement.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">segmented</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_shots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">accelerated</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_slices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ry</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_acs_y</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span><span class="w">
@@ -658,28 +616,22 @@ ry = 3          32       1       32.0     23.44       43.1      0.035
 <section id="echo-traversal">
 <h2>Echo traversal<a class="headerlink" href="#echo-traversal" title="Link to this heading">#</a></h2>
 <p>The ordinate gives the phase-encode line acquired at each echo index. A
-single shot
-traverses the axis one line at a time; a segmented acquisition traverses it
-in steps of <code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, with each shot starting one line further on;
-acceleration traverses it in steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code> and stops there.</p>
-<img src="../../../_images/sphx_glr_epi2D_sequence_002.png" srcset="../../../_images/sphx_glr_epi2D_sequence_002.png" alt="1 shot, 3 shots, ry = 3" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 946x330 with 3 Axes&gt;
-</pre></div>
-</div>
-</section>
+single shot traverses the axis one line at a time. A segmented acquisition
+traverses it in steps of <code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, each shot starting one line further
+on. An accelerated acquisition traverses it once in steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code>.</p>
+<img src="../../../_images/sphx_glr_epi2D_sequence_002.png" srcset="../../../_images/sphx_glr_epi2D_sequence_002.png" alt="1 shot, 3 shots, ry = 3" class = "sphx-glr-single-img"/></section>
 <section id="which-lines-are-acquired">
 <h2>Which lines are acquired<a class="headerlink" href="#which-lines-are-acquired" title="Link to this heading">#</a></h2>
 <p>Segmentation and acceleration produce the same train length from different
-sets of lines: the segmented acquisition covers the axis, the accelerated one
-leaves two lines in three unread.</p>
-<img src="../../../_images/sphx_glr_epi2D_sequence_003.png" srcset="../../../_images/sphx_glr_epi2D_sequence_003.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 946x253 with 1 Axes&gt;
-</pre></div>
-</div>
-</section>
+sets of lines: the segmented acquisition acquires every line, the accelerated
+acquisition one line in three.</p>
+<img src="../../../_images/sphx_glr_epi2D_sequence_003.png" srcset="../../../_images/sphx_glr_epi2D_sequence_003.png" alt="epi2D sequence" class = "sphx-glr-single-img"/></section>
 <section id="functional-mri-time-series">
 <h2>Functional MRI time series<a class="headerlink" href="#functional-mri-time-series" title="Link to this heading">#</a></h2>
 <p>Repeated frames form an fMRI time series. The acquisition below uses eight
 slices in four multiband groups. <code class="docutils literal notranslate"><span class="pre">REP</span></code> identifies the volume and <code class="docutils literal notranslate"><span class="pre">SLC</span></code>
-identifies the group; acquisition times come from the actual ADC blocks.</p>
+identifies the group; acquisition times are the start times of the ADC
+blocks in the sequence.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">fmri</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence" title="pypulseqpp.sequences.epi2D_sequence"><span class="n">epi2D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
 </span>    <span class="n">n_y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span><span class="w">
@@ -693,7 +645,7 @@ identifies the group; acquisition times come from the actual ADC blocks.</p>
 </span><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">labels</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><span class="n">fmri</span><span class="o">.</span><span class="n">evaluate_labels</span></a><span class="p">(</span><span class="n">evolution</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">adc</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.460 seconds)</p>
+<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.743 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-15-epi-epi2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/c9e8aa9b184b941e594f4acea72303f7/epi2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">epi2D_sequence.ipynb</span></code></a></p>
@@ -756,7 +708,7 @@ identifies the group; acquisition times come from the actual ADC blocks.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#baseline-single-shot">Baseline: single shot</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shot-acquisition">Single-shot acquisition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#segmentation-and-in-plane-acceleration">Segmentation and in-plane acceleration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#echo-traversal">Echo traversal</a></li>

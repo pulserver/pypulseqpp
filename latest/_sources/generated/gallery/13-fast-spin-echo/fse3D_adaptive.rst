@@ -23,12 +23,16 @@ Individually optimized 3D fast spin echo
 ========================================
 
 Individually parameterized 3D FSE assigns different echo-train lengths and
-repetition times to central and peripheral k-space. The refocusing schedules
-and radial view order vary smoothly between these limits. This coupling can
-reduce scan time while retaining a prescribed central-k-space contrast for
-high-resolution structural imaging.
+repetition times to the shots that acquire central and peripheral k-space
+[BUO25]_. From the central to the peripheral shots, TR and the minimum and
+maximum angles of the refocusing schedule [BUS08b]_ follow a cubic
+smooth-step transition between their two limits; the echo-train length
+follows the same transition, rounded to integer values. The views are
+assigned by an adaptive radial order. Longer trains and a different TR at the
+periphery can reduce scan time, while the contrast at the centre of k-space
+is set by the parameters of the central shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-49
+.. GENERATED FROM PYTHON SOURCE LINES 16-60
 
 .. code-block:: Python
 
@@ -38,17 +42,18 @@ high-resolution structural imaging.
     Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
     P = {
-        "n_x": 80,
-        "n_y": 40,
-        "n_z": 16,
+        "n_x": 96,
+        "n_y": 64,
+        "n_z": 20,
         "fov_x": 0.20,
         "fov_y": 0.20,
         "fov_z": 0.12,
-        "etl": 12,
-        "etl_periphery": 24,
-        "te": 36e-3,
-        "tr": 0.45,
-        "tr_periphery": 0.65,
+        "etl": 40,
+        "etl_periphery": 72,
+        "te": 200e-3,
+        "tr": 1.2,
+        "tr_periphery": 1.6,
+        "refocusing_angle_deg": 120.0,
         "n_dummy": 0,
         "ordering": "radial",
         "flip_modulation": "optimized",
@@ -61,26 +66,24 @@ high-resolution structural imaging.
 
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    /opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
-      warnings.warn(
 
 
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 50-56
+.. GENERATED FROM PYTHON SOURCE LINES 61-72
 
 Train parameters
 ----------------
 
-Train length and TR follow a smooth transition from central to peripheral
-k-space. Representative schedules below retain only the refocusing pulses
-played by each selected shot.
+TR and the schedule's minimum and maximum angles follow a cubic smooth-step
+transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
+shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
+follows the same transition rounded to integers. Every schedule passes
+through the prescribed 120 degrees at the effective-TE echo. The schedules
+of representative shots are plotted up to each shot's own train length:
+the central shots reach lower minimum angles, and the peripheral shots have
+shallower minima and longer trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-79
+.. GENERATED FROM PYTHON SOURCE LINES 72-95
 
 
 
@@ -94,16 +97,19 @@ played by each selected shot.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-86
+.. GENERATED FROM PYTHON SOURCE LINES 96-105
 
 Adaptive radial ordering
 ------------------------
 
 The ordering ranks ``(shot, echo)`` slots jointly by distance from the
-effective-TE echo and by position in the central-to-peripheral transition.
-Colour therefore relates each acquired view to its train length and TR.
+effective-TE echo and by position in the central-to-peripheral transition
+[BUO25]_. Views are ranked by k-space radius; the innermost views fill the
+slots nearest the effective-TE echo of the central shots, and within each group of one view per shot the views
+are assigned to shots in order of angle. Colour gives the train length and
+TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-107
+.. GENERATED FROM PYTHON SOURCE LINES 105-127
 
 
 
@@ -117,10 +123,23 @@ Colour therefore relates each acquired view to its train length and TR.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 128-138
+
+References
+----------
+
+.. [BUO25] Buonincontri G, et al. *Proceedings of the International Society
+   for Magnetic Resonance in Medicine*. 2025; abstract 566-05-007.
+
+.. [BUS08b] Busse RF, Brau ACS, Vu A, Michelich CR, Bayram E, Kijowski R,
+   Reeder SB, Rowley HA. Effects of refocusing flip angle modulation and
+   view ordering in 3D fast spin echo. *Magnetic Resonance in Medicine*.
+   2008;60(3):640-649. https://doi.org/10.1002/mrm.21680
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.489 seconds)
+   **Total running time of the script:** (0 minutes 4.365 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:
