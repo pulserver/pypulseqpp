@@ -62,6 +62,15 @@ namespace pulseq
          * an absolute one does not return the corner, and the endpoint then
          * lands just inside the waveform and gets interpolated instead of
          * read.
+         *
+         * A time within kEps of a corner is that corner. The union of a
+         * rotated block's corners keeps one time for each instant, and an
+         * instant another axis reached by a different sum of delays and ramps
+         * can differ from this axis's corner by a rounding step; read as an
+         * interpolation, a trapezoid's last corner comes back as its
+         * amplitude times that step over the ramp, which two seconds into a
+         * sequence exceeds the threshold a gradient left hanging is reported
+         * at.
          */
         double sampled(
             const std::vector<double>& times,
@@ -69,15 +78,16 @@ namespace pulseq
             double when)
         {
             const size_t count = times.size();
-            if (count == 0 || when < times.front() || when > times.back())
+            if (count == 0 || when < times.front() - kEps || when > times.back() + kEps)
                 return 0.0;
 
             const size_t after = static_cast<size_t>(std::distance(
-                times.begin(), std::lower_bound(times.begin(), times.end(), when)));
-            if (after == 0)
-                return values.front();
+                times.begin(),
+                std::lower_bound(times.begin(), times.end(), when - kEps)));
             if (after >= count)
                 return values.back();
+            if (times[after] <= when + kEps || after == 0)
+                return values[after];
 
             const double span = times[after] - times[after - 1];
             if (span <= 0.0)
