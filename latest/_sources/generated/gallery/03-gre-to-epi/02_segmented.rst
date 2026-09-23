@@ -219,7 +219,7 @@ line that shot begins on.
 
     timing True, 76 blocks, 16 echoes per shot, 0.400 s
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d02c73e0>, tr=1, underlays=[2, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6b13a40>, tr=1, underlays=[2, 3, 4])
 
 
 
@@ -353,7 +353,7 @@ image acquired in one shot is distorted whatever is done to it afterwards.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.439 seconds)
+   **Total running time of the script:** (0 minutes 0.250 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_02_segmented.py:

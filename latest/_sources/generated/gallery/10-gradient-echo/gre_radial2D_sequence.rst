@@ -95,7 +95,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d4547380>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2434440>, tr=228, underlays=[1, 20, 39, 58, 77, 96, 115, 134, 152, 153, 172, 191, 210, 229, 248, 267, 286, 302])
 
 
 
@@ -192,7 +192,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.648 seconds)
+   **Total running time of the script:** (0 minutes 1.618 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

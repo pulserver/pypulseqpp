@@ -297,7 +297,7 @@ One repetition, drawn against the others it repeats.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d4b4fe90>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f0212e10>, tr=1, underlays=[9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 128])
 
 
 
@@ -445,7 +445,7 @@ a shorter scan. Shortening the scan is the subject of
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.357 seconds)
+   **Total running time of the script:** (0 minutes 0.197 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_03_gradient_echo.py:

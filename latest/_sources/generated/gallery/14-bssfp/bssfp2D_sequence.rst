@@ -107,7 +107,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f54f2262570>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa90df94ad0>, tr=1, underlays=[])
 
 
 
@@ -223,7 +223,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.321 seconds)
+   **Total running time of the script:** (0 minutes 0.773 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

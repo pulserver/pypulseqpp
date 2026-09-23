@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d02f8d10>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f247cad0>, tr=1025, underlays=[1, 81, 129, 161, 241, 321, 401, 481, 513, 561, 641, 721, 801, 881, 961, 1041, 1121, 1153, 1201])
 
 
 
@@ -775,7 +775,7 @@ the shared central-k-space region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.617 seconds)
+   **Total running time of the script:** (0 minutes 5.298 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py:

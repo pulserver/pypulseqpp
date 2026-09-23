@@ -97,7 +97,7 @@ Sequence diagram
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d718ca40>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2a431a0>, tr=105, underlays=[1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 113, 121])
 
 
 
@@ -193,7 +193,7 @@ peripheral k-space disc.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.099 seconds)
+   **Total running time of the script:** (0 minutes 1.917 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

@@ -596,6 +596,12 @@ the measured width; ppm offsets use the default system’s gamma and B0.</p>
 <li><p><strong>dw</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=10</em>) – Spectral resolution, in Hz.</p></li>
 <li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Sampling step, in seconds. The default system’s RF raster when
 omitted.</p></li>
+<li><p><strong>compat</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Return upstream’s values, which a drop-in caller unpacks. False
+returns an <cite>RfBandwidth</cite> carrying the bandwidth, the spectrum, its
+axis and the bands, whatever <code class="docutils literal notranslate"><span class="pre">return_axis</span></code> and <code class="docutils literal notranslate"><span class="pre">return_spectrum</span></code>
+say.</p></li>
+<li><p><strong>band_cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.3</em>) – Fraction of the peak above which a run of spectral bins is a band.
+Read only when <code class="docutils literal notranslate"><span class="pre">compat</span></code> is False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -605,6 +611,7 @@ one-element array its flank search indexes with.</p></li>
 <li><p><strong>spectrum</strong> (<em>numpy.ndarray, optional</em>) – Present when <code class="docutils literal notranslate"><span class="pre">return_spectrum</span></code>, second.</p></li>
 <li><p><strong>w</strong> (<em>numpy.ndarray, optional</em>) – Present when <code class="docutils literal notranslate"><span class="pre">return_axis</span></code>: second on its own, third alongside a
 spectrum. Centred on where the pulse is tuned.</p></li>
+<li><p><em>RfBandwidth</em> – In place of the above when <code class="docutils literal notranslate"><span class="pre">compat</span></code> is False.</p></li>
 </ul>
 </p>
 </dd>
@@ -633,6 +640,15 @@ spectrum. Centred on where the pulse is tuned.</p></li>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sinc</span><span class="o">.</span><span class="n">freq_offset</span> <span class="o">=</span> <span class="mf">1500.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">abs</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_rf_bandwidth</span><span class="p">(</span><span class="n">sinc</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">/</span> <span class="mf">2e-3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">/</span> <span class="mf">2e-3</span>
 <span class="go">True</span>
+</pre></div>
+</div>
+<p>Without <code class="docutils literal notranslate"><span class="pre">compat</span></code>, the bands of a simultaneous multi-slice pulse are
+reported with their offsets from the carrier:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">base</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_sinc_pulse</span><span class="p">(</span><span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">6</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">,</span> <span class="n">time_bw_product</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_sms_pulse</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_rf_bandwidth</span><span class="p">(</span><span class="n">sms</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">num_bands</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">band_offsets</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="go">(3, [-5000, 0, 5000])</span>
 </pre></div>
 </div>
 <div class="admonition seealso">

@@ -350,14 +350,14 @@ One repetition of the short-TE design.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f55d448c560>, tr=1, underlays=[])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f6b119d0>, tr=1, underlays=[])
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.796 seconds)
+   **Total running time of the script:** (0 minutes 0.431 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_01_excitation_module.py:

@@ -105,7 +105,7 @@ representative repetition; shaded traces show other gradient encodes.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f54f31b2690>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9f2342030>, tr=193, underlays=[1, 14, 20, 27, 40, 53, 66, 69, 79, 92, 105, 118, 119, 131, 144, 157, 168, 170, 183, 196])
 
 
 
@@ -203,7 +203,7 @@ periphery rather than the fold-over a Cartesian acquisition would give.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 20.006 seconds)
+   **Total running time of the script:** (0 minutes 12.244 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

@@ -97,7 +97,7 @@ produce a compact timing diagram.
  .. code-block:: none
 
 
-    namespace(diagram=<mrsd.diagram.Diagram object at 0x7f54f31c4170>, tr=2, underlays=[1, 3, 4])
+    namespace(diagram=<mrsd.diagram.Diagram object at 0x7fa9d1f231a0>, tr=2, underlays=[1, 3, 4])
 
 
 
@@ -176,7 +176,7 @@ shot. Each one is turned from the last so that the set covers the plane.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.008 seconds)
+   **Total running time of the script:** (0 minutes 6.694 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

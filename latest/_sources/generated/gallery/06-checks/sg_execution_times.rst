@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.289** total execution time for 1 file **from generated/gallery/06-checks**:
+**00:00.161** total execution time for 1 file **from generated/gallery/06-checks**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_06-checks_01_constraint_checks.py` (``01_constraint_checks.py``)
-     - 00:00.289
+     - 00:00.161
      - 0.0
