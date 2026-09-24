@@ -280,6 +280,11 @@ class SeStackOfSpirals3DApp(sequences.SequenceApp):
                 length += pad
         self.repetition_time = length
         self.duration = (self.n_dummy + len(self.views)) * length
+        self.resolve(
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+        )
 
     def rotation(self, arm: int, partition: int):
         """Return the rotation extension turning ``arm`` at ``partition``.

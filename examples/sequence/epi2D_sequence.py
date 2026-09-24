@@ -441,6 +441,13 @@ class Epi2DApp(sequences.SequenceApp):
         self.duration = (2 * self.dummy_cycles + (1 + n_frames) * n_shots) * cycle_time
         if self.gre is not None:
             self.duration += n_slices * len(self.calibration) * self.gre.duration
+        self.resolve(
+            slice_thickness=self.slice_thickness,
+            slice_spacing=self.slice_gap,
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.epi.bandwidth_hz,
+        )
 
     def prescans(self) -> dict:
         """Return ``calibration`` (when undersampled or multiband) and ``reference``.

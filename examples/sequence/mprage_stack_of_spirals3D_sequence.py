@@ -290,7 +290,7 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
                 f"{(ti_floor + raster) * 1e3:.3f} ms the inversion takes"
             )
         self.wait_ti = pp.make_delay(pp.round_to_raster(ti - ti_floor, raster))
-        self.ti = ti
+        self.ti = ti_floor + self.wait_ti.delay
         body = self.inv.duration + self.wait_ti.delay + len(self.arms) * self.esp
         if tr is None:
             tr = body + raster
@@ -300,7 +300,6 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
                 f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
                 f"{(body + raster) * 1e3:.3f} ms one shot takes"
             )
-        self.repetition_time = tr
         # Navigators ride in the recovery, where they cost no scan time.
         self.navigator, self.n_navigators, navigating = None, 0, 0.0
         if navigator:
@@ -314,8 +313,14 @@ class MprageStackOfSpirals3DApp(sequences.SequenceApp):
         self.wait_recovery = pp.make_delay(
             pp.round_to_raster(recovery - navigating, raster)
         )
-        self.duration = (n_dummy + len(self.partitions)) * (
-            body + navigating + self.wait_recovery.delay
+        self.repetition_time = body + navigating + self.wait_recovery.delay
+        self.duration = (n_dummy + len(self.partitions)) * self.repetition_time
+        self.resolve(
+            te=ro.echo_time,
+            esp=self.esp,
+            ti=self.ti,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=ro.bandwidth_hz,
         )
 
     def rotation(self, arm: int, partition: int):

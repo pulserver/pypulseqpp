@@ -128,6 +128,11 @@ class Zte3DApp(sequences.SequenceApp):
         self.rotations = pp.make_rotation(np.asarray(self.ro.shot_rotations))
         self.shots = list(range(0, len(self.rotations), r))
         self.duration = (n_dummy + len(self.shots)) * self.ro.duration
+        self.resolve(
+            tr=self.ro.tr,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+            n_shots=len(self.rotations),
+        )
 
     def loop(self) -> None:
         """Play the dummy shells, then every shot the undersampling keeps."""

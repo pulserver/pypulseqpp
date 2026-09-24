@@ -211,6 +211,7 @@ class Bssfp3DApp(sequences.SequenceApp):
         ]
         # Each cycle's catalyst takes half a TR.
         self.duration = n_phase_cycles * (len(self.views) + 0.5) * ro.tr
+        self.resolve(tr=ro.tr, readout_bandwidth_hz=ro.bandwidth_hz)
 
     def prescans(self) -> dict:
         """Return every file but the last cycle: each cycle's catalyst, then the cycle.

@@ -211,6 +211,11 @@ class GreStackOfStars3DApp(sequences.SequenceApp):
                 self.wait_tr = pp.make_delay(pad)
                 self.repetition_time += pad
         self.duration = (self.n_dummy + len(self.views)) * self.repetition_time
+        self.resolve(
+            te=self.ro.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+        )
 
     def rotation(self, spoke: int, partition: int):
         """Return the rotation extension turning ``spoke`` at ``partition``.

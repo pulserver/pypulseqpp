@@ -277,6 +277,12 @@ class Se3DApp(sequences.SequenceApp):
         self.no_waves = [pp.scale_grad(g, 0.0) for g in self.waves]
         self.reference = self.views[: len(self.calibration)] if self.waves else []
         self.duration = (self.n_dummy + len(self.reference) + len(self.views)) * length
+        self.resolve(
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+            wave_amplitude=self.ro.wave_amplitude,
+        )
 
     def loop(self) -> None:
         """Play the dummies, the wave-free reference views, then every view."""

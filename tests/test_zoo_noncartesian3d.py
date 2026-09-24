@@ -399,6 +399,17 @@ def test_playing_one_zte_shell_in_every_r_acquires_that_fraction_of_the_shots():
     assert sorted(set(seg)) == [0, 2]
 
 
+def test_a_zte_shell_count_left_to_the_design_resolves_to_the_shells_played():
+    """The shells balance the spacing within one against the spacing between them."""
+    zte = app("zte3D_sequence", n=16, n_shots=None)
+    seq = zte.design()
+    (seg,) = adc_labels(seq, "SEG")
+
+    assert zte.resolved["n_shots"] == int(np.ceil(np.pi * (16 - 1)))
+    assert sorted(set(seg)) == list(range(zte.resolved["n_shots"]))
+    assert np.atleast_1d(seq.definitions["NumShots"])[0] == zte.resolved["n_shots"]
+
+
 # -- the command line ----------------------------------------------------------------
 
 

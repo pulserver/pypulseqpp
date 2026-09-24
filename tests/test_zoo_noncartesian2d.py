@@ -262,6 +262,42 @@ def test_a_spin_echo_samples_its_centre_where_the_180_refocuses(name, offset):
 
 
 @pytest.mark.parametrize(
+    "te", [None, 60e-3, 60.0047e-3], ids=["shortest", "on raster", "off raster"]
+)
+def test_an_epi_blade_reads_its_central_line_at_the_resolved_echo_time(te):
+    built = app("se_epi_propeller2D_sequence", te=te)
+    seq = built.design()
+    k, _, t_excitation, _, t_adc = seq.calculate_kspace()
+    n, centre = int(built.blade.adc.num_samples), built.blade.blade_width // 2
+    kx = np.asarray(k)[0, centre * n : (centre + 1) * n]
+    t = np.asarray(t_adc)[centre * n : (centre + 1) * n]
+    # The first blade reads along x, and crosses k = 0 between two samples.
+    i = int(np.flatnonzero(np.diff(np.sign(kx)))[0])
+    crossing = t[i] - kx[i] * (t[i + 1] - t[i]) / (kx[i + 1] - kx[i])
+
+    assert crossing - t_excitation[0] == pytest.approx(built.resolved["te"], abs=1e-9)
+    assert np.atleast_1d(seq.definitions["TE"])[0] == pytest.approx(
+        built.resolved["te"]
+    )
+
+
+def test_a_blade_count_left_to_the_design_resolves_to_the_nyquist_set_played():
+    built = app("se_epi_propeller2D_sequence", n_blades=None)
+    (seg,) = adc_labels(built.design(), "SEG")
+
+    assert built.resolved["n_blades"] == math.ceil(np.pi * 32 / (2 * 8))
+    assert sorted(set(seg)) == list(range(built.resolved["n_blades"]))
+
+
+def test_a_gain_calibration_left_to_the_design_resolves_to_one_readout_per_slice():
+    built = app("se_epi_propeller2D_sequence", n_slices=3)
+    written = built.design().definitions["NumGainCalibrationReadouts"]
+
+    assert built.resolved["n_gain_calibration_readouts"] == 3
+    assert np.atleast_1d(written)[0] == 3
+
+
+@pytest.mark.parametrize(
     ("name", "prescription"),
     [
         *((name, {"te": 1e-6}) for name in RADIAL[:1] + SPIRAL[:1] + PROPELLER[:1]),

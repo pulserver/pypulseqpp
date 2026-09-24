@@ -180,6 +180,27 @@ def test_a_3d_cartesian_scan_repeats_from_its_first_block(name, prescription):
 
 
 @pytest.mark.parametrize("name", SMALL)
+def test_a_wave_amplitude_beyond_the_system_limits_resolves_to_the_one_built(name):
+    wave = {"wave": "both", "wave_cycles": 8, "ry": 2, "n_acs_y": 4, "n_acs_z": 2}
+    capped = app(name, wave_amplitude=0.2, **wave)
+    amplitude = capped.resolved["wave_amplitude"]
+    again = app(name, wave_amplitude=amplitude, **wave)
+
+    assert 0.0 < amplitude < 0.2
+    assert again.resolved["wave_amplitude"] == pytest.approx(amplitude)
+    assert np.asarray(again.ro.gy_wave.waveform) == pytest.approx(
+        np.asarray(capped.ro.gy_wave.waveform)
+    )
+
+
+@pytest.mark.parametrize("name", SMALL)
+def test_a_wave_that_is_not_played_resolves_to_zero_amplitude(name):
+    built = app(name, wave_amplitude=8e-3, wave_cycles=0)
+
+    assert built.resolved["wave_amplitude"] == 0.0
+
+
+@pytest.mark.parametrize("name", SMALL)
 def test_an_unknown_wave_mode_is_refused(name):
     with pytest.raises(ValueError, match="wave mode"):
         app(name, wave="corkscrew")

@@ -260,6 +260,14 @@ class GreMultiecho3DApp(sequences.SequenceApp):
         self.duration = (
             self.n_dummy + len(self.reference) + len(self.views)
         ) * self.ro.duration
+        self.resolve(
+            te=self.ro.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+            wave_amplitude=self.ro.wave_amplitude,
+        )
+        if n_echoes > 1:
+            self.resolve(echo_spacing=self.ro.echo_spacing)
 
     def loop(self) -> None:
         """Play the dummies, the wave-free reference views, then every view."""

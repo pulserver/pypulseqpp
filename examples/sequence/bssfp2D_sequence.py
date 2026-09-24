@@ -250,6 +250,12 @@ class Bssfp2DApp(sequences.SequenceApp):
         self.slab_thickness = n_slices * slice_step - slice_spacing
         self.slice_gap = slice_step - self.exc.slice_thickness
         self.duration = n_slices * self.slice_duration
+        self.resolve(
+            slice_thickness=self.exc.slice_thickness,
+            slice_spacing=self.slice_gap,
+            tr=self.ro.tr,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+        )
 
     def _ky(self, line: int | None) -> float:
         n_y = self.matrix[1]

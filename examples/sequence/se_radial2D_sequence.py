@@ -190,6 +190,13 @@ class SeRadial2DApp(sequences.SequenceApp):
         self.duration = (self.n_dummy + len(self.angles)) * sum(
             packet_time[len(packet)] for packet in self.packets
         )
+        self.resolve(
+            slice_thickness=self.exc.slice_thickness,
+            slice_spacing=self.slice_gap,
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+        )
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every spoke at each of its slices."""

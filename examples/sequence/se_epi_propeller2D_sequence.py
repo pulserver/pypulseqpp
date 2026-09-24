@@ -165,11 +165,13 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
                 f"TE {2 * half_te * 1e3:.1f} ms is shorter than the excitation "
                 f"half admits; the minimum is {2 * half_te_floor * 1e3:.1f} ms"
             )
-        self.echo_time = 2 * half_te
         self.blade = blade(first_line_te)
         raster = system.block_duration_raster
         wait = pp.round_to_raster(half_te - half_te_floor, raster)
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
+        # Each half is rounded to the raster on its own, so the echo time
+        # played is their sum.
+        self.echo_time = half_te_floor + wait + self.blade.echo_time + centre_delta
         self.gy_pre = pp.scale_grad(self.blade.gy_pre, self.blade.blade_start)
         # The last line sits this fraction of gy_pre from the centre, and the
         # closing block brings the phase-encode axis back from it.
@@ -215,6 +217,15 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
             slice_thickness + slice_gap
         )
         self.slab_thickness = n_slices * (slice_thickness + slice_gap) - slice_gap
+        self.resolve(
+            n_blades=self.blade.n_blades,
+            slice_thickness=self.exc.slice_thickness,
+            slice_gap=slice_thickness + slice_gap - self.exc.slice_thickness,
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.blade.bandwidth_hz,
+            n_gain_calibration_readouts=self.n_gain_calibration_readouts,
+        )
 
     def loop(self) -> None:
         """Play each pass: its dummy blades, then every blade at each of its slices."""

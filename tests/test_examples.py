@@ -234,6 +234,24 @@ def test_the_repetition_time_written_is_the_spacing_of_one_slices_excitations():
     assert excited[3] - excited[0] == pytest.approx(0.05)
 
 
+def test_the_resolved_slice_thickness_is_the_one_excited_and_the_gap_keeps_the_centres():
+    """The thickness is the pulse's bandwidth over its selection gradient."""
+    app = gre_app(n_slices=3, slice_thickness=4e-3, slice_spacing=1e-3)
+    seq = app.design()
+    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    excitations = [block for block in blocks if block.rf is not None]
+    selection = abs(excitations[0].gz.amplitude)
+    centres = sorted({round(b.rf.freq_offset / selection, 9) for b in excitations})
+    resolved = app.resolved
+
+    assert resolved["slice_thickness"] == pytest.approx(
+        pp.calc_rf_bandwidth(excitations[0].rf) / selection
+    )
+    assert np.diff(centres) == pytest.approx(
+        resolved["slice_thickness"] + resolved["slice_spacing"]
+    )
+
+
 def test_a_repetition_that_holds_whole_shots_takes_that_many_slices_a_packet():
     shot = gre_app().ro.duration + pp.Opts().block_duration_raster
     app = gre_app(n_slices=4, tr=2 * shot)
@@ -467,6 +485,52 @@ def test_the_scan_time_is_the_time_the_designed_chain_plays(name):
 @pytest.mark.parametrize("name", sequences.ZOO)
 def test_every_shipped_application_states_its_scan_time(name):
     assert application(name)(pp.Opts(), **SMALL[name]).duration is not None
+
+
+#: The definition a shipped application records each prescribed parameter as.
+RECORDED = {
+    "te": "TE",
+    "tr": "TR",
+    "ti": "TI",
+    "esp": "EchoSpacing",
+    "slice_thickness": "SliceThickness",
+    "slice_spacing": "SliceGap",
+    "tr_periphery": "TRPeriphery",
+    "etl_periphery": "EchoTrainLengthPeriphery",
+    "n_blades": "NumBlades",
+    "n_gain_calibration_readouts": "NumGainCalibrationReadouts",
+}
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_the_resolved_prescription_is_what_the_file_records(name):
+    """A multi-echo ``TE`` lists every echo: ``te``, then one ``echo_spacing`` apart."""
+    app = application(name)(pp.Opts(), **SMALL[name])
+    written, resolved = app.design().definitions, app.resolved
+    recorded = {
+        parameter: np.atleast_1d(written[key])
+        for parameter, key in RECORDED.items()
+        if parameter in resolved and key in written
+    }
+
+    assert "tr" in recorded
+    for parameter, values in recorded.items():
+        assert values[0] == pytest.approx(resolved[parameter]), parameter
+    if resolved.get("echo_spacing") is not None:
+        te = recorded["te"]
+        assert te == pytest.approx(
+            te[0] + resolved["echo_spacing"] * np.arange(len(te))
+        )
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
+    app = application(name)(pp.Opts(), **SMALL[name])
+    seq = app.design()
+    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    (dwell,) = {float(block.adc.dwell) for block in blocks if block.adc is not None}
+
+    assert 1 / dwell == pytest.approx(app.resolved["readout_bandwidth_hz"])
 
 
 def test_a_repeated_step_is_an_inc_and_any_other_change_a_set():
