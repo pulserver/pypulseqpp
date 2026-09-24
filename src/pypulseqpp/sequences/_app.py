@@ -32,24 +32,25 @@ system : pypulseqpp.Opts, default=None
 
 @dataclass(frozen=True)
 class ProtocolParameter:
-    """One prescribed parameter of an application, as ``init_sequence`` declares and documents it.
+    """One prescribed parameter of an application, as ``init_sequence`` declares and documents it."""
 
-    ``type`` is the scalar the annotation names -- bool, int, float or str --
-    and None for any other annotation; ``optional`` is whether the annotation
-    admits None, which leaves the value to the design. ``default`` is
-    `inspect.Parameter.empty` for a parameter without one. ``unit`` is the
-    first parenthesised group of the description's first sentence, the form
-    the shipped applications state units in, as in ``Echo time (s).``, and
-    empty where there is none. ``choices`` are the values a documented type
-    lists in braces, as in ``{'slab', 'nonselective'}``, in the order listed.
-    """
-
+    #: The keyword ``init_sequence`` takes.
     name: str
+    #: The scalar the annotation names, bool, int, float or str; None for any
+    #: other annotation.
     type: type | None
+    #: The default; `inspect.Parameter.empty` for a parameter without one.
     default: Any
+    #: Whether the annotation admits None, which leaves the value to the design.
     optional: bool
+    #: The first parenthesised group of the description's first sentence, the
+    #: form the shipped applications state units in, as in ``Echo time (s).``;
+    #: empty where there is none.
     unit: str
+    #: The values the documented type lists in braces, as in
+    #: ``{'slab', 'nonselective'}``, in the order listed; empty otherwise.
     choices: tuple[Any, ...]
+    #: The description in the Parameters section, on one line.
     description: str
 
 
@@ -101,9 +102,6 @@ class SequenceApp(ABC):
         The limits the sequence was designed under.
     seq : pypulseqpp.Sequence
         What has been played so far.
-    duration : float or None
-        Time the whole chain of prescans and main sequence plays, in
-        seconds, when ``init_sequence`` computes it; None otherwise.
 
     Examples
     --------
@@ -136,6 +134,8 @@ class SequenceApp(ABC):
     MAX_SLEW: float
     #: Written as the ``Name`` definition and the default file name.
     NAME: str = "sequence"
+    #: Time the whole chain of prescans and main sequence plays, in seconds,
+    #: when ``init_sequence`` computes it; None otherwise.
     duration: float | None = None
 
     def __init__(self, system: pp.Opts | None = None, **protocol: Any) -> None:
@@ -412,7 +412,7 @@ class SequenceApp(ABC):
 
     @property
     def resolved(self) -> dict[str, Any]:
-        """The prescription as designed: each parameter's value, by name, in its prescribed unit.
+        """The prescription as designed, by parameter name, in each parameter's prescribed unit.
 
         A parameter takes the value recorded with :meth:`resolve`, otherwise
         the requested value, otherwise its default.
