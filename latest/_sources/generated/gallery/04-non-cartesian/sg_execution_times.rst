@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:04.425** total execution time for 2 files **from generated/gallery/04-non-cartesian**:
+**00:04.473** total execution time for 2 files **from generated/gallery/04-non-cartesian**:
 
 .. container::
 
@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_04-non-cartesian_01_radial.py` (``01_radial.py``)
-     - 00:03.380
+     - 00:03.411
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_04-non-cartesian_02_spiral.py` (``02_spiral.py``)
-     - 00:01.045
+     - 00:01.062
      - 0.0
