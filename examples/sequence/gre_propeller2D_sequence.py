@@ -172,6 +172,9 @@ class GrePropeller2DApp(sequences.SequenceApp):
             n_slices * (slice_thickness + slice_spacing) - slice_spacing
         )
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
+        self.duration = (self.n_dummy + len(self.views)) * sum(
+            packet_time[len(packet)] for packet in self.packets
+        )
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every blade line at each of its slices."""

@@ -435,6 +435,13 @@ class Epi2DApp(sequences.SequenceApp):
             )
             self.gre_selection_amplitude = single.selection_amplitude
 
+        # The reference and the scan each open with the dummy cycles; the
+        # calibration is one gradient echo per line of every slice.
+        cycle_time = sum(packet_time[len(packet)] for packet in self.packets)
+        self.duration = (2 * self.dummy_cycles + (1 + n_frames) * n_shots) * cycle_time
+        if self.gre is not None:
+            self.duration += n_slices * len(self.calibration) * self.gre.duration
+
     def prescans(self) -> dict:
         """Return ``calibration`` (when undersampled or multiband) and ``reference``.
 

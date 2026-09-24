@@ -202,9 +202,13 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         for size in {len(group) for group in self.passes}:
             pad = 0.0 if tr is None else pp.round_to_raster(tr / size - shot, raster)
             self.waits[size] = pp.make_delay(pad) if pad > 0 else None
-        self.repetition_time = max(
-            size * (shot + (w.delay if w is not None else 0.0))
+        pass_time = {
+            size: size * (shot + (w.delay if w is not None else 0.0))
             for size, w in self.waits.items()
+        }
+        self.repetition_time = max(pass_time.values())
+        self.duration = (n_dummy + self.blade.n_blades) * sum(
+            pass_time[len(group)] for group in self.passes
         )
 
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (

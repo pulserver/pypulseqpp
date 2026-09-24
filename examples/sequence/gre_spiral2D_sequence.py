@@ -191,6 +191,9 @@ class GreSpiral2DApp(sequences.SequenceApp):
             n_slices * (slice_thickness + slice_spacing) - slice_spacing
         )
         self.slice_gap = slice_thickness + slice_spacing - self.exc.slice_thickness
+        self.duration = (self.n_dummy + len(self.angles)) * sum(
+            packet_time[len(packet)] for packet in self.packets
+        )
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every interleaf at each of its slices."""

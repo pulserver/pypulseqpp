@@ -464,6 +464,11 @@ def test_the_scan_time_is_the_time_the_designed_chain_plays(name):
     assert stated == pytest.approx(sum(designed) + app.design().duration()[0])
 
 
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_every_shipped_application_states_its_scan_time(name):
+    assert application(name)(pp.Opts(), **SMALL[name]).duration is not None
+
+
 def test_a_repeated_step_is_an_inc_and_any_other_change_a_set():
     app = gre_app()
     kinds = [
