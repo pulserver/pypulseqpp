@@ -47,6 +47,27 @@ def _section(doc: str | None, name: str) -> list[str]:
     return []
 
 
+def _entries(lines: list[str]) -> list[tuple[str, list[str]]]:
+    """Pair each entry's header with its description lines.
+
+    A header ending in a backslash continues on the next unindented line.
+    """
+    entries: list[tuple[str, list[str]]] = []
+    continued = ""
+    for line in lines:
+        if not line.strip():
+            continue
+        if line[0].isspace():
+            if entries:
+                entries[-1][1].append(line.strip())
+        elif line.endswith("\\"):
+            continued += line[:-1] + ","
+        else:
+            entries.append((continued + line, []))
+            continued = ""
+    return entries
+
+
 def documented(doc: str | None) -> dict[str, tuple[str, str]]:
     """Return the type and the description of each parameter a docstring documents.
 
@@ -56,25 +77,15 @@ def documented(doc: str | None) -> dict[str, tuple[str, str]]:
     backslash. The description is returned on one line; a name described twice
     keeps its first description, and a name with no description is omitted.
     """
-    described: dict[str, tuple[str, list[str]]] = {}
-    current: list[str] | None = None
-    pending: list[str] = []
-    for line in _section(doc, "Parameters"):
-        if not line.strip():
+    described: dict[str, tuple[str, str]] = {}
+    seen: set[str] = set()
+    for header, text in _entries(_section(doc, "Parameters")):
+        listed, _, kind = header.partition(":")
+        names = [name.strip() for name in listed.split(",") if name.strip()]
+        if not names or names[0] in seen:
             continue
-        if line[0].isspace():
-            if current is not None:
-                current.append(line.strip())
-            continue
-        listed, _, kind = line.removesuffix("\\").partition(":")
-        names = pending + [n.strip() for n in listed.split(",") if n.strip()]
-        if line.endswith("\\"):
-            pending = names
-            continue
-        pending = []
-        current = None if names[0] in described else []
-        for name in names if current is not None else ():
-            described.setdefault(name, (kind.strip(), current))
-    return {
-        name: (kind, " ".join(text)) for name, (kind, text) in described.items() if text
-    }
+        seen.update(names)
+        if text:
+            for name in names:
+                described.setdefault(name, (kind.strip(), " ".join(text)))
+    return described
