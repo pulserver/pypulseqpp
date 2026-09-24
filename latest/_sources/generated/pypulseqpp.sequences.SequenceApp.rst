@@ -20,9 +20,12 @@
    ~SequenceApp.kernel
    ~SequenceApp.labels
    ~SequenceApp.loop
+   ~SequenceApp.parameters
    ~SequenceApp.prescans
    ~SequenceApp.protocol
+   ~SequenceApp.resolve
    ~SequenceApp.restart_labels
+   ~SequenceApp.scan_time
    ~SequenceApp.write
 
 
@@ -34,7 +37,9 @@
    :nosignatures:
 
    ~SequenceApp.NAME
+   ~SequenceApp.duration
    ~SequenceApp.main
+   ~SequenceApp.resolved
    ~SequenceApp.MAX_GRAD
    ~SequenceApp.MAX_SLEW
 

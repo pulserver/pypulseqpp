@@ -545,7 +545,10 @@ application, its scan loop and its prescan chain are described in
 <section id="base-class">
 <h2>Base class<a class="headerlink" href="#base-class" title="Link to this heading">#</a></h2>
 <p>Every concrete subclass sets <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (mT/m) and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (T/m/s);
-<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>’s signature and Parameters section are the prescription.</p>
+<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>’s signature and Parameters section are the prescription.
+<code class="docutils literal notranslate"><span class="pre">parameters()</span></code> returns that prescription one parameter at a time, and a
+constructed application reports its resolved prescription, <code class="docutils literal notranslate"><span class="pre">resolved</span></code>, and its
+scan time, <code class="docutils literal notranslate"><span class="pre">scan_time()</span></code>, without playing the loop.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
@@ -559,6 +562,11 @@ application, its scan loop and its prescan chain are described in
 <td><p>System limits, prescription keywords for <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code></p></td>
 <td><p>Application; <code class="docutils literal notranslate"><span class="pre">design()</span></code> returns the <code class="docutils literal notranslate"><span class="pre">Sequence</span></code></p></td>
 <td><p>Base class of complete sequence implementations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a></p></td>
+<td><p>Returned by <code class="docutils literal notranslate"><span class="pre">SequenceApp.parameters()</span></code></p></td>
+<td><p>Frozen record</p></td>
+<td><p>One prescribed parameter: its type, default, unit, choices and description.</p></td>
 </tr>
 </tbody>
 </table>

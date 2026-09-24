@@ -15,6 +15,7 @@ from.
    :nosignatures:
 
    SequenceApp
+   ProtocolParameter
 
 .. currentmodule:: pypulseqpp.cli
 

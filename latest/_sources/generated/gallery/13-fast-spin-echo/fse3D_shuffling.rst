@@ -137,7 +137,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.658 seconds)
+   **Total running time of the script:** (0 minutes 0.717 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

@@ -526,6 +526,7 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-structure">Application structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-and-settings">Prescription and settings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans">Prescans</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
@@ -552,10 +553,12 @@ the Pulseq definitions required by reconstruction (<code class="docutils literal
 runs <code class="docutils literal notranslate"><span class="pre">loop</span></code> and applies <code class="docutils literal notranslate"><span class="pre">finalize</span></code>. A direct application call adds one
 kernel, so single-repetition inspection and complete design use the same code
 path.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> signature is the prescription exposed by <code class="docutils literal notranslate"><span class="pre">protocol</span></code>, the
-command line and protocol editors. Fixed design choices are class attributes,
-and construction caps the supplied system limits to the application’s
-<code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> signature is the prescription exposed by <code class="docutils literal notranslate"><span class="pre">protocol</span></code>,
+<code class="docutils literal notranslate"><span class="pre">parameters</span></code>, the command line and protocol editors. Fixed design choices
+are class attributes, and construction caps the supplied system limits to
+the application’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p>Construction checks a prescription. The resolved prescription and the scan
+time are recorded by <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> and read without playing the loop.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kernel</span></code> records encoding indices as Pulseq labels.
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> recovers their ADC order from
 the sequence, so sampling figures can use the implemented acquisition order.</p></li>
@@ -613,6 +616,35 @@ system limits to these values.</p>
 </div>
 <p>Changing a design limit redesigns the gradient waveforms and may alter echo
 spacing, acquisition duration, and constraint estimates.</p>
+</section>
+<section id="checking-a-prescription">
+<h2>Checking a prescription<a class="headerlink" href="#checking-a-prescription" title="Link to this heading">#</a></h2>
+<p>A protocol editor checks a prescription whenever a value changes, and shows
+the resulting timing before anything is written. Construction is that check:
+<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> designs the events and the timing, and raises when the
+prescription cannot be designed. The loop contributes only the blocks, whose
+number grows with the matrix, so the check ends at construction. It does not
+evaluate the waveforms against gradient, PNS or SAR limits, which take the
+designed sequence (<a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>).</p>
+<p>Two results are read from the constructed application:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.resolved.html#pypulseqpp.sequences.SequenceApp.resolved" title="pypulseqpp.sequences.SequenceApp.resolved"><code class="xref py py-attr docutils literal notranslate"><span class="pre">resolved</span></code></a>, the prescription as
+designed. A value the design chooses, such as the shortest echo time for
+<code class="docutils literal notranslate"><span class="pre">te=None</span></code>, or adjusts, such as a receiver bandwidth whose dwell time is
+rounded to the ADC raster, is recorded by <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> with
+<a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.resolve.html#pypulseqpp.sequences.SequenceApp.resolve" title="pypulseqpp.sequences.SequenceApp.resolve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resolve()</span></code></a> and reported in place of
+the requested value.</p></li>
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.scan_time.html#pypulseqpp.sequences.SequenceApp.scan_time" title="pypulseqpp.sequences.SequenceApp.scan_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scan_time()</span></code></a>, the duration of the
+whole chain, prescans included. <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> computes it from the timing
+it designed and stores it as <code class="docutils literal notranslate"><span class="pre">duration</span></code>; without it, the chain is designed
+and timed, at the cost of writing it.</p></li>
+</ul>
+<p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.parameters.html#pypulseqpp.sequences.SequenceApp.parameters" title="pypulseqpp.sequences.SequenceApp.parameters"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parameters()</span></code></a> describes the
+prescription to the editor: the type, default, unit and choices of each
+parameter, read from the annotation, the default and the Parameters section.
+The unit is the parenthesised group in the first sentence of a parameter’s
+description, <code class="docutils literal notranslate"><span class="pre">Echo</span> <span class="pre">time</span> <span class="pre">(s).</span></code>, and the choices of a string parameter are the
+values its documented type lists in braces.</p>
 </section>
 <section id="encoding-labels">
 <h2>Encoding labels<a class="headerlink" href="#encoding-labels" title="Link to this heading">#</a></h2>
@@ -690,6 +722,7 @@ a single repeating unit per file for repetition-based analyses.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-structure">Application structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-and-settings">Prescription and settings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans">Prescans</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>

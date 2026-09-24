@@ -182,7 +182,7 @@ the pitch at larger radii, reducing the readout duration.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.392 seconds)
+   **Total running time of the script:** (0 minutes 1.400 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

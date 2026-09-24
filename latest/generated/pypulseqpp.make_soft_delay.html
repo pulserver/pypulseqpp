@@ -551,15 +551,15 @@ real-time sequence adjustments.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hint</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Human-readable identifier for the soft delay shown in the scanner interface.
 Must not contain whitespace characters. Examples: ‘TE’, ‘TR’, ‘TI’.</p></li>
-<li><p><strong>numID</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Numeric identifier for the soft delay. If None (recommended), will be
+<li><p><strong>numID</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.optional.html#pypulseqpp.sequences.ProtocolParameter.optional" title="pypulseqpp.sequences.ProtocolParameter.optional"><em>optional</em></a>) – Numeric identifier for the soft delay. If None (recommended), will be
 auto-assigned based on the hint. Each unique hint gets its own numID.
 Rarely needed - only specify if you need explicit control over scanner
 interface ordering.</p></li>
-<li><p><strong>offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Time offset in seconds added to the calculated duration. Can be positive
+<li><p><strong>offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.optional.html#pypulseqpp.sequences.ProtocolParameter.optional" title="pypulseqpp.sequences.ProtocolParameter.optional"><em>optional</em></a>) – Time offset in seconds added to the calculated duration. Can be positive
 or negative. Default is 0.0.</p></li>
-<li><p><strong>factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Scaling factor for user input. Determines how the user input maps to
+<li><p><strong>factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.optional.html#pypulseqpp.sequences.ProtocolParameter.optional" title="pypulseqpp.sequences.ProtocolParameter.optional"><em>optional</em></a>) – Scaling factor for user input. Determines how the user input maps to
 actual duration. Can be positive or negative. Default is 1.0.</p></li>
-<li><p><strong>default_duration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Default duration in seconds used as the initial block duration and
+<li><p><strong>default_duration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.optional.html#pypulseqpp.sequences.ProtocolParameter.optional" title="pypulseqpp.sequences.ProtocolParameter.optional"><em>optional</em></a>) – Default duration in seconds used as the initial block duration and
 fallback value. Must be greater than 0. Default is 10e-6 (10 μs).</p></li>
 </ul>
 </dd>
