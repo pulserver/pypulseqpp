@@ -7,81 +7,23 @@ __all__ = ["run"]
 import argparse as _argparse
 import inspect as _inspect
 import re as _re
-import types as _types
 import typing as _typing
 
 import pypulseqpp as _pp
+from pypulseqpp._prescription import documented as _documented
+from pypulseqpp._prescription import scalar as _scalar
 
 #: What :func:`run` answers for itself rather than deriving a flag from. The
 #: first four are the calling convention a sequence script is written to --
 #: PyPulseq's own -- and ``system`` is built from the limit options.
 _RESERVED = ("plot", "test_report", "write_seq", "seq_filename", "system")
 
-#: The annotations a flag can be made from. A parameter annotated with
-#: anything else -- a system, an array, a callable -- is left to the caller.
-_SCALARS = (bool, int, float, str)
-
-
-def _scalar(annotation) -> type | None:
-    """Return the first supported scalar type in an annotation or union."""
-    if annotation is _inspect.Parameter.empty:
-        return None
-    members = (
-        _typing.get_args(annotation)
-        if _typing.get_origin(annotation) in (_typing.Union, _types.UnionType)
-        else (annotation,)
-    )
-    return next((member for member in members if member in _SCALARS), None)
-
 
 def _described(doc: str | None) -> dict[str, str]:
-    """Return one sentence of help per parameter, taken from the function's own docstring.
-
-    A NumPy ``Parameters`` block states each name, then its description
-    indented under it; several names sharing a description are comma
-    separated, and a long list of them wraps with a trailing backslash. The
-    help is the description's first sentence, however many lines it spans.
-    """
-    lines = _inspect.cleandoc(doc or "").splitlines()
-    try:
-        start = next(
-            i + 2
-            for i, line in enumerate(lines[:-1])
-            if line.strip() == "Parameters" and set(lines[i + 1].strip()) == {"-"}
-        )
-    except StopIteration:
-        return {}
-
-    described: dict[str, list[str]] = {}
-    current: list[str] | None = None
-    pending: list[str] = []
-    heading = ""
-    for line in lines[start:]:
-        if not line.strip():
-            continue
-        if line[0].isspace():
-            if current is not None:
-                current.append(line.strip())
-            continue
-        if heading and set(line.strip()) == {"-"}:
-            break  # the next section's underline
-        heading = line
-        header = line[:-1] if line.endswith("\\") else line
-        names = pending + [
-            n.strip() for n in header.split(":")[0].split(",") if n.strip()
-        ]
-        if line.endswith("\\"):
-            pending = names
-            continue
-        pending = []
-        # A name described twice keeps its first description.
-        current = None if names[0] in described else []
-        for name in names if current is not None else ():
-            described.setdefault(name, current)
+    """Return one sentence of help per parameter: its description's first sentence."""
     return {
-        name: _re.split(r"(?<=\.)\s", " ".join(text), maxsplit=1)[0]
-        for name, text in described.items()
-        if text
+        name: _re.split(r"(?<=\.)\s", text, maxsplit=1)[0]
+        for name, (_, text) in _documented(doc).items()
     }
 
 

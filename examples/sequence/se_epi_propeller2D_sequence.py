@@ -62,7 +62,7 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         Parameters
         ----------
         fov : float, default=0.22
-            Isotropic in-plane field of view, in metres.
+            Isotropic in-plane field of view (m).
         n_x : int, default=128
             In-plane matrix size.
         blade_width : int, default=16
@@ -70,26 +70,26 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         n_blades : int or None, default=None
             Blades in the set. ``None`` is the smallest count that samples the
             rim of k-space at Nyquist.
-        angle_scheme : str, default='uniform'
-            ``'uniform'`` or ``'golden'``, spread over half a turn.
+        angle_scheme : {'uniform', 'golden'}, default='uniform'
+            Spacing of the blade angles, spread over half a turn.
         n_slices : int, default=1
             Number of slices.
         slice_thickness : float, default=0.005
-            Slice thickness, in metres.
+            Slice thickness (m).
         slice_gap : float, default=0.0
-            Gap between adjacent slices, in metres.
-        slice_order : str, default='interleaved'
+            Gap between adjacent slices (m).
+        slice_order : {'sequential', 'reverse', 'interleaved', 'center_out', 'outside_in', 'random'}, default='interleaved'
             Order the slices of one pass are excited in, as
-            :func:`~pypulseqpp.make_traversal_order` accepts.
+            :func:`~pypulseqpp.make_traversal_order` visits them.
         te : float or None, default=0.08
             Effective echo time, excitation centre to the blade's central
-            line, in seconds. ``None`` is as short as possible.
+            line (s). ``None`` is as short as possible.
         tr : float or None, default=2.0
-            Repetition time between successive excitations of one slice, in
-            seconds. ``None`` is as short as possible, and puts every slice in
-            one pass.
+            Repetition time between successive excitations of one slice (s).
+            ``None`` is as short as possible, and puts every slice in one
+            pass.
         readout_bandwidth_hz : float, default=250000.0
-            Requested receiver bandwidth, in Hz.
+            Requested receiver bandwidth (Hz).
         crusher_cycles : float, default=4.0
             Cycles of dephasing each crusher beside the refocusing pulse winds.
         n_dummy : int, default=0
