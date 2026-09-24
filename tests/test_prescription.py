@@ -40,8 +40,8 @@ def test_a_name_without_a_description_is_left_out():
 
 
 def test_a_docstring_without_parameters_documents_nothing():
-    assert documented("Summary.\n\nReturns\n-------\nint\n    One.\n") == {}
-    assert documented(None) == {}
+    assert not documented("Summary.\n\nReturns\n-------\nint\n    One.\n")
+    assert not documented(None)
 
 
 def test_a_scalar_is_read_from_an_annotation_or_a_union():

@@ -458,7 +458,7 @@ def test_a_stated_scan_time_is_reported_without_designing():
     app = Stated(n=4)
 
     assert app.scan_time() == pytest.approx(40e-3)
-    assert app.loops == 0
+    assert not app.loops
 
 
 def test_without_a_stated_scan_time_the_whole_chain_is_designed_and_timed():

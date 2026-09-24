@@ -197,7 +197,7 @@ def test_a_wave_amplitude_beyond_the_system_limits_resolves_to_the_one_built(nam
 def test_a_wave_that_is_not_played_resolves_to_zero_amplitude(name):
     built = app(name, wave_amplitude=8e-3, wave_cycles=0)
 
-    assert built.resolved["wave_amplitude"] == 0.0
+    assert not built.resolved["wave_amplitude"]
 
 
 @pytest.mark.parametrize("name", SMALL)
