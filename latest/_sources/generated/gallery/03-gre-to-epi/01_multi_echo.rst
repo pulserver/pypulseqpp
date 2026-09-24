@@ -388,7 +388,7 @@ number of echoes and a shorter shortest echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.355 seconds)
+   **Total running time of the script:** (0 minutes 0.348 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_01_multi_echo.py:
