@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import itertools
 import types
 import typing
 
@@ -26,6 +27,26 @@ def accepts_none(annotation: typing.Any) -> bool:
     return any(member in (None, type(None)) for member in _members(annotation))
 
 
+def _is_heading(lines: list[str], i: int) -> bool:
+    """Check whether line ``i`` is a NumPy section heading: a name underlined with dashes."""
+    return (
+        i + 1 < len(lines)
+        and bool(lines[i].strip())
+        and not lines[i][0].isspace()
+        and set(lines[i + 1].strip()) == {"-"}
+    )
+
+
+def _section(doc: str | None, name: str) -> list[str]:
+    """Return the lines of a NumPy section's body, up to the next heading."""
+    lines = inspect.cleandoc(doc or "").splitlines()
+    starts = [i for i in range(len(lines)) if _is_heading(lines, i)]
+    for at, following in itertools.pairwise([*starts, len(lines)]):
+        if lines[at].strip() == name:
+            return lines[at + 2 : following]
+    return []
+
+
 def documented(doc: str | None) -> dict[str, tuple[str, str]]:
     """Return the type and the description of each parameter a docstring documents.
 
@@ -35,32 +56,17 @@ def documented(doc: str | None) -> dict[str, tuple[str, str]]:
     backslash. The description is returned on one line; a name described twice
     keeps its first description, and a name with no description is omitted.
     """
-    lines = inspect.cleandoc(doc or "").splitlines()
-    try:
-        start = next(
-            i + 2
-            for i, line in enumerate(lines[:-1])
-            if line.strip() == "Parameters" and set(lines[i + 1].strip()) == {"-"}
-        )
-    except StopIteration:
-        return {}
-
     described: dict[str, tuple[str, list[str]]] = {}
     current: list[str] | None = None
     pending: list[str] = []
-    heading = ""
-    for line in lines[start:]:
+    for line in _section(doc, "Parameters"):
         if not line.strip():
             continue
         if line[0].isspace():
             if current is not None:
                 current.append(line.strip())
             continue
-        if heading and set(line.strip()) == {"-"}:
-            break  # the next section's underline
-        heading = line
-        header = line[:-1] if line.endswith("\\") else line
-        listed, _, kind = header.partition(":")
+        listed, _, kind = line.removesuffix("\\").partition(":")
         names = pending + [n.strip() for n in listed.split(",") if n.strip()]
         if line.endswith("\\"):
             pending = names
