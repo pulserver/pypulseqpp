@@ -69,13 +69,13 @@ designed sequence ({doc}`../safety/index`).
 
 Two results are read from the constructed application:
 
-- {attr}`~pypulseqpp.sequences.SequenceApp.resolved`, the prescription as
+* {attr}`~pypulseqpp.sequences.SequenceApp.resolved`, the prescription as
   designed. A value the design chooses, such as the shortest echo time for
   `te=None`, or adjusts, such as a receiver bandwidth whose dwell time is
   rounded to the ADC raster, is recorded by `init_sequence` with
   {meth}`~pypulseqpp.sequences.SequenceApp.resolve` and reported in place of
   the requested value.
-- {meth}`~pypulseqpp.sequences.SequenceApp.scan_time`, the duration of the
+* {meth}`~pypulseqpp.sequences.SequenceApp.scan_time`, the duration of the
   whole chain, prescans included. `init_sequence` computes it from the timing
   it designed and stores it as `duration`; without it, the chain is designed
   and timed, at the cost of writing it.
