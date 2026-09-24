@@ -16,6 +16,8 @@ from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
 from ._kspace import calculate_kspace as _calculate_kspace
 from ._kspace import detail as _kspace_detail
+from ._libraries import SequenceLibraries
+from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
 from ._waveforms import adc_times as _adc_times
@@ -1632,6 +1634,33 @@ class Sequence:
         )["id"]
 
     # -- files ---------------------------------------------------------
+
+    def libraries(self) -> SequenceLibraries:
+        """Return the block table and every library, as a Pulseq file of the sequence holds them.
+
+        The ids are this sequence's own. :meth:`write` with
+        ``remove_duplicates=False`` writes these rows under these ids; by
+        default it writes a collapsed copy, whose ids differ wherever two rows
+        were equal. Taking the tables changes nothing, so a shape registered
+        and not yet encoded, which the writer encodes on the way out, comes
+        back as its samples.
+
+        Returns
+        -------
+        pypulseqpp.io.SequenceLibraries
+            A snapshot, in read-only arrays that no later edit reaches.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))
+        1
+        >>> tables = seq.libraries()
+        >>> tables.blocks.tolist(), tables.trapezoid_ids.tolist()
+        ([[0, 1, 0, 0, 0, 0]], [1])
+        """
+        return _libraries(self._native)
 
     def write(
         self,

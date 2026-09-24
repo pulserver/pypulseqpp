@@ -1,13 +1,14 @@
-"""Reading a Pulseq file into a sequence that carries its system, and writing one out."""
+"""Reading a Pulseq file into a sequence that carries its system, writing one out, and its tables."""
 
 from __future__ import annotations
 
-__all__ = ["read", "write"]
+__all__ = ["SequenceLibraries", "Shape", "read", "write"]
 
 import os as _os
 
 import pypulseqpp as _pp
 from pypulseqpp import safety as _safety
+from pypulseqpp._libraries import SequenceLibraries, Shape
 
 #: Definitions a file may state its design limits in, and the ``Opts``
 #: argument each one supplies. A file written by this package carries none of

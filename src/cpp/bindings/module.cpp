@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 
 #include <array>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -332,6 +333,126 @@ namespace
             {item * pulseq::BLOCK_WIDTH},
             first,
             keep_alive_capsule(std::move(buffer)));
+    }
+
+    /** Rows of @p width as an (n, width) array of their own. */
+    template <typename T>
+    py::array_t<T> rows_copy(const T* values, int rows, int width)
+    {
+        py::array_t<T> out({static_cast<py::ssize_t>(rows), static_cast<py::ssize_t>(width)});
+        if (rows > 0)
+            std::memcpy(
+                out.mutable_data(),
+                values,
+                sizeof(T) * static_cast<size_t>(rows) * static_cast<size_t>(width));
+        return out;
+    }
+
+    template <typename T> py::array_t<T> table_copy(const pulseq::BasicTable<T>& table)
+    {
+        return rows_copy(table.data(), table.size(), table.width());
+    }
+
+    /**
+     * Every library of @p seq, copied, under the ids its blocks name.
+     *
+     * The gradients are split as a file splits them: trapezoids and
+     * arbitrary gradients share one numbering, so each table comes with the
+     * ids its rows hold. Labels are named rather than numbered, because a
+     * label id is only this sequence's index into its own table.
+     */
+    py::dict libraries_of(const pulseq::Sequence& seq)
+    {
+        py::dict out;
+        out["rf"] = table_copy(seq.rf_library());
+        const std::vector<char>& uses = seq.rf_uses();
+        py::list use_names;
+        for (size_t id = 1; id <= static_cast<size_t>(seq.rf_library().size()); ++id)
+            use_names.append(pulseqpp_decode::use_name(id <= uses.size() ? uses[id - 1] : 'u'));
+        out["rf_use"] = use_names;
+
+        std::vector<int32_t> trapezoid_ids;
+        std::vector<int32_t> arbitrary_ids;
+        std::vector<double> trapezoids;
+        std::vector<double> arbitrary;
+        for (int id = 1; id <= seq.num_gradients(); ++id)
+        {
+            const bool trapezoid = seq.grad_kind(id) == pulseq::GradKind::Trap;
+            const double* row = trapezoid ? seq.trap_library().row(seq.grad_row(id))
+                                          : seq.arb_library().row(seq.grad_row(id));
+            std::vector<double>& into = trapezoid ? trapezoids : arbitrary;
+            (trapezoid ? trapezoid_ids : arbitrary_ids).push_back(id);
+            into.insert(into.end(), row, row + (trapezoid ? pulseq::TRAP_WIDTH : pulseq::ARB_WIDTH));
+        }
+        out["trapezoid_ids"] = py::array_t<int32_t>(
+            static_cast<py::ssize_t>(trapezoid_ids.size()), trapezoid_ids.data());
+        out["trapezoids"] = rows_copy(
+            trapezoids.data(), static_cast<int>(trapezoid_ids.size()), pulseq::TRAP_WIDTH);
+        out["arbitrary_gradient_ids"] = py::array_t<int32_t>(
+            static_cast<py::ssize_t>(arbitrary_ids.size()), arbitrary_ids.data());
+        out["arbitrary_gradients"] = rows_copy(
+            arbitrary.data(), static_cast<int>(arbitrary_ids.size()), pulseq::ARB_WIDTH);
+
+        out["adc"] = table_copy(seq.adc_library());
+
+        const pulseq::ShapeLibrary& shapes = seq.shape_library();
+        py::list shape_rows;
+        for (int id = 1; id <= shapes.size(); ++id)
+            shape_rows.append(py::make_tuple(
+                shapes.num_uncompressed(id),
+                py::array_t<double>(
+                    static_cast<py::ssize_t>(shapes.num_compressed(id)), shapes.samples(id))));
+        out["shapes"] = shape_rows;
+
+        out["extensions"] = table_copy(seq.extensions_library());
+        py::dict types;
+        for (const auto& entry : seq.extension_types())
+            types[py::str(entry.second)] = entry.first;
+        out["extension_types"] = types;
+        out["triggers"] = table_copy(seq.trigger_library());
+        out["rotations"] = table_copy(seq.rotation_library());
+
+        const std::pair<const char*, const pulseq::IntTable*> labels[] = {
+            {"label_set", &seq.label_set_library()}, {"label_inc", &seq.label_inc_library()}};
+        for (const auto& library : labels)
+        {
+            const int rows = library.second->size();
+            py::array_t<int32_t> values(static_cast<py::ssize_t>(rows));
+            py::list names;
+            for (int id = 1; id <= rows; ++id)
+            {
+                const int32_t* row = library.second->row(id);
+                values.mutable_data()[id - 1] = row[0];
+                // Named as the writer names it, so the export and the file agree.
+                const std::string& name = seq.label_name(row[1]);
+                names.append(name.empty() ? "UNKNOWN" : name);
+            }
+            out[py::str(std::string(library.first) + "_values")] = values;
+            out[py::str(std::string(library.first) + "_labels")] = names;
+        }
+
+        const pulseq::RaggedTable& shims = seq.rf_shim_library();
+        py::list shim_rows;
+        for (int id = 1; id <= shims.size(); ++id)
+            shim_rows.append(
+                py::array_t<double>(static_cast<py::ssize_t>(shims.length(id)), shims.row(id)));
+        out["rf_shims"] = shim_rows;
+
+        const std::vector<pulseq::SoftDelay>& delays = seq.soft_delay_library();
+        py::array_t<double> soft_delays(
+            {static_cast<py::ssize_t>(delays.size()), static_cast<py::ssize_t>(3)});
+        py::list hints;
+        for (size_t i = 0; i < delays.size(); ++i)
+        {
+            double* row = soft_delays.mutable_data() + 3 * i;
+            row[0] = delays[i].num;
+            row[1] = delays[i].offset;
+            row[2] = delays[i].factor;
+            hints.append(delays[i].hint);
+        }
+        out["soft_delays"] = soft_delays;
+        out["soft_delay_hints"] = hints;
+        return out;
     }
 
 } // namespace
@@ -817,6 +938,11 @@ PYBIND11_MODULE(_ext, module)
             py::arg("index"),
             "Block `index` (1-based) as the events it plays, rather than as "
             "the ids they are stored under.")
+        .def(
+            "libraries",
+            [](const Sequence& self) { return libraries_of(self); },
+            "Every event, shape and extension library, copied, by the names "
+            "SequenceLibraries gives them.")
         .def("num_blocks", &Sequence::num_blocks)
         .def("edits", &Sequence::edits,
              "How many times the sequence has been edited; it only rises.")

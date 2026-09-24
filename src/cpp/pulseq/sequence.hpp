@@ -1033,6 +1033,11 @@ namespace pulseq
         int find_extension_type_id(const std::string& name) const;
         /** The name an id was registered under, or empty. */
         const std::string& extension_type_name(int id) const;
+        /** Every registered name, by the id it is written under. */
+        const std::map<int, std::string>& extension_types() const
+        {
+            return extension_names_;
+        }
         /** Force a name to a given id, as reading a file does. */
         void set_extension_type_id(const std::string& name, int id);
 
