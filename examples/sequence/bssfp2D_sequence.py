@@ -232,10 +232,11 @@ class Bssfp2DApp(sequences.SequenceApp):
                 ]
         self.n_segments = len(segments)
 
-        # Half flip, the repetitions and the closing rewind; a prospective
-        # heartbeat lasts until the next trigger.
+        # The half flip takes half a TR and each repetition a TR, the last one's
+        # closing rewind included; a prospective heartbeat lasts until the next
+        # trigger.
         repetitions = sum(item is not None for item in self.train)
-        self.slice_duration = (repetitions + 1.5) * self.ro.tr
+        self.slice_duration = (repetitions + 0.5) * self.ro.tr
         if gating == "prospective":
             self.slice_duration = self.n_segments * rr
         if self.slice_duration > self.MAX_SLICE_DURATION:

@@ -209,7 +209,8 @@ class Bssfp3DApp(sequences.SequenceApp):
         self.increments = [
             np.pi + 2 * np.pi * k / n_phase_cycles for k in range(n_phase_cycles)
         ]
-        self.duration = n_phase_cycles * (len(self.views) + 1) * ro.tr
+        # Each cycle's catalyst takes half a TR.
+        self.duration = n_phase_cycles * (len(self.views) + 0.5) * ro.tr
 
     def prescans(self) -> dict:
         """Return every file but the last cycle: each cycle's catalyst, then the cycle.
