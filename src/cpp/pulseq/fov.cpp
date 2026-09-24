@@ -524,6 +524,52 @@ namespace pulseq
             return rebuilt;
         }
 
+        /**
+         * The rotation a block's row carries, as a matrix; false for none.
+         *
+         * A rotated block plays R g, so a translation d in the logical frame
+         * is, to that block's own axes, R^T d, and what it sweeps along them
+         * is R times that in the logical frame.
+         */
+        bool block_rotation(const Sequence& seq, const int32_t* row, double matrix[3][3])
+        {
+            const int32_t turn = row[BLOCK_ROTATION_COLUMN];
+            if (turn < 1 || turn > seq.rotation_library().size())
+                return false;
+            rotation_matrix(seq.rotation_library().row(turn), matrix);
+            return true;
+        }
+
+        /** Turn @p vector by the transpose of @p matrix, in place. */
+        void unrotate(const double matrix[3][3], double vector[3])
+        {
+            const double x = vector[0];
+            const double y = vector[1];
+            const double z = vector[2];
+            for (int axis = 0; axis < 3; ++axis)
+                vector[axis] =
+                    matrix[0][axis] * x + matrix[1][axis] * y + matrix[2][axis] * z;
+        }
+
+        /**
+         * advance_walk() for a block played through @p matrix: the walk is
+         * taken along the block's own axes and handed back in the logical
+         * frame, where a reset and a turn-over mean the same.
+         */
+        void advance_turned_walk(
+            const Sequence& seq,
+            const int32_t* row,
+            const Played played[3],
+            const double matrix[3][3],
+            double origin[3],
+            double swept[3])
+        {
+            unrotate(matrix, origin);
+            advance_walk(seq, row, played, origin, swept);
+            rotate(matrix, origin);
+            rotate(matrix, swept);
+        }
+
     } // namespace
 
     bool advance_origin(char use, const double at[3], double origin[3])
@@ -790,7 +836,8 @@ namespace pulseq
         int last,
         double carry[3],
         double origin[3],
-        const unsigned char* exempt)
+        const unsigned char* exempt,
+        bool through_rotation)
     {
         const int blocks = seq.num_blocks();
         const int from = first > 1 ? first : 1;
@@ -835,6 +882,8 @@ namespace pulseq
                         drawn.at(0.0, over[axis].times);
                 }
 
+                double turned[3][3];
+                const bool rotated = through_rotation && block_rotation(seq, row, turned);
                 const int32_t adc_id = row[4];
                 const bool writes = exempt == nullptr ||
                     exempt[static_cast<size_t>(index - from)] == 0;
@@ -844,9 +893,12 @@ namespace pulseq
                     const int samples = static_cast<int>(adc[0]);
                     if (samples > 0)
                     {
+                        double own[3] = {walking[0], walking[1], walking[2]};
+                        if (rotated)
+                            unrotate(turned, own);
                         double nearest = 0.0;
-                        const double when = echo_at(
-                            over, walking, samples, adc[1], adc[2], &nearest);
+                        const double when =
+                            echo_at(over, own, samples, adc[1], adc[2], &nearest);
                         const size_t at = static_cast<size_t>(index) - 1;
                         const std::pair<int32_t, int32_t> key = {
                             at < block_defs.size() ? block_defs[at] : 0,
@@ -857,7 +909,13 @@ namespace pulseq
                     }
                 }
 
-                advance_walk(seq, row, over, walking);
+                if (rotated)
+                {
+                    double ignored[3];
+                    advance_turned_walk(seq, row, over, turned, walking, ignored);
+                }
+                else
+                    advance_walk(seq, row, over, walking);
             }
         }
 
@@ -910,6 +968,14 @@ namespace pulseq
             for (int axis = 0; axis < 3; ++axis)
                 entering = turns(entering + turns(shift_m[axis] * carry[axis]));
 
+            /* The translation along the block's own axes, the ones its
+             * gradients are drawn on: a rotated block plays them turned. */
+            double turned[3][3];
+            const bool rotated = through_rotation && block_rotation(seq, row, turned);
+            double shift[3] = {shift_m[0], shift_m[1], shift_m[2]};
+            if (rotated)
+                unrotate(turned, shift);
+
             const int32_t rf_id = row[0];
             if (rf_id > 0 && writes)
             {
@@ -927,7 +993,7 @@ namespace pulseq
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
+                    if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
                         continue;
                     /* A pulse under a gradient that does not change is a
                      * frequency and a phase; one under a gradient that does
@@ -938,11 +1004,11 @@ namespace pulseq
                     const bool steady = played[axis].constant_over(opens, closes);
                     const double at = steady ? delay : centre;
                     const double slope = played[axis].at(at);
-                    const double swept = played[axis].swept_turns(at, shift_m[axis]);
-                    frequency += shift_m[axis] * slope;
+                    const double swept = played[axis].swept_turns(at, shift[axis]);
+                    frequency += shift[axis] * slope;
                     phase = turns(
                         phase +
-                        turns(swept - shift_m[axis] * slope * (at - delay)));
+                        turns(swept - shift[axis] * slope * (at - delay)));
                     if (!steady)
                         turning.push_back({axis, slope, swept, at});
                 }
@@ -962,7 +1028,7 @@ namespace pulseq
                         /* The pulse's samples run forwards, so the corners
                          * under them are walked once rather than once per
                          * sample. */
-                        sweeping.restart(played[axis.axis], shift_m[axis.axis]);
+                        sweeping.restart(played[axis.axis], shift[axis.axis]);
                         for (size_t i = 0; i < moment.size(); ++i)
                         {
                             double swept_here = 0.0;
@@ -971,7 +1037,7 @@ namespace pulseq
                                 added[i] +
                                 turns(
                                     swept_here -
-                                    axis.slope * (moment[i] - rf[4]) * shift_m[axis.axis] -
+                                    axis.slope * (moment[i] - rf[4]) * shift[axis.axis] -
                                     axis.swept));
                         }
                     }
@@ -1005,23 +1071,26 @@ namespace pulseq
                     at_block < block_defs.size() ? block_defs[at_block] : 0,
                     at_block < adc_defs.size() ? adc_defs[at_block] : 0};
                 const auto known = pivot.find(key);
+                double own[3] = {origin[0], origin[1], origin[2]};
+                if (rotated)
+                    unrotate(turned, own);
                 const double echo = known != pivot.end()
                     ? known->second.second
-                    : echo_at(played, origin, samples, dwell, delay);
+                    : echo_at(played, own, samples, dwell, delay);
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    if (std::fabs(shift_m[axis]) == 0.0 || played[axis].values == nullptr)
+                    if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
                         continue;
                     const bool steady = played[axis].constant_over(opens, closes);
                     const double at = steady ? delay : echo;
                     const double slope = played[axis].at(at);
-                    const double swept = played[axis].swept_turns(at, shift_m[axis]);
-                    frequency += shift_m[axis] * slope;
+                    const double swept = played[axis].swept_turns(at, shift[axis]);
+                    frequency += shift[axis] * slope;
                     phase = turns(
                         phase +
-                        turns(swept - shift_m[axis] * slope * (at - delay)));
+                        turns(swept - shift[axis] * slope * (at - delay)));
                     if (!steady)
                         turning.push_back({axis, slope, swept, at});
                 }
@@ -1036,7 +1105,7 @@ namespace pulseq
                     added.assign(static_cast<size_t>(samples), 0.0);
                     for (const Turning& axis : turning)
                     {
-                        sweeping.restart(played[axis.axis], shift_m[axis.axis]);
+                        sweeping.restart(played[axis.axis], shift[axis.axis]);
                         for (int i = 0; i < samples; ++i)
                         {
                             const double when =
@@ -1044,7 +1113,7 @@ namespace pulseq
                             double swept_here = 0.0;
                             sweeping.upto(when, &swept_here);
                             const double left = swept_here - axis.swept -
-                                shift_m[axis.axis] * axis.slope * (when - axis.at);
+                                shift[axis.axis] * axis.slope * (when - axis.at);
                             added[static_cast<size_t>(i)] = turns(
                                 added[static_cast<size_t>(i)] + turns(left));
                         }
@@ -1071,7 +1140,10 @@ namespace pulseq
              * RF and ADC must retain a common phase reference across excitation.
              */
             double swept[3];
-            advance_walk(seq, row, played, origin, swept);
+            if (rotated)
+                advance_turned_walk(seq, row, played, turned, origin, swept);
+            else
+                advance_walk(seq, row, played, origin, swept);
             for (int axis = 0; axis < 3; ++axis)
                 carry[axis] += swept[axis];
         }

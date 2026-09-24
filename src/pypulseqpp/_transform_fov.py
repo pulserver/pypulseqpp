@@ -73,10 +73,11 @@ def _runs_not_exempt(seq, label, first, last):
 class TransformFOV:
     """Geometry prescription applied to an existing sequence.
 
-    Scales gradient amplitudes per logical axis, composes a rotation after each
-    block's own rotation, and translates the field of view in logical metres.
-    Field of view scales inversely with gradient amplitude, so halving an
-    axis's scale doubles the field of view along it.
+    Scales gradient amplitudes per logical axis, translates the field of view
+    in logical metres, and composes a rotation after each block's own
+    rotation; a rotation given with a translation does not turn it. Field of
+    view scales inversely with gradient amplitude, so halving an axis's scale
+    doubles the field of view along it.
 
     Parameters
     ----------
@@ -94,6 +95,12 @@ class TransformFOV:
         converted to logical coordinates using the transpose of its rotation.
     use_rotation_extension : bool, default=True
         Must be True; waveform-baked rotation is not implemented.
+    through_rotation : bool, default=False
+        Translate a block that carries a rotation ``R`` by the gradients it
+        plays, ``R g``, rather than by the gradients it draws, ``g``. The first
+        is the logical frame of a design whose rotations are its own, such as
+        the spokes of a radial readout; the second, of a sequence whose
+        rotations are a prescription composed onto it.
     system : Opts, default=None
         Stored for compatibility; not used to validate transformed events.
 
@@ -131,6 +138,7 @@ class TransformFOV:
         scale=None,
         transform=None,
         use_rotation_extension: bool = True,
+        through_rotation: bool = False,
         system=None,
     ) -> None:
         if transform is not None:
@@ -168,6 +176,7 @@ class TransformFOV:
         )
         self.scale = None if scale is None else tuple(float(v) for v in scale)
         self.use_rotation_extension = use_rotation_extension
+        self.through_rotation = bool(through_rotation)
         self.system = system
         self.block_k_origin = (0.0, 0.0, 0.0)
         self.swept_k = (0.0, 0.0, 0.0)
@@ -181,7 +190,7 @@ class TransformFOV:
     def apply_to_sequence(
         self, seq, *, time_range=None, block_range=None, in_place: bool = False
     ):
-        """Apply scaling, rotation, then translation.
+        """Apply scaling, translation, then rotation.
 
         ``NOSCL``, ``NOROT`` and ``NOPOS`` labels exempt blocks from the
         respective operations. Labels are evaluated from the selected range's
@@ -227,14 +236,6 @@ class TransformFOV:
                 _cxx.apply_fov_scale(
                     target._native, scale=self.scale, first=begins, last=ends
                 )
-        if self.quaternion is not None:
-            for begins, ends in _runs_not_exempt(target, "NOROT", first, last):
-                _cxx.apply_fov_rotation(
-                    target._native,
-                    quaternion=tuple(self.quaternion),
-                    first=begins,
-                    last=ends,
-                )
         if self.translation is not None:
             # One walk, gated per block rather than one walk per stretch:
             # where k stands is a fact about everything played before it,
@@ -248,9 +249,18 @@ class TransformFOV:
                 carry=self.swept_k,
                 origin=self.block_k_origin,
                 exempt=_exempt_mask(target, "NOPOS", first, last),
+                through_rotation=self.through_rotation,
             )
             self.swept_k = moved["swept"]
             self.block_k_origin = moved["origin"]
+        if self.quaternion is not None:
+            for begins, ends in _runs_not_exempt(target, "NOROT", first, last):
+                _cxx.apply_fov_rotation(
+                    target._native,
+                    quaternion=tuple(self.quaternion),
+                    first=begins,
+                    last=ends,
+                )
         return target
 
     #: The reference toolbox's name for the same thing.

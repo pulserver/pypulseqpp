@@ -96,9 +96,18 @@ RF phase shapes store cycles; ADC modulation and event phase offsets use
 radians.
 
 Prescription rotation is composed after a block's existing rotation and
-stored as an extension. Logical trajectories returned by `TransformFOV`
-do not apply those rotations. Exemption labels are sticky within the selected
-range; their state is not inherited from preceding blocks.
+stored as an extension, after the translation of the same transform. Logical
+trajectories returned by `TransformFOV` do not apply those rotations.
+Exemption labels are sticky within the selected range; their state is not
+inherited from preceding blocks.
+
+A block's rotation extension is taken, by default, for a prescription the
+translation turns with: the block is moved by the gradients it draws. The
+reference toolbox, which by default rotates the waveforms first, moves it by
+the gradients it plays.
+`through_rotation=True` does the same without new waveforms, and is what a
+design whose rotations are its own, the spokes of a radial or ZTE readout,
+needs to be moved as one object.
 
 ## Gradient checks
 

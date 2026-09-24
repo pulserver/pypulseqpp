@@ -346,6 +346,72 @@ def test_a_readout_under_a_steady_gradient_is_moved_by_a_frequency(system):
     )
 
 
+def _pulse_and_readout(system, axis, rotation=None):
+    """A slab and a readout under steady gradients on ``axis``, one block each."""
+    events = [] if rotation is None else [pp.make_rotation(rotation)]
+    seq = pp.Sequence(system)
+    under = flat(axis, 5000, 1e-3, system)
+    seq.add_block(sinc(system, delay=under.rise_time), under, *events)
+    readout = flat(axis, 5000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=readout.rise_time, system=system)
+    seq.add_block(adc, readout, *events)
+    return seq
+
+
+def _offsets(seq):
+    first, second = seq.get_block(1), seq.get_block(2)
+    return (
+        float(first.rf.freq_offset),
+        float(first.rf.phase_offset) % TURN,
+        float(second.adc.freq_offset),
+        float(second.adc.phase_offset) % TURN,
+    )
+
+
+def test_through_its_rotation_a_block_is_moved_by_the_gradients_it_plays(system):
+    """A block drawn on x and turned onto y is moved as one drawn on y."""
+    shift = pp.TransformFOV(translation=(0.01, 0.02, 0.0), through_rotation=True)
+    turned = shift.apply_to_sequence(_pulse_and_readout(system, "x", rot("z", 90)))
+    drawn = pp.TransformFOV(translation=(0.01, 0.02, 0.0)).apply_to_sequence(
+        _pulse_and_readout(system, "y")
+    )
+    np.testing.assert_allclose(_offsets(turned), _offsets(drawn), atol=1e-9)
+    assert _offsets(turned)[0] == pytest.approx(0.02 * 5000 / 1e-3, rel=1e-9)
+
+
+def test_through_its_rotation_a_block_sweeps_its_turned_area_into_the_integral(
+    system,
+):
+    shift = pp.TransformFOV(translation=(0.01, 0.0, 0.0), through_rotation=True)
+    seq = pp.Sequence(system)
+    seq.add_block(trap("x", 1000, system), pp.make_rotation(rot("z", 90)))
+    shift.apply_to_sequence(seq)
+    np.testing.assert_allclose(shift.swept_k, (0.0, 1000.0, 0.0), atol=1e-6)
+
+
+def test_by_default_a_rotated_block_is_moved_by_the_gradients_it_draws(system):
+    """Its rotation is taken for a prescription, turning the translation too."""
+    shift = pp.TransformFOV(translation=(0.01, 0.02, 0.0))
+    turned = shift.apply_to_sequence(_pulse_and_readout(system, "x", rot("z", 90)))
+    drawn = pp.TransformFOV(translation=(0.01, 0.02, 0.0)).apply_to_sequence(
+        _pulse_and_readout(system, "x")
+    )
+    np.testing.assert_allclose(_offsets(turned), _offsets(drawn), atol=1e-9)
+
+
+def test_a_prescription_translates_in_the_frame_before_it_turns(system):
+    """The translation is logical: a rotation given with it does not turn it."""
+    both = pp.TransformFOV(
+        rotation=rot("z", 90), translation=(0.01, 0.02, 0.0), through_rotation=True
+    )
+    moved = both.apply_to_sequence(_pulse_and_readout(system, "x"))
+    alone = pp.TransformFOV(translation=(0.01, 0.02, 0.0)).apply_to_sequence(
+        _pulse_and_readout(system, "x")
+    )
+    np.testing.assert_allclose(_offsets(moved), _offsets(alone), atol=1e-9)
+    assert moved.get_block(2).rotation is not None
+
+
 def test_a_steady_gradient_needs_no_phase_shape(system):
     """Two numbers say the whole of it, which is why a Cartesian readout
     carries no per-sample phase at all."""

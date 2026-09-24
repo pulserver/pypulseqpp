@@ -109,6 +109,12 @@ namespace pulseq
      * @param origin  Incoming excitation/refocusing-aware k (1/m), updated in place.
      * @param exempt  One byte per selected block, nonzero to suppress edits while
      *                still advancing both integrals. Null exempts nothing.
+     * @param through_rotation  Move a block that carries a rotation R by the
+     *                gradients it plays, R g, and advance both integrals by
+     *                them: the logical frame of a design whose rotations are
+     *                its own. False moves it by the gradients it draws, g: the
+     *                frame of a sequence whose rotations are a prescription
+     *                composed onto it.
      *
      * Earlier blocks are not integrated. A zero translation returns without
      * advancing either integral.
@@ -121,7 +127,8 @@ namespace pulseq
         int last,
         double carry[3],
         double origin[3],
-        const unsigned char* exempt = nullptr);
+        const unsigned char* exempt = nullptr,
+        bool through_rotation = false);
 
 } // namespace pulseq
 

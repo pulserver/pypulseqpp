@@ -1489,7 +1489,7 @@ PYBIND11_MODULE(_ext, module)
         "apply_fov_shift",
         [](Sequence& sequence, std::array<double, 3> shift, bool with_adc, int first,
            int last, std::array<double, 3> carry, std::array<double, 3> origin,
-           py::object exempt) {
+           py::object exempt, bool through_rotation) {
             std::vector<unsigned char> flags;
             if (!exempt.is_none())
             {
@@ -1503,7 +1503,7 @@ PYBIND11_MODULE(_ext, module)
                     with_adc ? pulseq::FovShiftScope::RfAndAdc
                              : pulseq::FovShiftScope::RfOnly,
                     first, last, carry.data(), origin.data(),
-                    flags.empty() ? nullptr : flags.data());
+                    flags.empty() ? nullptr : flags.data(), through_rotation);
             }
             py::dict out;
             out["swept"] = py::make_tuple(carry[0], carry[1], carry[2]);
@@ -1514,7 +1514,7 @@ PYBIND11_MODULE(_ext, module)
         py::arg("first") = 1, py::arg("last") = 0,
         py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
         py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
-        py::arg("exempt") = py::none(),
+        py::arg("exempt") = py::none(), py::arg("through_rotation") = false,
         "Move the field of view by a shift in logical metres.");
 
     module.def(
