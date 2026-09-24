@@ -94,6 +94,10 @@ namespace pulseq
      * ADC phase is referenced to the nearest k-space approach, shared across
      * playouts of the same block/ADC definition within the selected range.
      *
+     * A moved event is registered as a new row and the block repointed to it;
+     * the row it named is left unchanged for the blocks that share it outside
+     * the range or exempt. Blocks whose moved event is equal share one row.
+     *
      * Phase uses the unbroken gradient integral in @p carry, not the
      * excitation-reset trajectory in @p origin. Resetting the phase integral
      * between excitation and readout would give them inconsistent references.

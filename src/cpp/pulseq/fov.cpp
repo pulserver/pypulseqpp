@@ -12,8 +12,9 @@
 #include <cmath>
 #include <map>
 #include <stdexcept>
-#include <utility>
 #include <string>
+#include <tuple>
+#include <utility>
 
 namespace pulseq
 {
@@ -263,6 +264,29 @@ namespace pulseq
             }
             return seq.shape_library().append_raw(
                 samples.data(), static_cast<int>(samples.size()));
+        }
+
+        /** An event row with a shift folded in: what it was, frequency, phase, shape. */
+        using MovedRow = std::tuple<int32_t, double, double, double>;
+
+        /**
+         * The row a moved event is played from, registered on first use.
+         *
+         * A row is shared by every block that names it, and what the shift
+         * adds depends on where each block sits, so a moved event is a new
+         * row rather than an edit of the shared one. Blocks whose event comes
+         * out the same share the new row.
+         */
+        template <typename Register>
+        int32_t moved_row(std::map<MovedRow, int32_t>& known, const MovedRow& key,
+                          Register add)
+        {
+            const auto found = known.find(key);
+            if (found != known.end())
+                return found->second;
+            const int32_t made = static_cast<int32_t>(add());
+            known.emplace(key, made);
+            return made;
         }
 
 
@@ -782,7 +806,7 @@ namespace pulseq
             return;
 
         CornerCache corners(seq);
-        const int32_t* events = seq.block_events();
+        const int32_t* events = std::as_const(seq).block_events();
         Played played[3];
 
         /**
@@ -791,10 +815,12 @@ namespace pulseq
          * profile even when their phase encodes differ.
          */
         std::map<std::pair<int32_t, int32_t>, std::pair<double, double>> pivot;
+        /* Copied: repointing a block re-derives its definitions, and the
+         * references are keyed by the ones the blocks had when chosen. */
+        const std::vector<int32_t> block_defs = std::as_const(seq).instance_definitions();
+        const std::vector<int32_t> adc_defs = std::as_const(seq).instance_adc_definitions();
         if (scope == FovShiftScope::RfAndAdc)
         {
-            const std::vector<int32_t>& block_defs = seq.instance_definitions();
-            const std::vector<int32_t>& adc_defs = seq.instance_adc_definitions();
             double walking[3] = {origin[0], origin[1], origin[2]};
             Played over[3];
             for (int index = from; index <= to; ++index)
@@ -847,10 +873,19 @@ namespace pulseq
         std::vector<double> moment;
         std::vector<double> added;
         Sweep sweeping;
+        std::map<MovedRow, int32_t> moved_rf;
+        std::map<MovedRow, int32_t> moved_adc;
 
         for (int index = from; index <= to; ++index)
         {
-            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            /* Copied: repointing the block below can move the table. */
+            int32_t row[BLOCK_WIDTH];
+            std::copy_n(
+                std::as_const(seq).block_events() +
+                    static_cast<size_t>(index - 1) * BLOCK_WIDTH,
+                BLOCK_WIDTH, row);
+            int32_t rf_to = row[0];
+            int32_t adc_to = row[4];
 
             /* An exempt block is walked and not written: a module that placed
              * itself keeps the phase it was designed with, and what it swept
@@ -879,7 +914,8 @@ namespace pulseq
             if (rf_id > 0 && writes)
             {
                 turning.clear();
-                double* rf = seq.rf_library().row(rf_id);
+                double rf[RF_WIDTH];
+                std::copy_n(std::as_const(seq).rf_library().row(rf_id), RF_WIDTH, rf);
                 const double delay = rf[5];
                 /* The pulse acts at the centre its designer recorded, which
                  * is what the format carries the field for. */
@@ -942,13 +978,18 @@ namespace pulseq
                     rf[2] = static_cast<double>(
                         phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0));
                 }
+                const char use =
+                    std::as_const(seq).rf_uses()[static_cast<size_t>(rf_id) - 1];
+                rf_to = moved_row(moved_rf, {rf_id, rf[8], rf[9], rf[2]},
+                                  [&] { return seq.register_rf(rf, use); });
             }
 
             const int32_t adc_id = row[4];
             if (adc_id > 0 && writes && scope == FovShiftScope::RfAndAdc)
             {
                 turning.clear();
-                double* adc = seq.adc_library().row(adc_id);
+                double adc[ADC_WIDTH];
+                std::copy_n(std::as_const(seq).adc_library().row(adc_id), ADC_WIDTH, adc);
                 const int samples = static_cast<int>(adc[0]);
                 const double dwell = adc[1];
                 const double delay = adc[2];
@@ -960,8 +1001,6 @@ namespace pulseq
                  * not the window midpoint or this playout's nearest sample.
                  */
                 const size_t at_block = static_cast<size_t>(index) - 1;
-                const std::vector<int32_t>& block_defs = seq.instance_definitions();
-                const std::vector<int32_t>& adc_defs = seq.instance_adc_definitions();
                 const std::pair<int32_t, int32_t> key = {
                     at_block < block_defs.size() ? block_defs[at_block] : 0,
                     at_block < adc_defs.size() ? adc_defs[at_block] : 0};
@@ -1015,6 +1054,16 @@ namespace pulseq
                     adc[7] = static_cast<double>(phase_shape_with(
                         seq, static_cast<int>(adc[7]), added, 2.0 * kPi));
                 }
+                adc_to = moved_row(moved_adc, {adc_id, adc[5], adc[6], adc[7]},
+                                   [&] { return seq.register_adc(adc); });
+            }
+
+            if (rf_to != row[0] || adc_to != row[4])
+            {
+                Block block = seq.get_block(index);
+                block.rf = rf_to;
+                block.adc = adc_to;
+                seq.set_block(index, block);
             }
 
             /**
