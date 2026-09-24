@@ -419,7 +419,7 @@ class Pause(sequences.SequenceApp):
     SHORTEST = 10e-3
 
     def init_sequence(self, n: int = 3, tr: float | None = None, label: str = "a"):
-        self.n, self.tr = n, self.SHORTEST if tr is None else tr
+        self.n, self.tr, self.label = n, self.SHORTEST if tr is None else tr, label
         if self.tr < self.SHORTEST:
             raise ValueError("the TR is shorter than a pause")
         self.resolve(tr=self.tr)
