@@ -1,4 +1,4 @@
-"""Scalar annotations and NumPy ``Parameters`` sections, read for the command line and protocol editors."""
+"""Scalar annotations and NumPy ``Parameters`` sections, read for flags and protocol entries."""
 
 from __future__ import annotations
 

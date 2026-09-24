@@ -78,7 +78,7 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
             Slice thickness (m).
         slice_gap : float, default=0.0
             Gap between adjacent slices (m).
-        slice_order : {'sequential', 'reverse', 'interleaved', 'center_out', 'outside_in', 'random'}, default='interleaved'
+        slice_order : {'sequential','reverse','interleaved','center_out','outside_in','random'}, default='interleaved'
             Order the slices of one pass are excited in, as
             :func:`~pypulseqpp.make_traversal_order` visits them.
         te : float or None, default=0.08

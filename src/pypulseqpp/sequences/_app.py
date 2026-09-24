@@ -32,7 +32,7 @@ system : pypulseqpp.Opts, default=None
 
 @dataclass(frozen=True)
 class ProtocolParameter:
-    """One prescribed parameter of an application, as ``init_sequence`` declares and documents it."""
+    """One prescribed parameter, as ``init_sequence`` declares and documents it."""
 
     #: The keyword ``init_sequence`` takes.
     name: str
@@ -336,7 +336,7 @@ class SequenceApp(ABC):
 
     @classmethod
     def parameters(cls) -> dict[str, ProtocolParameter]:
-        """Return each parameter ``init_sequence`` accepts, with its type, default, unit and description.
+        """Return each parameter of ``init_sequence`` with its type, default, unit and description.
 
         Returns
         -------
