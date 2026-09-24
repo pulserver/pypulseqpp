@@ -73,6 +73,21 @@ def test_an_echo_or_repetition_shorter_than_the_readout_is_refused(name, prescri
         module(name).main(**{**SMALL[name], **prescription})
 
 
+@pytest.mark.parametrize("name", SMALL)
+@pytest.mark.parametrize("parameter", ["te", "tr"])
+def test_an_echo_or_repetition_left_to_the_design_resolves_to_the_shortest_one(
+    name, parameter
+):
+    shortest = app(name, **{parameter: None}).resolved[parameter]
+    raster = pp.Opts().block_duration_raster
+
+    assert app(name, **{parameter: shortest}).resolved[parameter] == pytest.approx(
+        shortest
+    )
+    with pytest.raises(ValueError, match="shorter than"):
+        app(name, **{parameter: shortest - raster})
+
+
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [

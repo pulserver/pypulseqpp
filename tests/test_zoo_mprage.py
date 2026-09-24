@@ -122,7 +122,7 @@ def test_the_first_views_central_adc_sample_is_ti_plus_te_after_inversion(name):
     inversion = pulse_times(seq, "inversion")[0]
 
     assert first_centre - inversion == pytest.approx(
-        built.ti + built.ro.echo_time, abs=built.ro.adc.dwell / 2
+        built.ti + built.ro.echo_time, abs=built.ro.adc.dwell / 2 + 1e-9
     )
 
 
@@ -133,6 +133,25 @@ def test_inversions_are_one_tr_apart(name):
 
     assert np.diff(inversions) == pytest.approx(800e-3, abs=1e-9)
     assert built.duration == pytest.approx(800e-3 * len(inversions))
+
+
+@pytest.mark.parametrize("name", SMALL)
+@pytest.mark.parametrize(
+    "timing",
+    [{"ti": 100.0033e-3, "tr": 800.0047e-3}, {"ti": None, "tr": None}],
+    ids=["off the raster", "shortest"],
+)
+def test_the_resolved_ti_and_tr_are_the_intervals_the_inversions_play(name, timing):
+    built = app(name, n_dummy=1, **timing)
+    seq = built.design()
+    inversions = pulse_times(seq, "inversion")
+    excitations = pulse_times(seq, "excitation")[:: shots_of(built)]
+    resolved = built.resolved
+
+    assert excitations - inversions == pytest.approx(resolved["ti"], abs=1e-9)
+    assert np.diff(inversions) == pytest.approx(resolved["tr"], abs=1e-9)
+    assert np.atleast_1d(seq.definitions["TI"])[0] == pytest.approx(resolved["ti"])
+    assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(resolved["tr"])
 
 
 @pytest.mark.parametrize("name", SMALL)

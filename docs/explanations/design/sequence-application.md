@@ -10,10 +10,12 @@
   runs `loop` and applies `finalize`. A direct application call adds one
   kernel, so single-repetition inspection and complete design use the same code
   path.
-- The `init_sequence` signature is the prescription exposed by `protocol`, the
-  command line and protocol editors. Fixed design choices are class attributes,
-  and construction caps the supplied system limits to the application's
-  `MAX_GRAD` and `MAX_SLEW`.
+- The `init_sequence` signature is the prescription exposed by `protocol`,
+  `parameters`, the command line and protocol editors. Fixed design choices
+  are class attributes, and construction caps the supplied system limits to
+  the application's `MAX_GRAD` and `MAX_SLEW`.
+- Construction checks a prescription. The resolved prescription and the scan
+  time are recorded by `init_sequence` and read without playing the loop.
 - `kernel` records encoding indices as Pulseq labels.
   {meth}`~pypulseqpp.Sequence.evaluate_labels` recovers their ADC order from
   the sequence, so sampling figures can use the implemented acquisition order.
@@ -54,6 +56,36 @@ class GentleEpi(Epi2DApp):
 
 Changing a design limit redesigns the gradient waveforms and may alter echo
 spacing, acquisition duration, and constraint estimates.
+
+## Checking a prescription
+
+A protocol editor checks a prescription whenever a value changes, and shows
+the resulting timing before anything is written. Construction is that check:
+`init_sequence` designs the events and the timing, and raises when the
+prescription cannot be designed. The loop contributes only the blocks, whose
+number grows with the matrix, so the check ends at construction. It does not
+evaluate the waveforms against gradient, PNS or SAR limits, which take the
+designed sequence ({doc}`../safety/index`).
+
+Two results are read from the constructed application:
+
+* {attr}`~pypulseqpp.sequences.SequenceApp.resolved`, the prescription as
+  designed. A value the design chooses, such as the shortest echo time for
+  `te=None`, or adjusts, such as a receiver bandwidth whose dwell time is
+  rounded to the ADC raster, is recorded by `init_sequence` with
+  {meth}`~pypulseqpp.sequences.SequenceApp.resolve` and reported in place of
+  the requested value.
+* {meth}`~pypulseqpp.sequences.SequenceApp.scan_time`, the duration of the
+  whole chain, prescans included. `init_sequence` computes it from the timing
+  it designed and stores it as `duration`; without it, the chain is designed
+  and timed, at the cost of writing it.
+
+{meth}`~pypulseqpp.sequences.SequenceApp.parameters` describes the
+prescription to the editor: the type, default, unit and choices of each
+parameter, read from the annotation, the default and the Parameters section.
+The unit is the parenthesised group in the first sentence of a parameter's
+description, `Echo time (s).`, and the choices of a string parameter are the
+values its documented type lists in braces.
 
 ## Encoding labels
 

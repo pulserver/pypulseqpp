@@ -13,7 +13,7 @@ import inspect as _inspect
 from types import ModuleType as _ModuleType
 from typing import Any
 
-from ._app import SequenceApp
+from ._app import ProtocolParameter, SequenceApp
 from ._module import SequenceModule
 from .excitation import (
     EXCITATIONS,
@@ -138,7 +138,16 @@ BASES = ("EXCITATIONS", "RfModule", "SequenceModule", "make_excitation")
 ZOO = tuple(sorted(_importlib.import_module(f"{__name__}.sequence").__all__))
 
 __all__ = sorted(
-    {*EXCITATION, *PREPARATION, *READOUT, *TRAJECTORIES, *BASES, *ZOO, "SequenceApp"}
+    {
+        *EXCITATION,
+        *PREPARATION,
+        *READOUT,
+        *TRAJECTORIES,
+        *BASES,
+        *ZOO,
+        "ProtocolParameter",
+        "SequenceApp",
+    }
 )
 
 

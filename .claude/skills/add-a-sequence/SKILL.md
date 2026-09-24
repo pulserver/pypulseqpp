@@ -22,6 +22,15 @@ level, so the module is callable as that `main`.
   `Parameters` section is the help text. Every parameter with a default
   records it as ``default=<repr>``, and the documented value has to match the
   signature — `tests/test_docstring_defaults.py` enforces this.
+- `SequenceApp.parameters()` reads the same section for protocol editors: a
+  quantity's unit is the parenthesised group in the first sentence of its
+  description, `Echo time (s).`, and a string parameter lists its values in
+  its type, `{'slab', 'nonselective'}`.
+- `init_sequence` raises `ValueError` for a prescription it cannot design. It
+  records each value the design chooses or adjusts with `self.resolve(...)`,
+  and the duration of the whole chain, prescans included, as `self.duration`
+  in seconds, so that `resolved` and `scan_time()` need no loop.
+  `tests/test_examples.py` holds the stated duration to the designed chain.
 - `kernel` adds the blocks of one repetition; `loop` plays the scan by calling
   `kernel` once per repetition; `design()` wraps `loop` with a fresh sequence
   and `finalize`.

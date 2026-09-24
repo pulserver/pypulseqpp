@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import ast
 import inspect
+import re
 import typing
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pypulseqpp as pp
+from pypulseqpp._prescription import accepts_none, documented, scalar
 
-__all__ = ["SequenceApp"]
+__all__ = ["ProtocolParameter", "SequenceApp"]
 
 _MAIN_PARAMETERS = """\
 plot : bool, default=False
@@ -26,6 +30,44 @@ system : pypulseqpp.Opts, default=None
     System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""
 
 
+@dataclass(frozen=True)
+class ProtocolParameter:
+    """One prescribed parameter, as ``init_sequence`` declares and documents it."""
+
+    #: The keyword ``init_sequence`` takes.
+    name: str
+    #: The scalar the annotation names, bool, int, float or str; None for any
+    #: other annotation.
+    type: type | None
+    #: The default; `inspect.Parameter.empty` for a parameter without one.
+    default: Any
+    #: Whether the annotation admits None, which leaves the value to the design.
+    optional: bool
+    #: The first parenthesised group of the description's first sentence, the
+    #: form the shipped applications state units in, as in ``Echo time (s).``;
+    #: empty where there is none.
+    unit: str
+    #: The values the documented type lists in braces, as in
+    #: ``{'slab', 'nonselective'}``, in the order listed; empty otherwise.
+    choices: tuple[Any, ...]
+    #: The description in the Parameters section, on one line.
+    description: str
+
+
+def _unit(description: str) -> str:
+    first = re.split(r"(?<=\.)\s", description, maxsplit=1)[0]
+    group = re.search(r"\(([^()]+)\)", first)
+    return group.group(1) if group else ""
+
+
+def _choices(kind: str) -> tuple[Any, ...]:
+    listed = re.match(r"\{(.*?)\}", kind)
+    try:
+        return tuple(ast.literal_eval(f"[{listed.group(1)}]")) if listed else ()
+    except (ValueError, SyntaxError):  # braces around names, not values
+        return ()
+
+
 class SequenceApp(ABC):
     """A complete sequence, designed from a prescription and played one repetition at a time.
 
@@ -36,6 +78,12 @@ class SequenceApp(ABC):
     repetition -- and then :meth:`finalize`. Calling the application plays
     one kernel call, so a single repetition or a chunk of the scan is written
     the same way the whole scan is.
+
+    Construction therefore checks a prescription: ``init_sequence`` raises
+    when the prescription cannot be designed. It records the values the
+    design chooses or adjusts with :meth:`resolve`, and the scan time as
+    :attr:`duration`, so that :attr:`resolved` and :meth:`scan_time` are
+    available without playing the loop.
 
     Class attributes are the settings a user does not prescribe. A subclass
     that changes one, and nothing else, is the same sequence under a different
@@ -86,6 +134,9 @@ class SequenceApp(ABC):
     MAX_SLEW: float
     #: Written as the ``Name`` definition and the default file name.
     NAME: str = "sequence"
+    #: Time the whole chain of prescans and main sequence plays, in seconds,
+    #: when ``init_sequence`` computes it; None otherwise.
+    duration: float | None = None
 
     def __init__(self, system: pp.Opts | None = None, **protocol: Any) -> None:
         missing = [name for name in ("MAX_GRAD", "MAX_SLEW") if not hasattr(self, name)]
@@ -101,6 +152,8 @@ class SequenceApp(ABC):
         self.seq = pp.Sequence(self.system)
         self._label_state: dict[str, int] = {}
         self._label_steps: dict[str, int] = {}
+        self._requested = dict(protocol)
+        self._resolved: dict[str, Any] = {}
         self.init_sequence(**protocol)
 
     @abstractmethod
@@ -281,6 +334,123 @@ class SequenceApp(ABC):
         parameters = inspect.signature(cls.init_sequence).parameters
         return {name: p.default for name, p in parameters.items() if name != "self"}
 
+    @classmethod
+    def parameters(cls) -> dict[str, ProtocolParameter]:
+        """Return each parameter of ``init_sequence`` with its type, default, unit and description.
+
+        Returns
+        -------
+        dict of {str: ProtocolParameter}
+            One entry per parameter a prescription names, in signature order.
+
+        Examples
+        --------
+        >>> from pypulseqpp import sequences
+        >>> te = sequences.gre2D_sequence.Gre2DApp.parameters()["te"]
+        >>> te.type, te.default, te.optional, te.unit
+        (<class 'float'>, 0.008, True, 's')
+        >>> te.description
+        'Echo time (s). ``None`` is as short as the readout admits.'
+        """
+        hints = typing.get_type_hints(cls.init_sequence)
+        documentation = documented(inspect.getdoc(cls.init_sequence))
+        entries = {}
+        for name, parameter in _prescribed(cls).items():
+            annotation = hints.get(name, parameter.annotation)
+            kind, description = documentation.get(name, ("", ""))
+            entries[name] = ProtocolParameter(
+                name=name,
+                type=scalar(annotation),
+                default=parameter.default,
+                optional=accepts_none(annotation),
+                unit=_unit(description),
+                choices=_choices(kind),
+                description=description,
+            )
+        return entries
+
+    def resolve(self, **values: Any) -> None:
+        """Record the value a prescribed parameter took in the design.
+
+        Called from ``init_sequence`` for a parameter whose value the design
+        chooses, such as the shortest echo time for ``te=None``, or adjusts,
+        such as a receiver bandwidth whose dwell time is rounded to the ADC
+        raster. :attr:`resolved` reports the recorded value in place of the
+        requested one.
+
+        Parameters
+        ----------
+        **values : object
+            The value each parameter took, by name, in the unit it is
+            prescribed in.
+
+        Raises
+        ------
+        TypeError
+            If a name is not a parameter of ``init_sequence``.
+
+        Examples
+        --------
+        >>> from pypulseqpp import sequences
+        >>> class Pause(sequences.SequenceApp):
+        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0
+        ...     def init_sequence(self, tr: float | None = None):
+        ...         self.tr = 10e-3 if tr is None else tr
+        ...         self.resolve(tr=self.tr)
+        ...     def loop(self): ...
+        ...     def kernel(self): ...
+        >>> Pause().resolved, Pause(tr=20e-3).resolved
+        ({'tr': 0.01}, {'tr': 0.02})
+        """
+        unknown = sorted(set(values) - set(_prescribed(type(self))))
+        if unknown:
+            raise TypeError(
+                f"{type(self).__name__}.init_sequence has no parameter "
+                f"{', '.join(unknown)}"
+            )
+        self._resolved.update(values)
+
+    @property
+    def resolved(self) -> dict[str, Any]:
+        """The prescription as designed, by parameter name, in each parameter's prescribed unit.
+
+        A parameter takes the value recorded with :meth:`resolve`, otherwise
+        the requested value, otherwise its default.
+        """
+        values = {**self._requested, **self._resolved}
+        return {
+            name: values.get(name, parameter.default)
+            for name, parameter in _prescribed(type(self)).items()
+        }
+
+    def scan_time(self) -> float:
+        """Return the time the whole chain of prescans and main sequence plays, in seconds.
+
+        This is :attr:`duration` when ``init_sequence`` sets it, and nothing
+        is designed; a stated duration can include waits for a trigger, which
+        the blocks of a file do not time. Otherwise every file of the chain is
+        designed, as :meth:`write` designs them, which leaves the main
+        sequence in :attr:`seq`.
+
+        Returns
+        -------
+        float
+            The summed duration of the files of the chain, in seconds.
+
+        Examples
+        --------
+        >>> from pypulseqpp import sequences
+        >>> app = sequences.gre2D_sequence.Gre2DApp(n_x=32, n_y=16, tr=50e-3, n_dummy=0)
+        >>> app.scan_time()
+        0.8
+        >>> round(app.design().duration()[0], 9)
+        0.8
+        """
+        if self.duration is not None:
+            return float(self.duration)
+        names = [*self.prescans(), None]
+        return float(sum(self.design(name).duration()[0] for name in names))
+
     class _Main:
         """Module-level entry point of a concrete sequence implementation.
 
@@ -299,6 +469,14 @@ class SequenceApp(ABC):
             return owner._main
 
     main = _Main()
+
+
+def _prescribed(cls: type[SequenceApp]) -> dict[str, inspect.Parameter]:
+    return {
+        name: p
+        for name, p in inspect.signature(cls.init_sequence).parameters.items()
+        if name != "self" and p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+    }
 
 
 def _make_main(cls: type[SequenceApp]):

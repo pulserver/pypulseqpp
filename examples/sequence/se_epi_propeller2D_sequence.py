@@ -62,7 +62,7 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         Parameters
         ----------
         fov : float, default=0.22
-            Isotropic in-plane field of view, in metres.
+            Isotropic in-plane field of view (m).
         n_x : int, default=128
             In-plane matrix size.
         blade_width : int, default=16
@@ -70,26 +70,26 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         n_blades : int or None, default=None
             Blades in the set. ``None`` is the smallest count that samples the
             rim of k-space at Nyquist.
-        angle_scheme : str, default='uniform'
-            ``'uniform'`` or ``'golden'``, spread over half a turn.
+        angle_scheme : {'uniform', 'golden'}, default='uniform'
+            Spacing of the blade angles, spread over half a turn.
         n_slices : int, default=1
             Number of slices.
         slice_thickness : float, default=0.005
-            Slice thickness, in metres.
+            Slice thickness (m).
         slice_gap : float, default=0.0
-            Gap between adjacent slices, in metres.
-        slice_order : str, default='interleaved'
+            Gap between adjacent slices (m).
+        slice_order : {'sequential','reverse','interleaved','center_out','outside_in','random'}, default='interleaved'
             Order the slices of one pass are excited in, as
-            :func:`~pypulseqpp.make_traversal_order` accepts.
+            :func:`~pypulseqpp.make_traversal_order` visits them.
         te : float or None, default=0.08
             Effective echo time, excitation centre to the blade's central
-            line, in seconds. ``None`` is as short as possible.
+            line (s). ``None`` is as short as possible.
         tr : float or None, default=2.0
-            Repetition time between successive excitations of one slice, in
-            seconds. ``None`` is as short as possible, and puts every slice in
-            one pass.
+            Repetition time between successive excitations of one slice (s).
+            ``None`` is as short as possible, and puts every slice in one
+            pass.
         readout_bandwidth_hz : float, default=250000.0
-            Requested receiver bandwidth, in Hz.
+            Requested receiver bandwidth (Hz).
         crusher_cycles : float, default=4.0
             Cycles of dephasing each crusher beside the refocusing pulse winds.
         n_dummy : int, default=0
@@ -165,11 +165,13 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
                 f"TE {2 * half_te * 1e3:.1f} ms is shorter than the excitation "
                 f"half admits; the minimum is {2 * half_te_floor * 1e3:.1f} ms"
             )
-        self.echo_time = 2 * half_te
         self.blade = blade(first_line_te)
         raster = system.block_duration_raster
         wait = pp.round_to_raster(half_te - half_te_floor, raster)
         self.wait_half_te = pp.make_delay(wait) if wait > 0 else None
+        # Each half is rounded to the raster on its own, so the echo time
+        # played is their sum.
+        self.echo_time = half_te_floor + wait + self.blade.echo_time + centre_delta
         self.gy_pre = pp.scale_grad(self.blade.gy_pre, self.blade.blade_start)
         # The last line sits this fraction of gy_pre from the centre, and the
         # closing block brings the phase-encode axis back from it.
@@ -202,15 +204,28 @@ class SeEpiPropeller2DApp(sequences.SequenceApp):
         for size in {len(group) for group in self.passes}:
             pad = 0.0 if tr is None else pp.round_to_raster(tr / size - shot, raster)
             self.waits[size] = pp.make_delay(pad) if pad > 0 else None
-        self.repetition_time = max(
-            size * (shot + (w.delay if w is not None else 0.0))
+        pass_time = {
+            size: size * (shot + (w.delay if w is not None else 0.0))
             for size, w in self.waits.items()
+        }
+        self.repetition_time = max(pass_time.values())
+        self.duration = (n_dummy + self.blade.n_blades) * sum(
+            pass_time[len(group)] for group in self.passes
         )
 
         self.positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
             slice_thickness + slice_gap
         )
         self.slab_thickness = n_slices * (slice_thickness + slice_gap) - slice_gap
+        self.resolve(
+            n_blades=self.blade.n_blades,
+            slice_thickness=self.exc.slice_thickness,
+            slice_gap=slice_thickness + slice_gap - self.exc.slice_thickness,
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.blade.bandwidth_hz,
+            n_gain_calibration_readouts=self.n_gain_calibration_readouts,
+        )
 
     def loop(self) -> None:
         """Play each pass: its dummy blades, then every blade at each of its slices."""

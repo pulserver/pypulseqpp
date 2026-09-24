@@ -608,7 +608,10 @@ class Fse3DApp(sequences.SequenceApp):
                 "individually parameterized trains need the radial order, which "
                 "places each view by its distance from the prescription"
             )
-        self.repetition_time, self.tr_periphery = tr, tr_periphery
+        self.repetition_time, self.tr_periphery = (
+            pp.round_to_raster(time, system.block_duration_raster)
+            for time in (tr, tr_periphery)
+        )
 
         calibrating, imaging = pp.make_cartesian_plane_sampling(
             (n_y, n_z),
@@ -637,7 +640,7 @@ class Fse3DApp(sequences.SequenceApp):
                 coords, etl, seed=self.SHUFFLE_SEED, pad=True
             )
             self.lengths = [etl] * len(order)
-            self.times = [tr] * len(order)
+            self.times = [self.repetition_time] * len(order)
             place = np.zeros(len(order))
         else:
             order = deal_trains(coords, self.lengths, place, self.te_echo, etl_max)
@@ -686,7 +689,18 @@ class Fse3DApp(sequences.SequenceApp):
             pp.round_to_raster(time - fse.duration - navigating, raster)
             for time in self.times
         ]
-        self.duration = (n_dummy + len(self.reference)) * tr + sum(self.times)
+        self.duration = sum(self.times) + self.repetition_time * (
+            n_dummy + len(self.reference)
+        )
+        self.resolve(
+            te=float(fse.echo_times[self.te_echo]),
+            tr=self.repetition_time,
+            readout_bandwidth_hz=fse.bandwidth_hz,
+            esp=fse.esp,
+            tr_periphery=self.tr_periphery,
+            etl_periphery=etl_periphery,
+            wave_amplitude=fse.wave_amplitude,
+        )
 
     def loop(self) -> None:
         """Play the dummy trains, the wave-free reference trains, then every shot."""

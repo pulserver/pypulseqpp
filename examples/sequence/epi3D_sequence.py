@@ -413,6 +413,19 @@ class Epi3DApp(sequences.SequenceApp):
                 labels=("LIN", "PAR"),
             )
 
+        # The reference and the scan each open with the dummy shots; the
+        # calibration is one gradient echo per view.
+        self.duration = (
+            2 * len(self.dummies) + (1 + n_frames) * len(self.volume)
+        ) * self.shot_duration
+        if self.gre is not None:
+            self.duration += len(self.calibration) * self.gre.duration
+        self.resolve(
+            te=self.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.epi.bandwidth_hz,
+        )
+
     def prescans(self) -> dict:
         """Return ``calibration`` (when undersampled) and ``reference``.
 

@@ -244,6 +244,18 @@ def test_the_chain_alternates_catalysts_and_cycles(tmp_path, prescription, files
         assert seq._detect_tr()[1] == 1
 
 
+def test_a_tr_off_the_raster_resolves_to_the_tr_the_excitations_are_spaced_by():
+    """The TR moves from the shortest in steps of two rasters, keeping TE = TR/2 on it."""
+    shortest = app3d().resolved["tr"]
+    built = app3d(tr=shortest + 63.3e-6)
+    times = [time for time, _, _ in excitations(built.design())]
+    steps = (built.resolved["tr"] - shortest) / (2 * built.system.block_duration_raster)
+
+    assert np.diff(times) == pytest.approx(built.resolved["tr"], abs=1e-9)
+    assert steps == pytest.approx(round(steps))
+    assert round(steps) > 0
+
+
 @pytest.mark.parametrize("excitation", ["nonselective", "slab"])
 def test_a_cycle_repeats_one_balanced_repetition_from_its_first_excitation(excitation):
     built = app3d(excitation=excitation, ry=2, n_acs_y=4, n_acs_z=2)

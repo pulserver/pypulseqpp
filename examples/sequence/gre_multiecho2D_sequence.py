@@ -222,6 +222,15 @@ class GreMultiecho2DApp(sequences.SequenceApp):
         self.duration = (self.n_dummy + len(self.lines)) * sum(
             packet_time[len(packet)] for packet in self.packets
         )
+        self.resolve(
+            slice_thickness=self.exc.slice_thickness,
+            slice_spacing=self.slice_gap,
+            te=self.ro.echo_time,
+            tr=self.repetition_time,
+            readout_bandwidth_hz=self.ro.bandwidth_hz,
+        )
+        if n_echoes > 1:
+            self.resolve(echo_spacing=self.ro.echo_spacing)
 
     def loop(self) -> None:
         """Play each packet: its dummies, then every line at each of its slices.

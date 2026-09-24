@@ -71,6 +71,32 @@ def test_none_uses_the_shortest_fse_repetition_time():
 
 @pytest.mark.parametrize(
     "prescription",
+    [{}, {"ordering": "shuffling"}, INDIVIDUAL],
+    ids=["radial", "shuffling", "individual"],
+)
+def test_a_tr_off_the_raster_resolves_to_the_tr_every_train_plays(prescription):
+    built = app(tr=300.0047e-3, n_dummy=1, **prescription)
+    seq = built.design()
+    spacing = np.diff([t for t, use, _ in pulses(seq) if use == "excitation"])
+    resolved = built.resolved
+
+    # The dummy train plays the first shot's TR, at the centre of k-space.
+    assert spacing[:2] == pytest.approx(resolved["tr"], abs=1e-9)
+    assert spacing[1:] == pytest.approx(built.times[:-1], abs=1e-9)
+    assert resolved["tr_periphery"] == pytest.approx(built.times[-1])
+    assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(resolved["tr"])
+    assert built.scan_time() == pytest.approx(seq.duration()[0], abs=1e-9)
+
+
+def test_a_periphery_left_to_the_design_resolves_to_the_centre_tr_and_train_length():
+    resolved = app(tr=300.0047e-3).resolved
+
+    assert resolved["tr_periphery"] == resolved["tr"]
+    assert resolved["etl_periphery"] == resolved["etl"] == 8
+
+
+@pytest.mark.parametrize(
+    "prescription",
     [
         {},
         {"ordering": "shuffling", "ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2},

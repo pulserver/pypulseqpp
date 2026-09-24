@@ -7,93 +7,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from zoo import SMALL
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
-
-#: A prescription small enough to build in a moment, per example sequence.
-SMALL = {
-    "gre2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0},
-    "gre3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "n_acs_y": 0, "n_acs_z": 0},
-    "gre_multiecho2D_sequence": {"n_x": 32, "n_y": 16, "n_echoes": 3, "n_acs_y": 0},
-    "gre_multiecho3D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_z": 8,
-        "n_echoes": 3,
-        "n_acs_y": 0,
-        "n_acs_z": 0,
-    },
-    "gre_stack_of_stars3D_sequence": {"n": 32, "n_z": 4},
-    "gre_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4},
-    "gre_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8},
-    "se_stack_of_stars3D_sequence": {"n": 32, "n_z": 4, "tr": None},
-    "se_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4, "tr": None},
-    "se_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8, "tr": None},
-    "zte3D_sequence": {"n": 32, "n_shots": 2, "n_dummy": 0},
-    "gre_radial2D_sequence": {"n": 32, "tr": None},
-    "gre_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
-    "gre_propeller2D_sequence": {"n": 32, "blade_width": 8, "tr": None},
-    "se_radial2D_sequence": {"n": 32, "tr": None},
-    "se_spiral2D_sequence": {"n": 32, "n_shots": 4, "tr": None},
-    "se_propeller2D_sequence": {"n": 32, "blade_width": 8, "te": None, "tr": None},
-    "se_epi_propeller2D_sequence": {
-        "n_x": 32,
-        "blade_width": 8,
-        "n_blades": 4,
-        "te": None,
-        "tr": None,
-    },
-    "epi2D_sequence": {"n_x": 32, "n_y": 16, "n_dummy": 0},
-    "epi3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 4, "n_dummy": 0},
-    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
-    "se3D_sequence": {
-        "n_x": 32,
-        "n_y": 8,
-        "n_z": 4,
-        "n_acs_y": 0,
-        "n_acs_z": 0,
-        "tr": None,
-    },
-    "mprage3D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_z": 8,
-        "ti": 100e-3,
-        "tr": 300e-3,
-        "n_dummy": 0,
-    },
-    "mprage_stack_of_spirals3D_sequence": {
-        "n": 32,
-        "n_z": 4,
-        "n_shots": 4,
-        "ti": 100e-3,
-        "tr": 300e-3,
-        "n_dummy": 0,
-    },
-    "mprage_stack_of_stars3D_sequence": {
-        "n": 32,
-        "n_z": 4,
-        "ti": 100e-3,
-        "tr": 500e-3,
-        "n_dummy": 0,
-    },
-    "bssfp2D_sequence": {
-        "n_x": 64,
-        "n_y": 16,
-        "readout_bandwidth_hz": 50e3,
-        "n_dummy": 0,
-    },
-    "bssfp3D_sequence": {"n_x": 64, "n_y": 16, "n_z": 4},
-    "fse3D_sequence": {
-        "n_x": 32,
-        "n_y": 16,
-        "n_z": 8,
-        "etl": 4,
-        "te": None,
-        "tr": 200e-3,
-    },
-}
 
 
 def test_every_zoo_entry_has_a_small_prescription():
@@ -219,6 +136,24 @@ def test_the_repetition_time_written_is_the_spacing_of_one_slices_excitations():
 
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(0.05)
     assert excited[3] - excited[0] == pytest.approx(0.05)
+
+
+def test_the_resolved_slice_thickness_is_the_one_excited_and_the_gap_keeps_the_centres():
+    """The thickness is the pulse's bandwidth over its selection gradient."""
+    app = gre_app(n_slices=3, slice_thickness=4e-3, slice_spacing=1e-3)
+    seq = app.design()
+    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    excitations = [block for block in blocks if block.rf is not None]
+    selection = abs(excitations[0].gz.amplitude)
+    centres = sorted({round(b.rf.freq_offset / selection, 9) for b in excitations})
+    resolved = app.resolved
+
+    assert resolved["slice_thickness"] == pytest.approx(
+        pp.calc_rf_bandwidth(excitations[0].rf) / selection
+    )
+    assert np.diff(centres) == pytest.approx(
+        resolved["slice_thickness"] + resolved["slice_spacing"]
+    )
 
 
 def test_a_repetition_that_holds_whole_shots_takes_that_many_slices_a_packet():
