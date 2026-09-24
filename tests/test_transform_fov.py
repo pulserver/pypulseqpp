@@ -404,6 +404,98 @@ def test_every_readout_of_a_repeated_shot_is_moved(system):
         assert abs(float(moved.get_block(block).adc.freq_offset)) > 0.0
 
 
+def phase_encoded_shots(system):
+    """Excitations and readouts played from one pulse and one ADC row.
+
+    Deduplicated, as a sequence read from a file is, so every shot names the
+    same two rows while its phase encode differs.
+    """
+    rf, gz, _ = pp.make_sinc_pulse(
+        math.pi / 6,
+        duration=1e-3,
+        slice_thickness=5e-3,
+        use="excitation",
+        return_gz=True,
+        system=system,
+    )
+    gx = flat("x", 5000, 2e-3, system)
+    adc = pp.make_adc(64, duration=2e-3, delay=gx.rise_time, system=system)
+    gx_pre = trap("x", -2500, system)
+    seq = pp.Sequence(system)
+    for line in (-2, 0, 2, 0):
+        seq.add_block(rf, gz)
+        seq.add_block(gx_pre, trap("y", 100.0 * line, system))
+        seq.add_block(gx, adc)
+    shared = seq.remove_duplicates()
+    rows = shared.block_events.values()
+    assert len({int(row[1]) for row in rows if row[1]}) == 1
+    assert len({int(row[5]) for row in rows if row[5]}) == 1
+    return shared
+
+
+def test_blocks_that_share_an_event_row_are_each_moved_for_where_they_sit(system):
+    shift = np.array([0.01, -0.02, 0.0])
+    seq = phase_encoded_shots(system)
+
+    moved = pp.TransformFOV(translation=tuple(shift)).apply_to_sequence(seq)
+
+    k = shift @ np.asarray(seq.calculate_kspace()[0])
+    for shot in range(4):
+        np.testing.assert_allclose(
+            acquired_against_its_excitation(
+                moved, 1 + 3 * shot, 3 + 3 * shot, 1.0, k[shot * 64 : (shot + 1) * 64]
+            ),
+            0.0,
+            atol=1e-9,
+        )
+
+
+def test_a_shared_readout_is_moved_by_one_shift_and_not_one_per_block(system):
+    seq = phase_encoded_shots(system)
+    readout = seq.get_block(3).gx.amplitude
+
+    moved = pp.TransformFOV(translation=(0.01, 0.0, 0.0)).apply_to_sequence(seq)
+
+    for block in (3, 6, 9, 12):
+        assert moved.get_block(block).adc.freq_offset == pytest.approx(0.01 * readout)
+
+
+def test_a_shared_pulse_under_a_moving_gradient_gains_one_phase_shape(system):
+    rf = pp.make_sinc_pulse(
+        math.pi / 6,
+        duration=1e-3,
+        slice_thickness=5e-3,
+        use="excitation",
+        system=system,
+    )
+    gz = trap("z", 3000, system, duration=2e-3)
+    seq = pp.Sequence(system)
+    for _ in range(3):
+        seq.add_block(rf, gz)
+    seq = seq.remove_duplicates()
+    once = pp.TransformFOV(translation=(0.0, 0.0, 0.009)).apply_to_sequence(
+        one_block(system, rf, gz).remove_duplicates()
+    )
+
+    moved = pp.TransformFOV(translation=(0.0, 0.0, 0.009)).apply_to_sequence(seq)
+
+    expected = np.angle(np.asarray(once.get_block(1).rf.signal))
+    for block in (1, 2, 3):
+        got = np.angle(np.asarray(moved.get_block(block).rf.signal))
+        np.testing.assert_allclose(wrapped((got - expected) / TURN), 0.0, atol=1e-6)
+
+
+def test_blocks_outside_the_range_keep_the_row_they_shared(system):
+    seq = phase_encoded_shots(system)
+
+    moved = pp.TransformFOV(translation=(0.01, 0.0, 0.0)).apply_to_sequence(
+        seq, block_range=(1, 3)
+    )
+
+    assert moved.get_block(3).adc.freq_offset != 0.0
+    assert moved.get_block(6).adc.freq_offset == 0.0
+
+
 def receive_phase(block, samples=None):
     """Return per-sample receive phase in cycles, including offsets and modulation."""
     count = int(block.adc.num_samples)
