@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["SequenceLibraries", "Shape", "read", "write"]
 
 import os as _os
+import typing as _typing
 
 import pypulseqpp as _pp
 from pypulseqpp import safety as _safety
@@ -30,7 +31,7 @@ def _stated(seq, name: str) -> float | None:
 
 
 def read(
-    file_path: str | _os.PathLike[str],
+    file_path: str | _os.PathLike[str] | _typing.BinaryIO,
     *,
     max_grad: float | None = None,
     max_slew: float | None = None,
@@ -61,8 +62,9 @@ def read(
 
     Parameters
     ----------
-    file_path : str | os.PathLike[str]
-        The file to read.
+    file_path : str | os.PathLike[str] | typing.BinaryIO
+        The file to read, or a binary file object whose ``read()`` returns its
+        contents.
     max_grad : float, default=None
         Gradient amplitude limit (Hz/m) for the system built. ``None`` takes
         the file's own, or the larger of the default and what the file reaches.
@@ -88,6 +90,8 @@ def read(
     RuntimeError
         If the file cannot be parsed, or ``verify`` is set and the signature
         does not match.
+    TypeError
+        If a file object returns text, as one opened in text mode does.
 
     See Also
     --------

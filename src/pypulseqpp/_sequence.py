@@ -66,6 +66,20 @@ _UPSTREAM_STORAGE = frozenset(
 )
 
 
+def _contents(source) -> bytes:
+    """Return the bytes of a file named by a path or held by a binary file object."""
+    read = getattr(source, "read", None)
+    if read is None:
+        return Path(source).read_bytes()
+    contents = read()
+    if not isinstance(contents, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            f"read(): the file object returned {type(contents).__name__}; "
+            "open the file in binary mode"
+        )
+    return bytes(contents)
+
+
 class _BlockDurations(MutableMapping):
     """Mutable duration mapping in seconds, keyed by 1-based block index."""
 
@@ -1881,8 +1895,10 @@ class Sequence:
 
         Parameters
         ----------
-        file_path : str | os.PathLike[str]
-            The file to read.
+        file_path : str | os.PathLike[str] | typing.BinaryIO
+            The file to read, or a binary file object whose ``read()``
+            returns its contents, such as :class:`io.BytesIO` over bytes
+            received without a file.
         detect_rf_use : bool, default=False
             Work out what each unlabelled pulse is for, from what it does.
             Before revision 1.5.0 the format had nowhere to record it, so a
@@ -1898,6 +1914,8 @@ class Sequence:
         RuntimeError
             If ``verify`` is set and the signature the file carries is not the
             signature of its contents.
+        TypeError
+            If a file object returns text, as one opened in text mode does.
 
         Warns
         -----
@@ -1918,8 +1936,16 @@ class Sequence:
         >>> loaded.read(path, verify=True)
         >>> loaded.num_blocks, loaded.grad_raster_time
         (1, 2e-05)
+
+        The same bytes, held in memory rather than in a file:
+
+        >>> import io
+        >>> received = pp.Sequence()
+        >>> received.read(io.BytesIO(path.read_bytes()), verify=True)
+        >>> received.num_blocks
+        1
         """
-        contents = Path(file_path).read_bytes()
+        contents = _contents(file_path)
         binary = _cxx.is_binary(contents)
         if binary:
             # A binary file carries its signature at the end, over the bytes
