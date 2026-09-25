@@ -1,8 +1,9 @@
 /**
  * @file fov.hpp
- * @brief Logical-frame k-space integration and field-of-view transformations.
+ * @brief Channel-axis k-space integration and field-of-view transformations.
  *
- * Translations are in logical metres and k-space coordinates in 1/m.
+ * Translations are in metres, along the channel axes or, through each block's
+ * rotation, the logical axes; k-space coordinates are in 1/m.
  * Their dot product is a phase in cycles; event phase offsets and ADC
  * modulation are in radians, while RF phase shapes store cycles.
  */
@@ -28,7 +29,7 @@ namespace pulseq
     bool advance_origin(char use, const double at[3], double origin[3]);
 
     /**
-     * Return k-space at each block's start in the unrotated logical frame (1/m).
+     * Return k-space at each block's start on the channel axes (1/m).
      *
      * Excitation resets and refocusing reverses k at the RF centre; undefined
      * RF use is treated as excitation. Block rotation extensions are not applied.
@@ -43,7 +44,7 @@ namespace pulseq
         const Sequence& seq, int first, int last, double carry[3]);
 
     /**
-     * Return ADC-sampled k-space in the unrotated logical frame (1/m).
+     * Return ADC-sampled k-space on the channel axes (1/m).
      *
      * @param block   1-based block index.
      * @param origin  Incoming k at the block start, as from block_k_origins().
@@ -54,7 +55,7 @@ namespace pulseq
         const Sequence& seq, int block, const double origin[3]);
 
     /**
-     * Multiply gradient amplitudes by @p scale on each logical axis.
+     * Multiply gradient amplitudes by @p scale on each channel axis.
      *
      * FOV size varies inversely with the multiplier; zero suppresses encoding
      * on that axis. New event rows preserve blocks outside the selected range.
@@ -86,7 +87,7 @@ namespace pulseq
     };
 
     /**
-     * Apply translation in logical metres to RF and, optionally, ADC events.
+     * Apply a translation in metres to RF and, optionally, ADC events.
      *
      * Constant gradients require only frequency and phase offsets. Residual
      * phase under varying gradients is stored in RF phase shapes (cycles) or
@@ -109,12 +110,12 @@ namespace pulseq
      * @param origin  Incoming excitation/refocusing-aware k (1/m), updated in place.
      * @param exempt  One byte per selected block, nonzero to suppress edits while
      *                still advancing both integrals. Null exempts nothing.
-     * @param through_rotation  Move a block that carries a rotation R by the
-     *                gradients it plays, R g, and advance both integrals by
-     *                them: the logical frame of a design whose rotations are
-     *                its own. False moves it by the gradients it draws, g: the
-     *                frame of a sequence whose rotations are a prescription
-     *                composed onto it.
+     * @param through_rotation  Translate along the logical axes: move a block
+     *                that carries a rotation R by the gradients it plays, R g,
+     *                and advance both integrals by them, for a design whose
+     *                rotations are its own. False moves it along its channel
+     *                axes, by g, for a sequence whose rotations are a
+     *                prescription composed onto it.
      *
      * Earlier blocks are not integrated. A zero translation returns without
      * advancing either integral.

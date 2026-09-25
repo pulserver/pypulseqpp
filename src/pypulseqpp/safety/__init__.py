@@ -1,6 +1,6 @@
 """Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks.
 
-Checks use physical-axis gradient waveforms, after applying block rotations.
+The gradient checks evaluate the waveforms after each block's rotation.
 These checks do not establish scanner or patient safety.
 """
 
@@ -72,10 +72,10 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    Block rotations are applied before per-axis peaks are evaluated. Only the
-    largest per-axis peak is compared with the limit; a nonpositive limit
+    Each block's rotation is applied before per-axis peaks are evaluated. Only
+    the largest per-axis peak is compared with the limit; a nonpositive limit
     disables the check. The vector peak is the largest simultaneous Euclidean
-    magnitude over the three physical axes; it is reported but not compared
+    magnitude over the three axes; it is reported but not compared
     with a limit, and it is not the norm of independently attained axis peaks.
     """
     limits = _limits(seq, system)
@@ -111,7 +111,7 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    Slew rates are evaluated within each block after block rotations;
+    Slew rates are evaluated within each block after its rotation;
     boundaries between blocks are not covered. Only the largest per-axis peak
     is compared with the limit; a nonpositive limit disables the check. The
     vector slew rate is the largest simultaneous Euclidean magnitude, reported
@@ -155,7 +155,7 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
 
     Notes
     -----
-    Endpoints are compared in physical coordinates after block rotations.
+    Endpoints are compared after each block's rotation.
     An absent gradient contributes zero amplitude. A discontinuity is
     evaluated over one gradient raster period, and the final amplitude on
     every axis must be zero. Block indices are 1-based, axes are zero-based

@@ -528,8 +528,8 @@ namespace pulseq
          * The rotation a block's row carries, as a matrix; false for none.
          *
          * A rotated block plays R g, so a translation d in the logical frame
-         * is, to that block's own axes, R^T d, and what it sweeps along them
-         * is R times that in the logical frame.
+         * is, along that block's channel axes, R^T d, and what it sweeps along
+         * them is R times that in the logical frame.
          */
         bool block_rotation(const Sequence& seq, const int32_t* row, double matrix[3][3])
         {
@@ -553,7 +553,7 @@ namespace pulseq
 
         /**
          * advance_walk() for a block played through @p matrix: the walk is
-         * taken along the block's own axes and handed back in the logical
+         * taken along the block's channel axes and handed back in the logical
          * frame, where a reset and a turn-over mean the same.
          */
         void advance_turned_walk(
@@ -968,8 +968,8 @@ namespace pulseq
             for (int axis = 0; axis < 3; ++axis)
                 entering = turns(entering + turns(shift_m[axis] * carry[axis]));
 
-            /* The translation along the block's own axes, the ones its
-             * gradients are drawn on: a rotated block plays them turned. */
+            /* The translation along the block's channel axes: a rotated
+             * block plays them turned. */
             double turned[3][3];
             const bool rotated = through_rotation && block_rotation(seq, row, turned);
             double shift[3] = {shift_m[0], shift_m[1], shift_m[2]};

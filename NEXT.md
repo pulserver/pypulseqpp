@@ -99,10 +99,11 @@ toolbox. Tests compare trajectory moments and explicitly cover the resulting
 echo-selection and report-rounding differences; do not loosen them solely
 to force reference agreement.
 
-FOV translation uses logical coordinates in metres. The unbroken gradient
-integral supplies RF and ADC shift phase; excitation/reset-aware k-space
-supplies the ADC echo reference. These are distinct state vectors and both
-must be carried between consecutive processing ranges.
+FOV translation is in metres along the channel axes, or along the logical
+axes with `through_rotation`. The unbroken gradient integral supplies RF and
+ADC shift phase; excitation/reset-aware k-space supplies the ADC echo
+reference. These are distinct state vectors and both must be carried between
+consecutive processing ranges.
 
 ADC phase is anchored to the nearest k-space approach shared by the
 block/ADC definition within the selected range, not the midpoint of the
@@ -111,22 +112,22 @@ RF phase shapes store cycles; ADC modulation and event phase offsets use
 radians.
 
 Prescription rotation is composed after a block's existing rotation and
-stored as an extension, after the translation of the same transform. Logical
-trajectories returned by `TransformFOV` do not apply those rotations.
-Exemption labels are sticky within the selected range; their state is not
-inherited from preceding blocks.
+stored as an extension, after the translation of the same transform.
+Trajectories returned by `TransformFOV` are on the channel axes and do not
+apply those rotations. Exemption labels are sticky within the selected range;
+their state is not inherited from preceding blocks.
 
 A block's rotation extension is taken, by default, for a prescription the
-translation turns with: the block is moved by the gradients it draws. The
-reference toolbox, which by default rotates the waveforms first, moves it by
-the gradients it plays.
+translation turns with: the block is moved along its channel axes, by the
+gradients the file stores. The reference toolbox, which by default rotates the
+waveforms first, moves it by the gradients it plays.
 `through_rotation=True` does the same without new waveforms, and is what a
 design whose rotations are its own, the spokes of a radial or ZTE readout,
 needs to be moved as one object.
 
 ## Gradient checks
 
-Amplitude and slew checks use physical axes after block rotations and report
+Amplitude and slew checks use the axes after each block's rotation and report
 both per-axis peaks and simultaneous vector magnitudes. Within-block slew and
 boundary continuity are separate checks. Boundary jumps are judged over one
 gradient raster interval, and the final gradients must return to zero.

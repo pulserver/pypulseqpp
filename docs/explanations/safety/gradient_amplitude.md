@@ -4,8 +4,8 @@
 :class: tldr
 
 - {func}`~pypulseqpp.safety.check_max_grad` compares the largest per-axis
-  amplitude on the physical axes, after each block's rotation, with `max_grad`
-  from the system limits. A nonpositive `max_grad` disables the comparison.
+  amplitude, after each block's rotation, with `max_grad` from the system
+  limits. A nonpositive `max_grad` disables the comparison.
 - The report also states each axis peak with its 1-based block and the largest
   simultaneous vector magnitude. Only the per-axis quantity is compared with a
   limit, because `max_grad` in a Pulseq system description is a per-axis limit.
@@ -29,8 +29,8 @@ amplitude of the sequence with `max_grad` from the system limits.
 
 ## Quantity compared with the limit
 
-The check reconstructs the physical-axis gradient waveforms, after each block's
-rotation, and evaluates
+The check reconstructs the gradient waveforms after each block's rotation and
+evaluates
 
 $$
 \max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad}.

@@ -231,7 +231,7 @@ def _coverage(k_traj_adc) -> dict[str, Any]:
 
 
 def _gradient_peaks(gw_data):
-    """Return physical-axis and simultaneous vector peaks in Hz/m and Hz/m/s."""
+    """Return per-axis and simultaneous vector peaks in Hz/m and Hz/m/s."""
     axes = len(gw_data)
     ga = np.zeros(axes)
     gs = np.zeros(axes)

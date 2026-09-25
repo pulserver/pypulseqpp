@@ -1,4 +1,4 @@
-"""Units and coordinate frame shared by the physical-axis gradient checks."""
+"""Units and coordinate frame shared by the gradient checks."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 /**
  * @file waveforms.hpp
- * @brief Expand blocks into physical gradient corners, RF envelopes and ADC sampling.
+ * @brief Expand blocks into rotated gradient corners, RF envelopes and ADC sampling.
  */
 
 #ifndef PULSEQ_WAVEFORMS_HPP

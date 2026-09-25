@@ -1,6 +1,6 @@
 /**
  * @file kspace.hpp
- * @brief Integrate piecewise-linear physical gradients into k-space trajectories.
+ * @brief Integrate piecewise-linear gradients, after each block's rotation, into k-space.
  *
  * Excitation resets k-space and refocusing reverses it at the RF centre.
  */

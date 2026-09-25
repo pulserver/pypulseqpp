@@ -34,5 +34,5 @@ them.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.plot.plot_kspace` | Sequence, range, projection plane, `color_by` | Matplotlib `Figure` | ADC sampling locations in physical-axis k-space (1/m). |
+| {obj}`~pypulseqpp.plot.plot_kspace` | Sequence, range, projection plane, `color_by` | Matplotlib `Figure` | ADC sampling locations in k-space (1/m), after each block's rotation. |
 | {obj}`~pypulseqpp.plot.plot_rf` | Sequence, module or RF event; pulse; profile axis or plane | Matplotlib `Figure` | RF envelope beside its magnetisation profile. |

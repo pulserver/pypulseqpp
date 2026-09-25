@@ -1,6 +1,6 @@
 # Gradient design
 
-Gradient events on one logical gradient axis, and the operations on them.
+Gradient events on one gradient channel axis, and the operations on them.
 Amplitudes are in Hz/m, slew rates in Hz/m/s, gradient areas in 1/m and times
 in s, except where a docstring states otherwise;
 {doc}`../explanations/pulseq/events-and-blocks` describes the trapezoid and

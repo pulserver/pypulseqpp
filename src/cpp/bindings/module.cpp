@@ -1188,8 +1188,8 @@ PYBIND11_MODULE(_ext, module)
             return out;
         },
         py::arg("sequence"),
-        "Per block, the lowest and highest value each physical axis plays, in "
-        "Hz/m: blocks x 3 x (low, high).");
+        "Per block, the lowest and highest value each axis plays after the "
+        "block's rotation, in Hz/m: blocks x 3 x (low, high).");
 
     module.def(
         "max_slew",
@@ -1641,7 +1641,8 @@ PYBIND11_MODULE(_ext, module)
         py::arg("carry") = std::array<double, 3>{0.0, 0.0, 0.0},
         py::arg("origin") = std::array<double, 3>{0.0, 0.0, 0.0},
         py::arg("exempt") = py::none(), py::arg("through_rotation") = false,
-        "Move the field of view by a shift in logical metres.");
+        "Move the field of view by a shift in metres along the channel axes, "
+        "or along the logical axes with through_rotation.");
 
     module.def(
         "flip_angles",

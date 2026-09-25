@@ -183,7 +183,7 @@ def plot_kspace(
 
     Notes
     -----
-    Coordinates are physical-axis k-space in 1/m, block rotations applied.
+    Coordinates are k-space in 1/m, after each block's rotation.
     """
     from matplotlib import pyplot as plt
 

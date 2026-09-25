@@ -27,8 +27,8 @@ class FatSaturation(RfModule):
 
     Position and orientation place the selection band at construction.
     NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV
-    placement leaves the band unchanged. Position is specified in logical
-    millimetres; the RF frequency offset remains in ppm.
+    placement leaves the band unchanged. Position is specified in millimetres
+    along the channel axes; the RF frequency offset remains in ppm.
 
     Parameters
     ----------
@@ -52,11 +52,11 @@ class FatSaturation(RfModule):
     axis : {'z', 'x', 'y'}, default='z'
         Band normal, before ``orientation`` turns it.
     position_mm : sequence of float, default=None
-        ``(dx, dy, dz)`` offset of the band from the isocentre, in the logical
-        frame, in millimetres. Needs ``thickness_m``.
+        ``(dx, dy, dz)`` offset of the band from the isocentre, along the
+        channel axes, in millimetres. Needs ``thickness_m``.
     orientation : array_like or scipy.spatial.transform.Rotation, default=None
-        A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one
-        the band lies on. Needs ``thickness_m``.
+        A ``(3, 3)`` matrix, or a rotation, taking the channel axes to the
+        axes the band lies on: the band's own rotation. Needs ``thickness_m``.
     use_rotation_extension : bool, default=True
         Encode the orientation as a ``ROTATIONS`` extension rather than
         rotating the gradient waveforms. Only ``True`` is implemented; see
@@ -72,7 +72,7 @@ class FatSaturation(RfModule):
         The saturation pulse, as placed.
     gz : GradEvent
         Its selection gradient. Only when ``thickness_m`` was given, and named
-        for the logical axis whatever ``axis`` was.
+        for the channel axis it is drawn on whatever ``axis`` was.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         Closing spoiler on all three axes.
     prep_labels : list of LabelSetEvent
