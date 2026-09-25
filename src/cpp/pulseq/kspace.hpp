@@ -79,6 +79,39 @@ namespace pulseq
      */
     Kspace calculate_kspace(const Sequence& seq, const KspaceOptions& options);
 
+    /**
+     * Per readout, the axes its k-space moves along and the samples nearest
+     * the centre of k-space, one entry per block that acquires, in play order.
+     *
+     * k-space is integrated as calculate_kspace() integrates it, after each
+     * block's rotation. To bound memory it is integrated a range of blocks at
+     * a time, a range ending before an excitation, or a pulse with no use
+     * recorded, in a block that does not acquire once the range holds 2^17
+     * samples; such a pulse resets k-space, so each sample is where
+     * calculate_kspace() puts it. An axis moves when the readout's k-space
+     * spans more than 1e-6 of its widest span along it.
+     */
+    struct AdcEchoes
+    {
+        /** 1-based block of each readout. */
+        std::vector<int32_t> block;
+        std::vector<int32_t> num_samples;
+        /** Index of the readout's first sample among all ADC samples. */
+        std::vector<int64_t> first_sample;
+        /** Readouts x 3: 1 where the readout moves along x, y or z. */
+        std::vector<uint8_t> moving;
+        /**
+         * Readouts x 2: the first and last 0-based sample no further from the
+         * centre, over the moving axes, than the nearest sample plus 1% of the
+         * larger k step beside it; -1 for a readout that does not move or has
+         * fewer than two samples.
+         */
+        std::vector<int32_t> echo;
+    };
+
+    /** Find where each readout passes nearest the centre of k-space. */
+    AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base);
+
 } // namespace pulseq
 
 #endif /* PULSEQ_KSPACE_HPP */

@@ -1735,6 +1735,31 @@ PYBIND11_MODULE(_ext, module)
         "positions fill a grid.");
 
     module.def(
+        "adc_echoes",
+        [](const Sequence& sequence, double b0, double gamma) {
+            pulseq::KspaceOptions options;
+            options.b0 = b0;
+            options.gamma = gamma;
+            pulseq::AdcEchoes found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::adc_echoes(sequence, options);
+            }
+            const py::ssize_t readouts = static_cast<py::ssize_t>(found.block.size());
+            py::dict out;
+            out["block"] = py::array_t<int32_t>(readouts, found.block.data());
+            out["num_samples"] = py::array_t<int32_t>(readouts, found.num_samples.data());
+            out["first_sample"] = py::array_t<int64_t>(readouts, found.first_sample.data());
+            out["moving"] =
+                py::array_t<uint8_t>({readouts, py::ssize_t{3}}, found.moving.data());
+            out["echo"] = py::array_t<int32_t>({readouts, py::ssize_t{2}}, found.echo.data());
+            return out;
+        },
+        py::arg("sequence"), py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
+        "Per readout, the axes its k-space moves along and the first and last "
+        "sample nearest the centre of k-space.");
+
+    module.def(
         "calculate_kspace",
         [](const Sequence& sequence,
            std::array<double, 3> delay,

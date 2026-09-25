@@ -21,6 +21,7 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
+from ._results import AdcEchoes
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -1141,6 +1142,52 @@ class Sequence:
         (3, 64)
         """
         return _adc_kspace(self, trajectory_delay, gradient_offset, block_range)
+
+    def adc_echoes(self) -> AdcEchoes:
+        """Return, per readout, the axes it moves along and where it passes nearest the centre.
+
+        One entry per block that acquires, in play order. k-space is integrated
+        as :meth:`adc_kspace` integrates it, after each block's rotation:
+        excitations, and pulses with no use recorded, reset it, and refocusing
+        pulses invert it.
+
+        Returns
+        -------
+        AdcEchoes
+            ``block``, 1-based, and ``num_samples``, each ``(n,)``;
+            ``first_sample``, the column of the readout's first sample in
+            :meth:`adc_kspace`; ``moving``, ``(n, 3)``, whether its k-space
+            spans more than 1e-6 of its widest span along x, y and z; and
+            ``echo``, ``(n, 2)``, the first and last 0-based sample no further
+            from the centre of k-space, over the moving axes, than the nearest
+            sample plus 1% of the larger k step beside it, -1 for a readout
+            that does not move or has fewer than two samples.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> readout = pp.make_trapezoid("x", flat_area=320, flat_time=3.2e-3)
+        >>> adc = pp.make_adc(num_samples=64, duration=3.2e-3, delay=readout.rise_time)
+        >>> _ = seq.add_block(pp.make_block_pulse(0.2, duration=1e-3))
+        >>> _ = seq.add_block(pp.make_trapezoid("x", area=-readout.area / 2, duration=1e-3))
+        >>> _ = seq.add_block(readout, adc)
+        >>> echoes = seq.adc_echoes()
+        >>> echoes.moving.tolist(), echoes.echo.tolist()
+        ([[True, False, False]], [[31, 32]])
+        """
+        found = _cxx.adc_echoes(
+            self._native,
+            b0=float(getattr(self.system, "B0", 1.5)),
+            gamma=float(getattr(self.system, "gamma", 42576000.0)),
+        )
+        return AdcEchoes(
+            block=found["block"],
+            num_samples=found["num_samples"],
+            first_sample=found["first_sample"],
+            moving=found["moving"].astype(bool),
+            echo=found["echo"],
+        )
 
     def _kspace(
         self,

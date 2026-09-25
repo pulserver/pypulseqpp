@@ -7,7 +7,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 namespace pulseq
 {
@@ -606,6 +609,157 @@ namespace pulseq
                     out.position[static_cast<size_t>(axis)][at];
         }
 
+        return out;
+    }
+
+    namespace
+    {
+        /** Samples a range of blocks holds before an excitation may end it. */
+        constexpr int64_t kRangeSamples = int64_t{1} << 17;
+        /** An axis spanning less than this share of the widest does not move. */
+        constexpr double kStill = 1e-6;
+        /** Samples this share of a k step further out tie with the nearest. */
+        constexpr double kTie = 1e-2;
+
+        /** Whether a pulse of @p id puts k-space back at its origin. */
+        bool resets(const std::vector<char>& uses, int32_t id)
+        {
+            const size_t at = static_cast<size_t>(id) - 1;
+            const char use = at < uses.size() ? uses[at] : 'u';
+            return use == 'e' || use == 'u';
+        }
+
+        /**
+         * The moving axes and echo samples of the @p n samples from @p offset
+         * of @p k, written to @p moving (3) and @p echo (2).
+         */
+        void find_echo(
+            const std::array<std::vector<double>, 3>& k,
+            size_t offset,
+            int n,
+            uint8_t* moving,
+            int32_t* echo,
+            std::vector<double>& distance)
+        {
+            echo[0] = echo[1] = -1;
+            double span[3] = {0.0, 0.0, 0.0};
+            double widest = 0.0;
+            for (int axis = 0; axis < 3 && n > 0; ++axis)
+            {
+                const auto begin = k[static_cast<size_t>(axis)].begin() +
+                    static_cast<std::ptrdiff_t>(offset);
+                const auto range = std::minmax_element(begin, begin + n);
+                span[axis] = *range.second - *range.first;
+                widest = std::max(widest, span[axis]);
+            }
+            bool any = false;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                moving[axis] = span[axis] > kStill * widest ? 1 : 0;
+                any = any || moving[axis];
+            }
+            if (!any || n < 2)
+                return;
+
+            const auto at = [&](int axis, int i) {
+                return k[static_cast<size_t>(axis)][offset + static_cast<size_t>(i)];
+            };
+            distance.assign(static_cast<size_t>(n), 0.0);
+            for (int i = 0; i < n; ++i)
+            {
+                double squared = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                    if (moving[axis])
+                        squared += at(axis, i) * at(axis, i);
+                distance[static_cast<size_t>(i)] = std::sqrt(squared);
+            }
+            const int nearest = static_cast<int>(
+                std::min_element(distance.begin(), distance.end()) - distance.begin());
+            const auto step = [&](int from) {
+                double squared = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                    if (moving[axis])
+                    {
+                        const double d = at(axis, from + 1) - at(axis, from);
+                        squared += d * d;
+                    }
+                return std::sqrt(squared);
+            };
+            const double beside = std::max(
+                step(std::clamp(nearest - 1, 0, n - 2)), step(std::clamp(nearest, 0, n - 2)));
+            const double reach = distance[static_cast<size_t>(nearest)] + kTie * beside;
+            int first = n - 1;
+            int last = 0;
+            for (int i = 0; i < n; ++i)
+            {
+                if (distance[static_cast<size_t>(i)] <= reach)
+                {
+                    first = std::min(first, i);
+                    last = std::max(last, i);
+                }
+            }
+            echo[0] = first;
+            echo[1] = last;
+        }
+    } // namespace
+
+    AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base)
+    {
+        AdcEchoes out;
+        const int blocks = seq.num_blocks();
+        const int32_t* events = seq.block_events();
+        const Table& adcs = seq.adc_library();
+        const std::vector<char>& uses = seq.rf_uses();
+
+        /* The readouts, and the blocks a range of k-space starts at. */
+        std::vector<int> starts{1};
+        int64_t samples = 0;
+        int64_t since = 0;
+        for (int index = 1; index <= blocks; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            if (row[4] > 0)
+            {
+                const int n = static_cast<int>(std::lround(adcs.row(row[4])[0]));
+                out.block.push_back(index);
+                out.num_samples.push_back(n);
+                out.first_sample.push_back(samples);
+                samples += n;
+            }
+            else if (row[0] > 0 && resets(uses, row[0]) && samples - since >= kRangeSamples)
+            {
+                starts.push_back(index);
+                since = samples;
+            }
+        }
+
+        const size_t readouts = out.block.size();
+        out.moving.assign(readouts * 3, 0);
+        out.echo.assign(readouts * 2, -1);
+        std::vector<double> distance;
+        size_t next = 0;
+        for (size_t r = 0; r < starts.size() && next < readouts; ++r)
+        {
+            KspaceOptions options = base;
+            options.first_block = starts[r];
+            options.last_block = r + 1 < starts.size() ? starts[r + 1] - 1 : blocks;
+            options.samples_only = true;
+            const Kspace k = calculate_kspace(seq, options);
+
+            size_t offset = 0;
+            for (; next < readouts && out.block[next] <= options.last_block; ++next)
+            {
+                const int n = out.num_samples[next];
+                if (offset + static_cast<size_t>(n) > k.sampled[0].size())
+                    throw std::runtime_error(
+                        "blocks " + std::to_string(options.first_block) + " to " +
+                        std::to_string(options.last_block) + " play " +
+                        std::to_string(k.sampled[0].size()) +
+                        " ADC samples, fewer than their readouts hold");
+                find_echo(k.sampled, offset, n, &out.moving[next * 3], &out.echo[next * 2], distance);
+                offset += static_cast<size_t>(n);
+            }
+        }
         return out;
     }
 

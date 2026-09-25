@@ -6,7 +6,14 @@ from dataclasses import dataclass
 
 import numpy as np
 
-__all__ = ["AdcTimes", "RfBandwidth", "RfTimes", "Waveforms", "WaveformsAndTimes"]
+__all__ = [
+    "AdcEchoes",
+    "AdcTimes",
+    "RfBandwidth",
+    "RfTimes",
+    "Waveforms",
+    "WaveformsAndTimes",
+]
 
 #: Pulseq's RF uses, in the order `supported_rf_uses` lists them.
 RF_USES = (
@@ -208,3 +215,35 @@ class RfBandwidth:
     def num_bands(self) -> int:
         """Number of bands; one for a pulse with a single passband."""
         return int(self.band_offsets.size)
+
+
+@dataclass(frozen=True)
+class AdcEchoes:
+    """Per readout, the axes its k-space moves along and the samples nearest the centre.
+
+    One entry per block that acquires, in play order; see
+    :meth:`pypulseqpp.Sequence.adc_echoes`.
+
+    Attributes
+    ----------
+    block : NDArray[np.int32]
+        ``(n,)``: the 1-based block.
+    num_samples : NDArray[np.int32]
+        ``(n,)``: the samples it acquires.
+    first_sample : NDArray[np.int64]
+        ``(n,)``: the column of its first sample in
+        :meth:`pypulseqpp.Sequence.adc_kspace`.
+    moving : NDArray[np.bool_]
+        ``(n, 3)``: whether its k-space moves along x, y and z.
+    echo : NDArray[np.int32]
+        ``(n, 2)``: the first and last 0-based sample no further from the
+        centre of k-space, over the moving axes, than the nearest sample plus
+        1% of the larger k step beside it; -1 for a readout that does not move
+        or has fewer than two samples.
+    """
+
+    block: np.ndarray
+    num_samples: np.ndarray
+    first_sample: np.ndarray
+    moving: np.ndarray
+    echo: np.ndarray
