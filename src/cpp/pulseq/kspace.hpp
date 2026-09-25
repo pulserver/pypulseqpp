@@ -112,6 +112,32 @@ namespace pulseq
     /** Find where each readout passes nearest the centre of k-space. */
     AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base);
 
+    /** The k-space location of the ADC samples of a run of readouts. */
+    struct ReadoutKspace
+    {
+        /** Per axis, the location of each sample, in 1/m. */
+        std::array<std::vector<double>, 3> sampled;
+        std::vector<std::string> warnings;
+    };
+
+    /**
+     * The k-space location of each ADC sample of readouts @p first to before
+     * @p stop, counted from 0 over the blocks that acquire, in play order.
+     *
+     * k-space is integrated as calculate_kspace() integrates it, with the
+     * delays, background gradients and field of @p base, from the last block
+     * before readout @p first that plays an excitation, or a pulse with no use
+     * recorded, and does not acquire -- or from the first block. That pulse
+     * resets k-space, so each sample is where calculate_kspace() over the
+     * whole sequence puts it, unless a trajectory delay moves the gradient of
+     * an earlier block past the pulse's centre.
+     *
+     * @throws std::invalid_argument unless 0 <= @p first <= @p stop <= the
+     *         number of readouts.
+     */
+    ReadoutKspace readout_kspace(
+        const Sequence& seq, const KspaceOptions& base, int64_t first, int64_t stop);
+
 } // namespace pulseq
 
 #endif /* PULSEQ_KSPACE_HPP */

@@ -68,20 +68,49 @@ def calculate_kspace(
     )
 
 
-def adc_kspace(seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+def adc_kspace(
+    seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None, readouts=None
+):
     """Return the k-space location of each ADC sample, in 1/m.
 
     The ``k_traj_adc`` of :func:`calculate_kspace`, integrated the same way,
-    without sampling the trajectory between the samples.
+    without sampling the trajectory between the samples. With ``readouts``,
+    the samples of those readouts alone, where following the whole sequence
+    puts them.
+
+    Raises
+    ------
+    ValueError
+        If both ``block_range`` and ``readouts`` are given, or ``readouts`` is
+        not two indices ``0 <= first <= stop <=`` the number of readouts.
 
     Warns
     -----
     UserWarning
         If ``trajectory_delay`` exceeds 100 us on any axis.
     """
-    return _integrated(
-        seq, trajectory_delay, gradient_offset, block_range, samples_only=True
-    )["k_traj_adc"]
+    if readouts is None:
+        return _integrated(
+            seq, trajectory_delay, gradient_offset, block_range, samples_only=True
+        )["k_traj_adc"]
+    if block_range is not None:
+        raise ValueError("Specify either block_range or readouts, not both")
+    if len(readouts) != 2:
+        raise ValueError("parameter 'readouts' must contain exactly two numbers")
+    _warn_of_delay(trajectory_delay)
+    system = seq.system
+    found = _cxx.readout_kspace(
+        seq._native,
+        delay=_per_axis(trajectory_delay),
+        offset=_per_axis(gradient_offset),
+        first=int(readouts[0]),
+        stop=int(readouts[1]),
+        b0=_of(system, "B0", 1.5),
+        gamma=_of(system, "gamma", 42576000.0),
+    )
+    for complaint in found["warnings"]:
+        warn(complaint, stacklevel=3)
+    return found["k_traj_adc"]
 
 
 def detail(
@@ -132,13 +161,7 @@ def detail(
 
 def _integrated(seq, trajectory_delay, gradient_offset, block_range, samples_only):
     """Run the native integration, warning about a large delay and what it reports."""
-    if np.any(np.abs(trajectory_delay) > 100e-6):
-        warn(
-            f"trajectory delay of ({np.asarray(trajectory_delay) * 1e6}) us is "
-            f"suspiciously high",
-            stacklevel=3,
-        )
-
+    _warn_of_delay(trajectory_delay)
     system = seq.system
     first, last = _blocks_asked_for(block_range)
     found = _cxx.calculate_kspace(
@@ -154,6 +177,15 @@ def _integrated(seq, trajectory_delay, gradient_offset, block_range, samples_onl
     for complaint in found["warnings"]:
         warn(complaint, stacklevel=3)
     return found
+
+
+def _warn_of_delay(trajectory_delay):
+    if np.any(np.abs(trajectory_delay) > 100e-6):
+        warn(
+            f"trajectory delay of ({np.asarray(trajectory_delay) * 1e6}) us is "
+            f"suspiciously high",
+            stacklevel=4,
+        )
 
 
 def _blocks_asked_for(block_range):

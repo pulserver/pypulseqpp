@@ -630,6 +630,16 @@ namespace pulseq
         }
 
         /**
+         * Whether k-space can be integrated from the start of block @p row:
+         * it plays a pulse that resets k-space and acquires nothing, so no
+         * sample is taken before the pulse puts k-space back at its origin.
+         */
+        bool restarts(const int32_t* row, const std::vector<char>& uses)
+        {
+            return row[4] <= 0 && row[0] > 0 && resets(uses, row[0]);
+        }
+
+        /**
          * The moving axes and echo samples of the @p n samples from @p offset
          * of @p k, written to @p moving (3) and @p echo (2).
          */
@@ -726,7 +736,7 @@ namespace pulseq
                 out.first_sample.push_back(samples);
                 samples += n;
             }
-            else if (row[0] > 0 && resets(uses, row[0]) && samples - since >= kRangeSamples)
+            else if (restarts(row, uses) && samples - since >= kRangeSamples)
             {
                 starts.push_back(index);
                 since = samples;
@@ -759,6 +769,70 @@ namespace pulseq
                 find_echo(k.sampled, offset, n, &out.moving[next * 3], &out.echo[next * 2], distance);
                 offset += static_cast<size_t>(n);
             }
+        }
+        return out;
+    }
+
+    ReadoutKspace readout_kspace(
+        const Sequence& seq, const KspaceOptions& base, int64_t first, int64_t stop)
+    {
+        const int blocks = seq.num_blocks();
+        const int32_t* events = seq.block_events();
+        const Table& adcs = seq.adc_library();
+        const std::vector<char>& uses = seq.rf_uses();
+
+        /* Where the integration starts, the samples between there and readout
+         * `first`, those of the run itself, and the block of its last readout. */
+        int start = 1;
+        int64_t readout = 0;
+        int64_t skipped = 0;
+        int64_t kept = 0;
+        int last = 0;
+        for (int index = 1; index <= blocks && readout < stop; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            if (row[4] > 0)
+            {
+                const int64_t n = std::lround(adcs.row(row[4])[0]);
+                (readout < first ? skipped : kept) += n;
+                ++readout;
+                last = index;
+            }
+            else if (readout <= first && restarts(row, uses))
+            {
+                start = index;
+                skipped = 0;
+            }
+        }
+        if (first < 0 || first > stop || stop > readout)
+        {
+            int64_t count = readout;
+            for (int index = last + 1; index <= blocks; ++index)
+                if (events[static_cast<size_t>(index - 1) * BLOCK_WIDTH + 4] > 0)
+                    ++count;
+            throw std::invalid_argument(
+                "readouts must satisfy 0 <= first <= stop <= " + std::to_string(count) +
+                ", got " + std::to_string(first) + " and " + std::to_string(stop));
+        }
+
+        ReadoutKspace out;
+        if (kept == 0)
+            return out;
+        KspaceOptions options = base;
+        options.first_block = start;
+        options.last_block = last;
+        options.samples_only = true;
+        Kspace k = calculate_kspace(seq, options);
+        out.warnings = std::move(k.warnings);
+        if (static_cast<int64_t>(k.sampled[0].size()) != skipped + kept)
+            throw std::runtime_error(
+                "blocks " + std::to_string(start) + " to " + std::to_string(last) + " play " +
+                std::to_string(k.sampled[0].size()) + " ADC samples, their readouts " +
+                std::to_string(skipped + kept));
+        for (size_t axis = 0; axis < 3; ++axis)
+        {
+            const auto begin = k.sampled[axis].begin() + static_cast<std::ptrdiff_t>(skipped);
+            out.sampled[axis].assign(begin, begin + static_cast<std::ptrdiff_t>(kept));
         }
         return out;
     }

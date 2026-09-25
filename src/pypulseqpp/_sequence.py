@@ -1108,7 +1108,13 @@ class Sequence:
     #: Upstream carries this name for the same calculation, and so does this.
     calculate_kspacePP = calculate_kspace
 
-    def adc_kspace(self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+    def adc_kspace(
+        self,
+        trajectory_delay=0.0,
+        gradient_offset=0.0,
+        block_range=None,
+        readouts=None,
+    ):
         """Return the k-space location of each ADC sample, in 1/m.
 
         The first result of :meth:`calculate_kspace`, integrated the same way
@@ -1123,11 +1129,26 @@ class Sequence:
             A background gradient per axis, in Hz/m.
         block_range : Sequence[int], default=None
             Two 1-based block indices; only those blocks are followed.
+        readouts : Sequence[int], default=None
+            Two 0-based readout indices, ``first`` and ``stop``: only the
+            samples of the readouts from ``first`` to before ``stop``, in the
+            order :meth:`adc_echoes` lists them, each where following the
+            whole sequence puts it. k-space is integrated from the last block
+            before readout ``first`` that plays an excitation, or a pulse with
+            no use recorded, and does not acquire, so a trajectory delay that
+            moves an earlier block's gradient past that pulse's centre is not
+            seen. Not combined with ``block_range``.
 
         Returns
         -------
         NDArray[np.float64]
             ``(3, n)``: one column per ADC sample, in play order.
+
+        Raises
+        ------
+        ValueError
+            If both ``block_range`` and ``readouts`` are given, or ``readouts``
+            is not two indices ``0 <= first <= stop <=`` the number of readouts.
 
         Examples
         --------
@@ -1140,8 +1161,12 @@ class Sequence:
         2
         >>> seq.adc_kspace().shape
         (3, 64)
+        >>> seq.adc_kspace(readouts=(0, 1)).shape
+        (3, 64)
         """
-        return _adc_kspace(self, trajectory_delay, gradient_offset, block_range)
+        return _adc_kspace(
+            self, trajectory_delay, gradient_offset, block_range, readouts
+        )
 
     def adc_echoes(self) -> AdcEchoes:
         """Return, per readout, the axes it moves along and where it passes nearest the centre.

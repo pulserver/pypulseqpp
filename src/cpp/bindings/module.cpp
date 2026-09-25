@@ -1760,6 +1760,42 @@ PYBIND11_MODULE(_ext, module)
         "sample nearest the centre of k-space.");
 
     module.def(
+        "readout_kspace",
+        [](const Sequence& sequence,
+           std::array<double, 3> delay,
+           std::array<double, 3> offset,
+           int64_t first,
+           int64_t stop,
+           double b0,
+           double gamma) {
+            pulseq::KspaceOptions options;
+            options.delay = delay;
+            options.offset = offset;
+            options.b0 = b0;
+            options.gamma = gamma;
+            pulseq::ReadoutKspace found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::readout_kspace(sequence, options, first, stop);
+            }
+            const py::ssize_t held = static_cast<py::ssize_t>(found.sampled[0].size());
+            py::array_t<double> k({py::ssize_t{3}, held});
+            auto view = k.mutable_unchecked<2>();
+            for (py::ssize_t axis = 0; axis < 3; ++axis)
+                for (py::ssize_t i = 0; i < held; ++i)
+                    view(axis, i) = found.sampled[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+            py::dict out;
+            out["k_traj_adc"] = k;
+            out["warnings"] = found.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("delay") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("offset") = std::array<double, 3>{{0.0, 0.0, 0.0}}, py::arg("first") = 0,
+        py::arg("stop") = 0, py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
+        "The k-space location of each ADC sample of readouts first to before "
+        "stop, where following the whole sequence puts it.");
+
+    module.def(
         "calculate_kspace",
         [](const Sequence& sequence,
            std::array<double, 3> delay,
