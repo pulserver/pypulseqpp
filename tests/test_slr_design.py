@@ -8,7 +8,10 @@ patterns, at sample counts where the two pad their spectra identically.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import numpy as np
+import pypulseq
 import pytest
 from pypulseqpp._ext import slr as kernels
 
@@ -254,3 +257,34 @@ def test_a_phase_table_is_refused_outside_the_band_counts_it_covers():
     base = pp.make_sinc_pulse(np.deg2rad(30), duration=2e-3)
     with pytest.raises(ValueError, match="tabulated for 4 to 12"):
         pp.make_sms_pulse(base, 3, 1000.0, phases="malik")
+
+
+@pytest.mark.parametrize("filter_type", ["ls", "min"])
+@pytest.mark.parametrize("pulse_type", ["st", "ex", "se", "inv", "sat"])
+def test_an_slr_pulse_records_its_centre_at_its_magnitude_peak(pulse_type, filter_type):
+    flip = np.pi if pulse_type in ("se", "inv") else np.pi / 2
+    rf = pp.make_slr_pulse(
+        flip, duration=3e-3, pulse_type=pulse_type, filter_type=filter_type
+    )
+    peak, _ = pypulseq.calc_rf_center(
+        SimpleNamespace(signal=np.asarray(rf.signal), t=np.asarray(rf.t))
+    )
+    assert rf.center == pytest.approx(peak)
+
+
+def test_an_slr_pulse_records_the_centre_position_it_is_given():
+    rf = pp.make_slr_pulse(np.pi, duration=3e-3, pulse_type="se", center_pos=0.5)
+    assert rf.center == pytest.approx(1.5e-3)
+
+
+def test_the_rephaser_refocuses_from_the_centre_the_pulse_records():
+    rf, gz, gz_reph = pp.make_slr_pulse(
+        np.pi / 2,
+        duration=3e-3,
+        pulse_type="ex",
+        filter_type="min",
+        slice_thickness=5e-3,
+        return_gz=True,
+    )
+    after_centre = gz.amplitude * (gz.flat_time - rf.center + 0.5 * gz.fall_time)
+    assert gz_reph.area == pytest.approx(-after_centre, rel=1e-9)

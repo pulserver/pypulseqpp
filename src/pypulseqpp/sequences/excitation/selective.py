@@ -162,7 +162,9 @@ class SpatialSelectiveRefocusing(RfModule):
     """SLR refocusing with matched crushers joined to the selection plateau.
 
     Uses the spin-echo SLR profile. The default RF phase is pi/2 radians
-    for a zero-phase excitation (CPMG).
+    for a zero-phase excitation (CPMG). The selection plateau is centred on
+    the centre the pulse records, its magnitude peak, and extends past the
+    pulse until that centre lies on the block raster.
 
     Parameters
     ----------
@@ -194,7 +196,8 @@ class SpatialSelectiveRefocusing(RfModule):
     Attributes
     ----------
     rf_ref : RfEvent
-        The refocusing pulse, delayed onto the plateau between the crushers.
+        The refocusing pulse, delayed onto the plateau between the crushers
+        so that its recorded centre is the plateau's midpoint.
     gz : GradEvent
         Crusher, selection plateau and crusher, as one gradient.
     selection_amplitude : float
@@ -295,8 +298,33 @@ class SpatialSelectiveRefocusing(RfModule):
                 system=system,
             )
             flat_start = float(times_pre[-1])
-            flat_end = flat_start + float(gz.flat_time)
-            rf_ref.delay += flat_start - float(gz.rise_time)
+        else:
+            flat_start = float(gz.delay) + float(gz.rise_time)
+
+        # The recorded centre is the magnitude peak, which an 'se' design puts
+        # beside the midpoint. The plateau is centred on it and widened until
+        # it lands on the block raster, so a spin echo can place the pulse
+        # midway and the two halves of the lobe carry equal areas.
+        center = float(rf_ref.center)
+        duration = float(rf_ref.shape_dur)
+        middle = pp.ceil_to_raster(
+            flat_start + max(center, duration - center), system.block_duration_raster
+        )
+        half = middle - flat_start
+        rf_ref.delay = pp.round_to_raster(middle - center, system.rf_raster_time)
+
+        if not spoiling_cycles:
+            gz = pp.make_trapezoid(
+                channel=axis,
+                amplitude=gz.amplitude,
+                flat_time=2 * half,
+                rise_time=gz.rise_time,
+                fall_time=gz.fall_time,
+                delay=gz.delay,
+                system=system,
+            )
+        else:
+            flat_end = flat_start + 2 * half
             gz = pp.make_extended_trapezoid(
                 channel=axis,
                 amplitudes=np.concatenate(

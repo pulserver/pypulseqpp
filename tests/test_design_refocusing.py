@@ -155,6 +155,43 @@ def test_the_hard_pulse_centre_counts_from_the_module_not_the_block(system):
     assert module.center == pytest.approx(bare.center + crusher, abs=1e-9)
 
 
+def _plateau(module):
+    """Start and end of the selection plateau, in s from the block start."""
+    gz = module.gz
+    if gz.type == "trap":
+        start = float(gz.delay) + float(gz.rise_time)
+        return start, start + float(gz.flat_time)
+    times = float(gz.delay) + np.asarray(gz.tt, dtype=float)
+    on = np.isclose(np.asarray(gz.waveform), module.selection_amplitude, rtol=1e-9)
+    return float(times[on][0]), float(times[on][-1])
+
+
+@pytest.mark.parametrize("spoiling_cycles", [0.0, 4.0])
+def test_the_selective_plateau_is_centred_on_the_centre_the_pulse_records(
+    system, spoiling_cycles
+):
+    """The recorded centre is the magnitude peak, which is not the midpoint."""
+    module = design.SpatialSelectiveRefocusing(
+        system, 5e-3, spoiling_cycles=spoiling_cycles
+    )
+    rf = module.rf_ref
+    start, end = _plateau(module)
+    assert float(rf.center) != pytest.approx(0.5 * float(rf.shape_dur), abs=1e-7)
+    assert 0.5 * (start + end) == pytest.approx(module.center, abs=1e-12)
+    assert start <= float(rf.delay) + 1e-12
+    assert float(rf.delay) + float(rf.shape_dur) <= end + 1e-12
+
+
+@pytest.mark.parametrize("spoiling_cycles", [0.0, 4.0])
+def test_the_selective_pulse_centre_lies_on_the_block_raster(system, spoiling_cycles):
+    """A spin echo can place the pulse midway only on the raster its blocks share."""
+    module = design.SpatialSelectiveRefocusing(
+        system, 5e-3, spoiling_cycles=spoiling_cycles
+    )
+    steps = module.center / system.block_duration_raster
+    assert steps == pytest.approx(round(steps), abs=1e-6)
+
+
 def test_the_selective_pulse_sits_on_the_plateau_between_the_crushers(system):
     bare = design.SpatialSelectiveRefocusing(system, 5e-3, spoiling_cycles=0.0)
     module = design.SpatialSelectiveRefocusing(system, 5e-3)
