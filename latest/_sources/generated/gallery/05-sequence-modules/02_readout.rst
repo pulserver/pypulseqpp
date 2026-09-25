@@ -316,7 +316,7 @@ echoes rather than as a shift common to all of them.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.322 seconds)
+   **Total running time of the script:** (0 minutes 0.293 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_02_readout.py:

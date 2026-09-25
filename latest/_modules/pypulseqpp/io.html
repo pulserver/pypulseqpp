@@ -468,6 +468,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceLibraries"</span><span class="p">,</span> <span class="s2">"Shape"</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="s2">"write"</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_typing</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span> <span class="k">as</span> <span class="n">_safety</span>
@@ -495,7 +496,7 @@
 <div class="viewcode-block" id="read">
 <a class="viewcode-back" href="../../generated/pypulseqpp.io.read.html#pypulseqpp.io.read">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span>
-    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">_typing</span><span class="o">.</span><span class="n">BinaryIO</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">max_grad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_slew</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -526,8 +527,9 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    file_path : str | os.PathLike[str]</span>
-<span class="sd">        The file to read.</span>
+<span class="sd">    file_path : str | os.PathLike[str] | typing.BinaryIO</span>
+<span class="sd">        The file to read, or a binary file object whose ``read()`` returns its</span>
+<span class="sd">        contents.</span>
 <span class="sd">    max_grad : float, default=None</span>
 <span class="sd">        Gradient amplitude limit (Hz/m) for the system built. ``None`` takes</span>
 <span class="sd">        the file's own, or the larger of the default and what the file reaches.</span>
@@ -553,6 +555,8 @@
 <span class="sd">    RuntimeError</span>
 <span class="sd">        If the file cannot be parsed, or ``verify`` is set and the signature</span>
 <span class="sd">        does not match.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If a file object returns text, as one opened in text mode does.</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>

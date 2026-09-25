@@ -172,7 +172,7 @@ every acquired spoke still crosses the k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.715 seconds)
+   **Total running time of the script:** (0 minutes 2.697 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

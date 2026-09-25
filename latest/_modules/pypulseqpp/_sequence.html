@@ -529,6 +529,20 @@
 <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_contents</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the bytes of a file named by a path or held by a binary file object."""</span>
+    <span class="n">read</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">read</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="n">read</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"read(): the file object returned </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">; "</span>
+            <span class="s2">"open the file in binary mode"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">_BlockDurations</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Mutable duration mapping in seconds, keyed by 1-based block index."""</span>
 
@@ -2438,8 +2452,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        file_path : str | os.PathLike[str]</span>
-<span class="sd">            The file to read.</span>
+<span class="sd">        file_path : str | os.PathLike[str] | typing.BinaryIO</span>
+<span class="sd">            The file to read, or a binary file object whose ``read()``</span>
+<span class="sd">            returns its contents, such as :class:`io.BytesIO` over bytes</span>
+<span class="sd">            received without a file.</span>
 <span class="sd">        detect_rf_use : bool, default=False</span>
 <span class="sd">            Work out what each unlabelled pulse is for, from what it does.</span>
 <span class="sd">            Before revision 1.5.0 the format had nowhere to record it, so a</span>
@@ -2455,6 +2471,8 @@
 <span class="sd">        RuntimeError</span>
 <span class="sd">            If ``verify`` is set and the signature the file carries is not the</span>
 <span class="sd">            signature of its contents.</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If a file object returns text, as one opened in text mode does.</span>
 
 <span class="sd">        Warns</span>
 <span class="sd">        -----</span>
@@ -2475,8 +2493,16 @@
 <span class="sd">        &gt;&gt;&gt; loaded.read(path, verify=True)</span>
 <span class="sd">        &gt;&gt;&gt; loaded.num_blocks, loaded.grad_raster_time</span>
 <span class="sd">        (1, 2e-05)</span>
+
+<span class="sd">        The same bytes, held in memory rather than in a file:</span>
+
+<span class="sd">        &gt;&gt;&gt; import io</span>
+<span class="sd">        &gt;&gt;&gt; received = pp.Sequence()</span>
+<span class="sd">        &gt;&gt;&gt; received.read(io.BytesIO(path.read_bytes()), verify=True)</span>
+<span class="sd">        &gt;&gt;&gt; received.num_blocks</span>
+<span class="sd">        1</span>
 <span class="sd">        """</span>
-        <span class="n">contents</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">_contents</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
         <span class="n">binary</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">is_binary</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">binary</span><span class="p">:</span>
             <span class="c1"># A binary file carries its signature at the end, over the bytes</span>
