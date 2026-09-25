@@ -175,7 +175,7 @@ peripheral k-space disc.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.172 seconds)
+   **Total running time of the script:** (0 minutes 3.189 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

@@ -440,7 +440,7 @@ the last doublings add the most to the echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.160 seconds)
+   **Total running time of the script:** (0 minutes 0.158 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_02_spin_echo.py:

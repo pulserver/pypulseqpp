@@ -359,7 +359,7 @@ no longer does.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.052 seconds)
+   **Total running time of the script:** (0 minutes 1.039 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_04-non-cartesian_02_spiral.py:
