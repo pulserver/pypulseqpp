@@ -225,3 +225,30 @@ def test_a_run_of_readouts_is_not_combined_with_a_block_range(system):
         seq.adc_kspace(block_range=(1, 1), readouts=(0, 1))
     with pytest.raises(ValueError, match="exactly two numbers"):
         seq.adc_kspace(readouts=(0,))
+
+
+def test_a_run_reports_a_gradient_forced_to_zero_as_the_whole_sequence_does(system):
+    seq = pp.Sequence(system)
+    gx, adc = readout(system)
+    seq.add_block(pp.make_block_pulse(math.pi / 2, duration=1e-3, use="excitation"))
+    seq.add_block(
+        pp.make_extended_trapezoid(
+            "x", amplitudes=[0, 1e4], times=[0, 1e-4], system=system
+        )
+    )
+    seq.add_block(pp.make_delay(1e-4))
+    seq.add_block(gx, adc)
+
+    with pytest.warns(UserWarning, match="forcing ramp-down"):
+        seq.adc_kspace()
+    with pytest.warns(UserWarning, match="forcing ramp-down"):
+        seq.adc_kspace(readouts=(0, 1))
+
+
+def test_a_run_warns_of_a_trajectory_delay_longer_than_100_us(system):
+    seq = pp.Sequence(system)
+    gx, adc = readout(system)
+    seq.add_block(gx, adc)
+
+    with pytest.warns(UserWarning, match="suspiciously high"):
+        seq.adc_kspace(readouts=(0, 1), trajectory_delay=2e-4)
