@@ -1869,7 +1869,7 @@ class Sequence:
         return self._note_binary_signature(written)
 
     def write_v141(
-        self, name, create_signature: bool = True, gamma=42576000.0, field=1.5
+        self, name, create_signature: bool = True, gamma=None, field=None
     ) -> str | None:
         """Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.
 
@@ -1879,11 +1879,12 @@ class Sequence:
             Where to write it.
         create_signature : bool, default=True
             Sign the file, so a reader can tell it has not been edited.
-        gamma : float, default=42576000.0
-            Gyromagnetic ratio in Hz/T.
-        field : float, default=1.5
-            Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1
-            has no column for, to absolute offsets.
+        gamma : float, default=None
+            Gyromagnetic ratio in Hz/T; the sequence's system's when None.
+        field : float, default=None
+            Main field in T; the sequence's system's ``B0`` when None. With
+            ``gamma``, converts ppm offsets, which 1.4.1 has no column for,
+            to absolute offsets, as :func:`pypulseqpp.calc_absolute_offsets` does.
 
         Returns
         -------
@@ -1912,7 +1913,12 @@ class Sequence:
         >>> path.read_text().splitlines()[3:6]
         ['[VERSION]', 'major 1', 'minor 4']
         """
-        written = _cxx.write_text_v141(self._native, create_signature, gamma, field)
+        written = _cxx.write_text_v141(
+            self._native,
+            create_signature,
+            self.system.gamma if gamma is None else gamma,
+            self.system.B0 if field is None else field,
+        )
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
 

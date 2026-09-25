@@ -24,8 +24,9 @@ separate contracts.
   Conversion derives missing RF centres, gradient endpoints and durations.
   Missing RF uses remain undefined unless inference is requested.
 - Default writers produce Pulseq 1.5.1. The 1.4.1 writer folds ppm offsets
-  into absolute offsets, omits soft-delay extensions with a warning, and
-  refuses rotations and RF shims.
+  into absolute offsets, at the gamma and B0 of the sequence's system unless
+  others are given, as the reference writer does; omits soft-delay extensions
+  with a warning; and refuses rotations and RF shims.
 - Binary shapes use float32; other numeric fields preserve their specified
   binary representation. Both text and binary support optional MD5 signatures.
 - Custom labels need no registration by users. Binary IDs beyond the builtin

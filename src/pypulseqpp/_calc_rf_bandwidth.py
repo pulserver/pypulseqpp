@@ -12,23 +12,22 @@ import numpy as _np
 from pypulseq import calc_rf_bandwidth as _upstream
 
 from ._calc_rf_power import _channels
+from ._offsets import calc_absolute_offsets as _calc_absolute_offsets
 from ._opts import Opts as _Opts
 from ._results import RfBandwidth as _RfBandwidth
 
 
 def _full_freq_offset(rf) -> float:
     """Return the pulse's total frequency offset in Hz, including the ppm term."""
-    offset = float(getattr(rf, "freq_offset", 0.0) or 0.0)
     ppm = float(getattr(rf, "freq_ppm", 0.0) or 0.0)
-    if abs(ppm) > _np.finfo(float).eps:
-        _warnings.warn(
-            "calc_rf_bandwidth(): a ppm offset is read against the gamma and "
-            "B0 of the default system",
-            stacklevel=3,
-        )
-        system = _Opts.default
-        offset += ppm * 1e-6 * system.gamma * system.B0
-    return offset
+    if abs(ppm) <= _np.finfo(float).eps:
+        return float(getattr(rf, "freq_offset", 0.0) or 0.0)
+    _warnings.warn(
+        "calc_rf_bandwidth(): a ppm offset is read against the gamma and "
+        "B0 of the default system",
+        stacklevel=3,
+    )
+    return _calc_absolute_offsets(rf, system=_Opts.default)[0]
 
 
 def _at_baseband(rf):

@@ -10,6 +10,7 @@ import numpy as _np
 
 from ._calc_rf_bandwidth import calc_rf_bandwidth as _calc_rf_bandwidth
 from ._ext import sim as _kernels
+from ._offsets import calc_absolute_offsets as _calc_absolute_offsets
 from ._opts import Opts as _Opts
 
 #: ``(bandwidth threshold in Hz, raster in s)``: ``sim_rf``'s default ``dt`` is
@@ -191,9 +192,7 @@ def sim_rf(
             "default system",
             stacklevel=2,
         )
-        system = _Opts.default
-        freq_offset += freq_ppm * 1e-6 * system.gamma * system.B0
-        phase_offset += phase_ppm * 1e-6 * system.gamma * system.B0
+        freq_offset, phase_offset = _calc_absolute_offsets(rf, system=_Opts.default)
 
     bandwidth = abs(_calc_rf_bandwidth(rf, cutoff=0.5, dw=df * 10.0, dt=10e-6)) + abs(
         freq_offset
