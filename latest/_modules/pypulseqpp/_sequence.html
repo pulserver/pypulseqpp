@@ -2432,7 +2432,7 @@
 <div class="viewcode-block" id="Sequence.write_v141">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.write_v141.html#pypulseqpp.Sequence.write_v141">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">write_v141</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">42576000.0</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="mf">1.5</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.</span>
 
@@ -2442,11 +2442,12 @@
 <span class="sd">            Where to write it.</span>
 <span class="sd">        create_signature : bool, default=True</span>
 <span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
-<span class="sd">        gamma : float, default=42576000.0</span>
-<span class="sd">            Gyromagnetic ratio in Hz/T.</span>
-<span class="sd">        field : float, default=1.5</span>
-<span class="sd">            Main field in T. With ``gamma``, converts ppm offsets, which 1.4.1</span>
-<span class="sd">            has no column for, to absolute offsets.</span>
+<span class="sd">        gamma : float, default=None</span>
+<span class="sd">            Gyromagnetic ratio in Hz/T; the sequence's system's when None.</span>
+<span class="sd">        field : float, default=None</span>
+<span class="sd">            Main field in T; the sequence's system's ``B0`` when None. With</span>
+<span class="sd">            ``gamma``, converts ppm offsets, which 1.4.1 has no column for,</span>
+<span class="sd">            to absolute offsets, as :func:`pypulseqpp.calc_absolute_offsets` does.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2475,7 +2476,12 @@
 <span class="sd">        &gt;&gt;&gt; path.read_text().splitlines()[3:6]</span>
 <span class="sd">        ['[VERSION]', 'major 1', 'minor 4']</span>
 <span class="sd">        """</span>
-        <span class="n">written</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">write_text_v141</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+        <span class="n">written</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">write_text_v141</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span>
+            <span class="n">create_signature</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="k">if</span> <span class="n">gamma</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">gamma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">B0</span> <span class="k">if</span> <span class="n">field</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">field</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">written</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_signature</span><span class="p">(</span><span class="n">written</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">)</span></div>
 

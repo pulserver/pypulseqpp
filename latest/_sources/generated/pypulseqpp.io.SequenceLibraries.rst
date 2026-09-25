@@ -8,6 +8,14 @@
 
 
 
+.. rubric:: Methods
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~SequenceLibraries.absolute_offsets
+
 
 
 .. rubric:: Attributes

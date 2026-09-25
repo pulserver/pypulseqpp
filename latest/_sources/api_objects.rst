@@ -41,6 +41,7 @@ from.
    make_trigger
    align
    block_to_events
+   calc_absolute_offsets
    calc_duration
    rotate
    get_supported_labels

@@ -473,6 +473,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ext</span> <span class="k">as</span> <span class="n">_cxx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._offsets</span><span class="w"> </span><span class="kn">import</span> <span class="n">_hz_per_ppm</span>
 
 <span class="c1">#: What :attr:`SequenceLibraries.layout` holds.</span>
 <span class="n">_LAYOUT</span> <span class="o">=</span> <span class="mi">1</span>
@@ -622,7 +623,45 @@
     <span class="n">label_inc_labels</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">rf_shims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">soft_delays</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="n">soft_delay_hints</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+    <span class="n">soft_delay_hints</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SequenceLibraries.absolute_offsets">
+<a class="viewcode-back" href="../../generated/pypulseqpp.io.SequenceLibraries.absolute_offsets.html#pypulseqpp.io.SequenceLibraries.absolute_offsets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">absolute_offsets</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">system</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Return every RF and ADC row's offsets with its ppm offsets resolved.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system : Opts</span>
+<span class="sd">            The gamma (Hz/T) and B0 (T) the ppm offsets are resolved at.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        rf : NDArray[np.float64]</span>
+<span class="sd">            ``(R, 2)``: each RF row's frequency offset in Hz and phase offset</span>
+<span class="sd">            in rad, as :func:`pypulseqpp.calc_absolute_offsets` gives them for</span>
+<span class="sd">            its event.</span>
+<span class="sd">        adc : NDArray[np.float64]</span>
+<span class="sd">            ``(D, 2)``: the same for each ADC row.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; seq.add_block(pp.make_block_pulse(1.0, duration=4e-3, freq_ppm=-3.45))</span>
+<span class="sd">        1</span>
+<span class="sd">        &gt;&gt;&gt; rf, adc = seq.libraries().absolute_offsets(pp.Opts(B0=3.0))</span>
+<span class="sd">        &gt;&gt;&gt; rf.round(2).tolist(), adc.shape</span>
+<span class="sd">        ([[-440.66, 0.0]], (0, 2))</span>
+<span class="sd">        """</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">_hz_per_ppm</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rf</span><span class="p">[:,</span> <span class="mi">8</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rf</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adc</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
 
 
 

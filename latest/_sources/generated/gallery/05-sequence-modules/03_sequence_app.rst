@@ -280,7 +280,7 @@ declaring one.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.390 seconds)
+   **Total running time of the script:** (0 minutes 0.448 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_03_sequence_app.py:
