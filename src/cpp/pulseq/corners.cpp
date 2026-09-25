@@ -116,6 +116,25 @@ namespace pulseq
                 return made;
             }
 
+            if (time_shape == -1)
+            {
+                /* Oversampled by two: sample i at i + 1 half rasters, with the
+                 * recorded first and last at the edges, half a raster out. */
+                const size_t count = waveform.size();
+                made.times.reserve(count + 2);
+                made.values.reserve(count + 2);
+                made.times.push_back(0.0);
+                made.values.push_back(arb[1]);
+                for (size_t i = 0; i < count; ++i)
+                {
+                    made.times.push_back(0.5 * raster_ * static_cast<double>(i + 1));
+                    made.values.push_back(waveform[i]);
+                }
+                made.times.push_back(0.5 * raster_ * static_cast<double>(count + 1));
+                made.values.push_back(arb[2]);
+                return made;
+            }
+
             const std::vector<double>& ticks = shapes_[time_shape];
             std::vector<double> tt(ticks.size());
             for (size_t i = 0; i < ticks.size(); ++i)
