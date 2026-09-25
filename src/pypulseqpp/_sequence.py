@@ -21,7 +21,7 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
-from ._results import AdcEchoes
+from ._results import AdcEchoes, GradientStatistics, RfGradients
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -1108,7 +1108,13 @@ class Sequence:
     #: Upstream carries this name for the same calculation, and so does this.
     calculate_kspacePP = calculate_kspace
 
-    def adc_kspace(self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+    def adc_kspace(
+        self,
+        trajectory_delay=0.0,
+        gradient_offset=0.0,
+        block_range=None,
+        readouts=None,
+    ):
         """Return the k-space location of each ADC sample, in 1/m.
 
         The first result of :meth:`calculate_kspace`, integrated the same way
@@ -1123,11 +1129,26 @@ class Sequence:
             A background gradient per axis, in Hz/m.
         block_range : Sequence[int], default=None
             Two 1-based block indices; only those blocks are followed.
+        readouts : Sequence[int], default=None
+            Two 0-based readout indices, ``first`` and ``stop``: only the
+            samples of the readouts from ``first`` to before ``stop``, in the
+            order :meth:`adc_echoes` lists them, each where following the
+            whole sequence puts it. k-space is integrated from the last block
+            before readout ``first`` that plays an excitation, or a pulse with
+            no use recorded, and does not acquire, so a trajectory delay that
+            moves an earlier block's gradient past that pulse's centre is not
+            seen. Not combined with ``block_range``.
 
         Returns
         -------
         NDArray[np.float64]
             ``(3, n)``: one column per ADC sample, in play order.
+
+        Raises
+        ------
+        ValueError
+            If both ``block_range`` and ``readouts`` are given, or ``readouts``
+            is not two indices ``0 <= first <= stop <=`` the number of readouts.
 
         Examples
         --------
@@ -1140,8 +1161,12 @@ class Sequence:
         2
         >>> seq.adc_kspace().shape
         (3, 64)
+        >>> seq.adc_kspace(readouts=(0, 1)).shape
+        (3, 64)
         """
-        return _adc_kspace(self, trajectory_delay, gradient_offset, block_range)
+        return _adc_kspace(
+            self, trajectory_delay, gradient_offset, block_range, readouts
+        )
 
     def adc_echoes(self) -> AdcEchoes:
         """Return, per readout, the axes it moves along and where it passes nearest the centre.
@@ -1468,6 +1493,84 @@ class Sequence:
         [2, 1]
         """
         return np.asarray(_cxx.rf_channel_counts(self._native))
+
+    def gradient_statistics(self) -> GradientStatistics:
+        """Return statistics of each gradient event's waveform, along its channel axis.
+
+        Entry ``i`` is gradient id ``i + 1``, for trapezoids and arbitrary
+        gradients alike. Each statistic is exact for the piecewise-linear
+        waveform the event plays, through the corners
+        :meth:`waveforms_and_times` draws, and is taken over the intervals
+        between corners that last longer than a nanosecond, so an
+        instantaneous step contributes no slew rate. A block's rotation does
+        not enter.
+
+        Returns
+        -------
+        GradientStatistics
+            ``peak_slew``, the steepest slew rate in Hz/m/s; ``energy``, the
+            integral of the squared gradient in (Hz/m)^2 s; and
+            ``slew_energy``, the integral of the squared slew rate in
+            (Hz/m/s)^2 s; each ``(g,)``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> gx = pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=1e-3)
+        >>> _ = seq.add_block(gx)
+        >>> stats = seq.gradient_statistics()
+        >>> float(stats.peak_slew[0])
+        1000000000.0
+        >>> round(float(stats.energy[0]), 3)  # amplitude^2 * (flat + 2 rise / 3)
+        10666666.667
+        """
+        found = _cxx.gradient_statistics(self._native)
+        return GradientStatistics(
+            peak_slew=found["peak_slew"],
+            energy=found["energy"],
+            slew_energy=found["slew_energy"],
+        )
+
+    def rf_gradients(self) -> RfGradients:
+        """Return the gradient each RF pulse plays under, along the channel axes.
+
+        One entry per block with RF, in play order, before the block's
+        rotation. An axis is steady when its gradient holds one value from the
+        pulse's first sample to its last: :class:`TransformFOV` moves such a
+        pulse by a frequency and a phase offset alone, and writes a phase
+        shape for one under a gradient that is not.
+
+        Returns
+        -------
+        RfGradients
+            ``block``, 1-based, ``(n,)``; ``steady``, ``(n, 3)``, whether the
+            gradient along x, y and z holds one value across the pulse, an
+            axis without a gradient being steady at zero; and ``gradient``,
+            ``(n, 3)``, the gradient along x, y and z at the pulse's centre, in
+            Hz/m.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> pulse, gz, _ = pp.make_sinc_pulse(
+        ...     np.pi / 2, duration=2e-3, slice_thickness=5e-3, return_gz=True
+        ... )
+        >>> _ = seq.add_block(pulse, gz)
+        >>> under = seq.rf_gradients()
+        >>> under.steady.tolist()
+        [[True, True, True]]
+        >>> bool(np.isclose(under.gradient[0, 2], gz.amplitude))
+        True
+        """
+        found = _cxx.rf_gradients(self._native)
+        return RfGradients(
+            block=found["block"],
+            steady=found["steady"].astype(bool),
+            gradient=found["gradient"],
+        )
 
     # -- the repeating unit --------------------------------------------
 

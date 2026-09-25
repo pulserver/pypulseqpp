@@ -12,6 +12,7 @@
 #define PULSEQ_FOV_HPP
 
 #include <array>
+#include <cstdint>
 #include <vector>
 
 #include "pulseq/sequence.hpp"
@@ -139,6 +140,28 @@ namespace pulseq
         double origin[3],
         const unsigned char* exempt = nullptr,
         bool through_rotation = false);
+
+    /**
+     * The gradient each RF pulse plays under, one entry per block with RF, in
+     * play order, along the channel axes.
+     *
+     * An axis is steady when its gradient holds one value from the pulse's
+     * first sample to its last, which is when apply_fov_shift() moves the
+     * pulse by a frequency and a phase offset alone; an axis without a
+     * gradient is steady at zero.
+     */
+    struct RfGradients
+    {
+        /** 1-based block of each pulse. */
+        std::vector<int32_t> block;
+        /** Pulses x 3: 1 where the gradient along x, y or z is steady. */
+        std::vector<uint8_t> steady;
+        /** Pulses x 3: the gradient along x, y and z at the pulse's centre, in Hz/m. */
+        std::vector<double> gradient;
+    };
+
+    /** Find the gradient each RF pulse plays under. */
+    RfGradients rf_gradients(const Sequence& seq);
 
 } // namespace pulseq
 

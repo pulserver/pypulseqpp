@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "pulseq/analysis.hpp"
+#include "pulseq/corners.hpp"
 #include "pulseq/fov.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
@@ -1758,6 +1759,84 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"), py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
         "Per readout, the axes its k-space moves along and the first and last "
         "sample nearest the centre of k-space.");
+
+    module.def(
+        "readout_kspace",
+        [](const Sequence& sequence,
+           std::array<double, 3> delay,
+           std::array<double, 3> offset,
+           int64_t first,
+           int64_t stop,
+           double b0,
+           double gamma) {
+            pulseq::KspaceOptions options;
+            options.delay = delay;
+            options.offset = offset;
+            options.b0 = b0;
+            options.gamma = gamma;
+            pulseq::ReadoutKspace found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::readout_kspace(sequence, options, first, stop);
+            }
+            const py::ssize_t held = static_cast<py::ssize_t>(found.sampled[0].size());
+            py::array_t<double> k({py::ssize_t{3}, held});
+            auto view = k.mutable_unchecked<2>();
+            for (py::ssize_t axis = 0; axis < 3; ++axis)
+                for (py::ssize_t i = 0; i < held; ++i)
+                    view(axis, i) = found.sampled[static_cast<size_t>(axis)][static_cast<size_t>(i)];
+            py::dict out;
+            out["k_traj_adc"] = k;
+            out["warnings"] = found.warnings;
+            return out;
+        },
+        py::arg("sequence"), py::arg("delay") = std::array<double, 3>{{0.0, 0.0, 0.0}},
+        py::arg("offset") = std::array<double, 3>{{0.0, 0.0, 0.0}}, py::arg("first") = 0,
+        py::arg("stop") = 0, py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,
+        "The k-space location of each ADC sample of readouts first to before "
+        "stop, where following the whole sequence puts it.");
+
+    module.def(
+        "rf_gradients",
+        [](const Sequence& sequence) {
+            pulseq::RfGradients found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::rf_gradients(sequence);
+            }
+            const py::ssize_t pulses = static_cast<py::ssize_t>(found.block.size());
+            py::dict out;
+            out["block"] = py::array_t<int32_t>(pulses, found.block.data());
+            out["steady"] =
+                py::array_t<uint8_t>({pulses, py::ssize_t{3}}, found.steady.data());
+            out["gradient"] =
+                py::array_t<double>({pulses, py::ssize_t{3}}, found.gradient.data());
+            return out;
+        },
+        py::arg("sequence"),
+        "Per block with RF, whether the gradient along each channel axis holds "
+        "one value across the pulse, and its value at the pulse's centre.");
+
+    module.def(
+        "gradient_statistics",
+        [](const Sequence& sequence) {
+            pulseq::GradientStatistics found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::gradient_statistics(sequence);
+            }
+            const auto row = [](const std::vector<double>& values) {
+                return py::array_t<double>(static_cast<py::ssize_t>(values.size()), values.data());
+            };
+            py::dict out;
+            out["peak_slew"] = row(found.peak_slew);
+            out["energy"] = row(found.energy);
+            out["slew_energy"] = row(found.slew_energy);
+            return out;
+        },
+        py::arg("sequence"),
+        "Per gradient event, the steepest slew rate and the integrals of the "
+        "squared gradient and of the squared slew rate of its waveform.");
 
     module.def(
         "calculate_kspace",

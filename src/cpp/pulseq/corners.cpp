@@ -116,6 +116,25 @@ namespace pulseq
                 return made;
             }
 
+            if (time_shape == -1)
+            {
+                /* Oversampled by two: sample i at i + 1 half rasters, with the
+                 * recorded first and last at the edges, half a raster out. */
+                const size_t count = waveform.size();
+                made.times.reserve(count + 2);
+                made.values.reserve(count + 2);
+                made.times.push_back(0.0);
+                made.values.push_back(arb[1]);
+                for (size_t i = 0; i < count; ++i)
+                {
+                    made.times.push_back(0.5 * raster_ * static_cast<double>(i + 1));
+                    made.values.push_back(waveform[i]);
+                }
+                made.times.push_back(0.5 * raster_ * static_cast<double>(count + 1));
+                made.values.push_back(arb[2]);
+                return made;
+            }
+
             const std::vector<double>& ticks = shapes_[time_shape];
             std::vector<double> tt(ticks.size());
             for (size_t i = 0; i < ticks.size(); ++i)
@@ -227,6 +246,37 @@ namespace pulseq
             }
         }
         return true;
+    }
+
+    GradientStatistics gradient_statistics(const Sequence& seq)
+    {
+        const size_t count = static_cast<size_t>(std::max(seq.num_gradients(), 0));
+        GradientStatistics out;
+        out.peak_slew.assign(count, 0.0);
+        out.energy.assign(count, 0.0);
+        out.slew_energy.assign(count, 0.0);
+        CornerCache corners(seq);
+        std::vector<double> times;
+        for (size_t at = 0; at < count; ++at)
+        {
+            const Corners& drawn = corners[static_cast<int32_t>(at + 1)];
+            if (drawn.values.size() < 2)
+                continue;
+            drawn.at(0.0, times);
+            for (size_t i = 0; i + 1 < drawn.values.size(); ++i)
+            {
+                const double span = times[i + 1] - times[i];
+                if (span <= kEps)
+                    continue;
+                const double from = drawn.values[i];
+                const double to = drawn.values[i + 1];
+                const double rate = (to - from) / span;
+                out.peak_slew[at] = std::max(out.peak_slew[at], std::fabs(rate));
+                out.energy[at] += span * (from * from + from * to + to * to) / 3.0;
+                out.slew_energy[at] += rate * rate * span;
+            }
+        }
+        return out;
     }
 
 } // namespace pulseq
