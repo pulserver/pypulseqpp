@@ -339,7 +339,7 @@ outside the scope of this package.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.510 seconds)
+   **Total running time of the script:** (0 minutes 0.367 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_03_epi.py:

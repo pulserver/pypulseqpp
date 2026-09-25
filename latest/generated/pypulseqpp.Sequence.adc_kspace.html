@@ -549,6 +549,14 @@ the samples; excitations reset it and refocusing pulses invert it.</p>
 <li><p><strong>trajectory_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>ArrayLike</em><em>, </em><em>default=0.0</em>) – Per-axis timing correction (s); positive values advance the gradient.</p></li>
 <li><p><strong>gradient_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>ArrayLike</em><em>, </em><em>default=0.0</em>) – A background gradient per axis, in Hz/m.</p></li>
 <li><p><strong>block_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Two 1-based block indices; only those blocks are followed.</p></li>
+<li><p><strong>readouts</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Two 0-based readout indices, <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>: only the
+samples of the readouts from <code class="docutils literal notranslate"><span class="pre">first</span></code> to before <code class="docutils literal notranslate"><span class="pre">stop</span></code>, in the
+order <a class="reference internal" href="pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_echoes()</span></code></a> lists them, each where following the
+whole sequence puts it. k-space is integrated from the last block
+before readout <code class="docutils literal notranslate"><span class="pre">first</span></code> that plays an excitation, or a pulse with
+no use recorded, and does not acquire, so a trajectory delay that
+moves an earlier block’s gradient past that pulse’s centre is not
+seen. Not combined with <code class="docutils literal notranslate"><span class="pre">block_range</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -556,6 +564,10 @@ the samples; excitations reset it and refocusing pulses invert it.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>NDArray[np.float64]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If both <code class="docutils literal notranslate"><span class="pre">block_range</span></code> and <code class="docutils literal notranslate"><span class="pre">readouts</span></code> are given, or <code class="docutils literal notranslate"><span class="pre">readouts</span></code>
+    is not two indices <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">first</span> <span class="pre">&lt;=</span> <span class="pre">stop</span> <span class="pre">&lt;=</span></code> the number of readouts.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -567,6 +579,8 @@ the samples; excitations reset it and refocusing pulses invert it.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">3.2e-3</span><span class="p">))</span>
 <span class="go">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">adc_kspace</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 64)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">adc_kspace</span><span class="p">(</span><span class="n">readouts</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(3, 64)</span>
 </pre></div>
 </div>

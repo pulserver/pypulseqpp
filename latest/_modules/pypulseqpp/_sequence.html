@@ -484,7 +484,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">libraries</span> <span class="k">as</span> <span class="n">_libraries</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_data</span> <span class="k">as</span> <span class="n">_report_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_text</span> <span class="k">as</span> <span class="n">_report_text</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span><span class="p">,</span> <span class="n">GradientStatistics</span><span class="p">,</span> <span class="n">RfGradients</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">adc_times</span> <span class="k">as</span> <span class="n">_adc_times</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_gradients</span> <span class="k">as</span> <span class="n">_get_gradients</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">rf_times</span> <span class="k">as</span> <span class="n">_rf_times</span>
@@ -1635,7 +1635,13 @@
 
 <div class="viewcode-block" id="Sequence.adc_kspace">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">adc_kspace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adc_kspace</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">trajectory_delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">gradient_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">readouts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return the k-space location of each ADC sample, in 1/m.</span>
 
 <span class="sd">        The first result of :meth:`calculate_kspace`, integrated the same way</span>
@@ -1650,11 +1656,26 @@
 <span class="sd">            A background gradient per axis, in Hz/m.</span>
 <span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Two 1-based block indices; only those blocks are followed.</span>
+<span class="sd">        readouts : Sequence[int], default=None</span>
+<span class="sd">            Two 0-based readout indices, ``first`` and ``stop``: only the</span>
+<span class="sd">            samples of the readouts from ``first`` to before ``stop``, in the</span>
+<span class="sd">            order :meth:`adc_echoes` lists them, each where following the</span>
+<span class="sd">            whole sequence puts it. k-space is integrated from the last block</span>
+<span class="sd">            before readout ``first`` that plays an excitation, or a pulse with</span>
+<span class="sd">            no use recorded, and does not acquire, so a trajectory delay that</span>
+<span class="sd">            moves an earlier block's gradient past that pulse's centre is not</span>
+<span class="sd">            seen. Not combined with ``block_range``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        NDArray[np.float64]</span>
 <span class="sd">            ``(3, n)``: one column per ADC sample, in play order.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If both ``block_range`` and ``readouts`` are given, or ``readouts``</span>
+<span class="sd">            is not two indices ``0 &lt;= first &lt;= stop &lt;=`` the number of readouts.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1667,8 +1688,12 @@
 <span class="sd">        2</span>
 <span class="sd">        &gt;&gt;&gt; seq.adc_kspace().shape</span>
 <span class="sd">        (3, 64)</span>
+<span class="sd">        &gt;&gt;&gt; seq.adc_kspace(readouts=(0, 1)).shape</span>
+<span class="sd">        (3, 64)</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">_adc_kspace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="p">,</span> <span class="n">block_range</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_adc_kspace</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="p">,</span> <span class="n">block_range</span><span class="p">,</span> <span class="n">readouts</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Sequence.adc_echoes">
@@ -2022,6 +2047,90 @@
 <span class="sd">        [2, 1]</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">rf_channel_counts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Sequence.gradient_statistics">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.gradient_statistics.html#pypulseqpp.Sequence.gradient_statistics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GradientStatistics</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return statistics of each gradient event's waveform, along its channel axis.</span>
+
+<span class="sd">        Entry ``i`` is gradient id ``i + 1``, for trapezoids and arbitrary</span>
+<span class="sd">        gradients alike. Each statistic is exact for the piecewise-linear</span>
+<span class="sd">        waveform the event plays, through the corners</span>
+<span class="sd">        :meth:`waveforms_and_times` draws, and is taken over the intervals</span>
+<span class="sd">        between corners that last longer than a nanosecond, so an</span>
+<span class="sd">        instantaneous step contributes no slew rate. A block's rotation does</span>
+<span class="sd">        not enter.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        GradientStatistics</span>
+<span class="sd">            ``peak_slew``, the steepest slew rate in Hz/m/s; ``energy``, the</span>
+<span class="sd">            integral of the squared gradient in (Hz/m)^2 s; and</span>
+<span class="sd">            ``slew_energy``, the integral of the squared slew rate in</span>
+<span class="sd">            (Hz/m/s)^2 s; each ``(g,)``.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; gx = pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=1e-3)</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(gx)</span>
+<span class="sd">        &gt;&gt;&gt; stats = seq.gradient_statistics()</span>
+<span class="sd">        &gt;&gt;&gt; float(stats.peak_slew[0])</span>
+<span class="sd">        1000000000.0</span>
+<span class="sd">        &gt;&gt;&gt; round(float(stats.energy[0]), 3)  # amplitude^2 * (flat + 2 rise / 3)</span>
+<span class="sd">        10666666.667</span>
+<span class="sd">        """</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">gradient_statistics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">GradientStatistics</span><span class="p">(</span>
+            <span class="n">peak_slew</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"peak_slew"</span><span class="p">],</span>
+            <span class="n">energy</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">],</span>
+            <span class="n">slew_energy</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"slew_energy"</span><span class="p">],</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Sequence.rf_gradients">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.rf_gradients.html#pypulseqpp.Sequence.rf_gradients">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rf_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RfGradients</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the gradient each RF pulse plays under, along the channel axes.</span>
+
+<span class="sd">        One entry per block with RF, in play order, before the block's</span>
+<span class="sd">        rotation. An axis is steady when its gradient holds one value from the</span>
+<span class="sd">        pulse's first sample to its last: :class:`TransformFOV` moves such a</span>
+<span class="sd">        pulse by a frequency and a phase offset alone, and writes a phase</span>
+<span class="sd">        shape for one under a gradient that is not.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        RfGradients</span>
+<span class="sd">            ``block``, 1-based, ``(n,)``; ``steady``, ``(n, 3)``, whether the</span>
+<span class="sd">            gradient along x, y and z holds one value across the pulse, an</span>
+<span class="sd">            axis without a gradient being steady at zero; and ``gradient``,</span>
+<span class="sd">            ``(n, 3)``, the gradient along x, y and z at the pulse's centre, in</span>
+<span class="sd">            Hz/m.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; pulse, gz, _ = pp.make_sinc_pulse(</span>
+<span class="sd">        ...     np.pi / 2, duration=2e-3, slice_thickness=5e-3, return_gz=True</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pulse, gz)</span>
+<span class="sd">        &gt;&gt;&gt; under = seq.rf_gradients()</span>
+<span class="sd">        &gt;&gt;&gt; under.steady.tolist()</span>
+<span class="sd">        [[True, True, True]]</span>
+<span class="sd">        &gt;&gt;&gt; bool(np.isclose(under.gradient[0, 2], gz.amplitude))</span>
+<span class="sd">        True</span>
+<span class="sd">        """</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">rf_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">RfGradients</span><span class="p">(</span>
+            <span class="n">block</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"block"</span><span class="p">],</span>
+            <span class="n">steady</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"steady"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">),</span>
+            <span class="n">gradient</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">],</span>
+        <span class="p">)</span></div>
 
 
     <span class="c1"># -- the repeating unit --------------------------------------------</span>
