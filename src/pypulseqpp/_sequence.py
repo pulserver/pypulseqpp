@@ -1019,9 +1019,9 @@ class Sequence:
     def calculate_kspace(
         self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None
     ):
-        """Integrate physical-axis gradients with excitation resets and refocusing.
+        """Integrate the gradients with excitation resets and refocusing.
 
-        Block rotations are applied. K-space coordinates are in 1/m.
+        Each block's rotation is applied. K-space coordinates are in 1/m.
 
         Parameters
         ----------
@@ -1122,7 +1122,7 @@ class Sequence:
         time_range=None,
         block_range=None,
     ):
-        """Return physical-axis gradient splines in Hz/m over seconds.
+        """Return the gradient splines after each block's rotation, in Hz/m over seconds.
 
         Parameters
         ----------
@@ -2175,13 +2175,13 @@ class Sequence:
     ) -> SimpleNamespace:
         """Draw a publication-style diagram of one repetition, using mrsd.
 
-        Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn
-        from the waveform the sequence plays. Every row carries its own scale,
-        set by the largest magnitude that channel reaches over the repetitions
-        drawn, so heights are comparable within a row and not between rows. The
-        other repetitions are drawn underneath in ``underlay_color``, which
-        shows what changes from one to the next, and a TR interval is marked
-        below.
+        Rows are RF, the gradient axes z, y and x after each block's rotation,
+        and ADC, each drawn from the waveform the sequence plays. Every row
+        carries its own scale, set by the largest magnitude that channel reaches
+        over the repetitions drawn, so heights are comparable within a row and
+        not between rows. The other repetitions are drawn underneath in
+        ``underlay_color``, which shows what changes from one to the next, and
+        a TR interval is marked below.
 
         Parameters
         ----------
@@ -2205,8 +2205,8 @@ class Sequence:
         rf_plot : {'abs', 'real', 'imag'}, default='abs'
             Which part of the RF waveform to draw.
         tr : int, default=None
-            1-based repetition to draw. By default, the one in which a
-            physical axis reaches its largest magnitude.
+            1-based repetition to draw. By default, the one in which an axis
+            reaches its largest magnitude.
         max_underlays : int, default=16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and

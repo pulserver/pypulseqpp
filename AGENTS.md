@@ -180,12 +180,16 @@ IDs follow the reference order. Names beyond that table are stored in the
 
 ## Analysis invariants
 
-Use physical, rotated waveforms for played gradient limits. Simultaneous
-vector peaks are not the norm of independently attained axis peaks.
+Evaluate played gradient limits on the waveforms after each block's
+rotation. Channel axes are the gradients as stored, logical axes follow each
+block's own rotation, and physical axes follow a prescription rotation as
+well. Simultaneous vector peaks are not the norm of independently attained
+axis peaks.
 Within-block slew and boundary continuity are separate checks.
 
-FOV translation is expressed in logical metres. Prescription rotation is
-composed after existing block rotation. The unbroken gradient integral used
+FOV translation is in metres along the channel axes, or along the logical
+axes with `through_rotation`. Prescription rotation is composed after existing
+block rotation. The unbroken gradient integral used
 for RF/ADC shift phase is distinct from excitation/reset-aware k-space used
 for echo anchoring. Preserve both across consecutive ranges.
 

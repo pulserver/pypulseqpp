@@ -1,6 +1,6 @@
 /**
  * @file safety.hpp
- * @brief Physical-axis gradient amplitude, slew and boundary-continuity checks.
+ * @brief Gradient amplitude, slew and boundary-continuity checks, after block rotations.
  *
  * Checks use reconstructed waveform corners and each block's rotation.
  */
@@ -55,7 +55,7 @@ namespace pulseq
     struct GradientReport
     {
         /**
-         * Peak physical-axis amplitude and peak simultaneous vector magnitude.
+         * Peak per-axis amplitude and peak simultaneous vector magnitude.
          */
         Peak per_axis;
         Peak vector;
@@ -97,7 +97,7 @@ namespace pulseq
     GradientReport max_gradient(const Sequence& seq);
 
     /**
-     * Measure within-block slew on physical axes after block rotation.
+     * Measure within-block slew on each axis after the block's rotation.
      *
      * The vector peak uses simultaneous axis values, not the norm of separate
      * axis maxima. Rotation preserves vector magnitude but changes axis peaks.
@@ -105,8 +105,8 @@ namespace pulseq
     SlewReport max_slew(const Sequence& seq, const GradientLimits& limits);
 
     /**
-     * Compare physical-axis endpoint amplitudes across blocks and at the end
-     * of the sequence.
+     * Compare endpoint amplitudes, after each block's rotation, across blocks
+     * and at the end of the sequence.
      *
      * An absent gradient contributes zero amplitude. A discontinuity is
      * evaluated as a change over one gradient raster period. Each endpoint
@@ -115,8 +115,8 @@ namespace pulseq
     ContinuityReport continuity(const Sequence& seq, const GradientLimits& limits);
 
     /**
-     * The most negative and most positive value each physical axis plays in
-     * each block, in Hz/m, after the block's rotation.
+     * The most negative and most positive value each axis plays in each
+     * block, in Hz/m, after the block's rotation.
      *
      * Row-major, blocks x 3 axes x {low, high}. An axis counts zero among its
      * values, so a block that plays nothing on it reads {0, 0}.

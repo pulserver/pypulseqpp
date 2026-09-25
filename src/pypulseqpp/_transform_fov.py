@@ -73,8 +73,9 @@ def _runs_not_exempt(seq, label, first, last):
 class TransformFOV:
     """Geometry prescription applied to an existing sequence.
 
-    Scales gradient amplitudes per logical axis, translates the field of view
-    in logical metres, and composes a rotation after each block's own
+    Scales gradient amplitudes per channel axis, translates the field of view
+    in metres along the channel axes, or the logical axes with
+    ``through_rotation``, and composes a rotation after each block's own
     rotation; a rotation given with a translation does not turn it. Field of
     view scales inversely with gradient amplitude, so halving an axis's scale
     doubles the field of view along it.
@@ -85,33 +86,36 @@ class TransformFOV:
         Prescription orientation as a 3-by-3 matrix or SciPy rotation.
         Composed after the rotation already attached to each block.
     translation : Sequence[float], default=None
-        Three offsets in logical coordinates, in metres.
+        Three offsets in metres, along the channel axes, or along the logical
+        axes with ``through_rotation``.
     scale : Sequence[float], default=None
-        Gradient amplitude multipliers along the three logical axes.
+        Gradient amplitude multipliers along the three channel axes.
         A factor of zero disables encoding on that axis.
     transform : ArrayLike, default=None
         4-by-4 homogeneous matrix, mutually exclusive with ``rotation`` and
         ``translation``. Its translation is in the output frame and is
-        converted to logical coordinates using the transpose of its rotation.
+        converted into the frame of ``translation`` using the transpose of its
+        rotation.
     use_rotation_extension : bool, default=True
         Must be True; waveform-baked rotation is not implemented.
     through_rotation : bool, default=False
-        Translate a block that carries a rotation ``R`` by the gradients it
-        plays, ``R g``, rather than by the gradients it draws, ``g``. The first
-        is the logical frame of a design whose rotations are its own, such as
-        the spokes of a radial readout; the second, of a sequence whose
-        rotations are a prescription composed onto it.
+        Translate along the logical axes: a block that carries a rotation ``R``
+        is translated by the gradients it plays, ``R g``, rather than by those
+        on its channel axes, ``g``. The first suits a design whose rotations
+        are its own, such as the spokes of a radial readout; the second, a
+        sequence whose rotations are a prescription composed onto it.
     system : Opts, default=None
         Stored for compatibility; not used to validate transformed events.
 
     Attributes
     ----------
     block_k_origin : tuple[float, float, float]
-        Logical k-space position entering the next processed range, in 1/m.
-        Reset at excitation and inverted at refocusing, at the RF centre.
+        k-space position entering the next processed range, in 1/m, in the
+        frame of the translation. Reset at excitation and inverted at
+        refocusing, at the RF centre.
     swept_k : tuple[float, float, float]
-        Cumulative logical gradient area, in 1/m, without RF resets.
-        RF and ADC shift phases share this reference.
+        Cumulative gradient area, in 1/m, in the frame of the translation,
+        without RF resets. RF and ADC shift phases share this reference.
 
     Notes
     -----
@@ -154,7 +158,7 @@ class TransformFOV:
                 )
             rotation = matrix[:3, :3]
             # A homogeneous matrix states its offset in the frame it rotates
-            # into; everything here works in the logical one.
+            # into; the translation is taken in the frame before that rotation.
             translation = tuple(np.asarray(rotation, dtype=float).T @ matrix[:3, 3])
         elif rotation is None and translation is None and scale is None:
             raise ValueError(
@@ -267,7 +271,7 @@ class TransformFOV:
     apply_to_seq = apply_to_sequence
 
     def trajectories(self, seq, *, block_range=None):
-        """Return ADC trajectories in unrotated logical coordinates, in 1/m.
+        """Return ADC trajectories on the channel axes, in 1/m.
 
         Uses ``block_k_origin`` as the position entering the selected range,
         without updating it. Block rotation extensions are not applied.

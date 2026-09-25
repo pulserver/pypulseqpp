@@ -38,8 +38,8 @@ def _pyplot():
     return plt
 
 
-def _physical_waveforms(seq, axes="xyz"):
-    """Return (time, amplitude) arrays per physical axis, in s and mT/m."""
+def _played_waveforms(seq, axes="xyz"):
+    """Return (time, amplitude) arrays per axis after each block's rotation, in s and mT/m."""
     waveforms = seq.waveforms_and_times()[0]
     scale = 1e3 / seq.system.gamma
     return [(w[0], w[1] * scale) for w in waveforms[: len(axes)]]
@@ -67,7 +67,7 @@ def axis_peaks_against_vector():
     played = np.array(
         [
             np.interp(grid, times, amplitudes, left=0.0, right=0.0)
-            for times, amplitudes in _physical_waveforms(seq)
+            for times, amplitudes in _played_waveforms(seq)
         ]
     )
     magnitude = np.linalg.norm(played, axis=0)
@@ -140,7 +140,7 @@ def rotation_against_per_axis_limit():
         played = np.array(
             [
                 np.interp(grid, times, amplitudes, left=0.0, right=0.0)
-                for times, amplitudes in _physical_waveforms(seq)
+                for times, amplitudes in _played_waveforms(seq)
             ]
         )
         instant = int(np.argmax(np.hypot(played[0], played[1])))
@@ -239,7 +239,7 @@ def rotation_against_per_axis_limit():
 
 
 def continuity_seam():
-    """Legal and illegal physical-axis steps at a block boundary."""
+    """Legal and illegal steps at a block boundary."""
     import pypulseqpp as pp
 
     plt = _pyplot()

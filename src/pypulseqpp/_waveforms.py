@@ -270,7 +270,7 @@ def get_gradients(
     time_range=None,
     block_range=None,
 ):
-    """Return physical-axis gradient splines in Hz/m over seconds.
+    """Return the gradient splines after each block's rotation, in Hz/m over seconds.
 
     Parameters
     ----------

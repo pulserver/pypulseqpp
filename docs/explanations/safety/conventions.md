@@ -7,9 +7,10 @@
   not the system it will be played on. The two differ when the file is used at
   another site, when a site derates its gradient limits, or when a raster is
   finer in the design script than on the amplifier.
-- The gradient-derived checks evaluate the physical gradient axes, after each
-  block's `ROTATIONS` extension; the SAR check evaluates the RF waveforms and
-  RF shims. A prescription rotation is passed as `rotation` to
+- The gradient-derived checks evaluate the gradient axes after each block's
+  `ROTATIONS` extension, which are the logical axes of a design; the SAR check
+  evaluates the RF waveforms and RF shims. The physical axes also need the
+  prescription rotation: it is passed as `rotation` to
   {func}`~pypulseqpp.safety.check_pns` and
   {func}`~pypulseqpp.safety.check_mech_resonance`, and applied with
   {class}`~pypulseqpp.TransformFOV` before the other gradient checks.
@@ -42,18 +43,18 @@ a raster is finer in the design script than on the amplifier.
 ## Frames, rotations and reports
 
 The gradient-derived checks — amplitude, slew rate, continuity, PNS and
-mechanical resonance — evaluate the **physical gradient axes**, after each
-block's `ROTATIONS` extension has been applied. The SAR check is RF-derived: it
-evaluates the RF waveforms and RF shims, and no gradient axis or rotation enters
-it.
+mechanical resonance — evaluate the gradient axes after each block's
+`ROTATIONS` extension has been applied: the **logical axes** of a design. The
+SAR check is RF-derived: it evaluates the RF waveforms and RF shims, and no
+gradient axis or rotation enters it.
 
-A prescription rotation is a further rotation, composed after each block's own.
-{func}`~pypulseqpp.safety.check_pns` and
+The **physical gradient axes** are reached by a prescription rotation, composed
+after each block's own. {func}`~pypulseqpp.safety.check_pns` and
 {func}`~pypulseqpp.safety.check_mech_resonance` take one directly, as their
 `rotation` argument. The gradient amplitude, slew-rate and continuity checks
 read the rotations the sequence holds, so a prescription is applied to them by
-transforming the sequence first with {class}`~pypulseqpp.TransformFOV` and
-checking the result.
+transforming the sequence first with {class}`~pypulseqpp.TransformFOV`, which
+composes it into the rotation extensions, and checking the result.
 
 Every check returns a boolean verdict and a report. The report is returned
 whether or not the check passes, and states the values found, where they were

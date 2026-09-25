@@ -138,10 +138,12 @@ block's `EXT` id refers to a linked list of typed rows.
   order and returns the running values.
 
 `ROTATIONS`
-: A quaternion that rotates the block's gradients into the physical frame.
-  One row per orientation replaces a rotated copy of every waveform, so a
-  radial or spiral acquisition references a single interleaf for every shot;
-  see {doc}`libraries-and-shapes`.
+: A quaternion that rotates the block's gradients from its channel axes onto
+  its logical axes. One row per orientation replaces a rotated copy of every
+  waveform, so a radial or spiral acquisition references a single interleaf for
+  every shot; see {doc}`libraries-and-shapes`. A prescription rotation is
+  composed after it, and {class}`~pypulseqpp.TransformFOV` writes the product
+  into the same extension.
 
 `TRIGGERS`
 : Wait on, or emit, a hardware signal.

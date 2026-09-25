@@ -20,7 +20,7 @@ represent.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.TransformFOV` | Rotation, translation (m), per-axis gradient scale, or 4-by-4 transform | `TransformFOV`; `apply_to_sequence` returns the transformed sequence | Prescription geometry in the logical frame. |
+| {obj}`~pypulseqpp.TransformFOV` | Rotation, translation (m), per-axis gradient scale, or 4-by-4 transform | `TransformFOV`; `apply_to_sequence` returns the transformed sequence | Prescription geometry: a rotation composed after each block's own, a translation along the channel or logical axes. |
 
 ## System limits
 
