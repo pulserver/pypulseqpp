@@ -178,7 +178,7 @@ region provides additional data for motion estimation.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.955 seconds)
+   **Total running time of the script:** (0 minutes 2.215 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

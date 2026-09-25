@@ -352,7 +352,7 @@ profile.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.334 seconds)
+   **Total running time of the script:** (0 minutes 0.728 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_01_excitation.py:

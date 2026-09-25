@@ -79,6 +79,7 @@ from.
    :nosignatures:
 
    read
+   read_chain
    write
    SequenceLibraries
    Shape

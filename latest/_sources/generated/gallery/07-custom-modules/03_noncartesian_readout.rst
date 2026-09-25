@@ -402,7 +402,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.262 seconds)
+   **Total running time of the script:** (0 minutes 0.137 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_03_noncartesian_readout.py:

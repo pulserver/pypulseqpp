@@ -465,10 +465,12 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceLibraries"</span><span class="p">,</span> <span class="s2">"Shape"</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="s2">"write"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceLibraries"</span><span class="p">,</span> <span class="s2">"Shape"</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="s2">"read_chain"</span><span class="p">,</span> <span class="s2">"write"</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pathlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_typing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_warnings</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span> <span class="k">as</span> <span class="n">_safety</span>
@@ -615,6 +617,89 @@
         <span class="o">**</span><span class="n">stated</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">seq</span></div>
+
+
+
+<div class="viewcode-block" id="read_chain">
+<a class="viewcode-back" href="../../generated/pypulseqpp.io.read_chain.html#pypulseqpp.io.read_chain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_chain</span><span class="p">(</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">detect_rf_use</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">remove_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">verify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Read a sequence file and every file its ``NextSequence`` definitions name, in play order.</span>
+
+<span class="sd">    :meth:`pypulseqpp.sequences.SequenceApp.write` writes a scan with prescans</span>
+<span class="sd">    as such a chain. A ``NextSequence`` name is relative to the directory of</span>
+<span class="sd">    the file naming it. Each file is read by :func:`read`, onto a system built</span>
+<span class="sd">    from it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : str | os.PathLike[str]</span>
+<span class="sd">        The first file of the chain.</span>
+<span class="sd">    detect_rf_use : bool, default=False</span>
+<span class="sd">        Work out what each unlabelled pulse of every file is for, as</span>
+<span class="sd">        :func:`read` does. A file whose pulses all record their use is read as</span>
+<span class="sd">        it is.</span>
+<span class="sd">    remove_duplicates : bool, default=True</span>
+<span class="sd">        Collapse identical library rows of every file after reading.</span>
+<span class="sd">    verify : bool, default=False</span>
+<span class="sd">        Check every file against the signature it carries.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of (pathlib.Path, pypulseqpp.Sequence)</span>
+<span class="sd">        Each file's path, joined as the chain names it, and its sequence.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        If a file of the chain does not exist.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the chain names a file it has already played.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pathlib, tempfile</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; directory = pathlib.Path(tempfile.mkdtemp())</span>
+<span class="sd">    &gt;&gt;&gt; for name, following in (("scan.seq", "scan_main.seq"), ("scan_main.seq", "")):</span>
+<span class="sd">    ...     seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">    ...     _ = seq.add_block(pp.make_delay(1e-3))</span>
+<span class="sd">    ...     if following:</span>
+<span class="sd">    ...         seq.set_definition("NextSequence", following)</span>
+<span class="sd">    ...     _ = pp.io.write(seq, directory / name)</span>
+<span class="sd">    &gt;&gt;&gt; [path.name for path, _ in pp.io.read_chain(directory / "scan.seq")]</span>
+<span class="sd">    ['scan.seq', 'scan_main.seq']</span>
+<span class="sd">    """</span>
+    <span class="n">chain</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">played</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">_pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">_pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">current</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sequence chain file not found: </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">resolved</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">resolved</span> <span class="ow">in</span> <span class="n">played</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the NextSequence chain returns to </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">played</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">resolved</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">_warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">_warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
+                <span class="s2">"ignore"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">r</span><span class="s2">"read\(\): detect_rf_use had nothing to do"</span>
+            <span class="p">)</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span>
+                <span class="n">current</span><span class="p">,</span>
+                <span class="n">detect_rf_use</span><span class="o">=</span><span class="n">detect_rf_use</span><span class="p">,</span>
+                <span class="n">remove_duplicates</span><span class="o">=</span><span class="n">remove_duplicates</span><span class="p">,</span>
+                <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">current</span><span class="p">,</span> <span class="n">seq</span><span class="p">))</span>
+        <span class="n">following</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"NextSequence"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">following</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">chain</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">following</span><span class="p">)</span></div>
 
 
 

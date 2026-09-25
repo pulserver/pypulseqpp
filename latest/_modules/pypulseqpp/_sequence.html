@@ -1831,6 +1831,55 @@
         <span class="k">return</span> <span class="n">_report_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Sequence.rf_flip_angles">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.rf_flip_angles.html#pypulseqpp.Sequence.rf_flip_angles">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rf_flip_angles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the flip angle of each RF event of the library, in degrees.</span>
+
+<span class="sd">        Entry ``i`` is RF id ``i + 1``, the row order of :meth:`libraries`.</span>
+<span class="sd">        The flip angle is the magnitude of the integral of the event's complex</span>
+<span class="sd">        envelope times its amplitude, in turns, times 360. A dynamic pTx pulse</span>
+<span class="sd">        is integrated channel by channel on its shared time base and the</span>
+<span class="sd">        channels summed: the flip angle where every channel has unit, in-phase</span>
+<span class="sd">        sensitivity. :meth:`test_report_dict` lists the distinct values.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; for angle in (10, 20):</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_sinc_pulse(np.deg2rad(angle), duration=2e-3))</span>
+<span class="sd">        &gt;&gt;&gt; seq.rf_flip_angles().round(1)</span>
+<span class="sd">        array([10., 20.])</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">rf_flip_angles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Sequence.rf_channels">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.rf_channels.html#pypulseqpp.Sequence.rf_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rf_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the transmit channels each RF event of the library holds.</span>
+
+<span class="sd">        Entry ``i`` is RF id ``i + 1``. A dynamic pTx pulse holds its channels</span>
+<span class="sd">        one after another over one time base, and the count is the number of</span>
+<span class="sd">        samples at its first sample time when the times are that many</span>
+<span class="sd">        identical copies, as the reference interpreter reads it; any other</span>
+<span class="sd">        pulse holds one.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pp.make_ptx_pulse(100.0 * np.ones((2, 100))))</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))</span>
+<span class="sd">        &gt;&gt;&gt; seq.rf_channels().tolist()</span>
+<span class="sd">        [2, 1]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">rf_channel_counts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">))</span></div>
+
+
     <span class="c1"># -- the repeating unit --------------------------------------------</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_detect_tr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
