@@ -206,7 +206,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.751 seconds)
+   **Total running time of the script:** (0 minutes 0.989 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

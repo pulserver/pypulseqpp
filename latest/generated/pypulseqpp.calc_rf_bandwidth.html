@@ -543,7 +543,10 @@
 <p>Uses the outermost crossings at <code class="docutils literal notranslate"><span class="pre">cutoff</span></code> times the peak, with linear
 interpolation between bins. This is a small-tip approximation, not a Bloch
 simulation. Frequency offsets shift the returned axis without changing
-the measured width; ppm offsets use the default system’s gamma and B0.</p>
+the measured width; ppm offsets use the default system’s gamma and B0. A
+dynamic pTx pulse is measured as the sum of its channels over their shared
+time base: the pulse a location equally and in-phase sensitive to every
+channel sees, as its flip angle is counted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -474,6 +474,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_rf_bandwidth</span> <span class="k">as</span> <span class="n">_upstream</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">._calc_rf_power</span><span class="w"> </span><span class="kn">import</span> <span class="n">_channels</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Opts</span> <span class="k">as</span> <span class="n">_Opts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfBandwidth</span> <span class="k">as</span> <span class="n">_RfBandwidth</span>
 
@@ -498,6 +499,21 @@
     <span class="n">at_rest</span><span class="o">.</span><span class="n">freq_offset</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">at_rest</span><span class="o">.</span><span class="n">freq_ppm</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="k">return</span> <span class="n">at_rest</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_channels_summed</span><span class="p">(</span><span class="n">rf</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a dynamic pTx pulse as the sum of its channels over their shared time base."""</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">channels</span> <span class="o">=</span> <span class="n">_channels</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">channels</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rf</span>
+    <span class="n">per_channel</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="n">channels</span>
+    <span class="n">summed</span> <span class="o">=</span> <span class="n">_SimpleNamespace</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">rf</span><span class="p">))</span>
+    <span class="n">summed</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="p">[:</span><span class="n">per_channel</span><span class="p">]</span>
+    <span class="n">summed</span><span class="o">.</span><span class="n">signal</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">signal</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">per_channel</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">summed</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_with_zero_edges</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
@@ -588,7 +604,10 @@
 <span class="sd">    Uses the outermost crossings at ``cutoff`` times the peak, with linear</span>
 <span class="sd">    interpolation between bins. This is a small-tip approximation, not a Bloch</span>
 <span class="sd">    simulation. Frequency offsets shift the returned axis without changing</span>
-<span class="sd">    the measured width; ppm offsets use the default system's gamma and B0.</span>
+<span class="sd">    the measured width; ppm offsets use the default system's gamma and B0. A</span>
+<span class="sd">    dynamic pTx pulse is measured as the sum of its channels over their shared</span>
+<span class="sd">    time base: the pulse a location equally and in-phase sensitive to every</span>
+<span class="sd">    channel sees, as its flip angle is counted.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -668,7 +687,9 @@
 <span class="sd">    """</span>
     <span class="n">step</span> <span class="o">=</span> <span class="n">_Opts</span><span class="o">.</span><span class="n">default</span><span class="o">.</span><span class="n">rf_raster_time</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">dt</span>
     <span class="n">offset</span> <span class="o">=</span> <span class="n">_full_freq_offset</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
-    <span class="n">measured</span> <span class="o">=</span> <span class="n">_with_zero_edges</span><span class="p">(</span><span class="n">_at_baseband</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span> <span class="k">if</span> <span class="n">offset</span> <span class="k">else</span> <span class="n">rf</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="n">measured</span> <span class="o">=</span> <span class="n">_with_zero_edges</span><span class="p">(</span>
+        <span class="n">_channels_summed</span><span class="p">(</span><span class="n">_at_baseband</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span> <span class="k">if</span> <span class="n">offset</span> <span class="k">else</span> <span class="n">rf</span><span class="p">),</span> <span class="n">step</span>
+    <span class="p">)</span>
 
     <span class="c1"># The spectrum is asked for whatever the caller wants, because the flanks</span>
     <span class="c1"># are read off it here rather than taken from upstream's bin walk.</span>

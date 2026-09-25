@@ -434,7 +434,7 @@ scan. Shortening the scan is the subject of
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.184 seconds)
+   **Total running time of the script:** (0 minutes 0.260 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_03_gradient_echo.py:

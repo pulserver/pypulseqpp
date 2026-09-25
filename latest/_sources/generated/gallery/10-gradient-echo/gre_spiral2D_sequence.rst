@@ -185,7 +185,7 @@ reconstruction that accounts for peripheral undersampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.748 seconds)
+   **Total running time of the script:** (0 minutes 1.027 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

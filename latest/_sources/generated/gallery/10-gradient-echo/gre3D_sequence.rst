@@ -179,7 +179,7 @@ calibration region remains fully sampled.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 13.356 seconds)
+   **Total running time of the script:** (0 minutes 17.103 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:
