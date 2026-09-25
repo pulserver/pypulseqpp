@@ -321,6 +321,28 @@ def test_asking_only_for_the_samples_leaves_the_trajectory_unbuilt(both):
     assert quick["k_traj"].shape[1] == 0
 
 
+def test_the_adc_kspace_is_where_calculate_kspace_puts_the_samples(both):
+    _, ours = both
+    assert_same(ours.calculate_kspace()[0], ours.adc_kspace(), "k_traj_adc")
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {},
+        {"trajectory_delay": 2e-6},
+        {"gradient_offset": [10.0, -5.0, 0.0]},
+        {"block_range": (4, 9)},
+    ],
+    ids=["plain", "delayed", "offset", "range"],
+)
+def test_the_adc_kspace_takes_the_options_calculate_kspace_takes(options):
+    sequence = gradient_echo(lines=3)
+    whole = sequence.calculate_kspace(**options)[0]
+    assert whole.shape[1] > 0
+    assert_same(whole, sequence.adc_kspace(**options), "k_traj_adc")
+
+
 def test_the_samples_alone_still_start_over_at_each_excitation():
     """The pulses are what a sample's position is measured from."""
     sequence = gradient_echo(lines=3)
