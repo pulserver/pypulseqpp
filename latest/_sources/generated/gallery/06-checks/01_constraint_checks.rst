@@ -101,8 +101,8 @@ Timing and gradient hardware
 ----------------------------
 
 ``check_timing`` verifies raster alignment, dead times and event placement.
-The amplitude and slew checks compare the physical, rotated waveform against
-the system limits the sequence was designed under. They report the largest
+The amplitude and slew checks compare the waveform after each block's rotation
+with the system limits the sequence was designed under. They report the largest
 per-axis reading and the largest vector reading, which is not the norm of the
 per-axis peaks: two axes reach their own peaks at different times.
 The verdict uses the per-axis reading, because the hardware limits apply per
@@ -354,7 +354,7 @@ compared in the
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.211 seconds)
+   **Total running time of the script:** (0 minutes 0.308 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_06-checks_01_constraint_checks.py:

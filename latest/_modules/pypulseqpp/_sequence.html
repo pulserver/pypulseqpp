@@ -1540,9 +1540,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_kspace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Integrate physical-axis gradients with excitation resets and refocusing.</span>
+<span class="w">        </span><span class="sd">"""Integrate the gradients with excitation resets and refocusing.</span>
 
-<span class="sd">        Block rotations are applied. K-space coordinates are in 1/m.</span>
+<span class="sd">        Each block's rotation is applied. K-space coordinates are in 1/m.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1649,7 +1649,7 @@
         <span class="n">time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return physical-axis gradient splines in Hz/m over seconds.</span>
+<span class="w">        </span><span class="sd">"""Return the gradient splines after each block's rotation, in Hz/m over seconds.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2744,13 +2744,13 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Draw a publication-style diagram of one repetition, using mrsd.</span>
 
-<span class="sd">        Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn</span>
-<span class="sd">        from the waveform the sequence plays. Every row carries its own scale,</span>
-<span class="sd">        set by the largest magnitude that channel reaches over the repetitions</span>
-<span class="sd">        drawn, so heights are comparable within a row and not between rows. The</span>
-<span class="sd">        other repetitions are drawn underneath in ``underlay_color``, which</span>
-<span class="sd">        shows what changes from one to the next, and a TR interval is marked</span>
-<span class="sd">        below.</span>
+<span class="sd">        Rows are RF, the gradient axes z, y and x after each block's rotation,</span>
+<span class="sd">        and ADC, each drawn from the waveform the sequence plays. Every row</span>
+<span class="sd">        carries its own scale, set by the largest magnitude that channel reaches</span>
+<span class="sd">        over the repetitions drawn, so heights are comparable within a row and</span>
+<span class="sd">        not between rows. The other repetitions are drawn underneath in</span>
+<span class="sd">        ``underlay_color``, which shows what changes from one to the next, and</span>
+<span class="sd">        a TR interval is marked below.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2774,8 +2774,8 @@
 <span class="sd">        rf_plot : {'abs', 'real', 'imag'}, default='abs'</span>
 <span class="sd">            Which part of the RF waveform to draw.</span>
 <span class="sd">        tr : int, default=None</span>
-<span class="sd">            1-based repetition to draw. By default, the one in which a</span>
-<span class="sd">            physical axis reaches its largest magnitude.</span>
+<span class="sd">            1-based repetition to draw. By default, the one in which an axis</span>
+<span class="sd">            reaches its largest magnitude.</span>
 <span class="sd">        max_underlays : int, default=16</span>
 <span class="sd">            At most this many repetitions, evenly spaced, are drawn underneath,</span>
 <span class="sd">            together with those in which each axis reaches its most negative and</span>

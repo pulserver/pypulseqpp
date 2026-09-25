@@ -548,9 +548,10 @@
 not the system it will be played on. The two differ when the file is used at
 another site, when a site derates its gradient limits, or when a raster is
 finer in the design script than on the amplifier.</p></li>
-<li><p>The gradient-derived checks evaluate the physical gradient axes, after each
-block’s <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension; the SAR check evaluates the RF waveforms and
-RF shims. A prescription rotation is passed as <code class="docutils literal notranslate"><span class="pre">rotation</span></code> to
+<li><p>The gradient-derived checks evaluate the gradient axes after each block’s
+<code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension, which are the logical axes of a design; the SAR check
+evaluates the RF waveforms and RF shims. The physical axes also need the
+prescription rotation: it is passed as <code class="docutils literal notranslate"><span class="pre">rotation</span></code> to
 <a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> and
 <a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a>, and applied with
 <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> before the other gradient checks.</p></li>
@@ -582,17 +583,17 @@ a raster is finer in the design script than on the amplifier.</p>
 <section id="frames-rotations-and-reports">
 <h2>Frames, rotations and reports<a class="headerlink" href="#frames-rotations-and-reports" title="Link to this heading">#</a></h2>
 <p>The gradient-derived checks — amplitude, slew rate, continuity, PNS and
-mechanical resonance — evaluate the <strong>physical gradient axes</strong>, after each
-block’s <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension has been applied. The SAR check is RF-derived: it
-evaluates the RF waveforms and RF shims, and no gradient axis or rotation enters
-it.</p>
-<p>A prescription rotation is a further rotation, composed after each block’s own.
-<a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> and
+mechanical resonance — evaluate the gradient axes after each block’s
+<code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension has been applied: the <strong>logical axes</strong> of a design. The
+SAR check is RF-derived: it evaluates the RF waveforms and RF shims, and no
+gradient axis or rotation enters it.</p>
+<p>The <strong>physical gradient axes</strong> are reached by a prescription rotation, composed
+after each block’s own. <a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> and
 <a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> take one directly, as their
 <code class="docutils literal notranslate"><span class="pre">rotation</span></code> argument. The gradient amplitude, slew-rate and continuity checks
 read the rotations the sequence holds, so a prescription is applied to them by
-transforming the sequence first with <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> and
-checking the result.</p>
+transforming the sequence first with <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a>, which
+composes it into the rotation extensions, and checking the result.</p>
 <p>Every check returns a boolean verdict and a report. The report is returned
 whether or not the check passes, and states the values found, where they were
 found and the limit or threshold they were compared with. Gradient amplitude,

@@ -82,8 +82,8 @@ print(f"{seq.num_blocks} blocks, {seq.duration()[0] * 1e3:.1f} ms")
 # ----------------------------
 #
 # ``check_timing`` verifies raster alignment, dead times and event placement.
-# The amplitude and slew checks compare the physical, rotated waveform against
-# the system limits the sequence was designed under. They report the largest
+# The amplitude and slew checks compare the waveform after each block's rotation
+# with the system limits the sequence was designed under. They report the largest
 # per-axis reading and the largest vector reading, which is not the norm of the
 # per-axis peaks: two axes reach their own peaks at different times.
 # The verdict uses the per-axis reading, because the hardware limits apply per

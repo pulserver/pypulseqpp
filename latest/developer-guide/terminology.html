@@ -677,11 +677,17 @@ a trajectory, and a trajectory is not a set of sampling locations.</p>
 duration</em> is the block’s own length. <em>Sequence timing</em> is the resulting
 schedule. <em>Rasterization</em> is quantization onto the RF, gradient, ADC or block
 duration raster. Do not use one of these words for another.</p>
-<p><strong>Axes.</strong> <em>Logical axes</em> are the sequence’s own x, y, z gradient channels —
-in imaging terms readout, phase encode and slice/partition. <em>Physical
-gradient axes</em> are the scanner’s, reached by applying each block’s rotation
-and any prescription rotation. Every amplitude, slew, PNS, resonance or
-k-space statement must say which frame it is in.</p>
+<p><strong>Axes.</strong> A block’s <em>channel axes</em> are its x, y and z gradient channels as
+the file stores them, before its rotation extension. Its <em>logical axes</em> are
+the channel axes turned by the block’s own rotation — in imaging terms
+readout, phase encode and slice/partition, as the design plays them; a block
+without a rotation extension has logical axes equal to its channel axes.
+<em>Physical gradient axes</em> are the scanner’s, reached by applying a prescription
+rotation to the logical axes. <code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code> composes a prescription into the
+rotation extensions, so a function that applies each block’s rotation extension
+reports the logical axes of a design and the physical axes of a sequence
+prescribed that way. Every amplitude, slew, PNS, resonance or k-space
+statement must say which frame it is in.</p>
 <p><strong>Layers.</strong> The <em>Pulseq representation</em> is the content of a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file:
 blocks, event libraries, shapes, definitions and extensions. The <em>pypulseqpp
 abstraction</em> is the layer this package adds above it: compiled event objects,
@@ -816,7 +822,8 @@ documented as the unit they use, and left alone:</p>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">safety</span></code> mechanical-resonance check reports amplitudes in <strong>mT/m</strong>.</p></li>
 </ul>
 <p>State the coordinate frame wherever a gradient, slew, k-space or PNS quantity
-appears: logical axes, or physical axes after block rotations. State whether a
+appears: channel axes, logical axes after each block’s own rotation, or
+physical axes after the prescription rotation as well. State whether a
 rotation has already been applied and in what order rotations compose.</p>
 <p>State the raster a time is quantized to, and which raster: RF, gradient, ADC
 or block duration. A function that rounds must say which direction it rounds

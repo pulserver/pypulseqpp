@@ -579,7 +579,7 @@ represent.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformFOV</span></code></a></p></td>
 <td><p>Rotation, translation (m), per-axis gradient scale, or 4-by-4 transform</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TransformFOV</span></code>; <code class="docutils literal notranslate"><span class="pre">apply_to_sequence</span></code> returns the transformed sequence</p></td>
-<td><p>Prescription geometry in the logical frame.</p></td>
+<td><p>Prescription geometry: a rotation composed after each block’s own, a translation along the channel or logical axes.</p></td>
 </tr>
 </tbody>
 </table>

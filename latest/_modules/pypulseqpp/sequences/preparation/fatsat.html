@@ -492,8 +492,8 @@
 
 <span class="sd">    Position and orientation place the selection band at construction.</span>
 <span class="sd">    NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV</span>
-<span class="sd">    placement leaves the band unchanged. Position is specified in logical</span>
-<span class="sd">    millimetres; the RF frequency offset remains in ppm.</span>
+<span class="sd">    placement leaves the band unchanged. Position is specified in millimetres</span>
+<span class="sd">    along the channel axes; the RF frequency offset remains in ppm.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -517,11 +517,11 @@
 <span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Band normal, before ``orientation`` turns it.</span>
 <span class="sd">    position_mm : sequence of float, default=None</span>
-<span class="sd">        ``(dx, dy, dz)`` offset of the band from the isocentre, in the logical</span>
-<span class="sd">        frame, in millimetres. Needs ``thickness_m``.</span>
+<span class="sd">        ``(dx, dy, dz)`` offset of the band from the isocentre, along the</span>
+<span class="sd">        channel axes, in millimetres. Needs ``thickness_m``.</span>
 <span class="sd">    orientation : array_like or scipy.spatial.transform.Rotation, default=None</span>
-<span class="sd">        A ``(3, 3)`` matrix, or a rotation, taking the logical frame to the one</span>
-<span class="sd">        the band lies on. Needs ``thickness_m``.</span>
+<span class="sd">        A ``(3, 3)`` matrix, or a rotation, taking the channel axes to the</span>
+<span class="sd">        axes the band lies on: the band's own rotation. Needs ``thickness_m``.</span>
 <span class="sd">    use_rotation_extension : bool, default=True</span>
 <span class="sd">        Encode the orientation as a ``ROTATIONS`` extension rather than</span>
 <span class="sd">        rotating the gradient waveforms. Only ``True`` is implemented; see</span>
@@ -537,7 +537,7 @@
 <span class="sd">        The saturation pulse, as placed.</span>
 <span class="sd">    gz : GradEvent</span>
 <span class="sd">        Its selection gradient. Only when ``thickness_m`` was given, and named</span>
-<span class="sd">        for the logical axis whatever ``axis`` was.</span>
+<span class="sd">        for the channel axis it is drawn on whatever ``axis`` was.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
 <span class="sd">        Closing spoiler on all three axes.</span>
 <span class="sd">    prep_labels : list of LabelSetEvent</span>

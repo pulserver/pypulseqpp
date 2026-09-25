@@ -2,7 +2,7 @@
 
 k-space trajectories of one base interleaf, and their conversion to gradient
 waveforms. k-space coordinates are in 1/m, that is cycles per metre, gradient
-amplitudes in Hz/m and slew rates in Hz/m/s, on the logical axes;
+amplitudes in Hz/m and slew rates in Hz/m/s, on the channel axes;
 {doc}`../explanations/pulseq/libraries-and-shapes` describes how one interleaf
 is reused for every shot through rotation extensions.
 

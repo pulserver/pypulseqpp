@@ -12,9 +12,11 @@ one computes and the criterion it applies.
 
 ## Gradient limits
 
-Gradient-derived: the checks evaluate the three physical gradient axes after
-each block's rotation, against the limits of `system` or of the sequence's own
-{class}`pypulseqpp.Opts`. Only the largest per-axis peak is compared with the
+Gradient-derived: the checks evaluate the three gradient axes after each
+block's rotation, against the limits of `system` or of the sequence's own
+{class}`pypulseqpp.Opts`. They take no prescription rotation, so these are the
+physical axes only once {class}`~pypulseqpp.TransformFOV` has composed one into
+the rotation extensions. Only the largest per-axis peak is compared with the
 limit; the simultaneous vector magnitude is reported but not compared.
 
 | Object | Input | Returns | Purpose |

@@ -4,8 +4,8 @@
 :class: tldr
 
 - {func}`~pypulseqpp.safety.check_max_slew` compares the largest per-axis slew
-  rate within each block, on the physical axes after that block's rotation,
-  with `max_slew` from the system limits. A nonpositive `max_slew` disables the
+  rate within each block, after that block's rotation, with `max_slew` from the
+  system limits. A nonpositive `max_slew` disables the
   comparison.
 - For an arbitrary gradient, the slew rate is the difference between
   neighbouring waveform corners divided by their spacing on the gradient raster
@@ -32,8 +32,8 @@ rate within blocks with `max_slew` from the system limits.
 
 ## Quantity compared with the limit
 
-The slew rate is evaluated **within each block**, on the physical axes after
-that block's rotation:
+The slew rate is evaluated **within each block**, on the axes after that
+block's rotation:
 
 $$
 \max_{t}\;\max_{a \in \{x,y,z\}} \left| \frac{\mathrm{d}G_a}{\mathrm{d}t} \right|

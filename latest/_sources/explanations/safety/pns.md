@@ -4,8 +4,8 @@
 :class: tldr
 
 - {func}`~pypulseqpp.safety.check_pns` estimates the response to the
-  physical-axis slew waveforms for a supplied demonstration or scanner-specific
-  coil model. A passing estimate does not establish scanner or patient safety.
+  physical-axis slew waveforms, after each block's rotation and the `rotation`
+  argument, for a supplied demonstration or scanner-specific coil model. A passing estimate does not establish scanner or patient safety.
 - For a rectangular stimulus of duration $\tau$, the chronaxie model gives the
   threshold $S(\tau) = S_{\mathrm{rh}}(1 + c/\tau)$, with rheobase
   $S_{\mathrm{rh}}$ and chronaxie $c$. Shorter transitions require a larger
@@ -24,8 +24,8 @@
 
 Time-varying gradients induce electric fields that can stimulate peripheral
 nerves. {func}`~pypulseqpp.safety.check_pns` estimates the response to the
-physical-axis slew waveforms for a supplied demonstration or scanner-specific
-coil model. A passing estimate does not establish scanner or patient safety.
+physical-axis slew waveforms, after each block's rotation and the `rotation`
+argument, for a supplied demonstration or scanner-specific coil model. A passing estimate does not establish scanner or patient safety.
 
 ## Strength-duration relation
 

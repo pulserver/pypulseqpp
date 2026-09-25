@@ -548,8 +548,8 @@
 <p class="admonition-title">TL;DR</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a> compares the largest per-axis
-amplitude on the physical axes, after each block’s rotation, with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>
-from the system limits. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> disables the comparison.</p></li>
+amplitude, after each block’s rotation, with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> from the system
+limits. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> disables the comparison.</p></li>
 <li><p>The report also states each axis peak with its 1-based block and the largest
 simultaneous vector magnitude. Only the per-axis quantity is compared with a
 limit, because <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> in a Pulseq system description is a per-axis limit.</p></li>
@@ -572,8 +572,8 @@ gradient amplitude on the axis it drives.
 amplitude of the sequence with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> from the system limits.</p>
 <section id="quantity-compared-with-the-limit">
 <h2>Quantity compared with the limit<a class="headerlink" href="#quantity-compared-with-the-limit" title="Link to this heading">#</a></h2>
-<p>The check reconstructs the physical-axis gradient waveforms, after each block’s
-rotation, and evaluates</p>
+<p>The check reconstructs the gradient waveforms after each block’s rotation and
+evaluates</p>
 <div class="math notranslate nohighlight">
 \[
 \max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad}.

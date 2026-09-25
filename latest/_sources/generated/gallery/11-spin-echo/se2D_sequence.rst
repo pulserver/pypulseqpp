@@ -179,7 +179,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.680 seconds)
+   **Total running time of the script:** (0 minutes 2.287 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

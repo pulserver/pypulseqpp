@@ -543,23 +543,23 @@
 <div class="tldr admonition">
 <p class="admonition-title">TL;DR</p>
 <ul class="simple">
-<li><p>Adjacent Pulseq blocks have no implicit gap, so the change between the
-physical-axis endpoint of one block and the initial amplitude of the next
-must satisfy the one-raster slew criterion
+<li><p>Adjacent Pulseq blocks have no implicit gap, so the change on each axis
+between the endpoint of one block and the initial amplitude of the next,
+after the blocks’ rotations, must satisfy the one-raster slew criterion
 <span class="math notranslate nohighlight">\(|\Delta G| \leq \mathtt{max\_slew}\cdot\mathtt{grad\_raster\_time}\)</span>.</p></li>
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_grad_continuity()</span></code></a> evaluates every boundary and
-reports the 1-based block index, physical axis, endpoint amplitudes and
-implied slew rate.</p></li>
-<li><p>The final physical gradient amplitude must be zero; otherwise <code class="docutils literal notranslate"><span class="pre">ends_at_zero</span></code>
-and the overall verdict are false.</p></li>
-<li><p>Block rotations are applied before the comparison, so identical logical
-endpoint vectors under different rotations can be discontinuous on the
-physical axes. Returning every interleaf to zero avoids this dependence.</p></li>
+reports the 1-based block index, axis, endpoint amplitudes and implied slew
+rate.</p></li>
+<li><p>The final gradient amplitude on every axis must be zero; otherwise
+<code class="docutils literal notranslate"><span class="pre">ends_at_zero</span></code> and the overall verdict are false.</p></li>
+<li><p>Each block’s rotation is applied before the comparison, so endpoints equal
+on the channel axes of two blocks with different rotations can differ after
+them. Returning every interleaf to zero avoids this dependence.</p></li>
 </ul>
 </div>
-<p>Adjacent Pulseq blocks have no implicit gap. A change between the physical-axis
-endpoint of one block and the initial amplitude of the next must satisfy the
-one-raster slew criterion</p>
+<p>Adjacent Pulseq blocks have no implicit gap. A change on each axis between the
+endpoint of one block and the initial amplitude of the next, after the blocks’
+rotations, must satisfy the one-raster slew criterion</p>
 <div class="math notranslate nohighlight">
 \[
 |\Delta G| \leq \mathtt{max\_slew} \cdot
@@ -573,12 +573,12 @@ The dashed line marks the block boundary and the red arrow marks <span class="ma
 </figcaption>
 </figure>
 <p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_grad_continuity()</span></code></a> evaluates every boundary and
-reports the 1-based block index, physical axis, endpoint amplitudes, and implied
-slew rate. The final physical gradient amplitude must also be zero; otherwise
+reports the 1-based block index, axis, endpoint amplitudes, and implied slew
+rate. The final gradient amplitude on every axis must also be zero; otherwise
 <code class="docutils literal notranslate"><span class="pre">ends_at_zero</span></code> and the overall verdict are false.</p>
-<p>Block rotations are applied before the comparison. Identical logical endpoint
-vectors under different rotations can therefore be discontinuous on the
-physical axes. Returning every interleaf to zero avoids this dependence.</p>
+<p>Each block’s rotation is applied before the comparison. Endpoints equal on the
+channel axes of two blocks with different rotations can therefore differ after
+them. Returning every interleaf to zero avoids this dependence.</p>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">

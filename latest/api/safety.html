@@ -548,9 +548,11 @@ patient-safety assessment. <a class="reference internal" href="../explanations/s
 one computes and the criterion it applies.</p>
 <section id="gradient-limits">
 <h2>Gradient limits<a class="headerlink" href="#gradient-limits" title="Link to this heading">#</a></h2>
-<p>Gradient-derived: the checks evaluate the three physical gradient axes after
-each block’s rotation, against the limits of <code class="docutils literal notranslate"><span class="pre">system</span></code> or of the sequence’s own
-<a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a>. Only the largest per-axis peak is compared with the
+<p>Gradient-derived: the checks evaluate the three gradient axes after each
+block’s rotation, against the limits of <code class="docutils literal notranslate"><span class="pre">system</span></code> or of the sequence’s own
+<a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Opts</span></code></a>. They take no prescription rotation, so these are the
+physical axes only once <a class="reference internal" href="../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> has composed one into
+the rotation extensions. Only the largest per-axis peak is compared with the
 limit; the simultaneous vector magnitude is reported but not compared.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>

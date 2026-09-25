@@ -673,10 +673,12 @@ contains one row where a counter changes rather than one row per block.
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> evaluates the block table in
 order and returns the running values.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code></dt><dd><p>A quaternion that rotates the block’s gradients into the physical frame.
-One row per orientation replaces a rotated copy of every waveform, so a
-radial or spiral acquisition references a single interleaf for every shot;
-see <a class="reference internal" href="libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code></dt><dd><p>A quaternion that rotates the block’s gradients from its channel axes onto
+its logical axes. One row per orientation replaces a rotated copy of every
+waveform, so a radial or spiral acquisition references a single interleaf for
+every shot; see <a class="reference internal" href="libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>. A prescription rotation is
+composed after it, and <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> writes the product
+into the same extension.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">TRIGGERS</span></code></dt><dd><p>Wait on, or emit, a hardware signal.</p>
 </dd>

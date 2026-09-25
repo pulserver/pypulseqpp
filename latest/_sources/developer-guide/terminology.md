@@ -89,11 +89,17 @@ duration* is the block's own length. *Sequence timing* is the resulting
 schedule. *Rasterization* is quantization onto the RF, gradient, ADC or block
 duration raster. Do not use one of these words for another.
 
-**Axes.** *Logical axes* are the sequence's own x, y, z gradient channels —
-in imaging terms readout, phase encode and slice/partition. *Physical
-gradient axes* are the scanner's, reached by applying each block's rotation
-and any prescription rotation. Every amplitude, slew, PNS, resonance or
-k-space statement must say which frame it is in.
+**Axes.** A block's *channel axes* are its x, y and z gradient channels as
+the file stores them, before its rotation extension. Its *logical axes* are
+the channel axes turned by the block's own rotation — in imaging terms
+readout, phase encode and slice/partition, as the design plays them; a block
+without a rotation extension has logical axes equal to its channel axes.
+*Physical gradient axes* are the scanner's, reached by applying a prescription
+rotation to the logical axes. `TransformFOV` composes a prescription into the
+rotation extensions, so a function that applies each block's rotation extension
+reports the logical axes of a design and the physical axes of a sequence
+prescribed that way. Every amplitude, slew, PNS, resonance or k-space
+statement must say which frame it is in.
 
 **Layers.** The *Pulseq representation* is the content of a `.seq` file:
 blocks, event libraries, shapes, definitions and extensions. The *pypulseqpp
@@ -202,7 +208,8 @@ documented as the unit they use, and left alone:
 - The `safety` mechanical-resonance check reports amplitudes in **mT/m**.
 
 State the coordinate frame wherever a gradient, slew, k-space or PNS quantity
-appears: logical axes, or physical axes after block rotations. State whether a
+appears: channel axes, logical axes after each block's own rotation, or
+physical axes after the prescription rotation as well. State whether a
 rotation has already been applied and in what order rotations compose.
 
 State the raster a time is quantized to, and which raster: RF, gradient, ADC

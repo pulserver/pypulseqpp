@@ -538,8 +538,9 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">TransformFOV</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Geometry prescription applied to an existing sequence.</span>
 
-<span class="sd">    Scales gradient amplitudes per logical axis, translates the field of view</span>
-<span class="sd">    in logical metres, and composes a rotation after each block's own</span>
+<span class="sd">    Scales gradient amplitudes per channel axis, translates the field of view</span>
+<span class="sd">    in metres along the channel axes, or the logical axes with</span>
+<span class="sd">    ``through_rotation``, and composes a rotation after each block's own</span>
 <span class="sd">    rotation; a rotation given with a translation does not turn it. Field of</span>
 <span class="sd">    view scales inversely with gradient amplitude, so halving an axis's scale</span>
 <span class="sd">    doubles the field of view along it.</span>
@@ -550,33 +551,36 @@
 <span class="sd">        Prescription orientation as a 3-by-3 matrix or SciPy rotation.</span>
 <span class="sd">        Composed after the rotation already attached to each block.</span>
 <span class="sd">    translation : Sequence[float], default=None</span>
-<span class="sd">        Three offsets in logical coordinates, in metres.</span>
+<span class="sd">        Three offsets in metres, along the channel axes, or along the logical</span>
+<span class="sd">        axes with ``through_rotation``.</span>
 <span class="sd">    scale : Sequence[float], default=None</span>
-<span class="sd">        Gradient amplitude multipliers along the three logical axes.</span>
+<span class="sd">        Gradient amplitude multipliers along the three channel axes.</span>
 <span class="sd">        A factor of zero disables encoding on that axis.</span>
 <span class="sd">    transform : ArrayLike, default=None</span>
 <span class="sd">        4-by-4 homogeneous matrix, mutually exclusive with ``rotation`` and</span>
 <span class="sd">        ``translation``. Its translation is in the output frame and is</span>
-<span class="sd">        converted to logical coordinates using the transpose of its rotation.</span>
+<span class="sd">        converted into the frame of ``translation`` using the transpose of its</span>
+<span class="sd">        rotation.</span>
 <span class="sd">    use_rotation_extension : bool, default=True</span>
 <span class="sd">        Must be True; waveform-baked rotation is not implemented.</span>
 <span class="sd">    through_rotation : bool, default=False</span>
-<span class="sd">        Translate a block that carries a rotation ``R`` by the gradients it</span>
-<span class="sd">        plays, ``R g``, rather than by the gradients it draws, ``g``. The first</span>
-<span class="sd">        is the logical frame of a design whose rotations are its own, such as</span>
-<span class="sd">        the spokes of a radial readout; the second, of a sequence whose</span>
-<span class="sd">        rotations are a prescription composed onto it.</span>
+<span class="sd">        Translate along the logical axes: a block that carries a rotation ``R``</span>
+<span class="sd">        is translated by the gradients it plays, ``R g``, rather than by those</span>
+<span class="sd">        on its channel axes, ``g``. The first suits a design whose rotations</span>
+<span class="sd">        are its own, such as the spokes of a radial readout; the second, a</span>
+<span class="sd">        sequence whose rotations are a prescription composed onto it.</span>
 <span class="sd">    system : Opts, default=None</span>
 <span class="sd">        Stored for compatibility; not used to validate transformed events.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    block_k_origin : tuple[float, float, float]</span>
-<span class="sd">        Logical k-space position entering the next processed range, in 1/m.</span>
-<span class="sd">        Reset at excitation and inverted at refocusing, at the RF centre.</span>
+<span class="sd">        k-space position entering the next processed range, in 1/m, in the</span>
+<span class="sd">        frame of the translation. Reset at excitation and inverted at</span>
+<span class="sd">        refocusing, at the RF centre.</span>
 <span class="sd">    swept_k : tuple[float, float, float]</span>
-<span class="sd">        Cumulative logical gradient area, in 1/m, without RF resets.</span>
-<span class="sd">        RF and ADC shift phases share this reference.</span>
+<span class="sd">        Cumulative gradient area, in 1/m, in the frame of the translation,</span>
+<span class="sd">        without RF resets. RF and ADC shift phases share this reference.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -619,7 +623,7 @@
                 <span class="p">)</span>
             <span class="n">rotation</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
             <span class="c1"># A homogeneous matrix states its offset in the frame it rotates</span>
-            <span class="c1"># into; everything here works in the logical one.</span>
+            <span class="c1"># into; the translation is taken in the frame before that rotation.</span>
             <span class="n">translation</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rotation</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">matrix</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">rotation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">translation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -737,7 +741,7 @@
 <div class="viewcode-block" id="TransformFOV.trajectories">
 <a class="viewcode-back" href="../../generated/pypulseqpp.TransformFOV.trajectories.html#pypulseqpp.TransformFOV.trajectories">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trajectories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return ADC trajectories in unrotated logical coordinates, in 1/m.</span>
+<span class="w">        </span><span class="sd">"""Return ADC trajectories on the channel axes, in 1/m.</span>
 
 <span class="sd">        Uses ``block_k_origin`` as the position entering the selected range,</span>
 <span class="sd">        without updating it. Block rotation extensions are not applied.</span>

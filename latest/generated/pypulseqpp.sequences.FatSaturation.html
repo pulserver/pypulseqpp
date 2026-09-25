@@ -543,8 +543,8 @@
 <p>SLR fat saturation with a three-axis spoiler and optional spatial selection.</p>
 <p>Position and orientation place the selection band at construction.
 NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV
-placement leaves the band unchanged. Position is specified in logical
-millimetres; the RF frequency offset remains in ppm.</p>
+placement leaves the band unchanged. Position is specified in millimetres
+along the channel axes; the RF frequency offset remains in ppm.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -560,10 +560,10 @@ duration, which is <code class="docutils literal notranslate"><span class="pre">
 which is the usual fat saturation and the only form that needs no
 gradient.</p></li>
 <li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Band normal, before <code class="docutils literal notranslate"><span class="pre">orientation</span></code> turns it.</p></li>
-<li><p><strong>position_mm</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(dx,</span> <span class="pre">dy,</span> <span class="pre">dz)</span></code> offset of the band from the isocentre, in the logical
-frame, in millimetres. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
-<li><p><strong>orientation</strong> (<em>array_like</em><em> or </em><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html#scipy.spatial.transform.Rotation" title="(in SciPy v1.18.0)"><em>scipy.spatial.transform.Rotation</em></a><em>, </em><em>default=None</em>) – A <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix, or a rotation, taking the logical frame to the one
-the band lies on. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
+<li><p><strong>position_mm</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(dx,</span> <span class="pre">dy,</span> <span class="pre">dz)</span></code> offset of the band from the isocentre, along the
+channel axes, in millimetres. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
+<li><p><strong>orientation</strong> (<em>array_like</em><em> or </em><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html#scipy.spatial.transform.Rotation" title="(in SciPy v1.18.0)"><em>scipy.spatial.transform.Rotation</em></a><em>, </em><em>default=None</em>) – A <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix, or a rotation, taking the channel axes to the
+axes the band lies on: the band’s own rotation. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
 <li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Encode the orientation as a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension rather than
 rotating the gradient waveforms. Only <code class="docutils literal notranslate"><span class="pre">True</span></code> is implemented; see
 <a class="reference internal" href="pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a>.</p></li>
@@ -575,7 +575,7 @@ rotating the gradient waveforms. Only <code class="docutils literal notranslate"
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse, as placed.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient. Only when <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> was given, and named
-for the logical axis whatever <code class="docutils literal notranslate"><span class="pre">axis</span></code> was.</p></li>
+for the channel axis it is drawn on whatever <code class="docutils literal notranslate"><span class="pre">axis</span></code> was.</p></li>
 <li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
 <li><p><strong>prep_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>, set on the first block.</p></li>
 <li><p><strong>reset_labels</strong> (<em>list of LabelSetEvent</em>) – The same two cleared, on the last.</p></li>

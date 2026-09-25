@@ -463,7 +463,7 @@
   <h1>Source code for pypulseqpp.safety</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks.</span>
 
-<span class="sd">Checks use physical-axis gradient waveforms, after applying block rotations.</span>
+<span class="sd">The gradient checks evaluate the waveforms after each block's rotation.</span>
 <span class="sd">These checks do not establish scanner or patient safety.</span>
 <span class="sd">"""</span>
 
@@ -537,10 +537,10 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    Block rotations are applied before per-axis peaks are evaluated. Only the</span>
-<span class="sd">    largest per-axis peak is compared with the limit; a nonpositive limit</span>
+<span class="sd">    Each block's rotation is applied before per-axis peaks are evaluated. Only</span>
+<span class="sd">    the largest per-axis peak is compared with the limit; a nonpositive limit</span>
 <span class="sd">    disables the check. The vector peak is the largest simultaneous Euclidean</span>
-<span class="sd">    magnitude over the three physical axes; it is reported but not compared</span>
+<span class="sd">    magnitude over the three axes; it is reported but not compared</span>
 <span class="sd">    with a limit, and it is not the norm of independently attained axis peaks.</span>
 <span class="sd">    """</span>
     <span class="n">limits</span> <span class="o">=</span> <span class="n">_limits</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
@@ -579,7 +579,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    Slew rates are evaluated within each block after block rotations;</span>
+<span class="sd">    Slew rates are evaluated within each block after its rotation;</span>
 <span class="sd">    boundaries between blocks are not covered. Only the largest per-axis peak</span>
 <span class="sd">    is compared with the limit; a nonpositive limit disables the check. The</span>
 <span class="sd">    vector slew rate is the largest simultaneous Euclidean magnitude, reported</span>
@@ -626,7 +626,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    Endpoints are compared in physical coordinates after block rotations.</span>
+<span class="sd">    Endpoints are compared after each block's rotation.</span>
 <span class="sd">    An absent gradient contributes zero amplitude. A discontinuity is</span>
 <span class="sd">    evaluated over one gradient raster period, and the final amplitude on</span>
 <span class="sd">    every axis must be zero. Block indices are 1-based, axes are zero-based</span>

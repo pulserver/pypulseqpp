@@ -541,8 +541,9 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">TransformFOV</span></span><a class="reference internal" href="../_modules/pypulseqpp/_transform_fov.html#TransformFOV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.TransformFOV" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Geometry prescription applied to an existing sequence.</p>
-<p>Scales gradient amplitudes per logical axis, translates the field of view
-in logical metres, and composes a rotation after each block’s own
+<p>Scales gradient amplitudes per channel axis, translates the field of view
+in metres along the channel axes, or the logical axes with
+<code class="docutils literal notranslate"><span class="pre">through_rotation</span></code>, and composes a rotation after each block’s own
 rotation; a rotation given with a translation does not turn it. Field of
 view scales inversely with gradient amplitude, so halving an axis’s scale
 doubles the field of view along it.</p>
@@ -551,27 +552,30 @@ doubles the field of view along it.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rotation</strong> (<em>ArrayLike</em><em> | </em><em>Rotation</em><em>, </em><em>default=None</em>) – Prescription orientation as a 3-by-3 matrix or SciPy rotation.
 Composed after the rotation already attached to each block.</p></li>
-<li><p><strong>translation</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Three offsets in logical coordinates, in metres.</p></li>
-<li><p><strong>scale</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Gradient amplitude multipliers along the three logical axes.
+<li><p><strong>translation</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Three offsets in metres, along the channel axes, or along the logical
+axes with <code class="docutils literal notranslate"><span class="pre">through_rotation</span></code>.</p></li>
+<li><p><strong>scale</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Gradient amplitude multipliers along the three channel axes.
 A factor of zero disables encoding on that axis.</p></li>
 <li><p><strong>transform</strong> (<em>ArrayLike</em><em>, </em><em>default=None</em>) – 4-by-4 homogeneous matrix, mutually exclusive with <code class="docutils literal notranslate"><span class="pre">rotation</span></code> and
 <code class="docutils literal notranslate"><span class="pre">translation</span></code>. Its translation is in the output frame and is
-converted to logical coordinates using the transpose of its rotation.</p></li>
+converted into the frame of <code class="docutils literal notranslate"><span class="pre">translation</span></code> using the transpose of its
+rotation.</p></li>
 <li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Must be True; waveform-baked rotation is not implemented.</p></li>
-<li><p><strong>through_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Translate a block that carries a rotation <code class="docutils literal notranslate"><span class="pre">R</span></code> by the gradients it
-plays, <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">g</span></code>, rather than by the gradients it draws, <code class="docutils literal notranslate"><span class="pre">g</span></code>. The first
-is the logical frame of a design whose rotations are its own, such as
-the spokes of a radial readout; the second, of a sequence whose
-rotations are a prescription composed onto it.</p></li>
+<li><p><strong>through_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Translate along the logical axes: a block that carries a rotation <code class="docutils literal notranslate"><span class="pre">R</span></code>
+is translated by the gradients it plays, <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">g</span></code>, rather than by those
+on its channel axes, <code class="docutils literal notranslate"><span class="pre">g</span></code>. The first suits a design whose rotations
+are its own, such as the spokes of a radial readout; the second, a
+sequence whose rotations are a prescription composed onto it.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – Stored for compatibility; not used to validate transformed events.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>block_k_origin</strong> (<em>tuple[float, float, float]</em>) – Logical k-space position entering the next processed range, in 1/m.
-Reset at excitation and inverted at refocusing, at the RF centre.</p></li>
-<li><p><strong>swept_k</strong> (<em>tuple[float, float, float]</em>) – Cumulative logical gradient area, in 1/m, without RF resets.
-RF and ADC shift phases share this reference.</p></li>
+<li><p><strong>block_k_origin</strong> (<em>tuple[float, float, float]</em>) – k-space position entering the next processed range, in 1/m, in the
+frame of the translation. Reset at excitation and inverted at
+refocusing, at the RF centre.</p></li>
+<li><p><strong>swept_k</strong> (<em>tuple[float, float, float]</em>) – Cumulative gradient area, in 1/m, in the frame of the translation,
+without RF resets. RF and ADC shift phases share this reference.</p></li>
 </ul>
 </dd>
 </dl>
@@ -601,7 +605,7 @@ Block ranges do not automatically integrate preceding blocks.</p>
 <td><p>Apply scaling, translation, then rotation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.TransformFOV.trajectories.html#pypulseqpp.TransformFOV.trajectories" title="pypulseqpp.TransformFOV.trajectories"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trajectories</span></code></a></p></td>
-<td><p>Return ADC trajectories in unrotated logical coordinates, in 1/m.</p></td>
+<td><p>Return ADC trajectories on the channel axes, in 1/m.</p></td>
 </tr>
 </tbody>
 </table>

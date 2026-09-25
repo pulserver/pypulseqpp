@@ -180,7 +180,7 @@ reconstruction estimates the coil sensitivities.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.459 seconds)
+   **Total running time of the script:** (0 minutes 1.968 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

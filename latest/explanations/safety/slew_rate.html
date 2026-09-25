@@ -548,8 +548,8 @@
 <p class="admonition-title">TL;DR</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_slew()</span></code></a> compares the largest per-axis slew
-rate within each block, on the physical axes after that block’s rotation,
-with <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> from the system limits. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> disables the
+rate within each block, after that block’s rotation, with <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> from the
+system limits. A nonpositive <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> disables the
 comparison.</p></li>
 <li><p>For an arbitrary gradient, the slew rate is the difference between
 neighbouring waveform corners divided by their spacing on the gradient raster
@@ -575,8 +575,8 @@ available across the coil inductance.
 rate within blocks with <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> from the system limits.</p>
 <section id="quantity-compared-with-the-limit">
 <h2>Quantity compared with the limit<a class="headerlink" href="#quantity-compared-with-the-limit" title="Link to this heading">#</a></h2>
-<p>The slew rate is evaluated <strong>within each block</strong>, on the physical axes after
-that block’s rotation:</p>
+<p>The slew rate is evaluated <strong>within each block</strong>, on the axes after that
+block’s rotation:</p>
 <div class="math notranslate nohighlight">
 \[
 \max_{t}\;\max_{a \in \{x,y,z\}} \left| \frac{\mathrm{d}G_a}{\mathrm{d}t} \right|

@@ -540,13 +540,13 @@
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.paper_plot">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">paper_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.paper_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.paper_plot" title="Link to this definition">#</a></dt>
 <dd><p>Draw a publication-style diagram of one repetition, using mrsd.</p>
-<p>Rows are RF, the physical gradient axes z, y and x, and ADC, each drawn
-from the waveform the sequence plays. Every row carries its own scale,
-set by the largest magnitude that channel reaches over the repetitions
-drawn, so heights are comparable within a row and not between rows. The
-other repetitions are drawn underneath in <code class="docutils literal notranslate"><span class="pre">underlay_color</span></code>, which
-shows what changes from one to the next, and a TR interval is marked
-below.</p>
+<p>Rows are RF, the gradient axes z, y and x after each block’s rotation,
+and ADC, each drawn from the waveform the sequence plays. Every row
+carries its own scale, set by the largest magnitude that channel reaches
+over the repetitions drawn, so heights are comparable within a row and
+not between rows. The other repetitions are drawn underneath in
+<code class="docutils literal notranslate"><span class="pre">underlay_color</span></code>, which shows what changes from one to the next, and
+a TR interval is marked below.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -561,8 +561,8 @@ default, which reads against a light and a dark background alike.</p></li>
 <li><p><strong>gy_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default=None</em>) – A Matplotlib colour for the y gradient row, as <code class="docutils literal notranslate"><span class="pre">rf_color</span></code>.</p></li>
 <li><p><strong>gz_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default=None</em>) – A Matplotlib colour for the z gradient row, as <code class="docutils literal notranslate"><span class="pre">rf_color</span></code>.</p></li>
 <li><p><strong>rf_plot</strong> (<em>{'abs'</em><em>, </em><em>'real'</em><em>, </em><em>'imag'}</em><em>, </em><em>default='abs'</em>) – Which part of the RF waveform to draw.</p></li>
-<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=None</em>) – 1-based repetition to draw. By default, the one in which a
-physical axis reaches its largest magnitude.</p></li>
+<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=None</em>) – 1-based repetition to draw. By default, the one in which an axis
+reaches its largest magnitude.</p></li>
 <li><p><strong>max_underlays</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=16</em>) – At most this many repetitions, evenly spaced, are drawn underneath,
 together with those in which each axis reaches its most negative and
 most positive value; 0 draws none.</p></li>

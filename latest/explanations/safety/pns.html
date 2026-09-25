@@ -547,8 +547,8 @@
 <p class="admonition-title">TL;DR</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> estimates the response to the
-physical-axis slew waveforms for a supplied demonstration or scanner-specific
-coil model. A passing estimate does not establish scanner or patient safety.</p></li>
+physical-axis slew waveforms, after each block’s rotation and the <code class="docutils literal notranslate"><span class="pre">rotation</span></code>
+argument, for a supplied demonstration or scanner-specific coil model. A passing estimate does not establish scanner or patient safety.</p></li>
 <li><p>For a rectangular stimulus of duration <span class="math notranslate nohighlight">\(\tau\)</span>, the chronaxie model gives the
 threshold <span class="math notranslate nohighlight">\(S(\tau) = S_{\mathrm{rh}}(1 + c/\tau)\)</span>, with rheobase
 <span class="math notranslate nohighlight">\(S_{\mathrm{rh}}\)</span> and chronaxie <span class="math notranslate nohighlight">\(c\)</span>. Shorter transitions require a larger
@@ -567,8 +567,8 @@ axis, so prescription orientation can change the estimate.</p></li>
 </div>
 <p>Time-varying gradients induce electric fields that can stimulate peripheral
 nerves. <a class="reference internal" href="../../generated/pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> estimates the response to the
-physical-axis slew waveforms for a supplied demonstration or scanner-specific
-coil model. A passing estimate does not establish scanner or patient safety.</p>
+physical-axis slew waveforms, after each block’s rotation and the <code class="docutils literal notranslate"><span class="pre">rotation</span></code>
+argument, for a supplied demonstration or scanner-specific coil model. A passing estimate does not establish scanner or patient safety.</p>
 <section id="strength-duration-relation">
 <h2>Strength-duration relation<a class="headerlink" href="#strength-duration-relation" title="Link to this heading">#</a></h2>
 <p>For a rectangular stimulus of duration <span class="math notranslate nohighlight">\(\tau\)</span>, the chronaxie model gives the
