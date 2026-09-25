@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from . import _ext as _cxx
+from ._offsets import _hz_per_ppm
 
 #: What :attr:`SequenceLibraries.layout` holds.
 _LAYOUT = 1
@@ -152,6 +153,41 @@ class SequenceLibraries:
     rf_shims: tuple[NDArray[np.float64], ...]
     soft_delays: NDArray[np.float64]
     soft_delay_hints: tuple[str, ...]
+
+    def absolute_offsets(
+        self, system
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        """Return every RF and ADC row's offsets with its ppm offsets resolved.
+
+        Parameters
+        ----------
+        system : Opts
+            The gamma (Hz/T) and B0 (T) the ppm offsets are resolved at.
+
+        Returns
+        -------
+        rf : NDArray[np.float64]
+            ``(R, 2)``: each RF row's frequency offset in Hz and phase offset
+            in rad, as :func:`pypulseqpp.calc_absolute_offsets` gives them for
+            its event.
+        adc : NDArray[np.float64]
+            ``(D, 2)``: the same for each ADC row.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(1.0, duration=4e-3, freq_ppm=-3.45))
+        1
+        >>> rf, adc = seq.libraries().absolute_offsets(pp.Opts(B0=3.0))
+        >>> rf.round(2).tolist(), adc.shape
+        ([[-440.66, 0.0]], (0, 2))
+        """
+        f = _hz_per_ppm(system)
+        return (
+            self.rf[:, 8:10] + self.rf[:, 6:8] * f,
+            self.adc[:, 5:7] + self.adc[:, 3:5] * f,
+        )
 
 
 def _frozen(array):

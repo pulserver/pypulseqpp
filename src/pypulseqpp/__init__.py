@@ -33,6 +33,7 @@ from ._make_hexagon_gradient_area import (
 from ._make_label import make_label as _make_label
 from ._make_rf_shim import make_rf_shim as _make_rf_shim
 from ._make_rotation import make_rotation as _make_rotation
+from ._offsets import calc_absolute_offsets
 from ._opts import (
     MAX_GRAD_DERATE,
     MAX_SLEW_DERATE,

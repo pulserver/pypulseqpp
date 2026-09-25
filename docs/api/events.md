@@ -30,6 +30,7 @@ describes the block and extension structure.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.align` | Events keyed by `left`, `center`, `right` | Events with delays set | Alignment within a block. |
 | {obj}`~pypulseqpp.block_to_events` | Block or events | Tuple of events | Event extraction from a block. |
+| {obj}`~pypulseqpp.calc_absolute_offsets` | RF or ADC event, system limits (`gamma`, `B0`) | Frequency offset (Hz), phase offset (rad) | Offsets with the ppm offsets resolved. |
 | {obj}`~pypulseqpp.calc_duration` | Events or block | Duration (s) | Longest event extent. |
 | {obj}`~pypulseqpp.rotate` | Gradient events, angle (rad), axis `x`/`y`/`z` | Rotated gradient events | Rotation about a channel axis. |
 
