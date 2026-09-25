@@ -232,6 +232,22 @@ namespace pulseq
         }
 
         /**
+         * The first and last sample times of the pulse @p rf, from the start
+         * of its block, with every sample time from its delay in @p moment.
+         * A gradient is steady under the pulse when it holds one value across
+         * this span.
+         */
+        std::pair<double, double> pulse_span(
+            const Sequence& seq, const double* rf, std::vector<double>& moment)
+        {
+            const double delay = rf[5];
+            when_at(seq, rf, moment);
+            if (moment.empty())
+                return {delay, delay};
+            return {delay + moment.front(), delay + moment.back()};
+        }
+
+        /**
          * A phase shape with @p added turns folded into it, as a new row.
          *
          * Registered rather than written over: a shape is shared by every
@@ -1022,9 +1038,7 @@ namespace pulseq
                 /* The pulse acts at the centre its designer recorded, which
                  * is what the format carries the field for. */
                 const double centre = delay + rf[4];
-                when_at(seq, rf, moment);
-                const double opens = moment.empty() ? delay : delay + moment.front();
-                const double closes = moment.empty() ? delay : delay + moment.back();
+                const auto [opens, closes] = pulse_span(seq, rf, moment);
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
@@ -1183,6 +1197,35 @@ namespace pulseq
             for (int axis = 0; axis < 3; ++axis)
                 carry[axis] += swept[axis];
         }
+    }
+
+    RfGradients rf_gradients(const Sequence& seq)
+    {
+        RfGradients out;
+        CornerCache corners(seq);
+        const int32_t* events = seq.block_events();
+        Played played[3];
+        std::vector<double> moment;
+        for (int index = 1; index <= seq.num_blocks(); ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            if (row[0] <= 0)
+                continue;
+            const double* rf = seq.rf_library().row(row[0]);
+            const double centre = rf[5] + rf[4];
+            const auto [opens, closes] = pulse_span(seq, rf, moment);
+            out.block.push_back(index);
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                const Corners& drawn = corners[row[1 + axis]];
+                played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
+                if (played[axis].values != nullptr)
+                    drawn.at(0.0, played[axis].times);
+                out.steady.push_back(played[axis].constant_over(opens, closes) ? 1 : 0);
+                out.gradient.push_back(played[axis].at(centre));
+            }
+        }
+        return out;
     }
 
 } // namespace pulseq

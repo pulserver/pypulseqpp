@@ -1796,6 +1796,27 @@ PYBIND11_MODULE(_ext, module)
         "stop, where following the whole sequence puts it.");
 
     module.def(
+        "rf_gradients",
+        [](const Sequence& sequence) {
+            pulseq::RfGradients found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::rf_gradients(sequence);
+            }
+            const py::ssize_t pulses = static_cast<py::ssize_t>(found.block.size());
+            py::dict out;
+            out["block"] = py::array_t<int32_t>(pulses, found.block.data());
+            out["steady"] =
+                py::array_t<uint8_t>({pulses, py::ssize_t{3}}, found.steady.data());
+            out["gradient"] =
+                py::array_t<double>({pulses, py::ssize_t{3}}, found.gradient.data());
+            return out;
+        },
+        py::arg("sequence"),
+        "Per block with RF, whether the gradient along each channel axis holds "
+        "one value across the pulse, and its value at the pulse's centre.");
+
+    module.def(
         "calculate_kspace",
         [](const Sequence& sequence,
            std::array<double, 3> delay,

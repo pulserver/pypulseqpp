@@ -21,7 +21,7 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
-from ._results import AdcEchoes
+from ._results import AdcEchoes, RfGradients
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -1493,6 +1493,46 @@ class Sequence:
         [2, 1]
         """
         return np.asarray(_cxx.rf_channel_counts(self._native))
+
+    def rf_gradients(self) -> RfGradients:
+        """Return the gradient each RF pulse plays under, along the channel axes.
+
+        One entry per block with RF, in play order, before the block's
+        rotation. An axis is steady when its gradient holds one value from the
+        pulse's first sample to its last: :class:`TransformFOV` moves such a
+        pulse by a frequency and a phase offset alone, and writes a phase
+        shape for one under a gradient that is not.
+
+        Returns
+        -------
+        RfGradients
+            ``block``, 1-based, ``(n,)``; ``steady``, ``(n, 3)``, whether the
+            gradient along x, y and z holds one value across the pulse, an
+            axis without a gradient being steady at zero; and ``gradient``,
+            ``(n, 3)``, the gradient along x, y and z at the pulse's centre, in
+            Hz/m.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> pulse, gz, _ = pp.make_sinc_pulse(
+        ...     np.pi / 2, duration=2e-3, slice_thickness=5e-3, return_gz=True
+        ... )
+        >>> _ = seq.add_block(pulse, gz)
+        >>> under = seq.rf_gradients()
+        >>> under.steady.tolist()
+        [[True, True, True]]
+        >>> bool(np.isclose(under.gradient[0, 2], gz.amplitude))
+        True
+        """
+        found = _cxx.rf_gradients(self._native)
+        return RfGradients(
+            block=found["block"],
+            steady=found["steady"].astype(bool),
+            gradient=found["gradient"],
+        )
 
     # -- the repeating unit --------------------------------------------
 

@@ -73,6 +73,7 @@ Waveforms and k-space
    ~Sequence.adc_echoes
    ~Sequence.adc_times
    ~Sequence.rf_times
+   ~Sequence.rf_gradients
    ~Sequence.duration
 
 Checks and reports

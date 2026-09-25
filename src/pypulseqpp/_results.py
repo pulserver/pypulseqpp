@@ -10,6 +10,7 @@ __all__ = [
     "AdcEchoes",
     "AdcTimes",
     "RfBandwidth",
+    "RfGradients",
     "RfTimes",
     "Waveforms",
     "WaveformsAndTimes",
@@ -247,3 +248,28 @@ class AdcEchoes:
     first_sample: np.ndarray
     moving: np.ndarray
     echo: np.ndarray
+
+
+@dataclass(frozen=True)
+class RfGradients:
+    """The gradient each RF pulse plays under, along the channel axes.
+
+    One entry per block with RF, in play order; see
+    :meth:`pypulseqpp.Sequence.rf_gradients`.
+
+    Attributes
+    ----------
+    block : NDArray[np.int32]
+        ``(n,)``: the 1-based block.
+    steady : NDArray[np.bool_]
+        ``(n, 3)``: whether the gradient along x, y and z holds one value from
+        the pulse's first sample to its last; an axis without a gradient is
+        steady at zero.
+    gradient : NDArray[np.float64]
+        ``(n, 3)``: the gradient along x, y and z at the pulse's centre, in
+        Hz/m.
+    """
+
+    block: np.ndarray
+    steady: np.ndarray
+    gradient: np.ndarray
