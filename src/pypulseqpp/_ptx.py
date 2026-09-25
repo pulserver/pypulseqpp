@@ -47,8 +47,9 @@ def make_ptx_pulse(
     dwell : float, default=0.0
         Sample spacing, in s; ``system.rf_raster_time`` when zero.
     center : float, default=None
-        Centre of the pulse from its start, in s. Defaults to the centre of
-        the peak of the channel-summed magnitude.
+        Centre of the pulse from its start, in s. Defaults to the peak of the
+        root-sum-square of the channels' magnitudes, as
+        :func:`calc_rf_center` finds a peak.
 
     Returns
     -------
@@ -78,9 +79,8 @@ def make_ptx_pulse(
     channels, samples = waveforms.shape
     times = (np.arange(samples) + 0.5) * dwell
     if center is None:
-        center, _ = _pp.calc_rf_center(
-            SimpleNamespace(signal=np.abs(waveforms).sum(axis=0), t=times)
-        )
+        rss = np.sqrt((np.abs(waveforms) ** 2).sum(axis=0))
+        center, _ = _pp.calc_rf_center(SimpleNamespace(signal=rss, t=times))
 
     rf = _pp.make_arbitrary_rf(
         signal=waveforms.reshape(-1),

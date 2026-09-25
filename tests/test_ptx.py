@@ -119,6 +119,23 @@ def test_the_report_cancels_channels_played_in_antiphase():
     assert flips == pytest.approx([0.0], abs=1e-9)
 
 
+def test_a_pulse_is_centred_on_the_peak_of_the_root_sum_square_of_its_channels():
+    """A narrow lobe on one channel over a broad one on the other moves the sum's peak."""
+    samples = np.arange(200)
+    signal = np.stack(
+        [
+            200.0 * np.exp(-(((samples - 70) / 8.0) ** 2)),
+            300.0 * np.exp(-(((samples - 130) / 72.0) ** 2)),
+        ]
+    ).astype(complex)
+    rf = pp.make_ptx_pulse(signal, system=SYSTEM)
+    times = (samples + 0.5) * SYSTEM.rf_raster_time
+    rss = np.sqrt((np.abs(signal) ** 2).sum(axis=0))
+    summed = np.abs(signal).sum(axis=0)
+    assert rf.center == pytest.approx(times[np.argmax(rss)])
+    assert abs(rf.center - times[np.argmax(summed)]) > 50 * SYSTEM.rf_raster_time
+
+
 def test_a_waveform_that_is_not_two_dimensional_is_refused():
     with pytest.raises(ValueError, match="num_channels, num_samples"):
         pp.make_ptx_pulse(np.ones(10))

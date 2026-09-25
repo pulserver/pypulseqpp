@@ -18,9 +18,11 @@ __all__ = [
 
 import math
 from collections.abc import Sequence
+from types import SimpleNamespace
 from typing import Literal
 
 import numpy as np
+import pypulseq as _pp
 
 from . import _events
 from ._angles import calc_uniform_angles
@@ -54,7 +56,7 @@ def make_slr_pulse(
     dwell: float = 0.0,
     freq_offset: float = 0.0,
     phase_offset: float = 0.0,
-    center_pos: float = 0.5,
+    center_pos: float | None = None,
     slice_thickness: float = 0.0,
     return_gz: bool = False,
     time_bw_product: float = DEFAULT_TIME_BANDWIDTH_PRODUCT,
@@ -85,8 +87,11 @@ def make_slr_pulse(
         RF sample spacing (s); ``0`` uses ``system.rf_raster_time``.
     freq_offset, phase_offset : float, default=0.0
         Frequency (Hz) and phase (rad) offsets.
-    center_pos : float, default=0.5
-        Position of the effective centre within the pulse, in ``[0, 1]``.
+    center_pos : float, default=None
+        Position of the effective centre within the pulse, in ``[0, 1]``: the
+        centre the event records and the point the rephaser refocuses from.
+        ``None`` takes the magnitude peak of the designed waveform, as
+        :func:`calc_rf_center` finds it.
     slice_thickness : float, default=0.0
         Slice thickness (m); required when ``return_gz``.
     return_gz : bool, default=False
@@ -149,7 +154,7 @@ def make_slr_pulse(
     """
     system = default_system(system)
     dwell = system.rf_raster_time if dwell == 0 else dwell
-    if not 0.0 <= center_pos <= 1.0:
+    if center_pos is not None and not 0.0 <= center_pos <= 1.0:
         raise ValueError("center_pos must lie in [0, 1]")
     if return_gz and slice_thickness <= 0:
         raise ValueError("slice_thickness must be > 0 when return_gz=True")
@@ -208,9 +213,14 @@ def _play_slr(
     """Build the RF event for an SLR waveform, and under ``return_gz`` its gradient and rephaser.
 
     A ``designed`` waveform is in radians per sample and plays as it is; any
-    other is scaled until its area is ``flip_angle``.
+    other is scaled until its area is ``flip_angle``. A ``center_pos`` of
+    ``None`` is the waveform's magnitude peak.
     """
     duration = waveform.size * dwell
+    if center_pos is None:
+        times = (np.arange(waveform.size) + 0.5) * dwell
+        peak, _ = _pp.calc_rf_center(SimpleNamespace(signal=waveform, t=times))
+        center_pos = float(peak) / duration
     result = _events.make_arbitrary_rf(
         signal=waveform / (2.0 * np.pi * dwell) if designed else waveform,
         flip_angle=flip_angle,

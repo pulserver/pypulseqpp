@@ -36,6 +36,12 @@ separate contracts.
   `make_rf_shim` preserves the supplied weight-array shape.
 - `check_timing` records `TotalDuration` if absent and checks an existing
   value against the blocks. Writing does not independently add it.
+- `make_slr_pulse` (and its alias `make_sigpy_pulse`) records the magnitude
+  peak of the designed waveform as the pulse's centre, as `calc_rf_center`
+  finds it, unless `center_pos` is given; upstream's `make_sigpy_pulse`
+  records the midpoint. The two differ for the `'se'` and `'inv'` designs and
+  for minimum- and maximum-phase filters. `make_ptx_pulse` takes the peak of
+  the channels' root-sum-square magnitude.
 - `calc_rf_bandwidth` returns upstream's values by default. `compat=False`
   returns an `RfBandwidth` that adds the bands of a multiband pulse and labels
   each spectral bin with its own frequency; upstream's axis, which the
