@@ -62,6 +62,13 @@ Stored blocks are snapshots: editing an event returned by `get_block` does
 not change the sequence. Block-table views own a shared buffer and remain
 valid after later mutations or destruction of the sequence.
 
+`Sequence.libraries` exports the block table and every library as the tables
+a text file of the sequence holds, under the sequence's own ids, with times in
+seconds. Its `layout` field is 1 and rises when a table gains, loses or
+reorders a column or a column changes unit, so a consumer such as a scanner
+converter can refuse a layout it was not written for. Labels are exported by
+name, because a label id indexes only the sequence's own table.
+
 Event definitions separate reusable timing/shape information from per-playout
 values. RF shapes belong to definitions; gradient waveform shapes belong to
 instances. ADC and extension choices do not distinguish block definitions.
