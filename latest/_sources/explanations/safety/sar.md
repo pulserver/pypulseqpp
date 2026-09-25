@@ -83,12 +83,12 @@ and global SAR is the same integral with the global matrix.
 
 ## Averaging windows
 
-`check_sar` evaluates RF energy over the repetitions detected from the
-sequence's block definitions, reported as `tr_size` blocks: consecutive windows
-of `tr_size` blocks from the first block, or the whole sequence as one window
-when its blocks do not divide into repetitions. A `TRsize` definition the
-sequence records is used when the blocks repeat with it, and the detected size
-is recorded otherwise.
+`check_sar` evaluates RF energy over the repetitions
+{meth}`~pypulseqpp.Sequence.repetition` detects from the sequence's block
+definitions, reported as `tr_size` blocks: consecutive windows of `tr_size`
+blocks from the first block, or the whole sequence as one window when its
+blocks do not divide into repetitions. A `TRsize` definition the sequence
+records is used when the blocks repeat with it.
 The result is `True` when every window's local SAR is at most `local_limit`
 and, with a global matrix, every window's global SAR is at most `global_limit`.
 The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head

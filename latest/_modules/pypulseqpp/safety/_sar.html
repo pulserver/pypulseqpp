@@ -672,7 +672,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">_detect_tr</span><span class="p">()</span> <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">num_blocks</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span> <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">num_blocks</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">vop_sar</span><span class="p">(</span>
         <span class="n">seq</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span>
         <span class="n">vops</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="p">),</span>
@@ -789,8 +789,9 @@
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    SAR is averaged over each window: the blocks before the first full</span>
-<span class="sd">    repetition, each repetition the block definitions repeat with, and any</span>
-<span class="sd">    blocks after the last; or the whole sequence when it does not repeat.</span>
+<span class="sd">    repetition, each repetition :meth:`~pypulseqpp.Sequence.repetition`</span>
+<span class="sd">    returns, and any blocks after the last; or the whole sequence when it does</span>
+<span class="sd">    not repeat.</span>
 <span class="sd">    Every window is compared with the limits. A pulse drives channel ``c`` with</span>
 <span class="sd">    ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every</span>
 <span class="sd">    microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform</span>

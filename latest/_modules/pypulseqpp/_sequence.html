@@ -1882,8 +1882,10 @@
 
     <span class="c1"># -- the repeating unit --------------------------------------------</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_tr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Detect the period of the block-definition stream.</span>
+<div class="viewcode-block" id="Sequence.repetition">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">repetition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return the repeating unit of the block table.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1891,30 +1893,45 @@
 <span class="sd">            Blocks per repetition; the whole sequence when it does not</span>
 <span class="sd">            repeat, and zero when it has no blocks.</span>
 <span class="sd">        start : int</span>
-<span class="sd">            1-based start of the first repetition, always 1.</span>
+<span class="sd">            1-based block at which the first repetition starts, always 1.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        The repetition is the shortest period of the block-definition stream</span>
-<span class="sd">        from the first block that every block repeats, or failing that the</span>
-<span class="sd">        shortest period by block structure, or the whole sequence: a slice</span>
-<span class="sd">        acquired with its own preparation and dummy shots is one repetition,</span>
-<span class="sd">        and a block played once makes the whole sequence one. ``start`` is 1.</span>
-<span class="sd">        Records ``TRsize`` in sequence definitions; a recorded size shorter</span>
-<span class="sd">        than the sequence that divides it and that the blocks repeat with is</span>
-<span class="sd">        taken instead, so a longer hyper-TR can be declared. Structural edits</span>
-<span class="sd">        invalidate the native detection cache.</span>
+<span class="sd">        from the first block that every later block repeats, the last copy</span>
+<span class="sd">        possibly cut short; failing that, the shortest period dividing the</span>
+<span class="sd">        table over which blocks match in duration and in the channels they</span>
+<span class="sd">        play; failing both, the whole sequence. A slice acquired with its own</span>
+<span class="sd">        preparation and dummy shots is therefore one repetition, and a block</span>
+<span class="sd">        played once makes the whole sequence one. A ``TRsize`` definition</span>
+<span class="sd">        shorter than the sequence, dividing it and repeated by the blocks, is</span>
+<span class="sd">        taken instead, so a longer hyper-TR can be declared. Nothing is</span>
+<span class="sd">        written into the sequence.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)</span>
+<span class="sd">        &gt;&gt;&gt; for _ in range(4):</span>
+<span class="sd">        ...     _ = seq.add_block(pulse)</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_delay(10e-3))</span>
+<span class="sd">        &gt;&gt;&gt; seq.repetition()</span>
+<span class="sd">        (2, 1)</span>
+<span class="sd">        &gt;&gt;&gt; seq.get_definition("TRsize")</span>
+<span class="sd">        ''</span>
 <span class="sd">        """</span>
-        <span class="n">recorded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TRsize"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">recorded</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
-            <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">recorded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">recorded</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">recorded</span><span class="p">)</span>
+        <span class="n">declared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TRsize"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">declared</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">declared</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">declared</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">declared</span><span class="p">)</span>
             <span class="n">found</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">locate_repetition</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">found</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span>
 
         <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_definition</span><span class="p">(</span><span class="s2">"TRsize"</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span></div>
+
 
     <span class="c1"># -- soft delays ---------------------------------------------------</span>
 

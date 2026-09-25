@@ -624,12 +624,12 @@ averaging window <span class="math notranslate nohighlight">\(W\)</span> of dura
 </section>
 <section id="averaging-windows">
 <h2>Averaging windows<a class="headerlink" href="#averaging-windows" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">check_sar</span></code> evaluates RF energy over the repetitions detected from the
-sequence’s block definitions, reported as <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks: consecutive windows
-of <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks from the first block, or the whole sequence as one window
-when its blocks do not divide into repetitions. A <code class="docutils literal notranslate"><span class="pre">TRsize</span></code> definition the
-sequence records is used when the blocks repeat with it, and the detected size
-is recorded otherwise.
+<p><code class="docutils literal notranslate"><span class="pre">check_sar</span></code> evaluates RF energy over the repetitions
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a> detects from the sequence’s block
+definitions, reported as <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks: consecutive windows of <code class="docutils literal notranslate"><span class="pre">tr_size</span></code>
+blocks from the first block, or the whole sequence as one window when its
+blocks do not divide into repetitions. A <code class="docutils literal notranslate"><span class="pre">TRsize</span></code> definition the sequence
+records is used when the blocks repeat with it.
 The result is <code class="docutils literal notranslate"><span class="pre">True</span></code> when every window’s local SAR is at most <code class="docutils literal notranslate"><span class="pre">local_limit</span></code>
 and, with a global matrix, every window’s global SAR is at most <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>.
 The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head

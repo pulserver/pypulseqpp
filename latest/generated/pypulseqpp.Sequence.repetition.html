@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>check_sar &#8212; pypulseqpp documentation</title>
+    <title>Sequence.repetition &#8212; pypulseqpp documentation</title>
   
   
   
@@ -53,7 +53,7 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.safety.check_sar';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.Sequence.repetition';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
@@ -62,7 +62,7 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.safety.check_sar.html" />
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.Sequence.repetition.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -382,7 +382,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.safety.check_sar.rst" target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.Sequence.repetition.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -399,7 +399,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.safety.check_sar.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.Sequence.repetition.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -429,7 +429,7 @@
       
       
       
-      <li><a href="../_sources/generated/pypulseqpp.safety.check_sar.rst" target="_blank"
+      <li><a href="../_sources/generated/pypulseqpp.Sequence.repetition.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -512,7 +512,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>check_sar</h1>
+    <h1>Sequence.repetition</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -522,7 +522,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_sar"><code class="docutils literal notranslate"><span class="pre">check_sar()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.repetition"><code class="docutils literal notranslate"><span class="pre">Sequence.repetition()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -534,72 +534,47 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="check-sar">
-<h1>check_sar<a class="headerlink" href="#check-sar" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="pypulseqpp.safety.check_sar">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">check_sar</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#check_sar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.check_sar" title="Link to this definition">#</a></dt>
-<dd><p>Check window-averaged local and global SAR against their limits.</p>
+  <section id="sequence-repetition">
+<h1>Sequence.repetition<a class="headerlink" href="#sequence-repetition" title="Link to this heading">#</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="pypulseqpp.Sequence.repetition">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">repetition</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.repetition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.repetition" title="Link to this definition">#</a></dt>
+<dd><p>Return the repeating unit of the block table.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to check.</p></li>
-<li><p><strong>model</strong> (<a class="reference internal" href="pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><em>VopModel</em></a>) – VOPs and optional global matrix, in W/kg per unit drive squared; see
-<a class="reference internal" href="pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> and <a class="reference internal" href="pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a>.</p></li>
-<li><p><strong>drive_per_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> or </em><em>array_like</em>) – Channel drive per Hz of RF amplitude, in the VOPs’ drive unit: one
-value, or one per channel.</p></li>
-<li><p><strong>local_limit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=10.0</em>) – W/kg; IEC 60601-2-33 normal-mode head limits by default.</p></li>
-<li><p><strong>global_limit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=3.2</em>) – W/kg; IEC 60601-2-33 normal-mode head limits by default.</p></li>
-<li><p><strong>default_shim</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – Channel weights of a single-channel pulse played without an RF shim;
-all ones by default.</p></li>
-<li><p><strong>reference</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em> or </em><em>report</em><em>, </em><em>default=None</em>) – What to compare with, in the same model and calibration: a sequence,
-such as a CP-mode FID, evaluated here with the same drive and default
-shim; or the report of an earlier call. Its worst window’s per-VOP SAR,
-global SAR and duration are the reference.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul>
-<li><p><strong>is_ok</strong> (<em>bool</em>) – True when every window’s largest VOP SAR is within <code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and,
-with a global matrix, its global SAR within <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>.</p></li>
-<li><p><strong>report</strong> (<em>SimpleNamespace</em>) – The limits; <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> and <code class="docutils literal notranslate"><span class="pre">tr_start</span></code> (blocks); <code class="docutils literal notranslate"><span class="pre">windows</span></code>, arrays
-<code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1-based blocks), <code class="docutils literal notranslate"><span class="pre">duration</span></code> (s), <code class="docutils literal notranslate"><span class="pre">local_sar</span></code>,
-<code class="docutils literal notranslate"><span class="pre">vop</span></code> and <code class="docutils literal notranslate"><span class="pre">global_sar</span></code> (W/kg), and with a reference
-<code class="docutils literal notranslate"><span class="pre">reference_ratio</span></code>; <code class="docutils literal notranslate"><span class="pre">worst_local</span></code> and <code class="docutils literal notranslate"><span class="pre">worst_global</span></code>, each the
-<code class="docutils literal notranslate"><span class="pre">sar</span></code>, <code class="docutils literal notranslate"><span class="pre">window</span></code> and its <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> block, or None
-(<code class="docutils literal notranslate"><span class="pre">worst_local</span></code> also its <code class="docutils literal notranslate"><span class="pre">vop</span></code> and <code class="docutils literal notranslate"><span class="pre">per_vop</span></code>, the SAR of every
-VOP in that window); and <code class="docutils literal notranslate"><span class="pre">reference</span></code>, or None without one.</p>
-<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> carries <code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code>, the largest over windows and VOPs
-of a VOP’s SAR over the reference’s for the same VOP, with its <code class="docutils literal notranslate"><span class="pre">vop</span></code>
-and <code class="docutils literal notranslate"><span class="pre">window</span></code>; <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>, the largest of that ratio times the
-window’s duration over the reference’s, with its <code class="docutils literal notranslate"><span class="pre">energy_window</span></code>;
-and <code class="docutils literal notranslate"><span class="pre">global_sar_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">global_energy_ratio</span></code> alike for the
-global matrix, or None. Every window counts, prologue and tail
-included.</p>
-</li>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>) – Blocks per repetition; the whole sequence when it does not
+repeat, and zero when it has no blocks.</p></li>
+<li><p><strong>start</strong> (<em>int</em>) – 1-based block at which the first repetition starts, always 1.</p></li>
 </ul>
 </p>
 </dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a reference sequence plays nothing to compare with, or a shim
-    weighs a different number of channels than the model has.</p>
-</dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>SAR is averaged over each window: the blocks before the first full
-repetition, each repetition <a class="reference internal" href="pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>
-returns, and any blocks after the last; or the whole sequence when it does
-not repeat.
-Every window is compared with the limits. A pulse drives channel <code class="docutils literal notranslate"><span class="pre">c</span></code> with
-<code class="docutils literal notranslate"><span class="pre">drive_c</span> <span class="pre">*</span> <span class="pre">s_c</span> <span class="pre">*</span> <span class="pre">b_c(t)</span></code>: <code class="docutils literal notranslate"><span class="pre">b</span></code> its waveform in Hz, resampled every
-microsecond as <a class="reference internal" href="pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.calc_rf_power()</span></code></a> does (one channel’s waveform
-on every channel for a single-channel pulse), and <code class="docutils literal notranslate"><span class="pre">s</span></code> its block’s RF shim,
-<code class="docutils literal notranslate"><span class="pre">default_shim</span></code> or ones.</p>
-<p>The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the VOPs cancels in the reference
-ratios; relative channel gains do not. With a reference lasting its
-minimum TR, <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code> scales that minimum TR to this sequence’s
-repetition, at the energy each repetition deposits. For a sequence played
-only in the default shim, every VOP’s ratio is the ratio of RF energy.</p>
+<p>The repetition is the shortest period of the block-definition stream
+from the first block that every later block repeats, the last copy
+possibly cut short; failing that, the shortest period dividing the
+table over which blocks match in duration and in the channels they
+play; failing both, the whole sequence. A slice acquired with its own
+preparation and dummy shots is therefore one repetition, and a block
+played once makes the whole sequence one. A <code class="docutils literal notranslate"><span class="pre">TRsize</span></code> definition
+shorter than the sequence, dividing it and repeated by the blocks, is
+taken instead, so a longer hyper-TR can be declared. Nothing is
+written into the sequence.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pulse</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">pulse</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="mf">10e-3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span>
+<span class="go">(2, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TRsize"</span><span class="p">)</span>
+<span class="go">''</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -633,7 +608,7 @@ only in the default shim, every VOP’s ratio is the ratio of RF energy.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.safety.check_sar"><code class="docutils literal notranslate"><span class="pre">check_sar()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.Sequence.repetition"><code class="docutils literal notranslate"><span class="pre">Sequence.repetition()</span></code></a></li>
 </ul>
   </nav></div>
 
