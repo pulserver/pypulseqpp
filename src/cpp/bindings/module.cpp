@@ -1658,6 +1658,33 @@ PYBIND11_MODULE(_ext, module)
         "Every distinct flip angle the sequence uses, in degrees, ascending.");
 
     module.def(
+        "rf_flip_angles",
+        [](const Sequence& sequence) {
+            std::vector<double> angles;
+            {
+                py::gil_scoped_release unlocked;
+                angles = pulseq::rf_flip_angles(sequence);
+            }
+            return py::array_t<double>(
+                static_cast<py::ssize_t>(angles.size()), angles.data());
+        },
+        py::arg("sequence"),
+        "The flip angle of every RF library row, in degrees, by id.");
+
+    module.def(
+        "rf_channel_counts",
+        [](const Sequence& sequence) {
+            std::vector<int> counts;
+            {
+                py::gil_scoped_release unlocked;
+                counts = pulseq::rf_channel_counts(sequence);
+            }
+            return py::array_t<int>(static_cast<py::ssize_t>(counts.size()), counts.data());
+        },
+        py::arg("sequence"),
+        "The transmit channels every RF library row holds, by id.");
+
+    module.def(
         "kspace_coverage",
         [](const py::array_t<double, py::array::c_style | py::array::forcecast>& samples,
            double threshold) {

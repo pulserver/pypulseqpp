@@ -15,6 +15,7 @@ records, including which system limits, and the two forms.
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.io.read` | File path; optional gradient and slew limits | `Sequence` on a system built from the file | Read with file-derived rasters and limits. |
+| {obj}`~pypulseqpp.io.read_chain` | First file path; `detect_rf_use`, `verify` | `(Path, Sequence)` pairs in play order | Read a file and the `NextSequence` files it names, each on a system built from it. |
 | {obj}`~pypulseqpp.io.write` | `Sequence`, file path, `binary` | Text signature, or `None` for binary | Write Pulseq text or binary. |
 
 ## Library export

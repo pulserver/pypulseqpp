@@ -1294,6 +1294,49 @@ class Sequence:
         """
         return _report_data(self)
 
+    def rf_flip_angles(self) -> np.ndarray:
+        """Return the flip angle of each RF event of the library, in degrees.
+
+        Entry ``i`` is RF id ``i + 1``, the row order of :meth:`libraries`.
+        The flip angle is the magnitude of the integral of the event's complex
+        envelope times its amplitude, in turns, times 360. A dynamic pTx pulse
+        is integrated channel by channel on its shared time base and the
+        channels summed: the flip angle where every channel has unit, in-phase
+        sensitivity. :meth:`test_report_dict` lists the distinct values.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> for angle in (10, 20):
+        ...     _ = seq.add_block(pp.make_sinc_pulse(np.deg2rad(angle), duration=2e-3))
+        >>> seq.rf_flip_angles().round(1)
+        array([10., 20.])
+        """
+        return np.asarray(_cxx.rf_flip_angles(self._native))
+
+    def rf_channels(self) -> np.ndarray:
+        """Return the transmit channels each RF event of the library holds.
+
+        Entry ``i`` is RF id ``i + 1``. A dynamic pTx pulse holds its channels
+        one after another over one time base, and the count is the number of
+        samples at its first sample time when the times are that many
+        identical copies, as the reference interpreter reads it; any other
+        pulse holds one.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> _ = seq.add_block(pp.make_ptx_pulse(100.0 * np.ones((2, 100))))
+        >>> _ = seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        >>> seq.rf_channels().tolist()
+        [2, 1]
+        """
+        return np.asarray(_cxx.rf_channel_counts(self._native))
+
     # -- the repeating unit --------------------------------------------
 
     def _detect_tr(self) -> tuple[int, int]:

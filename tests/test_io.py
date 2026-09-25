@@ -9,6 +9,7 @@ the system from the file instead, and these tests pin what it puts in it.
 from __future__ import annotations
 
 import io
+import warnings
 
 import numpy as np
 import pytest
@@ -176,3 +177,58 @@ def test_a_limit_the_file_states_is_the_one_the_system_carries(tmp_path, gre):
     built = pp.io.read(path).system
 
     assert (built.max_grad, built.max_slew, built.B0) == (2.5e6, 1.5e10, 7.0)
+
+
+def _chain(directory, names, pulse=None):
+    """Write one file per name, each naming the next as its NextSequence."""
+    system = pp.Opts()
+    for name, following in zip(names, [*names[1:], ""], strict=True):
+        seq = pp.Sequence(system)
+        if pulse is not None:
+            seq.add_block(pulse)
+        seq.add_block(pp.make_delay(1e-3))
+        if following:
+            seq.set_definition("NextSequence", following)
+        pp.io.write(seq, directory / name)
+    return directory / names[0]
+
+
+def test_a_chain_is_read_in_play_order_each_file_on_its_own_system(tmp_path):
+    first = _chain(tmp_path, ["scan.seq", "scan_noise.seq", "scan_main.seq"])
+    chain = pp.io.read_chain(first)
+    assert [path.name for path, _ in chain] == [
+        "scan.seq",
+        "scan_noise.seq",
+        "scan_main.seq",
+    ]
+    assert all(seq.check_timing()[0] for _, seq in chain)
+
+
+def test_a_chain_that_returns_to_a_file_it_played_is_refused(tmp_path):
+    first = _chain(tmp_path, ["a.seq", "b.seq"])
+    seq = pp.io.read(tmp_path / "b.seq")
+    seq.set_definition("NextSequence", "a.seq")
+    pp.io.write(seq, tmp_path / "b.seq")
+    with pytest.raises(ValueError, match="returns to"):
+        pp.io.read_chain(first)
+
+
+def test_a_chain_naming_a_missing_file_is_refused(tmp_path):
+    first = _chain(tmp_path, ["a.seq", "b.seq"])
+    (tmp_path / "b.seq").unlink()
+    with pytest.raises(FileNotFoundError, match=r"b\.seq"):
+        pp.io.read_chain(first)
+
+
+def test_a_chain_detects_the_use_of_unlabelled_pulses_only(tmp_path):
+    """A file whose pulses already say what they are for is read without a warning."""
+    unlabelled = pp.make_block_pulse(np.pi / 2, duration=1e-3, use="undefined")
+    labelled = pp.make_block_pulse(np.pi / 2, duration=1e-3, use="excitation")
+    first = _chain(tmp_path, ["a.seq"], pulse=labelled)
+    _chain(tmp_path, ["b.seq"], pulse=unlabelled)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        ((_, tagged),) = pp.io.read_chain(first, detect_rf_use=True)
+        ((_, detected),) = pp.io.read_chain(tmp_path / "b.seq", detect_rf_use=True)
+    assert tagged.libraries().rf_use == ("excitation",)
+    assert detected.libraries().rf_use == ("excitation",)

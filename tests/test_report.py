@@ -183,6 +183,20 @@ def test_the_flip_angle_is_what_the_pulse_was_asked_for():
     )
 
 
+def test_each_rf_event_carries_the_flip_angle_the_report_lists():
+    seq = pp.Sequence(pp.Opts())
+    for flip in (math.pi / 2, math.pi / 6, math.pi):
+        seq.add_block(pp.make_sinc_pulse(flip, duration=2e-3, use="excitation"))
+        seq.add_block(pp.make_delay(10e-3))
+
+    per_event = seq.rf_flip_angles()
+
+    assert per_event == pytest.approx([90, 30, 180], rel=1e-3)
+    np.testing.assert_array_equal(
+        np.unique(per_event), seq.test_report_dict()["flip_angles_deg"]
+    )
+
+
 def test_the_repetition_time_is_one_repetition_long():
     seq = gradient_echo(lines=16)
     blocks_per_shot = len(seq) // 16
