@@ -473,20 +473,29 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_quaternion_of</span><span class="p">(</span><span class="n">rotation</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Return a scalar-first quaternion from a matrix or SciPy rotation."""</span>
+<span class="w">    </span><span class="sd">"""Return a scalar-first quaternion, and the channel axis a reflection negates.</span>
+
+<span class="sd">    A matrix M with a negative determinant is the rotation M D after the</span>
+<span class="sd">    reflection D = diag(1, 1, -1): the quaternion is that of M D and the axis</span>
+<span class="sd">    is 2. The axis is None for a rotation.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rotation</span><span class="p">,</span> <span class="s2">"as_quat"</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rotation</span><span class="o">.</span><span class="n">as_quat</span><span class="p">(</span><span class="n">canonical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalar_first</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">quaternion</span> <span class="o">=</span> <span class="n">rotation</span><span class="o">.</span><span class="n">as_quat</span><span class="p">(</span><span class="n">canonical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalar_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">quaternion</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="kc">None</span>
     <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rotation</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"TransformFOV(): `rotation` must be (3, 3) or a rotation object, "</span>
             <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">matrix</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
+    <span class="n">reflected</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">reflected</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rotation</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
-        <span class="n">Rotation</span><span class="o">.</span><span class="n">from_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span><span class="o">.</span><span class="n">as_quat</span><span class="p">(</span><span class="n">canonical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalar_first</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="nb">float</span>
-    <span class="p">)</span>
+    <span class="n">quaternion</span> <span class="o">=</span> <span class="n">Rotation</span><span class="o">.</span><span class="n">from_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span><span class="o">.</span><span class="n">as_quat</span><span class="p">(</span><span class="n">canonical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalar_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">quaternion</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="n">reflected</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_exempt_mask</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
@@ -549,7 +558,11 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rotation : ArrayLike | Rotation, default=None</span>
 <span class="sd">        Prescription orientation as a 3-by-3 matrix or SciPy rotation.</span>
-<span class="sd">        Composed after the rotation already attached to each block.</span>
+<span class="sd">        Composed after the rotation already attached to each block. A matrix</span>
+<span class="sd">        with determinant -1 is played as the rotation</span>
+<span class="sd">        ``rotation @ diag(1, 1, -1)`` after negating the gradient on channel</span>
+<span class="sd">        axis z, with each block's own rotation conjugated by that reflection;</span>
+<span class="sd">        see ``reflected_axis``.</span>
 <span class="sd">    translation : Sequence[float], default=None</span>
 <span class="sd">        Three offsets in metres, along the channel axes, or along the logical</span>
 <span class="sd">        axes with ``through_rotation``.</span>
@@ -574,6 +587,11 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    quaternion : NDArray[np.float64] | None</span>
+<span class="sd">        Scalar-first unit quaternion of the prescription's rotation.</span>
+<span class="sd">    reflected_axis : int | None</span>
+<span class="sd">        Channel axis whose gradient is negated to play an improper</span>
+<span class="sd">        ``rotation``: 2, for z. None for a proper one.</span>
 <span class="sd">    block_k_origin : tuple[float, float, float]</span>
 <span class="sd">        k-space position entering the next processed range, in 1/m, in the</span>
 <span class="sd">        frame of the translation. Reset at excitation and inverted at</span>
@@ -639,7 +657,9 @@
                 <span class="s2">"that a thousand orientations share one trajectory"</span>
             <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">quaternion</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">rotation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_quaternion_of</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflected_axis</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">rotation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_quaternion_of</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">translation</span> <span class="o">=</span> <span class="p">(</span>
             <span class="kc">None</span> <span class="k">if</span> <span class="n">translation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">translation</span><span class="p">)</span>
         <span class="p">)</span>
@@ -731,6 +751,7 @@
                     <span class="n">quaternion</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quaternion</span><span class="p">),</span>
                     <span class="n">first</span><span class="o">=</span><span class="n">begins</span><span class="p">,</span>
                     <span class="n">last</span><span class="o">=</span><span class="n">ends</span><span class="p">,</span>
+                    <span class="n">reflected_axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reflected_axis</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">target</span></div>
 

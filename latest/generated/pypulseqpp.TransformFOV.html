@@ -551,7 +551,11 @@ doubles the field of view along it.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rotation</strong> (<em>ArrayLike</em><em> | </em><em>Rotation</em><em>, </em><em>default=None</em>) – Prescription orientation as a 3-by-3 matrix or SciPy rotation.
-Composed after the rotation already attached to each block.</p></li>
+Composed after the rotation already attached to each block. A matrix
+with determinant -1 is played as the rotation
+<code class="docutils literal notranslate"><span class="pre">rotation</span> <span class="pre">&#64;</span> <span class="pre">diag(1,</span> <span class="pre">1,</span> <span class="pre">-1)</span></code> after negating the gradient on channel
+axis z, with each block’s own rotation conjugated by that reflection;
+see <code class="docutils literal notranslate"><span class="pre">reflected_axis</span></code>.</p></li>
 <li><p><strong>translation</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Three offsets in metres, along the channel axes, or along the logical
 axes with <code class="docutils literal notranslate"><span class="pre">through_rotation</span></code>.</p></li>
 <li><p><strong>scale</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>, </em><em>default=None</em>) – Gradient amplitude multipliers along the three channel axes.
@@ -571,6 +575,9 @@ sequence whose rotations are a prescription composed onto it.</p></li>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
+<li><p><strong>quaternion</strong> (<em>NDArray[np.float64] | None</em>) – Scalar-first unit quaternion of the prescription’s rotation.</p></li>
+<li><p><strong>reflected_axis</strong> (<em>int | None</em>) – Channel axis whose gradient is negated to play an improper
+<code class="docutils literal notranslate"><span class="pre">rotation</span></code>: 2, for z. None for a proper one.</p></li>
 <li><p><strong>block_k_origin</strong> (<em>tuple[float, float, float]</em>) – k-space position entering the next processed range, in 1/m, in the
 frame of the translation. Reset at excitation and inverted at
 refocusing, at the RF centre.</p></li>
