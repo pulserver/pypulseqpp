@@ -225,6 +225,10 @@ namespace pulseqpp_decode
         const pulseq::IntTable& links = seq.extensions_library();
         py::list triggers;
         py::list labels;
+        /* A chain holding two rotations or two shims decodes to the first of
+         * each, which is the one the block plays. */
+        bool rotated = false;
+        bool shimmed = false;
 
         int32_t node = head;
         while (node > 0 && node <= links.size())
@@ -276,16 +280,22 @@ namespace pulseqpp_decode
                 soft.hint = row.hint;
                 block["soft_delay"] = made;
             }
-            else if (kind == "ROTATIONS" && ref >= 1 && ref <= seq.rotation_library().size())
+            else if (
+                kind == "ROTATIONS" && !rotated && ref >= 1 &&
+                ref <= seq.rotation_library().size())
             {
+                rotated = true;
                 const double* row = seq.rotation_library().row(ref);
                 py::object made = pulseqpp_types::new_rotation();
                 pulseq::RotationEvent& rotation = inside<pulseq::RotationEvent>(made);
                 rotation.quaternion = {{row[0], row[1], row[2], row[3]}};
                 block["rotation"] = made;
             }
-            else if (kind == "RF_SHIMS" && ref >= 1 && ref <= seq.rf_shim_library().size())
+            else if (
+                kind == "RF_SHIMS" && !shimmed && ref >= 1 &&
+                ref <= seq.rf_shim_library().size())
             {
+                shimmed = true;
                 // No compiled type carries a shim, so it goes back as the
                 // namespace `make_rf_shim` hands out -- which is what both
                 // a caller reading it and `add_block` expect.

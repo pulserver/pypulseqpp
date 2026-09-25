@@ -1542,6 +1542,20 @@ PYBIND11_MODULE(_ext, module)
         "What every label the sequence uses is set to, as an array per label.");
 
     module.def(
+        "label_blocks",
+        [](const Sequence& sequence, const std::string& label, bool setting) {
+            std::vector<int32_t> found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::label_blocks(sequence, label, setting);
+            }
+            return py::array_t<int32_t>(static_cast<py::ssize_t>(found.size()), found.data());
+        },
+        py::arg("sequence"), py::arg("label"), py::arg("setting") = true,
+        "The 1-based blocks whose extension chain sets, or with setting=False "
+        "increments, a label.");
+
+    module.def(
         "block_k_origins",
         [](const Sequence& sequence, int first, int last,
            std::array<double, 3> carry) {

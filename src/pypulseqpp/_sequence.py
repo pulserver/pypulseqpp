@@ -844,6 +844,49 @@ class Sequence:
             return found
         return {name: values[0] if len(values) else 0 for name, values in found.items()}
 
+    def label_blocks(self, label: str, kind: str = "SET") -> np.ndarray:
+        """Return the blocks whose extension chain sets, or increments, a label.
+
+        Parameters
+        ----------
+        label : str
+            Label name, such as ``'TRID'`` or ``'LIN'``.
+        kind : {'SET', 'INC'}, default='SET'
+            Whether ``LABELSET`` or ``LABELINC`` statements are looked for.
+
+        Returns
+        -------
+        NDArray[np.int32]
+            1-based block indices, ascending; empty when no block states the
+            label.
+
+        Raises
+        ------
+        ValueError
+            If ``kind`` is neither ``'SET'`` nor ``'INC'``.
+
+        Notes
+        -----
+        A block is listed once however many statements of the label it holds.
+        :meth:`evaluate_labels` gives the value a label takes; this gives where
+        it is stated, which a value set again at every repetition does not.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> for _ in range(3):
+        ...     _ = seq.add_block(pp.make_label("TRID", "SET", 1), pp.make_delay(1e-3))
+        ...     _ = seq.add_block(pp.make_delay(2e-3))
+        >>> seq.label_blocks("TRID").tolist()
+        [1, 3, 5]
+        """
+        if kind not in ("SET", "INC"):
+            raise ValueError(f"kind must be 'SET' or 'INC', got {kind!r}")
+        return np.asarray(
+            _cxx.label_blocks(self._native, label=str(label), setting=kind == "SET")
+        )
+
     def _range_for(self, time_range, block_range) -> tuple[int, int]:
         """Return the blocks a time range or a block range names, 1-based."""
         if block_range is not None and time_range is not None:
@@ -1315,6 +1358,48 @@ class Sequence:
         array([10., 20.])
         """
         return np.asarray(_cxx.rf_flip_angles(self._native))
+
+    def block_rotations(self) -> np.ndarray:
+        """Return the rotation each block turns its gradients by.
+
+        Entry ``i`` is block ``i + 1``: the 1-based row of
+        :attr:`~pypulseqpp.io.SequenceLibraries.rotations` its ``ROTATIONS``
+        extension names, and 0 for a block without one. A block carries at
+        most one rotation.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> gx = pp.make_trapezoid("x", area=1000, duration=2e-3)
+        >>> _ = seq.add_block(gx)
+        >>> _ = seq.add_block(gx, pp.make_rotation(np.pi / 2))
+        >>> seq.block_rotations().tolist()
+        [0, 1]
+        """
+        return np.asarray(self._native.block_rotations())
+
+    def block_shims(self) -> np.ndarray:
+        """Return the RF shim each block plays its pulse through.
+
+        Entry ``i`` is block ``i + 1``: the 1-based row of
+        :attr:`~pypulseqpp.io.SequenceLibraries.rf_shims` its ``RF_SHIMS``
+        extension names, and 0 for a block without one. A block carries at
+        most one RF shim.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)
+        >>> _ = seq.add_block(pulse, pp.make_rf_shim(np.array([1.0, 1j])))
+        >>> _ = seq.add_block(pp.make_delay(1e-3))
+        >>> seq.block_shims().tolist()
+        [1, 0]
+        """
+        return np.asarray(self._native.block_shims())
 
     def rf_channels(self) -> np.ndarray:
         """Return the transmit channels each RF event of the library holds.

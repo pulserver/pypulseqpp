@@ -77,6 +77,16 @@ namespace pulseq
         int last_block,
         const std::vector<std::pair<std::string, int32_t>>& start);
 
+    /**
+     * The 1-based blocks whose extension chain states @p label, ascending.
+     *
+     * @param setting  True for LABELSET statements, false for LABELINC.
+     *
+     * A block is listed once however many statements of the label it holds.
+     * A label the sequence has no id for is stated nowhere.
+     */
+    std::vector<int32_t> label_blocks(const Sequence& seq, const std::string& label, bool setting);
+
     /** k-space extent of the sampled trajectory and how often positions repeat. */
     struct KspaceCoverage
     {
