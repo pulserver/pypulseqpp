@@ -52,7 +52,7 @@ def radius(view, built):
 def test_a_small_fse_passes_its_timing_check_and_repeats_one_train(prescription):
     built = app(n_dummy=1, **prescription)
     seq = built.design()
-    size, start = seq._detect_tr()
+    size, start = seq.repetition()
 
     assert seq.check_timing()[0]
     assert start == 1

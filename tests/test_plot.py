@@ -98,8 +98,16 @@ def test_the_diagram_prefers_the_repetition_that_encodes_furthest(gradient_echo)
 def test_a_repetition_is_counted_from_the_first_block(gradient_echo):
     sequence = gradient_echo(prologue=0)
 
-    assert sequence._detect_tr() == (3, 1)
+    assert sequence.repetition() == (3, 1)
     assert _plot.blocks_for(sequence, tr_range=(2, 3)) == (4, 9)
+
+
+def test_a_repetition_range_writes_no_repeating_unit_into_the_sequence(gradient_echo):
+    sequence = gradient_echo(prologue=0)
+
+    _plot.blocks_for(sequence, tr_range=(2, 3))
+
+    assert sequence.get_definition("TRsize") == ""
 
 
 def test_an_open_repetition_range_runs_to_the_last_repetition(gradient_echo):
@@ -207,7 +215,7 @@ def test_an_excerpt_from_the_first_block_needs_no_lead(gradient_echo, tmp_path):
 def test_an_excerpt_carries_only_the_events_its_blocks_play(gradient_echo, tmp_path):
     """A phase encode is a row per line, so the scan's library grows with it."""
     sequence = gradient_echo(lines=64, prologue=0)
-    size, start = sequence._detect_tr()
+    size, start = sequence.repetition()
 
     excerpt = _read(
         _plot._excerpt(sequence, start + 10 * size, start + 11 * size - 1), tmp_path

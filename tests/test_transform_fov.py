@@ -1037,7 +1037,7 @@ def test_a_scan_can_be_moved_a_repetition_at_a_time(system):
     at_once = pp.TransformFOV(translation=(shift, 0.0, 0.0)).apply_to_sequence(scan())
 
     in_pieces = scan()
-    size, start = in_pieces._detect_tr()
+    size, start = in_pieces.repetition()
     assert (size, start) == (3, 1)
     moving = pp.TransformFOV(translation=(shift, 0.0, 0.0))
     block = start

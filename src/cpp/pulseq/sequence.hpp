@@ -1262,6 +1262,14 @@ namespace pulseq
         /** Overwrite block @p index (1-based).  Throws if out of range. */
         void set_block(int index, const Block& block);
 
+        /**
+         * Set the duration of block @p index (1-based), in seconds.  A
+         * duration distinguishes the definition of a block that plays
+         * events, so the block's definition is looked up again.  Throws if
+         * out of range.
+         */
+        void set_block_duration(int index, double seconds);
+
         /** Block @p index (1-based).  Throws if out of range. */
         Block get_block(int index) const;
 

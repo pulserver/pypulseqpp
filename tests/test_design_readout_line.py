@@ -561,5 +561,5 @@ def test_a_whole_table_is_one_repeating_unit(system, slab):
             pp.scale_grad(module.gz_rew, ky),
         )
 
-    assert seq._detect_tr() == (4, 1)
+    assert seq.repetition() == (4, 1)
     assert len(seq) == 4 * len(lines)

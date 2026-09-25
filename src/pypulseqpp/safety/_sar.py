@@ -200,7 +200,7 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
 
 
 def _evaluate(seq, model, drive, shim, reference=None):
-    size, start = seq._detect_tr() if seq.num_blocks else (0, 0)
+    size, start = seq.repetition() if seq.num_blocks else (0, 0)
     found = _cxx.vop_sar(
         seq._native,
         vops=np.ascontiguousarray(model.vops),
@@ -315,8 +315,9 @@ def check_sar(
     Notes
     -----
     SAR is averaged over each window: the blocks before the first full
-    repetition, each repetition the block definitions repeat with, and any
-    blocks after the last; or the whole sequence when it does not repeat.
+    repetition, each repetition :meth:`~pypulseqpp.Sequence.repetition`
+    returns, and any blocks after the last; or the whole sequence when it does
+    not repeat.
     Every window is compared with the limits. A pulse drives channel ``c`` with
     ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every
     microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform

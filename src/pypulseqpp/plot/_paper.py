@@ -94,7 +94,7 @@ def select_trs(seq, tr=None, max_underlays=16):
                 f"{seq.num_blocks} blocks"
             )
     else:
-        size, start = seq._detect_tr()
+        size, start = seq.repetition()
         if size >= seq.num_blocks:
             # A preparation before the loop, or a rewind after it, keeps the scan
             # from repeating as a whole; the diagram draws what repeats inside it.

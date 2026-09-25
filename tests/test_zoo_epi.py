@@ -140,7 +140,7 @@ def test_every_file_of_the_chain_repeats_from_its_first_block(tmp_path, case):
     for path in app.write(tmp_path / "scan.seq"):
         seq = pp.Sequence(system=app.system)
         seq.read(path)
-        assert seq._detect_tr()[1] == 1, path
+        assert seq.repetition()[1] == 1, path
 
 
 # -- what every shot samples ------------------------------------------------

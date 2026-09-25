@@ -114,8 +114,9 @@ The format states the playout order and nothing above it. Nothing in the file
 identifies which run of blocks is a repetition, which events belong to one
 shot, or which acquisitions form a calibration region. A consumer that requires that
 structure derives it from the content. The repetition detection underlying the
-SAR check does exactly that, and the shipped sequences record their encoding
-indices as labels rather than leaving a consumer to infer them.
+SAR check, {meth}`~pypulseqpp.Sequence.repetition`, does exactly that, and the
+shipped sequences record their encoding indices as labels rather than leaving a
+consumer to infer them.
 
 The same applies to the system a sequence was designed against. A file records
 the four rasters; it records a gradient amplitude limit, a slew-rate limit or a

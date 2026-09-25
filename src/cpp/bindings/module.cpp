@@ -800,14 +800,12 @@ PYBIND11_MODULE(_ext, module)
                                            keep_alive_capsule(std::move(buffer)));
             },
             "Every block's duration in seconds, as a snapshot.")
-        // A soft delay rewrites a block's duration and nothing else about it,
-        // so it gets a scalar setter rather than a rebuild of the block.
         .def(
             "set_block_duration",
             [](Sequence& self, int index, double seconds) {
                 if (index < 1 || index > self.num_blocks())
                     throw py::index_error("block index out of range");
-                self.block_durations()[index - 1] = seconds;
+                self.set_block_duration(index, seconds);
             },
             py::arg("index"), py::arg("seconds"))
 
@@ -817,8 +815,9 @@ PYBIND11_MODULE(_ext, module)
                 const pulseq::Repetition found = self.repetition();
                 return py::make_tuple(found.size, found.start);
             },
-            "The repeating unit of the scan as (size, start), in blocks; a "
-            "size of 0 when the sequence does not repeat.")
+            "The repeating unit of the scan as (size, start), in blocks: the "
+            "whole table when nothing repeats, a size of 0 without blocks, and "
+            "a 0-based start of 0.")
         .def(
             "repeating_part",
             [](Sequence& self) {

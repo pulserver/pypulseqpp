@@ -39,7 +39,7 @@ def gradient_echo():
 def test_a_scan_repeats_at_the_length_of_one_shot(gradient_echo):
     sequence = gradient_echo(lines=8)
 
-    size, start = sequence._detect_tr()
+    size, start = sequence.repetition()
 
     assert size == 3
     assert start == 1
@@ -49,7 +49,7 @@ def test_a_phase_encode_does_not_make_a_shot_different(gradient_echo):
     """Every line has its own amplitude and they are all one definition."""
     sequence = gradient_echo(lines=32)
 
-    size, _ = sequence._detect_tr()
+    size, _ = sequence.repetition()
 
     assert size == 3
     assert len(sequence) == 96
@@ -62,7 +62,7 @@ def test_blocks_played_once_before_the_loop_make_the_whole_sequence_one(
     table there is no prologue."""
     sequence = gradient_echo(lines=8, prologue=3)
 
-    assert sequence._detect_tr() == (27, 1)
+    assert sequence.repetition() == (27, 1)
 
 
 def test_a_prologue_is_outside_the_run_a_diagram_draws(gradient_echo):
@@ -70,7 +70,7 @@ def test_a_prologue_is_outside_the_run_a_diagram_draws(gradient_echo):
     the preparation belongs to the first, and a diagram wants the second."""
     sequence = gradient_echo(lines=8, prologue=3)
 
-    assert sequence._detect_tr() == (27, 1)
+    assert sequence.repetition() == (27, 1)
     assert sequence._native.repeating_part() == (3, 3)
 
 
@@ -91,41 +91,38 @@ def test_a_rewind_after_the_loop_is_outside_the_run_a_diagram_draws(gradient_ech
 
 
 def test_a_sequence_in_which_nothing_repeats_is_one_repetition(gradient_echo):
-    assert gradient_echo(lines=1)._detect_tr() == (3, 1)
+    assert gradient_echo(lines=1).repetition() == (3, 1)
 
 
 def test_a_sequence_with_nothing_in_it_does_not_repeat():
-    assert pp.Sequence(pp.Opts())._detect_tr() == (0, 1)
+    assert pp.Sequence(pp.Opts()).repetition() == (0, 1)
 
 
-def test_the_repeating_unit_is_recorded_as_a_definition(gradient_echo):
+def test_asking_for_the_repeating_unit_writes_nothing_into_the_sequence(
+    gradient_echo, tmp_path
+):
     sequence = gradient_echo(lines=8)
 
-    size, _ = sequence._detect_tr()
+    assert sequence.repetition() == (3, 1)
 
-    assert sequence.get_definition("TRsize") == pytest.approx([size])
+    path = tmp_path / "gre.seq"
+    sequence.write(str(path))
+    assert sequence.get_definition("TRsize") == ""
+    assert "TRsize" not in path.read_text()
 
 
-def test_a_recorded_repeating_unit_survives_a_file(gradient_echo, tmp_path):
-    """Written into `[DEFINITIONS]`, so a reader does not work it out again."""
+def test_a_declared_repeating_unit_survives_a_file(gradient_echo, tmp_path):
+    """Declared by the design in `[DEFINITIONS]`, and taken again on reading."""
     sequence = gradient_echo(lines=8)
-    sequence._detect_tr()
+    sequence.set_definition("TRsize", 6)
     path = tmp_path / "gre.seq"
     sequence.write(str(path))
 
     loaded = pp.Sequence(pp.Opts())
     loaded.read(str(path))
 
-    assert loaded.get_definition("TRsize") == pytest.approx([3])
-    assert loaded._detect_tr() == (3, 1)
-
-
-def test_writing_does_not_record_it_unasked(gradient_echo, tmp_path):
-    """Nothing writes `TRsize` unless the answer was asked for."""
-    path = tmp_path / "gre.seq"
-    gradient_echo(lines=8).write(str(path))
-
-    assert "TRsize" not in path.read_text()
+    assert loaded.get_definition("TRsize") == pytest.approx([6])
+    assert loaded.repetition() == (6, 1)
 
 
 def test_adding_a_block_makes_the_answer_stale(gradient_echo):
@@ -137,6 +134,25 @@ def test_adding_a_block_makes_the_answer_stale(gradient_echo):
     # Played once, at the end: nothing repeats up to it, so the whole
     # sequence is one repetition.
     assert sequence._native.repetition() == (25, 0)
+
+
+def test_retiming_a_block_that_plays_events_makes_the_answer_stale():
+    """A block's duration is part of its definition unless it is a pure delay.
+
+    One pulse block of four lengthened: the pulse blocks no longer share a
+    definition or a duration, so nothing repeats and the whole sequence is one
+    repetition.
+    """
+    sequence = pp.Sequence(pp.Opts())
+    pulse = pp.make_block_pulse(math.pi / 6, duration=1e-3, use="excitation")
+    for _ in range(4):
+        sequence.add_block(pulse)
+        sequence.add_block(pp.make_delay(2e-3))
+    assert sequence.repetition() == (2, 1)
+
+    sequence.block_durations[3] = 1.5e-3
+
+    assert sequence.repetition() == (8, 1)
 
 
 def test_collapsing_duplicates_makes_the_answer_stale():
@@ -194,14 +210,14 @@ def test_a_declared_hyper_tr_the_blocks_repeat_with_is_taken(gradient_echo):
     sequence = gradient_echo(lines=8)
     sequence.set_definition("TRsize", 6)
 
-    assert sequence._detect_tr() == (6, 1)
+    assert sequence.repetition() == (6, 1)
 
 
 def test_a_declared_tr_the_blocks_contradict_is_ignored(gradient_echo):
     sequence = gradient_echo(lines=8)
     sequence.set_definition("TRsize", 4)
 
-    assert sequence._detect_tr() == (3, 1)
+    assert sequence.repetition() == (3, 1)
 
 
 def test_shots_that_differ_only_in_their_waveforms_repeat_by_structure():
@@ -219,14 +235,14 @@ def test_shots_that_differ_only_in_their_waveforms_repeat_by_structure():
         sequence.add_block(read)
 
     assert sequence._native.num_rf_definitions() == 4
-    assert sequence._detect_tr() == (2, 1)
+    assert sequence.repetition() == (2, 1)
 
 
 def test_finding_the_repeat_of_a_long_scan_is_one_pass(gradient_echo):
     """A guard on where the work happens: this is an array, not the blocks."""
     sequence = gradient_echo(lines=20000)
 
-    size, start = sequence._detect_tr()
+    size, start = sequence.repetition()
 
     assert (size, start) == (3, 1)
     assert len(sequence) == 60000
@@ -265,7 +281,7 @@ def test_labelling_a_pulse_splits_the_definition_it_shared(tmp_path):
 
     assert loaded._native.num_rf_definitions() == 2
     assert list(loaded._native.instance_definitions()) == [1, 2, 1, 2, 1, 2]
-    assert loaded._detect_tr() == (2, 1)
+    assert loaded.repetition() == (2, 1)
 
 
 def test_a_phase_encode_table_is_one_definition_at_many_amplitudes():
@@ -287,7 +303,7 @@ def test_a_phase_encode_table_is_one_definition_at_many_amplitudes():
         sequence.add_block(pp.scale_grad(step, line))
 
     assert sequence._native.num_grad_definitions() == 1
-    assert sequence._detect_tr() == (1, 1)
+    assert sequence.repetition() == (1, 1)
 
 
 def test_a_line_scaled_to_zero_is_the_same_definition_at_no_amplitude():
@@ -305,7 +321,7 @@ def test_a_line_scaled_to_zero_is_the_same_definition_at_no_amplitude():
         sequence.add_block(pp.scale_grad(step, line))
 
     assert sequence._native.num_grad_definitions() == 1
-    assert sequence._detect_tr() == (1, 1)
+    assert sequence.repetition() == (1, 1)
     assert float(sequence.get_block(2).gy.amplitude) == 0.0
 
 
@@ -320,7 +336,7 @@ def test_a_run_of_waits_repeats_every_block_however_long_each_waits():
     for duration in (1e-3, 2e-3, 3e-3):
         sequence.add_block(pp.make_delay(duration))
 
-    assert sequence._detect_tr() == (1, 1)
+    assert sequence.repetition() == (1, 1)
 
 
 def test_the_repeat_survives_a_shift(gradient_echo):
@@ -328,7 +344,7 @@ def test_the_repeat_survives_a_shift(gradient_echo):
     sequence = gradient_echo(lines=8)
     moved = pp.TransformFOV(translation=(0.01, 0.0, 0.0)).apply_to_sequence(sequence)
 
-    assert moved._detect_tr() == sequence._detect_tr()
+    assert moved.repetition() == sequence.repetition()
 
 
 def test_the_repeat_survives_a_rotation(gradient_echo):
@@ -339,7 +355,7 @@ def test_the_repeat_survives_a_rotation(gradient_echo):
         rotation=Rotation.from_euler("z", 45, degrees=True)
     ).apply_to_sequence(sequence)
 
-    assert turned._detect_tr() == sequence._detect_tr()
+    assert turned.repetition() == sequence.repetition()
 
 
 @pytest.mark.parametrize("dummies", [0, 2])
@@ -358,7 +374,7 @@ def test_a_slice_acquisition_with_its_preparation_is_one_repetition(dummies):
         for line in range(dummies + 4):
             sequence.add_block(flip, readout, *([adc] if line >= dummies else []))
 
-    assert sequence._detect_tr() == (1 + dummies + 4, 1)
+    assert sequence.repetition() == (1 + dummies + 4, 1)
 
 
 def test_a_preparation_before_the_slice_loop_makes_the_whole_sequence_one():
@@ -374,4 +390,4 @@ def test_a_preparation_before_the_slice_loop_makes_the_whole_sequence_one():
         for _ in range(4):
             sequence.add_block(flip)
 
-    assert sequence._detect_tr() == (17, 1)
+    assert sequence.repetition() == (17, 1)

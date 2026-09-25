@@ -16,6 +16,7 @@ Blocks
    ~Sequence.get_block
    ~Sequence.find_block_by_time
    ~Sequence.remove_duplicates
+   ~Sequence.repetition
 
 Definitions and labels
 ----------------------

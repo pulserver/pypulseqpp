@@ -176,7 +176,7 @@ def test_without_wave_there_is_no_reference_and_no_wave_gradient(name, wave):
 def test_a_3d_cartesian_scan_repeats_from_its_first_block(name, prescription):
     seq = app(name, n_dummy=2, ry=2, n_acs_y=4, n_acs_z=2, **prescription).design()
 
-    assert seq._detect_tr()[1] == 1
+    assert seq.repetition()[1] == 1
 
 
 @pytest.mark.parametrize("name", SMALL)
