@@ -9,7 +9,7 @@ import numpy as np
 from . import _ext as _cxx
 from ._waveforms import _of
 
-__all__ = ["calculate_kspace"]
+__all__ = ["adc_kspace", "calculate_kspace"]
 
 #: How close two times have to be to be one time, in seconds. Coarse next to
 #: the nanosecond a file is written on, because a moment reached two ways --
@@ -68,6 +68,22 @@ def calculate_kspace(
     )
 
 
+def adc_kspace(seq, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+    """Return the k-space location of each ADC sample, in 1/m.
+
+    The ``k_traj_adc`` of :func:`calculate_kspace`, integrated the same way,
+    without sampling the trajectory between the samples.
+
+    Warns
+    -----
+    UserWarning
+        If ``trajectory_delay`` exceeds 100 us on any axis.
+    """
+    return _integrated(
+        seq, trajectory_delay, gradient_offset, block_range, samples_only=True
+    )["k_traj_adc"]
+
+
 def detail(
     seq,
     trajectory_delay=0.0,
@@ -96,11 +112,31 @@ def detail(
     UserWarning
         If ``trajectory_delay`` exceeds 100 us on any axis.
     """
+    found = _integrated(
+        seq, trajectory_delay, gradient_offset, block_range, samples_only
+    )
+    excitations = found["t_excitation"]
+    return {
+        "k_traj_adc": found["k_traj_adc"],
+        "t_adc": found["t_adc"],
+        "k_traj": found["k_traj"],
+        "t_ktraj": found["t_ktraj"],
+        "t_excitation": excitations,
+        "t_refocusing": found["t_refocusing"],
+        "slicepos": found["slicepos"] if excitations.size else np.array([]),
+        "t_slicepos": excitations if excitations.size else np.array([]),
+        "gw_pp": [_spline(channel) for channel in found["gradients"]],
+        "pm_adc": found["pm_adc"],
+    }
+
+
+def _integrated(seq, trajectory_delay, gradient_offset, block_range, samples_only):
+    """Run the native integration, warning about a large delay and what it reports."""
     if np.any(np.abs(trajectory_delay) > 100e-6):
         warn(
             f"trajectory delay of ({np.asarray(trajectory_delay) * 1e6}) us is "
             f"suspiciously high",
-            stacklevel=2,
+            stacklevel=3,
         )
 
     system = seq.system
@@ -116,21 +152,8 @@ def detail(
         samples_only=samples_only,
     )
     for complaint in found["warnings"]:
-        warn(complaint, stacklevel=2)
-
-    excitations = found["t_excitation"]
-    return {
-        "k_traj_adc": found["k_traj_adc"],
-        "t_adc": found["t_adc"],
-        "k_traj": found["k_traj"],
-        "t_ktraj": found["t_ktraj"],
-        "t_excitation": excitations,
-        "t_refocusing": found["t_refocusing"],
-        "slicepos": found["slicepos"] if excitations.size else np.array([]),
-        "t_slicepos": excitations if excitations.size else np.array([]),
-        "gw_pp": [_spline(channel) for channel in found["gradients"]],
-        "pm_adc": found["pm_adc"],
-    }
+        warn(complaint, stacklevel=3)
+    return found
 
 
 def _blocks_asked_for(block_range):

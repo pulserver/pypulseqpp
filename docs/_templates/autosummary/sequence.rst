@@ -65,6 +65,7 @@ Waveforms and k-space
    ~Sequence.waveforms_and_times
    ~Sequence.get_gradients
    ~Sequence.calculate_kspace
+   ~Sequence.adc_kspace
    ~Sequence.adc_times
    ~Sequence.rf_times
    ~Sequence.duration

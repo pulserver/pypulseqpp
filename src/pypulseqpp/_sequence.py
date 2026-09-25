@@ -14,6 +14,7 @@ import pypulseq as _upstream
 from . import _ext as _cxx
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
+from ._kspace import adc_kspace as _adc_kspace
 from ._kspace import calculate_kspace as _calculate_kspace
 from ._kspace import detail as _kspace_detail
 from ._libraries import SequenceLibraries
@@ -1048,6 +1049,41 @@ class Sequence:
 
     #: Upstream carries this name for the same calculation, and so does this.
     calculate_kspacePP = calculate_kspace
+
+    def adc_kspace(self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None):
+        """Return the k-space location of each ADC sample, in 1/m.
+
+        The first result of :meth:`calculate_kspace`, integrated the same way
+        with block rotations applied, without sampling the trajectory between
+        the samples; excitations reset it and refocusing pulses invert it.
+
+        Parameters
+        ----------
+        trajectory_delay : float | ArrayLike, default=0.0
+            Per-axis timing correction (s); positive values advance the gradient.
+        gradient_offset : float | ArrayLike, default=0.0
+            A background gradient per axis, in Hz/m.
+        block_range : Sequence[int], default=None
+            Two 1-based block indices; only those blocks are followed.
+
+        Returns
+        -------
+        NDArray[np.float64]
+            ``(3, n)``: one column per ADC sample, in play order.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))
+        1
+        >>> seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))
+        2
+        >>> seq.adc_kspace().shape
+        (3, 64)
+        """
+        return _adc_kspace(self, trajectory_delay, gradient_offset, block_range)
 
     def _kspace(
         self,
