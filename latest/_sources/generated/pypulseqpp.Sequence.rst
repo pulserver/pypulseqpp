@@ -53,6 +53,7 @@ Reading and writing
    ~Sequence.write
    ~Sequence.write_binary
    ~Sequence.write_v141
+   ~Sequence.libraries
 
 Waveforms and k-space
 ---------------------

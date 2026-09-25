@@ -281,7 +281,7 @@ reconstruction reads to interpret the acquisition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.238 seconds)
+   **Total running time of the script:** (0 minutes 0.240 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_01_fid.py:

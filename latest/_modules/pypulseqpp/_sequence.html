@@ -479,6 +479,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._check_timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_timing</span> <span class="k">as</span> <span class="n">_check_timing</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._kspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_kspace</span> <span class="k">as</span> <span class="n">_calculate_kspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._kspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">detail</span> <span class="k">as</span> <span class="n">_kspace_detail</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceLibraries</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">libraries</span> <span class="k">as</span> <span class="n">_libraries</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_data</span> <span class="k">as</span> <span class="n">_report_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_text</span> <span class="k">as</span> <span class="n">_report_text</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">adc_times</span> <span class="k">as</span> <span class="n">_adc_times</span>
@@ -2172,6 +2174,36 @@
         <span class="p">)[</span><span class="s2">"id"</span><span class="p">]</span>
 
     <span class="c1"># -- files ---------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Sequence.libraries">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.libraries.html#pypulseqpp.Sequence.libraries">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">libraries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SequenceLibraries</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the block table and every library, as a Pulseq file of the sequence holds them.</span>
+
+<span class="sd">        The ids are this sequence's own. :meth:`write` with</span>
+<span class="sd">        ``remove_duplicates=False`` writes these rows under these ids; by</span>
+<span class="sd">        default it writes a collapsed copy, whose ids differ wherever two rows</span>
+<span class="sd">        were equal. Taking the tables changes nothing, so a shape registered</span>
+<span class="sd">        and not yet encoded, which the writer encodes on the way out, comes</span>
+<span class="sd">        back as its samples.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pypulseqpp.io.SequenceLibraries</span>
+<span class="sd">            A snapshot, in read-only arrays that no later edit reaches.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; seq.add_block(pp.make_trapezoid("x", area=1000, duration=2e-3))</span>
+<span class="sd">        1</span>
+<span class="sd">        &gt;&gt;&gt; tables = seq.libraries()</span>
+<span class="sd">        &gt;&gt;&gt; tables.blocks.tolist(), tables.trapezoid_ids.tolist()</span>
+<span class="sd">        ([[0, 1, 0, 0, 0, 0]], [1])</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">_libraries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="Sequence.write">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.write.html#pypulseqpp.Sequence.write">[docs]</a>

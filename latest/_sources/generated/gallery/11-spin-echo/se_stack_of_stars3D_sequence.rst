@@ -173,7 +173,7 @@ fourfold while preserving samples at each partition's k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.336 seconds)
+   **Total running time of the script:** (0 minutes 5.369 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

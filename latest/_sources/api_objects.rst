@@ -80,6 +80,8 @@ from.
 
    read
    write
+   SequenceLibraries
+   Shape
 
 .. currentmodule:: pypulseqpp.sequences
 
