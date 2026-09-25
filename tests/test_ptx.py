@@ -137,6 +137,26 @@ def test_the_library_counts_the_channels_of_each_pulse():
     assert seq.rf_channels().tolist() == [3, 1]
 
 
+def test_a_pulse_is_as_wide_as_the_sum_of_its_channels():
+    """A narrow channel and a wide one span the band of their sum, not of the first."""
+
+    def sinc(time_bw_product):
+        return np.asarray(
+            pp.make_sinc_pulse(
+                np.pi / 6, duration=2e-3, time_bw_product=time_bw_product, system=SYSTEM
+            ).signal
+        )
+
+    narrow, wide = sinc(2), sinc(8)
+    step = SYSTEM.rf_raster_time
+    ptx = pp.make_ptx_pulse(np.stack([narrow, wide]), system=SYSTEM)
+    summed = pp.make_ptx_pulse((narrow + wide)[None, :], system=SYSTEM)
+    first = pp.make_ptx_pulse(narrow[None, :], system=SYSTEM)
+    width = pp.calc_rf_bandwidth(ptx, dt=step)
+    assert width == pytest.approx(pp.calc_rf_bandwidth(summed, dt=step), rel=1e-9)
+    assert width > 2 * pp.calc_rf_bandwidth(first, dt=step)
+
+
 def test_a_pulse_is_centred_on_the_peak_of_the_root_sum_square_of_its_channels():
     """A narrow lobe on one channel over a broad one on the other moves the sum's peak."""
     samples = np.arange(200)

@@ -11,6 +11,7 @@ from types import SimpleNamespace as _SimpleNamespace
 import numpy as _np
 from pypulseq import calc_rf_bandwidth as _upstream
 
+from ._calc_rf_power import _channels
 from ._opts import Opts as _Opts
 from ._results import RfBandwidth as _RfBandwidth
 
@@ -35,6 +36,21 @@ def _at_baseband(rf):
     at_rest.freq_offset = 0.0
     at_rest.freq_ppm = 0.0
     return at_rest
+
+
+def _channels_summed(rf):
+    """Return a dynamic pTx pulse as the sum of its channels over their shared time base."""
+    t = _np.asarray(rf.t, dtype=float).ravel()
+    channels = _channels(t)
+    if channels == 1:
+        return rf
+    per_channel = t.size // channels
+    summed = _SimpleNamespace(**vars(rf))
+    summed.t = t[:per_channel]
+    summed.signal = (
+        _np.asarray(rf.signal).ravel().reshape(channels, per_channel).sum(axis=0)
+    )
+    return summed
 
 
 def _with_zero_edges(rf, dt: float):
@@ -123,7 +139,10 @@ def calc_rf_bandwidth(
     Uses the outermost crossings at ``cutoff`` times the peak, with linear
     interpolation between bins. This is a small-tip approximation, not a Bloch
     simulation. Frequency offsets shift the returned axis without changing
-    the measured width; ppm offsets use the default system's gamma and B0.
+    the measured width; ppm offsets use the default system's gamma and B0. A
+    dynamic pTx pulse is measured as the sum of its channels over their shared
+    time base: the pulse a location equally and in-phase sensitive to every
+    channel sees, as its flip angle is counted.
 
     Parameters
     ----------
@@ -203,7 +222,9 @@ def calc_rf_bandwidth(
     """
     step = _Opts.default.rf_raster_time if dt is None else dt
     offset = _full_freq_offset(rf)
-    measured = _with_zero_edges(_at_baseband(rf) if offset else rf, step)
+    measured = _with_zero_edges(
+        _channels_summed(_at_baseband(rf) if offset else rf), step
+    )
 
     # The spectrum is asked for whatever the caller wants, because the flanks
     # are read off it here rather than taken from upstream's bin walk.
