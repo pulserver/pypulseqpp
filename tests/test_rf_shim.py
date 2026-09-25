@@ -85,3 +85,25 @@ def test_two_blocks_shimmed_alike_share_one_row(system, pulse):
     np.testing.assert_allclose(
         collapsed.get_block(3).rf_shim.shim_vector, WEIGHTS, atol=1e-15
     )
+
+
+def test_a_block_carries_at_most_one_rf_shim(system, pulse):
+    seq = pp.Sequence(system)
+
+    with pytest.raises(ValueError, match="at most one RF shim"):
+        seq.add_block(pulse, pp.make_rf_shim(WEIGHTS), pp.make_rf_shim(WEIGHTS[::-1]))
+    assert seq.num_blocks == 0
+
+
+def test_each_block_names_the_shim_it_plays(system, pulse):
+    seq = pp.Sequence(system)
+    seq.add_block(pulse, pp.make_rf_shim(WEIGHTS))
+    seq.add_block(pp.make_delay(1e-3))
+    seq.add_block(pulse, pp.make_rf_shim(WEIGHTS[::-1]))
+
+    named = seq.block_shims()
+
+    assert named[1] == 0
+    rows = [seq.libraries().rf_shims[row - 1] for row in named[[0, 2]]]
+    for row, weights in zip(rows, (WEIGHTS, WEIGHTS[::-1]), strict=True):
+        np.testing.assert_allclose(row[0::2] * np.exp(1j * row[1::2]), weights)

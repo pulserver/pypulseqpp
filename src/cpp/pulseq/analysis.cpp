@@ -366,4 +366,35 @@ namespace pulseq
         return out;
     }
 
+    std::vector<int32_t> label_blocks(const Sequence& seq, const std::string& label, bool setting)
+    {
+        std::vector<int32_t> out;
+        const int id = seq.find_label_id(label);
+        const int type = seq.find_extension_type_id(setting ? "LABELSET" : "LABELINC");
+        if (id == 0 || type == 0)
+            return out;
+
+        const IntTable& links = seq.extensions_library();
+        const IntTable& statements = setting ? seq.label_set_library() : seq.label_inc_library();
+        const int32_t* events = seq.block_events();
+        const int blocks = seq.num_blocks();
+        for (int index = 1; index <= blocks; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            for (int32_t node = row[5]; node > 0 && node <= links.size();)
+            {
+                const int32_t* link = links.row(node);
+                node = link[2];
+                if (link[0] != type || link[1] < 1 || link[1] > statements.size())
+                    continue;
+                if (statements.row(link[1])[1] == id)
+                {
+                    out.push_back(index);
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
 } // namespace pulseq

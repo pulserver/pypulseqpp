@@ -594,20 +594,29 @@ namespace pulseqpp_events
     /*  The block                                                         */
     /* ================================================================== */
 
+    /** How many rotation and RF shim links a block's events put in its chain. */
+    struct ChainCounts
+    {
+        int rotations = 0;
+        int shims = 0;
+    };
+
     /**
      * Register every event given and report what a block playing them holds.
      *
      * The extensions are left in @p chain rather than linked into the
      * extension library, so a caller registering a single event pays for the
      * event and nothing else. The duration is the longest thing given, not
-     * yet rounded onto the block raster.
+     * yet rounded onto the block raster. @p counted, when given, is increased
+     * by the rotation and RF shim links added.
      */
     inline pulseq::Block collect_block(
         BoundSequence& seq,
         PyObject* const* items,
         Py_ssize_t count,
         int32_t chain[8][2],
-        int& chained)
+        int& chained,
+        ChainCounts* counted = nullptr)
     {
         const Names& n = names();
         const double rf_raster = seq.rf_raster_time();
@@ -696,6 +705,8 @@ namespace pulseqpp_events
                     chain[chained][1] =
                         static_cast<int32_t>(seq.register_rotation(e.quaternion.data()));
                     ++chained;
+                    if (counted)
+                        ++counted->rotations;
                     break;
                 }
                 case pulseq::EventKind::SoftDelay:
@@ -769,7 +780,8 @@ namespace pulseqpp_events
                         &PyList_GET_ITEM(contents.ptr(), 0),
                         held,
                         inner,
-                        inner_chained);
+                        inner_chained,
+                        counted);
                     if (within.rf)
                         block.rf = within.rf;
                     if (within.gx)
@@ -1021,6 +1033,8 @@ namespace pulseqpp_events
                 chain[chained][0] = static_cast<int32_t>(seq.extension_type_id("ROTATIONS"));
                 chain[chained][1] = static_cast<int32_t>(seq.register_rotation(row.data()));
                 ++chained;
+                if (counted)
+                    ++counted->rotations;
             }
             else if (std::strcmp(kind, "rf_shim") == 0)
             {
@@ -1043,6 +1057,8 @@ namespace pulseqpp_events
                 chain[chained][1] = static_cast<int32_t>(
                     seq.register_rf_shim(values.data(), static_cast<int>(values.size())));
                 ++chained;
+                if (counted)
+                    ++counted->shims;
             }
             else if (std::strcmp(kind, "soft_delay") == 0)
             {
@@ -1096,7 +1112,16 @@ namespace pulseqpp_events
         // Chain links, in the order given; the first listed ends up the head.
         int32_t chain[8][2];
         int chained = 0;
-        pulseq::Block block = collect_block(seq, items, count, chain, chained);
+        ChainCounts counted;
+        pulseq::Block block = collect_block(seq, items, count, chain, chained, &counted);
+
+        // One orientation and one set of channel weights per block, as the
+        // reference toolbox allows: a second would be one the block does not
+        // play.
+        if (counted.rotations > 1)
+            throw std::invalid_argument("a block carries at most one rotation");
+        if (counted.shims > 1)
+            throw std::invalid_argument("a block carries at most one RF shim");
 
         // Built tail first, so walking the chain gives the events back in the
         // order they were passed.

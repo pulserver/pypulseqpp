@@ -184,3 +184,55 @@ def test_gradients_ending_together_in_a_turned_block_end_at_zero(system, start):
 
     end = start + 360e-6
     assert values[np.abs(times - end) < 1e-9].tolist() == [0.0]
+
+
+def test_a_block_carries_at_most_one_rotation(system):
+    spoke = pp.make_trapezoid("x", area=1000, system=system)
+    turns = [
+        pp.make_rotation(Rotation.from_euler("z", a, degrees=True)) for a in (30, 60)
+    ]
+    sequence = pp.Sequence(system)
+
+    with pytest.raises(ValueError, match="at most one rotation"):
+        sequence.add_block(spoke, *turns)
+    assert sequence.num_blocks == 0
+
+
+def test_each_block_names_the_rotation_it_plays(system):
+    sequence = radial(system, by_extension=True, with_adc=False)
+
+    named = sequence.block_rotations()
+
+    turned = named > 0
+    assert turned.sum() == len(ANGLES)
+    rows = sequence.libraries().rotations[named[turned] - 1]
+    expected = [
+        Rotation.from_euler("z", angle, degrees=True).as_quat(
+            canonical=True, scalar_first=True
+        )
+        for angle in ANGLES
+    ]
+    np.testing.assert_allclose(rows, expected, atol=1e-12)
+
+
+def test_a_chain_holding_two_rotations_decodes_to_the_one_the_block_plays(system):
+    """A file can carry two; the block plays the first, and reads back as it."""
+    sequence = pp.Sequence(system)
+    native = sequence._native
+    gradient = native.register_trap(np.array([2000.0, 1e-4, 2e-3, 1e-4, 0.0]))
+    first, second = (
+        Rotation.from_euler("z", angle, degrees=True).as_quat(
+            canonical=True, scalar_first=True
+        )
+        for angle in (30, 60)
+    )
+    kind = native.extension_type_id("ROTATIONS")
+    tail = native.chain_extension(kind, native.register_rotation(second), 0)
+    head = native.chain_extension(kind, native.register_rotation(first), tail)
+    native.add_block(0, gradient, 0, 0, 0, head, 2.2e-3)
+
+    np.testing.assert_allclose(
+        sequence.get_block(1).rotation.quaternion, first, atol=1e-12
+    )
+    played = sequence.libraries().rotations[sequence.block_rotations()[0] - 1]
+    np.testing.assert_allclose(played, first, atol=1e-12)

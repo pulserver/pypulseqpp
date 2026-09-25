@@ -31,6 +31,10 @@ separate contracts.
   binary representation. Both text and binary support optional MD5 signatures.
 - Custom labels need no registration by users. Binary IDs beyond the builtin
   table resolve through the ordered `CustomLabels` definition.
+- A block carries at most one rotation and one RF shim, as in the reference
+  toolbox, and `add_block` refuses a second. A file whose chain holds two,
+  which the reference refuses to decode, is read with the first of each: the
+  one the waveforms, k-space and checks play.
 - `Sequence.read` and `pypulseqpp.io.read` also take a binary file object,
   such as `io.BytesIO` over a file's contents; upstream's `read` takes a path.
 - `add_block(None)` raises, matching upstream PyPulseq.
