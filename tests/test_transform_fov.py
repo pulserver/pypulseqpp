@@ -60,7 +60,7 @@ def one_block(system, *events):
 
 
 def played_areas(seq) -> np.ndarray:
-    """Return physical-axis integrated gradient areas in 1/m, including rotations."""
+    """Return the gradient areas after each block's rotation, in 1/m."""
     waveforms = seq.waveforms_and_times()[0]
     return np.array(
         [
@@ -288,6 +288,109 @@ def test_a_second_prescription_turns_what_the_first_left(system):
     )
     np.testing.assert_allclose(
         played_areas(one_then_the_other), played_areas(at_once), rtol=1e-6
+    )
+
+
+#: A reflection through the xy-plane, so every matrix built with it is improper.
+MIRROR_Z = np.diag([1.0, 1.0, -1.0])
+
+
+def test_an_improper_prescription_is_kept_as_a_rotation_and_a_reflected_axis():
+    prescription = pp.TransformFOV(rotation=rot("z", 40) @ MIRROR_Z)
+    np.testing.assert_allclose(
+        prescription.quaternion,
+        pp.TransformFOV(rotation=rot("z", 40)).quaternion,
+        atol=1e-12,
+    )
+    assert prescription.reflected_axis == 2
+    assert pp.TransformFOV(rotation=rot("z", 40)).reflected_axis is None
+    assert (
+        pp.TransformFOV(
+            rotation=Rotation.from_euler("z", 40, degrees=True)
+        ).reflected_axis
+        is None
+    )
+    assert pp.TransformFOV(translation=(0.0, 0.0, 0.01)).reflected_axis is None
+
+
+def test_an_improper_prescription_plays_the_area_vector_reflected(system):
+    seq = one_block(
+        system,
+        *(
+            trap(axis, area, system, max_slew=system.max_slew / math.sqrt(3))
+            for axis, area in zip("xyz", (1000, -500, 2000), strict=True)
+        ),
+    )
+    mirror = rot("x", 53) @ rot("z", 37) @ np.diag([1.0, -1.0, 1.0])
+    after = played_areas(pp.TransformFOV(rotation=mirror).apply_to_sequence(seq))
+    np.testing.assert_allclose(after, mirror @ played_areas(seq), rtol=1e-6)
+
+
+def test_an_improper_prescription_plays_after_a_block_s_own_rotation(system):
+    """What the block plays, R_b g, is what the reflection is applied to."""
+    gradients = [
+        trap(axis, area, system, max_slew=system.max_slew / math.sqrt(3))
+        for axis, area in zip("xyz", (1500, -800, 2200), strict=True)
+    ]
+    own = rot("y", 30) @ rot("z", 20)
+    seq = one_block(system, *gradients, pp.make_rotation(own))
+    drawn = played_areas(one_block(system, *gradients))
+    np.testing.assert_allclose(played_areas(seq), own @ drawn, rtol=1e-6)
+
+    mirror = rot("z", 25) @ np.diag([-1.0, 1.0, 1.0])
+    after = played_areas(pp.TransformFOV(rotation=mirror).apply_to_sequence(seq))
+    np.testing.assert_allclose(after, mirror @ own @ drawn, rtol=1e-6)
+
+
+def test_a_reflection_negates_the_gradient_on_channel_z(system):
+    seq = one_block(system, trap("z", 1000, system), trap("x", 500, system))
+    moved = pp.TransformFOV(rotation=MIRROR_Z).apply_to_sequence(seq)
+    assert float(moved.get_block(1).gz.amplitude) == -float(
+        seq.get_block(1).gz.amplitude
+    )
+    assert float(moved.get_block(1).gx.amplitude) == float(
+        seq.get_block(1).gx.amplitude
+    )
+    np.testing.assert_allclose(
+        played_areas(moved), MIRROR_Z @ played_areas(seq), rtol=1e-9
+    )
+
+
+def test_an_improper_homogeneous_matrix_is_played_reflected(system):
+    seq = one_block(system, trap("x", 1000, system), trap("z", 1500, system))
+    matrix = np.eye(4)
+    matrix[:3, :3] = rot("y", 35) @ MIRROR_Z
+    after = played_areas(pp.TransformFOV(transform=matrix).apply_to_sequence(seq))
+    np.testing.assert_allclose(after, matrix[:3, :3] @ played_areas(seq), rtol=1e-6)
+
+
+def test_an_improper_prescription_translates_in_the_frame_before_it_turns(system):
+    """The reflection is applied with the rotation, after the translation, so
+    the offsets are the ones the translation gives alone."""
+    both = pp.TransformFOV(
+        rotation=rot("x", 90) @ MIRROR_Z,
+        translation=(0.01, 0.0, 0.02),
+        through_rotation=True,
+    )
+    moved = both.apply_to_sequence(_pulse_and_readout(system, "z"))
+    alone = pp.TransformFOV(translation=(0.01, 0.0, 0.02)).apply_to_sequence(
+        _pulse_and_readout(system, "z")
+    )
+    np.testing.assert_allclose(_offsets(moved), _offsets(alone), atol=1e-9)
+    assert _offsets(moved)[0] == pytest.approx(0.02 * 5000 / 1e-3, rel=1e-9)
+
+
+def test_a_block_exempt_from_the_rotation_is_not_reflected(system):
+    seq = pp.Sequence(system)
+    seq.add_block(trap("z", 1000, system), pp.make_label("NOROT", "SET", 1))
+    seq.add_block(trap("z", 1000, system), pp.make_label("NOROT", "SET", 0))
+    moved = pp.TransformFOV(rotation=MIRROR_Z).apply_to_sequence(seq)
+    assert float(moved.get_block(1).gz.amplitude) == float(
+        seq.get_block(1).gz.amplitude
+    )
+    assert moved.get_block(1).rotation is None
+    assert float(moved.get_block(2).gz.amplitude) == -float(
+        seq.get_block(2).gz.amplitude
     )
 
 

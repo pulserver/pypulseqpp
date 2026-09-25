@@ -117,6 +117,14 @@ Trajectories returned by `TransformFOV` are on the channel axes and do not
 apply those rotations. Exemption labels are sticky within the selected range;
 their state is not inherited from preceding blocks.
 
+An improper prescription M (determinant -1) has no quaternion. The reference
+toolbox plays one only by rotating the waveforms; here it is the rotation
+M diag(1, 1, -1) stored as an extension, after the gradient on channel z is
+negated and each block's own rotation is conjugated by diag(1, 1, -1), which
+plays M R_b g. The negation is part of the rotation step, after the
+translation, so the frequency and phase offsets of the translation are those
+it gives without the prescription.
+
 A block's rotation extension is taken, by default, for a prescription the
 translation turns with: the block is moved along its channel axes, by the
 gradients the file stores. The reference toolbox, which by default rotates the

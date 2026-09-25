@@ -770,13 +770,24 @@ namespace pulseq
     }
 
     void apply_fov_rotation(
-        Sequence& seq, const double quaternion[4], int first, int last)
+        Sequence& seq, const double quaternion[4], int first, int last,
+        int reflected_axis)
     {
         const int blocks = seq.num_blocks();
         const int from = first > 1 ? first : 1;
         const int to = (last > 0 && last < blocks) ? last : blocks;
         if (from > to)
             return;
+        if (reflected_axis < -1 || reflected_axis > 2)
+            throw std::invalid_argument("reflected_axis must be -1, 0, 1 or 2");
+
+        const bool reflected = reflected_axis >= 0;
+        if (reflected)
+        {
+            double negate[3] = {1.0, 1.0, 1.0};
+            negate[reflected_axis] = -1.0;
+            apply_fov_scale(seq, negate, from, to);
+        }
 
         const int type_id = seq.extension_type_id("ROTATIONS");
         std::map<int32_t, int32_t> composed;
@@ -800,7 +811,17 @@ namespace pulseq
                     /* Applied after what the block already carries: a module
                      * that placed itself keeps its orientation inside the
                      * prescription's. */
-                    const double* was = seq.rotation_library().row(already);
+                    double was[ROTATION_WIDTH];
+                    const double* stored = seq.rotation_library().row(already);
+                    for (int i = 0; i < ROTATION_WIDTH; ++i)
+                        was[i] = stored[i];
+                    /* D R_b D turns by the same angle about the axis D
+                     * reflects: the vector components off the reflected
+                     * axis change sign. */
+                    if (reflected)
+                        for (int axis = 0; axis < 3; ++axis)
+                            if (axis != reflected_axis)
+                                was[axis + 1] = -was[axis + 1];
                     made[0] = quaternion[0] * was[0] - quaternion[1] * was[1] -
                         quaternion[2] * was[2] - quaternion[3] * was[3];
                     made[1] = quaternion[0] * was[1] + quaternion[1] * was[0] +

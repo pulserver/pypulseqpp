@@ -1579,13 +1579,16 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "apply_fov_rotation",
-        [](Sequence& sequence, std::array<double, 4> quaternion, int first, int last) {
+        [](Sequence& sequence, std::array<double, 4> quaternion, int first, int last,
+           int reflected_axis) {
             py::gil_scoped_release unlocked;
-            pulseq::apply_fov_rotation(sequence, quaternion.data(), first, last);
+            pulseq::apply_fov_rotation(
+                sequence, quaternion.data(), first, last, reflected_axis);
         },
         py::arg("sequence"), py::arg("quaternion"), py::arg("first") = 1,
-        py::arg("last") = 0,
-        "Turn the field of view, as an extension on each block.");
+        py::arg("last") = 0, py::arg("reflected_axis") = -1,
+        "Turn the field of view, as an extension on each block; reflected_axis "
+        "negates that channel axis first, for an improper prescription.");
 
     module.def(
         "absolute_trajectory",
