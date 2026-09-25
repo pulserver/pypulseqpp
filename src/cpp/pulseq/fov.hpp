@@ -69,9 +69,18 @@ namespace pulseq
      *
      * The result is stored in a ROTATIONS extension; waveforms are not resampled.
      * Block indices are 1-based inclusive; last=0 means the sequence end.
+     *
+     * @param reflected_axis  Channel axis 0, 1 or 2 of an improper prescription
+     *                M = R D, where R is @p quaternion and D negates that axis;
+     *                -1 for a proper one. A block playing R_b g then plays
+     *                M R_b g as the rotation R (D R_b D) of the gradient D g:
+     *                the gradient on that channel axis is negated and the
+     *                block's own rotation is conjugated by D before R is
+     *                composed after it.
      */
     void apply_fov_rotation(
-        Sequence& seq, const double quaternion[4], int first, int last);
+        Sequence& seq, const double quaternion[4], int first, int last,
+        int reflected_axis = -1);
 
     /** Which events an FOV shift may modify. */
     enum class FovShiftScope

@@ -769,14 +769,47 @@ namespace pulseq
         }
     }
 
+    namespace
+    {
+        /**
+         * The reflection half of an improper prescription M = R D: the
+         * gradient on channel axis @p axis negated over blocks @p from to
+         * @p to. Nothing for an axis of -1.
+         */
+        void negate_channel(Sequence& seq, int axis, int from, int to)
+        {
+            if (axis < -1 || axis > 2)
+                throw std::invalid_argument("reflected_axis must be -1, 0, 1 or 2");
+            if (axis < 0)
+                return;
+            double negate[3] = {1.0, 1.0, 1.0};
+            negate[axis] = -1.0;
+            apply_fov_scale(seq, negate, from, to);
+        }
+
+        /**
+         * D R D, in place, for the reflection D of channel axis @p axis: the
+         * same turn about the reflected axis, so the vector components off it
+         * change sign.
+         */
+        void conjugate_by_reflection(double quaternion[ROTATION_WIDTH], int axis)
+        {
+            for (int other = 0; other < 3; ++other)
+                if (other != axis)
+                    quaternion[other + 1] = -quaternion[other + 1];
+        }
+    } // namespace
+
     void apply_fov_rotation(
-        Sequence& seq, const double quaternion[4], int first, int last)
+        Sequence& seq, const double quaternion[4], int first, int last,
+        int reflected_axis)
     {
         const int blocks = seq.num_blocks();
         const int from = first > 1 ? first : 1;
         const int to = (last > 0 && last < blocks) ? last : blocks;
         if (from > to)
             return;
+        negate_channel(seq, reflected_axis, from, to);
 
         const int type_id = seq.extension_type_id("ROTATIONS");
         std::map<int32_t, int32_t> composed;
@@ -800,7 +833,10 @@ namespace pulseq
                     /* Applied after what the block already carries: a module
                      * that placed itself keeps its orientation inside the
                      * prescription's. */
-                    const double* was = seq.rotation_library().row(already);
+                    double was[ROTATION_WIDTH];
+                    std::copy_n(seq.rotation_library().row(already), ROTATION_WIDTH, was);
+                    if (reflected_axis >= 0)
+                        conjugate_by_reflection(was, reflected_axis);
                     made[0] = quaternion[0] * was[0] - quaternion[1] * was[1] -
                         quaternion[2] * was[2] - quaternion[3] * was[3];
                     made[1] = quaternion[0] * was[1] + quaternion[1] * was[0] +

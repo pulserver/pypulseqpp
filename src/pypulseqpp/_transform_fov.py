@@ -10,20 +10,29 @@ __all__ = ["TransformFOV"]
 
 
 def _quaternion_of(rotation):
-    """Return a scalar-first quaternion from a matrix or SciPy rotation."""
+    """Return a scalar-first quaternion, and the channel axis a reflection negates.
+
+    A matrix M with a negative determinant is the rotation M D after the
+    reflection D = diag(1, 1, -1): the quaternion is that of M D and the axis
+    is 2. The axis is None for a rotation.
+    """
     if hasattr(rotation, "as_quat"):
-        return np.asarray(rotation.as_quat(canonical=True, scalar_first=True), float)
+        quaternion = rotation.as_quat(canonical=True, scalar_first=True)
+        return np.asarray(quaternion, float), None
     matrix = np.asarray(rotation, dtype=float)
     if matrix.shape != (3, 3):
         raise ValueError(
             f"TransformFOV(): `rotation` must be (3, 3) or a rotation object, "
             f"got {matrix.shape}"
         )
+    reflected = None
+    if np.linalg.det(matrix) < 0.0:
+        reflected = 2
+        matrix = matrix * np.array([1.0, 1.0, -1.0])
     from scipy.spatial.transform import Rotation
 
-    return np.asarray(
-        Rotation.from_matrix(matrix).as_quat(canonical=True, scalar_first=True), float
-    )
+    quaternion = Rotation.from_matrix(matrix).as_quat(canonical=True, scalar_first=True)
+    return np.asarray(quaternion, float), reflected
 
 
 def _exempt_mask(seq, label, first, last):
@@ -84,7 +93,11 @@ class TransformFOV:
     ----------
     rotation : ArrayLike | Rotation, default=None
         Prescription orientation as a 3-by-3 matrix or SciPy rotation.
-        Composed after the rotation already attached to each block.
+        Composed after the rotation already attached to each block. A matrix
+        with determinant -1 is played as the rotation
+        ``rotation @ diag(1, 1, -1)`` after negating the gradient on channel
+        axis z, with each block's own rotation conjugated by that reflection;
+        see ``reflected_axis``.
     translation : Sequence[float], default=None
         Three offsets in metres, along the channel axes, or along the logical
         axes with ``through_rotation``.
@@ -109,6 +122,11 @@ class TransformFOV:
 
     Attributes
     ----------
+    quaternion : NDArray[np.float64] | None
+        Scalar-first unit quaternion of the prescription's rotation.
+    reflected_axis : int | None
+        Channel axis whose gradient is negated to play an improper
+        ``rotation``: 2, for z. None for a proper one.
     block_k_origin : tuple[float, float, float]
         k-space position entering the next processed range, in 1/m, in the
         frame of the translation. Reset at excitation and inverted at
@@ -174,7 +192,9 @@ class TransformFOV:
                 "that a thousand orientations share one trajectory"
             )
 
-        self.quaternion = None if rotation is None else _quaternion_of(rotation)
+        self.quaternion, self.reflected_axis = (
+            (None, None) if rotation is None else _quaternion_of(rotation)
+        )
         self.translation = (
             None if translation is None else tuple(float(v) for v in translation)
         )
@@ -264,6 +284,7 @@ class TransformFOV:
                     quaternion=tuple(self.quaternion),
                     first=begins,
                     last=ends,
+                    reflected_axis=self.reflected_axis,
                 )
         return target
 
