@@ -477,6 +477,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ext</span> <span class="k">as</span> <span class="n">_cxx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._check_timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">_limit</span><span class="p">,</span> <span class="n">print_error_report</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._check_timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_timing</span> <span class="k">as</span> <span class="n">_check_timing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._kspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">adc_kspace</span> <span class="k">as</span> <span class="n">_adc_kspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._kspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_kspace</span> <span class="k">as</span> <span class="n">_calculate_kspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._kspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">detail</span> <span class="k">as</span> <span class="n">_kspace_detail</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceLibraries</span>
@@ -1570,6 +1571,44 @@
 
     <span class="c1">#: Upstream carries this name for the same calculation, and so does this.</span>
     <span class="n">calculate_kspacePP</span> <span class="o">=</span> <span class="n">calculate_kspace</span>
+
+<div class="viewcode-block" id="Sequence.adc_kspace">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adc_kspace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the k-space location of each ADC sample, in 1/m.</span>
+
+<span class="sd">        The first result of :meth:`calculate_kspace`, integrated the same way</span>
+<span class="sd">        with block rotations applied, without sampling the trajectory between</span>
+<span class="sd">        the samples; excitations reset it and refocusing pulses invert it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trajectory_delay : float | ArrayLike, default=0.0</span>
+<span class="sd">            Per-axis timing correction (s); positive values advance the gradient.</span>
+<span class="sd">        gradient_offset : float | ArrayLike, default=0.0</span>
+<span class="sd">            A background gradient per axis, in Hz/m.</span>
+<span class="sd">        block_range : Sequence[int], default=None</span>
+<span class="sd">            Two 1-based block indices; only those blocks are followed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NDArray[np.float64]</span>
+<span class="sd">            ``(3, n)``: one column per ADC sample, in play order.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3))</span>
+<span class="sd">        1</span>
+<span class="sd">        &gt;&gt;&gt; seq.add_block(pp.make_adc(num_samples=64, duration=3.2e-3))</span>
+<span class="sd">        2</span>
+<span class="sd">        &gt;&gt;&gt; seq.adc_kspace().shape</span>
+<span class="sd">        (3, 64)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">_adc_kspace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="p">,</span> <span class="n">block_range</span><span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_kspace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
