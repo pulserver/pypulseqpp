@@ -21,7 +21,7 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
-from ._results import AdcEchoes, RfGradients
+from ._results import AdcEchoes, GradientStatistics, RfGradients
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -1493,6 +1493,44 @@ class Sequence:
         [2, 1]
         """
         return np.asarray(_cxx.rf_channel_counts(self._native))
+
+    def gradient_statistics(self) -> GradientStatistics:
+        """Return statistics of each gradient event's waveform, along its channel axis.
+
+        Entry ``i`` is gradient id ``i + 1``, for trapezoids and arbitrary
+        gradients alike. Each statistic is exact for the piecewise-linear
+        waveform the event plays, through the corners
+        :meth:`waveforms_and_times` draws, and is taken over the intervals
+        between corners that last longer than a nanosecond, so an
+        instantaneous step contributes no slew rate. A block's rotation does
+        not enter.
+
+        Returns
+        -------
+        GradientStatistics
+            ``peak_slew``, the steepest slew rate in Hz/m/s; ``energy``, the
+            integral of the squared gradient in (Hz/m)^2 s; and
+            ``slew_energy``, the integral of the squared slew rate in
+            (Hz/m/s)^2 s; each ``(g,)``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> gx = pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=1e-3)
+        >>> _ = seq.add_block(gx)
+        >>> stats = seq.gradient_statistics()
+        >>> float(stats.peak_slew[0])
+        1000000000.0
+        >>> round(float(stats.energy[0]), 3)  # amplitude^2 * (flat + 2 rise / 3)
+        10666666.667
+        """
+        found = _cxx.gradient_statistics(self._native)
+        return GradientStatistics(
+            peak_slew=found["peak_slew"],
+            energy=found["energy"],
+            slew_energy=found["slew_energy"],
+        )
 
     def rf_gradients(self) -> RfGradients:
         """Return the gradient each RF pulse plays under, along the channel axes.

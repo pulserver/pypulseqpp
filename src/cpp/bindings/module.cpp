@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "pulseq/analysis.hpp"
+#include "pulseq/corners.hpp"
 #include "pulseq/fov.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
@@ -1815,6 +1816,27 @@ PYBIND11_MODULE(_ext, module)
         py::arg("sequence"),
         "Per block with RF, whether the gradient along each channel axis holds "
         "one value across the pulse, and its value at the pulse's centre.");
+
+    module.def(
+        "gradient_statistics",
+        [](const Sequence& sequence) {
+            pulseq::GradientStatistics found;
+            {
+                py::gil_scoped_release unlocked;
+                found = pulseq::gradient_statistics(sequence);
+            }
+            const auto row = [](const std::vector<double>& values) {
+                return py::array_t<double>(static_cast<py::ssize_t>(values.size()), values.data());
+            };
+            py::dict out;
+            out["peak_slew"] = row(found.peak_slew);
+            out["energy"] = row(found.energy);
+            out["slew_energy"] = row(found.slew_energy);
+            return out;
+        },
+        py::arg("sequence"),
+        "Per gradient event, the steepest slew rate and the integrals of the "
+        "squared gradient and of the squared slew rate of its waveform.");
 
     module.def(
         "calculate_kspace",

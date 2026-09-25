@@ -89,6 +89,7 @@ Checks and reports
    ~Sequence.calc_rf_power
    ~Sequence.rf_flip_angles
    ~Sequence.rf_channels
+   ~Sequence.gradient_statistics
 
 Gradient edits
 --------------

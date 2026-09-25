@@ -248,4 +248,35 @@ namespace pulseq
         return true;
     }
 
+    GradientStatistics gradient_statistics(const Sequence& seq)
+    {
+        const size_t count = static_cast<size_t>(std::max(seq.num_gradients(), 0));
+        GradientStatistics out;
+        out.peak_slew.assign(count, 0.0);
+        out.energy.assign(count, 0.0);
+        out.slew_energy.assign(count, 0.0);
+        CornerCache corners(seq);
+        std::vector<double> times;
+        for (size_t at = 0; at < count; ++at)
+        {
+            const Corners& drawn = corners[static_cast<int32_t>(at + 1)];
+            if (drawn.values.size() < 2)
+                continue;
+            drawn.at(0.0, times);
+            for (size_t i = 0; i + 1 < drawn.values.size(); ++i)
+            {
+                const double span = times[i + 1] - times[i];
+                if (span <= kEps)
+                    continue;
+                const double from = drawn.values[i];
+                const double to = drawn.values[i + 1];
+                const double rate = (to - from) / span;
+                out.peak_slew[at] = std::max(out.peak_slew[at], std::fabs(rate));
+                out.energy[at] += span * (from * from + from * to + to * to) / 3.0;
+                out.slew_energy[at] += rate * rate * span;
+            }
+        }
+        return out;
+    }
+
 } // namespace pulseq

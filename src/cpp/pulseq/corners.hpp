@@ -1,6 +1,7 @@
 /**
  * @file corners.hpp
- * @brief Piecewise-linear gradient corners and lazy per-event corner caching.
+ * @brief Piecewise-linear gradient corners, lazy per-event corner caching,
+ *        and statistics of each gradient event's waveform.
  */
 
 #ifndef PULSEQ_CORNERS_HPP
@@ -79,6 +80,27 @@ namespace pulseq
         double raster,
         std::vector<double>& times,
         std::vector<double>& values);
+
+    /**
+     * Per gradient event, statistics of the waveform it plays along its
+     * channel axis, indexed by gradient id - 1.
+     *
+     * Each is exact for the piecewise-linear waveform through the event's
+     * corners and is taken over the intervals between corners that last
+     * longer than a nanosecond, so a step contributes no slew rate.
+     */
+    struct GradientStatistics
+    {
+        /** The steepest slew rate, in Hz/m/s. */
+        std::vector<double> peak_slew;
+        /** The integral of the squared gradient, in (Hz/m)^2 s. */
+        std::vector<double> energy;
+        /** The integral of the squared slew rate, in (Hz/m/s)^2 s. */
+        std::vector<double> slew_energy;
+    };
+
+    /** Measure every gradient event of @p seq. */
+    GradientStatistics gradient_statistics(const Sequence& seq);
 
 } // namespace pulseq
 

@@ -9,6 +9,7 @@ import numpy as np
 __all__ = [
     "AdcEchoes",
     "AdcTimes",
+    "GradientStatistics",
     "RfBandwidth",
     "RfGradients",
     "RfTimes",
@@ -273,3 +274,25 @@ class RfGradients:
     block: np.ndarray
     steady: np.ndarray
     gradient: np.ndarray
+
+
+@dataclass(frozen=True)
+class GradientStatistics:
+    """Statistics of each gradient event's waveform, along its channel axis.
+
+    Entry ``i`` is gradient id ``i + 1``; see
+    :meth:`pypulseqpp.Sequence.gradient_statistics`.
+
+    Attributes
+    ----------
+    peak_slew : NDArray[np.float64]
+        ``(g,)``: the steepest slew rate, in Hz/m/s.
+    energy : NDArray[np.float64]
+        ``(g,)``: the integral of the squared gradient, in (Hz/m)^2 s.
+    slew_energy : NDArray[np.float64]
+        ``(g,)``: the integral of the squared slew rate, in (Hz/m/s)^2 s.
+    """
+
+    peak_slew: np.ndarray
+    energy: np.ndarray
+    slew_energy: np.ndarray
