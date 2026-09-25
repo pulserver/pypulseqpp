@@ -14,7 +14,6 @@
 #include <complex>
 #include <cstdint>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace pulseq
 {
@@ -52,28 +51,6 @@ namespace pulseq
                 times[i] = (static_cast<double>(i) + 0.5) * rf_raster;
             return times;
         }
-
-        /** One pulse as it is played: an envelope, at an amplitude. */
-        struct Played
-        {
-            int32_t definition;
-            double amplitude;
-
-            bool operator==(const Played& other) const
-            {
-                return definition == other.definition && amplitude == other.amplitude;
-            }
-        };
-
-        struct PlayedHash
-        {
-            size_t operator()(const Played& played) const
-            {
-                const size_t seed = std::hash<double>()(played.amplitude);
-                return seed * 1099511628211ull +
-                       static_cast<size_t>(static_cast<uint32_t>(played.definition));
-            }
-        };
 
         /** One column of the binned trajectory, addressed by its sample. */
         struct Column
@@ -155,7 +132,7 @@ namespace pulseq
 
     } // namespace
 
-    std::vector<double> flip_angles(const Sequence& sequence)
+    std::vector<double> rf_flip_angles(const Sequence& sequence)
     {
         const Table& library = sequence.rf_library();
         const std::vector<int32_t>& definition_of = sequence.rf_definitions();
@@ -164,13 +141,11 @@ namespace pulseq
         // How far one turn of the envelope tips, before any amplitude: the
         // envelope belongs to the definition, so a pulse swept over a
         // thousand amplitudes is integrated once and multiplied a thousand
-        // times, and playing those thousand a hundred times each costs
-        // nothing further.
+        // times.
         std::vector<double> envelope(static_cast<size_t>(definitions) + 1, -1.0);
 
-        std::unordered_set<Played, PlayedHash> played;
         std::vector<double> angles;
-
+        angles.reserve(static_cast<size_t>(library.size()));
         for (int id = 1; id <= library.size(); ++id)
         {
             const int32_t definition =
@@ -183,15 +158,32 @@ namespace pulseq
             if (!known || turns < 0.0)
                 turns = integrate_envelope(sequence, id);
 
-            const double amplitude = std::fabs(library.row(id)[0]);
-            if (known && !played.insert(Played{definition, amplitude}).second)
-                continue;
-            angles.push_back(amplitude * turns * 360.0);
+            angles.push_back(std::fabs(library.row(id)[0]) * turns * 360.0);
         }
+        return angles;
+    }
 
+    std::vector<double> flip_angles(const Sequence& sequence)
+    {
+        std::vector<double> angles = rf_flip_angles(sequence);
         std::sort(angles.begin(), angles.end());
         angles.erase(std::unique(angles.begin(), angles.end()), angles.end());
         return angles;
+    }
+
+    std::vector<int> rf_channel_counts(const Sequence& sequence)
+    {
+        const Table& library = sequence.rf_library();
+        const ShapeLibrary& shapes = sequence.shape_library();
+        std::vector<int> counts;
+        counts.reserve(static_cast<size_t>(library.size()));
+        for (int id = 1; id <= library.size(); ++id)
+        {
+            const double* row = library.row(id);
+            counts.push_back(static_cast<int>(
+                rf_channels(decompressed(shapes, static_cast<int>(row[3])))));
+        }
+        return counts;
     }
 
     KspaceCoverage kspace_coverage(

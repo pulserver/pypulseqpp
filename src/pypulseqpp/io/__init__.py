@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-__all__ = ["SequenceLibraries", "Shape", "read", "write"]
+__all__ = ["SequenceLibraries", "Shape", "read", "read_chain", "write"]
 
 import os as _os
+import pathlib as _pathlib
 import typing as _typing
+import warnings as _warnings
 
 import pypulseqpp as _pp
 from pypulseqpp import safety as _safety
@@ -150,6 +152,86 @@ def read(
         **stated,
     )
     return seq
+
+
+def read_chain(
+    file_path: str | _os.PathLike[str],
+    *,
+    detect_rf_use: bool = False,
+    remove_duplicates: bool = True,
+    verify: bool = False,
+) -> list[tuple[_pathlib.Path, _typing.Any]]:
+    """Read a sequence file and every file its ``NextSequence`` definitions name, in play order.
+
+    :meth:`pypulseqpp.sequences.SequenceApp.write` writes a scan with prescans
+    as such a chain. A ``NextSequence`` name is relative to the directory of
+    the file naming it. Each file is read by :func:`read`, onto a system built
+    from it.
+
+    Parameters
+    ----------
+    file_path : str | os.PathLike[str]
+        The first file of the chain.
+    detect_rf_use : bool, default=False
+        Work out what each unlabelled pulse of every file is for, as
+        :func:`read` does. A file whose pulses all record their use is read as
+        it is.
+    remove_duplicates : bool, default=True
+        Collapse identical library rows of every file after reading.
+    verify : bool, default=False
+        Check every file against the signature it carries.
+
+    Returns
+    -------
+    list of (pathlib.Path, pypulseqpp.Sequence)
+        Each file's path, joined as the chain names it, and its sequence.
+
+    Raises
+    ------
+    FileNotFoundError
+        If a file of the chain does not exist.
+    ValueError
+        If the chain names a file it has already played.
+
+    Examples
+    --------
+    >>> import pathlib, tempfile
+    >>> import pypulseqpp as pp
+    >>> directory = pathlib.Path(tempfile.mkdtemp())
+    >>> for name, following in (("scan.seq", "scan_main.seq"), ("scan_main.seq", "")):
+    ...     seq = pp.Sequence(pp.Opts())
+    ...     _ = seq.add_block(pp.make_delay(1e-3))
+    ...     if following:
+    ...         seq.set_definition("NextSequence", following)
+    ...     _ = pp.io.write(seq, directory / name)
+    >>> [path.name for path, _ in pp.io.read_chain(directory / "scan.seq")]
+    ['scan.seq', 'scan_main.seq']
+    """
+    chain = []
+    played: set[_pathlib.Path] = set()
+    current = _pathlib.Path(file_path)
+    while True:
+        if not current.is_file():
+            raise FileNotFoundError(f"sequence chain file not found: {current}")
+        resolved = current.resolve()
+        if resolved in played:
+            raise ValueError(f"the NextSequence chain returns to {current}")
+        played.add(resolved)
+        with _warnings.catch_warnings():
+            _warnings.filterwarnings(
+                "ignore", message=r"read\(\): detect_rf_use had nothing to do"
+            )
+            seq = read(
+                current,
+                detect_rf_use=detect_rf_use,
+                remove_duplicates=remove_duplicates,
+                verify=verify,
+            )
+        chain.append((current, seq))
+        following = seq.get_definition("NextSequence")
+        if following in ("", None):
+            return chain
+        current = current.parent / str(following)
 
 
 def write(

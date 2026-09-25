@@ -119,6 +119,24 @@ def test_the_report_cancels_channels_played_in_antiphase():
     assert flips == pytest.approx([0.0], abs=1e-9)
 
 
+def test_each_pulse_flips_by_the_coherent_sum_of_its_channels():
+    in_phase = 250.0 * np.ones((2, SAMPLES), dtype=complex)
+    antiphase = in_phase.copy()
+    antiphase[1] *= -1.0
+    seq = pp.Sequence(SYSTEM)
+    for signal in (in_phase, antiphase):
+        seq.add_block(pp.make_ptx_pulse(signal, system=SYSTEM))
+    one_channel = 250.0 * (SAMPLES - 1) * SYSTEM.rf_raster_time * 360.0
+    assert seq.rf_flip_angles() == pytest.approx([2 * one_channel, 0.0], abs=1e-9)
+
+
+def test_the_library_counts_the_channels_of_each_pulse():
+    seq = pp.Sequence(SYSTEM)
+    seq.add_block(pp.make_ptx_pulse(waveforms(3), system=SYSTEM))
+    seq.add_block(pp.make_block_pulse(np.pi / 2, duration=1e-3, system=SYSTEM))
+    assert seq.rf_channels().tolist() == [3, 1]
+
+
 def test_a_pulse_is_centred_on_the_peak_of_the_root_sum_square_of_its_channels():
     """A narrow lobe on one channel over a broad one on the other moves the sum's peak."""
     samples = np.arange(200)

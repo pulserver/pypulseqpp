@@ -25,6 +25,22 @@ namespace pulseq
     std::vector<double> flip_angles(const Sequence& sequence);
 
     /**
+     * The flip angle of every RF library row, in degrees: entry i is id i + 1.
+     *
+     * The rule `flip_angles` lists the distinct values of: the magnitude of
+     * the complex envelope's integral times the amplitude, a dynamic pTx
+     * pulse integrated channel by channel on its shared time base and the
+     * channels summed.
+     */
+    std::vector<double> rf_flip_angles(const Sequence& sequence);
+
+    /**
+     * The transmit channels every RF library row holds: entry i is id i + 1,
+     * counted by `rf_channels` from the row's sample times.
+     */
+    std::vector<int> rf_channel_counts(const Sequence& sequence);
+
+    /**
      * Label values carried across blocks until set or incremented again.
      */
     struct LabelEvolution
