@@ -553,8 +553,9 @@ reads the right pulse length.</p>
 given: nothing is scaled to a flip angle, since with several channels
 the flip depends on each channel’s B1 map.</p></li>
 <li><p><strong>dwell</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Sample spacing, in s; <code class="docutils literal notranslate"><span class="pre">system.rf_raster_time</span></code> when zero.</p></li>
-<li><p><strong>center</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Centre of the pulse from its start, in s. Defaults to the centre of
-the peak of the channel-summed magnitude.</p></li>
+<li><p><strong>center</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Centre of the pulse from its start, in s. Defaults to the peak of the
+root-sum-square of the channels’ magnitudes, as
+<a class="reference internal" href="pypulseqpp.calc_rf_center.html#pypulseqpp.calc_rf_center" title="pypulseqpp.calc_rf_center"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_center()</span></code></a> finds a peak.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

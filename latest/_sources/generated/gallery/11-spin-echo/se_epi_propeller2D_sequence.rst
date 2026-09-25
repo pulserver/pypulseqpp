@@ -177,7 +177,7 @@ blade's phase-encode direction.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.170 seconds)
+   **Total running time of the script:** (0 minutes 2.205 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

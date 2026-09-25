@@ -68,8 +68,8 @@ permitted by the RF pulse and readout durations.
 
  .. code-block:: none
 
-    1536 blocks, 3.58 s
-    TE 13.12 ms, TR 18.64 ms
+    1536 blocks, 3.59 s
+    TE 13.16 ms, TR 18.68 ms
 
 
 
@@ -152,8 +152,8 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    full                 1536          3.58           192
-    6/8 along y          1152          2.68           144
+    full                 1536          3.59           192
+    6/8 along y          1152          2.69           144
 
 
 
@@ -179,7 +179,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.233 seconds)
+   **Total running time of the script:** (0 minutes 2.265 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

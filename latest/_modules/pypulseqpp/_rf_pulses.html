@@ -481,9 +481,11 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_events</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._angles</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_uniform_angles</span>
@@ -519,7 +521,7 @@
     <span class="n">dwell</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">freq_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">phase_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
-    <span class="n">center_pos</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">center_pos</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">slice_thickness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">return_gz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">time_bw_product</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEFAULT_TIME_BANDWIDTH_PRODUCT</span><span class="p">,</span>
@@ -550,8 +552,11 @@
 <span class="sd">        RF sample spacing (s); ``0`` uses ``system.rf_raster_time``.</span>
 <span class="sd">    freq_offset, phase_offset : float, default=0.0</span>
 <span class="sd">        Frequency (Hz) and phase (rad) offsets.</span>
-<span class="sd">    center_pos : float, default=0.5</span>
-<span class="sd">        Position of the effective centre within the pulse, in ``[0, 1]``.</span>
+<span class="sd">    center_pos : float, default=None</span>
+<span class="sd">        Position of the effective centre within the pulse, in ``[0, 1]``: the</span>
+<span class="sd">        centre the event records and the point the rephaser refocuses from.</span>
+<span class="sd">        ``None`` takes the magnitude peak of the designed waveform, as</span>
+<span class="sd">        :func:`calc_rf_center` finds it.</span>
 <span class="sd">    slice_thickness : float, default=0.0</span>
 <span class="sd">        Slice thickness (m); required when ``return_gz``.</span>
 <span class="sd">    return_gz : bool, default=False</span>
@@ -614,7 +619,7 @@
 <span class="sd">    """</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">default_system</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
     <span class="n">dwell</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span> <span class="k">if</span> <span class="n">dwell</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">dwell</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">center_pos</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">center_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">center_pos</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"center_pos must lie in [0, 1]"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">return_gz</span> <span class="ow">and</span> <span class="n">slice_thickness</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"slice_thickness must be &gt; 0 when return_gz=True"</span><span class="p">)</span>
@@ -674,9 +679,14 @@
 <span class="w">    </span><span class="sd">"""Build the RF event for an SLR waveform, and under ``return_gz`` its gradient and rephaser.</span>
 
 <span class="sd">    A ``designed`` waveform is in radians per sample and plays as it is; any</span>
-<span class="sd">    other is scaled until its area is ``flip_angle``.</span>
+<span class="sd">    other is scaled until its area is ``flip_angle``. A ``center_pos`` of</span>
+<span class="sd">    ``None`` is the waveform's magnitude peak.</span>
 <span class="sd">    """</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="n">waveform</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="n">dwell</span>
+    <span class="k">if</span> <span class="n">center_pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">waveform</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dwell</span>
+        <span class="n">peak</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">calc_rf_center</span><span class="p">(</span><span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">waveform</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">times</span><span class="p">))</span>
+        <span class="n">center_pos</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">peak</span><span class="p">)</span> <span class="o">/</span> <span class="n">duration</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_events</span><span class="o">.</span><span class="n">make_arbitrary_rf</span><span class="p">(</span>
         <span class="n">signal</span><span class="o">=</span><span class="n">waveform</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">dwell</span><span class="p">)</span> <span class="k">if</span> <span class="n">designed</span> <span class="k">else</span> <span class="n">waveform</span><span class="p">,</span>
         <span class="n">flip_angle</span><span class="o">=</span><span class="n">flip_angle</span><span class="p">,</span>

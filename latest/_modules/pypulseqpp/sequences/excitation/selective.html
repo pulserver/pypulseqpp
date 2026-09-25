@@ -633,7 +633,9 @@
 <span class="w">    </span><span class="sd">"""SLR refocusing with matched crushers joined to the selection plateau.</span>
 
 <span class="sd">    Uses the spin-echo SLR profile. The default RF phase is pi/2 radians</span>
-<span class="sd">    for a zero-phase excitation (CPMG).</span>
+<span class="sd">    for a zero-phase excitation (CPMG). The selection plateau is centred on</span>
+<span class="sd">    the centre the pulse records, its magnitude peak, and extends past the</span>
+<span class="sd">    pulse until that centre lies on the block raster.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -665,7 +667,8 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_ref : RfEvent</span>
-<span class="sd">        The refocusing pulse, delayed onto the plateau between the crushers.</span>
+<span class="sd">        The refocusing pulse, delayed onto the plateau between the crushers</span>
+<span class="sd">        so that its recorded centre is the plateau's midpoint.</span>
 <span class="sd">    gz : GradEvent</span>
 <span class="sd">        Crusher, selection plateau and crusher, as one gradient.</span>
 <span class="sd">    selection_amplitude : float</span>
@@ -768,8 +771,33 @@
                 <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">flat_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">times_pre</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">flat_end</span> <span class="o">=</span> <span class="n">flat_start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">flat_time</span><span class="p">)</span>
-            <span class="n">rf_ref</span><span class="o">.</span><span class="n">delay</span> <span class="o">+=</span> <span class="n">flat_start</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flat_start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">)</span>
+
+        <span class="c1"># The recorded centre is the magnitude peak, which an 'se' design puts</span>
+        <span class="c1"># beside the midpoint. The plateau is centred on it and widened until</span>
+        <span class="c1"># it lands on the block raster, so a spin echo can place the pulse</span>
+        <span class="c1"># midway and the two halves of the lobe carry equal areas.</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf_ref</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf_ref</span><span class="o">.</span><span class="n">shape_dur</span><span class="p">)</span>
+        <span class="n">middle</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="n">flat_start</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">center</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
+        <span class="p">)</span>
+        <span class="n">half</span> <span class="o">=</span> <span class="n">middle</span> <span class="o">-</span> <span class="n">flat_start</span>
+        <span class="n">rf_ref</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="n">middle</span> <span class="o">-</span> <span class="n">center</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">spoiling_cycles</span><span class="p">:</span>
+            <span class="n">gz</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+                <span class="n">amplitude</span><span class="o">=</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="n">flat_time</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">half</span><span class="p">,</span>
+                <span class="n">rise_time</span><span class="o">=</span><span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span>
+                <span class="n">fall_time</span><span class="o">=</span><span class="n">gz</span><span class="o">.</span><span class="n">fall_time</span><span class="p">,</span>
+                <span class="n">delay</span><span class="o">=</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flat_end</span> <span class="o">=</span> <span class="n">flat_start</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">half</span>
             <span class="n">gz</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
                 <span class="n">channel</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
                 <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>

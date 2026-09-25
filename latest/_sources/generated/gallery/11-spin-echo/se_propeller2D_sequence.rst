@@ -66,7 +66,7 @@ Sixteen lines per blade.
 
  .. code-block:: none
 
-    2736 blocks, 5.44 s
+    2736 blocks, 5.45 s
 
 
 
@@ -148,8 +148,8 @@ each blade samples a larger central region.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 lines             2736          5.44           304
-    32 lines             2880          5.72           320
+    16 lines             2736          5.45           304
+    32 lines             2880          5.73           320
 
 
 
@@ -175,7 +175,7 @@ each blade samples a larger central region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.984 seconds)
+   **Total running time of the script:** (0 minutes 4.013 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

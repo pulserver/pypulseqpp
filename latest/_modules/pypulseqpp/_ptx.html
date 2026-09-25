@@ -512,8 +512,9 @@
 <span class="sd">    dwell : float, default=0.0</span>
 <span class="sd">        Sample spacing, in s; ``system.rf_raster_time`` when zero.</span>
 <span class="sd">    center : float, default=None</span>
-<span class="sd">        Centre of the pulse from its start, in s. Defaults to the centre of</span>
-<span class="sd">        the peak of the channel-summed magnitude.</span>
+<span class="sd">        Centre of the pulse from its start, in s. Defaults to the peak of the</span>
+<span class="sd">        root-sum-square of the channels' magnitudes, as</span>
+<span class="sd">        :func:`calc_rf_center` finds a peak.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -543,9 +544,8 @@
     <span class="n">channels</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="n">waveforms</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">times</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dwell</span>
     <span class="k">if</span> <span class="n">center</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">center</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">calc_rf_center</span><span class="p">(</span>
-            <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waveforms</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">t</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">rss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waveforms</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">center</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">calc_rf_center</span><span class="p">(</span><span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">rss</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">times</span><span class="p">))</span>
 
     <span class="n">rf</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">make_arbitrary_rf</span><span class="p">(</span>
         <span class="n">signal</span><span class="o">=</span><span class="n">waveforms</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>

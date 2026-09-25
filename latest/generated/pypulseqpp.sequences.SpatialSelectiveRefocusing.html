@@ -542,7 +542,9 @@
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>SLR refocusing with matched crushers joined to the selection plateau.</p>
 <p>Uses the spin-echo SLR profile. The default RF phase is pi/2 radians
-for a zero-phase excitation (CPMG).</p>
+for a zero-phase excitation (CPMG). The selection plateau is centred on
+the centre the pulse records, its magnitude peak, and extends past the
+pulse until that centre lies on the block raster.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -564,7 +566,8 @@ refocusing pulse.</p></li>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The refocusing pulse, delayed onto the plateau between the crushers.</p></li>
+<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The refocusing pulse, delayed onto the plateau between the crushers
+so that its recorded centre is the plateau’s midpoint.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Crusher, selection plateau and crusher, as one gradient.</p></li>
 <li><p><strong>selection_amplitude</strong> (<em>float</em>) – Plateau amplitude of the selection lobe (Hz/m), which a slice offset
 is converted against; <code class="docutils literal notranslate"><span class="pre">gz.amplitude</span></code> is the crushers’ peak.</p></li>

@@ -65,7 +65,7 @@ radius at the Nyquist spacing.
 
  .. code-block:: none
 
-    2114 blocks, 5.88 s
+    2114 blocks, 5.90 s
 
 
 
@@ -145,7 +145,7 @@ every acquired spoke still crosses the k-space origin.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    Nyquist              2114          5.88           302
+    Nyquist              2114          5.90           302
     ry = 3                707          1.97           101
 
 
@@ -172,7 +172,7 @@ every acquired spoke still crosses the k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.697 seconds)
+   **Total running time of the script:** (0 minutes 2.740 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

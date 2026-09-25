@@ -89,7 +89,7 @@ T2- and proton-density-weighted structural imaging.
 
  .. code-block:: none
 
-    21 shots; 10.80 ms echo spacing; 120.3 ms effective TE
+    21 shots; 10.84 ms echo spacing; 120.8 ms effective TE
 
 
 
@@ -228,7 +228,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.318 seconds)
+   **Total running time of the script:** (0 minutes 1.188 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:
