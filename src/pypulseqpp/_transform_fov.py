@@ -284,9 +284,7 @@ class TransformFOV:
                     quaternion=tuple(self.quaternion),
                     first=begins,
                     last=ends,
-                    reflected_axis=-1
-                    if self.reflected_axis is None
-                    else self.reflected_axis,
+                    reflected_axis=self.reflected_axis,
                 )
         return target
 

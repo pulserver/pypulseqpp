@@ -10,6 +10,7 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -1580,13 +1581,13 @@ PYBIND11_MODULE(_ext, module)
     module.def(
         "apply_fov_rotation",
         [](Sequence& sequence, std::array<double, 4> quaternion, int first, int last,
-           int reflected_axis) {
+           std::optional<int> reflected_axis) {
             py::gil_scoped_release unlocked;
             pulseq::apply_fov_rotation(
-                sequence, quaternion.data(), first, last, reflected_axis);
+                sequence, quaternion.data(), first, last, reflected_axis.value_or(-1));
         },
         py::arg("sequence"), py::arg("quaternion"), py::arg("first") = 1,
-        py::arg("last") = 0, py::arg("reflected_axis") = -1,
+        py::arg("last") = 0, py::arg("reflected_axis") = py::none(),
         "Turn the field of view, as an extension on each block; reflected_axis "
         "negates that channel axis first, for an improper prescription.");
 

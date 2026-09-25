@@ -769,6 +769,37 @@ namespace pulseq
         }
     }
 
+    namespace
+    {
+        /**
+         * The reflection half of an improper prescription M = R D: the
+         * gradient on channel axis @p axis negated over blocks @p from to
+         * @p to. Nothing for an axis of -1.
+         */
+        void negate_channel(Sequence& seq, int axis, int from, int to)
+        {
+            if (axis < -1 || axis > 2)
+                throw std::invalid_argument("reflected_axis must be -1, 0, 1 or 2");
+            if (axis < 0)
+                return;
+            double negate[3] = {1.0, 1.0, 1.0};
+            negate[axis] = -1.0;
+            apply_fov_scale(seq, negate, from, to);
+        }
+
+        /**
+         * D R D, in place, for the reflection D of channel axis @p axis: the
+         * same turn about the reflected axis, so the vector components off it
+         * change sign.
+         */
+        void conjugate_by_reflection(double quaternion[ROTATION_WIDTH], int axis)
+        {
+            for (int other = 0; other < 3; ++other)
+                if (other != axis)
+                    quaternion[other + 1] = -quaternion[other + 1];
+        }
+    } // namespace
+
     void apply_fov_rotation(
         Sequence& seq, const double quaternion[4], int first, int last,
         int reflected_axis)
@@ -778,16 +809,7 @@ namespace pulseq
         const int to = (last > 0 && last < blocks) ? last : blocks;
         if (from > to)
             return;
-        if (reflected_axis < -1 || reflected_axis > 2)
-            throw std::invalid_argument("reflected_axis must be -1, 0, 1 or 2");
-
-        const bool reflected = reflected_axis >= 0;
-        if (reflected)
-        {
-            double negate[3] = {1.0, 1.0, 1.0};
-            negate[reflected_axis] = -1.0;
-            apply_fov_scale(seq, negate, from, to);
-        }
+        negate_channel(seq, reflected_axis, from, to);
 
         const int type_id = seq.extension_type_id("ROTATIONS");
         std::map<int32_t, int32_t> composed;
@@ -812,16 +834,9 @@ namespace pulseq
                      * that placed itself keeps its orientation inside the
                      * prescription's. */
                     double was[ROTATION_WIDTH];
-                    const double* stored = seq.rotation_library().row(already);
-                    for (int i = 0; i < ROTATION_WIDTH; ++i)
-                        was[i] = stored[i];
-                    /* D R_b D turns by the same angle about the axis D
-                     * reflects: the vector components off the reflected
-                     * axis change sign. */
-                    if (reflected)
-                        for (int axis = 0; axis < 3; ++axis)
-                            if (axis != reflected_axis)
-                                was[axis + 1] = -was[axis + 1];
+                    std::copy_n(seq.rotation_library().row(already), ROTATION_WIDTH, was);
+                    if (reflected_axis >= 0)
+                        conjugate_by_reflection(was, reflected_axis);
                     made[0] = quaternion[0] * was[0] - quaternion[1] * was[1] -
                         quaternion[2] * was[2] - quaternion[3] * was[3];
                     made[1] = quaternion[0] * was[1] + quaternion[1] * was[0] +
