@@ -8,6 +8,8 @@ the system from the file instead, and these tests pin what it puts in it.
 
 from __future__ import annotations
 
+import io
+
 import numpy as np
 import pytest
 
@@ -53,6 +55,41 @@ def test_a_sequence_written_either_way_reads_back_with_the_same_blocks(
     pp.io.write(gre, path, binary=binary)
 
     assert pp.io.read(path).num_blocks == gre.num_blocks
+
+
+@pytest.mark.parametrize("binary", [False, True])
+def test_a_sequence_read_from_its_bytes_is_the_sequence_read_from_its_file(
+    tmp_path, gre, binary
+):
+    path = tmp_path / ("s.bin" if binary else "s.seq")
+    pp.io.write(gre, path, binary=binary)
+
+    from_file = pp.io.read(path)
+    from_bytes = pp.io.read(io.BytesIO(path.read_bytes()), verify=True)
+
+    pp.io.write(from_file, tmp_path / "file.seq")
+    pp.io.write(from_bytes, tmp_path / "bytes.seq")
+    assert (tmp_path / "bytes.seq").read_bytes() == (tmp_path / "file.seq").read_bytes()
+    assert from_bytes.system.max_grad == from_file.system.max_grad
+
+
+def test_bytes_edited_after_signing_are_refused_when_verified(tmp_path, gre):
+    path = tmp_path / "s.seq"
+    pp.io.write(gre, path)
+    signed = path.read_bytes()
+    edited = signed.replace(b"[BLOCKS]\n", b"[BLOCKS]\n ", 1)
+    assert edited != signed
+
+    with pytest.raises(RuntimeError, match="signature"):
+        pp.io.read(io.BytesIO(edited), verify=True)
+
+
+def test_a_file_opened_as_text_is_refused_rather_than_decoded(tmp_path, gre):
+    path = tmp_path / "s.seq"
+    pp.io.write(gre, path)
+
+    with path.open() as text, pytest.raises(TypeError, match="binary mode"):
+        pp.Sequence().read(text)
 
 
 def test_the_binary_form_is_smaller_and_returns_no_signature(tmp_path, gre):

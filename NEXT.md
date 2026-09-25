@@ -30,6 +30,8 @@ separate contracts.
   binary representation. Both text and binary support optional MD5 signatures.
 - Custom labels need no registration by users. Binary IDs beyond the builtin
   table resolve through the ordered `CustomLabels` definition.
+- `Sequence.read` and `pypulseqpp.io.read` also take a binary file object,
+  such as `io.BytesIO` over a file's contents; upstream's `read` takes a path.
 - `add_block(None)` raises, matching upstream PyPulseq.
   `make_rf_shim` preserves the supplied weight-array shape.
 - `check_timing` records `TotalDuration` if absent and checks an existing
