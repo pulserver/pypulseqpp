@@ -648,6 +648,13 @@ namespace pulseq
         fork_instance(block, instance_def_[at], instance_adc_def_[at]);
     }
 
+    void Sequence::set_block_duration(int index, double seconds)
+    {
+        Block block = get_block(index);
+        block.duration = seconds;
+        set_block(index, block);
+    }
+
     Block Sequence::get_block(int index) const
     {
         require_block(index, num_blocks());

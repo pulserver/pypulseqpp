@@ -156,7 +156,7 @@ def blocks_for(
             )
         return first, last
 
-    size, start = seq._detect_tr()
+    size, start = seq.repetition()
     repeats = (count - start + 1) // size
     first, last = int(low), repeats if math.isinf(high) else int(high)
     if not 1 <= first <= last <= repeats:

@@ -108,7 +108,7 @@ def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
     """A packet that holds one slice more is a longer wait, not a different shot."""
     seq = gre(n_x=n_x, n_y=32, n_slices=n_slices, n_acs_y=8, readout_oversampling=1.0)
 
-    _size, start = seq._detect_tr()
+    _size, start = seq.repetition()
 
     assert start == 1
 

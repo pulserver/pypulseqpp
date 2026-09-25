@@ -74,7 +74,7 @@ def final_moments(seq):
 def test_each_slice_is_one_repetition_of_the_scan(prescription):
     built = app2d(n_slices=3, slice_spacing=1e-3, **prescription)
     seq = built.design()
-    size, start = seq._detect_tr()
+    size, start = seq.repetition()
 
     assert seq.check_timing()[0]
     assert start == 1
@@ -241,7 +241,7 @@ def test_the_chain_alternates_catalysts_and_cycles(tmp_path, prescription, files
         assert seq.definitions["Name"] == files[i][1]
         assert seq.definitions.get("NextSequence") == following
         assert seq.check_timing()[0]
-        assert seq._detect_tr()[1] == 1
+        assert seq.repetition()[1] == 1
 
 
 def test_a_tr_off_the_raster_resolves_to_the_tr_the_excitations_are_spaced_by():
@@ -262,7 +262,7 @@ def test_a_cycle_repeats_one_balanced_repetition_from_its_first_excitation(excit
     seq = built.design()
     rows = excitations(seq)
 
-    assert seq._detect_tr() == (3, 1)
+    assert seq.repetition() == (3, 1)
     assert seq.get_block(1).rf is not None
     assert np.diff([time for time, _, _ in rows]) == pytest.approx(built.ro.tr)
 

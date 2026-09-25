@@ -307,7 +307,7 @@ def test_a_bipolar_train_with_a_partial_echo_is_refused(name):
 def test_a_multiecho_scan_repeats_from_its_first_block(name, flyback):
     seq = app(name, n_dummy=2, flyback=flyback, echo_spacing=4e-3, ry=2).design()
 
-    _size, start = seq._detect_tr()
+    _size, start = seq.repetition()
 
     assert start == 1
 

@@ -1339,8 +1339,8 @@ class Sequence:
 
     # -- the repeating unit --------------------------------------------
 
-    def _detect_tr(self) -> tuple[int, int]:
-        """Detect the period of the block-definition stream.
+    def repetition(self) -> tuple[int, int]:
+        """Return the repeating unit of the block table.
 
         Returns
         -------
@@ -1348,29 +1348,43 @@ class Sequence:
             Blocks per repetition; the whole sequence when it does not
             repeat, and zero when it has no blocks.
         start : int
-            1-based start of the first repetition, always 1.
+            1-based block at which the first repetition starts, always 1.
 
         Notes
         -----
         The repetition is the shortest period of the block-definition stream
-        from the first block that every block repeats, or failing that the
-        shortest period by block structure, or the whole sequence: a slice
-        acquired with its own preparation and dummy shots is one repetition,
-        and a block played once makes the whole sequence one. ``start`` is 1.
-        Records ``TRsize`` in sequence definitions; a recorded size shorter
-        than the sequence that divides it and that the blocks repeat with is
-        taken instead, so a longer hyper-TR can be declared. Structural edits
-        invalidate the native detection cache.
+        from the first block that every later block repeats, the last copy
+        possibly cut short; failing that, the shortest period dividing the
+        table over which blocks match in duration and in the channels they
+        play; failing both, the whole sequence. A slice acquired with its own
+        preparation and dummy shots is therefore one repetition, and a block
+        played once makes the whole sequence one. A ``TRsize`` definition
+        shorter than the sequence, dividing it and repeated by the blocks, is
+        taken instead, so a longer hyper-TR can be declared. Nothing is
+        written into the sequence.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)
+        >>> for _ in range(4):
+        ...     _ = seq.add_block(pulse)
+        ...     _ = seq.add_block(pp.make_delay(10e-3))
+        >>> seq.repetition()
+        (2, 1)
+        >>> seq.get_definition("TRsize")
+        ''
         """
-        recorded = self.get_definition("TRsize")
-        if recorded != "":
-            size = int(recorded[0] if isinstance(recorded, list) else recorded)
+        declared = self.get_definition("TRsize")
+        if declared != "":
+            size = int(declared[0] if isinstance(declared, list) else declared)
             found, start = self._native.locate_repetition(size)
             if found:
                 return found, start + 1
 
         size, start = self._native.repetition()
-        self.set_definition("TRsize", size)
         return size, start + 1
 
     # -- soft delays ---------------------------------------------------

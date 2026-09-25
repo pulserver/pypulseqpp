@@ -70,7 +70,7 @@ def partitions_of(built):
 def test_a_small_mprage_passes_its_timing_check_and_repeats_one_shot(name):
     built = app(name, n_dummy=1)
     seq = built.design()
-    size, start = seq._detect_tr()
+    size, start = seq.repetition()
 
     assert seq.check_timing()[0]
     assert start == 1

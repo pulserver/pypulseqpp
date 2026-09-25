@@ -219,9 +219,9 @@ def test_scaling_the_wave_to_zero_leaves_the_repeating_unit_alone():
     Leaving the event out is a different block, and the scan no longer
     repeats: it is one repetition of all its blocks.
     """
-    everywhere = sequence([1.0] * 6)._detect_tr()
-    scaled_off = sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])._detect_tr()
-    left_out = sequence([1.0, 1.0, None, None, 1.0, 1.0])._detect_tr()
+    everywhere = sequence([1.0] * 6).repetition()
+    scaled_off = sequence([1.0, 1.0, 0.0, 0.0, 1.0, 1.0]).repetition()
+    left_out = sequence([1.0, 1.0, None, None, 1.0, 1.0]).repetition()
 
     assert everywhere == (4, 1)
     assert scaled_off == everywhere

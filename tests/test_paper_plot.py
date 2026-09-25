@@ -151,11 +151,11 @@ def test_bssfp_plot_unit_is_one_complete_slice_train():
 
 def test_plot_unit_does_not_change_structural_repetition_detection(system):
     seq = encoded(system, 6)
-    structural = seq._detect_tr()
+    structural = seq.repetition()
     seq.set_definition("PlotTRstart", 5)
     seq.set_definition("PlotTRsize", 8)
 
-    assert seq._detect_tr() == structural
+    assert seq.repetition() == structural
     assert select_trs(seq)[:2] == (8, 5)
 
 
@@ -187,6 +187,14 @@ def test_the_diagram_has_one_row_per_channel(system):
     ax.figure.canvas.draw()
     labels = [label.get_text() for label in ax.get_yticklabels()]
     assert labels == ["ADC", "Gx", "Gy", "Gz", "RF"]
+
+
+def test_drawing_writes_no_repeating_unit_into_the_sequence(system):
+    seq = encoded(system, 40)
+
+    seq.paper_plot()
+
+    assert seq.get_definition("TRsize") == ""
 
 
 def test_the_repetitions_underneath_are_the_ones_chosen(system):
