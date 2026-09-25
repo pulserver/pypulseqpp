@@ -18,6 +18,8 @@ Blocks
    ~Sequence.find_block_by_time
    ~Sequence.remove_duplicates
    ~Sequence.repetition
+   ~Sequence.block_rotations
+   ~Sequence.block_shims
 
 Definitions and labels
 ----------------------
@@ -30,6 +32,7 @@ Definitions and labels
    ~Sequence.get_definition
    ~Sequence.copy_definitions
    ~Sequence.evaluate_labels
+   ~Sequence.label_blocks
    ~Sequence.add_trid
    ~Sequence.get_or_create_trid_id
 

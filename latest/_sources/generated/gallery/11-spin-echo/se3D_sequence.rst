@@ -174,7 +174,7 @@ acquired view has the prescribed echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.155 seconds)
+   **Total running time of the script:** (0 minutes 23.220 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

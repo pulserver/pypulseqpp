@@ -618,6 +618,12 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">repetition</span></code></a></p></td>
 <td><p>Return the repeating unit of the block table.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.block_rotations.html#pypulseqpp.Sequence.block_rotations" title="pypulseqpp.Sequence.block_rotations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_rotations</span></code></a></p></td>
+<td><p>Return the rotation each block turns its gradients by.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.block_shims.html#pypulseqpp.Sequence.block_shims" title="pypulseqpp.Sequence.block_shims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_shims</span></code></a></p></td>
+<td><p>Return the RF shim each block plays its pulse through.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -638,10 +644,13 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_labels</span></code></a></p></td>
 <td><p>Evaluate running label values in block order.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.add_trid.html#pypulseqpp.Sequence.add_trid" title="pypulseqpp.Sequence.add_trid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_trid</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.label_blocks.html#pypulseqpp.Sequence.label_blocks" title="pypulseqpp.Sequence.label_blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label_blocks</span></code></a></p></td>
+<td><p>Return the blocks whose extension chain sets, or increments, a label.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.add_trid.html#pypulseqpp.Sequence.add_trid" title="pypulseqpp.Sequence.add_trid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_trid</span></code></a></p></td>
 <td><p>Append a block setting TRID to the number assigned to <code class="docutils literal notranslate"><span class="pre">label_name</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_or_create_trid_id.html#pypulseqpp.Sequence.get_or_create_trid_id" title="pypulseqpp.Sequence.get_or_create_trid_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_or_create_trid_id</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_or_create_trid_id.html#pypulseqpp.Sequence.get_or_create_trid_id" title="pypulseqpp.Sequence.get_or_create_trid_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_or_create_trid_id</span></code></a></p></td>
 <td><p>Return the TRID number assigned to <code class="docutils literal notranslate"><span class="pre">label_name</span></code>, assigning one if new.</p></td>
 </tr>
 </tbody>

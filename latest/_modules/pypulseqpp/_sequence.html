@@ -1351,6 +1351,52 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">found</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
 
+<div class="viewcode-block" id="Sequence.label_blocks">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.label_blocks.html#pypulseqpp.Sequence.label_blocks">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"SET"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the blocks whose extension chain sets, or increments, a label.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str</span>
+<span class="sd">            Label name, such as ``'TRID'`` or ``'LIN'``.</span>
+<span class="sd">        kind : {'SET', 'INC'}, default='SET'</span>
+<span class="sd">            Whether ``LABELSET`` or ``LABELINC`` statements are looked for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NDArray[np.int32]</span>
+<span class="sd">            1-based block indices, ascending; empty when no block states the</span>
+<span class="sd">            label.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``kind`` is neither ``'SET'`` nor ``'INC'``.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A block is listed once however many statements of the label it holds.</span>
+<span class="sd">        :meth:`evaluate_labels` gives the value a label takes; this gives where</span>
+<span class="sd">        it is stated, which a value set again at every repetition does not.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; for _ in range(3):</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_label("TRID", "SET", 1), pp.make_delay(1e-3))</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_delay(2e-3))</span>
+<span class="sd">        &gt;&gt;&gt; seq.label_blocks("TRID").tolist()</span>
+<span class="sd">        [1, 3, 5]</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"SET"</span><span class="p">,</span> <span class="s2">"INC"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"kind must be 'SET' or 'INC', got </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">_cxx</span><span class="o">.</span><span class="n">label_blocks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">),</span> <span class="n">setting</span><span class="o">=</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"SET"</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_range_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_range</span><span class="p">,</span> <span class="n">block_range</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Return the blocks a time range or a block range names, 1-based."""</span>
         <span class="k">if</span> <span class="n">block_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">time_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1854,6 +1900,54 @@
 <span class="sd">        array([10., 20.])</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">rf_flip_angles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Sequence.block_rotations">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.block_rotations.html#pypulseqpp.Sequence.block_rotations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block_rotations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the rotation each block turns its gradients by.</span>
+
+<span class="sd">        Entry ``i`` is block ``i + 1``: the 1-based row of</span>
+<span class="sd">        :attr:`~pypulseqpp.io.SequenceLibraries.rotations` its ``ROTATIONS``</span>
+<span class="sd">        extension names, and 0 for a block without one. A block carries at</span>
+<span class="sd">        most one rotation.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; gx = pp.make_trapezoid("x", area=1000, duration=2e-3)</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(gx)</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(gx, pp.make_rotation(np.pi / 2))</span>
+<span class="sd">        &gt;&gt;&gt; seq.block_rotations().tolist()</span>
+<span class="sd">        [0, 1]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">block_rotations</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Sequence.block_shims">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.block_shims.html#pypulseqpp.Sequence.block_shims">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block_shims</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the RF shim each block plays its pulse through.</span>
+
+<span class="sd">        Entry ``i`` is block ``i + 1``: the 1-based row of</span>
+<span class="sd">        :attr:`~pypulseqpp.io.SequenceLibraries.rf_shims` its ``RF_SHIMS``</span>
+<span class="sd">        extension names, and 0 for a block without one. A block carries at</span>
+<span class="sd">        most one RF shim.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pulse, pp.make_rf_shim(np.array([1.0, 1j])))</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pp.make_delay(1e-3))</span>
+<span class="sd">        &gt;&gt;&gt; seq.block_shims().tolist()</span>
+<span class="sd">        [1, 0]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">block_shims</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="Sequence.rf_channels">
