@@ -14,6 +14,7 @@ import pypulseq as _upstream
 from . import _ext as _cxx
 from ._check_timing import _limit, print_error_report
 from ._check_timing import check_timing as _check_timing
+from ._isochromats import Isochromats
 from ._kspace import adc_kspace as _adc_kspace
 from ._kspace import calculate_kspace as _calculate_kspace
 from ._kspace import detail as _kspace_detail
@@ -1074,6 +1075,73 @@ class Sequence:
             pcm = np.round(audio.T * 32767.0).astype(np.int16)
             wavfile.write(path, int(sample_rate), np.ascontiguousarray(pcm))
         return audio
+
+    def simulate(self, isochromats, block_range=None) -> np.ndarray:
+        """Play the blocks on isochromats and return every ADC sample they give.
+
+        Parameters
+        ----------
+        isochromats : Isochromats
+            The isochromats, whose magnetisation the blocks advance from where
+            it stands; consecutive block ranges therefore play one scan.
+        block_range : Sequence[int], default=None
+            Two 1-based block indices; the whole sequence by default.
+
+        Returns
+        -------
+        NDArray[np.complex128]
+            ``(coils, samples)``, every ADC sample of the blocks in play order,
+            demodulated by the ADC's phase offset and phase modulation and by
+            its frequency offset from the window's start.
+
+        Raises
+        ------
+        ValueError
+            If an ADC sample falls inside an RF pulse, or a pTx pulse has a
+            number of channels other than the isochromats' transmit
+            sensitivities.
+
+        Notes
+        -----
+        Gradients are played after each block's rotation, with the
+        isochromats' positions along the same axes. The RF field is the
+        conjugate of the complex waveform Pulseq defines, its shapes times a
+        carrier of the phase offset advancing at the frequency offset from the
+        pulse's start: a frequency offset and the same phase ramp written into
+        the shape play one pulse, and a positive offset excites isochromats
+        precessing at a positive frequency. The ppm offsets are resolved at
+        the system's ``gamma`` and ``B0``. Without transmit sensitivities, the
+        channels of a pTx pulse are summed and an RF shim is not applied, so
+        a pulse flips by the angle :meth:`rf_flip_angles` reports; with them,
+        a single-channel pulse plays on every channel, weighted by the
+        block's RF shim where it has one.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> _ = seq.add_block(pp.make_block_pulse(np.pi / 2, duration=0.1e-3))
+        >>> _ = seq.add_block(pp.make_adc(num_samples=4, dwell=1e-3))
+        >>> spins = pp.Isochromats([[0.0, 0.0, 0.0]], t2=0.05, off_resonance=250.0)
+        >>> signal = seq.simulate(spins)
+        >>> np.round(np.abs(signal), 3)
+        array([[0.989, 0.969, 0.95 , 0.931]])
+        """
+        if not isinstance(isochromats, Isochromats):
+            raise TypeError(
+                f"isochromats must be pypulseqpp.Isochromats, got {type(isochromats).__name__}"
+            )
+        first, last = self._range_for(None, block_range)
+        system = self.system
+        return _cxx.sim.simulate(
+            self._native,
+            isochromats._native,
+            first_block=first,
+            last_block=last,
+            b0=_limit(system, "B0", 1.5),
+            gamma=_limit(system, "gamma", 42576000.0),
+        )
 
     def adc_times(self, time_range=None):
         """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).

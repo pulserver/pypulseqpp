@@ -27,6 +27,7 @@ from ._gradients import make_crusher as _make_crusher
 from ._gradients import make_phase_blip as _make_phase_blip
 from ._gradients import make_phase_encoding as _make_phase_encoding
 from ._gradients import make_wave_gradients as _make_wave_gradients
+from ._isochromats import Isochromats
 from ._make_hexagon_gradient_area import (
     make_hexagon_gradient_area as _make_hexagon_gradient_area,
 )

@@ -77,6 +77,15 @@ Waveforms and k-space
    ~Sequence.rf_gradients
    ~Sequence.duration
 
+Simulation
+----------
+
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   ~Sequence.simulate
+
 Checks and reports
 ------------------
 

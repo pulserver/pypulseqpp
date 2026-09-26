@@ -162,6 +162,7 @@ def test_a_wav_file_needs_an_integer_sample_rate(tmp_path):
     ("kwargs", "message"),
     [
         ({"waveforms": [EMPTY, EMPTY]}, "three gradient axes"),
+        ({"waveforms": [np.zeros((3, 2)), EMPTY, EMPTY]}, "time over amplitude"),
         ({"channel_weights": (1.0, 1.0)}, "three weights"),
         ({"num_samples": -1}, "negative"),
         ({"sample_rate": 0.0}, "sample_rate must be positive"),

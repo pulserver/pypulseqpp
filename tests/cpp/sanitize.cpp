@@ -19,12 +19,15 @@
 #include "pulseq/read.hpp"
 #include "pulseq/safety.hpp"
 #include "pulseq/sequence.hpp"
+#include "pulseq/simulate.hpp"
 #include "pulseq/timing.hpp"
 #include "pulseq/waveforms.hpp"
 #include "pulseq/write.hpp"
 
 #include <cmath>
+#include <complex>
 #include <cstdio>
+#include <stdexcept>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -48,9 +51,48 @@ namespace
         }
     }
 
+    /**
+     * The sequence played on a few isochromats, once with one transmit
+     * channel and once with two: every pulse, gradient and window of it. A
+     * sequence the engine refuses -- a pulse of other than two channels on
+     * two, an ADC sample inside a pulse -- stops where it is refused.
+     */
+    void simulate(const pulseq::Sequence& seq)
+    {
+        for (size_t channels = 0; channels <= 2; channels += 2)
+        {
+            pulseq::IsochromatProperties properties;
+            properties.x = {0.0, 0.01, -0.02, 0.0};
+            properties.y = {0.0, 0.005, 0.01, 0.0};
+            properties.z = {0.0, -0.01, 0.003, 0.0};
+            properties.t1 = {1.0, 0.8, 0.5, 1.0};
+            properties.t2 = {0.1, 0.08, 0.05, 0.1};
+            properties.off_resonance = {0.0, 10.0, -20.0, 0.0};
+            properties.coils = 2;
+            properties.receive.assign(8, std::complex<double>(0.5, -0.25));
+            properties.transmit_channels = channels;
+            properties.transmit.assign(4 * channels, std::complex<double>(0.9, 0.1));
+            pulseq::Isochromats spins(properties, 2);
+            try
+            {
+                const std::vector<std::complex<double>> signal = pulseq::simulate(seq, spins, {});
+                for (const std::complex<double>& sample : signal)
+                    sink += std::abs(sample);
+            }
+            catch (const std::invalid_argument&)
+            {
+            }
+            std::vector<double> magnetization(3 * spins.size());
+            spins.magnetization(magnetization.data());
+            touch(magnetization);
+        }
+    }
+
     /** Everything a caller can ask of a sequence, asked. */
     void exercise(pulseq::Sequence& seq)
     {
+        simulate(seq);
+
         pulseq::TimingLimits limits;
         limits.rf_raster_time = seq.rf_raster_time();
         limits.grad_raster_time = seq.grad_raster_time();
