@@ -120,7 +120,7 @@ time to the energy per repetition of the checked sequence.
 
 The estimate covers the RF energy of the sequence's own waveforms in a stated
 VOP model and drive calibration. It does not cover RF coil heating, gradient
-heating, the scanner's predownload assessment or transmit monitoring, and it
+heating, the scanner's own assessment before a scan or transmit monitoring, and it
 makes no statement about a particular subject. A `True` result states only that
 the computed window-averaged SAR values do not exceed the supplied limits under
 that model and calibration.

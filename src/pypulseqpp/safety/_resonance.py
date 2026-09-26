@@ -33,34 +33,20 @@ class ForbiddenBand(NamedTuple):
 
 _AXES = {"x": 0, "y": 1, "z": 2, "gx": 0, "gy": 1, "gz": 2}
 
-#: Largest band count one ESP axis may declare.
-_MAX_ESP_PER_AXIS = 10
-
-#: Factor from an ESP row's plateau tolerance to the amplitude the check reads.
-#: An alternating trapezoid train reads between 8/pi^2 (triangular) and 4/pi
-#: (square) of its plateau; the conversion awaits calibration.
-_ESP_TOLERANCE_SCALE = 1.0
-
 
 def read_forbidden_bands(path: str | os.PathLike) -> list[ForbiddenBand]:
-    """Read forbidden bands from a vendor table.
+    """Read forbidden bands from a Siemens ``.asc`` hardware description.
 
-    A ``.asc`` file is a Siemens hardware description, read with upstream
-    PyPulseq's ``readasc``; its acoustic resonances are a centre and a
-    bandwidth, with no axis and no tolerance, so every band guards every axis
-    with tolerance 0.
-
-    Any other file is a GE ``epiesp.dat`` table: for x, y and z in turn, a
-    count line and that many ``esp_min_us esp_max_us amplitude_G_per_cm``
-    rows; ``#`` starts a comment line. An echo-spacing range maps to the
-    frequencies ``1 / (2 ESP)`` of an alternating readout train, and the
-    amplitude, the train's plateau, is returned in mT/m times
-    ``_ESP_TOLERANCE_SCALE``.
+    The file is read with upstream PyPulseq's ``readasc``. Its acoustic
+    resonances are a centre and a bandwidth, with no axis and no tolerance, so
+    every band guards every axis with tolerance 0. Bands from any other table
+    are passed to :func:`~pypulseqpp.safety.check_mech_resonance` as
+    :class:`ForbiddenBand` values.
 
     Parameters
     ----------
     path : str | os.PathLike
-        The ``.asc`` or ``epiesp.dat`` file to read.
+        The ``.asc`` file to read.
 
     Returns
     -------
@@ -71,13 +57,15 @@ def read_forbidden_bands(path: str | os.PathLike) -> list[ForbiddenBand]:
     Raises
     ------
     ValueError
-        If an ESP table is malformed. A present but corrupt table is refused
-        rather than read as having no bands.
+        If the file is not a ``.asc`` file.
     """
     path = Path(path)
-    if path.suffix.lower() == ".asc":
-        return _read_asc(path)
-    return _read_esp(path)
+    if path.suffix.lower() != ".asc":
+        raise ValueError(
+            f"forbidden bands are read from a .asc hardware description, not from "
+            f"{path.name!r}; pass the bands of any other table as ForbiddenBand values"
+        )
+    return _read_asc(path)
 
 
 def _read_asc(path: Path) -> list[ForbiddenBand]:
@@ -96,44 +84,6 @@ def _read_asc(path: Path) -> list[ForbiddenBand]:
                 None, max(centre - 0.5 * width, 0.0), centre + 0.5 * width, 0.0
             )
         )
-    return bands
-
-
-def _read_esp(path: Path) -> list[ForbiddenBand]:
-    rows = [
-        line
-        for line in (raw.strip() for raw in path.read_text().splitlines())
-        if line and not line.startswith("#")
-    ]
-    bands = []
-    cursor = 0
-    for axis in "xyz":
-        if cursor >= len(rows):
-            raise ValueError(f"ESP table {path}: truncated before the {axis} axis")
-        try:
-            count = int(rows[cursor].split()[0])
-        except (ValueError, IndexError) as exc:
-            raise ValueError(f"ESP table {path}: bad band count for {axis}") from exc
-        cursor += 1
-        if not 0 <= count <= _MAX_ESP_PER_AXIS:
-            raise ValueError(
-                f"ESP table {path}: implausible band count {count} for {axis}"
-            )
-        for _ in range(count):
-            if cursor >= len(rows):
-                raise ValueError(f"ESP table {path}: truncated inside the {axis} axis")
-            fields = rows[cursor].split()
-            cursor += 1
-            try:
-                esp_min, esp_max, amplitude = (float(value) for value in fields[:3])
-            except ValueError as exc:
-                raise ValueError(
-                    f"ESP table {path}: expected 'min max amplitude', got {fields!r}"
-                ) from exc
-            if len(fields) < 3 or esp_min <= 0 or esp_max < esp_min or amplitude < 0:
-                raise ValueError(f"ESP table {path}: invalid row {fields!r}")
-            tolerance = 10.0 * amplitude * _ESP_TOLERANCE_SCALE
-            bands.append(ForbiddenBand(axis, 5e5 / esp_max, 5e5 / esp_min, tolerance))
     return bands
 
 
