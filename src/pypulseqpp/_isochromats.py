@@ -5,6 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from ._ext import sim as _kernels
+from ._offsets import calc_absolute_offsets
+from ._opts import Opts as _Opts
 
 __all__ = ["Isochromats"]
 
@@ -30,6 +32,81 @@ def _sensitivities(value, count: int, name: str):
             f"{name} must be (isochromats,) or (isochromats, channels), got shape {values.shape}"
         )
     return np.ascontiguousarray(values)
+
+
+def _axes(gradients) -> list:
+    axes = [None, None, None] if gradients is None else list(gradients)
+    if len(axes) != 3:
+        raise ValueError("gradients must hold the three axes, x, y and z")
+    return [
+        None
+        if axis is None or np.size(axis) == 0
+        else np.ascontiguousarray(axis, dtype=float)
+        for axis in axes
+    ]
+
+
+def _rotation(rotation):
+    if rotation is None:
+        return None
+    matrix = np.asarray(rotation, dtype=float)
+    if matrix.shape != (3, 3) or not np.all(np.isfinite(matrix)):
+        raise ValueError(
+            f"rotation must be a finite (3, 3) matrix, got shape {matrix.shape}"
+        )
+    return np.ascontiguousarray(matrix)
+
+
+def _field(rf, system) -> tuple:
+    """Return the field ``rf`` plays as ``(start, step, samples)``, samples ``(channels, steps)``."""
+    if rf is None:
+        return 0.0, 0.0, None
+    if hasattr(rf, "signal"):
+        frequency, phase = calc_absolute_offsets(rf, system=system)
+        return _kernels.pulse_steps(
+            np.ascontiguousarray(rf.t, dtype=float).ravel(),
+            np.ascontiguousarray(rf.signal, dtype=complex).ravel(),
+            float(rf.delay),
+            phase,
+            frequency,
+            float((_Opts.default if system is None else system).rf_raster_time),
+        )
+    start, step, samples = rf
+    samples = np.asarray(samples, dtype=complex)
+    if samples.ndim == 1:
+        samples = samples[None, :]
+    return float(start), float(step), np.ascontiguousarray(samples)
+
+
+def _window(adc, system) -> tuple:
+    """Return the sample times and the phase each is demodulated by, None for plain times."""
+    if adc is None:
+        return None, None
+    if not hasattr(adc, "num_samples"):
+        return np.ascontiguousarray(adc, dtype=float), None
+    count = int(adc.num_samples)
+    dwell = float(adc.dwell)
+    if count < 0 or not dwell > 0.0:
+        raise ValueError("an ADC needs a count of samples and a positive dwell time")
+    modulation = getattr(adc, "phase_modulation", None)
+    modulation = (
+        np.zeros(0)
+        if modulation is None
+        else np.asarray(modulation, dtype=float).ravel()
+    )
+    if modulation.size not in (0, count):
+        raise ValueError(
+            f"an ADC's phase modulation must hold one value per sample, {count}, got {modulation.size}"
+        )
+    frequency, phase = calc_absolute_offsets(adc, system=system)
+    return _kernels.adc_window(
+        count,
+        dwell,
+        float(adc.delay),
+        phase,
+        frequency,
+        np.ascontiguousarray(modulation),
+    )
 
 
 class Isochromats:
@@ -150,10 +227,22 @@ class Isochromats:
         """Return every isochromat to equilibrium, along ``+z``, and the clock to zero."""
         self._native.reset()
 
-    def play(self, duration: float, *, gradients=None, rf=None, adc=None) -> np.ndarray:
+    def play(
+        self,
+        duration: float,
+        *,
+        gradients=None,
+        rotation=None,
+        rf=None,
+        adc=None,
+        system=None,
+    ) -> np.ndarray:
         """Play one block's events and return what each coil receives at each ADC sample.
 
-        Times are in s from the block's start.
+        Times are in s from the block's start. An RF or ADC event plays as in
+        :meth:`Sequence.simulate`, which :doc:`/explanations/simulation`
+        describes; the field and sample times the events amount to can be
+        given instead.
 
         Parameters
         ----------
@@ -163,45 +252,65 @@ class Isochromats:
             Three entries, for the x, y and z axes, each ``None`` or a
             ``(2, m)`` array of corner times over gradient amplitude, in Hz/m.
             The gradient is linear between the corners and zero outside them.
-        rf : tuple, default=None
-            ``(start, step, samples)``: the transverse field ``b1``, in Hz, as
-            ``(steps,)`` or ``(channels, steps)`` complex samples, each held for
+        rotation : array_like, default=None
+            ``(3, 3)`` matrix from the axes ``gradients`` are given along to
+            the axes of the positions, a reflection allowed. Each axis plays
+            the sum its row weights, exact on the union of the corners, with
+            a gradient's step from or to zero at its first or last corner
+            kept as a step.
+        rf : RF event or tuple, default=None
+            An RF event: ``signal``, in Hz, at the times ``t`` from the pulse's
+            start, which is ``delay`` into the block, with its phase and
+            frequency offsets; a dynamic pTx pulse holds its channels one
+            after another over one time base. Or the transverse field ``b1``,
+            as ``(start, step, samples)``: ``(steps,)`` or
+            ``(channels, steps)`` complex samples, in Hz, each held for
             ``step`` from ``start`` on. Without transmit sensitivities the
             channels are summed; with them there must be one channel each.
-        adc : array_like, default=None
-            Increasing sample times, none inside the RF pulse.
+        adc : ADC event or array_like, default=None
+            An ADC event, sampled at the middle of each dwell from its delay
+            on, whose samples are returned demodulated by its phase offset,
+            frequency offset and phase modulation. Or increasing sample
+            times, whose samples are returned as received. No sample may fall
+            inside the RF pulse.
+        system : Opts, default=None
+            The RF raster, over whose steps an RF event with a time shape is
+            held, and the gamma and B0 the events' ppm offsets are resolved
+            at; the default system when None.
 
         Returns
         -------
         NDArray[np.complex128]
             ``(coils, samples)``: at each sample, the sum over the isochromats of
-            the receive sensitivity times ``Mx + i My``, not demodulated.
+            the receive sensitivity times ``Mx + i My``, demodulated for an ADC
+            event.
 
         Raises
         ------
         ValueError
             If an event does not fit in the block, an ADC sample falls inside
-            the RF pulse, or the RF channels do not match the transmit
-            sensitivities.
+            the RF pulse, the RF channels do not match the transmit
+            sensitivities, or an event or the rotation is malformed.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> spins = pp.Isochromats([[0.0, 0.0, 0.0]])
+        >>> rf = pp.make_block_pulse(np.pi / 2, duration=1e-3)
+        >>> adc = pp.make_adc(1, dwell=10e-6, delay=1e-3)
+        >>> np.round(spins.play(1.01e-3, rf=rf, adc=adc), 6)
+        array([[0.+1.j]])
         """
-        axes = [None, None, None] if gradients is None else list(gradients)
-        if len(axes) != 3:
-            raise ValueError("gradients must hold the three axes, x, y and z")
-        axes = [
-            None
-            if axis is None or np.size(axis) == 0
-            else np.ascontiguousarray(axis, dtype=float)
-            for axis in axes
-        ]
-        start = step = 0.0
-        samples = None
-        if rf is not None:
-            start, step, samples = rf
-            samples = np.asarray(samples, dtype=complex)
-            if samples.ndim == 1:
-                samples = samples[None, :]
-            samples = np.ascontiguousarray(samples)
-        times = None if adc is None else np.ascontiguousarray(adc, dtype=float)
-        return self._native.play(
-            float(duration), axes, float(start), float(step), samples, times
+        start, step, samples = _field(rf, system)
+        times, receiver = _window(adc, system)
+        signal = self._native.play(
+            float(duration),
+            _axes(gradients),
+            _rotation(rotation),
+            start,
+            step,
+            samples,
+            times,
         )
+        return signal if receiver is None else signal * np.exp(1j * receiver)

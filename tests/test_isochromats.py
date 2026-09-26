@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 
@@ -208,6 +210,109 @@ def test_a_rotated_gradient_steps_where_it_starts_and_ends_away_from_zero():
     expected = 1j * np.exp(-2j * np.pi * positions @ (matrix @ area))
     m = spins.magnetization
     np.testing.assert_allclose(m[:, 0] + 1j * m[:, 1], expected, rtol=0, atol=1e-9)
+
+
+def _turn(axis, angle):
+    """The rotation by ``angle`` about ``axis``, by Rodrigues' formula."""
+    k = np.asarray(axis, dtype=float) / np.linalg.norm(axis)
+    cross = np.array([[0.0, -k[2], k[1]], [k[2], 0.0, -k[0]], [-k[1], k[0], 0.0]])
+    return np.eye(3) + np.sin(angle) * cross + (1.0 - np.cos(angle)) * cross @ cross
+
+
+def _corners(gradient):
+    """A trapezoid's or extended trapezoid's corners from its block's start."""
+    if gradient.type == "trap":
+        ramps = [0.0, gradient.rise_time, gradient.flat_time, gradient.fall_time]
+        amplitude = gradient.amplitude
+        return np.array(
+            [gradient.delay + np.cumsum(ramps), [0.0, amplitude, amplitude, 0.0]]
+        )
+    return np.array(
+        [gradient.delay + np.asarray(gradient.tt), np.asarray(gradient.waveform)]
+    )
+
+
+def test_events_played_one_by_one_answer_as_their_sequence():
+    """play takes a block's events as Sequence.simulate plays them."""
+    system = pp.Opts(
+        max_grad=30, grad_unit="mT/m", max_slew=120, slew_unit="T/m/s", B0=3.0
+    )
+    matrix = _turn([1.0, 2.0, 3.0], 0.7)
+    rf, gz, _ = pp.make_sinc_pulse(
+        np.pi / 6,
+        duration=1e-3,
+        slice_thickness=5e-3,
+        time_bw_product=4,
+        freq_offset=300.0,
+        phase_offset=0.4,
+        system=system,
+        return_gz=True,
+    )
+    gx = pp.make_trapezoid("x", flat_area=64 / 0.2, flat_time=2.56e-3, system=system)
+    adc = pp.make_adc(
+        64,
+        duration=gx.flat_time,
+        delay=gx.rise_time,
+        freq_offset=150.0,
+        phase_offset=-0.3,
+        phase_modulation=np.linspace(0.0, 2.0, 64) ** 2,
+        system=system,
+    )
+    seq = pp.Sequence(system)
+    seq.add_block(
+        pp.make_gauss_pulse(
+            np.pi / 2, duration=2e-3, freq_ppm=-3.45, phase_ppm=0.2, system=system
+        )
+    )
+    seq.add_block(rf, gz)
+    seq.add_block(
+        pp.make_trapezoid("y", area=-120.0, duration=1e-3, system=system),
+        pp.make_rotation(matrix),
+    )
+    seq.add_block(gx, adc, pp.make_rotation(matrix))
+    seq.add_block(
+        pp.make_block_pulse(np.pi / 4, duration=0.2e-3, phase_offset=1.1, system=system)
+    )
+    seq.add_block(gx, adc)
+    positions = RNG.uniform(-0.05, 0.05, size=(40, 3))
+    tissue = {"t1": 0.8, "t2": 0.08, "off_resonance": RNG.uniform(-50.0, 50.0, 40)}
+    expected = seq.simulate(pp.Isochromats(positions, **tissue))
+    spins = pp.Isochromats(positions, **tissue)
+    played = []
+    for index in range(1, 7):
+        block = seq.get_block(index)
+        gradients = [
+            None if gradient is None else _corners(gradient)
+            for gradient in (block.gx, block.gy, block.gz)
+        ]
+        played.append(
+            spins.play(
+                block.block_duration,
+                gradients=gradients,
+                rotation=None if block.rotation is None else matrix,
+                rf=block.rf,
+                adc=block.adc,
+                system=system,
+            )
+        )
+    np.testing.assert_allclose(
+        np.concatenate(played, axis=1), expected, rtol=0, atol=1e-12
+    )
+
+
+def test_a_reflection_plays_the_gradients_mirrored():
+    gradient = np.array([[0.0, 0.2e-3, 0.8e-3, 1e-3], [0.0, 3e4, 3e4, 0.0]])
+    mirrored, plain = (
+        pp.Isochromats([[0.0, 0.0, 0.01]]),
+        pp.Isochromats([[0.0, 0.0, -0.01]]),
+    )
+    for spins in (mirrored, plain):
+        spins.magnetization = [1.0, 0.0, 0.0]
+    mirrored.play(
+        1e-3, gradients=[None, None, gradient], rotation=np.diag([1.0, 1.0, -1.0])
+    )
+    plain.play(1e-3, gradients=[None, None, gradient])
+    np.testing.assert_allclose(mirrored.magnetization, plain.magnetization, atol=1e-12)
 
 
 def test_consecutive_block_ranges_play_one_scan():
@@ -453,6 +558,32 @@ def test_malformed_isochromats_are_refused(arguments, message):
             {"gradients": [np.array([[1e-4, 0.0], [1.0, 1.0]]), None, None]},
             "increasing",
         ),
+        (
+            {
+                "gradients": [np.array([[1e-4, 0.0], [1.0, 1.0]]), None, None],
+                "rotation": np.eye(3),
+            },
+            "increasing",
+        ),
+        ({"gradients": [None, None]}, "three axes"),
+        ({"rotation": np.eye(2)}, "rotation"),
+        (
+            {
+                "rf": SimpleNamespace(
+                    signal=np.ones(3), t=[0.0, 2e-6, 1e-6], delay=0.0, freq_offset=0.0
+                )
+            },
+            "sample times",
+        ),
+        (
+            {
+                "adc": SimpleNamespace(
+                    num_samples=4, dwell=1e-5, delay=0.0, phase_modulation=np.zeros(3)
+                )
+            },
+            "one value per sample",
+        ),
+        ({"adc": SimpleNamespace(num_samples=4, dwell=0.0, delay=0.0)}, "dwell"),
     ],
 )
 def test_events_that_do_not_fit_are_refused(events, message):

@@ -126,20 +126,12 @@ namespace
         return out;
     }
 
-    py::array_t<Complex> play(
-        pulseq::Isochromats& self,
-        double duration,
-        const py::sequence& gradients,
-        double rf_start,
-        double rf_step,
-        const py::object& rf,
-        const py::object& adc)
+    /** Point @p block at the corners each entry of @p gradients holds, kept
+     *  alive in @p held. */
+    void take_gradients(const py::sequence& gradients, std::vector<Doubles>& held, pulseq::BlockEvents& block)
     {
         if (py::len(gradients) != 3)
             throw std::invalid_argument("gradients must hold the three axes");
-        pulseq::BlockEvents block;
-        block.duration = duration;
-        std::vector<Doubles> held;
         held.reserve(3);
         for (size_t axis = 0; axis < 3; ++axis)
         {
@@ -155,6 +147,52 @@ namespace
             block.gradient_values[axis] = corners.data() + count;
             block.gradient_corners[axis] = count;
         }
+    }
+
+    /** Point @p block at the corners @p rotation turns its gradients into,
+     *  held in @p out. */
+    void turn_gradients(
+        const Doubles& rotation, pulseq::GradientCorners& given, pulseq::GradientCorners& out, pulseq::BlockEvents& block)
+    {
+        if (rotation.ndim() != 2 || rotation.shape(0) != 3 || rotation.shape(1) != 3)
+            throw std::invalid_argument("a rotation must be a (3, 3) matrix");
+        double matrix[3][3];
+        for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+                matrix[i][j] = rotation.data()[3 * i + j];
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            const size_t count = block.gradient_corners[axis];
+            given.times[axis].assign(block.gradient_times[axis], block.gradient_times[axis] + count);
+            given.values[axis].assign(block.gradient_values[axis], block.gradient_values[axis] + count);
+        }
+        pulseq::rotate_gradients(matrix, given, out);
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            block.gradient_times[axis] = out.times[axis].data();
+            block.gradient_values[axis] = out.values[axis].data();
+            block.gradient_corners[axis] = out.times[axis].size();
+        }
+    }
+
+    py::array_t<Complex> play(
+        pulseq::Isochromats& self,
+        double duration,
+        const py::sequence& gradients,
+        const py::object& rotation,
+        double rf_start,
+        double rf_step,
+        const py::object& rf,
+        const py::object& adc)
+    {
+        pulseq::BlockEvents block;
+        block.duration = duration;
+        std::vector<Doubles> held;
+        take_gradients(gradients, held, block);
+        pulseq::GradientCorners given;
+        pulseq::GradientCorners turned;
+        if (!rotation.is_none())
+            turn_gradients(py::cast<Doubles>(rotation), given, turned, block);
         Complexes samples;
         if (!rf.is_none())
         {
@@ -184,6 +222,39 @@ namespace
             self.play(block, out);
         }
         return signal;
+    }
+
+    py::tuple pulse_steps(
+        const Doubles& times, const Complexes& waveform, double delay, double phase, double frequency, double raster)
+    {
+        if (times.ndim() != 1 || waveform.ndim() != 1)
+            throw std::invalid_argument("an RF pulse's times and samples must be one-dimensional");
+        const std::vector<double> t(times.data(), times.data() + times.size());
+        const std::vector<Complex> w(waveform.data(), waveform.data() + waveform.size());
+        pulseq::PulseSteps steps;
+        pulseq::pulse_steps(t, w, delay, phase, frequency, raster, steps);
+        py::array_t<Complex> samples(
+            {static_cast<py::ssize_t>(steps.channels), static_cast<py::ssize_t>(steps.steps)});
+        std::copy(steps.rf.begin(), steps.rf.end(), samples.mutable_data());
+        return py::make_tuple(steps.start, steps.step, samples);
+    }
+
+    py::tuple adc_window(size_t samples, double dwell, double delay, double phase, double frequency, const Doubles& modulation)
+    {
+        if (modulation.ndim() != 1)
+            throw std::invalid_argument("an ADC's phase modulation must be one-dimensional");
+        pulseq::AdcWindow window;
+        pulseq::adc_window(
+            samples,
+            dwell,
+            delay,
+            phase,
+            frequency,
+            std::vector<double>(modulation.data(), modulation.data() + modulation.size()),
+            window);
+        return py::make_tuple(
+            py::array_t<double>(static_cast<py::ssize_t>(window.times.size()), window.times.data()),
+            py::array_t<double>(static_cast<py::ssize_t>(window.receiver.size()), window.receiver.data()));
     }
 
     constexpr double kTwoPi = 6.283185307179586476925286766559;
@@ -378,6 +449,7 @@ bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
              &play,
              py::arg("duration"),
              py::arg("gradients"),
+             py::arg("rotation") = py::none(),
              py::arg("rf_start") = 0.0,
              py::arg("rf_step") = 0.0,
              py::arg("rf") = py::none(),
@@ -393,4 +465,26 @@ bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
         py::arg("b0") = 1.5,
         py::arg("gamma") = 42576000.0,
         "Play the blocks of a sequence on isochromats; every ADC sample, (coils, samples).");
+
+    module.def(
+        "pulse_steps",
+        &pulse_steps,
+        py::arg("times"),
+        py::arg("waveform"),
+        py::arg("delay"),
+        py::arg("phase"),
+        py::arg("frequency"),
+        py::arg("raster"),
+        "The field an RF pulse plays, as (start, step, (channels, steps) b1 in Hz).");
+
+    module.def(
+        "adc_window",
+        &adc_window,
+        py::arg("samples"),
+        py::arg("dwell"),
+        py::arg("delay"),
+        py::arg("phase"),
+        py::arg("frequency"),
+        py::arg("modulation"),
+        "An ADC's sample times from the block's start and the phase each is demodulated by.");
 }
