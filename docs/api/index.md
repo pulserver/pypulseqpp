@@ -34,6 +34,7 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 
 | Page | Module | What it documents |
 | --- | --- | --- |
+| {doc}`simulation` | `pypulseqpp` | Isochromats, and the Bloch simulation of a sequence's blocks played on them. |
 | {doc}`safety` | `pypulseqpp.safety` | The gradient amplitude, slew-rate, continuity, mechanical-resonance, nerve-stimulation and SAR checks, and the readings they return beside a verdict. |
 | {doc}`plotting` | `pypulseqpp.plot` | The SeqEyes view, the publication diagram, and the k-space and RF-profile figures. |
 | {doc}`cli` | `pypulseqpp.cli` | Running a sequence application from the shell, and writing the file it produces. |
@@ -51,6 +52,7 @@ timing
 sampling
 modules
 apps
+simulation
 safety
 plotting
 cli

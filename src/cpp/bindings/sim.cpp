@@ -1,5 +1,6 @@
 // Relaxation-free Bloch simulation in hard-pulse steps. Each position's steps
 // compose as SU(2) elements and are converted to one 3x3 rotation at the end.
+// Beside it, the isochromats the Bloch equation carries from block to block.
 #include <pybind11/complex.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -13,6 +14,10 @@
 #include <thread>
 #include <vector>
 
+#include "pulseq/bloch.hpp"
+#include "pulseq/sequence.hpp"
+#include "pulseq/simulate.hpp"
+#include "pulseqpp_events.h"
 #include "sim.h"
 
 namespace py = pybind11;
@@ -20,6 +25,166 @@ namespace py = pybind11;
 namespace
 {
     using Complex = std::complex<double>;
+    using Doubles = py::array_t<double, py::array::c_style | py::array::forcecast>;
+    using Complexes = py::array_t<Complex, py::array::c_style | py::array::forcecast>;
+
+    std::vector<double> column(const Doubles& values, size_t count, const char* name)
+    {
+        if (values.ndim() != 1 || static_cast<size_t>(values.shape(0)) != count)
+            throw std::invalid_argument(std::string(name) + " must hold one value per isochromat");
+        return std::vector<double>(values.data(), values.data() + count);
+    }
+
+    /** Sensitivities as (isochromats, channels), or none. */
+    std::vector<Complex> sensitivities(const py::object& given, size_t count, size_t& channels, const char* name)
+    {
+        channels = 0;
+        if (given.is_none())
+            return {};
+        const Complexes values = py::cast<Complexes>(given);
+        if (values.ndim() != 2 || static_cast<size_t>(values.shape(0)) != count || values.shape(1) < 1)
+            throw std::invalid_argument(
+                std::string(name) + " must be (isochromats, channels) with at least one channel");
+        channels = static_cast<size_t>(values.shape(1));
+        return std::vector<Complex>(values.data(), values.data() + values.size());
+    }
+
+    pulseq::Isochromats* make_isochromats(
+        const Doubles& positions,
+        const Doubles& proton_density,
+        const Doubles& t1,
+        const Doubles& t2,
+        const Doubles& off_resonance,
+        const py::object& transmit,
+        const py::object& receive,
+        size_t threads)
+    {
+        if (positions.ndim() != 2 || positions.shape(1) != 3)
+            throw std::invalid_argument("positions must be (isochromats, 3)");
+        const size_t count = static_cast<size_t>(positions.shape(0));
+        pulseq::IsochromatProperties properties;
+        properties.x.resize(count);
+        properties.y.resize(count);
+        properties.z.resize(count);
+        const double* xyz = positions.data();
+        for (size_t i = 0; i < count; ++i)
+        {
+            properties.x[i] = xyz[3 * i];
+            properties.y[i] = xyz[3 * i + 1];
+            properties.z[i] = xyz[3 * i + 2];
+        }
+        properties.proton_density = column(proton_density, count, "proton_density");
+        properties.t1 = column(t1, count, "t1");
+        properties.t2 = column(t2, count, "t2");
+        properties.off_resonance = column(off_resonance, count, "off_resonance");
+        properties.transmit = sensitivities(transmit, count, properties.transmit_channels, "transmit");
+        properties.receive = sensitivities(receive, count, properties.coils, "receive");
+        py::gil_scoped_release unlocked;
+        return new pulseq::Isochromats(std::move(properties), threads);
+    }
+
+    py::array_t<double> magnetization(pulseq::Isochromats& self)
+    {
+        py::array_t<double> out({static_cast<py::ssize_t>(self.size()), static_cast<py::ssize_t>(3)});
+        double* into = out.mutable_data();
+        {
+            py::gil_scoped_release unlocked;
+            self.magnetization(into);
+        }
+        return out;
+    }
+
+    void set_magnetization(pulseq::Isochromats& self, const Doubles& values)
+    {
+        if (values.ndim() != 2 || static_cast<size_t>(values.shape(0)) != self.size() || values.shape(1) != 3)
+            throw std::invalid_argument("the magnetisation must be (isochromats, 3)");
+        self.set_magnetization(values.data());
+    }
+
+    py::array_t<Complex> simulate_sequence(
+        const pulseqpp_events::BoundSequence& sequence,
+        pulseq::Isochromats& isochromats,
+        int first_block,
+        int last_block,
+        double b0,
+        double gamma)
+    {
+        pulseq::SimulationOptions options;
+        options.first_block = first_block;
+        options.last_block = last_block;
+        options.b0 = b0;
+        options.gamma = gamma;
+        std::vector<Complex> samples;
+        {
+            py::gil_scoped_release unlocked;
+            samples = pulseq::simulate(sequence, isochromats, options);
+        }
+        const size_t coils = isochromats.coils();
+        py::array_t<Complex> out(
+            {static_cast<py::ssize_t>(coils), static_cast<py::ssize_t>(samples.size() / coils)});
+        std::copy(samples.begin(), samples.end(), out.mutable_data());
+        return out;
+    }
+
+    py::array_t<Complex> play(
+        pulseq::Isochromats& self,
+        double duration,
+        const py::sequence& gradients,
+        double rf_start,
+        double rf_step,
+        const py::object& rf,
+        const py::object& adc)
+    {
+        if (py::len(gradients) != 3)
+            throw std::invalid_argument("gradients must hold the three axes");
+        pulseq::BlockEvents block;
+        block.duration = duration;
+        std::vector<Doubles> held;
+        held.reserve(3);
+        for (size_t axis = 0; axis < 3; ++axis)
+        {
+            const py::object given = gradients[axis];
+            if (given.is_none())
+                continue;
+            held.push_back(py::cast<Doubles>(given));
+            const Doubles& corners = held.back();
+            if (corners.ndim() != 2 || corners.shape(0) != 2)
+                throw std::invalid_argument("a gradient must be a (2, n) array of time over amplitude");
+            const size_t count = static_cast<size_t>(corners.shape(1));
+            block.gradient_times[axis] = corners.data();
+            block.gradient_values[axis] = corners.data() + count;
+            block.gradient_corners[axis] = count;
+        }
+        Complexes samples;
+        if (!rf.is_none())
+        {
+            samples = py::cast<Complexes>(rf);
+            if (samples.ndim() != 2)
+                throw std::invalid_argument("an RF pulse must be (channels, steps)");
+            block.rf_start = rf_start;
+            block.rf_step = rf_step;
+            block.rf_channels = static_cast<size_t>(samples.shape(0));
+            block.rf_steps = static_cast<size_t>(samples.shape(1));
+            block.rf = samples.data();
+        }
+        Doubles times;
+        if (!adc.is_none())
+        {
+            times = py::cast<Doubles>(adc);
+            if (times.ndim() != 1)
+                throw std::invalid_argument("ADC sample times must be one-dimensional");
+            block.adc_times = times.data();
+            block.adc_samples = static_cast<size_t>(times.shape(0));
+        }
+        py::array_t<Complex> signal(
+            {static_cast<py::ssize_t>(self.coils()), static_cast<py::ssize_t>(block.adc_samples)});
+        Complex* out = signal.mutable_data();
+        {
+            py::gil_scoped_release unlocked;
+            self.play(block, out);
+        }
+        return signal;
+    }
 
     constexpr double kTwoPi = 6.283185307179586476925286766559;
 
@@ -191,4 +356,41 @@ Step k turns right-handedly about 2 pi dt (Re b1[k], Im b1[k], bz[k]) by that
 vector's length. b1 is (steps,) shared by every position or (positions, steps);
 bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
 )doc");
+
+    py::class_<pulseq::Isochromats>(module, "Isochromats")
+        .def(py::init(&make_isochromats),
+             py::arg("positions"),
+             py::arg("proton_density"),
+             py::arg("t1"),
+             py::arg("t2"),
+             py::arg("off_resonance"),
+             py::arg("transmit") = py::none(),
+             py::arg("receive") = py::none(),
+             py::arg("threads") = 0)
+        .def_property_readonly("size", &pulseq::Isochromats::size)
+        .def_property_readonly("coils", &pulseq::Isochromats::coils)
+        .def_property_readonly("transmit_channels", &pulseq::Isochromats::transmit_channels)
+        .def_property_readonly("elapsed", &pulseq::Isochromats::elapsed)
+        .def("reset", &pulseq::Isochromats::reset)
+        .def("magnetization", &magnetization)
+        .def("set_magnetization", &set_magnetization)
+        .def("play",
+             &play,
+             py::arg("duration"),
+             py::arg("gradients"),
+             py::arg("rf_start") = 0.0,
+             py::arg("rf_step") = 0.0,
+             py::arg("rf") = py::none(),
+             py::arg("adc") = py::none());
+
+    module.def(
+        "simulate",
+        &simulate_sequence,
+        py::arg("sequence"),
+        py::arg("isochromats"),
+        py::arg("first_block") = 1,
+        py::arg("last_block") = 0,
+        py::arg("b0") = 1.5,
+        py::arg("gamma") = 42576000.0,
+        "Play the blocks of a sequence on isochromats; every ADC sample, (coils, samples).");
 }

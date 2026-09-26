@@ -33,6 +33,7 @@ Passing these checks does not establish scanner or patient safety.
 - Composable excitation, preparation and readout `SequenceModule` classes.
 - Waveform, ADC sampling-location and k-space analysis with publication figures.
 - Timing, hardware-limit, PNS, mechanical-resonance and VOP-based SAR estimates.
+- Bloch simulation with relaxation of a sequence played on isochromats.
 
 <p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900"></p>
 

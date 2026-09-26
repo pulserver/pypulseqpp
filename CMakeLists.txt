@@ -24,6 +24,7 @@ find_package(Threads REQUIRED)
 # it should.
 pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/analysis.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/bloch.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/corners.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/dedup.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/md5.cpp
@@ -32,6 +33,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/write_binary.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/sequence.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/shape.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/simulate.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/fov.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/kspace.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/pns.cpp

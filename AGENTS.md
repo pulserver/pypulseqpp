@@ -9,8 +9,9 @@ method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
 repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
-waveform and k-space analysis, FOV transforms, RF/gradient design and
-reusable sequence modules. Tiling is deferred.
+waveform and k-space analysis, Bloch simulation on isochromats, FOV
+transforms, RF/gradient design and reusable sequence modules. Tiling is
+deferred.
 
 Sampling, view-ordering, angle and schedule helpers are implemented in
 private modules (`_masks`, `_ordering`, `_epi`, `_angles`, `_schedules`) and
