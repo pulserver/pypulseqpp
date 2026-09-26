@@ -258,6 +258,12 @@ from.
    :toctree: generated
    :nosignatures:
 
+   Isochromats
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
    calc_adc_segments
    calc_adc_timing
    quantize_readout_timing

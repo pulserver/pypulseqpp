@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**06:40.289** total execution time for 47 files **from all galleries**:
+**05:12.373** total execution time for 47 files **from all galleries**:
 
 .. container::
 
@@ -33,143 +33,143 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py` (``../gallery/10-gradient-echo/gre_multiecho3D_sequence.py``)
-     - 02:57.925
+     - 02:20.060
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py` (``../gallery/10-gradient-echo/gre_multiecho2D_sequence.py``)
-     - 00:24.345
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp3D_sequence.py` (``../gallery/14-bssfp/bssfp3D_sequence.py``)
-     - 00:23.291
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre3D_sequence.py` (``../gallery/10-gradient-echo/gre3D_sequence.py``)
-     - 00:23.274
+     - 00:18.907
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se3D_sequence.py` (``../gallery/11-spin-echo/se3D_sequence.py``)
-     - 00:23.152
+     - 00:18.246
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre3D_sequence.py` (``../gallery/10-gradient-echo/gre3D_sequence.py``)
+     - 00:18.209
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp3D_sequence.py` (``../gallery/14-bssfp/bssfp3D_sequence.py``)
+     - 00:18.141
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_16-zte_zte3D_sequence.py` (``../gallery/16-zte/zte3D_sequence.py``)
-     - 00:20.255
+     - 00:16.005
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py` (``../gallery/12-mprage/mprage_stack_of_spirals3D_sequence.py``)
-     - 00:11.274
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_02-spoiling_02_rf_spoiling.py` (``../gallery/02-spoiling/02_rf_spoiling.py``)
-     - 00:09.251
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py` (``../gallery/10-gradient-echo/gre_stack_of_blades3D_sequence.py``)
-     - 00:08.734
+     - 00:08.765
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py` (``../gallery/11-spin-echo/se_stack_of_blades3D_sequence.py``)
-     - 00:08.709
+     - 00:06.824
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py` (``../gallery/10-gradient-echo/gre_stack_of_blades3D_sequence.py``)
+     - 00:06.816
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_02-spoiling_02_rf_spoiling.py` (``../gallery/02-spoiling/02_rf_spoiling.py``)
+     - 00:06.632
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py` (``../gallery/12-mprage/mprage_stack_of_stars3D_sequence.py``)
-     - 00:08.469
+     - 00:06.584
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py` (``../gallery/11-spin-echo/se_stack_of_stars3D_sequence.py``)
-     - 00:05.329
+     - 00:04.165
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py` (``../gallery/10-gradient-echo/gre_stack_of_stars3D_sequence.py``)
-     - 00:05.327
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_propeller2D_sequence.py` (``../gallery/11-spin-echo/se_propeller2D_sequence.py``)
-     - 00:04.002
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py` (``../gallery/10-gradient-echo/gre_propeller2D_sequence.py``)
-     - 00:04.001
+     - 00:04.123
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py` (``../gallery/13-fast-spin-echo/fse3D_adaptive.py``)
-     - 00:03.976
+     - 00:03.701
      - 0.0
-   * - :ref:`sphx_glr_generated_gallery_04-non-cartesian_01_radial.py` (``../gallery/04-non-cartesian/01_radial.py``)
-     - 00:03.392
+   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_propeller2D_sequence.py` (``../gallery/11-spin-echo/se_propeller2D_sequence.py``)
+     - 00:03.072
      - 0.0
-   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py` (``../gallery/11-spin-echo/se_stack_of_spirals3D_sequence.py``)
-     - 00:03.179
+   * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py` (``../gallery/10-gradient-echo/gre_propeller2D_sequence.py``)
+     - 00:03.062
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py` (``../gallery/10-gradient-echo/gre_stack_of_spirals3D_sequence.py``)
-     - 00:03.167
+     - 00:02.444
      - 0.0
-   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_radial2D_sequence.py` (``../gallery/11-spin-echo/se_radial2D_sequence.py``)
-     - 00:02.721
+   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py` (``../gallery/11-spin-echo/se_stack_of_spirals3D_sequence.py``)
+     - 00:02.433
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_04-non-cartesian_01_radial.py` (``../gallery/04-non-cartesian/01_radial.py``)
+     - 00:02.262
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py` (``../gallery/10-gradient-echo/gre_radial2D_sequence.py``)
-     - 00:02.708
+     - 00:02.089
      - 0.0
-   * - :ref:`sphx_glr_generated_gallery_02-spoiling_01_gradient_spoiling.py` (``../gallery/02-spoiling/01_gradient_spoiling.py``)
-     - 00:02.288
+   * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_radial2D_sequence.py` (``../gallery/11-spin-echo/se_radial2D_sequence.py``)
+     - 00:02.088
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se2D_sequence.py` (``../gallery/11-spin-echo/se2D_sequence.py``)
-     - 00:02.267
+     - 00:01.755
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py` (``../gallery/11-spin-echo/se_epi_propeller2D_sequence.py``)
-     - 00:02.198
+     - 00:01.687
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_02-spoiling_01_gradient_spoiling.py` (``../gallery/02-spoiling/01_gradient_spoiling.py``)
+     - 00:01.639
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre2D_sequence.py` (``../gallery/10-gradient-echo/gre2D_sequence.py``)
-     - 00:01.956
+     - 00:01.514
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_spiral2D_sequence.py` (``../gallery/11-spin-echo/se_spiral2D_sequence.py``)
-     - 00:01.392
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp2D_sequence.py` (``../gallery/14-bssfp/bssfp2D_sequence.py``)
-     - 00:01.367
+     - 00:01.063
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py` (``../gallery/10-gradient-echo/gre_spiral2D_sequence.py``)
-     - 00:01.365
+     - 00:01.059
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp2D_sequence.py` (``../gallery/14-bssfp/bssfp2D_sequence.py``)
+     - 00:01.027
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_01_excitation.py` (``../gallery/05-sequence-modules/01_excitation.py``)
-     - 00:01.334
+     - 00:01.022
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_sequence.py` (``../gallery/13-fast-spin-echo/fse3D_sequence.py``)
-     - 00:01.197
+     - 00:00.858
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_04-non-cartesian_02_spiral.py` (``../gallery/04-non-cartesian/02_spiral.py``)
-     - 00:01.093
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_15-epi_epi2D_sequence.py` (``../gallery/15-epi/epi2D_sequence.py``)
-     - 00:00.819
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage3D_sequence.py` (``../gallery/12-mprage/mprage3D_sequence.py``)
-     - 00:00.814
+     - 00:00.784
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_07-custom-modules_01_excitation_module.py` (``../gallery/07-custom-modules/01_excitation_module.py``)
-     - 00:00.763
+     - 00:00.614
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_15-epi_epi2D_sequence.py` (``../gallery/15-epi/epi2D_sequence.py``)
+     - 00:00.592
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage3D_sequence.py` (``../gallery/12-mprage/mprage3D_sequence.py``)
+     - 00:00.574
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py` (``../gallery/13-fast-spin-echo/fse3D_shuffling.py``)
-     - 00:00.669
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_15-epi_epi3D_sequence.py` (``../gallery/15-epi/epi3D_sequence.py``)
-     - 00:00.526
+     - 00:00.488
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-gre-to-epi_03_epi.py` (``../gallery/03-gre-to-epi/03_epi.py``)
-     - 00:00.521
+     - 00:00.373
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_15-epi_epi3D_sequence.py` (``../gallery/15-epi/epi3D_sequence.py``)
+     - 00:00.372
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-gre-to-epi_02_segmented.py` (``../gallery/03-gre-to-epi/02_segmented.py``)
-     - 00:00.485
+     - 00:00.346
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_03_sequence_app.py` (``../gallery/05-sequence-modules/03_sequence_app.py``)
-     - 00:00.460
+     - 00:00.343
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_03_gradient_echo.py` (``../gallery/01-pulseq-basics/03_gradient_echo.py``)
-     - 00:00.384
+     - 00:00.274
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-gre-to-epi_01_multi_echo.py` (``../gallery/03-gre-to-epi/01_multi_echo.py``)
-     - 00:00.353
+     - 00:00.249
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_02_readout.py` (``../gallery/05-sequence-modules/02_readout.py``)
-     - 00:00.332
+     - 00:00.231
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_06-checks_01_constraint_checks.py` (``../gallery/06-checks/01_constraint_checks.py``)
-     - 00:00.313
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_07-custom-modules_02_cartesian_readout.py` (``../gallery/07-custom-modules/02_cartesian_readout.py``)
-     - 00:00.262
+     - 00:00.222
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_07-custom-modules_03_noncartesian_readout.py` (``../gallery/07-custom-modules/03_noncartesian_readout.py``)
-     - 00:00.261
+     - 00:00.192
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_07-custom-modules_02_cartesian_readout.py` (``../gallery/07-custom-modules/02_cartesian_readout.py``)
+     - 00:00.183
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_01_fid.py` (``../gallery/01-pulseq-basics/01_fid.py``)
-     - 00:00.232
+     - 00:00.168
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-pulseq-basics_02_spin_echo.py` (``../gallery/01-pulseq-basics/02_spin_echo.py``)
-     - 00:00.158
+     - 00:00.113
      - 0.0

@@ -232,6 +232,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/simulation.html">Bloch simulation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -296,6 +297,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apps.html">Complete sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation.html">Bloch simulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html">Command-line helpers</a></li>
@@ -640,15 +642,19 @@ Concepts are in <a class="reference internal" href="../explanations/index.html">
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="safety.html"><span class="doc">Gradient, PNS and SAR checks</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="simulation.html"><span class="doc">Bloch simulation</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
+<td><p>Isochromats, and the Bloch simulation of a sequence’s blocks played on them.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="safety.html"><span class="doc">Gradient, PNS and SAR checks</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code></p></td>
 <td><p>The gradient amplitude, slew-rate, continuity, mechanical-resonance, nerve-stimulation and SAR checks, and the readings they return beside a verdict.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="plotting.html"><span class="doc">Plotting</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="plotting.html"><span class="doc">Plotting</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.plot</span></code></p></td>
 <td><p>The SeqEyes view, the publication diagram, and the k-space and RF-profile figures.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cli.html"><span class="doc">Command-line helpers</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="cli.html"><span class="doc">Command-line helpers</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.cli</span></code></p></td>
 <td><p>Running a sequence application from the shell, and writing the file it produces.</p></td>
 </tr>

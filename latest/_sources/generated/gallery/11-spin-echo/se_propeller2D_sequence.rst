@@ -175,7 +175,7 @@ each blade samples a larger central region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.002 seconds)
+   **Total running time of the script:** (0 minutes 3.072 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

@@ -1,0 +1,837 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Bloch simulation &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=b1def801"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/simulation';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/explanations/simulation.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples/index.html" />
+    <link rel="prev" title="Check conventions" href="safety/conventions.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="latest" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Explanations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="pulseq/index.html">Pulseq representation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="pulseq/events-and-blocks.html">Events and blocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pulseq/libraries-and-shapes.html">Storage, deduplication and file revisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pulseq/timing-and-rasterization.html">Timing and rasterization</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="design/sequence-module.html">Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="design/sampling.html">Sampling support and ordering</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="safety/gradient_amplitude.html">Gradient amplitude</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/slew_rate.html">Slew rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/gradient_continuity.html">Gradient continuity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/pns.html">Peripheral nerve stimulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/mechanical_resonance.html">Mechanical resonance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety/conventions.html">Check conventions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Bloch simulation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/pulseq-basics.html">Pulseq basics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/01_fid.html">Free induction decay</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/02_spin_echo.html">Spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/03_gradient_echo.html">Gradient echo</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/01_gradient_spoiling.html">Gradient spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/02_rf_spoiling.html">RF spoiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/gre-to-epi.html">From gradient echo to echo planar</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/01_multi_echo.html">Multi-echo readouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/02_segmented.html">Segmented echo planar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/03_epi.html">Single-shot echo planar</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/non-cartesian.html">Non-Cartesian trajectories</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/04-non-cartesian/02_spiral.html">Spiral readout</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/06-checks/01_constraint_checks.html">Sequence constraint checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/02_cartesian_readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/03_noncartesian_readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/simulation.html">Bloch simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/explanations/simulation.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fexplanations/simulation.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/explanations/simulation.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Bloch simulation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bloch-equation-in-the-rotating-frame">The Bloch equation in the rotating frame</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#free-precession">Free precession</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-pulses">RF pulses</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulseq-events-as-fields">Pulseq events as fields</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relation-to-komamri">Relation to KomaMRI</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-not-modelled">What is not modelled</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="bloch-simulation">
+<h1>Bloch simulation<a class="headerlink" href="#bloch-simulation" title="Link to this heading">#</a></h1>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../generated/pypulseqpp.Isochromats.html#pypulseqpp.Isochromats" title="pypulseqpp.Isochromats"><code class="xref py py-class docutils literal notranslate"><span class="pre">Isochromats</span></code></a> integrates the Bloch equation with
+relaxation for a set of isochromats, in the frame rotating at the reference
+frequency. The magnetisation turns clockwise about the field seen from its
+tip, as the moment of a nucleus of positive gyromagnetic ratio precesses: a
+90° pulse along <span class="math notranslate nohighlight">\(+x\)</span> takes <span class="math notranslate nohighlight">\(+z\)</span> to <span class="math notranslate nohighlight">\(+y\)</span>, and free precession at a positive
+frequency gives <span class="math notranslate nohighlight">\(M_x + iM_y\)</span> a negative phase.</p></li>
+<li><p>Free precession under a piecewise-linear gradient is integrated exactly. An
+RF pulse is played in steps of constant <span class="math notranslate nohighlight">\(b_1\)</span>, each a rotation about the
+step’s mean field between two half steps of relaxation.</p></li>
+<li><p>A Pulseq RF pulse enters as the complex conjugate of the waveform Pulseq
+defines. A frequency offset and the same phase ramp in the shape are then one
+pulse, and a positive offset excites isochromats precessing at a positive
+frequency.</p></li>
+<li><p>Each ADC sample is the sum over the isochromats of the receive sensitivity
+times <span class="math notranslate nohighlight">\(M_x + iM_y\)</span>, multiplied by <span class="math notranslate nohighlight">\(e^{i\theta}\)</span>, with <span class="math notranslate nohighlight">\(\theta\)</span> the ADC phase
+offset and phase modulation advancing at the ADC frequency offset. A
+gradient echo then samples <span class="math notranslate nohighlight">\(\sum_j \rho_j e^{-2\pi i\,\mathbf{k}\cdot\mathbf{r}_j}\)</span>
+at the <span class="math notranslate nohighlight">\(\mathbf{k}\)</span> that <a class="reference internal" href="../generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace" title="pypulseqpp.Sequence.calculate_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calculate_kspace()</span></code></a>
+reports.</p></li>
+<li><p>Diffusion, flow, motion, concomitant fields and the scanner’s hardware are
+not modelled.</p></li>
+</ul>
+</div>
+<p>A Bloch simulation computes the magnetisation that a sequence leaves in an
+object and the signal it induces in the receive coils. The object is
+represented by isochromats: spin packets that share one position, one
+precession frequency and one pair of relaxation times. This page states the
+equation the engine integrates, how each Pulseq event enters it, and how the
+resulting signal relates to the k-space trajectory.</p>
+<section id="the-bloch-equation-in-the-rotating-frame">
+<h2>The Bloch equation in the rotating frame<a class="headerlink" href="#the-bloch-equation-in-the-rotating-frame" title="Link to this heading">#</a></h2>
+<p>In the frame rotating at the scanner’s reference frequency, an isochromat at
+position <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> sees the field</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{b}(t) = \bigl(\operatorname{Re} b_1(t),\ \operatorname{Im} b_1(t),\
+\mathbf{G}(t)\cdot\mathbf{r} + \Delta f\bigr),
+\]</div>
+<p>in Hz: <span class="math notranslate nohighlight">\(b_1\)</span> is the transverse RF field, <span class="math notranslate nohighlight">\(\mathbf{G}\)</span> the gradient in Hz/m and
+<span class="math notranslate nohighlight">\(\Delta f\)</span> the isochromat’s off-resonance, field inhomogeneity and chemical
+shift together. The magnetisation obeys</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d\mathbf{M}}{dt} = 2\pi\,\mathbf{M}\times\mathbf{b}
+- \frac{M_x\hat{\mathbf{x}} + M_y\hat{\mathbf{y}}}{T_2}
+- \frac{(M_z - M_0)\,\hat{\mathbf{z}}}{T_1},
+\]</div>
+<p>with <span class="math notranslate nohighlight">\(M_0\)</span> the proton density. The cross product in this order is the
+precession of a nucleus of positive gyromagnetic ratio: the magnetisation
+turns about <span class="math notranslate nohighlight">\(\mathbf{b}\)</span> clockwise, seen from the tip of <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. A 90°
+pulse along <span class="math notranslate nohighlight">\(+x\)</span> takes <span class="math notranslate nohighlight">\(+z\)</span> to <span class="math notranslate nohighlight">\(+y\)</span>, and free precession gives the transverse
+magnetisation <span class="math notranslate nohighlight">\(M_{xy} = M_x + iM_y\)</span> the factor <span class="math notranslate nohighlight">\(e^{-2\pi i\,b_z t}\)</span>.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.sim_bloch.html#pypulseqpp.sim_bloch" title="pypulseqpp.sim_bloch"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_bloch()</span></code></a> turns the magnetisation the other way, right-handedly
+about <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. The two are mirror images under <span class="math notranslate nohighlight">\(y \to -y\)</span>: the engine’s
+result for a field <span class="math notranslate nohighlight">\(b_1\)</span> is <code class="docutils literal notranslate"><span class="pre">sim_bloch</span></code>’s for <span class="math notranslate nohighlight">\(b_1^*\)</span> with <span class="math notranslate nohighlight">\(M_y\)</span> negated.</p>
+</section>
+<section id="free-precession">
+<h2>Free precession<a class="headerlink" href="#free-precession" title="Link to this heading">#</a></h2>
+<p>Between RF steps, <span class="math notranslate nohighlight">\(b_z = \mathbf{G}(t)\cdot\mathbf{r} + \Delta f\)</span> turns the
+magnetisation about <span class="math notranslate nohighlight">\(z\)</span> only, and the turns add. Over an interval <span class="math notranslate nohighlight">\(\tau\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+M_{xy} \leftarrow M_{xy}\, e^{-2\pi i\,(\mathbf{r}\cdot\mathbf{A} + \Delta f\,\tau)}\,e^{-\tau/T_2},
+\qquad
+M_z \leftarrow M_z\,e^{-\tau/T_1} + M_0\,(1 - e^{-\tau/T_1}),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{A} = \int \mathbf{G}\,dt\)</span> is the gradient area over the
+interval, in 1/m. A Pulseq gradient is piecewise linear, so <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is
+exact from its corners, and so is the update, for any <span class="math notranslate nohighlight">\(\tau\)</span>. The engine
+accumulates <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> and <span class="math notranslate nohighlight">\(\tau\)</span> and applies them when the magnetisation is
+next needed, by an RF pulse, an ADC sample or a read: blocks that hold neither
+cost nothing per isochromat.</p>
+</section>
+<section id="rf-pulses">
+<h2>RF pulses<a class="headerlink" href="#rf-pulses" title="Link to this heading">#</a></h2>
+<p>During an RF pulse <span class="math notranslate nohighlight">\(b_1\)</span> varies, and the field no longer points along <span class="math notranslate nohighlight">\(z\)</span>. The
+engine holds <span class="math notranslate nohighlight">\(b_1\)</span> constant over steps of duration <span class="math notranslate nohighlight">\(\Delta t\)</span>. Step <span class="math notranslate nohighlight">\(k\)</span> turns
+the magnetisation by <span class="math notranslate nohighlight">\(2\pi\,|\mathbf{b}_k|\,\Delta t\)</span> about <span class="math notranslate nohighlight">\(\mathbf{b}_k\)</span>,
+whose <span class="math notranslate nohighlight">\(z\)</span> component is the mean over the step,
+<span class="math notranslate nohighlight">\(\mathbf{r}\cdot\Delta\mathbf{A}_k/\Delta t + \Delta f\)</span>. Relaxation over the
+step is split into two half steps around the rotation,</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{M} \leftarrow E(\tfrac{\Delta t}{2})\,R_k\,E(\tfrac{\Delta t}{2})\,\mathbf{M},
+\]</div>
+<p>a symmetric splitting whose error is of second order in <span class="math notranslate nohighlight">\(\Delta t\)</span>. The steps
+compose into one affine map, <span class="math notranslate nohighlight">\(\mathbf{M} \leftarrow A\,\mathbf{M} + \mathbf{c}\,M_0\)</span>,
+per pulse.</p>
+<p>The map depends on the isochromat only through <span class="math notranslate nohighlight">\(\Delta f\)</span>, <span class="math notranslate nohighlight">\(T_1\)</span>, <span class="math notranslate nohighlight">\(T_2\)</span>, the
+transmit sensitivities and <span class="math notranslate nohighlight">\(\mathbf{r}\cdot\Delta\mathbf{A}_k\)</span>. When the steps’
+gradient areas all lie along one direction, as they do under a slice-selection
+gradient, the last depends on the position along that direction alone.
+Isochromats equal in the others and within <span class="math notranslate nohighlight">\(10^{-12}\)</span> m along that direction
+share one map. For a slice of a phantom with a few tissues, a pulse then costs
+a few maps rather than one per isochromat.</p>
+</section>
+<section id="pulseq-events-as-fields">
+<h2>Pulseq events as fields<a class="headerlink" href="#pulseq-events-as-fields" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../generated/pypulseqpp.Sequence.simulate.html#pypulseqpp.Sequence.simulate" title="pypulseqpp.Sequence.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> plays each block’s events as follows.</p>
+<dl class="simple myst">
+<dt>Gradients</dt><dd><p>The gradients each block plays after its rotation, on the axes the
+isochromats’ positions are given along. For a sequence with rotations, these
+are the logical axes.</p>
+</dd>
+<dt>RF pulses</dt><dd><p>Pulseq defines a pulse’s complex waveform as its amplitude times its
+magnitude and phase shapes, times a carrier of the phase offset advancing at
+the frequency offset from the pulse’s start,
+<span class="math notranslate nohighlight">\(w(t) = a\,m(t)\,e^{2\pi i\,p(t)}\,e^{i(\phi + 2\pi f t)}\)</span>, with the ppm
+offsets resolved at the system’s <code class="docutils literal notranslate"><span class="pre">gamma</span></code> and <code class="docutils literal notranslate"><span class="pre">B0</span></code>. The engine plays
+<span class="math notranslate nohighlight">\(b_1 = w^*\)</span>. A phase ramp in <span class="math notranslate nohighlight">\(p(t)\)</span> and an equal frequency offset are then
+one pulse, as the format defines them, and a positive <span class="math notranslate nohighlight">\(f\)</span> excites
+isochromats at a positive <span class="math notranslate nohighlight">\(\Delta f\)</span>: under a positive slice-selection
+gradient, a slice at a positive position. Samples on the RF raster are held
+over their raster intervals. A pulse with a time shape is joined linearly
+between its samples and held over steps of the RF raster, or of its shortest
+interval where that is shorter.</p>
+</dd>
+<dt>Parallel transmission</dt><dd><p>With transmit sensitivities <span class="math notranslate nohighlight">\(S_c(\mathbf{r})\)</span>, a pTx pulse’s channels add as
+<span class="math notranslate nohighlight">\(b_1 = \sum_c S_c\,b_{1,c}\)</span>, and a single-channel pulse plays on every
+channel, weighted by the block’s RF shim where it has one. Without them, the
+channels are summed and a shim is not applied: every channel has unit,
+in-phase sensitivity, and a pulse turns by the flip angle
+<a class="reference internal" href="../generated/pypulseqpp.Sequence.rf_flip_angles.html#pypulseqpp.Sequence.rf_flip_angles" title="pypulseqpp.Sequence.rf_flip_angles"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rf_flip_angles()</span></code></a> reports.</p>
+</dd>
+<dt>ADC samples</dt><dd><p>Coil <span class="math notranslate nohighlight">\(c\)</span> receives
+<span class="math notranslate nohighlight">\(s_c(t) = \sum_j R_{jc}\,M_{xy,j}(t)\)</span>, with <span class="math notranslate nohighlight">\(R_{jc}\)</span> the receive sensitivity
+of isochromat <span class="math notranslate nohighlight">\(j\)</span>. Each sample is multiplied by <span class="math notranslate nohighlight">\(e^{i\theta}\)</span>, where <span class="math notranslate nohighlight">\(\theta\)</span>
+is the ADC phase offset plus its phase modulation, advancing at its frequency
+offset from the start of the window.</p>
+</dd>
+</dl>
+<p>With these conventions, an ADC phase offset equal to the phase offset of the
+excitation cancels it, which RF spoiling relies on. Isochromats excited by a
+90° pulse along <span class="math notranslate nohighlight">\(+x\)</span>, without relaxation, give</p>
+<div class="math notranslate nohighlight">
+\[
+s(t) = i \sum_j \rho_j\, e^{-2\pi i\,\mathbf{k}(t)\cdot\mathbf{r}_j},
+\]</div>
+<p>with <span class="math notranslate nohighlight">\(\mathbf{k}\)</span> the trajectory <a class="reference internal" href="../generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace" title="pypulseqpp.Sequence.calculate_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calculate_kspace()</span></code></a>
+reports, and the inverse discrete Fourier transform of Cartesian samples places
+each isochromat at its own position.</p>
+</section>
+<section id="relation-to-komamri">
+<h2>Relation to KomaMRI<a class="headerlink" href="#relation-to-komamri" title="Link to this heading">#</a></h2>
+<p>KomaMRI turns the magnetisation in the same sense, and plays a pulse’s
+frequency offset as a frame rotating in the same sense as here. Its Pulseq
+reader adds a pulse’s phase offset and phase shape to <span class="math notranslate nohighlight">\(b_1\)</span> with the opposite
+sign, refers the frequency offset’s phase to the pulse’s centre, and
+demodulates a sample by the ADC phase offset alone, with the opposite sign and
+without the ADC frequency offset or phase modulation. The two therefore agree,
+up to their time discretisation, where every pulse has a real waveform, a
+phase offset of 0 or π and no frequency offset, and every ADC has a phase
+offset of 0 or π and no frequency offset or phase modulation. Elsewhere the
+phase of a pulse or of the demodulation differs between them.</p>
+</section>
+<section id="what-is-not-modelled">
+<h2>What is not modelled<a class="headerlink" href="#what-is-not-modelled" title="Link to this heading">#</a></h2>
+<p>The engine computes the signal of an ideal system playing the sequence as
+written: no gradient delays, eddy currents, gradient nonlinearity, concomitant
+fields or receiver noise. Isochromats neither diffuse, flow nor move, and the
+decay of a voxel’s signal by intravoxel dephasing appears only where several
+isochromats represent the voxel.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/simulation.html"><span class="doc">Bloch simulation</span></a> — the isochromats and the simulation of a
+sequence’s blocks.</p></li>
+<li><p><a class="reference internal" href="pulseq/events-and-blocks.html"><span class="doc">Events and blocks</span></a> — the RF, gradient and ADC events a block
+holds.</p></li>
+<li><p><a class="reference internal" href="../generated/pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> — the off-resonance profile of one RF pulse.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="safety/conventions.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Check conventions</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../examples/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bloch-equation-in-the-rotating-frame">The Bloch equation in the rotating frame</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#free-precession">Free precession</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-pulses">RF pulses</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulseq-events-as-fields">Pulseq events as fields</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relation-to-komamri">Relation to KomaMRI</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-not-modelled">What is not modelled</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

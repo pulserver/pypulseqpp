@@ -231,6 +231,7 @@
 <li class="toctree-l3"><a class="reference internal" href="explanations/safety/conventions.html">Check conventions</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="explanations/simulation.html">Bloch simulation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -295,6 +296,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/apps.html">Complete sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/simulation.html">Bloch simulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command-line helpers</a></li>
@@ -722,10 +724,10 @@
 </li>
       <li><a href="generated/pypulseqpp.calc_uniform_angles.html#pypulseqpp.calc_uniform_angles">calc_uniform_angles() (in module pypulseqpp)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace">calculate_kspace() (pypulseqpp.Sequence method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system">cap_system() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.ceil_to_raster.html#pypulseqpp.ceil_to_raster">ceil_to_raster() (in module pypulseqpp)</a>
@@ -749,6 +751,8 @@
       <li><a href="generated/pypulseqpp.safety.ChronaxieModel.chronaxie.html#pypulseqpp.safety.ChronaxieModel.chronaxie">chronaxie (pypulseqpp.safety.ChronaxieModel attribute)</a>
 </li>
       <li><a href="generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel">ChronaxieModel (class in pypulseqpp.safety)</a>
+</li>
+      <li><a href="generated/pypulseqpp.Isochromats.coils.html#pypulseqpp.Isochromats.coils">coils (pypulseqpp.Isochromats property)</a>
 </li>
       <li><a href="generated/pypulseqpp.concatenate_gradients.html#pypulseqpp.concatenate_gradients">concatenate_gradients() (in module pypulseqpp)</a>
 </li>
@@ -888,6 +892,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.Isochromats.elapsed.html#pypulseqpp.Isochromats.elapsed">elapsed (pypulseqpp.Isochromats property)</a>
+</li>
       <li><a href="generated/pypulseqpp.enable_trace.html#pypulseqpp.enable_trace">enable_trace() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/sequences/epi2D_sequence.html#pypulseqpp.sequences.epi2D_sequence">epi2D_sequence() (in module pypulseqpp.sequences)</a>
@@ -1154,6 +1160,8 @@
 </li>
       <li><a href="generated/pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation">InversionPreparation (class in pypulseqpp.sequences)</a>
 </li>
+      <li><a href="generated/pypulseqpp.Isochromats.html#pypulseqpp.Isochromats">Isochromats (class in pypulseqpp)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1198,6 +1206,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.Isochromats.magnetization.html#pypulseqpp.Isochromats.magnetization">magnetization (pypulseqpp.Isochromats property)</a>
+</li>
       <li><a href="generated/pypulseqpp.plot.MAGNITUDE.html#pypulseqpp.plot.MAGNITUDE">MAGNITUDE (in module pypulseqpp.plot)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.SequenceApp.main.html#pypulseqpp.sequences.SequenceApp.main">main (pypulseqpp.sequences.SequenceApp attribute)</a>
@@ -1379,6 +1389,8 @@
 </li>
       </ul></li>
       <li><a href="generated/pypulseqpp.sequences.SequenceApp.parameters.html#pypulseqpp.sequences.SequenceApp.parameters">parameters() (pypulseqpp.sequences.SequenceApp class method)</a>
+</li>
+      <li><a href="generated/pypulseqpp.Isochromats.play.html#pypulseqpp.Isochromats.play">play() (pypulseqpp.Isochromats method)</a>
 </li>
       <li><a href="generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot">plot() (in module pypulseqpp.plot)</a>
 
@@ -1613,6 +1625,8 @@
       <li><a href="generated/pypulseqpp.Sequence.remove_duplicates.html#pypulseqpp.Sequence.remove_duplicates">remove_duplicates() (pypulseqpp.Sequence method)</a>
 </li>
       <li><a href="generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition">repetition() (pypulseqpp.Sequence method)</a>
+</li>
+      <li><a href="generated/pypulseqpp.Isochromats.reset.html#pypulseqpp.Isochromats.reset">reset() (pypulseqpp.Isochromats method)</a>
 </li>
       <li><a href="generated/pypulseqpp.Opts.reset_default.html#pypulseqpp.Opts.reset_default">reset_default() (pypulseqpp.Opts class method)</a>
 </li>
@@ -1854,6 +1868,8 @@
         <li><a href="generated/pypulseqpp.sequences.T2Preparation.sim_rf.html#pypulseqpp.sequences.T2Preparation.sim_rf">(pypulseqpp.sequences.T2Preparation method)</a>
 </li>
       </ul></li>
+      <li><a href="generated/pypulseqpp.Sequence.simulate.html#pypulseqpp.Sequence.simulate">simulate() (pypulseqpp.Sequence method)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.SmsExcitation.html#pypulseqpp.sequences.SmsExcitation">SmsExcitation (class in pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/pypulseqpp.io.SequenceLibraries.soft_delay_hints.html#pypulseqpp.io.SequenceLibraries.soft_delay_hints">soft_delay_hints (pypulseqpp.io.SequenceLibraries attribute)</a>
