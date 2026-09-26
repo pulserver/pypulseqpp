@@ -58,6 +58,7 @@ from ._sim_rf import sim_rf as _sim_rf
 from ._slice_encoding import make_gslider_pulse as _make_gslider_pulse
 from ._slice_encoding import make_hadamard_pulse as _make_hadamard_pulse
 from ._slice_encoding import make_pins_pulse as _make_pins_pulse
+from ._sound import gradient_sound
 from ._timing import (
     calc_adc_timing,
     ceil_to_raster,

@@ -1,6 +1,7 @@
 # Gradient design
 
-Gradient events on one gradient channel axis, and the operations on them.
+Gradient events on one gradient channel axis, the operations on them, and the
+audio of the gradient waveforms a sequence plays.
 Amplitudes are in Hz/m, slew rates in Hz/m/s, gradient areas in 1/m and times
 in s, except where a docstring states otherwise;
 {doc}`../explanations/pulseq/events-and-blocks` describes the trapezoid and
@@ -38,3 +39,13 @@ Each docstring states how the operation changes the event's timing.
 | {obj}`~pypulseqpp.scale_grad` | Gradient event, scale factor | Scaled gradient event | Amplitude scaling. |
 | {obj}`~pypulseqpp.split_gradient` | Trapezoid | Ramp-up, plateau and ramp-down events | Trapezoid decomposition. |
 | {obj}`~pypulseqpp.split_gradient_at` | Gradient event, time (s) | Two gradient events whose sum is the input | Split at a time point. |
+
+## Sound
+
+The audio MATLAB Pulseq's `sound` computes from the gradient waveforms of the
+three axes. {meth}`Sequence.sound <pypulseqpp.Sequence.sound>` computes it from
+a sequence's blocks.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.gradient_sound` | Gradient waveform corners per axis (s, Hz/m), sample count, sample rate (Hz) | `(2, n)` audio samples | Stereo audio of the gradient waveforms over a range of samples. |
