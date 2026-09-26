@@ -542,7 +542,10 @@
 <dt class="sig sig-object py" id="pypulseqpp.Isochromats.play">
 <span class="sig-prename descclassname"><span class="pre">Isochromats.</span></span><span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_isochromats.html#Isochromats.play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Isochromats.play" title="Link to this definition">#</a></dt>
 <dd><p>Play one block’s events and return what each coil receives at each ADC sample.</p>
-<p>Times are in s from the block’s start.</p>
+<p>Times are in s from the block’s start. An RF or ADC event plays as in
+<a class="reference internal" href="pypulseqpp.Sequence.simulate.html#pypulseqpp.Sequence.simulate" title="pypulseqpp.Sequence.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.simulate()</span></code></a>, which <a class="reference internal" href="../explanations/simulation.html"><span class="doc">Bloch simulation</span></a>
+describes; the field and sample times the events amount to can be
+given instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -550,26 +553,53 @@
 <li><p><strong>gradients</strong> (<em>sequence</em><em>, </em><em>default=None</em>) – Three entries, for the x, y and z axes, each <code class="docutils literal notranslate"><span class="pre">None</span></code> or a
 <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">m)</span></code> array of corner times over gradient amplitude, in Hz/m.
 The gradient is linear between the corners and zero outside them.</p></li>
-<li><p><strong>rf</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">step,</span> <span class="pre">samples)</span></code>: the transverse field <code class="docutils literal notranslate"><span class="pre">b1</span></code>, in Hz, as
-<code class="docutils literal notranslate"><span class="pre">(steps,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(channels,</span> <span class="pre">steps)</span></code> complex samples, each held for
+<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix from the axes <code class="docutils literal notranslate"><span class="pre">gradients</span></code> are given along to
+the axes of the positions, a reflection allowed. Each axis plays
+the sum its row weights, exact on the union of the corners, with
+a gradient’s step from or to zero at its first or last corner
+kept as a step.</p></li>
+<li><p><strong>rf</strong> (<em>RF event</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>default=None</em>) – An RF event: <code class="docutils literal notranslate"><span class="pre">signal</span></code>, in Hz, at the times <code class="docutils literal notranslate"><span class="pre">t</span></code> from the pulse’s
+start, which is <code class="docutils literal notranslate"><span class="pre">delay</span></code> into the block, with its phase and
+frequency offsets; a dynamic pTx pulse holds its channels one
+after another over one time base. Or the transverse field <code class="docutils literal notranslate"><span class="pre">b1</span></code>,
+as <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">step,</span> <span class="pre">samples)</span></code>: <code class="docutils literal notranslate"><span class="pre">(steps,)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">(channels,</span> <span class="pre">steps)</span></code> complex samples, in Hz, each held for
 <code class="docutils literal notranslate"><span class="pre">step</span></code> from <code class="docutils literal notranslate"><span class="pre">start</span></code> on. Without transmit sensitivities the
 channels are summed; with them there must be one channel each.</p></li>
-<li><p><strong>adc</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – Increasing sample times, none inside the RF pulse.</p></li>
+<li><p><strong>adc</strong> (<em>ADC event</em><em> or </em><em>array_like</em><em>, </em><em>default=None</em>) – An ADC event, sampled at the middle of each dwell from its delay
+on, whose samples are returned demodulated by its phase offset,
+frequency offset and phase modulation. Or increasing sample
+times, whose samples are returned as received. No sample may fall
+inside the RF pulse.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – The RF raster, over whose steps an RF event with a time shape is
+held, and the gamma and B0 the events’ ppm offsets are resolved
+at; the default system when None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(coils,</span> <span class="pre">samples)</span></code>: at each sample, the sum over the isochromats of
-the receive sensitivity times <code class="docutils literal notranslate"><span class="pre">Mx</span> <span class="pre">+</span> <span class="pre">i</span> <span class="pre">My</span></code>, not demodulated.</p>
+the receive sensitivity times <code class="docutils literal notranslate"><span class="pre">Mx</span> <span class="pre">+</span> <span class="pre">i</span> <span class="pre">My</span></code>, demodulated for an ADC
+event.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>NDArray[np.complex128]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If an event does not fit in the block, an ADC sample falls inside
-    the RF pulse, or the RF channels do not match the transmit
-    sensitivities.</p>
+    the RF pulse, the RF channels do not match the transmit
+    sensitivities, or an event or the rotation is malformed.</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spins</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Isochromats</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rf</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="mf">10e-6</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">spins</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="mf">1.01e-3</span><span class="p">,</span> <span class="n">rf</span><span class="o">=</span><span class="n">rf</span><span class="p">,</span> <span class="n">adc</span><span class="o">=</span><span class="n">adc</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
+<span class="go">array([[0.+1.j]])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

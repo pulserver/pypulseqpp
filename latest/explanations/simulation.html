@@ -649,7 +649,10 @@ a few maps rather than one per isochromat.</p>
 </section>
 <section id="pulseq-events-as-fields">
 <h2>Pulseq events as fields<a class="headerlink" href="#pulseq-events-as-fields" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="../generated/pypulseqpp.Sequence.simulate.html#pypulseqpp.Sequence.simulate" title="pypulseqpp.Sequence.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> plays each block’s events as follows.</p>
+<p><a class="reference internal" href="../generated/pypulseqpp.Sequence.simulate.html#pypulseqpp.Sequence.simulate" title="pypulseqpp.Sequence.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> plays each block’s events as follows.
+<a class="reference internal" href="../generated/pypulseqpp.Isochromats.play.html#pypulseqpp.Isochromats.play" title="pypulseqpp.Isochromats.play"><code class="xref py py-meth docutils literal notranslate"><span class="pre">play()</span></code></a> plays an RF or ADC event in the same
+way, with the ppm offsets resolved at the system it is given, and a rotation
+it is given as a block’s rotation; it applies no RF shim.</p>
 <dl class="simple myst">
 <dt>Gradients</dt><dd><p>The gradients each block plays after its rotation, on the axes the
 isochromats’ positions are given along. For a sequence with rotations, these

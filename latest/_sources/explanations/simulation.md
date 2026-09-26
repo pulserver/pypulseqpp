@@ -109,6 +109,9 @@ a few maps rather than one per isochromat.
 ## Pulseq events as fields
 
 {meth}`~pypulseqpp.Sequence.simulate` plays each block's events as follows.
+{meth}`~pypulseqpp.Isochromats.play` plays an RF or ADC event in the same
+way, with the ppm offsets resolved at the system it is given, and a rotation
+it is given as a block's rotation; it applies no RF shim.
 
 Gradients
 : The gradients each block plays after its rotation, on the axes the
