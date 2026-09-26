@@ -16,7 +16,7 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 
 | Page | Module | What it documents |
 | --- | --- | --- |
-| {doc}`gradients` | `pypulseqpp` | Gradient events on one channel axis, from trapezoids and phase encodes to arbitrary and wave-encoding waveforms, and the operations that scale, split and combine them. |
+| {doc}`gradients` | `pypulseqpp` | Gradient events on one channel axis, from trapezoids and phase encodes to arbitrary and wave-encoding waveforms, the operations that scale, split and combine them, and the audio of the waveforms a sequence plays. |
 | {doc}`rf` | `pypulseqpp` | RF events, from the basic factories to SLR, slice-encoding, B1-selective, multidimensional and parallel-transmit designs, and the analysis and Bloch simulation of what they produce. |
 | {doc}`trajectories` | `pypulseqpp` | Radial, spiral and rosette k-space trajectories, and the gradient waveforms that trace them. |
 | {doc}`timing` | `pypulseqpp` | ADC dwell times and acquisition durations solved against both the ADC and the gradient raster, and the quantization of a time to a raster. |

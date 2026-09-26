@@ -22,6 +22,9 @@ from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
 from ._results import AdcEchoes, GradientStatistics, RfGradients
+from ._sound import SOUND_SAMPLE_RATE
+from ._sound import gradient_sound as _gradient_sound
+from ._waveforms import _expand as _expand_waveforms
 from ._waveforms import adc_times as _adc_times
 from ._waveforms import get_gradients as _get_gradients
 from ._waveforms import rf_times as _rf_times
@@ -998,6 +1001,79 @@ class Sequence:
         ((2, 4), (2, 0))
         """
         return _waveforms(self, append_RF, time_range, block_range)
+
+    def sound(
+        self,
+        block_range=None,
+        channel_weights=(1.0, 1.0, 1.0),
+        sample_rate: float = SOUND_SAMPLE_RATE,
+        *,
+        path=None,
+    ) -> np.ndarray:
+        """Return the gradient waveforms as stereo audio, as MATLAB Pulseq's ``sound`` does.
+
+        Parameters
+        ----------
+        block_range : Sequence[int], default=None
+            Two 1-based block indices; the whole sequence by default.
+        channel_weights : Sequence[float], default=(1.0, 1.0, 1.0)
+            Weights of the x, y and z axes.
+        sample_rate : float, default=44100
+            Audio sample rate in Hz.
+        path : str or os.PathLike, default=None
+            Also write the audio to this file as 16-bit PCM WAV.
+
+        Returns
+        -------
+        NDArray[np.float64]
+            ``(2, n)`` samples, from the start of the first block played, with
+            ``n = floor(duration * sample_rate) + 1`` for the duration of the
+            blocks played, scaled so that the largest magnitude is 0.95.
+            :func:`~pypulseqpp.gradient_sound` states the channels and the filter.
+
+        Raises
+        ------
+        ValueError
+            If ``sample_rate`` is not positive, or ``path`` is given and
+            ``sample_rate`` is not an integer.
+
+        Notes
+        -----
+        Nothing is played. The gradients are those played after each block's
+        rotation. With ``block_range``, the audio lasts as long as the blocks
+        in the range; MATLAB Pulseq's lasts as long as the whole sequence,
+        with silence after the range.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> seq.add_block(pp.make_trapezoid("x", flat_area=1000, flat_time=3.2e-3))
+        1
+        >>> seq.sound().shape
+        (2, 147)
+        """
+        if not sample_rate > 0:
+            raise ValueError(f"sample_rate must be positive, got {sample_rate}")
+        expanded, _ = _expand_waveforms(self, block_range=block_range)
+        duration = float(expanded["duration"])
+        dwell_time = 1.0 / sample_rate
+        audio = _gradient_sound(
+            expanded["wave_data"][:3],
+            int(np.floor(duration / dwell_time)) + 1,
+            channel_weights=channel_weights,
+            sample_rate=sample_rate,
+        )
+        if path is not None:
+            if sample_rate != int(sample_rate):
+                raise ValueError(
+                    f"a WAV file carries an integer sample rate, got {sample_rate}"
+                )
+            from scipy.io import wavfile
+
+            pcm = np.round(audio.T * 32767.0).astype(np.int16)
+            wavfile.write(path, int(sample_rate), np.ascontiguousarray(pcm))
+        return audio
 
     def adc_times(self, time_range=None):
         """Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).

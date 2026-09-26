@@ -2,9 +2,8 @@
 
 ## Deferred work
 
-Unimplemented areas include audio output, gradient-spectrum and PNS analysis,
-RF-power analysis, automatic labelling and sequence tiling. The implemented
-`Sequence` methods are listed in the API reference.
+Unimplemented areas include automatic labelling and sequence tiling. The
+implemented `Sequence` methods are listed in the API reference.
 
 Scanner-host integration belongs to Pulserver. Tests requiring that host
 remain skipped; implementing an execution stream is outside this package.
@@ -47,6 +46,12 @@ separate contracts.
   records the midpoint. The two differ for the `'se'` and `'inv'` designs and
   for minimum- and maximum-phase filters. `make_ptx_pulse` takes the peak of
   the channels' root-sum-square magnitude.
+- `Sequence.sound` returns the audio MATLAB Pulseq's `sound` computes and
+  plays nothing; given `path`, it also writes a 16-bit WAV file. Over a block
+  range the audio lasts as long as the blocks in the range, where MATLAB's
+  lasts as long as the whole sequence. The window is MATLAB's `gausswin`;
+  `pypulseq-matlab-like`'s transcription uses a narrower one, α = 4 in
+  `gausswin`'s terms rather than 2.5, and rounds its length half to even.
 - `calc_rf_bandwidth` returns upstream's values by default. `compat=False`
   returns an `RfBandwidth` that adds the bands of a multiband pulse and labels
   each spectral bin with its own frequency; upstream's axis, which the
