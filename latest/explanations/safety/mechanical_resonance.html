@@ -648,23 +648,20 @@ each band’s worst window whether or not it violates.</p>
 <td><p>all</p></td>
 <td><p>0, so <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> applies</p></td>
 </tr>
-<tr class="row-odd"><td><p>GE <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> forbidden echo-spacing ranges</p></td>
-<td><p><span class="math notranslate nohighlight">\(1/(2\,\mathrm{ESP})\)</span> over the range</p></td>
-<td><p>x, y or z, by table section</p></td>
-<td><p>plateau amplitude, G/cm converted to mT/m</p></td>
-</tr>
 </tbody>
 </table>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> tolerance is a plateau amplitude and is compared unscaled with
-the spectral amplitude, which for an alternating train is between <span class="math notranslate nohighlight">\(8/\pi^2\)</span> and
-<span class="math notranslate nohighlight">\(4/\pi\)</span> of the plateau.</p>
+<p>The bands of any other table are passed to
+<a class="reference internal" href="../../generated/pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> as
+<a class="reference internal" href="../../generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a> values. A tolerance stated as a
+plateau amplitude is compared unscaled with the spectral amplitude, which for
+an alternating train is between <span class="math notranslate nohighlight">\(8/\pi^2\)</span> and <span class="math notranslate nohighlight">\(4/\pi\)</span> of the plateau.</p>
 </section>
 <section id="limitations">
 <h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading">#</a></h2>
 <p>The criterion is spectral and is applied to the commanded waveform. It does not
 model the coil’s transfer function, the acoustic output of the assembly or the
-scanner’s own predownload assessment, and a passing result does not establish
+scanner’s own assessment before a scan, and a passing result does not establish
 that a sequence is quiet or within any acoustic-noise regulation. It states
 that no window’s gradient amplitude spectrum exceeds a threshold inside a band
 of the supplied table.</p>

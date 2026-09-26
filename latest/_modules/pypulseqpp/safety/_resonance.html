@@ -499,36 +499,22 @@
 
 <span class="n">_AXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"gx"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"gy"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"gz"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
 
-<span class="c1">#: Largest band count one ESP axis may declare.</span>
-<span class="n">_MAX_ESP_PER_AXIS</span> <span class="o">=</span> <span class="mi">10</span>
-
-<span class="c1">#: Factor from an ESP row's plateau tolerance to the amplitude the check reads.</span>
-<span class="c1">#: An alternating trapezoid train reads between 8/pi^2 (triangular) and 4/pi</span>
-<span class="c1">#: (square) of its plateau; the conversion awaits calibration.</span>
-<span class="n">_ESP_TOLERANCE_SCALE</span> <span class="o">=</span> <span class="mf">1.0</span>
-
 
 <div class="viewcode-block" id="read_forbidden_bands">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_forbidden_bands</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ForbiddenBand</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Read forbidden bands from a vendor table.</span>
+<span class="w">    </span><span class="sd">"""Read forbidden bands from a Siemens ``.asc`` hardware description.</span>
 
-<span class="sd">    A ``.asc`` file is a Siemens hardware description, read with upstream</span>
-<span class="sd">    PyPulseq's ``readasc``; its acoustic resonances are a centre and a</span>
-<span class="sd">    bandwidth, with no axis and no tolerance, so every band guards every axis</span>
-<span class="sd">    with tolerance 0.</span>
-
-<span class="sd">    Any other file is a GE ``epiesp.dat`` table: for x, y and z in turn, a</span>
-<span class="sd">    count line and that many ``esp_min_us esp_max_us amplitude_G_per_cm``</span>
-<span class="sd">    rows; ``#`` starts a comment line. An echo-spacing range maps to the</span>
-<span class="sd">    frequencies ``1 / (2 ESP)`` of an alternating readout train, and the</span>
-<span class="sd">    amplitude, the train's plateau, is returned in mT/m times</span>
-<span class="sd">    ``_ESP_TOLERANCE_SCALE``.</span>
+<span class="sd">    The file is read with upstream PyPulseq's ``readasc``. Its acoustic</span>
+<span class="sd">    resonances are a centre and a bandwidth, with no axis and no tolerance, so</span>
+<span class="sd">    every band guards every axis with tolerance 0. Bands from any other table</span>
+<span class="sd">    are passed to :func:`~pypulseqpp.safety.check_mech_resonance` as</span>
+<span class="sd">    :class:`ForbiddenBand` values.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    path : str | os.PathLike</span>
-<span class="sd">        The ``.asc`` or ``epiesp.dat`` file to read.</span>
+<span class="sd">        The ``.asc`` file to read.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -539,13 +525,15 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If an ESP table is malformed. A present but corrupt table is refused</span>
-<span class="sd">        rather than read as having no bands.</span>
+<span class="sd">        If the file is not a ``.asc`` file.</span>
 <span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".asc"</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_read_asc</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_read_esp</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">".asc"</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"forbidden bands are read from a .asc hardware description, not from "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">; pass the bands of any other table as ForbiddenBand values"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_read_asc</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
 
@@ -565,44 +553,6 @@
                 <span class="kc">None</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">centre</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">centre</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="mf">0.0</span>
             <span class="p">)</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">bands</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_read_esp</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ForbiddenBand</span><span class="p">]:</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">line</span>
-        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">line</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)</span>
-    <span class="p">]</span>
-    <span class="n">bands</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="s2">"xyz"</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">cursor</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: truncated before the </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> axis"</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: bad band count for </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
-        <span class="n">cursor</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="n">_MAX_ESP_PER_AXIS</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: implausible band count </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span>
-            <span class="p">)</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">cursor</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: truncated inside the </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> axis"</span><span class="p">)</span>
-            <span class="n">fields</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-            <span class="n">cursor</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">esp_min</span><span class="p">,</span> <span class="n">esp_max</span><span class="p">,</span> <span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
-            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: expected 'min max amplitude', got </span><span class="si">{</span><span class="n">fields</span><span class="si">!r}</span><span class="s2">"</span>
-                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">esp_min</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">esp_max</span> <span class="o">&lt;</span> <span class="n">esp_min</span> <span class="ow">or</span> <span class="n">amplitude</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ESP table </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: invalid row </span><span class="si">{</span><span class="n">fields</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="n">tolerance</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">_ESP_TOLERANCE_SCALE</span>
-            <span class="n">bands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ForbiddenBand</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="mf">5e5</span> <span class="o">/</span> <span class="n">esp_max</span><span class="p">,</span> <span class="mf">5e5</span> <span class="o">/</span> <span class="n">esp_min</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">bands</span>
 
 

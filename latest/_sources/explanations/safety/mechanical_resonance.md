@@ -95,17 +95,18 @@ each band's worst window whether or not it violates.
 | Source read by {func}`~pypulseqpp.safety.read_forbidden_bands` | Band | Axis | Tolerance |
 | --- | --- | --- | --- |
 | Siemens `.asc` acoustic resonances | centre ± bandwidth / 2 | all | 0, so `min_threshold` applies |
-| GE `epiesp.dat` forbidden echo-spacing ranges | $1/(2\,\mathrm{ESP})$ over the range | x, y or z, by table section | plateau amplitude, G/cm converted to mT/m |
 
-The `epiesp.dat` tolerance is a plateau amplitude and is compared unscaled with
-the spectral amplitude, which for an alternating train is between $8/\pi^2$ and
-$4/\pi$ of the plateau.
+The bands of any other table are passed to
+{func}`~pypulseqpp.safety.check_mech_resonance` as
+{class}`~pypulseqpp.safety.ForbiddenBand` values. A tolerance stated as a
+plateau amplitude is compared unscaled with the spectral amplitude, which for
+an alternating train is between $8/\pi^2$ and $4/\pi$ of the plateau.
 
 ## Limitations
 
 The criterion is spectral and is applied to the commanded waveform. It does not
 model the coil's transfer function, the acoustic output of the assembly or the
-scanner's own predownload assessment, and a passing result does not establish
+scanner's own assessment before a scan, and a passing result does not establish
 that a sequence is quiet or within any acoustic-noise regulation. It states
 that no window's gradient amplitude spectrum exceeds a threshold inside a band
 of the supplied table.

@@ -539,20 +539,15 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.safety.read_forbidden_bands">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">read_forbidden_bands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_resonance.html#read_forbidden_bands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.read_forbidden_bands" title="Link to this definition">#</a></dt>
-<dd><p>Read forbidden bands from a vendor table.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file is a Siemens hardware description, read with upstream
-PyPulseq’s <code class="docutils literal notranslate"><span class="pre">readasc</span></code>; its acoustic resonances are a centre and a
-bandwidth, with no axis and no tolerance, so every band guards every axis
-with tolerance 0.</p>
-<p>Any other file is a GE <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> table: for x, y and z in turn, a
-count line and that many <code class="docutils literal notranslate"><span class="pre">esp_min_us</span> <span class="pre">esp_max_us</span> <span class="pre">amplitude_G_per_cm</span></code>
-rows; <code class="docutils literal notranslate"><span class="pre">#</span></code> starts a comment line. An echo-spacing range maps to the
-frequencies <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">ESP)</span></code> of an alternating readout train, and the
-amplitude, the train’s plateau, is returned in mT/m times
-<code class="docutils literal notranslate"><span class="pre">_ESP_TOLERANCE_SCALE</span></code>.</p>
+<dd><p>Read forbidden bands from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p>
+<p>The file is read with upstream PyPulseq’s <code class="docutils literal notranslate"><span class="pre">readasc</span></code>. Its acoustic
+resonances are a centre and a bandwidth, with no axis and no tolerance, so
+every band guards every axis with tolerance 0. Bands from any other table
+are passed to <a class="reference internal" href="pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> as
+<a class="reference internal" href="pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenBand</span></code></a> values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a>) – The <code class="docutils literal notranslate"><span class="pre">.asc</span></code> or <code class="docutils literal notranslate"><span class="pre">epiesp.dat</span></code> file to read.</p>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a>) – The <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file to read.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The bands, for <a class="reference internal" href="pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_mech_resonance()</span></code></a> to
@@ -562,8 +557,7 @@ take as its <code class="docutils literal notranslate"><span class="pre">bands</
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference internal" href="pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand">ForbiddenBand</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If an ESP table is malformed. A present but corrupt table is refused
-    rather than read as having no bands.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file is not a <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file.</p>
 </dd>
 </dl>
 </dd></dl>
