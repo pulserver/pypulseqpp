@@ -7,7 +7,8 @@ event times in s from the start of their block;
 conventions. {meth}`Sequence.simulate <pypulseqpp.Sequence.simulate>` plays a
 sequence's blocks on isochromats and returns the demodulated ADC samples;
 {meth}`Isochromats.play <pypulseqpp.Isochromats.play>` plays the events of one
-block given as waveforms.
+block: gradients as corner points, under a rotation where one is given, and RF
+and ADC events or the field and sample times they amount to.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
