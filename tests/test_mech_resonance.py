@@ -371,29 +371,11 @@ def test_an_unloadable_mkl_falls_back_to_the_compiled_fft(system, tmp_path):
 # -- vendor tables -----------------------------------------------------------
 
 
-def test_an_esp_table_reads_as_bands_at_half_the_echo_spacing_rate(tmp_path):
-    table = tmp_path / "epiesp.dat"
-    table.write_text("# x\n1\n500 700 0.2\n1\n480 720 0.15\n0\n")
+def test_a_table_other_than_an_asc_file_is_refused(tmp_path):
+    table = tmp_path / "bands.dat"
+    table.write_text("1\n500 700 0.2\n")
 
-    bands = safety.read_forbidden_bands(table)
-
-    assert [band.axis for band in bands] == ["x", "y"]
-    assert bands[0].f_min == pytest.approx(5e5 / 700)
-    assert bands[0].f_max == pytest.approx(1000.0)
-    assert bands[0].tolerance == pytest.approx(2.0)
-    assert bands[1].tolerance == pytest.approx(1.5)
-
-
-@pytest.mark.parametrize(
-    "text",
-    ["1\n500 700 0.2\n", "1\n700 500 0.2\n0\n0\n", "one\n0\n0\n", "11\n0\n0\n"],
-    ids=["truncated", "inverted", "unreadable", "implausible"],
-)
-def test_a_corrupt_esp_table_is_refused(tmp_path, text):
-    table = tmp_path / "epiesp.dat"
-    table.write_text(text)
-
-    with pytest.raises(ValueError, match="ESP table"):
+    with pytest.raises(ValueError, match="asc"):
         safety.read_forbidden_bands(table)
 
 
@@ -410,8 +392,11 @@ def test_an_asc_resonance_guards_every_axis_with_no_tolerance(tmp_path):
 
 
 def test_a_table_path_can_stand_for_the_bands(system, tmp_path):
-    table = tmp_path / "epiesp.dat"
-    table.write_text("1\n770 850 0.3\n0\n0\n")
+    table = tmp_path / "gradient.asc"
+    table.write_text(
+        "aflGCAcousticResonanceFrequency[0] = 590.0\n"
+        "aflGCAcousticResonanceBandwidth[0] = 100.0\n"
+    )
     sequence = played(system, [sinusoid(system, "x", 5.0, 600.0, 0.2)])
 
     _, from_path = safety.check_mech_resonance(sequence, table)
