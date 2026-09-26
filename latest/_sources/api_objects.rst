@@ -72,6 +72,7 @@ from.
    scale_grad
    split_gradient
    split_gradient_at
+   gradient_sound
 
 .. currentmodule:: pypulseqpp.io
 

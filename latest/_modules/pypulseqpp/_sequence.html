@@ -485,6 +485,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_data</span> <span class="k">as</span> <span class="n">_report_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_text</span> <span class="k">as</span> <span class="n">_report_text</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span><span class="p">,</span> <span class="n">GradientStatistics</span><span class="p">,</span> <span class="n">RfGradients</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOUND_SAMPLE_RATE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_sound</span> <span class="k">as</span> <span class="n">_gradient_sound</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">_expand</span> <span class="k">as</span> <span class="n">_expand_waveforms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">adc_times</span> <span class="k">as</span> <span class="n">_adc_times</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_gradients</span> <span class="k">as</span> <span class="n">_get_gradients</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">rf_times</span> <span class="k">as</span> <span class="n">_rf_times</span>
@@ -1513,6 +1516,82 @@
 <span class="sd">        ((2, 4), (2, 0))</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">append_RF</span><span class="p">,</span> <span class="n">time_range</span><span class="p">,</span> <span class="n">block_range</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Sequence.sound">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.sound.html#pypulseqpp.Sequence.sound">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sound</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">channel_weights</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SOUND_SAMPLE_RATE</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the gradient waveforms as stereo audio, as MATLAB Pulseq's ``sound`` does.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        block_range : Sequence[int], default=None</span>
+<span class="sd">            Two 1-based block indices; the whole sequence by default.</span>
+<span class="sd">        channel_weights : Sequence[float], default=(1.0, 1.0, 1.0)</span>
+<span class="sd">            Weights of the x, y and z axes.</span>
+<span class="sd">        sample_rate : float, default=44100</span>
+<span class="sd">            Audio sample rate in Hz.</span>
+<span class="sd">        path : str or os.PathLike, default=None</span>
+<span class="sd">            Also write the audio to this file as 16-bit PCM WAV.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NDArray[np.float64]</span>
+<span class="sd">            ``(2, n)`` samples, from the start of the first block played, with</span>
+<span class="sd">            ``n = floor(duration * sample_rate) + 1`` for the duration of the</span>
+<span class="sd">            blocks played, scaled so that the largest magnitude is 0.95.</span>
+<span class="sd">            :func:`~pypulseqpp.gradient_sound` states the channels and the filter.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``sample_rate`` is not positive, or ``path`` is given and</span>
+<span class="sd">            ``sample_rate`` is not an integer.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Nothing is played. The gradients are those played after each block's</span>
+<span class="sd">        rotation. With ``block_range``, the audio lasts as long as the blocks</span>
+<span class="sd">        in the range; MATLAB Pulseq's lasts as long as the whole sequence,</span>
+<span class="sd">        with silence after the range.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; seq.add_block(pp.make_trapezoid("x", flat_area=1000, flat_time=3.2e-3))</span>
+<span class="sd">        1</span>
+<span class="sd">        &gt;&gt;&gt; seq.sound().shape</span>
+<span class="sd">        (2, 147)</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sample_rate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sample_rate must be positive, got </span><span class="si">{</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">expanded</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_expand_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="n">block_range</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">expanded</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
+        <span class="n">dwell_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">sample_rate</span>
+        <span class="n">audio</span> <span class="o">=</span> <span class="n">_gradient_sound</span><span class="p">(</span>
+            <span class="n">expanded</span><span class="p">[</span><span class="s2">"wave_data"</span><span class="p">][:</span><span class="mi">3</span><span class="p">],</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">duration</span> <span class="o">/</span> <span class="n">dwell_time</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">channel_weights</span><span class="o">=</span><span class="n">channel_weights</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sample_rate</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"a WAV file carries an integer sample rate, got </span><span class="si">{</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">wavfile</span>
+
+            <span class="n">pcm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">audio</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="mf">32767.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+            <span class="n">wavfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">pcm</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">audio</span></div>
 
 
 <div class="viewcode-block" id="Sequence.adc_times">

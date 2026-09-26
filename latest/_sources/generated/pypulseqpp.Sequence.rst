@@ -69,6 +69,7 @@ Waveforms and k-space
    ~Sequence.waveforms
    ~Sequence.waveforms_and_times
    ~Sequence.get_gradients
+   ~Sequence.sound
    ~Sequence.calculate_kspace
    ~Sequence.adc_kspace
    ~Sequence.adc_echoes

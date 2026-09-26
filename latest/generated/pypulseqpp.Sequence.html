@@ -707,25 +707,28 @@ by the last binary file read: <code class="docutils literal notranslate"><span c
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.get_gradients.html#pypulseqpp.Sequence.get_gradients" title="pypulseqpp.Sequence.get_gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradients</span></code></a></p></td>
 <td><p>Return the gradient splines after each block's rotation, in Hz/m over seconds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace" title="pypulseqpp.Sequence.calculate_kspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_kspace</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.sound.html#pypulseqpp.Sequence.sound" title="pypulseqpp.Sequence.sound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound</span></code></a></p></td>
+<td><p>Return the gradient waveforms as stereo audio, as MATLAB Pulseq's <code class="docutils literal notranslate"><span class="pre">sound</span></code> does.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace" title="pypulseqpp.Sequence.calculate_kspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_kspace</span></code></a></p></td>
 <td><p>Integrate the gradients with excitation resets and refocusing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace" title="pypulseqpp.Sequence.adc_kspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_kspace</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace" title="pypulseqpp.Sequence.adc_kspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_kspace</span></code></a></p></td>
 <td><p>Return the k-space location of each ADC sample, in 1/m.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_echoes</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_echoes</span></code></a></p></td>
 <td><p>Return, per readout, the axes it moves along and where it passes nearest the centre.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_times.html#pypulseqpp.Sequence.adc_times" title="pypulseqpp.Sequence.adc_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_times</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.adc_times.html#pypulseqpp.Sequence.adc_times" title="pypulseqpp.Sequence.adc_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adc_times</span></code></a></p></td>
 <td><p>Return ADC sample times (s) and per-window frequency (Hz) and phase (rad).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_times</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_times.html#pypulseqpp.Sequence.rf_times" title="pypulseqpp.Sequence.rf_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_times</span></code></a></p></td>
 <td><p>Return RF pulse centre times with their frequency and phase offsets.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_gradients.html#pypulseqpp.Sequence.rf_gradients" title="pypulseqpp.Sequence.rf_gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_gradients</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.rf_gradients.html#pypulseqpp.Sequence.rf_gradients" title="pypulseqpp.Sequence.rf_gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rf_gradients</span></code></a></p></td>
 <td><p>Return the gradient each RF pulse plays under, along the channel axes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
 <td><p>Return total duration, block count and per-event block counts.</p></td>
 </tr>
 </tbody>

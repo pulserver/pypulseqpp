@@ -173,7 +173,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.164 seconds)
+   **Total running time of the script:** (0 minutes 3.167 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:
