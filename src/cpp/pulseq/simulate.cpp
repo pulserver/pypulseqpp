@@ -71,8 +71,39 @@ namespace pulseq
             return true;
         }
 
+        /** The waveform through the corners just before and just after
+         *  @p when: a gradient is zero outside its corners, so it steps there
+         *  from or to a value other than zero. */
+        void limits(const std::vector<double>& times, const std::vector<double>& values, double when, double& before, double& after)
+        {
+            before = after = sampled(times, values, when);
+            if (times.empty())
+                return;
+            if (std::fabs(when - times.front()) <= kEps)
+                before = 0.0;
+            if (std::fabs(when - times.back()) <= kEps)
+                after = 0.0;
+        }
+
+        /** The sum @p row of the rotation weights the input axes by, just
+         *  before and just after @p when. */
+        void mix(const BlockGradients& out, const double row[3], double when, double& before, double& after)
+        {
+            for (int from = 0; from < 3; ++from)
+            {
+                if (!out.present[from] || row[from] == 0.0)
+                    continue;
+                double left = 0.0;
+                double right = 0.0;
+                limits(out.input_times[from], out.input_values[from], when, left, right);
+                before += row[from] * left;
+                after += row[from] * right;
+            }
+        }
+
         /** The sum of the three input axes each output axis plays, on the
-         *  union of their corners, where the sum is exact. */
+         *  union of their corners, where the sum is exact; a step is two
+         *  corners at one time. */
         void rotate(const double matrix[3][3], BlockGradients& out)
         {
             std::vector<double> merged;
@@ -86,16 +117,22 @@ namespace pulseq
             {
                 out.times[into].clear();
                 out.values[into].clear();
+                const double* row = matrix[into];
+                bool anything = false;
                 for (int from = 0; from < 3; ++from)
+                    anything = anything || (out.present[from] && row[from] != 0.0);
+                for (size_t i = 0; anything && i < merged.size(); ++i)
                 {
-                    const double weight = matrix[into][from];
-                    if (!out.present[from] || weight == 0.0)
-                        continue;
-                    out.times[into] = merged;
-                    out.values[into].resize(merged.size(), 0.0);
-                    for (size_t i = 0; i < merged.size(); ++i)
-                        out.values[into][i] +=
-                            weight * sampled(out.input_times[from], out.input_values[from], merged[i]);
+                    double before = 0.0;
+                    double after = 0.0;
+                    mix(out, row, merged[i], before, after);
+                    if (before != after)
+                    {
+                        out.times[into].push_back(merged[i]);
+                        out.values[into].push_back(before);
+                    }
+                    out.times[into].push_back(merged[i]);
+                    out.values[into].push_back(after);
                 }
             }
         }
