@@ -487,7 +487,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">libraries</span> <span class="k">as</span> <span class="n">_libraries</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_data</span> <span class="k">as</span> <span class="n">_report_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_text</span> <span class="k">as</span> <span class="n">_report_text</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span><span class="p">,</span> <span class="n">GradientStatistics</span><span class="p">,</span> <span class="n">RfGradients</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span><span class="p">,</span> <span class="n">EventDefinitions</span><span class="p">,</span> <span class="n">GradientStatistics</span><span class="p">,</span> <span class="n">RfGradients</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOUND_SAMPLE_RATE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_sound</span> <span class="k">as</span> <span class="n">_gradient_sound</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">_expand</span> <span class="k">as</span> <span class="n">_expand_waveforms</span>
@@ -2199,6 +2199,42 @@
 <span class="sd">        [2, 1]</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">rf_channel_counts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Sequence.event_definitions">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.event_definitions.html#pypulseqpp.Sequence.event_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">event_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EventDefinitions</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the definition each RF, gradient and ADC event was deduplicated onto.</span>
+
+<span class="sd">        Entry ``i`` of each array is event id ``i + 1``, and the value is a</span>
+<span class="sd">        definition id counted from 1. Events sharing a definition play the</span>
+<span class="sd">        same thing at different amplitudes, offsets or phases.</span>
+
+<span class="sd">        Composed with the block table of :meth:`libraries`, this gives the</span>
+<span class="sd">        definitions a block plays without interning them a second time.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        EventDefinitions</span>
+<span class="sd">            ``rf``, ``gradient`` and ``adc``, each by event id.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; for amplitude in (1e5, -1e5):</span>
+<span class="sd">        ...     gx = pp.make_trapezoid(</span>
+<span class="sd">        ...         "x", amplitude=amplitude, rise_time=1e-4, flat_time=1e-3</span>
+<span class="sd">        ...     )</span>
+<span class="sd">        ...     _ = seq.add_block(gx)</span>
+<span class="sd">        &gt;&gt;&gt; seq.event_definitions().gradient.tolist()  # one timing, two amplitudes</span>
+<span class="sd">        [1, 1]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">EventDefinitions</span><span class="p">(</span>
+            <span class="n">rf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">rf_definitions</span><span class="p">(),</span>
+            <span class="n">gradient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">grad_definitions</span><span class="p">(),</span>
+            <span class="n">adc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">adc_definitions</span><span class="p">(),</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Sequence.gradient_statistics">
