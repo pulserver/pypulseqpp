@@ -379,3 +379,22 @@ def test_arbitrary_gradients_of_different_lengths_are_different_definitions():
         )
 
     assert seq.event_definitions().gradient.tolist() == [1, 2, 1]
+
+
+def test_a_delay_carrying_a_trigger_is_not_the_definition_a_plain_wait_is():
+    """A block plays something when it fires a trigger, however empty it is.
+
+    Every plain wait is one definition, its length being set at run time. One
+    that fires a trigger is not among them.
+    """
+    seq = pp.Sequence(pp.Opts())
+    seq.add_block(pp.make_delay(1e-3))
+    seq.add_block(pp.make_delay(5e-3))
+    seq.add_block(
+        pp.make_delay(1e-3), pp.make_digital_output_pulse("osc0", duration=1e-4)
+    )
+
+    played = seq.block_definitions().tolist()
+
+    assert played[0] == played[1]
+    assert played[2] != played[0]

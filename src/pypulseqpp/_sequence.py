@@ -1671,6 +1671,40 @@ class Sequence:
             adc=self._native.adc_definitions(),
         )
 
+    def block_definitions(self) -> np.ndarray:
+        """Return the definition each block was deduplicated onto.
+
+        Entry ``i`` is block ``i + 1``, and the value is a definition id
+        counted from 1. Blocks sharing a definition play the same events for
+        the same time, so an interpreter prepares the position once and each
+        playout only sets what varies.
+
+        What a block plays and how long it lasts make the definition. The ADC
+        does not, so a preparation shot playing an imaging shot's gradients
+        with the digitiser off shares that shot's definition; neither do
+        labels or a rotation, which are things a playout does. A block that
+        plays nothing at all is one definition whatever it waits for, since an
+        interpreter sets that at run time -- but one carrying a trigger or a
+        digital output plays something, and is not that definition.
+
+        Returns
+        -------
+        NDArray[np.int32]
+            ``(n,)``, by block.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> gx = pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=1e-3)
+        >>> for amplitude in (1e5, -1e5):
+        ...     gx.amplitude = amplitude
+        ...     _ = seq.add_block(gx)
+        >>> seq.block_definitions().tolist()  # one position, two amplitudes
+        [1, 1]
+        """
+        return self._native.instance_definitions()
+
     def gradient_statistics(self) -> GradientStatistics:
         """Return statistics of each gradient event's waveform, along its channel axis.
 
