@@ -657,6 +657,24 @@ RF-spoiled train differ in phase alone, so an object whose isochromats each
 see their own off-resonance, such as a head in the field its susceptibility
 adds, pays one map per isochromat once for each distinct pulse rather than for
 every pulse played.</p>
+<p>That map need not be computed for each isochromat either. A pulse played
+without transmit sensitivities, under no gradient or one that holds its
+amplitude <span class="math notranslate nohighlight">\(G\)</span> along its direction <span class="math notranslate nohighlight">\(\hat{\mathbf{n}}\)</span> throughout, gives each
+isochromat one field along <span class="math notranslate nohighlight">\(z\)</span> for the whole pulse,
+<span class="math notranslate nohighlight">\(\nu = \Delta f + G\,\mathbf{r}\cdot\hat{\mathbf{n}}\)</span>, so its map depends on
+<span class="math notranslate nohighlight">\(\nu\)</span>, <span class="math notranslate nohighlight">\(T_1\)</span> and <span class="math notranslate nohighlight">\(T_2\)</span> alone. Free precession over half the pulse on either
+side, <span class="math notranslate nohighlight">\(P(\nu)\)</span>, varies with <span class="math notranslate nohighlight">\(\nu\)</span> faster than anything else in the map; the
+rest, <span class="math notranslate nohighlight">\(\tilde A = P^{-1} A P^{-1}\)</span> and <span class="math notranslate nohighlight">\(\tilde{\mathbf{c}} = P^{-1}\mathbf{c}\)</span>,
+varies only as the pulse’s response does. The engine computes <span class="math notranslate nohighlight">\(\tilde A\)</span> and
+<span class="math notranslate nohighlight">\(\tilde{\mathbf{c}}\)</span> on a grid of <span class="math notranslate nohighlight">\(\nu\)</span>, 64 points per <span class="math notranslate nohighlight">\(1/T\)</span> for a pulse of
+duration <span class="math notranslate nohighlight">\(T\)</span>, for each pair of relaxation times, interpolates between the
+four points around each isochromat’s <span class="math notranslate nohighlight">\(\nu\)</span> with a cubic, and applies its own
+<span class="math notranslate nohighlight">\(P(\nu)\)</span> exactly. Against the map stepped for each isochromat, the
+magnetisation after a slice-selective pulse agrees to within about <span class="math notranslate nohighlight">\(10^{-7}\)</span> of
+<span class="math notranslate nohighlight">\(M_0\)</span>. The grid is used where it costs fewer maps than the isochromats’
+groups, as it does under a slice-selection gradient across a head, and a
+pulse that differs from the one a grid was made for by its phase alone reuses
+the grid.</p>
 </section>
 <section id="pulseq-events-as-fields">
 <h2>Pulseq events as fields<a class="headerlink" href="#pulseq-events-as-fields" title="Link to this heading">#</a></h2>
