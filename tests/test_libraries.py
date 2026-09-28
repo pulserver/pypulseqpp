@@ -361,3 +361,21 @@ def test_a_blocks_definition_follows_from_its_events_definitions(name):
         pytest.skip("plays no RF or gradient, so there is no key to compose")
     assert all(len(keys) == 1 for keys in by_interned.values())
     assert all(len(interned) == 1 for interned in by_key.values())
+
+
+def test_arbitrary_gradients_of_different_lengths_are_different_definitions():
+    """A waveform belongs to the playout; how many samples it has does not.
+
+    With no time shape an arbitrary gradient lasts as long as its waveform,
+    so two of different lengths are different events however alike the rest
+    of the row is.
+    """
+    seq = pp.Sequence(pp.Opts())
+    for samples in (64, 128, 64):
+        seq.add_block(
+            pp.make_arbitrary_grad(
+                "x", np.sin(np.linspace(0.0, 3.0, samples)) * 1e5, system=seq.system
+            )
+        )
+
+    assert seq.event_definitions().gradient.tolist() == [1, 2, 1]

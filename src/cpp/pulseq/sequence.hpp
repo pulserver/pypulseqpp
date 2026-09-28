@@ -823,13 +823,21 @@ namespace pulseq
         key.w[2] = pack(nanos(row[3]), nanos(row[4]));
         return key;
     }
-    /** The time shape and the delay.  The waveform belongs to the instance. */
-    inline DefKey arb_key(const double* row)
+    /**
+     * The time shape, the delay and how many samples the waveform has.
+     *
+     * The waveform itself belongs to the instance -- a sparkling readout
+     * plays a new arm every shot and that is one definition -- but its length
+     * is how long the event lasts when no time shape states it, so two arms
+     * of different lengths are different events.
+     */
+    inline DefKey arb_key(const double* row, int num_samples)
     {
         DefKey key;
         key.w[0] = 2;
         key.w[1] = whole(row[4]);
         key.w[2] = nanos(row[5]);
+        key.w[3] = static_cast<uint64_t>(num_samples);
         return key;
     }
     /** Sample count, dwell and delay.  The phase modulation is per instance. */
@@ -1745,6 +1753,12 @@ namespace pulseq
             // and so cannot merge two blocks that are not one.
             const size_t node = static_cast<size_t>(block.ext) - 1;
             return node < chain_carries_trigger_.size() && !chain_carries_trigger_[node];
+        }
+        /** How many samples the waveform of arbitrary-gradient row @p row has. */
+        int arb_samples(const double* row) const
+        {
+            const int shape = static_cast<int>(row[3]);
+            return shape > 0 ? shapes_.num_uncompressed(shape) : 0;
         }
         /** One block's definition id and the ADC definition it plays with. */
         void fork_instance(const Block& block, int32_t& def, int32_t& adc_def) const;
