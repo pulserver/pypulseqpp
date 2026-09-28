@@ -123,7 +123,9 @@ class Isochromats:
     integrated exactly and applied when the magnetisation is next needed. An
     RF pulse is a sequence of steps, each a rotation about the step's mean
     field between two half steps of relaxation; isochromats that see the same
-    field during a pulse share its computation.
+    field during a pulse share its computation, and a pulse that differs from
+    an earlier one by its phase alone, under the same gradient, reuses the
+    earlier one's computation turned about z by that phase.
 
     Parameters
     ----------

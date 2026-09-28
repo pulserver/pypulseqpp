@@ -466,6 +466,48 @@ def test_isochromats_sharing_a_pulse_computation_answer_as_separate_ones():
     assert np.all(np.hypot(*shared.magnetization[np.abs(z) > 4.5e-3, :2].T) < 0.05)
 
 
+@pytest.mark.parametrize(
+    ("flip", "phase"), [(np.pi / 4, 2.1), (np.pi / 3, 0.0)], ids=["phase", "flip"]
+)
+def test_a_pulse_played_after_another_answers_as_one_played_afresh(flip, phase):
+    system = pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=120, slew_unit="T/m/s")
+    z = np.linspace(-8e-3, 8e-3, 400)
+    positions = np.column_stack([RNG.uniform(-0.1, 0.1, (z.size, 2)), z])
+    # An off-resonance of its own gives each isochromat its own map.
+    properties = {
+        "t1": 0.8,
+        "t2": 0.06,
+        "off_resonance": RNG.uniform(-40.0, 40.0, z.size),
+    }
+
+    def pulse(flip, phase):
+        rf, gz, _ = pp.make_sinc_pulse(
+            flip,
+            duration=2e-3,
+            slice_thickness=5e-3,
+            phase_offset=phase,
+            return_gz=True,
+            system=system,
+        )
+        rise, flat, fall = gz.rise_time, gz.flat_time, gz.fall_time
+        times = gz.delay + np.array([0.0, rise, rise + flat, rise + flat + fall])
+        corners = np.array([times, [0.0, gz.amplitude, gz.amplitude, 0.0]])
+        return pp.calc_duration(rf, gz), [None, None, corners], rf
+
+    def played(spins, *pulses):
+        for duration, gradients, rf in pulses:
+            spins.play(duration, gradients=gradients, rf=rf, system=system)
+            spins.play(3e-3)
+        return spins.magnetization
+
+    first, second = pulse(np.pi / 4, 0.0), pulse(flip, phase)
+    after = played(pp.Isochromats(positions, **properties), first, second)
+    afresh = pp.Isochromats(positions, **properties)
+    afresh.magnetization = played(pp.Isochromats(positions, **properties), first)
+
+    np.testing.assert_allclose(played(afresh, second), after, rtol=0, atol=1e-12)
+
+
 def test_threads_do_not_change_the_answer():
     positions = RNG.uniform(-0.05, 0.05, size=(20000, 3))
     receive = np.exp(1j * RNG.uniform(0, 2 * np.pi, size=(20000, 3)))

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
@@ -90,6 +91,15 @@ namespace pulseq
 
         /** Groupings kept for reuse, by the field a pulse plays under. */
         constexpr size_t kGroupings = 4;
+
+        /** Pulses whose maps are kept for reuse, and the bytes they may take. */
+        constexpr size_t kHeldPulses = 64;
+        constexpr size_t kHeldBytes = size_t(1) << 30;
+
+        /** Largest difference between a pulse and an earlier one turned by a
+         *  phase, relative to the earlier one's peak, at which the earlier
+         *  one's maps serve. */
+        constexpr double kPhaseTolerance = 1e-12;
 
         /** On what of an isochromat's position the field during a pulse
          *  depends: nothing, its position along one direction, or any. */
@@ -341,6 +351,35 @@ namespace pulseq
                         gradient.direction[axis] = 1.0;
             }
             return gradient;
+        }
+
+        /** Whether @p rf is @p held times one phase factor, to within
+         *  kPhaseTolerance of the held peak; the factor in @p turn. */
+        bool one_phase_apart(
+            const std::vector<std::complex<double>>& held, const std::complex<double>* rf, std::complex<double>& turn)
+        {
+            size_t peak = 0;
+            double largest = 0.0;
+            for (size_t k = 0; k < held.size(); ++k)
+                if (std::norm(held[k]) > largest)
+                {
+                    largest = std::norm(held[k]);
+                    peak = k;
+                }
+            turn = 1.0;
+            if (largest > 0.0)
+            {
+                turn = rf[peak] / held[peak];
+                const double size = std::abs(turn);
+                if (!(std::abs(size - 1.0) <= kPhaseTolerance))
+                    return false;
+                turn /= size;
+            }
+            const double limit = kPhaseTolerance * std::sqrt(largest);
+            for (size_t k = 0; k < held.size(); ++k)
+                if (!(std::abs(rf[k] - turn * held[k]) <= limit))
+                    return false;
+            return true;
         }
 
         /** The field along z isochromat @p r sees over step @p i, in Hz. */
@@ -807,35 +846,79 @@ namespace pulseq
         const IsochromatProperties& p = properties_;
         const PulseGradient gradient = pulse_gradient(block, areas);
         const Grouping& groups = grouping(gradient.mode, gradient.direction);
+        const size_t samples = block.rf_channels * block.rf_steps;
 
-        std::vector<std::complex<double>> summed;
-        if (p.transmit_channels == 0)
+        /* A pulse e^{i phi} times a held one, under the same gradient, turns
+         * each step's field, and so the held maps, about z by phi. */
+        const auto turned = [&](const HeldPulse& held, std::complex<double>& turn) {
+            return held.mode == gradient.mode && same_bits(held.direction, gradient.direction) &&
+                held.step == block.rf_step && held.channels == block.rf_channels && held.rf.size() == samples &&
+                held.delta == gradient.delta && one_phase_apart(held.rf, block.rf, turn);
+        };
+
+        std::complex<double> turn = 1.0;
+        auto held = held_.end();
+        for (auto it = held_.rbegin(); it != held_.rend(); ++it)
+            if (turned(*it, turn))
+            {
+                held = std::prev(it.base());
+                break;
+            }
+        if (held != held_.end())
+            held_.splice(held_.end(), held_, held);
+        else
         {
-            summed.assign(block.rf_steps, 0.0);
-            for (size_t c = 0; c < block.rf_channels; ++c)
-                for (size_t i = 0; i < block.rf_steps; ++i)
-                    summed[i] += block.rf[c * block.rf_steps + i];
+            std::vector<std::complex<double>> summed;
+            if (p.transmit_channels == 0)
+            {
+                summed.assign(block.rf_steps, 0.0);
+                for (size_t c = 0; c < block.rf_channels; ++c)
+                    for (size_t i = 0; i < block.rf_steps; ++i)
+                        summed[i] += block.rf[c * block.rf_steps + i];
+            }
+
+            /* Each group's pulse as one affine map, M -> A M + c * proton density. */
+            HeldPulse made;
+            made.mode = gradient.mode;
+            std::copy(gradient.direction, gradient.direction + 3, made.direction);
+            made.step = block.rf_step;
+            made.channels = block.rf_channels;
+            made.delta = gradient.delta;
+            made.rf.assign(block.rf, block.rf + samples);
+            const size_t count = groups.representative.size();
+            made.maps.resize(12 * count);
+            parallel(count, threads_, 8, [&](size_t, size_t first, size_t last) {
+                for (size_t g = first; g < last; ++g)
+                    pulse_map(p, groups.representative[g], block, gradient, summed, &made.maps[12 * g]);
+            });
+
+            while (!held_.empty() &&
+                   (held_.size() >= kHeldPulses || held_bytes_ + made.bytes() > kHeldBytes))
+            {
+                held_bytes_ -= held_.front().bytes();
+                held_.pop_front();
+            }
+            held_bytes_ += made.bytes();
+            held_.push_back(std::move(made));
+            turn = 1.0;
         }
 
-        /* Each group's pulse as one affine map, M -> A M + c * proton density. */
-        const size_t count = groups.representative.size();
-        std::vector<double> maps(12 * count);
-        parallel(count, threads_, 8, [&](size_t, size_t first, size_t last) {
-            for (size_t g = first; g < last; ++g)
-                pulse_map(p, groups.representative[g], block, gradient, summed, &maps[12 * g]);
-        });
-
+        const std::vector<double>& maps = held_.back().maps;
+        const double cosine = turn.real();
+        const double sine = turn.imag();
         parallel(count_, threads_, kChunk, [&](size_t, size_t first, size_t last) {
             for (size_t i = first; i < last; ++i)
             {
                 const double* map = &maps[12 * groups.group_of[i]];
-                const double x = mx_[i];
-                const double y = my_[i];
+                const double x = cosine * mx_[i] + sine * my_[i];
+                const double y = cosine * my_[i] - sine * mx_[i];
                 const double z = mz_[i];
                 const double density = p.proton_density[i];
-                mx_[i] = map[0] * x + map[1] * y + map[2] * z + map[9] * density;
-                my_[i] = map[3] * x + map[4] * y + map[5] * z + map[10] * density;
+                const double u = map[0] * x + map[1] * y + map[2] * z + map[9] * density;
+                const double v = map[3] * x + map[4] * y + map[5] * z + map[10] * density;
                 mz_[i] = map[6] * x + map[7] * y + map[8] * z + map[11] * density;
+                mx_[i] = cosine * u - sine * v;
+                my_[i] = sine * u + cosine * v;
             }
         });
     }

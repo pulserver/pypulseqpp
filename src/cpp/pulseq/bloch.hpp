@@ -19,6 +19,7 @@
 #include <complex>
 #include <cstddef>
 #include <cstdint>
+#include <list>
 #include <mutex>
 #include <vector>
 
@@ -83,7 +84,9 @@ namespace pulseq
      *
      * Free precession is applied when the magnetisation is next needed -- by
      * an RF pulse, an ADC sample or a read -- so blocks without either cost
-     * nothing per isochromat.
+     * nothing per isochromat. A pulse that differs from an earlier one by its
+     * phase alone, under the same gradient, applies the earlier pulse's maps
+     * turned about z by that phase, which is exact.
      */
     class Isochromats
     {
@@ -147,6 +150,27 @@ namespace pulseq
             std::vector<uint32_t> representative;
         };
 
+        /** A pulse's affine maps, 12 per group of its grouping, kept for
+         *  later pulses that differ from it by a phase alone. */
+        struct HeldPulse
+        {
+            int mode = 0;
+            double direction[3] = {0.0, 0.0, 0.0};
+            double step = 0.0;
+            size_t channels = 0;
+            /** Per step, the gradient area in 1/m. */
+            std::vector<double> delta;
+            /** The transverse field, channel-major, in Hz. */
+            std::vector<std::complex<double>> rf;
+            std::vector<double> maps;
+
+            size_t bytes() const
+            {
+                return delta.size() * sizeof(double) + rf.size() * sizeof(std::complex<double>) +
+                    maps.size() * sizeof(double);
+            }
+        };
+
         void check();
         void lay_out_receive();
         void classify();
@@ -178,6 +202,9 @@ namespace pulseq
         double elapsed_ = 0.0;
 
         std::vector<Grouping> groupings_;
+        /** Pulses held for reuse, the most recently played last. */
+        std::list<HeldPulse> held_;
+        size_t held_bytes_ = 0;
 
         /** Held by every call that reads or changes the magnetisation. */
         mutable std::mutex mutex_;

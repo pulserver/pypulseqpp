@@ -106,6 +106,18 @@ Isochromats equal in the others and within $10^{-12}$ m along that direction
 share one map. For a slice of a phantom with a few tissues, a pulse then costs
 a few maps rather than one per isochromat.
 
+A pulse whose waveform is an earlier pulse's times $e^{i\varphi}$, played under
+the same gradient, turns every step's transverse field by $\varphi$ about $z$,
+and relaxation is symmetric about $z$, so its maps are the earlier ones turned
+by $R_z(\varphi)$: $A \leftarrow R_z(\varphi)\,A\,R_z(\varphi)^{\mathsf T}$ and
+$\mathbf{c} \leftarrow R_z(\varphi)\,\mathbf{c}$. The engine keeps the maps of
+the pulses it has played and applies them turned, which is exact, to a pulse
+that matches one of them to within $10^{-12}$ of its peak. The pulses of an
+RF-spoiled train differ in phase alone, so an object whose isochromats each
+see their own off-resonance, such as a head in the field its susceptibility
+adds, pays one map per isochromat once for each distinct pulse rather than for
+every pulse played.
+
 ## Pulseq events as fields
 
 {meth}`~pypulseqpp.Sequence.simulate` plays each block's events as follows.
