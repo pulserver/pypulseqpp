@@ -15,8 +15,12 @@ if(NOT EXISTS ${MRARBGRAD}/mag/Mag.cpp)
         "    git submodule update --init --recursive")
 endif()
 
+# Python before pybind11, so that pybind11 takes CMake's FindPython, which
+# accepts a cross-compiled target: its own search compares the pointer size
+# of the interpreter running the build with the target's, and refuses
+# Pyodide's 32-bit WebAssembly.
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
-find_package(Python COMPONENTS Development.Module REQUIRED)
 # Pyodide's WebAssembly runs one thread: its build links none, and every
 # worker count the core takes from the hardware is one there.
 if(NOT EMSCRIPTEN)
