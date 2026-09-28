@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-__all__ = ["RfModule", "rf_reference"]
+__all__ = ["RfModule", "rf_reference", "selective_slr"]
 
 from typing import Any
+
+import numpy as np
+
+import pypulseqpp as pp
 
 from .._module import SequenceModule
 
@@ -23,6 +27,45 @@ def rf_reference(rf: Any) -> float:
         Its centre from the start of the block that plays it, in seconds.
     """
     return float(rf.delay) + float(rf.center)
+
+
+def selective_slr(flip_angle_deg: float, thickness_m: float, **design: Any) -> tuple:
+    """Design an SLR pulse with the selection gradient and rephaser that select ``thickness_m``.
+
+    The thickness a pulse selects is its measured bandwidth,
+    :func:`pypulseqpp.calc_rf_bandwidth`, over the selection plateau.
+    :func:`pypulseqpp.make_slr_pulse` sizes the plateau for the nominal
+    bandwidth, the time-bandwidth product over the duration, from which the
+    designed envelope's spectrum departs; the plateau is sized again for the
+    measured bandwidth.
+
+    Parameters
+    ----------
+    flip_angle_deg : float
+        Nominal flip angle (degrees).
+    thickness_m : float
+        Thickness to select (m).
+    **design
+        The rest of :func:`pypulseqpp.make_slr_pulse`'s arguments, without
+        ``slice_thickness`` and ``return_gz``.
+
+    Returns
+    -------
+    tuple
+        ``(rf, gz, gz_reph)``, as :func:`pypulseqpp.make_slr_pulse` returns
+        them under ``return_gz``.
+    """
+    flip = np.deg2rad(flip_angle_deg)
+    rf, gz, _ = pp.make_slr_pulse(
+        flip, slice_thickness=thickness_m, return_gz=True, **design
+    )
+    nominal = abs(gz.amplitude) * thickness_m
+    return pp.make_slr_pulse(
+        flip,
+        slice_thickness=thickness_m * nominal / pp.calc_rf_bandwidth(rf),
+        return_gz=True,
+        **design,
+    )
 
 
 class RfModule(SequenceModule):

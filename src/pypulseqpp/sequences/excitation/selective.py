@@ -8,7 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ._base import RfModule, rf_reference
+from ._base import RfModule, rf_reference, selective_slr
 
 _AXES = ("x", "y", "z")
 
@@ -27,7 +27,8 @@ class SpatialSelectiveExcitation(RfModule):
     flip_angle_deg : float
         Nominal flip angle (degrees).
     thickness_m : float
-        Slice or slab thickness (m).
+        Slice or slab thickness (m): the pulse's measured bandwidth over the
+        selection plateau.
     duration_s : float, default=0.003
         Pulse duration (s).
     is_slab : bool, default=False
@@ -58,6 +59,9 @@ class SpatialSelectiveExcitation(RfModule):
     selection_amplitude : float
         Plateau amplitude of the selection lobe (Hz/m), which a slice offset
         is converted against: ``freq_offset = selection_amplitude * position``.
+    slice_thickness : float
+        The thickness selected (m), the pulse's measured bandwidth over
+        ``selection_amplitude``: ``thickness_m`` to rounding.
 
     Raises
     ------
@@ -117,27 +121,21 @@ class SpatialSelectiveExcitation(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        rf, gz, gz_reph = pp.make_slr_pulse(
-            np.deg2rad(flip_angle_deg),
+        rf, gz, gz_reph = selective_slr(
+            flip_angle_deg,
+            thickness_m,
             duration=duration_s,
-            slice_thickness=thickness_m,
             time_bw_product=time_bw_product,
             pulse_type=pulse_type,
             passband_ripple=passband_ripple,
             stopband_ripple=stopband_ripple,
-            return_gz=True,
             use=use,
             system=system,
         )
         gz.channel = axis
         gz_reph.channel = axis
 
-        # The thickness the pulse and its selection gradient actually produce,
-        # which is the pulse's measured bandwidth over the gradient it is
-        # played on. It differs from `thickness_m` by however much the
-        # designed envelope's spectrum differs from its nominal time-bandwidth
-        # product, so it is what a reconstruction should be told. Taken before
-        # a slab's rephaser is concatenated onto the lobe.
+        # Taken before a slab's rephaser is concatenated onto the lobe.
         self.slice_thickness = float(pp.calc_rf_bandwidth(rf) / abs(gz.amplitude))
         self.selection_amplitude = float(gz.amplitude)
 
