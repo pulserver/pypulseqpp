@@ -90,7 +90,10 @@ namespace pulseq
      * turned about z by that phase, which is exact. A pulse played without
      * transmit sensitivities, under no gradient or one held throughout, is
      * computed on a grid of the field an isochromat sees during it, where
-     * that costs fewer maps than one per group, and interpolated.
+     * that costs fewer maps than one per group, and interpolated. An ADC
+     * sample's coil sums are formed in partial sums over blocks of coils, with
+     * AVX2 and FMA where the processor has them, so their rounding depends on
+     * the processor and the number of threads.
      */
     class Isochromats
     {
