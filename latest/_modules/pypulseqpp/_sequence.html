@@ -2237,6 +2237,43 @@
         <span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Sequence.block_definitions">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.block_definitions.html#pypulseqpp.Sequence.block_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the definition each block was deduplicated onto.</span>
+
+<span class="sd">        Entry ``i`` is block ``i + 1``, and the value is a definition id</span>
+<span class="sd">        counted from 1. Blocks sharing a definition play the same events for</span>
+<span class="sd">        the same time, so an interpreter prepares the position once and each</span>
+<span class="sd">        playout only sets what varies.</span>
+
+<span class="sd">        What a block plays and how long it lasts make the definition. The ADC</span>
+<span class="sd">        does not, so a preparation shot playing an imaging shot's gradients</span>
+<span class="sd">        with the digitiser off shares that shot's definition; neither do</span>
+<span class="sd">        labels or a rotation, which are things a playout does. A block that</span>
+<span class="sd">        plays nothing at all is one definition whatever it waits for, since an</span>
+<span class="sd">        interpreter sets that at run time -- but one carrying a trigger or a</span>
+<span class="sd">        digital output plays something, and is not that definition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NDArray[np.int32]</span>
+<span class="sd">            ``(n,)``, by block.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; gx = pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=1e-3)</span>
+<span class="sd">        &gt;&gt;&gt; for amplitude in (1e5, -1e5):</span>
+<span class="sd">        ...     gx.amplitude = amplitude</span>
+<span class="sd">        ...     _ = seq.add_block(gx)</span>
+<span class="sd">        &gt;&gt;&gt; seq.block_definitions().tolist()  # one position, two amplitudes</span>
+<span class="sd">        [1, 1]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">instance_definitions</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="Sequence.gradient_statistics">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.gradient_statistics.html#pypulseqpp.Sequence.gradient_statistics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gradient_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GradientStatistics</span><span class="p">:</span>
