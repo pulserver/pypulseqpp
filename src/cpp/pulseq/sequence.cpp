@@ -244,7 +244,7 @@ namespace pulseq
         shapes_.mark(static_cast<int>(row[4]), SHAPE_ROLE_GRADIENT_TIME);
         const int slot = arb_.append(row);
         grad_slot_.push_back(-static_cast<int32_t>(slot));
-        grad_def_.push_back(grad_defs_.intern(arb_key(row)));
+        grad_def_.push_back(grad_defs_.intern(arb_key(row, arb_samples(row))));
         return static_cast<int>(grad_slot_.size());
     }
 
@@ -536,7 +536,8 @@ namespace pulseq
         grad_def_.reserve(grad_slot_.size());
         for (const int32_t slot : grad_slot_)
             grad_def_.push_back(grad_defs_.intern(
-                slot > 0 ? trap_key(trap_.row(slot)) : arb_key(arb_.row(-slot))));
+                slot > 0 ? trap_key(trap_.row(slot))
+                         : arb_key(arb_.row(-slot), arb_samples(arb_.row(-slot)))));
 
         adc_def_.clear();
         adc_def_.reserve(static_cast<size_t>(adc_.size()));
