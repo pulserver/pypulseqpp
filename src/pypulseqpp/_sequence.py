@@ -22,7 +22,7 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
-from ._results import AdcEchoes, GradientStatistics, RfGradients
+from ._results import AdcEchoes, EventDefinitions, GradientStatistics, RfGradients
 from ._sound import SOUND_SAMPLE_RATE
 from ._sound import gradient_sound as _gradient_sound
 from ._waveforms import _expand as _expand_waveforms
@@ -1637,6 +1637,39 @@ class Sequence:
         [2, 1]
         """
         return np.asarray(_cxx.rf_channel_counts(self._native))
+
+    def event_definitions(self) -> EventDefinitions:
+        """Return the definition each RF, gradient and ADC event was deduplicated onto.
+
+        Entry ``i`` of each array is event id ``i + 1``, and the value is a
+        definition id counted from 1. Events sharing a definition play the
+        same thing at different amplitudes, offsets or phases.
+
+        Composed with the block table of :meth:`libraries`, this gives the
+        definitions a block plays without interning them a second time.
+
+        Returns
+        -------
+        EventDefinitions
+            ``rf``, ``gradient`` and ``adc``, each by event id.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> for amplitude in (1e5, -1e5):
+        ...     gx = pp.make_trapezoid(
+        ...         "x", amplitude=amplitude, rise_time=1e-4, flat_time=1e-3
+        ...     )
+        ...     _ = seq.add_block(gx)
+        >>> seq.event_definitions().gradient.tolist()  # one timing, two amplitudes
+        [1, 1]
+        """
+        return EventDefinitions(
+            rf=self._native.rf_definitions(),
+            gradient=self._native.grad_definitions(),
+            adc=self._native.adc_definitions(),
+        )
 
     def gradient_statistics(self) -> GradientStatistics:
         """Return statistics of each gradient event's waveform, along its channel axis.

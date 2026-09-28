@@ -9,6 +9,7 @@ import numpy as np
 __all__ = [
     "AdcEchoes",
     "AdcTimes",
+    "EventDefinitions",
     "GradientStatistics",
     "RfBandwidth",
     "RfGradients",
@@ -274,6 +275,40 @@ class RfGradients:
     block: np.ndarray
     steady: np.ndarray
     gradient: np.ndarray
+
+
+@dataclass(frozen=True)
+class EventDefinitions:
+    """The definition each event of a sequence was deduplicated onto.
+
+    Entry ``i`` is event id ``i + 1``, and the value is a definition id
+    counted from 1. Events sharing a definition play the same thing at
+    different amplitudes, offsets or phases: the per-playout parameters are
+    what separates them, so a pulse generator materialises memory once per
+    definition rather than once per event. See
+    :meth:`pypulseqpp.Sequence.event_definitions`.
+
+    Attributes
+    ----------
+    rf : NDArray[np.int32]
+        ``(r,)``: by RF id. Magnitude, phase and time shapes, delay, centre
+        and use make the definition; the amplitude and the frequency and
+        phase offsets, ppm offsets included, do not.
+    gradient : NDArray[np.int32]
+        ``(g,)``: by gradient id, trapezoids and arbitrary gradients under one
+        numbering. A trapezoid's rise, flat and fall times and delay make the
+        definition, an arbitrary gradient's time shape and delay do; neither
+        amplitude does, and an arbitrary gradient's waveform belongs to the
+        playout.
+    adc : NDArray[np.int32]
+        ``(a,)``: by ADC id. Sample count, dwell and delay make the
+        definition; the frequency and phase offsets and the phase
+        modulation do not.
+    """
+
+    rf: np.ndarray
+    gradient: np.ndarray
+    adc: np.ndarray
 
 
 @dataclass(frozen=True)

@@ -955,6 +955,27 @@ PYBIND11_MODULE(_ext, module)
         .def("num_grad_definitions", &Sequence::num_grad_definitions)
         .def("num_adc_definitions", &Sequence::num_adc_definitions)
         .def(
+            "rf_definitions",
+            [](const Sequence& self) {
+                const auto& v = self.rf_definitions();
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
+            },
+            "Per RF id, the id of the definition it plays; index with id - 1.")
+        .def(
+            "grad_definitions",
+            [](const Sequence& self) {
+                const auto& v = self.grad_definitions();
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
+            },
+            "Per gradient id, the id of the definition it plays; index with id - 1.")
+        .def(
+            "adc_definitions",
+            [](const Sequence& self) {
+                const auto& v = self.adc_definitions();
+                return py::array_t<int32_t>(static_cast<py::ssize_t>(v.size()), v.data());
+            },
+            "Per ADC id, the id of the definition it digitises with; index with id - 1.")
+        .def(
             "instance_definitions",
             [](const Sequence& self) {
                 const auto& v = self.instance_definitions();

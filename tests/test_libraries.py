@@ -300,3 +300,64 @@ def test_a_gradient_waveform_shape_is_normalised_to_its_amplitude():
 
     waveform = tables.shapes[int(row[3]) - 1].decompressed() * row[0]
     np.testing.assert_allclose(waveform, seq.get_block(2).gx.waveform, rtol=1e-12)
+
+
+def _definition_of(ids, table):
+    """The definition each id names, 0 where a block carries no such event."""
+    found = np.zeros(len(ids), dtype=np.int64)
+    present = ids > 0
+    found[present] = table[ids[present] - 1]
+    return found
+
+
+def test_gradients_differing_only_in_amplitude_share_a_definition():
+    seq = pp.Sequence(pp.Opts())
+    for amplitude in (1e5, -1e5, 5e4):
+        seq.add_block(
+            pp.make_trapezoid("x", amplitude=amplitude, rise_time=1e-4, flat_time=1e-3)
+        )
+    seq.add_block(pp.make_trapezoid("x", amplitude=1e5, rise_time=1e-4, flat_time=2e-3))
+
+    played = seq.event_definitions().gradient
+
+    assert played.tolist() == [1, 1, 1, 2]
+
+
+@pytest.mark.parametrize("name", CORPUS)
+def test_a_blocks_definition_follows_from_its_events_definitions(name):
+    """What pypulseqpp interned a block as is a function of what it publishes.
+
+    A consumer composing the block table with the per-event definitions
+    partitions the blocks exactly as pypulseqpp's own block definitions do:
+    the correspondence runs both ways, so the composed key neither splits a
+    definition nor merges two. That is what lets the consumer take the
+    partition rather than intern the events a second time. Pure delays are
+    left out, being one definition whatever they last.
+    """
+    seq = pp.Sequence()
+    seq.read(SEQ / name, remove_duplicates=False)
+
+    tables = seq.libraries()
+    definitions = seq.event_definitions()
+    blocks = tables.blocks
+    composed = zip(
+        _definition_of(blocks[:, 0], definitions.rf),
+        _definition_of(blocks[:, 1], definitions.gradient),
+        _definition_of(blocks[:, 2], definitions.gradient),
+        _definition_of(blocks[:, 3], definitions.gradient),
+        np.rint(tables.block_durations * 1e9).astype(np.int64),
+        strict=True,
+    )
+
+    by_interned: dict[int, set] = {}
+    by_key: dict[tuple, set] = {}
+    for key, interned in zip(composed, seq._native.instance_definitions(), strict=True):
+        if not any(key[:4]):
+            continue
+        by_interned.setdefault(int(interned), set()).add(key)
+        by_key.setdefault(key, set()).add(int(interned))
+
+    if not by_interned:
+        pytest.skip("plays no RF or gradient, so there is no key to compose")
+    assert all(len(keys) == 1 for keys in by_interned.values())
+    assert all(len(interned) == 1 for interned in by_key.values())
