@@ -86,7 +86,10 @@ namespace pulseq
      * an RF pulse, an ADC sample or a read -- so blocks without either cost
      * nothing per isochromat. A pulse that differs from an earlier one by its
      * phase alone, under the same gradient, applies the earlier pulse's maps
-     * turned about z by that phase, which is exact.
+     * turned about z by that phase, which is exact. A pulse played without
+     * transmit sensitivities, under no gradient or one held throughout, is
+     * computed on a grid of the field an isochromat sees during it, where
+     * that costs fewer maps than one per group, and interpolated.
      */
     class Isochromats
     {
@@ -205,6 +208,40 @@ namespace pulseq
         /** Pulses held for reuse, the most recently played last. */
         std::list<HeldPulse> held_;
         size_t held_bytes_ = 0;
+
+        /** A pulse's affine maps on a grid of the field an isochromat of one
+         *  T1 and T2 sees throughout it, kept for later pulses that differ
+         *  from it by a phase alone. Point j lies at j * spacing, in Hz. */
+        struct PulseTable
+        {
+            double step = 0.0;
+            double t1 = 0.0;
+            double t2 = 0.0;
+            double spacing = 0.0;
+            /** The transverse field, summed over the channels, in Hz. */
+            std::vector<std::complex<double>> rf;
+            /** The first point held, then 12 values per point from it on, in
+             *  the frame the isochromat's own precession over half the pulse
+             *  turns on either side. */
+            long long first = 0;
+            std::vector<double> maps;
+
+            size_t bytes() const
+            {
+                return rf.size() * sizeof(std::complex<double>) + maps.size() * sizeof(double);
+            }
+        };
+
+        /** Play a pulse on its tables, made or extended as needed, unless
+         *  their new points outnumber @p stepped; return whether it did. */
+        bool excite_on_grid(const BlockEvents& block, double along, const double direction[3], size_t stepped);
+
+        /** Classes of isochromats equal in T1 and T2, and each class's. */
+        std::vector<uint32_t> relaxation_of_;
+        std::vector<std::array<double, 2>> relaxations_;
+        /** Tables held for reuse, the most recently played last. */
+        std::list<PulseTable> tables_;
+        size_t table_bytes_ = 0;
 
         /** Held by every call that reads or changes the magnetisation. */
         mutable std::mutex mutex_;
