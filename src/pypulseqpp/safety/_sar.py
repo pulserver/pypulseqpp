@@ -15,9 +15,10 @@ from .. import _ext as _cxx
 class VopModel(NamedTuple):
     """Virtual observation points, and an optional global SAR matrix.
 
-    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, complex
-    Hermitian, in W/kg per unit channel drive squared: SAR is ``v^H Q v`` for
-    the channel drive phasors ``v`` at peak amplitude.
+    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, or one
+    body's ``(1, Nc, Nc)`` as mariepy writes it, complex Hermitian, in W/kg per
+    unit channel drive squared: SAR is ``v^H Q v`` for the channel drive
+    phasors ``v`` at peak amplitude.
     """
 
     vops: np.ndarray
@@ -46,6 +47,13 @@ def _validated(model: VopModel) -> VopModel:
     global_matrix = model.global_matrix
     if global_matrix is not None:
         global_matrix = np.asarray(global_matrix)
+        if global_matrix.ndim == 3:
+            if global_matrix.shape[0] != 1:
+                raise ValueError(
+                    f"the global SAR matrix holds {global_matrix.shape[0]} bodies; "
+                    "a model takes the matrix of the body scanned"
+                )
+            global_matrix = global_matrix[0]
         if global_matrix.shape != vops.shape[1:]:
             raise ValueError(
                 f"the global SAR matrix is {global_matrix.shape}, and the VOPs "
@@ -62,7 +70,8 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ``vops``, ``Q10g`` or ``Q``, and optionally ``Sglobal`` or
     ``global_matrix``; the stack is read into ``(N, Nc, Nc)``. MATLAB v7.3
     (HDF5) files are not read. An ``.npz`` file holds ``vops`` as
-    ``(N, Nc, Nc)`` and optionally ``global_matrix``.
+    ``(N, Nc, Nc)`` and optionally ``global_matrix``, ``(Nc, Nc)`` or one
+    body's ``(1, Nc, Nc)``, as mariepy's ``vop.write`` stores it.
 
     Parameters
     ----------
@@ -78,8 +87,8 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     Raises
     ------
     ValueError
-        If the file holds no recognised VOP array, or one whose shape is not
-        a square stack.
+        If the file holds no recognised VOP array, one whose shape is not a
+        square stack, or the global SAR matrices of several bodies.
     OSError
         If the file cannot be read, a MATLAB v7.3 file among them.
     """
