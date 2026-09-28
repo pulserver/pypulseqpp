@@ -543,9 +543,10 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">VopModel</span></span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#VopModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.VopModel" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
 <p>Virtual observation points, and an optional global SAR matrix.</p>
-<p><code class="docutils literal notranslate"><span class="pre">vops</span></code> is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> and <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code> <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, complex
-Hermitian, in W/kg per unit channel drive squared: SAR is <code class="docutils literal notranslate"><span class="pre">v^H</span> <span class="pre">Q</span> <span class="pre">v</span></code> for
-the channel drive phasors <code class="docutils literal notranslate"><span class="pre">v</span></code> at peak amplitude.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vops</span></code> is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> and <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code> <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or one
+body’s <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> as mariepy writes it, complex Hermitian, in W/kg per
+unit channel drive squared: SAR is <code class="docutils literal notranslate"><span class="pre">v^H</span> <span class="pre">Q</span> <span class="pre">v</span></code> for the channel drive
+phasors <code class="docutils literal notranslate"><span class="pre">v</span></code> at peak amplitude.</p>
 </dd></dl>
 
 <p class="rubric">Methods</p>

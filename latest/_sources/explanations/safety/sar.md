@@ -51,7 +51,8 @@ model.[^eichfelder]
 
 {class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ VOP stack, in
 W/kg per unit channel drive squared, and an optional global matrix;
-{func}`~pypulseqpp.safety.read_vops` reads it from a `.mat` or `.npz` file.
+{func}`~pypulseqpp.safety.read_vops` reads it from a `.mat` or `.npz` file,
+including the one-body file that mariepy's `vop.write` stores.
 {func}`~pypulseqpp.safety.example_vops` returns a synthetic eight-channel model
 of a loop array around a uniform cylinder, with no tissue, coil coupling or
 conservative field, for demonstration only.

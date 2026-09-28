@@ -482,9 +482,10 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">VopModel</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Virtual observation points, and an optional global SAR matrix.</span>
 
-<span class="sd">    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, complex</span>
-<span class="sd">    Hermitian, in W/kg per unit channel drive squared: SAR is ``v^H Q v`` for</span>
-<span class="sd">    the channel drive phasors ``v`` at peak amplitude.</span>
+<span class="sd">    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, or one</span>
+<span class="sd">    body's ``(1, Nc, Nc)`` as mariepy writes it, complex Hermitian, in W/kg per</span>
+<span class="sd">    unit channel drive squared: SAR is ``v^H Q v`` for the channel drive</span>
+<span class="sd">    phasors ``v`` at peak amplitude.</span>
 <span class="sd">    """</span>
 
     <span class="n">vops</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -514,6 +515,13 @@
     <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span>
     <span class="k">if</span> <span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the global SAR matrix holds </span><span class="si">{</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> bodies; "</span>
+                    <span class="s2">"a model takes the matrix of the body scanned"</span>
+                <span class="p">)</span>
+            <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">global_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"the global SAR matrix is </span><span class="si">{</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, and the VOPs "</span>
@@ -532,7 +540,8 @@
 <span class="sd">    ``vops``, ``Q10g`` or ``Q``, and optionally ``Sglobal`` or</span>
 <span class="sd">    ``global_matrix``; the stack is read into ``(N, Nc, Nc)``. MATLAB v7.3</span>
 <span class="sd">    (HDF5) files are not read. An ``.npz`` file holds ``vops`` as</span>
-<span class="sd">    ``(N, Nc, Nc)`` and optionally ``global_matrix``.</span>
+<span class="sd">    ``(N, Nc, Nc)`` and optionally ``global_matrix``, ``(Nc, Nc)`` or one</span>
+<span class="sd">    body's ``(1, Nc, Nc)``, as mariepy's ``vop.write`` stores it.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -548,8 +557,8 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If the file holds no recognised VOP array, or one whose shape is not</span>
-<span class="sd">        a square stack.</span>
+<span class="sd">        If the file holds no recognised VOP array, one whose shape is not a</span>
+<span class="sd">        square stack, or the global SAR matrices of several bodies.</span>
 <span class="sd">    OSError</span>
 <span class="sd">        If the file cannot be read, a MATLAB v7.3 file among them.</span>
 <span class="sd">    """</span>
