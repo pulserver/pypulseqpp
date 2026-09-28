@@ -1226,9 +1226,19 @@ namespace pulseq
         {
             return grad_defs_.size();
         }
+        /** Per gradient id, the id of the definition it plays. */
+        const std::vector<int32_t>& grad_definitions() const
+        {
+            return grad_def_;
+        }
         int num_adc_definitions() const
         {
             return adc_defs_.size();
+        }
+        /** Per ADC id, the id of the definition it digitises with. */
+        const std::vector<int32_t>& adc_definitions() const
+        {
+            return adc_def_;
         }
         /** Per block, the id of the definition it plays. */
         const std::vector<int32_t>& instance_definitions() const
