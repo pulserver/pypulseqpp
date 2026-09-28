@@ -237,6 +237,33 @@ def test_an_npz_file_round_trips(tmp_path, model):
     np.testing.assert_allclose(read.vops, model.vops)
 
 
+def test_a_one_body_npz_file_as_mariepy_writes_it_is_read(tmp_path, model):
+    path = tmp_path / "vops.npz"
+    np.savez_compressed(
+        path,
+        vops=model.vops,
+        global_matrix=model.global_matrix[None],
+        metadata=np.array('{"bodies": ["head"]}'),
+    )
+
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.vops, model.vops)
+    np.testing.assert_allclose(read.global_matrix, model.global_matrix)
+
+
+def test_the_global_sar_matrices_of_several_bodies_are_refused(tmp_path, model):
+    path = tmp_path / "vops.npz"
+    np.savez(
+        path,
+        vops=model.vops,
+        global_matrix=np.stack([model.global_matrix, model.global_matrix]),
+    )
+
+    with pytest.raises(ValueError, match="2 bodies"):
+        safety.read_vops(path)
+
+
 def test_a_vop_that_is_not_hermitian_is_refused(system, model):
     broken = model.vops.copy()
     broken[0, 0, 1] += 1.0
