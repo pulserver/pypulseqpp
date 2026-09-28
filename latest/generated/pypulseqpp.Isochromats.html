@@ -567,7 +567,9 @@ field inhomogeneity and chemical shift together.</p></li>
 the field of each RF channel. By default one channel of unit
 sensitivity, onto which the channels of a pTx pulse are summed.</p></li>
 <li><p><strong>receive</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – Complex receive sensitivities, <code class="docutils literal notranslate"><span class="pre">(n,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">coils)</span></code>. By default
-one coil of unit sensitivity.</p></li>
+one coil of unit sensitivity. A C-contiguous complex128 array, a
+memory-mapped one included, is read in place into the isochromats’
+own layout, so that it is never copied whole into memory.</p></li>
 <li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Worker threads; 0 for every core.</p></li>
 </ul>
 </dd>

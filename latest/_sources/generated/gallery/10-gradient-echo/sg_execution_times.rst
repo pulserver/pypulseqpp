@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**02:20.335** total execution time for 10 files **from generated/gallery/10-gradient-echo**:
+**04:15.186** total execution time for 10 files **from generated/gallery/10-gradient-echo**:
 
 .. container::
 
@@ -33,32 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py` (``gre_multiecho3D_sequence.py``)
-     - 01:38.655
+     - 02:59.942
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py` (``gre_multiecho2D_sequence.py``)
-     - 00:13.702
+     - 00:24.618
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre3D_sequence.py` (``gre3D_sequence.py``)
-     - 00:12.741
+     - 00:23.469
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py` (``gre_stack_of_blades3D_sequence.py``)
-     - 00:04.931
+     - 00:08.694
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py` (``gre_stack_of_stars3D_sequence.py``)
-     - 00:02.964
+     - 00:05.326
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py` (``gre_propeller2D_sequence.py``)
-     - 00:02.212
+     - 00:03.962
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py` (``gre_stack_of_spirals3D_sequence.py``)
-     - 00:01.781
+     - 00:03.158
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py` (``gre_radial2D_sequence.py``)
-     - 00:01.531
+     - 00:02.687
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre2D_sequence.py` (``gre2D_sequence.py``)
-     - 00:01.080
+     - 00:01.978
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py` (``gre_spiral2D_sequence.py``)
-     - 00:00.737
+     - 00:01.353
      - 0.0

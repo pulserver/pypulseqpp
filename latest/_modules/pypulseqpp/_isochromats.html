@@ -609,7 +609,9 @@
 <span class="sd">        sensitivity, onto which the channels of a pTx pulse are summed.</span>
 <span class="sd">    receive : array_like, default=None</span>
 <span class="sd">        Complex receive sensitivities, ``(n,)`` or ``(n, coils)``. By default</span>
-<span class="sd">        one coil of unit sensitivity.</span>
+<span class="sd">        one coil of unit sensitivity. A C-contiguous complex128 array, a</span>
+<span class="sd">        memory-mapped one included, is read in place into the isochromats'</span>
+<span class="sd">        own layout, so that it is never copied whole into memory.</span>
 <span class="sd">    threads : int, default=0</span>
 <span class="sd">        Worker threads; 0 for every core.</span>
 
