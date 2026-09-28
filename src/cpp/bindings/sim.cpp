@@ -35,18 +35,19 @@ namespace
         return std::vector<double>(values.data(), values.data() + count);
     }
 
-    /** Sensitivities as (isochromats, channels), or none. */
-    std::vector<Complex> sensitivities(const py::object& given, size_t count, size_t& channels, const char* name)
+    /** Sensitivities as (isochromats, channels), the given array itself where
+     *  it is C-contiguous complex128; an empty array for none. */
+    Complexes sensitivities(const py::object& given, size_t count, size_t& channels, const char* name)
     {
         channels = 0;
         if (given.is_none())
-            return {};
-        const Complexes values = py::cast<Complexes>(given);
+            return Complexes();
+        Complexes values = py::cast<Complexes>(given);
         if (values.ndim() != 2 || static_cast<size_t>(values.shape(0)) != count || values.shape(1) < 1)
             throw std::invalid_argument(
                 std::string(name) + " must be (isochromats, channels) with at least one channel");
         channels = static_cast<size_t>(values.shape(1));
-        return std::vector<Complex>(values.data(), values.data() + values.size());
+        return values;
     }
 
     pulseq::Isochromats* make_isochromats(
@@ -77,8 +78,12 @@ namespace
         properties.t1 = column(t1, count, "t1");
         properties.t2 = column(t2, count, "t2");
         properties.off_resonance = column(off_resonance, count, "off_resonance");
-        properties.transmit = sensitivities(transmit, count, properties.transmit_channels, "transmit");
-        properties.receive = sensitivities(receive, count, properties.coils, "receive");
+        const Complexes transmitted = sensitivities(transmit, count, properties.transmit_channels, "transmit");
+        properties.transmit.assign(transmitted.data(), transmitted.data() + transmitted.size());
+        // Read in place while the isochromats are constructed, so that a
+        // memory-mapped array is never copied whole into this process.
+        const Complexes received = sensitivities(receive, count, properties.coils, "receive");
+        properties.receive = properties.coils != 0 ? received.data() : nullptr;
         py::gil_scoped_release unlocked;
         return new pulseq::Isochromats(std::move(properties), threads);
     }

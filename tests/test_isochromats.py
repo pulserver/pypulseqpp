@@ -494,6 +494,26 @@ def test_each_coil_receives_its_sensitivity_times_the_magnetisation():
     )
 
 
+def test_receive_sensitivities_in_a_read_only_memory_mapped_file_are_received_as_in_memory(
+    tmp_path,
+):
+    positions = RNG.uniform(-0.05, 0.05, size=(30, 3))
+    receive = RNG.normal(size=(30, 3)) + 1j * RNG.normal(size=(30, 3))
+    path = tmp_path / "receive.dat"
+    np.memmap(path, dtype=complex, mode="w+", shape=receive.shape)[:] = receive
+    mapped = np.memmap(path, dtype=complex, mode="r", shape=receive.shape)
+    gradient = np.array([[0.0, 1e-3], [5e3, 5e3]])
+    signals = []
+    for sensitivities in (receive, mapped):
+        spins = pp.Isochromats(positions, receive=sensitivities)
+        spins.play(1e-3, rf=_hard(40.0))
+        signals.append(
+            spins.play(1e-3, gradients=[gradient, gradient, None], adc=[5e-4, 1e-3])
+        )
+
+    np.testing.assert_array_equal(signals[1], signals[0])
+
+
 def test_a_transmit_sensitivity_scales_the_flip():
     spins = pp.Isochromats(np.zeros((2, 3)), transmit=[1.0, 0.5])
     spins.play(1e-3, rf=_hard(90.0))
