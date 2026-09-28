@@ -272,19 +272,24 @@ namespace pulseq
             std::memcpy(c, moved, sizeof moved);
         }
 
-        /** The gradient area over each step of a pulse, and on what of an
-         *  isochromat's position the field it sees depends. */
-        struct PulseGradient
-        {
-            int mode = kNoGradient;
-            /** For kOneDirection the direction; for kAnyDirection, 1 on each
-             *  axis a gradient plays on. */
-            double direction[3] = {0.0, 0.0, 0.0};
-            /** Per step, the gradient area in 1/m. */
-            std::vector<double> delta;
-            /** Per step, the mean gradient along the direction, in Hz/m. */
-            std::vector<double> along;
-        };
+    } // namespace
+
+    /** The gradient area over each step of a pulse, and on what of an
+     *  isochromat's position the field it sees depends. */
+    struct PulseGradient
+    {
+        int mode = kNoGradient;
+        /** For kOneDirection the direction; for kAnyDirection, 1 on each
+         *  axis a gradient plays on. */
+        double direction[3] = {0.0, 0.0, 0.0};
+        /** Per step, the gradient area in 1/m. */
+        std::vector<double> delta;
+        /** Per step, the mean gradient along the direction, in Hz/m. */
+        std::vector<double> along;
+    };
+
+    namespace
+    {
 
         /** Whether every step's area lies along the gradient's direction,
          *  filling the mean gradient along it. */
@@ -475,6 +480,66 @@ namespace pulseq
             turn_both_sides(a, c, 0.5 * kTwoPi * nu * dt * static_cast<double>(rf.size()));
             std::memcpy(map, a, 9 * sizeof(double));
             std::memcpy(map + 9, c, 3 * sizeof(double));
+        }
+
+        /** The pulse's transverse field summed over its channels, per step, in Hz. */
+        std::vector<std::complex<double>> channel_sum(const BlockEvents& block)
+        {
+            std::vector<std::complex<double>> summed(block.rf_steps, 0.0);
+            for (size_t c = 0; c < block.rf_channels; ++c)
+                for (size_t i = 0; i < block.rf_steps; ++i)
+                    summed[i] += block.rf[c * block.rf_steps + i];
+            return summed;
+        }
+
+        /** The field, in Hz, each isochromat sees under a gradient of @p along,
+         *  in Hz/m, along @p direction. */
+        std::vector<double> held_field(const IsochromatProperties& p, double along, const double direction[3])
+        {
+            std::vector<double> field(p.x.size());
+            for (size_t i = 0; i < field.size(); ++i)
+            {
+                const double position = p.x[i] * direction[0] + p.y[i] * direction[1] + p.z[i] * direction[2];
+                field[i] = p.off_resonance[i] + along * position;
+            }
+            return field;
+        }
+
+        /** Per class, the first and last points of a grid of @p spacing, in Hz,
+         *  the cubic around each of its isochromats' @p field reads. */
+        void grid_bounds(
+            const std::vector<double>& field,
+            const std::vector<uint32_t>& class_of,
+            double spacing,
+            std::vector<long long>& low,
+            std::vector<long long>& high)
+        {
+            for (size_t i = 0; i < field.size(); ++i)
+            {
+                const long long point = static_cast<long long>(std::floor(field[i] / spacing));
+                low[class_of[i]] = std::min(low[class_of[i]], point - 1);
+                high[class_of[i]] = std::max(high[class_of[i]], point + 2);
+            }
+        }
+
+        /** Points of [@p low, @p high] outside the @p points from @p first. */
+        size_t points_outside(long long first, long long points, long long low, long long high)
+        {
+            const long long held = std::min(high, first + points - 1) - std::max(low, first) + 1;
+            return static_cast<size_t>(high - low + 1 - std::max(0LL, held));
+        }
+
+        /** The Lagrange cubic through the maps at points -1, 0, 1 and 2 from
+         *  @p around, at @p u in [0, 1). */
+        void cubic(const double* around, double u, double* map)
+        {
+            const double w[4] = {
+                -u * (u - 1.0) * (u - 2.0) / 6.0,
+                (u + 1.0) * (u - 1.0) * (u - 2.0) / 2.0,
+                -(u + 1.0) * u * (u - 2.0) / 2.0,
+                (u + 1.0) * u * (u - 1.0) / 6.0};
+            for (int e = 0; e < 12; ++e)
+                map[e] = w[0] * around[e] + w[1] * around[12 + e] + w[2] * around[24 + e] + w[3] * around[36 + e];
         }
 
         /** Write the affine map a pulse applies to isochromat @p r, A then c,
@@ -934,141 +999,178 @@ namespace pulseq
         return groupings_.back();
     }
 
-    void Isochromats::excite(const BlockEvents& block, const GradientAreas& areas)
+    std::list<Isochromats::HeldPulse>::iterator Isochromats::find_held(
+        const BlockEvents& block, const PulseGradient& gradient, std::complex<double>& turn)
     {
-        const IsochromatProperties& p = properties_;
-        const PulseGradient gradient = pulse_gradient(block, areas);
-        const Grouping& groups = grouping(gradient.mode, gradient.direction);
-        const size_t samples = block.rf_channels * block.rf_steps;
-
         /* A pulse e^{i phi} times a held one, under the same gradient, turns
          * each step's field, and so the held maps, about z by phi. */
-        const auto turned = [&](const HeldPulse& held, std::complex<double>& turn) {
-            return held.mode == gradient.mode && same_bits(held.direction, gradient.direction) &&
-                held.step == block.rf_step && held.channels == block.rf_channels && held.rf.size() == samples &&
-                held.delta == gradient.delta && one_phase_apart(held.rf, block.rf, turn);
-        };
-
-        std::complex<double> turn = 1.0;
-        auto held = held_.end();
+        const size_t samples = block.rf_channels * block.rf_steps;
         for (auto it = held_.rbegin(); it != held_.rend(); ++it)
-            if (turned(*it, turn))
-            {
-                held = std::prev(it.base());
-                break;
-            }
+            if (it->mode == gradient.mode && same_bits(it->direction, gradient.direction) &&
+                it->step == block.rf_step && it->channels == block.rf_channels && it->rf.size() == samples &&
+                it->delta == gradient.delta && one_phase_apart(it->rf, block.rf, turn))
+                return std::prev(it.base());
+        return held_.end();
+    }
+
+    void Isochromats::hold(const BlockEvents& block, const PulseGradient& gradient, const Grouping& groups)
+    {
+        const std::vector<std::complex<double>> summed =
+            properties_.transmit_channels == 0 ? channel_sum(block) : std::vector<std::complex<double>>();
+
+        /* Each group's pulse as one affine map, M -> A M + c * proton density. */
+        HeldPulse made;
+        made.mode = gradient.mode;
+        std::copy(gradient.direction, gradient.direction + 3, made.direction);
+        made.step = block.rf_step;
+        made.channels = block.rf_channels;
+        made.delta = gradient.delta;
+        made.rf.assign(block.rf, block.rf + block.rf_channels * block.rf_steps);
+        const size_t count = groups.representative.size();
+        made.maps.resize(12 * count);
+        parallel(count, threads_, 8, [&](size_t, size_t first, size_t last) {
+            for (size_t g = first; g < last; ++g)
+                pulse_map(properties_, groups.representative[g], block, gradient, summed, &made.maps[12 * g]);
+        });
+
+        while (!held_.empty() && (held_.size() >= kHeldPulses || held_bytes_ + made.bytes() > kHeldBytes))
+        {
+            held_bytes_ -= held_.front().bytes();
+            held_.pop_front();
+        }
+        held_bytes_ += made.bytes();
+        held_.push_back(std::move(made));
+    }
+
+    void Isochromats::apply(size_t i, const double* map, std::complex<double> before, std::complex<double> after)
+    {
+        const double x = before.real() * mx_[i] - before.imag() * my_[i];
+        const double y = before.imag() * mx_[i] + before.real() * my_[i];
+        const double z = mz_[i];
+        const double density = properties_.proton_density[i];
+        const double u = map[0] * x + map[1] * y + map[2] * z + map[9] * density;
+        const double v = map[3] * x + map[4] * y + map[5] * z + map[10] * density;
+        mz_[i] = map[6] * x + map[7] * y + map[8] * z + map[11] * density;
+        mx_[i] = after.real() * u - after.imag() * v;
+        my_[i] = after.imag() * u + after.real() * v;
+    }
+
+    void Isochromats::apply(const std::vector<double>& maps, const Grouping& groups, std::complex<double> turn)
+    {
+        parallel(count_, threads_, kChunk, [&](size_t, size_t first, size_t last) {
+            for (size_t i = first; i < last; ++i)
+                apply(i, &maps[12 * groups.group_of[i]], std::conj(turn), turn);
+        });
+    }
+
+    void Isochromats::excite(const BlockEvents& block, const GradientAreas& areas)
+    {
+        const PulseGradient gradient = pulse_gradient(block, areas);
+        const Grouping& groups = grouping(gradient.mode, gradient.direction);
+        std::complex<double> turn = 1.0;
+        const auto held = find_held(block, gradient, turn);
         double along = 0.0;
-        if (held == held_.end() && p.transmit_channels == 0 && held_gradient(gradient, along) &&
+        if (held == held_.end() && properties_.transmit_channels == 0 && held_gradient(gradient, along) &&
             excite_on_grid(block, along, gradient.direction, groups.representative.size()))
             return;
-        if (held != held_.end())
-            held_.splice(held_.end(), held_, held);
-        else
+        if (held == held_.end())
         {
-            std::vector<std::complex<double>> summed;
-            if (p.transmit_channels == 0)
-            {
-                summed.assign(block.rf_steps, 0.0);
-                for (size_t c = 0; c < block.rf_channels; ++c)
-                    for (size_t i = 0; i < block.rf_steps; ++i)
-                        summed[i] += block.rf[c * block.rf_steps + i];
-            }
-
-            /* Each group's pulse as one affine map, M -> A M + c * proton density. */
-            HeldPulse made;
-            made.mode = gradient.mode;
-            std::copy(gradient.direction, gradient.direction + 3, made.direction);
-            made.step = block.rf_step;
-            made.channels = block.rf_channels;
-            made.delta = gradient.delta;
-            made.rf.assign(block.rf, block.rf + samples);
-            const size_t count = groups.representative.size();
-            made.maps.resize(12 * count);
-            parallel(count, threads_, 8, [&](size_t, size_t first, size_t last) {
-                for (size_t g = first; g < last; ++g)
-                    pulse_map(p, groups.representative[g], block, gradient, summed, &made.maps[12 * g]);
-            });
-
-            while (!held_.empty() &&
-                   (held_.size() >= kHeldPulses || held_bytes_ + made.bytes() > kHeldBytes))
-            {
-                held_bytes_ -= held_.front().bytes();
-                held_.pop_front();
-            }
-            held_bytes_ += made.bytes();
-            held_.push_back(std::move(made));
+            hold(block, gradient, groups);
             turn = 1.0;
         }
+        else
+            held_.splice(held_.end(), held_, held);
+        apply(held_.back().maps, groups, turn);
+    }
 
-        const std::vector<double>& maps = held_.back().maps;
-        const double cosine = turn.real();
-        const double sine = turn.imag();
+    std::list<Isochromats::PulseTable>::iterator Isochromats::find_table(
+        const std::array<double, 2>& relaxation,
+        double step,
+        double spacing,
+        const std::vector<std::complex<double>>& rf,
+        std::complex<double>& turn)
+    {
+        for (auto it = tables_.begin(); it != tables_.end(); ++it)
+            if (it->step == step && it->spacing == spacing && it->rf.size() == rf.size() &&
+                bits_of(it->t1) == bits_of(relaxation[0]) && bits_of(it->t2) == bits_of(relaxation[1]) &&
+                one_phase_apart(it->rf, rf.data(), turn))
+                return it;
+        return tables_.end();
+    }
+
+    void Isochromats::extend(PulseTable& table, long long low, long long high)
+    {
+        const long long held = table.points();
+        const long long first = held ? std::min(low, table.first) : low;
+        const long long last = held ? std::max(high, table.first + held - 1) : high;
+        std::vector<long long> todo;
+        for (long long point = first; point <= last; ++point)
+            if (point < table.first || point >= table.first + held)
+                todo.push_back(point);
+        if (todo.empty())
+            return;
+        std::vector<double> maps(12 * static_cast<size_t>(last - first + 1));
+        if (held)
+            std::copy(table.maps.begin(), table.maps.end(), maps.begin() + 12 * (table.first - first));
+        parallel(todo.size(), threads_, 8, [&](size_t, size_t begin, size_t end) {
+            for (size_t k = begin; k < end; ++k)
+                grid_map(
+                    static_cast<double>(todo[k]) * table.spacing,
+                    table.t1,
+                    table.t2,
+                    table.rf,
+                    table.step,
+                    &maps[12 * static_cast<size_t>(todo[k] - first)]);
+        });
+        table_bytes_ += (maps.size() - table.maps.size()) * sizeof(double);
+        table.maps.swap(maps);
+        table.first = first;
+    }
+
+    void Isochromats::play_tables(
+        const std::vector<double>& field,
+        const std::vector<std::list<PulseTable>::iterator>& table,
+        const std::vector<std::complex<double>>& turn,
+        double duration)
+    {
+        /* Each isochromat's map, the cubic through the four points around
+         * its field, turned by its own precession over half the pulse on
+         * either side and by the pulse's phase against its table's. */
         parallel(count_, threads_, kChunk, [&](size_t, size_t first, size_t last) {
             for (size_t i = first; i < last; ++i)
             {
-                const double* map = &maps[12 * groups.group_of[i]];
-                const double x = cosine * mx_[i] + sine * my_[i];
-                const double y = cosine * my_[i] - sine * mx_[i];
-                const double z = mz_[i];
-                const double density = p.proton_density[i];
-                const double u = map[0] * x + map[1] * y + map[2] * z + map[9] * density;
-                const double v = map[3] * x + map[4] * y + map[5] * z + map[10] * density;
-                mz_[i] = map[6] * x + map[7] * y + map[8] * z + map[11] * density;
-                mx_[i] = cosine * u - sine * v;
-                my_[i] = sine * u + cosine * v;
+                const uint32_t c = relaxation_of_[i];
+                const PulseTable& held = *table[c];
+                const double at = field[i] / held.spacing;
+                const double point = std::floor(at);
+                const size_t around = static_cast<size_t>(static_cast<long long>(point) - 1 - held.first);
+                double map[12];
+                cubic(&held.maps[12 * around], at - point, map);
+                const std::complex<double> precession = std::polar(1.0, -0.5 * kTwoPi * field[i] * duration);
+                apply(i, map, precession * std::conj(turn[c]), precession * turn[c]);
             }
         });
     }
 
     bool Isochromats::excite_on_grid(const BlockEvents& block, double along, const double direction[3], size_t stepped)
     {
-        const IsochromatProperties& p = properties_;
-        const size_t steps = block.rf_steps;
-        const double duration = block.rf_step * static_cast<double>(steps);
+        const double duration = block.rf_step * static_cast<double>(block.rf_steps);
         const double spacing = 1.0 / (kGridPoints * duration);
         const size_t classes = relaxations_.size();
-
-        /* The field each isochromat sees, and the points of its class's grid
-         * the cubic between the points around it reads. */
-        std::vector<double> field(count_);
+        const std::vector<double> field = held_field(properties_, along, direction);
         std::vector<long long> low(classes, std::numeric_limits<long long>::max());
         std::vector<long long> high(classes, std::numeric_limits<long long>::min());
-        for (size_t i = 0; i < count_; ++i)
-        {
-            field[i] =
-                p.off_resonance[i] + along * (p.x[i] * direction[0] + p.y[i] * direction[1] + p.z[i] * direction[2]);
-            const long long point = static_cast<long long>(std::floor(field[i] / spacing));
-            const uint32_t c = relaxation_of_[i];
-            low[c] = std::min(low[c], point - 1);
-            high[c] = std::max(high[c], point + 2);
-        }
+        grid_bounds(field, relaxation_of_, spacing, low, high);
 
-        std::vector<std::complex<double>> summed(steps, 0.0);
-        for (size_t c = 0; c < block.rf_channels; ++c)
-            for (size_t i = 0; i < steps; ++i)
-                summed[i] += block.rf[c * steps + i];
-
-        std::vector<std::list<PulseTable>::iterator> table(classes, tables_.end());
+        const std::vector<std::complex<double>> summed = channel_sum(block);
+        std::vector<std::list<PulseTable>::iterator> table(classes);
         std::vector<std::complex<double>> turn(classes, 1.0);
         size_t missing = 0;
         for (size_t c = 0; c < classes; ++c)
         {
-            for (auto it = tables_.begin(); it != tables_.end(); ++it)
-                if (it->step == block.rf_step && it->spacing == spacing && it->rf.size() == steps &&
-                    bits_of(it->t1) == bits_of(relaxations_[c][0]) && bits_of(it->t2) == bits_of(relaxations_[c][1]) &&
-                    one_phase_apart(it->rf, summed.data(), turn[c]))
-                {
-                    table[c] = it;
-                    break;
-                }
-            long long have = 0;
-            if (table[c] != tables_.end())
-            {
-                const long long first = table[c]->first;
-                const long long last = first + static_cast<long long>(table[c]->maps.size() / 12) - 1;
-                have = std::max(0LL, std::min(high[c], last) - std::max(low[c], first) + 1);
-            }
-            missing += static_cast<size_t>(high[c] - low[c] + 1 - have);
+            table[c] = find_table(relaxations_[c], block.rf_step, spacing, summed, turn[c]);
+            missing += table[c] == tables_.end() ? points_outside(0, 0, low[c], high[c])
+                                                 : points_outside(table[c]->first, table[c]->points(), low[c], high[c]);
         }
         if (missing >= stepped)
             return false;
@@ -1083,90 +1185,26 @@ namespace pulseq
                 made.t2 = relaxations_[c][1];
                 made.spacing = spacing;
                 made.rf = summed;
-                made.first = low[c];
                 table_bytes_ += made.bytes();
-                tables_.push_back(std::move(made));
-                table[c] = std::prev(tables_.end());
+                table[c] = tables_.insert(tables_.end(), std::move(made));
                 turn[c] = 1.0;
             }
-            PulseTable& held = *table[c];
-            const size_t count = held.maps.size() / 12;
-            const long long first = count ? std::min(low[c], held.first) : low[c];
-            const long long last = count ? std::max(high[c], held.first + static_cast<long long>(count) - 1) : high[c];
-            if (count && first == held.first && last == held.first + static_cast<long long>(count) - 1)
-                continue;
-            std::vector<long long> todo;
-            for (long long point = first; point <= last; ++point)
-                if (!count || point < held.first || point >= held.first + static_cast<long long>(count))
-                    todo.push_back(point);
-            std::vector<double> maps(12 * static_cast<size_t>(last - first + 1));
-            std::copy(held.maps.begin(), held.maps.end(), maps.begin() + 12 * (count ? held.first - first : 0));
-            parallel(todo.size(), threads_, 8, [&](size_t, size_t begin, size_t end) {
-                for (size_t k = begin; k < end; ++k)
-                    grid_map(
-                        static_cast<double>(todo[k]) * spacing,
-                        held.t1,
-                        held.t2,
-                        held.rf,
-                        held.step,
-                        &maps[12 * static_cast<size_t>(todo[k] - first)]);
-            });
-            table_bytes_ += (maps.size() - held.maps.size()) * sizeof(double);
-            held.maps.swap(maps);
-            held.first = first;
+            extend(*table[c], low[c], high[c]);
         }
+        play_tables(field, table, turn, duration);
+        keep(table);
+        return true;
+    }
 
-        /* Each isochromat's map, the cubic through the four points around
-         * its field, turned by its own precession over half the pulse on
-         * either side and by the pulse's phase against its table's. */
-        std::vector<double> phase(classes);
-        for (size_t c = 0; c < classes; ++c)
-            phase[c] = std::arg(turn[c]);
-        parallel(count_, threads_, kChunk, [&](size_t, size_t first, size_t last) {
-            for (size_t i = first; i < last; ++i)
-            {
-                const uint32_t c = relaxation_of_[i];
-                const PulseTable& held = *table[c];
-                const double at = field[i] / spacing;
-                const double point = std::floor(at);
-                const double u = at - point;
-                const double w[4] = {
-                    -u * (u - 1.0) * (u - 2.0) / 6.0,
-                    (u + 1.0) * (u - 1.0) * (u - 2.0) / 2.0,
-                    -(u + 1.0) * u * (u - 2.0) / 2.0,
-                    (u + 1.0) * u * (u - 1.0) / 6.0};
-                const double* around = &held.maps[12 * static_cast<size_t>(static_cast<long long>(point) - 1 - held.first)];
-                double map[12];
-                for (int e = 0; e < 12; ++e)
-                    map[e] = w[0] * around[e] + w[1] * around[12 + e] + w[2] * around[24 + e] + w[3] * around[36 + e];
-                const double precession = -0.5 * kTwoPi * field[i] * duration;
-                const double before = precession - phase[c];
-                const double after = precession + phase[c];
-                const double cb = std::cos(before);
-                const double sb = std::sin(before);
-                const double x = cb * mx_[i] - sb * my_[i];
-                const double y = sb * mx_[i] + cb * my_[i];
-                const double z = mz_[i];
-                const double density = p.proton_density[i];
-                const double u1 = map[0] * x + map[1] * y + map[2] * z + map[9] * density;
-                const double v1 = map[3] * x + map[4] * y + map[5] * z + map[10] * density;
-                mz_[i] = map[6] * x + map[7] * y + map[8] * z + map[11] * density;
-                const double ca = std::cos(after);
-                const double sa = std::sin(after);
-                mx_[i] = ca * u1 - sa * v1;
-                my_[i] = sa * u1 + ca * v1;
-            }
-        });
-
-        /* The tables played last, one per class, are never the ones let go. */
-        for (size_t c = 0; c < classes; ++c)
-            tables_.splice(tables_.end(), tables_, table[c]);
-        while (tables_.size() > classes && (tables_.size() > kPulseTables || table_bytes_ > kTableBytes))
+    void Isochromats::keep(const std::vector<std::list<PulseTable>::iterator>& played)
+    {
+        for (const auto& it : played)
+            tables_.splice(tables_.end(), tables_, it);
+        while (tables_.size() > played.size() && (tables_.size() > kPulseTables || table_bytes_ > kTableBytes))
         {
             table_bytes_ -= tables_.front().bytes();
             tables_.pop_front();
         }
-        return true;
     }
 
     void Isochromats::acquire(
