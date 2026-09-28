@@ -646,6 +646,17 @@ gradient, the last depends on the position along that direction alone.
 Isochromats equal in the others and within <span class="math notranslate nohighlight">\(10^{-12}\)</span> m along that direction
 share one map. For a slice of a phantom with a few tissues, a pulse then costs
 a few maps rather than one per isochromat.</p>
+<p>A pulse whose waveform is an earlier pulse’s times <span class="math notranslate nohighlight">\(e^{i\varphi}\)</span>, played under
+the same gradient, turns every step’s transverse field by <span class="math notranslate nohighlight">\(\varphi\)</span> about <span class="math notranslate nohighlight">\(z\)</span>,
+and relaxation is symmetric about <span class="math notranslate nohighlight">\(z\)</span>, so its maps are the earlier ones turned
+by <span class="math notranslate nohighlight">\(R_z(\varphi)\)</span>: <span class="math notranslate nohighlight">\(A \leftarrow R_z(\varphi)\,A\,R_z(\varphi)^{\mathsf T}\)</span> and
+<span class="math notranslate nohighlight">\(\mathbf{c} \leftarrow R_z(\varphi)\,\mathbf{c}\)</span>. The engine keeps the maps of
+the pulses it has played and applies them turned, which is exact, to a pulse
+that matches one of them to within <span class="math notranslate nohighlight">\(10^{-12}\)</span> of its peak. The pulses of an
+RF-spoiled train differ in phase alone, so an object whose isochromats each
+see their own off-resonance, such as a head in the field its susceptibility
+adds, pays one map per isochromat once for each distinct pulse rather than for
+every pulse played.</p>
 </section>
 <section id="pulseq-events-as-fields">
 <h2>Pulseq events as fields<a class="headerlink" href="#pulseq-events-as-fields" title="Link to this heading">#</a></h2>

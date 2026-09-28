@@ -590,7 +590,9 @@
 <span class="sd">    integrated exactly and applied when the magnetisation is next needed. An</span>
 <span class="sd">    RF pulse is a sequence of steps, each a rotation about the step's mean</span>
 <span class="sd">    field between two half steps of relaxation; isochromats that see the same</span>
-<span class="sd">    field during a pulse share its computation.</span>
+<span class="sd">    field during a pulse share its computation, and a pulse that differs from</span>
+<span class="sd">    an earlier one by its phase alone, under the same gradient, reuses the</span>
+<span class="sd">    earlier one's computation turned about z by that phase.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
