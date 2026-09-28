@@ -17,7 +17,11 @@ endif()
 
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Python COMPONENTS Development.Module REQUIRED)
-find_package(Threads REQUIRED)
+# Pyodide's WebAssembly runs one thread: its build links none, and every
+# worker count the core takes from the hardware is one there.
+if(NOT EMSCRIPTEN)
+  find_package(Threads REQUIRED)
+endif()
 
 # One extension module holding the sequence core and its binding. List the
 # sources explicitly: a glob makes a new file compile without anyone deciding
@@ -68,7 +72,10 @@ target_include_directories(_ext PRIVATE
 # Deduplication partitions independent work across standard C++ threads. The
 # FFT loads MKL at run time when one is installed (src/cpp/pulseq/rfft.hpp),
 # which on older glibc needs libdl.
-target_link_libraries(_ext PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
+target_link_libraries(_ext PRIVATE ${CMAKE_DL_LIBS})
+if(NOT EMSCRIPTEN)
+  target_link_libraries(_ext PRIVATE Threads::Threads)
+endif()
 
 # Built into the build tree, never beside the sources: the wheel takes the
 # module from the install step, so a binary left in the source tree would be

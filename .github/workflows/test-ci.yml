@@ -115,3 +115,25 @@ jobs:
 
       - name: Read, write and expand every sequence in the corpus
         run: ./sanitize tests/seq/*.seq
+
+  pyodide:
+    # The wheel Pyodide installs, for the WebAssembly a browser tab runs,
+    # where the core runs one thread. The smoke test runs in that interpreter.
+    name: pyodide
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive # the solver in external/ is compiled in
+          fetch-depth: 0 # setuptools_scm reads the tags
+
+      - uses: pypa/cibuildwheel@v4.2.1
+        env:
+          CIBW_PLATFORM: pyodide
+          CIBW_BUILD: cp313-*
+          CIBW_TEST_COMMAND: python {project}/scripts/pyodide_smoke.py
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pyodide-wheel
+          path: wheelhouse/*.whl
