@@ -118,6 +118,25 @@ see their own off-resonance, such as a head in the field its susceptibility
 adds, pays one map per isochromat once for each distinct pulse rather than for
 every pulse played.
 
+That map need not be computed for each isochromat either. A pulse played
+without transmit sensitivities, under no gradient or one that holds its
+amplitude $G$ along its direction $\hat{\mathbf{n}}$ throughout, gives each
+isochromat one field along $z$ for the whole pulse,
+$\nu = \Delta f + G\,\mathbf{r}\cdot\hat{\mathbf{n}}$, so its map depends on
+$\nu$, $T_1$ and $T_2$ alone. Free precession over half the pulse on either
+side, $P(\nu)$, varies with $\nu$ faster than anything else in the map; the
+rest, $\tilde A = P^{-1} A P^{-1}$ and $\tilde{\mathbf{c}} = P^{-1}\mathbf{c}$,
+varies only as the pulse's response does. The engine computes $\tilde A$ and
+$\tilde{\mathbf{c}}$ on a grid of $\nu$, 64 points per $1/T$ for a pulse of
+duration $T$, for each pair of relaxation times, interpolates between the
+four points around each isochromat's $\nu$ with a cubic, and applies its own
+$P(\nu)$ exactly. Against the map stepped for each isochromat, the
+magnetisation after a slice-selective pulse agrees to within about $10^{-7}$ of
+$M_0$. The grid is used where it costs fewer maps than the isochromats'
+groups, as it does under a slice-selection gradient across a head, and a
+pulse that differs from the one a grid was made for by its phase alone reuses
+the grid.
+
 ## Pulseq events as fields
 
 {meth}`~pypulseqpp.Sequence.simulate` plays each block's events as follows.

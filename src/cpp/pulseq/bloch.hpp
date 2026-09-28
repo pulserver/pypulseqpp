@@ -27,6 +27,7 @@ namespace pulseq
 {
 
     class GradientAreas;
+    struct PulseGradient;
 
     /** What each isochromat is; entry i of every vector describes isochromat i. */
     struct IsochromatProperties
@@ -86,7 +87,10 @@ namespace pulseq
      * an RF pulse, an ADC sample or a read -- so blocks without either cost
      * nothing per isochromat. A pulse that differs from an earlier one by its
      * phase alone, under the same gradient, applies the earlier pulse's maps
-     * turned about z by that phase, which is exact.
+     * turned about z by that phase, which is exact. A pulse played without
+     * transmit sensitivities, under no gradient or one held throughout, is
+     * computed on a grid of the field an isochromat sees during it, where
+     * that costs fewer maps than one per group, and interpolated.
      */
     class Isochromats
     {
@@ -177,6 +181,18 @@ namespace pulseq
         void flush();
         void advance(const GradientAreas& areas, double& now, double to);
         void excite(const BlockEvents& block, const GradientAreas& areas);
+        /** The held pulse @p block is under @p gradient but for a phase,
+         *  written to @p turn, or held_.end(). */
+        std::list<HeldPulse>::iterator find_held(
+            const BlockEvents& block, const PulseGradient& gradient, std::complex<double>& turn);
+        /** Compute the pulse's map for each group of @p groups, and hold them. */
+        void hold(const BlockEvents& block, const PulseGradient& gradient, const Grouping& groups);
+        /** Apply @p maps, one per group of @p groups, turned about z by
+         *  @p turn: conj(turn) before them and turn after. */
+        void apply(const std::vector<double>& maps, const Grouping& groups, std::complex<double> turn);
+        /** Apply the affine map @p map to isochromat @p i, turned about z by
+         *  @p before before it and @p after after it. */
+        void apply(size_t i, const double* map, std::complex<double> before, std::complex<double> after);
         void acquire(
             const BlockEvents& block,
             const GradientAreas& areas,
@@ -205,6 +221,65 @@ namespace pulseq
         /** Pulses held for reuse, the most recently played last. */
         std::list<HeldPulse> held_;
         size_t held_bytes_ = 0;
+
+        /** A pulse's affine maps on a grid of the field an isochromat of one
+         *  T1 and T2 sees throughout it, kept for later pulses that differ
+         *  from it by a phase alone. Point j lies at j * spacing, in Hz. */
+        struct PulseTable
+        {
+            double step = 0.0;
+            double t1 = 0.0;
+            double t2 = 0.0;
+            double spacing = 0.0;
+            /** The transverse field, summed over the channels, in Hz. */
+            std::vector<std::complex<double>> rf;
+            /** The first point held, then 12 values per point from it on, in
+             *  the frame the isochromat's own precession over half the pulse
+             *  turns on either side. */
+            long long first = 0;
+            std::vector<double> maps;
+
+            long long points() const
+            {
+                return static_cast<long long>(maps.size() / 12);
+            }
+            size_t bytes() const
+            {
+                return rf.size() * sizeof(std::complex<double>) + maps.size() * sizeof(double);
+            }
+        };
+
+        /** Play a pulse on its tables, made or extended as needed, unless
+         *  their new points outnumber @p stepped; return whether it did. */
+        bool excite_on_grid(const BlockEvents& block, double along, const double direction[3], size_t stepped);
+        /** The table of @p rf, @p step and @p spacing for the class relaxing
+         *  as @p relaxation, but for a phase written to @p turn, or
+         *  tables_.end(). */
+        std::list<PulseTable>::iterator find_table(
+            const std::array<double, 2>& relaxation,
+            double step,
+            double spacing,
+            const std::vector<std::complex<double>>& rf,
+            std::complex<double>& turn);
+        /** Compute the points from @p low to @p high that @p table lacks. */
+        void extend(PulseTable& table, long long low, long long high);
+        /** Apply each isochromat's map from its class's @p table, at its
+         *  @p field, turned by the class's @p turn. */
+        void play_tables(
+            const std::vector<double>& field,
+            const std::vector<std::list<PulseTable>::iterator>& table,
+            const std::vector<std::complex<double>>& turn,
+            double duration);
+        /** Make the @p played tables the most recent, and let the least
+         *  recent others go beyond kPulseTables or kTableBytes. */
+        void keep(const std::vector<std::list<PulseTable>::iterator>& played);
+
+        /** Classes of isochromats equal in T1 and T2, and each class's. */
+        std::vector<uint32_t> relaxation_of_;
+        std::vector<std::array<double, 2>> relaxations_;
+        /** Tables held for reuse, the most recently played last. */
+        std::list<PulseTable> tables_;
+        size_t table_bytes_ = 0;
 
         /** Held by every call that reads or changes the magnetisation. */
         mutable std::mutex mutex_;

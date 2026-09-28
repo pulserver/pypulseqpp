@@ -125,7 +125,11 @@ class Isochromats:
     field between two half steps of relaxation; isochromats that see the same
     field during a pulse share its computation, and a pulse that differs from
     an earlier one by its phase alone, under the same gradient, reuses the
-    earlier one's computation turned about z by that phase.
+    earlier one's computation turned about z by that phase. A pulse played
+    without transmit sensitivities, under no gradient or one held throughout
+    it, is computed on a grid of the field an isochromat sees and interpolated,
+    to within about ``1e-7`` of the equilibrium magnetisation, wherever the
+    grid costs fewer maps than the isochromats' groups.
 
     Parameters
     ----------

@@ -508,6 +508,60 @@ def test_a_pulse_played_after_another_answers_as_one_played_afresh(flip, phase):
     np.testing.assert_allclose(played(afresh, second), after, rtol=0, atol=1e-12)
 
 
+@pytest.mark.parametrize(
+    "pulses",
+    [
+        [(np.pi / 2, 0.0, 0.0), (np.pi / 2, 1.3, 0.0)],
+        [(np.pi, 0.0, 0.0)],
+        [(np.pi / 6, 0.0, 0.0), (np.pi / 6, 0.0, 4e3)],
+    ],
+    ids=["phase", "refocusing", "offset"],
+)
+def test_a_pulse_computed_on_a_grid_of_fields_answers_as_one_stepped_for_each_isochromat(
+    pulses,
+):
+    system = pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=120, slew_unit="T/m/s")
+    n = 20000
+    positions = np.column_stack(
+        [RNG.uniform(-0.1, 0.1, (n, 2)), RNG.uniform(-0.02, 0.02, n)]
+    )
+    properties = {
+        "t1": RNG.choice([0.8, 1.2], n),
+        "t2": 0.08,
+        "off_resonance": RNG.uniform(-150.0, 150.0, n),
+    }
+
+    def played(spins):
+        for flip, phase, offset in pulses:
+            rf, gz, _ = pp.make_sinc_pulse(
+                flip,
+                duration=2e-3,
+                slice_thickness=5e-3,
+                phase_offset=phase,
+                freq_offset=offset,
+                return_gz=True,
+                system=system,
+            )
+            rise, flat, fall = gz.rise_time, gz.flat_time, gz.fall_time
+            times = gz.delay + np.array([0.0, rise, rise + flat, rise + flat + fall])
+            corners = np.array([times, [0.0, gz.amplitude, gz.amplitude, 0.0]])
+            spins.play(
+                pp.calc_duration(rf, gz),
+                gradients=[None, None, corners],
+                rf=rf,
+                system=system,
+            )
+            spins.play(2e-3)
+        return spins.magnetization
+
+    # Every isochromat sees its own field, so the grid costs fewer maps than
+    # stepping each; a transmit sensitivity of one steps each instead.
+    on_grid = played(pp.Isochromats(positions, **properties))
+    stepped = played(pp.Isochromats(positions, transmit=np.ones((n, 1)), **properties))
+
+    np.testing.assert_allclose(on_grid, stepped, rtol=0, atol=1e-6)
+
+
 def test_threads_do_not_change_the_answer():
     positions = RNG.uniform(-0.05, 0.05, size=(20000, 3))
     receive = np.exp(1j * RNG.uniform(0, 2 * np.pi, size=(20000, 3)))
