@@ -81,6 +81,14 @@ accumulates $\mathbf{A}$ and $\tau$ and applies them when the magnetisation is
 next needed, by an RF pulse, an ADC sample or a read: blocks that hold neither
 cost nothing per isochromat.
 
+Within an ADC window the update is applied from one sample to the next, and
+each coil's sample is its sensitivity times $M_{xy}$ summed over every
+isochromat, at a cost proportional to the isochromats, the coils and the
+samples. The engine forms these sums over tiles of isochromats in independent
+partial sums, four coils at a time, with AVX2 and FMA instructions on
+processors that have them. The order of the additions, and with it the
+rounding of a sample, depends on the processor and on the number of threads.
+
 ## RF pulses
 
 During an RF pulse $b_1$ varies, and the field no longer points along $z$. The
