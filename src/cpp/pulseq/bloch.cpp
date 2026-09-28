@@ -174,15 +174,20 @@ namespace pulseq
 
         /** Check @p values holds @p per finite sensitivities per isochromat,
          *  none where @p per is zero. */
+        void require_finite(const std::complex<double>* values, size_t size)
+        {
+            for (size_t k = 0; k < size; ++k)
+                if (!std::isfinite(values[k].real()) || !std::isfinite(values[k].imag()))
+                    throw std::invalid_argument("sensitivities must be finite");
+        }
+
         void require_sensitivities(
             const std::vector<std::complex<double>>& values, size_t count, size_t per, const char* name)
         {
             if (values.size() != count * per)
                 throw std::invalid_argument(
                     std::string(name) + " must hold one row of sensitivities per isochromat");
-            for (const std::complex<double>& value : values)
-                if (!std::isfinite(value.real()) || !std::isfinite(value.imag()))
-                    throw std::invalid_argument("sensitivities must be finite");
+            require_finite(values.data(), values.size());
         }
 
         /**
@@ -634,7 +639,10 @@ namespace pulseq
         require_positive(p.t1);
         require_positive(p.t2);
         require_sensitivities(p.transmit, count_, p.transmit_channels, "transmit");
-        require_sensitivities(p.receive, count_, p.coils, "receive");
+        if (p.coils != 0 && p.receive == nullptr)
+            throw std::invalid_argument("receive must hold one row of sensitivities per isochromat");
+        if (p.receive != nullptr)
+            require_finite(p.receive, count_ * p.coils);
         coils_ = p.coils == 0 ? 1 : p.coils;
     }
 
@@ -649,8 +657,7 @@ namespace pulseq
                 receive_re_[c * count_ + i] = p.receive[i * p.coils + c].real();
                 receive_im_[c * count_ + i] = p.receive[i * p.coils + c].imag();
             }
-        p.receive.clear();
-        p.receive.shrink_to_fit();
+        p.receive = nullptr;
     }
 
     void Isochromats::classify()

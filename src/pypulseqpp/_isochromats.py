@@ -142,7 +142,9 @@ class Isochromats:
         sensitivity, onto which the channels of a pTx pulse are summed.
     receive : array_like, default=None
         Complex receive sensitivities, ``(n,)`` or ``(n, coils)``. By default
-        one coil of unit sensitivity.
+        one coil of unit sensitivity. A C-contiguous complex128 array, a
+        memory-mapped one included, is read in place into the isochromats'
+        own layout, so that it is never copied whole into memory.
     threads : int, default=0
         Worker threads; 0 for every core.
 

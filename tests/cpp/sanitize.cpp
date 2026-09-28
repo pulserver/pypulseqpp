@@ -68,8 +68,9 @@ namespace
             properties.t1 = {1.0, 0.8, 0.5, 1.0};
             properties.t2 = {0.1, 0.08, 0.05, 0.1};
             properties.off_resonance = {0.0, 10.0, -20.0, 0.0};
+            const std::vector<std::complex<double>> received(8, std::complex<double>(0.5, -0.25));
             properties.coils = 2;
-            properties.receive.assign(8, std::complex<double>(0.5, -0.25));
+            properties.receive = received.data();
             properties.transmit_channels = channels;
             properties.transmit.assign(4 * channels, std::complex<double>(0.9, 0.1));
             pulseq::Isochromats spins(properties, 2);

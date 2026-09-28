@@ -42,10 +42,12 @@ namespace pulseq
          *  isochromat. None: one channel of unit sensitivity. */
         size_t transmit_channels = 0;
         std::vector<std::complex<double>> transmit;
-        /** Receive sensitivities, isochromat-major, `coils` per isochromat.
-         *  None: one coil of unit sensitivity. */
+        /** Receive sensitivities, isochromat-major, `coils` per isochromat,
+         *  read once, while the isochromats are constructed, into their own
+         *  coil-major layout; the caller keeps them until then. None: one
+         *  coil of unit sensitivity. */
         size_t coils = 0;
-        std::vector<std::complex<double>> receive;
+        const std::complex<double>* receive = nullptr;
     };
 
     /** The events one block plays, timed in s from the block's start. */
