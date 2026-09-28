@@ -590,6 +590,38 @@ def test_each_coil_receives_its_sensitivity_times_the_magnetisation():
     )
 
 
+@pytest.mark.parametrize(
+    "gradient",
+    [
+        np.array([[0.0, 2e-3], [2e4, 2e4]]),
+        np.array([[0.0, 0.4e-3, 1.6e-3, 2e-3], [0.0, 2e4, 2e4, 0.0]]),
+    ],
+    ids=["uniform steps", "ramps"],
+)
+def test_many_coils_receive_their_sensitivities_times_the_magnetisation_at_each_sample(
+    gradient,
+):
+    # Coils beyond one block of the coil sum, and isochromats that fill no
+    # whole number of tiles.
+    n, coils = 1003, 9
+    positions = RNG.uniform(-0.05, 0.05, size=(n, 3))
+    receive = RNG.normal(size=(n, coils)) + 1j * RNG.normal(size=(n, coils))
+    t2 = RNG.uniform(0.02, 0.2, size=n)
+    off_resonance = RNG.uniform(-50.0, 50.0, size=n)
+    start = RNG.normal(size=n) + 1j * RNG.normal(size=n)
+    spins = pp.Isochromats(
+        positions, t2=t2, off_resonance=off_resonance, receive=receive
+    )
+    spins.magnetization = np.column_stack([start.real, start.imag, np.zeros(n)])
+    adc = np.linspace(0.1e-3, 1.9e-3, 12)
+    signal = spins.play(2e-3, gradients=[gradient, None, None], adc=adc)
+
+    areas = np.array([_area(*gradient, t) for t in adc])
+    phase = np.outer(areas, positions[:, 0]) + np.outer(adc, off_resonance)
+    transverse = start * np.exp(-adc[:, None] / t2 - 2j * np.pi * phase)
+    np.testing.assert_allclose(signal, (transverse @ receive).T, rtol=0, atol=1e-10)
+
+
 def test_receive_sensitivities_in_a_read_only_memory_mapped_file_are_received_as_in_memory(
     tmp_path,
 ):

@@ -19,6 +19,19 @@
 #include <thread>
 #include <utility>
 
+#if defined(__x86_64__) || defined(_M_X64)
+#define PULSEQ_X86_64 1
+#include <immintrin.h>
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+/* MSVC compiles AVX2 intrinsics in any function. */
+#define PULSEQ_AVX2
+#else
+#include <cpuid.h>
+#define PULSEQ_AVX2 __attribute__((target("avx2,fma")))
+#endif
+#endif
+
 namespace pulseq
 {
 
@@ -622,13 +635,220 @@ namespace pulseq
             size_t count;
         };
 
+        /** A tile's receive sensitivities: @c coils rows of @c count, from the
+         *  tile's first isochromat. */
+        struct Sensitivities
+        {
+            const double* re;
+            const double* im;
+            size_t coils;
+            size_t count;
+        };
+
+        /** Add to out[c * stride], real then imaginary, the sum over @p size
+         *  isochromats of coil c's sensitivity times Mx + i My. */
+        using CoilSum = void (*)(
+            const Sensitivities& g, size_t size, const double* zr, const double* zi, double* out, size_t stride);
+
+        /** Coils summed together, sharing each read of the magnetisation. */
+        constexpr size_t kCoilBlock = 4;
+
+        /** Isochromats one partial sum of the portable coil sum holds. */
+        constexpr size_t kLanes = 2;
+
+        /** Add coil @p c's products over isochromats [@p from, @p size) to
+         *  (@p sr, @p si). */
+        void coil_products(
+            const Sensitivities& g,
+            size_t c,
+            size_t from,
+            size_t size,
+            const double* zr,
+            const double* zi,
+            double& sr,
+            double& si)
+        {
+            const double* gr = g.re + c * g.count;
+            const double* gi = g.im + c * g.count;
+            for (size_t j = from; j < size; ++j)
+            {
+                sr += gr[j] * zr[j] - gi[j] * zi[j];
+                si += gr[j] * zi[j] + gi[j] * zr[j];
+            }
+        }
+
+        /** Coils [@p c, @p c + Block) of the coil sum, kLanes isochromats at
+         *  a time in partial sums of their own. */
+        template <size_t Block>
+        void coil_block(
+            const Sensitivities& g,
+            size_t c,
+            size_t size,
+            const double* zr,
+            const double* zi,
+            double* out,
+            size_t stride)
+        {
+            const size_t whole = size / kLanes * kLanes;
+            double ar[Block][kLanes] = {};
+            double ai[Block][kLanes] = {};
+            for (size_t j = 0; j < whole; j += kLanes)
+                for (size_t q = 0; q < Block; ++q)
+                {
+                    const double* gr = g.re + (c + q) * g.count + j;
+                    const double* gi = g.im + (c + q) * g.count + j;
+                    for (size_t l = 0; l < kLanes; ++l)
+                    {
+                        ar[q][l] += gr[l] * zr[j + l];
+                        ar[q][l] -= gi[l] * zi[j + l];
+                        ai[q][l] += gr[l] * zi[j + l];
+                        ai[q][l] += gi[l] * zr[j + l];
+                    }
+                }
+            for (size_t q = 0; q < Block; ++q)
+            {
+                double sr = std::accumulate(ar[q], ar[q] + kLanes, 0.0);
+                double si = std::accumulate(ai[q], ai[q] + kLanes, 0.0);
+                coil_products(g, c + q, whole, size, zr, zi, sr, si);
+                out[(c + q) * stride] += sr;
+                out[(c + q) * stride + 1] += si;
+            }
+        }
+
+        void coil_sum(
+            const Sensitivities& g, size_t size, const double* zr, const double* zi, double* out, size_t stride)
+        {
+            size_t c = 0;
+            for (; c + kCoilBlock <= g.coils; c += kCoilBlock)
+                coil_block<kCoilBlock>(g, c, size, zr, zi, out, stride);
+            for (; c < g.coils; ++c)
+                coil_block<1>(g, c, size, zr, zi, out, stride);
+        }
+
+#ifdef PULSEQ_X86_64
+        PULSEQ_AVX2 double lane_sum(__m256d v)
+        {
+            const __m128d half = _mm_add_pd(_mm256_castpd256_pd128(v), _mm256_extractf128_pd(v, 1));
+            return _mm_cvtsd_f64(_mm_add_sd(half, _mm_unpackhi_pd(half, half)));
+        }
+
+        /** coil_block with AVX2 and FMA, four isochromats to a vector. */
+        template <size_t Block>
+        PULSEQ_AVX2 void coil_block_avx2(
+            const Sensitivities& g,
+            size_t c,
+            size_t size,
+            const double* zr,
+            const double* zi,
+            double* out,
+            size_t stride)
+        {
+            const size_t whole = size / 4 * 4;
+            __m256d ar[Block];
+            __m256d ai[Block];
+            for (size_t q = 0; q < Block; ++q)
+                ar[q] = ai[q] = _mm256_setzero_pd();
+            for (size_t j = 0; j < whole; j += 4)
+            {
+                const __m256d xr = _mm256_loadu_pd(zr + j);
+                const __m256d xi = _mm256_loadu_pd(zi + j);
+                for (size_t q = 0; q < Block; ++q)
+                {
+                    const __m256d gr = _mm256_loadu_pd(g.re + (c + q) * g.count + j);
+                    const __m256d gi = _mm256_loadu_pd(g.im + (c + q) * g.count + j);
+                    ar[q] = _mm256_fnmadd_pd(gi, xi, _mm256_fmadd_pd(gr, xr, ar[q]));
+                    ai[q] = _mm256_fmadd_pd(gi, xr, _mm256_fmadd_pd(gr, xi, ai[q]));
+                }
+            }
+            for (size_t q = 0; q < Block; ++q)
+            {
+                double sr = lane_sum(ar[q]);
+                double si = lane_sum(ai[q]);
+                coil_products(g, c + q, whole, size, zr, zi, sr, si);
+                out[(c + q) * stride] += sr;
+                out[(c + q) * stride + 1] += si;
+            }
+        }
+
+        PULSEQ_AVX2 void coil_sum_avx2(
+            const Sensitivities& g, size_t size, const double* zr, const double* zi, double* out, size_t stride)
+        {
+            size_t c = 0;
+            for (; c + kCoilBlock <= g.coils; c += kCoilBlock)
+                coil_block_avx2<kCoilBlock>(g, c, size, zr, zi, out, stride);
+            for (; c < g.coils; ++c)
+                coil_block_avx2<1>(g, c, size, zr, zi, out, stride);
+        }
+
+        /** Whether the processor has AVX2 and FMA, and the system saves the
+         *  256-bit registers they use. */
+        bool avx2_and_fma()
+        {
+#if defined(_MSC_VER) && !defined(__clang__)
+            int info[4];
+            __cpuid(info, 0);
+            if (info[0] < 7)
+                return false;
+            __cpuid(info, 1);
+            const unsigned features = static_cast<unsigned>(info[2]);
+            const unsigned long long saved = (features & (1u << 27)) ? _xgetbv(0) : 0;
+            __cpuidex(info, 7, 0);
+            const unsigned extended = static_cast<unsigned>(info[1]);
+#else
+            unsigned a = 0, b = 0, features = 0, d = 0;
+            if (__get_cpuid_max(0, nullptr) < 7 || !__get_cpuid(1, &a, &b, &features, &d))
+                return false;
+            unsigned low = 0, high = 0;
+            if (features & (1u << 27))
+                __asm__("xgetbv" : "=a"(low), "=d"(high) : "c"(0));
+            const unsigned long long saved = low;
+            unsigned extended = 0, c = 0;
+            __get_cpuid_count(7, 0, &a, &extended, &c, &d);
+#endif
+            const bool fma = (features & (1u << 12)) != 0;
+            const bool avx = (features & (1u << 28)) != 0;
+            const bool avx2 = (extended & (1u << 5)) != 0;
+            return fma && avx && avx2 && (saved & 6) == 6;
+        }
+#endif
+
+        /** The coil sum this processor runs fastest. */
+        CoilSum fastest_coil_sum()
+        {
+#ifdef PULSEQ_X86_64
+            static const CoilSum chosen = avx2_and_fma() ? coil_sum_avx2 : coil_sum;
+            return chosen;
+#else
+            return coil_sum;
+#endif
+        }
+
+        /** Add Mx + i My summed over @p size isochromats to @p out, in
+         *  partial sums of four isochromats each. */
+        void magnetisation_sum(size_t size, const double* zr, const double* zi, double* out)
+        {
+            constexpr size_t kSums = 4;
+            const size_t whole = size / kSums * kSums;
+            double ar[kSums] = {};
+            double ai[kSums] = {};
+            for (size_t j = 0; j < whole; j += kSums)
+                for (size_t l = 0; l < kSums; ++l)
+                {
+                    ar[l] += zr[j + l];
+                    ai[l] += zi[j + l];
+                }
+            out[0] += std::accumulate(zr + whole, zr + size, std::accumulate(ar, ar + kSums, 0.0));
+            out[1] += std::accumulate(zi + whole, zi + size, std::accumulate(ai, ai + kSums, 0.0));
+        }
+
         /** One worker's reading of an ADC window, a tile of isochromats at a time. */
         class WindowReader
         {
         public:
             WindowReader(const IsochromatProperties& p, const SampleSteps& steps, size_t samples, const Receive& receive)
                 : p_(p), steps_(steps), samples_(samples), coils_(receive.coils), count_(receive.count),
-                  re_(receive.re.empty() ? nullptr : receive.re.data()), im_(receive.im.empty() ? nullptr : receive.im.data())
+                  re_(receive.re.empty() ? nullptr : receive.re.data()),
+                  im_(receive.im.empty() ? nullptr : receive.im.data()), coil_sum_(fastest_coil_sum())
             {
             }
 
@@ -678,25 +898,9 @@ namespace pulseq
             void accumulate(const double* zr, const double* zi, size_t first, size_t size, size_t k, double* sum) const
             {
                 if (re_ == nullptr)
-                {
-                    sum[2 * k] += std::accumulate(zr, zr + size, 0.0);
-                    sum[2 * k + 1] += std::accumulate(zi, zi + size, 0.0);
-                    return;
-                }
-                for (size_t coil = 0; coil < coils_; ++coil)
-                {
-                    const double* gr = re_ + coil * count_ + first;
-                    const double* gi = im_ + coil * count_ + first;
-                    double sr = 0.0;
-                    double si = 0.0;
-                    for (size_t j = 0; j < size; ++j)
-                    {
-                        sr += gr[j] * zr[j] - gi[j] * zi[j];
-                        si += gr[j] * zi[j] + gi[j] * zr[j];
-                    }
-                    sum[2 * (coil * samples_ + k)] += sr;
-                    sum[2 * (coil * samples_ + k) + 1] += si;
-                }
+                    magnetisation_sum(size, zr, zi, sum + 2 * k);
+                else
+                    coil_sum_({re_ + first, im_ + first, coils_, count_}, size, zr, zi, sum + 2 * k, 2 * samples_);
             }
 
             const IsochromatProperties& p_;
@@ -706,6 +910,7 @@ namespace pulseq
             size_t count_;
             const double* re_;
             const double* im_;
+            CoilSum coil_sum_;
         };
 
         void check_gradients(const BlockEvents& block)
