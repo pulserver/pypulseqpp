@@ -38,6 +38,11 @@ C++17 platforms, but those configurations are not release-tested. A source
 build requires a C++17 compiler, CMake, Python development headers and the
 checked-out Git submodules.
 
+The core also builds for Pyodide, CPython 3.13 compiled to WebAssembly for a
+browser, where it runs on one thread. CI builds that wheel with
+`cibuildwheel --platform pyodide` and designs, writes, reads back and
+simulates a sequence in it; no Pyodide wheel is published.
+
 ## Installation
 
 Install the core package from PyPI:
