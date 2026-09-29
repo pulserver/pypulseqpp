@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -27,6 +28,7 @@ namespace pulseq
 {
 
     class GradientAreas;
+    class Nufft;
     struct PulseGradient;
 
     /** What each isochromat is; entry i of every vector describes isochromat i. */
@@ -87,10 +89,17 @@ namespace pulseq
      * an RF pulse, an ADC sample or a read -- so blocks without either cost
      * nothing per isochromat. A pulse that differs from an earlier one by its
      * phase alone, under the same gradient, applies the earlier pulse's maps
-     * turned about z by that phase, which is exact. A pulse played without
-     * transmit sensitivities, under no gradient or one held throughout, is
-     * computed on a grid of the field an isochromat sees during it, where
-     * that costs fewer maps than one per group, and interpolated. An ADC
+     * turned about z by that phase, which is exact. A pulse played under no
+     * gradient or one held throughout is computed on a grid of the field an
+     * isochromat sees during it, where that costs fewer maps than one per
+     * group, and interpolated: without transmit sensitivities, or with every
+     * channel playing one waveform times a weight of its own, so that an
+     * isochromat's transmit field is that waveform times one complex drive,
+     * whose magnitude is a second axis of the grid and whose phase turns the
+     * map about z. An ADC window under a gradient held throughout it is read
+     * by a non-uniform FFT of each T2's isochromats, to within about 1e-13 of
+     * the sum of their transverse magnetisations' magnitudes, where that
+     * costs less than turning every isochromat at every sample. An ADC
      * sample's coil sums are formed in partial sums over blocks of coils, with
      * AVX2 and FMA where the processor has them, so their rounding depends on
      * the processor and the number of threads.
@@ -105,6 +114,9 @@ namespace pulseq
          * @throws std::invalid_argument on vectors of the wrong length.
          */
         Isochromats(IsochromatProperties properties, size_t threads = 0);
+        ~Isochromats();
+        Isochromats(const Isochromats&) = delete;
+        Isochromats& operator=(const Isochromats&) = delete;
 
         size_t size() const
         {
@@ -188,6 +200,11 @@ namespace pulseq
          *  written to @p turn, or held_.end(). */
         std::list<HeldPulse>::iterator find_held(
             const BlockEvents& block, const PulseGradient& gradient, std::complex<double>& turn);
+        /** A held pulse of @p block under @p gradient, its maps not yet filled. */
+        HeldPulse held_pulse(const BlockEvents& block, const PulseGradient& gradient, const Grouping& groups) const;
+        /** Hold @p made, the most recently played, letting the least recent
+         *  others go beyond kHeldPulses or kHeldBytes. */
+        void keep_held(HeldPulse made);
         /** Compute the pulse's map for each group of @p groups, and hold them. */
         void hold(const BlockEvents& block, const PulseGradient& gradient, const Grouping& groups);
         /** Apply @p maps, one per group of @p groups, turned about z by
@@ -202,6 +219,35 @@ namespace pulseq
             size_t first,
             size_t last,
             std::complex<double>* signal);
+        /** Read @p samples samples, @p area in 1/m and @p step in s apart,
+         *  @p span in s from first to last, into signal[c * stride + k] by the
+         *  non-uniform FFT, unless reading them one by one costs less; return
+         *  whether it did. */
+        bool read_transformed(
+            const double area[3],
+            double step,
+            size_t samples,
+            double span,
+            std::complex<double>* signal,
+            size_t stride);
+        /** Whether the transform reads a window of @p samples samples for
+         *  less than reading it sample by sample, within its memory. */
+        bool transform_pays(size_t samples) const;
+        /** Spread every isochromat's term onto a grid per T2 and coil, the
+         *  coils of a point together, and leave it as it stands at the
+         *  window's last sample; return the grids. */
+        std::vector<std::complex<double>> spread_window(
+            const Nufft& transform, const double area[3], double step, double span);
+        /** Transform the @p spread grids and write each coil's samples, the
+         *  sum over T2s of each T2's decay times its transform. */
+        void finish_window(
+            const Nufft& transform,
+            double step,
+            const std::vector<std::complex<double>>& spread,
+            std::complex<double>* signal,
+            size_t stride);
+        /** The transform of windows of @p samples samples. */
+        const Nufft& window_transform(size_t samples);
         const Grouping& grouping(int mode, const double direction[3]);
 
         IsochromatProperties properties_;
@@ -226,53 +272,66 @@ namespace pulseq
         size_t held_bytes_ = 0;
 
         /** A pulse's affine maps on a grid of the field an isochromat of one
-         *  T1 and T2 sees throughout it, kept for later pulses that differ
-         *  from it by a phase alone. Point j lies at j * spacing, in Hz. */
+         *  T1 and T2 sees throughout it, and of the magnitude of the drive it
+         *  sees the pulse's waveform at, kept for later pulses that differ
+         *  from it by a phase alone. Point (row, column) lies at a field of
+         *  column * spacing, in Hz, and a drive of row * drive_spacing, or of
+         *  one where drive_spacing is 0 and row is 0. */
         struct PulseTable
         {
             double step = 0.0;
             double t1 = 0.0;
             double t2 = 0.0;
             double spacing = 0.0;
-            /** The transverse field, summed over the channels, in Hz. */
+            double drive_spacing = 0.0;
+            /** The waveform, in Hz per unit of drive. */
             std::vector<std::complex<double>> rf;
-            /** The first point held, then 12 values per point from it on, in
-             *  the frame the isochromat's own precession over half the pulse
-             *  turns on either side. */
+            /** The first row and column held, and how many, then 12 values
+             *  per point, row by row, in the frame the isochromat's own
+             *  precession over half the pulse turns on either side. */
+            long long first_row = 0;
             long long first = 0;
+            long long rows = 0;
+            long long columns = 0;
             std::vector<double> maps;
 
-            long long points() const
-            {
-                return static_cast<long long>(maps.size() / 12);
-            }
             size_t bytes() const
             {
                 return rf.size() * sizeof(std::complex<double>) + maps.size() * sizeof(double);
             }
         };
 
-        /** Play a pulse on its tables, made or extended as needed, unless
-         *  their new points outnumber @p stepped; return whether it did. */
-        bool excite_on_grid(const BlockEvents& block, double along, const double direction[3], size_t stepped);
-        /** The table of @p rf, @p step and @p spacing for the class relaxing
-         *  as @p relaxation, but for a phase written to @p turn, or
-         *  tables_.end(). */
+        /** Hold the pulse's map for each group of @p groups from its tables,
+         *  made or extended as needed, under a gradient held at @p along, in
+         *  Hz/m, unless their new points outnumber the groups; return whether
+         *  it did. */
+        bool hold_on_grid(const BlockEvents& block, const PulseGradient& gradient, double along, const Grouping& groups);
+        /** The table of @p rf, @p step, @p spacing and @p drive_spacing for
+         *  the class relaxing as @p relaxation, but for a phase written to
+         *  @p turn, or tables_.end(). */
         std::list<PulseTable>::iterator find_table(
             const std::array<double, 2>& relaxation,
             double step,
             double spacing,
+            double drive_spacing,
             const std::vector<std::complex<double>>& rf,
             std::complex<double>& turn);
-        /** Compute the points from @p low to @p high that @p table lacks. */
-        void extend(PulseTable& table, long long low, long long high);
-        /** Apply each isochromat's map from its class's @p table, at its
-         *  @p field, turned by the class's @p turn. */
-        void play_tables(
+        /** Compute the points of rows @p bounds[0] to @p bounds[1] and
+         *  columns @p bounds[2] to @p bounds[3] that @p table lacks, holding
+         *  the smallest rectangle of points that covers both. */
+        void extend(PulseTable& table, const std::array<long long, 4>& bounds);
+        /** Write the map of each group, of class @p class_of, from its
+         *  class's @p table at its @p field and the magnitude of its
+         *  @p drive, turned by the class's @p turn and the drive's phase, to
+         *  @p maps; without a drive, at a drive of one. */
+        void table_maps(
             const std::vector<double>& field,
+            const std::vector<std::complex<double>>& drive,
+            const std::vector<uint32_t>& class_of,
             const std::vector<std::list<PulseTable>::iterator>& table,
             const std::vector<std::complex<double>>& turn,
-            double duration);
+            double duration,
+            std::vector<double>& maps);
         /** Make the @p played tables the most recent, and let the least
          *  recent others go beyond kPulseTables or kTableBytes. */
         void keep(const std::vector<std::list<PulseTable>::iterator>& played);
@@ -283,6 +342,12 @@ namespace pulseq
         /** Tables held for reuse, the most recently played last. */
         std::list<PulseTable> tables_;
         size_t table_bytes_ = 0;
+
+        /** Classes of isochromats equal in T2, and each class's rate, in 1/s. */
+        std::vector<uint32_t> decay_of_;
+        std::vector<double> decays_;
+        /** Transforms of ADC windows, the most recently read last. */
+        std::list<std::unique_ptr<Nufft>> transforms_;
 
         /** Held by every call that reads or changes the magnetisation. */
         mutable std::mutex mutex_;
