@@ -230,6 +230,22 @@ namespace pulseq
             double span,
             std::complex<double>* signal,
             size_t stride);
+        /** Whether the transform reads a window of @p samples samples for
+         *  less than reading it sample by sample, within its memory. */
+        bool transform_pays(size_t samples) const;
+        /** Spread every isochromat's term onto a grid per T2 and coil, the
+         *  coils of a point together, and leave it as it stands at the
+         *  window's last sample; return the grids. */
+        std::vector<std::complex<double>> spread_window(
+            const Nufft& transform, const double area[3], double step, double span);
+        /** Transform the @p spread grids and write each coil's samples, the
+         *  sum over T2s of each T2's decay times its transform. */
+        void finish_window(
+            const Nufft& transform,
+            double step,
+            const std::vector<std::complex<double>>& spread,
+            std::complex<double>* signal,
+            size_t stride);
         /** The transform of windows of @p samples samples. */
         const Nufft& window_transform(size_t samples);
         const Grouping& grouping(int mode, const double direction[3]);

@@ -607,17 +607,76 @@ namespace pulseq
             }
         }
 
-        /** Points of the rectangle @p bounds outside that of @p table. */
-        size_t points_outside(
-            long long first_row, long long rows, long long first, long long columns, const std::array<long long, 4>& bounds)
+        /** Rows first_row to last_row and columns first to last of a table;
+         *  none where last_row < first_row. */
+        struct Points
         {
-            const auto overlap = [](long long a, long long b, long long c, long long d) {
-                return std::max(0LL, std::min(b, d) - std::max(a, c) + 1);
-            };
-            const long long wanted = (bounds[1] - bounds[0] + 1) * (bounds[3] - bounds[2] + 1);
-            const long long held = overlap(bounds[0], bounds[1], first_row, first_row + rows - 1) *
-                overlap(bounds[2], bounds[3], first, first + columns - 1);
-            return static_cast<size_t>(wanted - held);
+            long long first_row;
+            long long last_row;
+            long long first;
+            long long last;
+
+            long long rows() const
+            {
+                return last_row < first_row ? 0 : last_row - first_row + 1;
+            }
+            long long columns() const
+            {
+                return last - first + 1;
+            }
+            long long count() const
+            {
+                return rows() * columns();
+            }
+            bool holds(long long row, long long column) const
+            {
+                return row >= first_row && row <= last_row && column >= first && column <= last;
+            }
+            /** Where a point's 12 values start in a table of these points. */
+            size_t at(long long row, long long column) const
+            {
+                return 12 * static_cast<size_t>((row - first_row) * columns() + (column - first));
+            }
+        };
+
+        /** The points of a table holding @p rows rows from @p first_row and
+         *  @p columns columns from @p first. */
+        Points table_points(long long first_row, long long rows, long long first, long long columns)
+        {
+            return {first_row, first_row + rows - 1, first, first + columns - 1};
+        }
+
+        /** The smallest rectangle of points covering @p held and @p wanted. */
+        Points covering(const Points& held, const Points& wanted)
+        {
+            if (held.rows() == 0)
+                return wanted;
+            return {
+                std::min(held.first_row, wanted.first_row), std::max(held.last_row, wanted.last_row),
+                std::min(held.first, wanted.first), std::max(held.last, wanted.last)};
+        }
+
+        /** The points of @p made outside @p held, row by row. */
+        std::vector<std::pair<long long, long long>> points_beyond(const Points& made, const Points& held)
+        {
+            std::vector<std::pair<long long, long long>> beyond;
+            for (long long row = made.first_row; row <= made.last_row; ++row)
+                for (long long column = made.first; column <= made.last; ++column)
+                    if (!held.holds(row, column))
+                        beyond.emplace_back(row, column);
+            return beyond;
+        }
+
+        /** Copy the maps of @p from, laid out as @p held, to @p to, laid out
+         *  as @p made. */
+        void copy_points(
+            const std::vector<double>& from, const Points& held, std::vector<double>& to, const Points& made)
+        {
+            for (long long row = held.first_row; row <= held.last_row; ++row)
+                std::copy_n(
+                    from.begin() + static_cast<std::ptrdiff_t>(held.at(row, held.first)),
+                    12 * held.columns(),
+                    to.begin() + static_cast<std::ptrdiff_t>(made.at(row, held.first)));
         }
 
         /** The weights of the Lagrange cubic through points -1, 0, 1 and 2,
@@ -1452,56 +1511,35 @@ namespace pulseq
 
     void Isochromats::extend(PulseTable& table, const std::array<long long, 4>& bounds)
     {
-        const bool held = !table.maps.empty();
-        const long long first_row = held ? std::min(bounds[0], table.first_row) : bounds[0];
-        const long long last_row = held ? std::max(bounds[1], table.first_row + table.rows - 1) : bounds[1];
-        const long long first = held ? std::min(bounds[2], table.first) : bounds[2];
-        const long long last = held ? std::max(bounds[3], table.first + table.columns - 1) : bounds[3];
-        const long long rows = last_row - first_row + 1;
-        const long long columns = last - first + 1;
-        if (held && rows == table.rows && columns == table.columns)
+        const Points held = table_points(table.first_row, table.rows, table.first, table.columns);
+        const Points made = covering(held, {bounds[0], bounds[1], bounds[2], bounds[3]});
+        const std::vector<std::pair<long long, long long>> todo = points_beyond(made, held);
+        if (todo.empty())
             return;
-
-        const auto at = [&](long long row, long long column) {
-            return 12 * static_cast<size_t>((row - first_row) * columns + (column - first));
-        };
-        std::vector<double> maps(12 * static_cast<size_t>(rows * columns));
-        std::vector<std::pair<long long, long long>> todo;
-        for (long long row = first_row; row <= last_row; ++row)
-            for (long long column = first; column <= last; ++column)
-            {
-                const bool inside = held && row >= table.first_row && row < table.first_row + table.rows &&
-                    column >= table.first && column < table.first + table.columns;
-                if (!inside)
-                    todo.emplace_back(row, column);
-            }
-        for (long long row = 0; held && row < table.rows; ++row)
-            std::copy_n(
-                table.maps.begin() + 12 * row * table.columns,
-                12 * table.columns,
-                maps.begin() + static_cast<std::ptrdiff_t>(at(table.first_row + row, table.first)));
+        std::vector<double> maps(12 * static_cast<size_t>(made.count()));
+        copy_points(table.maps, held, maps, made);
+        const bool driven = table.drive_spacing > 0.0;
         parallel(todo.size(), threads_, 8, [&](size_t, size_t begin, size_t end) {
             for (size_t k = begin; k < end; ++k)
             {
                 const long long row = todo[k].first;
                 const long long column = todo[k].second;
-                const double drive = table.drive_spacing > 0.0 ? static_cast<double>(row) * table.drive_spacing : 1.0;
                 grid_map(
                     static_cast<double>(column) * table.spacing,
                     table.t1,
                     table.t2,
                     table.rf,
-                    drive,
+                    driven ? static_cast<double>(row) * table.drive_spacing : 1.0,
                     table.step,
-                    &maps[at(row, column)]);
+                    &maps[made.at(row, column)]);
             }
         });
         table_bytes_ += (maps.size() - table.maps.size()) * sizeof(double);
         table.maps.swap(maps);
-        table.first_row = first_row;
-        table.first = first;
-        table.rows = rows;
-        table.columns = columns;
+        table.first_row = made.first_row;
+        table.first = made.first;
+        table.rows = made.rows();
+        table.columns = made.columns();
     }
 
     void Isochromats::table_maps(
@@ -1615,9 +1653,11 @@ namespace pulseq
         for (size_t c = 0; c < classes; ++c)
         {
             table[c] = find_table(relaxations_[c], block.rf_step, spacing, drive_spacing, waveform, turn[c]);
-            missing += table[c] == tables_.end()
-                ? points_outside(0, 0, 0, 0, bounds[c])
-                : points_outside(table[c]->first_row, table[c]->rows, table[c]->first, table[c]->columns, bounds[c]);
+            const Points held = table[c] == tables_.end()
+                ? table_points(0, 0, 0, 0)
+                : table_points(table[c]->first_row, table[c]->rows, table[c]->first, table[c]->columns);
+            const Points wanted{bounds[c][0], bounds[c][1], bounds[c][2], bounds[c][3]};
+            missing += static_cast<size_t>(covering(held, wanted).count() - held.count());
         }
         if (missing >= count)
             return false;
@@ -1710,6 +1750,16 @@ namespace pulseq
     bool Isochromats::read_transformed(
         const double area[3], double step, size_t samples, double span, std::complex<double>* signal, size_t stride)
     {
+        if (!transform_pays(samples))
+            return false;
+        const Nufft& transform = window_transform(samples);
+        const std::vector<std::complex<double>> grid = spread_window(transform, area, step, span);
+        finish_window(transform, step, grid, signal, stride);
+        return true;
+    }
+
+    bool Isochromats::transform_pays(size_t samples) const
+    {
         /* Under one increment per sample, an isochromat's transverse
          * magnetisation is a geometric series whose ratio's phase is its
          * turn per sample: the isochromats of one T2 sum at each sample to a
@@ -1724,17 +1774,22 @@ namespace pulseq
         const double direct = static_cast<double>(count_) * static_cast<double>(samples) * static_cast<double>(coils_ + 1);
         const double spread = static_cast<double>(count_) * static_cast<double>(Nufft::width_of() * (coils_ + 2)) +
             static_cast<double>(series * grid) * (std::log2(static_cast<double>(grid)) + static_cast<double>(workers));
-        if (decays > kWindowDecays || !(2.0 * spread < direct) ||
-            workers * series * grid * sizeof(std::complex<double>) > kWindowBytes)
-            return false;
+        return decays <= kWindowDecays && 2.0 * spread < direct &&
+            workers * series * grid * sizeof(std::complex<double>) <= kWindowBytes;
+    }
 
-        const Nufft& transform = window_transform(samples);
+    std::vector<std::complex<double>> Isochromats::spread_window(
+        const Nufft& transform, const double area[3], double step, double span)
+    {
+        const size_t grid = transform.grid();
         const size_t width = transform.width();
+        const size_t series = decays_.size() * coils_;
+        const size_t workers = workers_for(count_, threads_, kChunk);
         const IsochromatProperties& p = properties_;
         const bool sensitivities = !receive_re_.empty();
-        const double last = static_cast<double>(samples - 1);
-        std::vector<double> kept(decays);
-        for (size_t d = 0; d < decays; ++d)
+        const double last = static_cast<double>(transform.modes() - 1);
+        std::vector<double> kept(decays_.size());
+        for (size_t d = 0; d < decays_.size(); ++d)
             kept[d] = std::exp(-span * decays_[d]);
         std::vector<double> recovered(relaxations_.size());
         for (size_t c = 0; c < relaxations_.size(); ++c)
@@ -1765,11 +1820,9 @@ namespace pulseq
                 for (size_t j = 0; j < width; ++j)
                 {
                     double* point = points + 2 * at * coils_;
-                    const double w = weights[j];
                     for (size_t k = 0; k < 2 * coils_; ++k)
-                        point[k] += w * value[k];
-                    if (++at == grid)
-                        at = 0;
+                        point[k] += weights[j] * value[k];
+                    at = at + 1 == grid ? 0 : at + 1;
                 }
                 /* The window leaves the isochromat as it stands at its last
                  * sample. */
@@ -1782,34 +1835,43 @@ namespace pulseq
                 mz_[i] = e1 * mz_[i] + (1.0 - e1) * p.proton_density[i];
             }
         });
-
-        std::vector<std::complex<double>>& total = grids[0];
         for (size_t worker = 1; worker < workers; ++worker)
-            for (size_t k = 0; k < total.size(); ++k)
-                total[k] += grids[worker][k];
+            for (size_t k = 0; k < grids[0].size(); ++k)
+                grids[0][k] += grids[worker][k];
+        return std::move(grids[0]);
+    }
+
+    void Isochromats::finish_window(
+        const Nufft& transform,
+        double step,
+        const std::vector<std::complex<double>>& spread,
+        std::complex<double>* signal,
+        size_t stride)
+    {
+        const size_t grid = transform.grid();
+        const size_t samples = transform.modes();
+        const size_t decays = decays_.size();
         std::vector<double> decay(decays * samples);
         for (size_t d = 0; d < decays; ++d)
             for (size_t k = 0; k < samples; ++k)
                 decay[d * samples + k] = std::exp(-decays_[d] * step * static_cast<double>(k));
-        parallel(coils_, threads_, 1, [&](size_t, size_t first, size_t last_coil) {
+        parallel(coils_, threads_, 1, [&](size_t, size_t first, size_t last) {
             std::vector<std::complex<double>> column(grid);
             std::vector<std::complex<double>> modes(samples);
-            for (size_t c = first; c < last_coil; ++c)
+            for (size_t c = first; c < last; ++c)
             {
                 std::complex<double>* out = signal + c * stride;
                 std::fill(out, out + samples, std::complex<double>(0.0));
                 for (size_t d = 0; d < decays; ++d)
                 {
-                    const std::complex<double>* points = &total[d * grid * coils_];
                     for (size_t k = 0; k < grid; ++k)
-                        column[k] = points[k * coils_ + c];
+                        column[k] = spread[(d * grid + k) * coils_ + c];
                     transform.finish(column.data(), modes.data());
                     for (size_t k = 0; k < samples; ++k)
                         out[k] += decay[d * samples + k] * modes[k];
                 }
             }
         });
-        return true;
     }
 
     void Isochromats::play(const BlockEvents& block, std::complex<double>* signal)
