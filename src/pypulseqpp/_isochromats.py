@@ -656,7 +656,7 @@ class Repetitions:
         first = self.played
         count = len(self) - first if count is None else int(count)
         signal = self._native.play(count)
-        if self._steady is not None and count:
+        if self._steady and count:
             chosen = slice(first, first + count)
             steady = np.concatenate(
                 [part.samples(first, count) for part in self._steady], axis=2

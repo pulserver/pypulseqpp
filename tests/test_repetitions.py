@@ -240,6 +240,24 @@ def test_isochromats_off_a_lattice_are_carried_whole():
     assert np.abs(got - expected).max() < 1e-6 * np.abs(expected).max()
 
 
+def test_repetitions_without_a_window_leave_the_isochromats_as_their_blocks_do():
+    """A split of repetitions that read nothing still carries the transients."""
+    count = 300
+    reference, repeated = _engines(_properties(_grid()))
+    rf_phases = _phases("alternating", count)
+    silent = [{k: v for k, v in block.items() if k != "adc"} for block in _repetition()]
+    for phase in rf_phases:
+        for block in _repetition(rf_phase=phase):
+            reference.play(**{k: v for k, v in block.items() if k != "adc"})
+    scan = repeated.repetitions(silent, rf_phases, tolerance=1e-4)
+
+    assert scan.play().shape == (count, 2, 0)
+    assert scan._steady == []
+    np.testing.assert_allclose(
+        repeated.magnetization, reference.magnetization, rtol=0, atol=1e-4
+    )
+
+
 def test_a_window_of_one_sample_is_read_as_played():
     count = 20
     reference, repeated = _engines(_properties(_slab(), coils=1))
