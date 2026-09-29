@@ -593,10 +593,18 @@
 <span class="sd">    field during a pulse share its computation, and a pulse that differs from</span>
 <span class="sd">    an earlier one by its phase alone, under the same gradient, reuses the</span>
 <span class="sd">    earlier one's computation turned about z by that phase. A pulse played</span>
-<span class="sd">    without transmit sensitivities, under no gradient or one held throughout</span>
-<span class="sd">    it, is computed on a grid of the field an isochromat sees and interpolated,</span>
-<span class="sd">    to within about ``1e-7`` of the equilibrium magnetisation, wherever the</span>
-<span class="sd">    grid costs fewer maps than the isochromats' groups.</span>
+<span class="sd">    under no gradient or one held throughout it is computed on a grid of the</span>
+<span class="sd">    field an isochromat sees and interpolated, to within about ``1e-7`` of the</span>
+<span class="sd">    equilibrium magnetisation, wherever the grid costs fewer maps than the</span>
+<span class="sd">    isochromats' groups: without transmit sensitivities, or with every channel</span>
+<span class="sd">    playing one waveform times a weight of its own, when an isochromat's</span>
+<span class="sd">    transmit field is that waveform times one complex drive, whose magnitude</span>
+<span class="sd">    the grid spans too and whose phase turns the computation about z. An ADC</span>
+<span class="sd">    window under a gradient held throughout it is read by a non-uniform FFT</span>
+<span class="sd">    of the isochromats of each T2, to within about ``1e-13`` of the sum of</span>
+<span class="sd">    the magnitudes of their transverse magnetisations times their receive</span>
+<span class="sd">    sensitivities, wherever that costs less than turning every isochromat at</span>
+<span class="sd">    every sample.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

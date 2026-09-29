@@ -89,6 +89,29 @@ partial sums, four coils at a time, with AVX2 and FMA instructions on
 processors that have them. The order of the additions, and with it the
 rounding of a sample, depends on the processor and on the number of threads.
 
+When the gradient area and the time from one sample to the next are the same
+throughout the window, as under a gradient held over it, isochromat $j$ turns
+by the same factor at every sample, and sample $k$ of coil $c$ is
+
+$$
+s_c(k) = \sum_{T_2} e^{-k\,\Delta t/T_2}
+\sum_{j:\,T_{2,j} = T_2} R_{jc}\,M_{xy,j}\,e^{-2\pi i\,k\,u_j},
+\qquad
+u_j = \mathbf{r}_j\cdot\Delta\mathbf{A} + \Delta f_j\,\Delta t,
+$$
+
+with $\Delta\mathbf{A}$ and $\Delta t$ the area and time between samples and
+$M_{xy,j}$ taken at the first. For the isochromats of each $T_2$ this is a sum
+of exponentials at the integer frequencies $k$, a type-1 non-uniform FFT. The
+engine spreads each isochromat onto a grid of twice the samples with the
+exponential-of-semicircle kernel of Barnett, Magland and af Klinteberg (SIAM J
+Sci Comput 2019), 13 grid points wide, transforms the grid and divides out the
+kernel's transform. The samples agree with the sums to within about
+$10^{-13}$ of $\sum_j |R_{jc}\,M_{xy,j}|$, at a cost proportional to the
+isochromats, the kernel's width and the coils rather than to the samples. A
+window is read this way where that costs less than turning every isochromat at
+every sample and the isochromats hold at most 32 values of $T_2$.
+
 ## RF pulses
 
 During an RF pulse $b_1$ varies, and the field no longer points along $z$. The
@@ -141,9 +164,23 @@ four points around each isochromat's $\nu$ with a cubic, and applies its own
 $P(\nu)$ exactly. Against the map stepped for each isochromat, the
 magnetisation after a slice-selective pulse agrees to within about $10^{-7}$ of
 $M_0$. The grid is used where it costs fewer maps than the isochromats'
-groups, as it does under a slice-selection gradient across a head, and a
-pulse that differs from the one a grid was made for by its phase alone reuses
-the grid.
+groups, as it does under a slice-selection gradient across a head. The maps it
+gives each group are kept as a stepped pulse's are, so a pulse that differs
+from one played by its phase alone reuses them; a pulse of the same waveform
+otherwise reuses the grid.
+
+With transmit sensitivities, a pulse whose channels all play one waveform
+$w(t)$ times a weight $a_c$ of their own, as a pulse shimmed onto the channels
+does, gives isochromat $j$ the transmit field $d_j\,w(t)$, with the drive
+$d_j = \sum_c S_c(\mathbf{r}_j)\,a_c$. The drive's phase turns the map about
+$z$ as a pulse's phase does, and its magnitude scales the field, so the map
+depends on $\nu$, $|d_j|$, $T_1$ and $T_2$ alone, and the grid spans $|d|$ as
+well. Its points along $|d|$ are as far apart in the turn the pulse makes,
+$2\pi\,|d|\,\Delta t \sum_k |w_k|$, as its points along $\nu$ are in the
+precession over the pulse, $2\pi/64$. The map turns with $|d|$ as fast as the
+precession, none of which can be taken out along $|d|$, so it is interpolated
+there with a quintic through six points, which keeps the agreement with the
+stepped map at about $10^{-7}$ of $M_0$.
 
 ## Pulseq events as fields
 

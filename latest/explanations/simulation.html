@@ -630,6 +630,27 @@ samples. The engine forms these sums over tiles of isochromats in independent
 partial sums, four coils at a time, with AVX2 and FMA instructions on
 processors that have them. The order of the additions, and with it the
 rounding of a sample, depends on the processor and on the number of threads.</p>
+<p>When the gradient area and the time from one sample to the next are the same
+throughout the window, as under a gradient held over it, isochromat <span class="math notranslate nohighlight">\(j\)</span> turns
+by the same factor at every sample, and sample <span class="math notranslate nohighlight">\(k\)</span> of coil <span class="math notranslate nohighlight">\(c\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[
+s_c(k) = \sum_{T_2} e^{-k\,\Delta t/T_2}
+\sum_{j:\,T_{2,j} = T_2} R_{jc}\,M_{xy,j}\,e^{-2\pi i\,k\,u_j},
+\qquad
+u_j = \mathbf{r}_j\cdot\Delta\mathbf{A} + \Delta f_j\,\Delta t,
+\]</div>
+<p>with <span class="math notranslate nohighlight">\(\Delta\mathbf{A}\)</span> and <span class="math notranslate nohighlight">\(\Delta t\)</span> the area and time between samples and
+<span class="math notranslate nohighlight">\(M_{xy,j}\)</span> taken at the first. For the isochromats of each <span class="math notranslate nohighlight">\(T_2\)</span> this is a sum
+of exponentials at the integer frequencies <span class="math notranslate nohighlight">\(k\)</span>, a type-1 non-uniform FFT. The
+engine spreads each isochromat onto a grid of twice the samples with the
+exponential-of-semicircle kernel of Barnett, Magland and af Klinteberg (SIAM J
+Sci Comput 2019), 13 grid points wide, transforms the grid and divides out the
+kernel’s transform. The samples agree with the sums to within about
+<span class="math notranslate nohighlight">\(10^{-13}\)</span> of <span class="math notranslate nohighlight">\(\sum_j |R_{jc}\,M_{xy,j}|\)</span>, at a cost proportional to the
+isochromats, the kernel’s width and the coils rather than to the samples. A
+window is read this way where that costs less than turning every isochromat at
+every sample and the isochromats hold at most 32 values of <span class="math notranslate nohighlight">\(T_2\)</span>.</p>
 </section>
 <section id="rf-pulses">
 <h2>RF pulses<a class="headerlink" href="#rf-pulses" title="Link to this heading">#</a></h2>
@@ -679,9 +700,22 @@ four points around each isochromat’s <span class="math notranslate nohighlight
 <span class="math notranslate nohighlight">\(P(\nu)\)</span> exactly. Against the map stepped for each isochromat, the
 magnetisation after a slice-selective pulse agrees to within about <span class="math notranslate nohighlight">\(10^{-7}\)</span> of
 <span class="math notranslate nohighlight">\(M_0\)</span>. The grid is used where it costs fewer maps than the isochromats’
-groups, as it does under a slice-selection gradient across a head, and a
-pulse that differs from the one a grid was made for by its phase alone reuses
-the grid.</p>
+groups, as it does under a slice-selection gradient across a head. The maps it
+gives each group are kept as a stepped pulse’s are, so a pulse that differs
+from one played by its phase alone reuses them; a pulse of the same waveform
+otherwise reuses the grid.</p>
+<p>With transmit sensitivities, a pulse whose channels all play one waveform
+<span class="math notranslate nohighlight">\(w(t)\)</span> times a weight <span class="math notranslate nohighlight">\(a_c\)</span> of their own, as a pulse shimmed onto the channels
+does, gives isochromat <span class="math notranslate nohighlight">\(j\)</span> the transmit field <span class="math notranslate nohighlight">\(d_j\,w(t)\)</span>, with the drive
+<span class="math notranslate nohighlight">\(d_j = \sum_c S_c(\mathbf{r}_j)\,a_c\)</span>. The drive’s phase turns the map about
+<span class="math notranslate nohighlight">\(z\)</span> as a pulse’s phase does, and its magnitude scales the field, so the map
+depends on <span class="math notranslate nohighlight">\(\nu\)</span>, <span class="math notranslate nohighlight">\(|d_j|\)</span>, <span class="math notranslate nohighlight">\(T_1\)</span> and <span class="math notranslate nohighlight">\(T_2\)</span> alone, and the grid spans <span class="math notranslate nohighlight">\(|d|\)</span> as
+well. Its points along <span class="math notranslate nohighlight">\(|d|\)</span> are as far apart in the turn the pulse makes,
+<span class="math notranslate nohighlight">\(2\pi\,|d|\,\Delta t \sum_k |w_k|\)</span>, as its points along <span class="math notranslate nohighlight">\(\nu\)</span> are in the
+precession over the pulse, <span class="math notranslate nohighlight">\(2\pi/64\)</span>. The map turns with <span class="math notranslate nohighlight">\(|d|\)</span> as fast as the
+precession, none of which can be taken out along <span class="math notranslate nohighlight">\(|d|\)</span>, so it is interpolated
+there with a quintic through six points, which keeps the agreement with the
+stepped map at about <span class="math notranslate nohighlight">\(10^{-7}\)</span> of <span class="math notranslate nohighlight">\(M_0\)</span>.</p>
 </section>
 <section id="pulseq-events-as-fields">
 <h2>Pulseq events as fields<a class="headerlink" href="#pulseq-events-as-fields" title="Link to this heading">#</a></h2>
