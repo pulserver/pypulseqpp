@@ -555,7 +555,6 @@ bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
              py::arg("rf") = py::none(),
              py::arg("adc") = py::none());
 
-
     py::class_<pulseq::Repetitions>(module, "Repetitions")
         .def(py::init(&make_repetitions),
              py::arg("isochromats"),
@@ -574,42 +573,6 @@ bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
         .def_property_readonly("carried", &pulseq::Repetitions::carried)
         .def_property_readonly("reach", &pulseq::Repetitions::reach)
         .def("split", &pulseq::Repetitions::split, py::call_guard<py::gil_scoped_release>())
-        .def("column_sums",
-             [](const pulseq::Repetitions& self, size_t window, const py::sequence& along, const Doubles& encoding) {
-                 if (encoding.ndim() != 1 || encoding.size() != 3)
-                     throw std::invalid_argument("the encoding must be three areas");
-                 if (window >= self.windows())
-                     throw std::invalid_argument("no ADC window " + std::to_string(window));
-                 std::vector<int> axes;
-                 std::vector<py::ssize_t> shape;
-                 for (const py::handle& axis : along)
-                 {
-                     axes.push_back(axis.cast<int>());
-                     if (axes.back() < 0 || axes.back() > 2)
-                         throw std::invalid_argument("an axis is 0, 1 or 2");
-                     shape.push_back(static_cast<py::ssize_t>(self.lattice(axes.back()).size()));
-                 }
-                 shape.push_back(static_cast<py::ssize_t>(self.coils()));
-                 shape.push_back(static_cast<py::ssize_t>(self.window_samples(window)));
-                 py::array_t<Complex> out(shape);
-                 Complex* at = out.mutable_data();
-                 {
-                     py::gil_scoped_release unlocked;
-                     self.column_sums(window, axes, encoding.data(), at);
-                 }
-                 return out;
-             },
-             py::arg("window"),
-             py::arg("axes"),
-             py::arg("encoding"))
-        .def("lattice",
-             [](const pulseq::Repetitions& self, int axis) {
-                 if (axis < 0 || axis > 2)
-                     throw std::invalid_argument("an axis is 0, 1 or 2");
-                 const std::vector<double>& values = self.lattice(axis);
-                 return py::array_t<double>(static_cast<py::ssize_t>(values.size()), values.data());
-             },
-             py::arg("axis"))
         .def("column_sums",
              [](const pulseq::Repetitions& self, size_t window, const py::sequence& along, const Doubles& encoding) {
                  if (encoding.ndim() != 1 || encoding.size() != 3)
