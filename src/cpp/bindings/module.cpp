@@ -1347,7 +1347,7 @@ PYBIND11_MODULE(_ext, module)
         "pns",
         [](const Sequence& sequence, const std::string& kind,
            const std::vector<std::array<double, 8>>& safe,
-           const std::array<double, 3>& chronaxie,
+           const std::array<double, 7>& chronaxie,
            const std::array<std::array<double, 3>, 3>& rotation, double gamma,
            bool keep_trace) {
             pulseq::PnsModel model;
@@ -1373,8 +1373,11 @@ PYBIND11_MODULE(_ext, module)
             {
                 model.kind = pulseq::PnsModel::Kind::Chronaxie;
                 model.chronaxie = chronaxie[0];
-                model.rheobase = chronaxie[1];
-                model.alpha = chronaxie[2];
+                for (size_t axis = 0; axis < 3; ++axis)
+                {
+                    model.rheobase[axis] = chronaxie[1 + axis];
+                    model.alpha[axis] = chronaxie[4 + axis];
+                }
             }
             else
             {
@@ -1426,7 +1429,8 @@ PYBIND11_MODULE(_ext, module)
         py::arg("rotation"), py::arg("gamma"), py::arg("keep_trace") = false,
         "Nerve response to the physical-axis slew, as a fraction of threshold: "
         "SAFE (a1..a3, tau1..tau3 in ms, stim_limit, g_scale per axis) or "
-        "chronaxie (chronaxie s, rheobase T/m/s, alpha).");
+        "chronaxie (chronaxie s, then a rheobase in T/m/s and an alpha per "
+        "physical axis).");
 
     module.def(
         "rf_power",

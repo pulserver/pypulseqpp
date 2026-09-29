@@ -330,3 +330,44 @@ def test_the_response_is_not_carried_unless_it_is_asked_for(system):
 
     assert not hasattr(report, "response")
     assert not hasattr(report.axes[0], "response")
+
+
+def test_one_rheobase_written_out_per_axis_is_the_same_model(system):
+    """Naming every axis changes nothing when they agree."""
+    sequence = encoded(system)
+
+    _, shared = safety.check_pns(sequence, CHRONAXIE)
+    _, written = safety.check_pns(
+        sequence, CHRONAXIE._replace(rheobase=(CHRONAXIE.rheobase,) * 3)
+    )
+
+    for one, other in zip(shared.axes, written.axes, strict=True):
+        assert one.value == pytest.approx(other.value, rel=0, abs=1e-12)
+
+
+def test_an_axis_that_stimulates_less_is_costed_less(system):
+    """What an axis brings of its own is its rheobase.
+
+    A gradient coil whose axes differ is otherwise costed on every axis as if
+    it were the one that stimulates most, which is what collapsing the three
+    to their worst does.
+    """
+    sequence = encoded(system)
+
+    _, shared = safety.check_pns(sequence, CHRONAXIE)
+    _, uneven = safety.check_pns(
+        sequence,
+        CHRONAXIE._replace(
+            rheobase=(CHRONAXIE.rheobase, CHRONAXIE.rheobase, 2 * CHRONAXIE.rheobase)
+        ),
+    )
+
+    assert uneven.axes[0].value == pytest.approx(shared.axes[0].value, abs=1e-12)
+    assert uneven.axes[1].value == pytest.approx(shared.axes[1].value, abs=1e-12)
+    assert uneven.axes[2].value == pytest.approx(shared.axes[2].value / 2, rel=1e-9)
+
+
+@pytest.mark.parametrize("field", ["rheobase", "alpha"])
+def test_a_coefficient_that_is_neither_one_nor_three_is_refused(system, field):
+    with pytest.raises(ValueError, match="one value or one per physical axis"):
+        safety.check_pns(encoded(system), CHRONAXIE._replace(**{field: (1.0, 2.0)}))

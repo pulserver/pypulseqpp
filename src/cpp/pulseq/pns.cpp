@@ -63,21 +63,26 @@ namespace pulseq
         class Chronaxie
         {
         public:
-            Chronaxie(double chronaxie, double rheobase, double alpha, double dt)
+            Chronaxie(double chronaxie, const double (&rheobase)[3],
+                      const double (&alpha)[3], double dt)
             {
                 const size_t length =
                     static_cast<size_t>(kChronaxieKernelSpan * chronaxie / dt) + 1;
-                const double s_min = rheobase / alpha;
                 kernel_.resize(length);
                 /* Integrated over each interval, as a product rather than a
-                 * difference of reciprocals, which cancels once t >> c. */
+                 * difference of reciprocals, which cancels once t >> c. The
+                 * normalisation is an axis's own, so it is applied to the
+                 * response rather than folded in here. */
                 for (size_t i = 0; i < length; ++i)
                 {
                     const double t = static_cast<double>(i) * dt;
-                    kernel_[i] = chronaxie * dt / (s_min * (chronaxie + t) * (chronaxie + t + dt));
+                    kernel_[i] = chronaxie * dt / ((chronaxie + t) * (chronaxie + t + dt));
                 }
                 for (int axis = 0; axis < 3; ++axis)
+                {
+                    scale_[axis] = alpha[axis] / rheobase[axis];
                     history_[axis].assign(2 * length, 0.0);
+                }
             }
 
             double respond(int axis, double slew)
@@ -94,11 +99,12 @@ namespace pulseq
                 double sum = 0.0;
                 for (size_t i = 0; i < length; ++i)
                     sum += kernel_[i] * newest[-static_cast<std::ptrdiff_t>(i)];
-                return std::fabs(sum);
+                return std::fabs(sum) * scale_[axis];
             }
 
         private:
             std::vector<double> kernel_;
+            double scale_[3] = {0.0, 0.0, 0.0};
             std::vector<double> history_[3];
             size_t at_[3] = {0, 0, 0};
         };
