@@ -486,27 +486,11 @@ class Isochromats:
 def _steady(native, areas: np.ndarray, tolerance: float) -> list | None:
     """Split the magnetisation; return what reads each window's samples from the fixed points, or None where it cannot.
 
-    A window's fixed points are read by columns (:class:`_Columns`), which
-    needs the phase encodings to run along two tabulated axes at most. An axis
-    along which the areas vary by less than a quarter of the tolerance, in
-    phase over the isochromats' reach, counts as encoded by their mean.
+    A window's fixed points are read by columns (:class:`_Columns`) along the
+    axes :func:`_encoded` finds.
     """
-    reach = native.reach * np.sqrt(3.0)
-    readers = []
-    for w in range(native.windows):
-        spread = np.ptp(areas[:, w], axis=0) if len(areas) else np.zeros(3)
-        along = [
-            axis
-            for axis in range(3)
-            if 2.0 * np.pi * spread[axis] * reach > tolerance / 4.0
-        ]
-        if len(along) > 2 or not all(native.lattice(axis).size for axis in along):
-            return None
-        # The outer axis first: the one of fewer distinct areas.
-        readers.append(
-            sorted(along, key=lambda axis: np.unique(areas[:, w, axis]).size)
-        )
-    if not native.split():
+    readers = _encoded(native, areas, tolerance)
+    if readers is None or not native.split():
         return None
     parts = []
     for w, along in enumerate(readers):
@@ -522,6 +506,29 @@ def _steady(native, areas: np.ndarray, tolerance: float) -> list | None:
             )
         )
     return parts
+
+
+def _encoded(native, areas: np.ndarray, tolerance: float) -> list | None:
+    """Each window's phase-encoded axes, the outer axis first; None where a window's are more than two or not tabulated.
+
+    An axis along which the areas vary by less than a quarter of the
+    tolerance, in phase over the isochromats' reach, counts as encoded by
+    their mean. The outer axis is the one of fewer distinct areas.
+    """
+    reach = native.reach * np.sqrt(3.0)
+    readers = []
+    for w in range(native.windows):
+        spread = np.ptp(areas[:, w], axis=0) if len(areas) else np.zeros(3)
+        along = [
+            axis
+            for axis in range(3)
+            if 2.0 * np.pi * spread[axis] * reach > tolerance / 4.0
+        ]
+        if len(along) > 2 or not all(native.lattice(axis).size for axis in along):
+            return None
+        distinct = [np.unique(areas[:, w, axis]).size for axis in along]
+        readers.append([along[k] for k in np.argsort(distinct, kind="stable")])
+    return readers
 
 
 class _Columns:

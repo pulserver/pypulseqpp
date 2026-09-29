@@ -67,8 +67,8 @@ namespace pulseq
          * holds to about 10^(1 - w). */
         if (!(tolerance > 1e-12))
             return kWidth;
-        const double width = std::ceil(-std::log10(tolerance / 10.0));
-        return std::min(kWidth, static_cast<size_t>(std::max(2.0, width)));
+        const double points = std::ceil(-std::log10(tolerance / 10.0));
+        return std::min(kWidth, static_cast<size_t>(std::max(2.0, points)));
     }
 
     Nufft::Nufft(size_t modes, size_t width)

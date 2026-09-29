@@ -215,11 +215,65 @@ namespace pulseq
         {
             return -phases_[n];
         }
+        /** Read each block's ADC window, and the repetition's duration. */
+        void read_windows();
+        /** The four plays: each isochromat's maps. */
+        void play_maps();
+        /** Play the blocks from no magnetisation, @p column -1, or from a
+         *  unit magnetisation along axis @p column, keeping the transverse
+         *  magnetisation at each window's first sample in @p first. */
+        void play_from(int column, std::vector<std::vector<std::complex<double>>>& first);
+        /** Keep what the play from @p column gives: b and v, or a column of
+         *  A and of u. */
+        void store_map(int column, const std::vector<std::vector<std::complex<double>>>& first);
+        /** Find the axes a phase encoding runs along, and tabulate the
+         *  coordinates along each. */
+        void tabulate_encoded();
+        /** The phase, in cycles, isochromat @p i turns by from one sample of
+         *  @p window to the next. */
+        double window_phase(const Window& window, size_t i) const;
+        /** Whether isochromat @p i's transient is above the tolerance times
+         *  its proton density. */
+        bool transient_above(size_t i) const;
+        /** The isochromats carried, in order of T2 and of the first window's
+         *  first grid point, which keeps a worker's spreading on a few grid
+         *  points at a time: after a split, those whose transient is above
+         *  the limit. */
+        std::vector<uint32_t> carried_order() const;
         /** Move the maps into the set played from, and free them. */
         template <typename Real>
         void gather();
+        /** Write isochromat @p i to slot @p n of @p slots. */
+        template <typename Slots>
+        void fill_slot(Slots& slots, size_t n, size_t i, double* weights) const;
+        /** Write what window @p w reads of isochromat @p i to slot @p n. */
+        template <typename Slots>
+        void fill_window(Slots& slots, size_t w, size_t n, size_t i, double* weights) const;
+        void release_maps();
+        /** Each T2's decay from @p window's first sample to each. */
+        std::vector<double> decays(const Window& window) const;
         template <typename Real>
         void play_tiles(size_t count, std::complex<double>* signal);
+        /** What reading the windows of a tile reads, and its arrays sized. */
+        template <typename Tile>
+        void plan_tile(Tile& tile, size_t taps) const;
+        /** The turns and phase-encoding phases of the tile of repetitions
+         *  from @p first on. */
+        template <typename Tile>
+        void prepare_tile(Tile& tile, size_t first);
+        template <typename Tile>
+        void encode_tile(Tile& tile, size_t first);
+        /** Multiply the samples of @p count repetitions from @p first on by
+         *  their pulses' turn, ADC phase and receiver phase. */
+        void demodulate(size_t first, size_t count, std::complex<double>* out) const;
+        /** The mean step between the turns of the repetitions from the next
+         *  on, in @p step; false unless each step lies within
+         *  kStepTolerance of it. */
+        bool mean_step(double& step) const;
+        /** The isochromats of each column along @p axes, in @p members, and
+         *  where each column's start among them, one offset more than the
+         *  columns. */
+        std::vector<size_t> columns_along(const std::vector<int>& axes, std::vector<uint32_t>& members) const;
         /** Write the magnetisation at the start of repetition @p n, in the
          *  laboratory frame, to the isochromats. */
         template <typename Real>
