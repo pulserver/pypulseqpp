@@ -151,6 +151,7 @@ def test_the_resolved_slice_thickness_is_the_one_excited_and_the_gap_keeps_the_c
     assert resolved["slice_thickness"] == pytest.approx(
         pp.calc_rf_bandwidth(excitations[0].rf) / selection
     )
+    assert resolved["slice_thickness"] == pytest.approx(4e-3)
     assert np.diff(centres) == pytest.approx(
         resolved["slice_thickness"] + resolved["slice_spacing"]
     )

@@ -51,8 +51,8 @@ class Bssfp2DApp(sequences.SequenceApp):
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
     #: SLR design of the selective pulse. The selection amplitude, which slice
-    #: offsets are converted against, is ``TIME_BW_PRODUCT / (PULSE_DURATION *
-    #: thickness)``.
+    #: offsets are converted against, is the pulse's measured bandwidth over the
+    #: thickness.
     PULSE_DURATION = 0.6e-3
     TIME_BW_PRODUCT = 4.0
     #: Physiological signal a prospective heartbeat waits for.

@@ -8,7 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ._base import RfModule, rf_reference
+from ._base import RfModule, rf_reference, selective_slr
 
 _AXES = ("x", "y", "z")
 
@@ -26,7 +26,8 @@ class SmsExcitation(RfModule):
     flip_angle_deg : float
         Nominal flip angle (degrees), per band.
     thickness_m : float
-        Slice thickness (m).
+        Slice thickness (m): the single-band pulse's measured bandwidth over
+        the selection plateau.
     slice_gap_m : float
         Centre-to-centre spacing between excited slices (m).
     n_bands : int, default=2
@@ -126,12 +127,11 @@ class SmsExcitation(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        single, gz, gz_reph = pp.make_slr_pulse(
-            np.deg2rad(flip_angle_deg),
+        single, gz, gz_reph = selective_slr(
+            flip_angle_deg,
+            thickness_m,
             duration=duration_s,
-            slice_thickness=thickness_m,
             time_bw_product=time_bw_product,
-            return_gz=True,
             use=use,
             system=system,
         )

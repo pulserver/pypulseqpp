@@ -231,6 +231,15 @@ def test_one_band_is_the_pulse_it_was_made_from(system):
     assert single.band_positions_m == pytest.approx([0.0])
 
 
+def test_the_bands_select_the_thickness_one_band_would(system):
+    sms = design.SmsExcitation(
+        system, 60.0, thickness_m=3e-3, slice_gap_m=24e-3, n_bands=3
+    )
+    single = design.SpatialSelectiveExcitation(system, 60.0, 3e-3)
+
+    assert sms.gz.amplitude == pytest.approx(single.selection_amplitude, rel=1e-12)
+
+
 def test_a_gap_of_nothing_is_refused(system):
     with pytest.raises(ValueError, match="slice_gap_m"):
         design.SmsExcitation(system, 60.0, thickness_m=3e-3, slice_gap_m=0.0)

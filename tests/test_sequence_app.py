@@ -161,6 +161,16 @@ def test_the_resolved_prescription_is_what_the_file_records(name):
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
+def test_the_resolved_prescription_resolves_to_itself(name):
+    """Prescribing what a design resolved to designs it again."""
+    app = application(name)(pp.Opts(), **SMALL[name])
+    again = application(name)(pp.Opts(), **app.resolved)
+
+    for parameter, value in app.resolved.items():
+        assert again.resolved[parameter] == pytest.approx(value, rel=1e-9), parameter
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
     app = application(name)(pp.Opts(), **SMALL[name])
     seq = app.design()

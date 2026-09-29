@@ -154,8 +154,8 @@ class Epi2DApp(sequences.SequenceApp):
     MAX_GRAD = 80.0
     MAX_SLEW = 200.0
     #: SLR design of the selective pulses. The selection amplitude, which slice
-    #: offsets are converted against, is ``TIME_BW_PRODUCT / (PULSE_DURATION *
-    #: thickness)``.
+    #: offsets are converted against, is the pulse's measured bandwidth over the
+    #: thickness.
     PULSE_DURATION = 3e-3
     TIME_BW_PRODUCT = 4.0
     #: Centre lines read without blips at the start of every shot.

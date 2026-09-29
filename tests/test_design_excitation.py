@@ -176,6 +176,21 @@ def test_a_thicker_slab_needs_a_weaker_gradient(system):
     )
 
 
+@pytest.mark.parametrize("is_slab", [False, True])
+@pytest.mark.parametrize("pulse_type", ["st", "ex"])
+def test_the_thickness_selected_is_the_thickness_prescribed(
+    system, pulse_type, is_slab
+):
+    """The pulse's measured bandwidth over the selection plateau."""
+    excitation = design.SpatialSelectiveExcitation(
+        system, 15.0, 5e-3, pulse_type=pulse_type, is_slab=is_slab
+    )
+    selected = pp.calc_rf_bandwidth(excitation.rf) / excitation.selection_amplitude
+
+    assert selected == pytest.approx(5e-3, rel=1e-9)
+    assert excitation.slice_thickness == pytest.approx(5e-3, rel=1e-9)
+
+
 @pytest.mark.parametrize(
     ("kwargs", "message"),
     [
