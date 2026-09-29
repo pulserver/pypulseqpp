@@ -481,16 +481,23 @@
 <div class="viewcode-block" id="ChronaxieModel">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ChronaxieModel</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Rheobase-chronaxie nerve model, one coefficient set for every physical axis.</span>
+<span class="w">    </span><span class="sd">"""Rheobase-chronaxie nerve model.</span>
 
 <span class="sd">    ``chronaxie`` is in s and ``rheobase`` in T/m/s. The response is</span>
 <span class="sd">    normalised by ``rheobase / alpha``: a rectangular slew S held for tau</span>
 <span class="sd">    reaches ``S alpha tau / (rheobase (chronaxie + tau))``.</span>
+
+<span class="sd">    ``rheobase`` and ``alpha`` are one value, used for every axis, or one per</span>
+<span class="sd">    physical axis. The kernel's shape is the chronaxie's alone, so the time</span>
+<span class="sd">    constant is shared; what an axis brings of its own is how much</span>
+<span class="sd">    stimulation a given slew on it produces. A gradient coil whose axes</span>
+<span class="sd">    differ states that here, rather than being costed on every axis as if it</span>
+<span class="sd">    were the one that stimulates most.</span>
 <span class="sd">    """</span>
 
     <span class="n">chronaxie</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">rheobase</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+    <span class="n">rheobase</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span></div>
 
 
 
@@ -526,6 +533,27 @@
 
 
 
+<span class="c1">#: What the chronaxie coefficients are when a SAFE model is the one in force:</span>
+<span class="c1">#: a chronaxie, then a rheobase and an alpha per physical axis.</span>
+<span class="n">_NO_CHRONAXIE</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_per_axis</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return ``value`` as one float per physical axis.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If it is neither one value nor one per axis.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">3</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is one value or one per physical axis: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">values</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_coefficients</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Return (kind, per-axis SAFE tuples, chronaxie tuple) for the binding."""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
@@ -533,7 +561,11 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">ChronaxieModel</span><span class="p">(</span><span class="o">**</span><span class="n">model</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ChronaxieModel</span><span class="p">):</span>
-        <span class="n">coefficients</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">model</span><span class="p">)</span>
+        <span class="n">coefficients</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">chronaxie</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">_per_axis</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rheobase</span><span class="p">,</span> <span class="s2">"rheobase"</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">_per_axis</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">coefficients</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"chronaxie, rheobase and alpha must be positive"</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">"chronaxie"</span><span class="p">,</span> <span class="p">[],</span> <span class="n">coefficients</span>
@@ -557,7 +589,7 @@
         <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SAFE axis </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: stim_limit must be positive"</span><span class="p">)</span>
         <span class="n">safe</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">"safe"</span><span class="p">,</span> <span class="n">safe</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"safe"</span><span class="p">,</span> <span class="n">safe</span><span class="p">,</span> <span class="n">_NO_CHRONAXIE</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_pns</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">keep_trace</span><span class="p">):</span>
