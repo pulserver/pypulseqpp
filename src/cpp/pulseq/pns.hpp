@@ -35,10 +35,15 @@ namespace pulseq
         };
         Kind kind = Kind::Safe;
         std::array<SafeAxis, 3> safe;
-        /** Chronaxie in s, rheobase in T/m/s; one set for all three axes. */
+        /** Chronaxie in s, rheobase in T/m/s, per physical axis.
+         *
+         * The kernel's shape is the chronaxie's alone, so one time constant
+         * serves all three axes; what an axis brings of its own is how much
+         * stimulation a given slew on it produces, which is the rheobase it
+         * is normalised by. */
         double chronaxie = 0.0;
-        double rheobase = 0.0;
-        double alpha = 1.0;
+        double rheobase[3] = {0.0, 0.0, 0.0};
+        double alpha[3] = {1.0, 1.0, 1.0};
     };
 
     struct PnsOptions

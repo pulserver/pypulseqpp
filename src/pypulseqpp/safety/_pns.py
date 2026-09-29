@@ -14,16 +14,23 @@ from ._physical import _gamma, _prescription
 
 
 class ChronaxieModel(NamedTuple):
-    """Rheobase-chronaxie nerve model, one coefficient set for every physical axis.
+    """Rheobase-chronaxie nerve model.
 
     ``chronaxie`` is in s and ``rheobase`` in T/m/s. The response is
     normalised by ``rheobase / alpha``: a rectangular slew S held for tau
     reaches ``S alpha tau / (rheobase (chronaxie + tau))``.
+
+    ``rheobase`` and ``alpha`` are one value, used for every axis, or one per
+    physical axis. The kernel's shape is the chronaxie's alone, so the time
+    constant is shared; what an axis brings of its own is how much
+    stimulation a given slew on it produces. A gradient coil whose axes
+    differ states that here, rather than being costed on every axis as if it
+    were the one that stimulates most.
     """
 
     chronaxie: float
-    rheobase: float
-    alpha: float = 1.0
+    rheobase: float | tuple[float, float, float]
+    alpha: float | tuple[float, float, float] = 1.0
 
 
 _SAFE_FIELDS = ("a1", "a2", "a3", "tau1", "tau2", "tau3", "stim_limit", "g_scale")
@@ -55,6 +62,27 @@ def read_safe_model(path: str | os.PathLike) -> SimpleNamespace:
     return asc_to_hw(asc)
 
 
+#: What the chronaxie coefficients are when a SAFE model is the one in force:
+#: a chronaxie, then a rheobase and an alpha per physical axis.
+_NO_CHRONAXIE = (0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
+
+
+def _per_axis(value, name):
+    """Return ``value`` as one float per physical axis.
+
+    Raises
+    ------
+    ValueError
+        If it is neither one value nor one per axis.
+    """
+    if isinstance(value, (int, float)):
+        return (float(value),) * 3
+    values = tuple(float(v) for v in value)
+    if len(values) != 3:
+        raise ValueError(f"{name} is one value or one per physical axis: {value!r}")
+    return values
+
+
 def _coefficients(model):
     """Return (kind, per-axis SAFE tuples, chronaxie tuple) for the binding."""
     if isinstance(model, (str, os.PathLike)):
@@ -62,7 +90,11 @@ def _coefficients(model):
     if isinstance(model, Mapping):
         model = ChronaxieModel(**model)
     if isinstance(model, ChronaxieModel):
-        coefficients = tuple(float(value) for value in model)
+        coefficients = (
+            float(model.chronaxie),
+            *_per_axis(model.rheobase, "rheobase"),
+            *_per_axis(model.alpha, "alpha"),
+        )
         if min(coefficients) <= 0.0:
             raise ValueError("chronaxie, rheobase and alpha must be positive")
         return "chronaxie", [], coefficients
@@ -86,7 +118,7 @@ def _coefficients(model):
         if values[6] <= 0.0:
             raise ValueError(f"SAFE axis {name}: stim_limit must be positive")
         safe.append(values)
-    return "safe", safe, (0.0, 0.0, 1.0)
+    return "safe", safe, _NO_CHRONAXIE
 
 
 def _pns(seq, model, rotation, system, keep_trace):
