@@ -508,7 +508,7 @@ def test_a_pulse_played_after_another_answers_as_one_played_afresh(flip, phase):
     np.testing.assert_allclose(played(afresh, second), after, rtol=0, atol=1e-12)
 
 
-@pytest.mark.parametrize(
+GRID_PULSES = pytest.mark.parametrize(
     "pulses",
     [
         [(np.pi / 2, 0.0, 0.0), (np.pi / 2, 1.3, 0.0)],
@@ -517,11 +517,63 @@ def test_a_pulse_played_after_another_answers_as_one_played_afresh(flip, phase):
     ],
     ids=["phase", "refocusing", "offset"],
 )
-def test_a_pulse_computed_on_a_grid_of_fields_answers_as_one_stepped_for_each_isochromat(
-    pulses,
-):
+
+
+def _on_channels(rf, weights, cancelled=False):
+    """``rf`` played on channels of ``weights`` times its waveform.
+
+    With ``cancelled``, a chirp is added to the first channel and taken away
+    on one more, so that no one waveform times a weight per channel describes
+    the channels, while a sensitivity of the first channel's on the last
+    leaves the field unchanged.
+    """
+    signal = np.asarray(rf.signal, dtype=complex)
+    channels = np.outer(weights, signal)
+    if cancelled:
+        chirp = (
+            0.3
+            * np.abs(signal).max()
+            * np.exp(1j * np.linspace(0.0, 6.0, signal.size) ** 2)
+        )
+        channels[0] += chirp
+        channels = np.vstack([channels, -chirp])
+    return SimpleNamespace(
+        signal=channels.ravel(),
+        t=np.tile(np.asarray(rf.t, dtype=float), channels.shape[0]),
+        delay=rf.delay,
+        freq_offset=rf.freq_offset,
+        phase_offset=rf.phase_offset,
+    )
+
+
+def _slice_pulses(spins, pulses, *channels, cancelled=False):
+    """Play sinc pulses of ``(flip, phase, offset)`` under their slice gradients, each on ``channels`` when given."""
     system = pp.Opts(max_grad=30, grad_unit="mT/m", max_slew=120, slew_unit="T/m/s")
-    n = 20000
+    for flip, phase, offset in pulses:
+        rf, gz, _ = pp.make_sinc_pulse(
+            flip,
+            duration=2e-3,
+            slice_thickness=5e-3,
+            phase_offset=phase,
+            freq_offset=offset,
+            return_gz=True,
+            system=system,
+        )
+        rise, flat, fall = gz.rise_time, gz.flat_time, gz.fall_time
+        times = gz.delay + np.array([0.0, rise, rise + flat, rise + flat + fall])
+        corners = np.array([times, [0.0, gz.amplitude, gz.amplitude, 0.0]])
+        spins.play(
+            pp.calc_duration(rf, gz),
+            gradients=[None, None, corners],
+            rf=_on_channels(rf, *channels, cancelled=cancelled) if channels else rf,
+            system=system,
+        )
+        spins.play(2e-3)
+    return spins.magnetization
+
+
+def _grid_isochromats(n=20000):
+    """Positions and properties that give each isochromat its own field during a slice's pulse."""
     positions = np.column_stack(
         [RNG.uniform(-0.1, 0.1, (n, 2)), RNG.uniform(-0.02, 0.02, n)]
     )
@@ -530,34 +582,52 @@ def test_a_pulse_computed_on_a_grid_of_fields_answers_as_one_stepped_for_each_is
         "t2": 0.08,
         "off_resonance": RNG.uniform(-150.0, 150.0, n),
     }
+    return positions, properties
 
-    def played(spins):
-        for flip, phase, offset in pulses:
-            rf, gz, _ = pp.make_sinc_pulse(
-                flip,
-                duration=2e-3,
-                slice_thickness=5e-3,
-                phase_offset=phase,
-                freq_offset=offset,
-                return_gz=True,
-                system=system,
-            )
-            rise, flat, fall = gz.rise_time, gz.flat_time, gz.fall_time
-            times = gz.delay + np.array([0.0, rise, rise + flat, rise + flat + fall])
-            corners = np.array([times, [0.0, gz.amplitude, gz.amplitude, 0.0]])
-            spins.play(
-                pp.calc_duration(rf, gz),
-                gradients=[None, None, corners],
-                rf=rf,
-                system=system,
-            )
-            spins.play(2e-3)
-        return spins.magnetization
 
+@GRID_PULSES
+def test_a_pulse_computed_on_a_grid_of_fields_answers_as_one_stepped_for_each_isochromat(
+    pulses,
+):
+    positions, properties = _grid_isochromats()
+    n = len(positions)
     # Every isochromat sees its own field, so the grid costs fewer maps than
-    # stepping each; a transmit sensitivity of one steps each instead.
-    on_grid = played(pp.Isochromats(positions, **properties))
-    stepped = played(pp.Isochromats(positions, transmit=np.ones((n, 1)), **properties))
+    # stepping each; channels no one waveform describes step each instead.
+    on_grid = _slice_pulses(pp.Isochromats(positions, **properties), pulses)
+    stepped = _slice_pulses(
+        pp.Isochromats(positions, transmit=np.ones((n, 2)), **properties),
+        pulses,
+        [1.0],
+        cancelled=True,
+    )
+
+    np.testing.assert_allclose(on_grid, stepped, rtol=0, atol=1e-6)
+
+
+@GRID_PULSES
+def test_a_pulse_on_transmit_sensitivities_computed_on_a_grid_of_fields_and_drives_answers_as_one_stepped(
+    pulses,
+):
+    """Each isochromat's drive of the channels' one waveform: its magnitude a second axis of the grid, its phase a turn of the map."""
+    positions, properties = _grid_isochromats()
+    n = len(positions)
+    transmit = RNG.uniform(0.3, 1.5, (n, 2)) * np.exp(
+        1j * RNG.uniform(-np.pi, np.pi, (n, 2))
+    )
+    shim = np.array([0.8 * np.exp(0.4j), 0.5 * np.exp(-1.1j)])
+    on_grid = _slice_pulses(
+        pp.Isochromats(positions, transmit=transmit, **properties), pulses, shim
+    )
+    stepped = _slice_pulses(
+        pp.Isochromats(
+            positions,
+            transmit=np.column_stack([transmit, transmit[:, 0]]),
+            **properties,
+        ),
+        pulses,
+        shim,
+        cancelled=True,
+    )
 
     np.testing.assert_allclose(on_grid, stepped, rtol=0, atol=1e-6)
 
@@ -620,6 +690,48 @@ def test_many_coils_receive_their_sensitivities_times_the_magnetisation_at_each_
     phase = np.outer(areas, positions[:, 0]) + np.outer(adc, off_resonance)
     transverse = start * np.exp(-adc[:, None] / t2 - 2j * np.pi * phase)
     np.testing.assert_allclose(signal, (transverse @ receive).T, rtol=0, atol=1e-10)
+
+
+@pytest.mark.parametrize("t2", ["three", "each its own"])
+def test_a_long_window_under_a_held_gradient_samples_each_isochromat_s_geometric_series(
+    t2,
+):
+    """Read by a non-uniform FFT where the isochromats share few T2s, sample by sample where they do not."""
+    n, coils, samples = 5000, 4, 256
+    positions = RNG.uniform(-0.05, 0.05, size=(n, 3))
+    receive = RNG.normal(size=(n, coils)) + 1j * RNG.normal(size=(n, coils))
+    t2s = (
+        RNG.choice([0.03, 0.08, np.inf], n)
+        if t2 == "three"
+        else RNG.uniform(0.02, 0.2, n)
+    )
+    off_resonance = RNG.uniform(-200.0, 200.0, n)
+    start = RNG.normal(size=n) + 1j * RNG.normal(size=n)
+    spins = pp.Isochromats(
+        positions, t1=0.9, t2=t2s, off_resonance=off_resonance, receive=receive
+    )
+    spins.magnetization = np.column_stack([start.real, start.imag, np.full(n, 0.2)])
+    held = [np.array([[0.0, 4e-3], [value, value]]) for value in (2e4, 1e4)]
+    adc = np.linspace(0.1e-3, 3.9e-3, samples)
+    signal = spins.play(4e-3, gradients=[*held, None], adc=adc)
+
+    def transverse(times):
+        phase = np.outer(times, positions @ [2e4, 1e4, 0.0]) + np.outer(
+            times, off_resonance
+        )
+        return start * np.exp(-times[:, None] / t2s - 2j * np.pi * phase)
+
+    terms = np.abs(start) @ np.abs(receive)
+    np.testing.assert_allclose(
+        signal, (transverse(adc) @ receive).T, rtol=0, atol=1e-12 * terms.max()
+    )
+    # The window leaves each isochromat as it stands at the last sample.
+    m = spins.magnetization
+    np.testing.assert_allclose(
+        m[:, 0] + 1j * m[:, 1], transverse(np.array([4e-3]))[0], rtol=0, atol=1e-12
+    )
+    e1 = np.exp(-4e-3 / 0.9)
+    np.testing.assert_allclose(m[:, 2], 0.2 * e1 + 1 - e1, rtol=0, atol=1e-12)
 
 
 def test_receive_sensitivities_in_a_read_only_memory_mapped_file_are_received_as_in_memory(

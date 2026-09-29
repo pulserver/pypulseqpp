@@ -126,10 +126,18 @@ class Isochromats:
     field during a pulse share its computation, and a pulse that differs from
     an earlier one by its phase alone, under the same gradient, reuses the
     earlier one's computation turned about z by that phase. A pulse played
-    without transmit sensitivities, under no gradient or one held throughout
-    it, is computed on a grid of the field an isochromat sees and interpolated,
-    to within about ``1e-7`` of the equilibrium magnetisation, wherever the
-    grid costs fewer maps than the isochromats' groups.
+    under no gradient or one held throughout it is computed on a grid of the
+    field an isochromat sees and interpolated, to within about ``1e-7`` of the
+    equilibrium magnetisation, wherever the grid costs fewer maps than the
+    isochromats' groups: without transmit sensitivities, or with every channel
+    playing one waveform times a weight of its own, when an isochromat's
+    transmit field is that waveform times one complex drive, whose magnitude
+    the grid spans too and whose phase turns the computation about z. An ADC
+    window under a gradient held throughout it is read by a non-uniform FFT
+    of the isochromats of each T2, to within about ``1e-13`` of the sum of
+    the magnitudes of their transverse magnetisations times their receive
+    sensitivities, wherever that costs less than turning every isochromat at
+    every sample.
 
     Parameters
     ----------
