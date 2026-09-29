@@ -6,6 +6,8 @@
 
 #include "pulseq/bloch.hpp"
 #include "pulseq/nufft.hpp"
+#include "pulseq/parallel.hpp"
+#include "pulseq/simd.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -19,19 +21,6 @@
 #include <string>
 #include <thread>
 #include <utility>
-
-#if defined(__x86_64__) || defined(_M_X64)
-#define PULSEQ_X86_64 1
-#include <immintrin.h>
-#if defined(_MSC_VER) && !defined(__clang__)
-#include <intrin.h>
-/* MSVC compiles AVX2 intrinsics in any function. */
-#define PULSEQ_AVX2
-#else
-#include <cpuid.h>
-#define PULSEQ_AVX2 __attribute__((target("avx2,fma")))
-#endif
-#endif
 
 namespace pulseq
 {
@@ -141,40 +130,6 @@ namespace pulseq
         constexpr int kNoGradient = 0;
         constexpr int kOneDirection = 1;
         constexpr int kAnyDirection = 2;
-
-        /** How many workers parallel() runs for @p count items. */
-        size_t workers_for(size_t count, size_t threads, size_t least)
-        {
-            return std::max<size_t>(1, std::min(threads, (count + least - 1) / least));
-        }
-
-        /**
-         * Run body(worker, first, last) over [0, count) on up to @p threads
-         * threads, each given at least @p least items. The body must not throw.
-         */
-        void parallel(
-            size_t count,
-            size_t threads,
-            size_t least,
-            const std::function<void(size_t, size_t, size_t)>& body)
-        {
-            if (count == 0)
-                return;
-            const size_t workers = workers_for(count, threads, least);
-            if (workers == 1)
-            {
-                body(0, 0, count);
-                return;
-            }
-            const size_t chunk = (count + workers - 1) / workers;
-            std::vector<std::thread> pool;
-            pool.reserve(workers - 1);
-            for (size_t worker = 1; worker < workers && worker * chunk < count; ++worker)
-                pool.emplace_back(body, worker, worker * chunk, std::min(count, (worker + 1) * chunk));
-            body(0, 0, std::min(count, chunk));
-            for (std::thread& thread : pool)
-                thread.join();
-        }
 
         uint64_t bits_of(double value)
         {
@@ -968,36 +923,6 @@ namespace pulseq
                 coil_block_avx2<1>(g, c, size, zr, zi, out, stride);
         }
 
-        /** Whether the processor has AVX2 and FMA, and the system saves the
-         *  256-bit registers they use. */
-        bool avx2_and_fma()
-        {
-#if defined(_MSC_VER) && !defined(__clang__)
-            int info[4];
-            __cpuid(info, 0);
-            if (info[0] < 7)
-                return false;
-            __cpuid(info, 1);
-            const unsigned features = static_cast<unsigned>(info[2]);
-            const unsigned long long saved = (features & (1u << 27)) ? _xgetbv(0) : 0;
-            __cpuidex(info, 7, 0);
-            const unsigned extended = static_cast<unsigned>(info[1]);
-#else
-            unsigned a = 0, b = 0, features = 0, d = 0;
-            if (__get_cpuid_max(0, nullptr) < 7 || !__get_cpuid(1, &a, &b, &features, &d))
-                return false;
-            unsigned low = 0, high = 0;
-            if (features & (1u << 27))
-                __asm__("xgetbv" : "=a"(low), "=d"(high) : "c"(0));
-            const unsigned long long saved = low;
-            unsigned extended = 0, c = 0;
-            __get_cpuid_count(7, 0, &a, &extended, &c, &d);
-#endif
-            const bool fma = (features & (1u << 12)) != 0;
-            const bool avx = (features & (1u << 28)) != 0;
-            const bool avx2 = (extended & (1u << 5)) != 0;
-            return fma && avx && avx2 && (saved & 6) == 6;
-        }
 #endif
 
         /** The coil sum this processor runs fastest. */
@@ -1911,6 +1836,53 @@ namespace pulseq
         }
         advance(areas, now, block.duration);
         elapsed_ += block.duration;
+    }
+
+    void Isochromats::play_quietly(const BlockEvents& block, std::complex<double>* first_sample)
+    {
+        if (!(block.duration >= 0.0) || !std::isfinite(block.duration))
+            throw std::invalid_argument("a block's duration must be finite and not negative");
+        check_gradients(block);
+        check_pulse(block, properties_.transmit_channels);
+        const size_t before = check_samples(block);
+        const size_t samples = block.adc_samples;
+        if (before > 0 && before < samples)
+            throw std::invalid_argument("a repeated block's ADC samples must lie on one side of its RF pulse");
+        const GradientAreas areas(block);
+        double now = 0.0;
+        const auto capture = [&]() {
+            advance(areas, now, block.adc_times[0]);
+            flush();
+            if (first_sample != nullptr)
+                for (size_t i = 0; i < count_; ++i)
+                    first_sample[i] = std::complex<double>(mx_[i], my_[i]);
+        };
+        if (before > 0)
+            capture();
+        if (block.rf_steps > 0)
+        {
+            advance(areas, now, block.rf_start);
+            flush();
+            excite(block, areas);
+            now = pulse_end(block);
+        }
+        if (samples > 0 && before == 0)
+            capture();
+        advance(areas, now, block.duration);
+        elapsed_ += block.duration;
+    }
+
+    bool Isochromats::window_steps(const BlockEvents& block, double area[3], double& step) const
+    {
+        std::fill(area, area + 3, 0.0);
+        step = 0.0;
+        if (block.adc_samples < 2)
+            return true;
+        const GradientAreas areas(block);
+        const SampleSteps steps = sample_steps(block.adc_times, block.adc_samples, areas);
+        std::copy(&steps.area[3], &steps.area[6], area);
+        step = steps.time[1];
+        return steps.uniform;
     }
 
 } // namespace pulseq

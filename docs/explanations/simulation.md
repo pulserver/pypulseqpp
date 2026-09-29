@@ -22,6 +22,12 @@
   gradient echo then samples $\sum_j \rho_j e^{-2\pi i\,\mathbf{k}\cdot\mathbf{r}_j}$
   at the $\mathbf{k}$ that {meth}`~pypulseqpp.Sequence.calculate_kspace`
   reports.
+- {meth}`~pypulseqpp.Isochromats.repetitions` plays one sequence of blocks
+  repeated with other phase offsets and phase encodings from the affine map one
+  repetition applies to each isochromat. Where the phase offsets step evenly,
+  each isochromat's magnetisation is its fixed point, whose samples are summed
+  once over columns of isochromats, plus a transient carried until it falls
+  below a tolerance.
 - Diffusion, flow, motion, concomitant fields and the scanner's hardware are
   not modelled.
 ```
@@ -234,6 +240,84 @@ $$
 with $\mathbf{k}$ the trajectory {meth}`~pypulseqpp.Sequence.calculate_kspace`
 reports, and the inverse discrete Fourier transform of Cartesian samples places
 each isochromat at its own position.
+
+## Repeated blocks
+
+A scan often plays one sequence of blocks many times, changing only the phase
+offsets of its pulses and ADC events and its phase-encoding gradients.
+{meth}`~pypulseqpp.Isochromats.repetitions` plays such a scan without
+integrating every block of every repetition.
+
+Every event the engine plays maps an isochromat's magnetisation affinely, so a
+repetition does too: $\mathbf{M} \leftarrow A_j\,\mathbf{M} + \mathbf{b}_j$ for
+isochromat $j$, and its transverse magnetisation at the first sample of each
+ADC window is $\mathbf{u}_j\cdot\mathbf{M} + v_j$, $\mathbf{M}$ taken at the
+repetition's start. Four plays of the blocks, from no magnetisation and from a
+unit magnetisation along each axis, give $A_j$, $\mathbf{b}_j$,
+$\mathbf{u}_j$ and $v_j$ for every isochromat.
+
+A repetition whose pulses have their phase offsets larger by $\varphi_n$ plays
+every transverse field turned about $z$ by $\theta_n = -\varphi_n$, and
+relaxation is symmetric about $z$, so its maps are the first repetition's
+turned by $R_z(\theta_n)$, as a pulse's maps turn with its phase. In the frame
+turned with the pulses, $\mathbf{m} = R_z(-\theta_n)\,\mathbf{M}$, repetition
+$n$ takes $\mathbf{m}$ to $R_z(\theta_n - \theta_{n+1})\,(A_j\,\mathbf{m} +
+\mathbf{b}_j)$.
+
+A phase encoding is a gradient that differs from the first repetition's by a
+waveform that is zero during every pulse and every ADC window and plays no net
+area over the repetition. It turns the transverse magnetisation about $z$ by
+the area it has played, $e^{-2\pi i\,\mathbf{a}\cdot\mathbf{r}}$, and by none
+at the end of the repetition, so it leaves $A_j$ and $\mathbf{b}_j$ as they
+are and multiplies the transverse magnetisation at a window's first sample by
+$e^{-2\pi i\,\mathbf{a}_n\cdot\mathbf{r}_j}$, with $\mathbf{a}_n$ its area up
+to that sample. Under the gradient held over the window, isochromat $j$ then
+turns and decays by one factor $z_j$ from each sample to the next.
+
+### Fixed points and transients
+
+Where the phase offsets step by one increment, $\theta_{n+1} - \theta_n =
+\delta$ for every $n$, the map in the turned frame is the same for every
+repetition, $A'_j = R_z(-\delta)\,A_j$, and has the fixed point
+$\mathbf{m}^*_j = (I - A'_j)^{-1}R_z(-\delta)\,\mathbf{b}_j$. A sequence file
+holds a phase offset to about $10^{-5}$ rad, so $\delta$ is the mean step, and
+every step must lie within $10^{-4}$ rad of it. The magnetisation is the fixed
+point plus a transient, $\mathbf{m} = \mathbf{m}^*_j + \mathbf{d}$, and the
+transient decays as $\mathbf{d} \leftarrow A'_j\,\mathbf{d}$.
+
+In the frame of each repetition's pulses, before demodulation, the fixed
+points send the same samples in every repetition but for the phase encoding:
+
+$$
+s_c(n, k) = \sum_j R_{jc}\,(\mathbf{u}_j\cdot\mathbf{m}^*_j + v_j)\,z_j^{\,k}\,
+e^{-2\pi i\,\mathbf{a}_n\cdot\mathbf{r}_j}.
+$$
+
+When the phase encodings run along at most two axes along which the
+isochromats take few coordinates, as on the lattice a phantom is sampled on,
+the isochromats that share their coordinates along those axes form columns,
+and $e^{-2\pi i\,\mathbf{a}_n\cdot\mathbf{r}_j}$ is the same for every
+isochromat of a column. Each column's samples are summed once, over its
+isochromats, by the non-uniform FFT a window is read with; each repetition's
+samples are then a sum over the columns, and with two axes the sum along the
+one of fewer distinct areas is taken once per area. The fixed points cost a
+term per column and repetition rather than one per isochromat and repetition.
+
+The transients are carried repetition by repetition, 16 repetitions of an
+isochromat at a time. An isochromat whose transient falls below the tolerance
+times its proton density is dropped, and its magnetisation stands at its fixed
+point from then on. The transients decay with the relaxation times, so after a
+few $T_1$ a scan costs the fixed points' samples alone.
+
+### Tolerance
+
+With a tolerance of zero, every isochromat is carried in double precision
+through every repetition, and the samples agree with the blocks played one by
+one to rounding. A tolerance above zero, relative to the sum of the magnitudes
+of the terms a sample sums, reads the transients' windows by the narrowest
+kernel that holds it, carries the magnetisation in single precision from
+$10^{-4}$ on, and drops transients below it. The fixed points' samples are
+summed by the widest kernel at any tolerance.
 
 ## Relation to KomaMRI
 

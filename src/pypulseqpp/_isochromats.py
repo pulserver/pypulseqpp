@@ -8,7 +8,7 @@ from ._ext import sim as _kernels
 from ._offsets import calc_absolute_offsets
 from ._opts import Opts as _Opts
 
-__all__ = ["Isochromats"]
+__all__ = ["Isochromats", "Repetitions"]
 
 
 def _per_isochromat(value, count: int, name: str) -> np.ndarray:
@@ -330,3 +330,339 @@ class Isochromats:
             times,
         )
         return signal if receiver is None else signal * np.exp(1j * receiver)
+
+    def repetitions(
+        self,
+        blocks,
+        phases,
+        areas=None,
+        *,
+        adc_phases=None,
+        system=None,
+        tolerance: float = 0.0,
+    ) -> Repetitions:
+        """Repetitions of a sequence of blocks, from the magnetisation where it stands.
+
+        Repetition ``n`` plays ``blocks`` with every RF event's phase offset
+        larger by ``phases[n]``, every ADC event's by ``adc_phases[n]``, and
+        gradients that differ from the blocks' by a waveform zero during every
+        RF pulse and every ADC window, whose area at the first sample of the
+        repetition's ``w``-th window is ``areas[n, w]``, and over the
+        repetition zero: a phase encoding and its rewinder.
+
+        One repetition applies an affine map to each isochromat's
+        magnetisation, and another to its transverse magnetisation at each
+        window's first sample. Four plays of ``blocks``, from no magnetisation
+        and from a unit magnetisation along each axis, give both; every
+        repetition then follows from them, a pulse turned by a phase offset
+        turning the maps alike. The windows are read as :meth:`play` reads a
+        window under a gradient held throughout it.
+
+        Parameters
+        ----------
+        blocks : sequence of dict
+            One repetition, each block as :meth:`play`'s keyword arguments:
+            ``duration`` and, where it plays them, ``gradients``,
+            ``rotation``, ``rf`` and ``adc``. Every window must be read under
+            a gradient held throughout it, its samples on one side of any RF
+            pulse in its block.
+        phases : array_like
+            ``(repetitions,)`` increase of every RF event's phase offset, in
+            rad.
+        areas : array_like, default=None
+            ``(repetitions, windows, 3)`` phase-encoding area at each window's
+            first sample, in 1/m, along the axes the positions are given
+            along; none by default.
+        adc_phases : array_like, default=None
+            ``(repetitions,)`` increase of every ADC event's phase offset, in
+            rad; ``phases`` by default.
+        system : Opts, default=None
+            As :meth:`play` takes it.
+        tolerance : float, default=0.0
+            Accuracy of the samples, relative to the sum of the magnitudes of
+            the terms each sums; exact to rounding at zero. Above zero, the
+            windows are read by a kernel just wide enough for it, and from
+            1e-4 on the magnetisation is carried in single precision. Where,
+            besides, the phases step by one increment, to within 1e-4 rad,
+            and the phase encodings run along at most two axes along which the
+            isochromats take few coordinates, as on a lattice, each
+            isochromat's magnetisation is split into its fixed point under the
+            mean increment and a transient about it: the fixed points' samples
+            are summed over the columns of isochromats that share their
+            coordinates along those axes, and an isochromat whose transient
+            falls below ``tolerance`` times its proton density stands at its
+            fixed point from then on.
+
+        Returns
+        -------
+        Repetitions
+            The repetitions, which play in turn; the isochromats hold the
+            magnetisation at the start of the next to be played.
+
+        Raises
+        ------
+        ValueError
+            If the phases, ADC phases and areas do not describe one set of
+            repetitions, a window is not read under a held gradient, or a
+            block is one :meth:`play` would refuse.
+
+        Examples
+        --------
+        Balanced steady-state free precession, the RF phase alternating:
+
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> spins = pp.Isochromats([[0.0, 0.0, 0.0]], t1=1.0, t2=0.1)
+        >>> tr = [
+        ...     dict(duration=1e-3, rf=pp.make_block_pulse(np.pi / 4, duration=0.5e-3)),
+        ...     dict(duration=4e-3, adc=pp.make_adc(1, dwell=10e-6, delay=1.5e-3)),
+        ... ]
+        >>> scan = spins.repetitions(tr, np.pi * np.arange(4))
+        >>> scan.play().shape
+        (4, 1, 1)
+        """
+        conversions = []
+        receivers = []
+        for block in blocks:
+            start, step, samples = _field(block.get("rf"), system)
+            times, receiver = _window(block.get("adc"), system)
+            if times is not None and times.size:
+                receivers.append(np.zeros(times.size) if receiver is None else receiver)
+            conversions.append(
+                (
+                    float(block["duration"]),
+                    _axes(block.get("gradients")),
+                    _rotation(block.get("rotation")),
+                    start,
+                    step,
+                    samples,
+                    times,
+                    receiver,
+                )
+            )
+        phases = np.ascontiguousarray(np.asarray(phases, dtype=float).ravel())
+        count = phases.size
+        adc_phases = (
+            phases
+            if adc_phases is None
+            else np.ascontiguousarray(np.asarray(adc_phases, dtype=float).ravel())
+        )
+        if adc_phases.size != count:
+            raise ValueError(
+                f"adc_phases must hold one value per repetition, {count}, got {adc_phases.size}"
+            )
+        windows = len(receivers)
+        encoded = (
+            np.zeros((count, windows, 3))
+            if areas is None
+            else np.asarray(areas, dtype=float)
+        )
+        if encoded.shape != (count, windows, 3):
+            raise ValueError(
+                f"areas must be (repetitions, windows, 3), {(count, windows, 3)}, "
+                f"got {encoded.shape}"
+            )
+        native = _kernels.Repetitions(
+            self._native,
+            conversions,
+            phases,
+            adc_phases,
+            np.ascontiguousarray(encoded).ravel(),
+            float(tolerance),
+        )
+        steady = _steady(native, encoded, float(tolerance)) if tolerance else None
+        return Repetitions(
+            self,
+            native,
+            demodulation=(
+                -phases,
+                adc_phases,
+                np.concatenate(receivers) if receivers else np.zeros(0),
+            ),
+            steady=steady,
+        )
+
+
+def _steady(native, areas: np.ndarray, tolerance: float) -> list | None:
+    """Split the magnetisation; return what reads each window's samples from the fixed points, or None where it cannot.
+
+    A window's fixed points are read by columns (:class:`_Columns`), which
+    needs the phase encodings to run along two tabulated axes at most. An axis
+    along which the areas vary by less than a quarter of the tolerance, in
+    phase over the isochromats' reach, counts as encoded by their mean.
+    """
+    reach = native.reach * np.sqrt(3.0)
+    readers = []
+    for w in range(native.windows):
+        spread = np.ptp(areas[:, w], axis=0) if len(areas) else np.zeros(3)
+        along = [
+            axis
+            for axis in range(3)
+            if 2.0 * np.pi * spread[axis] * reach > tolerance / 4.0
+        ]
+        if len(along) > 2 or not all(native.lattice(axis).size for axis in along):
+            return None
+        # The outer axis first: the one of fewer distinct areas.
+        readers.append(
+            sorted(along, key=lambda axis: np.unique(areas[:, w, axis]).size)
+        )
+    if not native.split():
+        return None
+    parts = []
+    for w, along in enumerate(readers):
+        constant = np.where(
+            np.isin(np.arange(3), along),
+            0.0,
+            areas[:, w].mean(axis=0) if len(areas) else 0.0,
+        )
+        sums = native.column_sums(w, along, np.ascontiguousarray(constant, dtype=float))
+        parts.append(
+            _Columns(
+                sums, [native.lattice(axis) for axis in along], areas[:, w][:, along]
+            )
+        )
+    return parts
+
+
+class _Columns:
+    """A window's steady samples from its column sums, per repetition.
+
+    ``sums`` is ``(*values, coils, samples)`` over the tabulated coordinates
+    along the encoded axes, and ``encodings`` ``(repetitions, axes)`` each
+    repetition's area along them, in 1/m. A repetition's samples are the sums
+    times exp(-2 pi i area . coordinate), summed over the columns. With two
+    axes, the sum along the first, the outer axis, is taken once per area,
+    for the areas repetitions need together, and kept within a budget of
+    memory.
+    """
+
+    #: Outer sums kept at the most, in bytes.
+    _KEPT = 1 << 30
+
+    def __init__(self, sums: np.ndarray, values: list, encodings: np.ndarray) -> None:
+        self._values = values
+        self._encodings = encodings
+        self._shape = sums.shape[len(values) :]
+        width = int(np.prod(self._shape))
+        if len(values) < 2:
+            self._sums = sums.reshape(-1, width)
+            return
+        self._inner = 1
+        self._areas, self._which = np.unique(encodings[:, 0], return_inverse=True)
+        self._outer = values[0]
+        self._sums = sums.reshape(self._outer.size, -1)
+        self._kept = {}
+        self._keep = max(1, self._KEPT // (self._sums.itemsize * self._sums.shape[1]))
+
+    def _outer_sums(self, indices: np.ndarray) -> None:
+        """Keep the sums along the outer axis at the areas of ``indices``, those missing in one product."""
+        missing = [int(index) for index in indices if int(index) not in self._kept]
+        if not missing:
+            return
+        turn = np.exp(-2j * np.pi * np.outer(self._areas[missing], self._outer))
+        made = (turn @ self._sums).reshape(
+            len(missing), self._values[self._inner].size, -1
+        )
+        needed = {int(index) for index in indices}
+        for index in list(self._kept):
+            if len(self._kept) + len(missing) <= self._keep:
+                break
+            if index not in needed:
+                del self._kept[index]
+        for index, part in zip(missing, made, strict=True):
+            self._kept[index] = part
+
+    def samples(self, first: int, count: int) -> np.ndarray:
+        chosen = self._encodings[first : first + count]
+        if not self._values:
+            return np.broadcast_to(
+                self._sums.reshape(self._shape), (count, *self._shape)
+            ).copy()
+        if len(self._values) == 1:
+            turn = np.exp(-2j * np.pi * np.outer(chosen[:, 0], self._values[0]))
+            return (turn @ self._sums).reshape(count, *self._shape)
+        out = np.empty((count, int(np.prod(self._shape))), dtype=complex)
+        which = self._which[first : first + count]
+        indices = np.unique(which)
+        self._outer_sums(indices)
+        for index in indices:
+            rows = np.flatnonzero(which == index)
+            turn = np.exp(
+                -2j
+                * np.pi
+                * np.outer(chosen[rows, self._inner], self._values[self._inner])
+            )
+            out[rows] = turn @ self._kept[int(index)]
+        return out.reshape(count, *self._shape)
+
+
+class Repetitions:
+    """Repetitions of a sequence of blocks, played in turn on isochromats.
+
+    Made by :meth:`Isochromats.repetitions`, which states what each repetition
+    plays. The isochromats hold the magnetisation at the start of the next
+    repetition to be played; blocks played on them in between break the
+    repetitions that follow.
+    """
+
+    def __init__(
+        self, isochromats: Isochromats, native, *, demodulation, steady=None
+    ) -> None:
+        self._isochromats = isochromats
+        self._native = native
+        self._turns, self._adc_phases, self._receiver = demodulation
+        self._steady = steady
+
+    def __len__(self) -> int:
+        return self._native.count
+
+    @property
+    def played(self) -> int:
+        """Repetitions played so far."""
+        return self._native.played
+
+    @property
+    def samples(self) -> int:
+        """ADC samples per repetition, per coil, its windows in play order."""
+        return self._native.samples
+
+    def play(self, count: int | None = None) -> np.ndarray:
+        """Play the next ``count`` repetitions and return what each coil receives.
+
+        Parameters
+        ----------
+        count : int, default=None
+            Repetitions to play; every one left by default.
+
+        Returns
+        -------
+        NDArray[np.complex128]
+            ``(count, coils, samples)``: each repetition's samples, its windows
+            in play order, demodulated as :meth:`Isochromats.play` demodulates
+            an ADC event.
+
+        Raises
+        ------
+        ValueError
+            If fewer than ``count`` repetitions remain.
+        """
+        first = self.played
+        count = len(self) - first if count is None else int(count)
+        signal = self._native.play(count)
+        if self._steady is not None and count:
+            chosen = slice(first, first + count)
+            steady = np.concatenate(
+                [part.samples(first, count) for part in self._steady], axis=2
+            )
+            phase = (
+                self._turns[chosen, None]
+                + self._adc_phases[chosen, None]
+                + self._receiver
+            )
+            signal += steady * np.exp(1j * phase)[:, None, :]
+        return signal
+
+    @property
+    def carried(self) -> int:
+        """Isochromats carried through the next repetition; the rest stand at their fixed points."""
+        return self._native.carried
