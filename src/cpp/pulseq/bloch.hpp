@@ -29,6 +29,7 @@ namespace pulseq
 
     class GradientAreas;
     class Nufft;
+    class Repetitions;
     struct PulseGradient;
 
     /** What each isochromat is; entry i of every vector describes isochromat i. */
@@ -160,6 +161,8 @@ namespace pulseq
         void play(const BlockEvents& block, std::complex<double>* signal);
 
     private:
+        friend class Repetitions;
+
         /** Isochromats that see one field during an RF pulse. */
         struct Grouping
         {
@@ -213,6 +216,14 @@ namespace pulseq
         /** Apply the affine map @p map to isochromat @p i, turned about z by
          *  @p before before it and @p after after it. */
         void apply(size_t i, const double* map, std::complex<double> before, std::complex<double> after);
+        /** Play @p block without reading its ADC samples, writing each
+         *  isochromat's Mx + i My at the first of them to @p first_sample
+         *  where it has any; they must all lie on one side of its pulse. */
+        void play_quietly(const BlockEvents& block, std::complex<double>* first_sample);
+        /** The gradient area, in 1/m, and the time, in s, from each of
+         *  @p block's ADC samples to the next, into @p area and @p step;
+         *  whether they are one increment throughout. */
+        bool window_steps(const BlockEvents& block, double area[3], double& step) const;
         void acquire(
             const BlockEvents& block,
             const GradientAreas& areas,

@@ -17,7 +17,8 @@ namespace pulseq
 
     /**
      * F(k) = sum_n c_n exp(-2 pi i k u_n), k = 0 ... modes - 1, for any real
-     * u_n, to within about 1e-13 of sum_n |c_n|.
+     * u_n, to within about 1e-13 of sum_n |c_n| at the widest kernel, and to
+     * within a tolerance at the kernel width_for() gives it.
      *
      * Each term is spread onto a periodic grid of twice the modes by the
      * exponential-of-semicircle kernel (Barnett, Magland and af Klinteberg,
@@ -29,15 +30,20 @@ namespace pulseq
     class Nufft
     {
     public:
-        explicit Nufft(size_t modes);
+        explicit Nufft(size_t modes, size_t width = width_of());
         ~Nufft();
         Nufft(const Nufft&) = delete;
         Nufft& operator=(const Nufft&) = delete;
 
-        /** Points of a grid of a transform of @p modes. */
-        static size_t grid_of(size_t modes);
-        /** Grid points one term is spread onto. */
+        /** Points of a grid of a transform of @p modes whose terms are
+         *  spread onto @p width points. */
+        static size_t grid_of(size_t modes, size_t width = width_of());
+        /** Grid points one term is spread onto by the widest kernel. */
         static size_t width_of();
+        /** Grid points a term is spread onto for the transform to hold to
+         *  within @p tolerance of sum_n |c_n|; the widest kernel's below
+         *  1e-12. */
+        static size_t width_for(double tolerance);
 
         size_t modes() const
         {

@@ -10,11 +10,15 @@
 #include <complex>
 #include <cstddef>
 #include <functional>
+#include <iterator>
+#include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 
 #include "pulseq/bloch.hpp"
+#include "pulseq/repetitions.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/simulate.hpp"
 #include "pulseqpp_events.h"
@@ -227,6 +231,147 @@ namespace
             self.play(block, out);
         }
         return signal;
+    }
+
+    /** The RF pulse of a repeated block, given[3] to given[5] as
+     *  owned_block() takes them, where it plays one. */
+    void own_pulse(const py::tuple& given, pulseq::OwnedBlock& owned)
+    {
+        if (given[5].is_none())
+            return;
+        const Complexes samples = py::cast<Complexes>(given[5]);
+        if (samples.ndim() != 2)
+            throw std::invalid_argument("an RF pulse must be (channels, steps)");
+        owned.rf_start = py::cast<double>(given[3]);
+        owned.rf_step = py::cast<double>(given[4]);
+        owned.rf_channels = static_cast<size_t>(samples.shape(0));
+        owned.rf_steps = static_cast<size_t>(samples.shape(1));
+        owned.rf.assign(samples.data(), samples.data() + samples.size());
+    }
+
+    /** The ADC window of a repeated block, given[6] and given[7] as
+     *  owned_block() takes them, where it reads one. */
+    void own_window(const py::tuple& given, pulseq::OwnedBlock& owned)
+    {
+        if (given[6].is_none())
+            return;
+        const Doubles times = py::cast<Doubles>(given[6]);
+        if (times.ndim() != 1)
+            throw std::invalid_argument("ADC sample times must be one-dimensional");
+        owned.adc_times.assign(times.data(), times.data() + times.size());
+        owned.receiver.assign(owned.adc_times.size(), 0.0);
+        if (given[7].is_none())
+            return;
+        const Doubles receiver = py::cast<Doubles>(given[7]);
+        if (receiver.ndim() != 1 || receiver.size() != times.size())
+            throw std::invalid_argument("an ADC's receiver phases must be one per sample");
+        owned.receiver.assign(receiver.data(), receiver.data() + receiver.size());
+    }
+
+    /** One block's events, as play() takes them, copied into a block that
+     *  owns them. */
+    pulseq::OwnedBlock owned_block(const py::tuple& given)
+    {
+        if (py::len(given) != 8)
+            throw std::invalid_argument(
+                "a repeated block is (duration, gradients, rotation, rf_start, rf_step, rf, adc, receiver)");
+        pulseq::BlockEvents block;
+        block.duration = py::cast<double>(given[0]);
+        std::vector<Doubles> held;
+        take_gradients(py::cast<py::sequence>(given[1]), held, block);
+        pulseq::GradientCorners unturned;
+        pulseq::GradientCorners turned;
+        if (!given[2].is_none())
+            turn_gradients(py::cast<Doubles>(given[2]), unturned, turned, block);
+        pulseq::OwnedBlock owned;
+        owned.duration = block.duration;
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            const size_t count = block.gradient_corners[axis];
+            if (count == 0)
+                continue;
+            owned.gradient_times[axis].assign(block.gradient_times[axis], block.gradient_times[axis] + count);
+            owned.gradient_values[axis].assign(block.gradient_values[axis], block.gradient_values[axis] + count);
+        }
+        own_pulse(given, owned);
+        own_window(given, owned);
+        return owned;
+    }
+
+    std::vector<double> values_of(const Doubles& given)
+    {
+        return std::vector<double>(given.data(), given.data() + given.size());
+    }
+
+    pulseq::Repetitions* make_repetitions(
+        pulseq::Isochromats& isochromats,
+        const py::sequence& blocks,
+        const Doubles& phases,
+        const Doubles& adc_phases,
+        const Doubles& areas,
+        double tolerance)
+    {
+        std::vector<pulseq::OwnedBlock> owned;
+        owned.reserve(py::len(blocks));
+        std::transform(blocks.begin(), blocks.end(), std::back_inserter(owned), [](const py::handle& block) {
+            return owned_block(py::reinterpret_borrow<py::tuple>(block));
+        });
+        std::vector<double> turns = values_of(phases);
+        std::vector<double> adc_turns = values_of(adc_phases);
+        std::vector<double> encoded = values_of(areas);
+        py::gil_scoped_release unlocked;
+        return new pulseq::Repetitions(
+            isochromats, std::move(owned), std::move(turns), std::move(adc_turns), std::move(encoded), tolerance);
+    }
+
+    py::array_t<Complex> play_repetitions(pulseq::Repetitions& self, size_t count)
+    {
+        py::array_t<Complex> signal({static_cast<py::ssize_t>(count),
+                                     static_cast<py::ssize_t>(self.coils()),
+                                     static_cast<py::ssize_t>(self.samples())});
+        Complex* out = signal.mutable_data();
+        {
+            py::gil_scoped_release unlocked;
+            self.play(count, out);
+        }
+        return signal;
+    }
+
+    /** The fixed points' samples of @p window summed over the columns along
+     *  the axes @p along, (*lattice sizes, coils, samples). */
+    py::array_t<Complex> column_sums_of(
+        const pulseq::Repetitions& self, size_t window, const py::sequence& along, const Doubles& encoding)
+    {
+        if (encoding.ndim() != 1 || encoding.size() != 3)
+            throw std::invalid_argument("the encoding must be three areas");
+        if (window >= self.windows())
+            throw std::invalid_argument("no ADC window " + std::to_string(window));
+        std::vector<int> axes;
+        std::vector<py::ssize_t> shape;
+        for (const py::handle& axis : along)
+        {
+            axes.push_back(axis.cast<int>());
+            if (axes.back() < 0 || axes.back() > 2)
+                throw std::invalid_argument("an axis is 0, 1 or 2");
+            shape.push_back(static_cast<py::ssize_t>(self.lattice(axes.back()).size()));
+        }
+        shape.push_back(static_cast<py::ssize_t>(self.coils()));
+        shape.push_back(static_cast<py::ssize_t>(self.window_samples(window)));
+        py::array_t<Complex> out(shape);
+        Complex* at = out.mutable_data();
+        {
+            py::gil_scoped_release unlocked;
+            self.column_sums(window, axes, encoding.data(), at);
+        }
+        return out;
+    }
+
+    py::array_t<double> lattice_of(const pulseq::Repetitions& self, int axis)
+    {
+        if (axis < 0 || axis > 2)
+            throw std::invalid_argument("an axis is 0, 1 or 2");
+        const std::vector<double>& values = self.lattice(axis);
+        return py::array_t<double>(static_cast<py::ssize_t>(values.size()), values.data());
     }
 
     py::tuple pulse_steps(
@@ -459,6 +604,28 @@ bz is (positions, steps) or (positions, 1). threads = 0 uses every core.
              py::arg("rf_step") = 0.0,
              py::arg("rf") = py::none(),
              py::arg("adc") = py::none());
+
+    py::class_<pulseq::Repetitions>(module, "Repetitions")
+        .def(py::init(&make_repetitions),
+             py::arg("isochromats"),
+             py::arg("blocks"),
+             py::arg("phases"),
+             py::arg("adc_phases"),
+             py::arg("areas"),
+             py::arg("tolerance") = 0.0,
+             py::keep_alive<1, 2>())
+        .def_property_readonly("count", &pulseq::Repetitions::count)
+        .def_property_readonly("played", &pulseq::Repetitions::played)
+        .def_property_readonly("windows", &pulseq::Repetitions::windows)
+        .def_property_readonly("samples", &pulseq::Repetitions::samples)
+        .def_property_readonly("coils", &pulseq::Repetitions::coils)
+        .def_property_readonly("divided", &pulseq::Repetitions::divided)
+        .def_property_readonly("carried", &pulseq::Repetitions::carried)
+        .def_property_readonly("reach", &pulseq::Repetitions::reach)
+        .def("split", &pulseq::Repetitions::split, py::call_guard<py::gil_scoped_release>())
+        .def("column_sums", &column_sums_of, py::arg("window"), py::arg("axes"), py::arg("encoding"))
+        .def("lattice", &lattice_of, py::arg("axis"))
+        .def("play", &play_repetitions, py::arg("count"));
 
     module.def(
         "simulate",
