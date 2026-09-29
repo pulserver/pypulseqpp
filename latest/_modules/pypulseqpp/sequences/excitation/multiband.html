@@ -473,7 +473,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span><span class="p">,</span> <span class="n">selective_slr</span>
 
 <span class="n">_AXES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
 
@@ -493,7 +493,8 @@
 <span class="sd">    flip_angle_deg : float</span>
 <span class="sd">        Nominal flip angle (degrees), per band.</span>
 <span class="sd">    thickness_m : float</span>
-<span class="sd">        Slice thickness (m).</span>
+<span class="sd">        Slice thickness (m): the single-band pulse's measured bandwidth over</span>
+<span class="sd">        the selection plateau.</span>
 <span class="sd">    slice_gap_m : float</span>
 <span class="sd">        Centre-to-centre spacing between excited slices (m).</span>
 <span class="sd">    n_bands : int, default=2</span>
@@ -595,12 +596,11 @@
         <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"axis must be one of </span><span class="si">{</span><span class="n">_AXES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">single</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
+        <span class="n">single</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">selective_slr</span><span class="p">(</span>
+            <span class="n">flip_angle_deg</span><span class="p">,</span>
+            <span class="n">thickness_m</span><span class="p">,</span>
             <span class="n">duration</span><span class="o">=</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span>
             <span class="n">time_bw_product</span><span class="o">=</span><span class="n">time_bw_product</span><span class="p">,</span>
-            <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)</span>

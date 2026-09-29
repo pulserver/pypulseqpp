@@ -552,7 +552,8 @@ to omit it; a readout may instead include the rephaser’s moment.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Nominal flip angle (degrees).</p></li>
-<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Slice or slab thickness (m).</p></li>
+<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Slice or slab thickness (m): the pulse’s measured bandwidth over the
+selection plateau.</p></li>
 <li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s).</p></li>
 <li><p><strong>is_slab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Merge the rephaser into the selection gradient, as above.</p></li>
 <li><p><strong>rephase</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Include a slice rephaser.</p></li>
@@ -573,6 +574,8 @@ refocusing pulse.</p></li>
 <li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – The rephaser. Only when not <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> and <code class="docutils literal notranslate"><span class="pre">rephase</span></code>.</p></li>
 <li><p><strong>selection_amplitude</strong> (<em>float</em>) – Plateau amplitude of the selection lobe (Hz/m), which a slice offset
 is converted against: <code class="docutils literal notranslate"><span class="pre">freq_offset</span> <span class="pre">=</span> <span class="pre">selection_amplitude</span> <span class="pre">*</span> <span class="pre">position</span></code>.</p></li>
+<li><p><strong>slice_thickness</strong> (<em>float</em>) – The thickness selected (m), the pulse’s measured bandwidth over
+<code class="docutils literal notranslate"><span class="pre">selection_amplitude</span></code>: <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> to rounding.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>

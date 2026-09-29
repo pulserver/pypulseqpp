@@ -216,7 +216,7 @@ Published events
     /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
       made = factory(*args, **kwargs)
     events: gz, gz_reph, rf
-    linear-phase: center at 1.600 ms of 3.680 ms, rephaser area -408.0 1/m
+    linear-phase: center at 1.600 ms of 3.680 ms, rephaser area -394.4 1/m
     minimum-phase: center at 3.100 ms of 3.240 ms, rephaser area -8.0 1/m
 
 
@@ -268,7 +268,7 @@ selection amplitude reads the result as a position.
 
  .. code-block:: none
 
-    linear phase: peak B1 73 Hz, slice 4.83 mm
+    linear phase: peak B1 73 Hz, slice 5.00 mm
     minimum phase: peak B1 336 Hz, slice 4.87 mm
 
 
@@ -353,7 +353,7 @@ One repetition of the short-TE design.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.524 seconds)
+   **Total running time of the script:** (0 minutes 0.620 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_01_excitation_module.py:

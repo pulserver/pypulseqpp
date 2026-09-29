@@ -213,11 +213,11 @@ rises with it so that the wider bandwidth still lands on the same slice.
  .. code-block:: none
 
            tbw      gradient    transition    passband    stopband     peak B1
-           2.0       3.13 mT/m      3.125 mm      0.2889      0.0041     14.7 Hz
-           4.0       6.26 mT/m      1.762 mm      0.1654      0.0022     29.2 Hz
-           6.0       9.39 mT/m      1.208 mm      0.0604      0.0014     43.5 Hz
-           8.0      12.53 mT/m      0.916 mm      0.0201      0.0010     59.1 Hz
-          12.0      18.79 mT/m      0.615 mm      0.0143      0.0006     89.0 Hz
+           2.0       3.03 mT/m      3.225 mm      0.2716      0.0041     14.7 Hz
+           4.0       6.06 mT/m      1.823 mm      0.1429      0.0024     29.2 Hz
+           6.0       9.21 mT/m      1.233 mm      0.0482      0.0015     43.5 Hz
+           8.0      12.37 mT/m      0.928 mm      0.0201      0.0011     59.1 Hz
+          12.0      18.67 mT/m      0.619 mm      0.0143      0.0007     89.0 Hz
 
 
 
@@ -264,11 +264,11 @@ properties from gradient amplitude and peak :math:`B_1` requirements.
  .. code-block:: none
 
     duration_ms      gradient    transition    passband    stopband     peak B1
-           1.0      18.79 mT/m      1.761 mm      0.1686      0.0022     87.5 Hz
-           2.0       9.39 mT/m      1.762 mm      0.1654      0.0022     43.8 Hz
-           3.0       6.26 mT/m      1.762 mm      0.1654      0.0022     29.2 Hz
-           5.0       3.76 mT/m      1.762 mm      0.1604      0.0022     17.5 Hz
-           8.0       2.35 mT/m      1.763 mm      0.1591      0.0022     10.9 Hz
+           1.0      18.16 mT/m      1.823 mm      0.1459      0.0024     87.5 Hz
+           2.0       9.08 mT/m      1.823 mm      0.1466      0.0024     43.8 Hz
+           3.0       6.06 mT/m      1.823 mm      0.1429      0.0024     29.2 Hz
+           5.0       3.63 mT/m      1.823 mm      0.1418      0.0024     17.5 Hz
+           8.0       2.27 mT/m      1.823 mm      0.1442      0.0024     10.9 Hz
 
 
 
@@ -352,7 +352,7 @@ profile.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.935 seconds)
+   **Total running time of the script:** (0 minutes 1.216 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_01_excitation.py:

@@ -176,7 +176,7 @@ which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
  .. code-block:: none
 
     peak 1.19 of threshold at 107.1 ms, in block 103
-    per axis: x 1.06, y 0.76, z 1.04
+    per axis: x 1.06, y 0.76, z 1.01
 
 
 
@@ -354,7 +354,7 @@ compared in the
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.201 seconds)
+   **Total running time of the script:** (0 minutes 0.226 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_06-checks_01_constraint_checks.py:

@@ -473,7 +473,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span><span class="p">,</span> <span class="n">selective_slr</span>
 
 <span class="n">_AXES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
 
@@ -494,7 +494,8 @@
 <span class="sd">    flip_angle_deg : float</span>
 <span class="sd">        Nominal flip angle (degrees).</span>
 <span class="sd">    thickness_m : float</span>
-<span class="sd">        Slice or slab thickness (m).</span>
+<span class="sd">        Slice or slab thickness (m): the pulse's measured bandwidth over the</span>
+<span class="sd">        selection plateau.</span>
 <span class="sd">    duration_s : float, default=0.003</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    is_slab : bool, default=False</span>
@@ -525,6 +526,9 @@
 <span class="sd">    selection_amplitude : float</span>
 <span class="sd">        Plateau amplitude of the selection lobe (Hz/m), which a slice offset</span>
 <span class="sd">        is converted against: ``freq_offset = selection_amplitude * position``.</span>
+<span class="sd">    slice_thickness : float</span>
+<span class="sd">        The thickness selected (m), the pulse's measured bandwidth over</span>
+<span class="sd">        ``selection_amplitude``: ``thickness_m`` to rounding.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -586,27 +590,21 @@
         <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"axis must be one of </span><span class="si">{</span><span class="n">_AXES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
+        <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">selective_slr</span><span class="p">(</span>
+            <span class="n">flip_angle_deg</span><span class="p">,</span>
+            <span class="n">thickness_m</span><span class="p">,</span>
             <span class="n">duration</span><span class="o">=</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span>
             <span class="n">time_bw_product</span><span class="o">=</span><span class="n">time_bw_product</span><span class="p">,</span>
             <span class="n">pulse_type</span><span class="o">=</span><span class="n">pulse_type</span><span class="p">,</span>
             <span class="n">passband_ripple</span><span class="o">=</span><span class="n">passband_ripple</span><span class="p">,</span>
             <span class="n">stopband_ripple</span><span class="o">=</span><span class="n">stopband_ripple</span><span class="p">,</span>
-            <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">gz</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">axis</span>
         <span class="n">gz_reph</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">axis</span>
 
-        <span class="c1"># The thickness the pulse and its selection gradient actually produce,</span>
-        <span class="c1"># which is the pulse's measured bandwidth over the gradient it is</span>
-        <span class="c1"># played on. It differs from `thickness_m` by however much the</span>
-        <span class="c1"># designed envelope's spectrum differs from its nominal time-bandwidth</span>
-        <span class="c1"># product, so it is what a reconstruction should be told. Taken before</span>
-        <span class="c1"># a slab's rephaser is concatenated onto the lobe.</span>
+        <span class="c1"># Taken before a slab's rephaser is concatenated onto the lobe.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">slice_thickness</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_rf_bandwidth</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">selection_amplitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span>
 

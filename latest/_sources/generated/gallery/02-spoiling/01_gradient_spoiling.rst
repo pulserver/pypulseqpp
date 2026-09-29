@@ -415,7 +415,7 @@ lesson reduces this dependence.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.503 seconds)
+   **Total running time of the script:** (0 minutes 1.644 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-spoiling_01_gradient_spoiling.py:
