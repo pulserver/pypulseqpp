@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:06.116** total execution time for 3 files **from generated/gallery/13-fast-spin-echo**:
+**00:06.016** total execution time for 3 files **from generated/gallery/13-fast-spin-echo**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py` (``fse3D_adaptive.py``)
-     - 00:04.212
+     - 00:04.193
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_sequence.py` (``fse3D_sequence.py``)
-     - 00:01.214
+     - 00:01.159
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py` (``fse3D_shuffling.py``)
-     - 00:00.690
+     - 00:00.664
      - 0.0

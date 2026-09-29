@@ -473,7 +473,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._offsets</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_absolute_offsets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Opts</span> <span class="k">as</span> <span class="n">_Opts</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Isochromats"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Isochromats"</span><span class="p">,</span> <span class="s2">"Repetitions"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_per_isochromat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -802,7 +802,359 @@
             <span class="n">times</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">signal</span> <span class="k">if</span> <span class="n">receiver</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">signal</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">receiver</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Isochromats.repetitions">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Isochromats.repetitions.html#pypulseqpp.Isochromats.repetitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">repetitions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">blocks</span><span class="p">,</span>
+        <span class="n">phases</span><span class="p">,</span>
+        <span class="n">areas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">adc_phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Repetitions</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Repetitions of a sequence of blocks, from the magnetisation where it stands.</span>
+
+<span class="sd">        Repetition ``n`` plays ``blocks`` with every RF event's phase offset</span>
+<span class="sd">        larger by ``phases[n]``, every ADC event's by ``adc_phases[n]``, and</span>
+<span class="sd">        gradients that differ from the blocks' by a waveform zero during every</span>
+<span class="sd">        RF pulse and every ADC window, whose area at the first sample of the</span>
+<span class="sd">        repetition's ``w``-th window is ``areas[n, w]``, and over the</span>
+<span class="sd">        repetition zero: a phase encoding and its rewinder.</span>
+
+<span class="sd">        One repetition applies an affine map to each isochromat's</span>
+<span class="sd">        magnetisation, and another to its transverse magnetisation at each</span>
+<span class="sd">        window's first sample. Four plays of ``blocks``, from no magnetisation</span>
+<span class="sd">        and from a unit magnetisation along each axis, give both; every</span>
+<span class="sd">        repetition then follows from them, a pulse turned by a phase offset</span>
+<span class="sd">        turning the maps alike. The windows are read as :meth:`play` reads a</span>
+<span class="sd">        window under a gradient held throughout it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        blocks : sequence of dict</span>
+<span class="sd">            One repetition, each block as :meth:`play`'s keyword arguments:</span>
+<span class="sd">            ``duration`` and, where it plays them, ``gradients``,</span>
+<span class="sd">            ``rotation``, ``rf`` and ``adc``. Every window must be read under</span>
+<span class="sd">            a gradient held throughout it, its samples on one side of any RF</span>
+<span class="sd">            pulse in its block.</span>
+<span class="sd">        phases : array_like</span>
+<span class="sd">            ``(repetitions,)`` increase of every RF event's phase offset, in</span>
+<span class="sd">            rad.</span>
+<span class="sd">        areas : array_like, default=None</span>
+<span class="sd">            ``(repetitions, windows, 3)`` phase-encoding area at each window's</span>
+<span class="sd">            first sample, in 1/m, along the axes the positions are given</span>
+<span class="sd">            along; none by default.</span>
+<span class="sd">        adc_phases : array_like, default=None</span>
+<span class="sd">            ``(repetitions,)`` increase of every ADC event's phase offset, in</span>
+<span class="sd">            rad; ``phases`` by default.</span>
+<span class="sd">        system : Opts, default=None</span>
+<span class="sd">            As :meth:`play` takes it.</span>
+<span class="sd">        tolerance : float, default=0.0</span>
+<span class="sd">            Accuracy of the samples, relative to the sum of the magnitudes of</span>
+<span class="sd">            the terms each sums; exact to rounding at zero. Above zero, the</span>
+<span class="sd">            windows are read by a kernel just wide enough for it, and from</span>
+<span class="sd">            1e-4 on the magnetisation is carried in single precision. Where,</span>
+<span class="sd">            besides, the phases step by one increment, to within 1e-4 rad,</span>
+<span class="sd">            and the phase encodings run along at most two axes along which the</span>
+<span class="sd">            isochromats take few coordinates, as on a lattice, each</span>
+<span class="sd">            isochromat's magnetisation is split into its fixed point under the</span>
+<span class="sd">            mean increment and a transient about it: the fixed points' samples</span>
+<span class="sd">            are summed over the columns of isochromats that share their</span>
+<span class="sd">            coordinates along those axes, and an isochromat whose transient</span>
+<span class="sd">            falls below ``tolerance`` times its proton density stands at its</span>
+<span class="sd">            fixed point from then on.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Repetitions</span>
+<span class="sd">            The repetitions, which play in turn; the isochromats hold the</span>
+<span class="sd">            magnetisation at the start of the next to be played.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the phases, ADC phases and areas do not describe one set of</span>
+<span class="sd">            repetitions, a window is not read under a held gradient, or a</span>
+<span class="sd">            block is one :meth:`play` would refuse.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Balanced steady-state free precession, the RF phase alternating:</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; spins = pp.Isochromats([[0.0, 0.0, 0.0]], t1=1.0, t2=0.1)</span>
+<span class="sd">        &gt;&gt;&gt; tr = [</span>
+<span class="sd">        ...     dict(duration=1e-3, rf=pp.make_block_pulse(np.pi / 4, duration=0.5e-3)),</span>
+<span class="sd">        ...     dict(duration=4e-3, adc=pp.make_adc(1, dwell=10e-6, delay=1.5e-3)),</span>
+<span class="sd">        ... ]</span>
+<span class="sd">        &gt;&gt;&gt; scan = spins.repetitions(tr, np.pi * np.arange(4))</span>
+<span class="sd">        &gt;&gt;&gt; scan.play().shape</span>
+<span class="sd">        (4, 1, 1)</span>
+<span class="sd">        """</span>
+        <span class="n">conversions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">receivers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="n">_field</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rf"</span><span class="p">),</span> <span class="n">system</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">,</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">_window</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"adc"</span><span class="p">),</span> <span class="n">system</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">times</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">receivers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">receiver</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">receiver</span><span class="p">)</span>
+            <span class="n">conversions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]),</span>
+                    <span class="n">_axes</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gradients"</span><span class="p">)),</span>
+                    <span class="n">_rotation</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rotation"</span><span class="p">)),</span>
+                    <span class="n">start</span><span class="p">,</span>
+                    <span class="n">step</span><span class="p">,</span>
+                    <span class="n">samples</span><span class="p">,</span>
+                    <span class="n">times</span><span class="p">,</span>
+                    <span class="n">receiver</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">phases</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">adc_phases</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">phases</span>
+            <span class="k">if</span> <span class="n">adc_phases</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">adc_phases</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">adc_phases</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">count</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"adc_phases must hold one value per repetition, </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">adc_phases</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">receivers</span><span class="p">)</span>
+        <span class="n">encoded</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">count</span><span class="p">,</span> <span class="n">windows</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">encoded</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">windows</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"areas must be (repetitions, windows, 3), </span><span class="si">{</span><span class="p">(</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">windows</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+                <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="n">encoded</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">native</span> <span class="o">=</span> <span class="n">_kernels</span><span class="o">.</span><span class="n">Repetitions</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span>
+            <span class="n">conversions</span><span class="p">,</span>
+            <span class="n">phases</span><span class="p">,</span>
+            <span class="n">adc_phases</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">steady</span> <span class="o">=</span> <span class="n">_steady</span><span class="p">(</span><span class="n">native</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">tolerance</span><span class="p">))</span> <span class="k">if</span> <span class="n">tolerance</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">Repetitions</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">native</span><span class="p">,</span>
+            <span class="n">demodulation</span><span class="o">=</span><span class="p">(</span>
+                <span class="o">-</span><span class="n">phases</span><span class="p">,</span>
+                <span class="n">adc_phases</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">receivers</span><span class="p">)</span> <span class="k">if</span> <span class="n">receivers</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">steady</span><span class="o">=</span><span class="n">steady</span><span class="p">,</span>
+        <span class="p">)</span></div>
 </div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_steady</span><span class="p">(</span><span class="n">native</span><span class="p">,</span> <span class="n">areas</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Split the magnetisation; return what reads each window's samples from the fixed points, or None where it cannot.</span>
+
+<span class="sd">    A window's fixed points are read by columns (:class:`_Columns`) along the</span>
+<span class="sd">    axes :func:`_encoded` finds.</span>
+<span class="sd">    """</span>
+    <span class="n">readers</span> <span class="o">=</span> <span class="n">_encoded</span><span class="p">(</span><span class="n">native</span><span class="p">,</span> <span class="n">areas</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">readers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">native</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">along</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">readers</span><span class="p">):</span>
+        <span class="n">constant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">along</span><span class="p">),</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">areas</span><span class="p">[:,</span> <span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">column_sums</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">along</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">constant</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">_Columns</span><span class="p">(</span>
+                <span class="n">sums</span><span class="p">,</span> <span class="p">[</span><span class="n">native</span><span class="o">.</span><span class="n">lattice</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">along</span><span class="p">],</span> <span class="n">areas</span><span class="p">[:,</span> <span class="n">w</span><span class="p">][:,</span> <span class="n">along</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parts</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_encoded</span><span class="p">(</span><span class="n">native</span><span class="p">,</span> <span class="n">areas</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Each window's phase-encoded axes, the outer axis first; None where a window's are more than two or not tabulated.</span>
+
+<span class="sd">    An axis along which the areas vary by less than a quarter of the</span>
+<span class="sd">    tolerance, in phase over the isochromats' reach, counts as encoded by</span>
+<span class="sd">    their mean. The outer axis is the one of fewer distinct areas.</span>
+<span class="sd">    """</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">reach</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+    <span class="n">readers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">native</span><span class="o">.</span><span class="n">windows</span><span class="p">):</span>
+        <span class="n">spread</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">areas</span><span class="p">[:,</span> <span class="n">w</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">along</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">axis</span>
+            <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">spread</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">*</span> <span class="n">reach</span> <span class="o">&gt;</span> <span class="n">tolerance</span> <span class="o">/</span> <span class="mf">4.0</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">along</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">native</span><span class="o">.</span><span class="n">lattice</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">along</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">distinct</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">areas</span><span class="p">[:,</span> <span class="n">w</span><span class="p">,</span> <span class="n">axis</span><span class="p">])</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">along</span><span class="p">]</span>
+        <span class="n">readers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">along</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">distinct</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"stable"</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">readers</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Columns</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A window's steady samples from its column sums, per repetition.</span>
+
+<span class="sd">    ``sums`` is ``(*values, coils, samples)`` over the tabulated coordinates</span>
+<span class="sd">    along the encoded axes, and ``encodings`` ``(repetitions, axes)`` each</span>
+<span class="sd">    repetition's area along them, in 1/m. A repetition's samples are the sums</span>
+<span class="sd">    times exp(-2 pi i area . coordinate), summed over the columns. With two</span>
+<span class="sd">    axes, the sum along the first, the outer axis, is taken once per area,</span>
+<span class="sd">    for the areas repetitions need together, and kept within a budget of</span>
+<span class="sd">    memory.</span>
+<span class="sd">    """</span>
+
+    <span class="c1">#: Outer sums kept at the most, in bytes.</span>
+    <span class="n">_KEPT</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">30</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sums</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">encodings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encodings</span> <span class="o">=</span> <span class="n">encodings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">sums</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span> <span class="o">=</span> <span class="n">sums</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_areas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_which</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">encodings</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outer</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span> <span class="o">=</span> <span class="n">sums</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outer</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kept</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keep</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_KEPT</span> <span class="o">//</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sums</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_outer_sums</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Keep the sums along the outer axis at the areas of ``indices``, those missing in one product."""</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">turn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_areas</span><span class="p">[</span><span class="n">missing</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outer</span><span class="p">))</span>
+        <span class="n">made</span> <span class="o">=</span> <span class="p">(</span><span class="n">turn</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">needed</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keep</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">needed</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">missing</span><span class="p">,</span> <span class="n">made</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">part</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encodings</span><span class="p">[</span><span class="n">first</span> <span class="p">:</span> <span class="n">first</span> <span class="o">+</span> <span class="n">count</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">),</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">turn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">chosen</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">turn</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sums</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">count</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">which</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_which</span><span class="p">[</span><span class="n">first</span> <span class="p">:</span> <span class="n">first</span> <span class="o">+</span> <span class="n">count</span><span class="p">]</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">which</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outer_sums</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">which</span> <span class="o">==</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">turn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                <span class="o">-</span><span class="mi">2</span><span class="n">j</span>
+                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">chosen</span><span class="p">[</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">rows</span><span class="p">]</span> <span class="o">=</span> <span class="n">turn</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kept</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Repetitions">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Repetitions.html#pypulseqpp.Repetitions">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Repetitions</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Repetitions of a sequence of blocks, played in turn on isochromats.</span>
+
+<span class="sd">    Made by :meth:`Isochromats.repetitions`, which states what each repetition</span>
+<span class="sd">    plays. The isochromats hold the magnetisation at the start of the next</span>
+<span class="sd">    repetition to be played; blocks played on them in between break the</span>
+<span class="sd">    repetitions that follow.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">isochromats</span><span class="p">:</span> <span class="n">Isochromats</span><span class="p">,</span> <span class="n">native</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">demodulation</span><span class="p">,</span> <span class="n">steady</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isochromats</span> <span class="o">=</span> <span class="n">isochromats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_native</span> <span class="o">=</span> <span class="n">native</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_phases</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receiver</span> <span class="o">=</span> <span class="n">demodulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_steady</span> <span class="o">=</span> <span class="n">steady</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">count</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">played</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Repetitions played so far."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">played</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""ADC samples per repetition, per coil, its windows in play order."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">samples</span>
+
+<div class="viewcode-block" id="Repetitions.play">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Repetitions.play.html#pypulseqpp.Repetitions.play">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">play</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Play the next ``count`` repetitions and return what each coil receives.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        count : int, default=None</span>
+<span class="sd">            Repetitions to play; every one left by default.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NDArray[np.complex128]</span>
+<span class="sd">            ``(count, coils, samples)``: each repetition's samples, its windows</span>
+<span class="sd">            in play order, demodulated as :meth:`Isochromats.play` demodulates</span>
+<span class="sd">            an ADC event.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If fewer than ``count`` repetitions remain.</span>
+<span class="sd">        """</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">played</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="n">first</span> <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">signal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steady</span> <span class="ow">and</span> <span class="n">count</span><span class="p">:</span>
+            <span class="n">chosen</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">first</span> <span class="o">+</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">steady</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">samples</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steady</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_turns</span><span class="p">[</span><span class="n">chosen</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_phases</span><span class="p">[</span><span class="n">chosen</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receiver</span>
+            <span class="p">)</span>
+            <span class="n">signal</span> <span class="o">+=</span> <span class="n">steady</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">signal</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">carried</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Isochromats carried through the next repetition; the rest stand at their fixed points."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">carried</span></div>
 
 </pre></div>
 

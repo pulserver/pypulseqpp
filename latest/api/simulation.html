@@ -548,7 +548,11 @@ conventions. <a class="reference internal" href="../generated/pypulseqpp.Sequenc
 sequence’s blocks on isochromats and returns the demodulated ADC samples;
 <a class="reference internal" href="../generated/pypulseqpp.Isochromats.play.html#pypulseqpp.Isochromats.play" title="pypulseqpp.Isochromats.play"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Isochromats.play</span></code></a> plays the events of one
 block: gradients as corner points, under a rotation where one is given, and RF
-and ADC events or the field and sample times they amount to.</p>
+and ADC events or the field and sample times they amount to.
+<a class="reference internal" href="../generated/pypulseqpp.Isochromats.repetitions.html#pypulseqpp.Isochromats.repetitions" title="pypulseqpp.Isochromats.repetitions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Isochromats.repetitions</span></code></a> plays one
+sequence of blocks many times, each time with its RF and ADC phase offsets and
+its phase encoding changed, from the affine map one repetition applies to each
+isochromat.</p>
 <section id="isochromats">
 <h2>Isochromats<a class="headerlink" href="#isochromats" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -564,6 +568,11 @@ and ADC events or the field and sample times they amount to.</p>
 <td><p>Positions (m), proton density, T1 and T2 (s), off-resonance (Hz), transmit and receive sensitivities</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Isochromats</span></code> holding their magnetisation from one call to the next</p></td>
 <td><p>Bloch simulation with relaxation of a sequence played block by block.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.Repetitions.html#pypulseqpp.Repetitions" title="pypulseqpp.Repetitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Repetitions</span></code></a></p></td>
+<td><p>One repetition’s blocks; each repetition’s RF and ADC phase offsets (rad) and phase-encoding areas (1/m); a tolerance</p></td>
+<td><p>Each repetition’s samples, demodulated as <code class="docutils literal notranslate"><span class="pre">Isochromats.play</span></code> demodulates them</p></td>
+<td><p>The repetitions <code class="docutils literal notranslate"><span class="pre">Isochromats.repetitions</span></code> makes, played in turn.</p></td>
 </tr>
 </tbody>
 </table>

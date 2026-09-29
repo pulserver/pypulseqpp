@@ -259,6 +259,7 @@ from.
    :nosignatures:
 
    Isochromats
+   Repetitions
 
 .. autosummary::
    :toctree: generated

@@ -15,6 +15,7 @@
    :nosignatures:
 
    ~Isochromats.play
+   ~Isochromats.repetitions
    ~Isochromats.reset
 
 
