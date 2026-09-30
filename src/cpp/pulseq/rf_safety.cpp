@@ -218,11 +218,11 @@ namespace pulseq
             return sum;
         }
 
-        /** Per-VOP and global energy of one pulse shape through one shim, at unit amplitude. */
+        /** Per-VOP and per-body energy of one pulse shape through one shim, at unit amplitude. */
         struct Deposit
         {
             std::vector<double> local;
-            double global = 0.0;
+            std::vector<double> global;
         };
 
         Deposit deposit(
@@ -264,8 +264,10 @@ namespace pulseq
             out.local.resize(count);
             for (size_t k = 0; k < count; ++k)
                 out.local[k] = trace_product(model.vops.data() + k * nc * nc, m, nc);
-            if (!model.global.empty())
-                out.global = trace_product(model.global.data(), m, nc);
+            const size_t bodies = model.global.size() / (nc * nc);
+            out.global.resize(bodies);
+            for (size_t b = 0; b < bodies; ++b)
+                out.global[b] = trace_product(model.global.data() + b * nc * nc, m, nc);
             return out;
         }
 
@@ -275,6 +277,7 @@ namespace pulseq
     {
         const size_t nc = static_cast<size_t>(model.channels);
         const size_t count = nc ? model.vops.size() / (nc * nc) : 0;
+        const size_t bodies = nc ? model.global.size() / (nc * nc) : 0;
         const int blocks = seq.num_blocks();
 
         std::vector<std::pair<int, int>> bounds;
@@ -308,13 +311,14 @@ namespace pulseq
         out.windows.reserve(bounds.size());
         double worst = -1.0;
         std::vector<double> energy(count);
+        std::vector<double> global(bodies);
         for (const auto& bound : bounds)
         {
             SarWindow window;
             window.first = bound.first;
             window.last = bound.second;
             std::fill(energy.begin(), energy.end(), 0.0);
-            double global = 0.0;
+            std::fill(global.begin(), global.end(), 0.0);
 
             for (int block = bound.first; block <= bound.second; ++block)
             {
@@ -351,7 +355,8 @@ namespace pulseq
                 const std::vector<double>& local = found->second.local;
                 for (size_t k = 0; k < count; ++k)
                     energy[k] += scale * local[k];
-                global += scale * found->second.global;
+                for (size_t b = 0; b < bodies; ++b)
+                    global[b] += scale * found->second.global[b];
             }
 
             if (window.duration > 0.0)
@@ -377,7 +382,15 @@ namespace pulseq
                         }
                     }
                 }
-                window.global = global / window.duration;
+                for (size_t b = 0; b < bodies; ++b)
+                {
+                    const double sar = global[b] / window.duration;
+                    if (window.global_body < 0 || sar > window.global)
+                    {
+                        window.global = sar;
+                        window.global_body = static_cast<int>(b);
+                    }
+                }
                 if (window.local > worst)
                 {
                     worst = window.local;

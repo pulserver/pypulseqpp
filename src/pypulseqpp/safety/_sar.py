@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -13,20 +14,24 @@ from .. import _ext as _cxx
 
 
 class VopModel(NamedTuple):
-    """Virtual observation points, and an optional global SAR matrix.
+    """Virtual observation points, and optional global SAR matrices.
 
-    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, or one
-    body's ``(1, Nc, Nc)`` as mariepy writes it, complex Hermitian, in W/kg per
-    unit channel drive squared: SAR is ``v^H Q v`` for the channel drive
-    phasors ``v`` at peak amplitude.
+    ``vops`` is ``(N, Nc, Nc)``, complex Hermitian, in W/kg per unit channel
+    drive squared: SAR is ``v^H Q v`` for the channel drive phasors ``v`` at
+    peak amplitude. ``global_matrix`` is ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with
+    one matrix per body model as a population's file carries; the global SAR of
+    a window is the largest over the models. ``metadata`` is what the file says
+    about itself, such as the coil, the drive unit and the channel order, and
+    is carried for the caller to read.
     """
 
     vops: np.ndarray
     global_matrix: np.ndarray | None = None
+    metadata: dict | None = None
 
 
 #: Variable names a VOP file may use, and a global SAR matrix's.
-_VOP_NAMES = ("VOP", "vops", "VOPs", "Q10g", "Q")
+_VOP_NAMES = ("VOP", "VOPm", "vops", "VOPs", "VOP_matrices", "Q10g", "Q")
 _GLOBAL_NAMES = ("Sglobal", "global_matrix", "Qglobal", "Q_global")
 
 
@@ -39,6 +44,27 @@ def _hermitian(matrices: np.ndarray, what: str) -> np.ndarray:
     return 0.5 * (matrices + conjugate)
 
 
+def _stacked(matrices: np.ndarray, what: str, *, column_major: bool) -> np.ndarray:
+    """Read a stack of square matrices as ``(K, Nc, Nc)``, whichever axis counts them.
+
+    A single matrix becomes a stack of one. Of a three-axis array, the two
+    axes of equal length are the channels and the odd one counts the matrices,
+    so both ``(K, Nc, Nc)`` and MATLAB's ``(Nc, Nc, K)`` are read. Where all
+    three are equal the layout is ambiguous, and ``column_major`` -- true for a
+    ``.mat`` file, false for an ``.npz`` -- decides.
+    """
+    matrices = np.asarray(matrices)
+    if matrices.ndim == 2 and matrices.shape[0] == matrices.shape[1]:
+        return matrices[None]
+    if matrices.ndim == 3:
+        count, rows, columns = matrices.shape
+        if rows == columns and not (column_major and count == rows):
+            return matrices
+        if count == rows:
+            return np.transpose(matrices, (2, 0, 1))
+    raise ValueError(f"{what} are a stack of square matrices, not {matrices.shape}")
+
+
 def _validated(model: VopModel) -> VopModel:
     vops = np.asarray(model.vops)
     if vops.ndim != 3 or vops.shape[1] != vops.shape[2] or vops.shape[0] == 0:
@@ -46,32 +72,31 @@ def _validated(model: VopModel) -> VopModel:
     vops = _hermitian(vops, "every VOP")
     global_matrix = model.global_matrix
     if global_matrix is not None:
-        global_matrix = np.asarray(global_matrix)
-        if global_matrix.ndim == 3:
-            if global_matrix.shape[0] != 1:
-                raise ValueError(
-                    f"the global SAR matrix holds {global_matrix.shape[0]} bodies; "
-                    "a model takes the matrix of the body scanned"
-                )
-            global_matrix = global_matrix[0]
-        if global_matrix.shape != vops.shape[1:]:
+        one = np.asarray(global_matrix).ndim == 2
+        global_matrix = _stacked(
+            global_matrix, "the global SAR matrices", column_major=False
+        )
+        if global_matrix.shape[1:] != vops.shape[1:]:
             raise ValueError(
-                f"the global SAR matrix is {global_matrix.shape}, and the VOPs "
+                f"a global SAR matrix is {global_matrix.shape[1:]}, and the VOPs "
                 f"describe {vops.shape[1]} channels"
             )
-        global_matrix = _hermitian(global_matrix, "the global SAR matrix")
-    return VopModel(vops, global_matrix)
+        global_matrix = _hermitian(global_matrix, "every global SAR matrix")
+        global_matrix = global_matrix[0] if one else global_matrix
+    return VopModel(vops, global_matrix, model.metadata)
 
 
 def read_vops(path: str | os.PathLike) -> VopModel:
-    """Read VOPs and a global SAR matrix from a ``.mat`` or ``.npz`` file.
+    """Read VOPs and the global SAR matrices from a ``.mat`` or ``.npz`` file.
 
-    A ``.mat`` file holds MATLAB's ``(Nc, Nc, N)`` stack, named ``VOP``,
-    ``vops``, ``Q10g`` or ``Q``, and optionally ``Sglobal`` or
-    ``global_matrix``; the stack is read into ``(N, Nc, Nc)``. MATLAB v7.3
-    (HDF5) files are not read. An ``.npz`` file holds ``vops`` as
-    ``(N, Nc, Nc)`` and optionally ``global_matrix``, ``(Nc, Nc)`` or one
-    body's ``(1, Nc, Nc)``, as mariepy's ``vop.write`` stores it.
+    The VOPs are the array named ``VOP``, ``VOPm``, ``vops``, ``VOPs``,
+    ``VOP_matrices``, ``Q10g`` or ``Q``, a stack of one ``Nc`` by ``Nc`` matrix
+    per point: MARIE's ``(N, Nc, Nc)`` and MATLAB's ``(Nc, Nc, N)`` are both
+    read, and a lone matrix is read as one point. The global SAR matrices are
+    the array named ``Sglobal``, ``global_matrix``, ``Qglobal`` or
+    ``Q_global``, a single matrix or one per body model as mariepy's
+    ``vop.write`` stores a population's. An ``.npz`` file's ``metadata``, a
+    JSON string, is read onto the model. MATLAB v7.3 (HDF5) files are not read.
 
     Parameters
     ----------
@@ -81,23 +106,32 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     Returns
     -------
     VopModel
-        The VOPs and, where the file carries one, the global SAR matrix, for
-        :func:`~pypulseqpp.safety.check_sar` to take as its ``model``.
+        The VOPs and, where the file carries them, the global SAR matrices and
+        the metadata, for :func:`~pypulseqpp.safety.check_sar` to take as its
+        ``model``.
 
     Raises
     ------
     ValueError
-        If the file holds no recognised VOP array, one whose shape is not a
-        square stack, or the global SAR matrices of several bodies.
+        If the file holds no recognised VOP array, or one whose shape is not a
+        stack of square matrices.
     OSError
         If the file cannot be read, a MATLAB v7.3 file among them.
     """
     path = Path(path)
     if path.suffix.lower() == ".npz":
         with np.load(path) as held:
-            vops = held["vops"]
-            global_matrix = held.get("global_matrix")
-        return _validated(VopModel(vops, global_matrix))
+            names = set(held.files)
+            name = next((name for name in _VOP_NAMES if name in names), None)
+            if name is None:
+                raise ValueError(f"{path} holds none of {', '.join(_VOP_NAMES)}")
+            vops = _stacked(held[name], "the VOPs", column_major=False)
+            global_name = next((one for one in _GLOBAL_NAMES if one in names), None)
+            global_matrix = None if global_name is None else held[global_name]
+            metadata = (
+                json.loads(str(held["metadata"])) if "metadata" in names else None
+            )
+        return _validated(VopModel(vops, global_matrix, metadata))
 
     from scipy.io import loadmat
 
@@ -110,12 +144,17 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     name = next((name for name in _VOP_NAMES if name in held), None)
     if name is None:
         raise ValueError(f"{path} holds none of {', '.join(_VOP_NAMES)}")
-    stack = np.asarray(held[name])
-    if stack.ndim == 2:
-        stack = stack[:, :, None]
+    vops = _stacked(held[name], "the VOPs", column_major=True)
     global_name = next((name for name in _GLOBAL_NAMES if name in held), None)
-    global_matrix = None if global_name is None else np.asarray(held[global_name])
-    return _validated(VopModel(np.transpose(stack, (2, 0, 1)), global_matrix))
+    global_matrix = None
+    if global_name is not None:
+        whole = np.asarray(held[global_name])
+        global_matrix = (
+            whole
+            if whole.ndim == 2
+            else _stacked(whole, "the global SAR matrices", column_major=True)
+        )
+    return _validated(VopModel(vops, global_matrix))
 
 
 def example_vops(num_channels: int = 8) -> SimpleNamespace:
@@ -275,8 +314,9 @@ def check_sar(
     seq : Sequence
         Sequence to check.
     model : VopModel
-        VOPs and optional global matrix, in W/kg per unit drive squared; see
-        :func:`read_vops` and :func:`example_vops`.
+        VOPs and optional global matrices, in W/kg per unit drive squared; see
+        :func:`read_vops` and :func:`example_vops`. With one global matrix per
+        body model, a window's global SAR is the largest over the models.
     drive_per_hz : float or array_like
         Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one
         value, or one per channel.
@@ -301,11 +341,12 @@ def check_sar(
     report : SimpleNamespace
         The limits; ``tr_size`` and ``tr_start`` (blocks); ``windows``, arrays
         ``first``, ``last`` (1-based blocks), ``duration`` (s), ``local_sar``,
-        ``vop`` and ``global_sar`` (W/kg), and with a reference
-        ``reference_ratio``; ``worst_local`` and ``worst_global``, each the
-        ``sar``, ``window`` and its ``first`` and ``last`` block, or None
-        (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of every
-        VOP in that window); and ``reference``, or None without one.
+        ``vop``, ``global_sar`` (W/kg) and ``global_body``, and with a
+        reference ``reference_ratio``; ``worst_local`` and ``worst_global``,
+        each the ``sar``, ``window`` and its ``first`` and ``last`` block, or
+        None (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of
+        every VOP in that window, and ``worst_global`` its ``body``); and
+        ``reference``, or None without one.
 
         ``reference`` carries ``sar_ratio``, the largest over windows and VOPs
         of a VOP's SAR over the reference's for the same VOP, with its ``vop``
@@ -363,6 +404,7 @@ def check_sar(
         local_sar=found["local"],
         vop=found["vop"],
         global_sar=found["global"] if model.global_matrix is not None else None,
+        global_body=found["global_body"] if model.global_matrix is not None else None,
         reference_ratio=None if against is None else found["ratio"],
     )
 
@@ -381,6 +423,7 @@ def check_sar(
             k = int(np.argmax(windows.global_sar))
             worst_global = SimpleNamespace(
                 sar=float(windows.global_sar[k]),
+                body=int(windows.global_body[k]),
                 window=k,
                 first=int(windows.first[k]),
                 last=int(windows.last[k]),

@@ -123,6 +123,25 @@ def test_the_native_sar_is_the_plain_sum(system, model):
         assert windows.global_sar[w] == pytest.approx(whole, rel=1e-9)
 
 
+def test_the_global_sar_is_the_largest_over_the_body_models(system, model):
+    seq, _ = shimmed(system)
+    population = VopModel(
+        model.vops,
+        np.stack(
+            [0.5 * model.global_matrix, 2 * model.global_matrix, model.global_matrix]
+        ),
+    )
+
+    _, one = safety.check_sar(seq, model, drive_per_hz=1.0)
+    _, many = safety.check_sar(seq, population, drive_per_hz=1.0)
+
+    np.testing.assert_allclose(
+        many.windows.global_sar, 2 * one.windows.global_sar, rtol=1e-9
+    )
+    assert many.worst_global.body == 1
+    assert many.windows.global_body.tolist() == [1] * many.windows.first.size
+
+
 def test_sar_goes_with_the_square_of_the_drive(system, model):
     seq, _ = shimmed(system)
 
@@ -249,19 +268,72 @@ def test_a_one_body_npz_file_as_mariepy_writes_it_is_read(tmp_path, model):
     read = safety.read_vops(path)
 
     np.testing.assert_allclose(read.vops, model.vops)
-    np.testing.assert_allclose(read.global_matrix, model.global_matrix)
+    np.testing.assert_allclose(read.global_matrix, model.global_matrix[None])
+    assert read.metadata["bodies"] == ["head"]
 
 
-def test_the_global_sar_matrices_of_several_bodies_are_refused(tmp_path, model):
+def test_a_population_file_keeps_one_global_matrix_per_body(tmp_path, model):
     path = tmp_path / "vops.npz"
+    bodies = np.stack([model.global_matrix, 2 * model.global_matrix])
     np.savez(
         path,
         vops=model.vops,
-        global_matrix=np.stack([model.global_matrix, model.global_matrix]),
+        global_matrix=bodies,
+        metadata=np.array('{"bodies": ["subject04", "subject05"]}'),
     )
 
-    with pytest.raises(ValueError, match="2 bodies"):
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.global_matrix, bodies)
+    assert read.metadata["bodies"] == ["subject04", "subject05"]
+
+
+def test_a_mat_file_that_counts_the_points_first_is_read_as_it_stands(tmp_path, model):
+    path = tmp_path / "vops.mat"
+    savemat(path, {"VOPm": model.vops})
+
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.vops, model.vops)
+
+
+def test_a_mat_file_of_as_many_points_as_channels_is_read_in_matlab_order(
+    tmp_path, model
+):
+    points = model.vops[:CHANNELS]
+    path = tmp_path / "vops.mat"
+    savemat(path, {"VOP": np.transpose(points, (1, 2, 0))})
+
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.vops, points)
+
+
+def test_an_npz_file_of_as_many_points_as_channels_is_read_point_first(tmp_path, model):
+    points = model.vops[:CHANNELS]
+    path = tmp_path / "vops.npz"
+    np.savez(path, vops=points)
+
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.vops, points)
+
+
+def test_a_file_that_holds_no_stack_of_square_matrices_is_refused(tmp_path):
+    path = tmp_path / "vops.npz"
+    np.savez(path, vops=np.zeros((3, 4, 5)))
+
+    with pytest.raises(ValueError, match="stack of square matrices"):
         safety.read_vops(path)
+
+
+def test_a_global_matrix_on_the_wrong_number_of_channels_is_refused(system, model):
+    with pytest.raises(ValueError, match="channels"):
+        safety.check_sar(
+            pp.Sequence(system),
+            VopModel(model.vops, np.eye(CHANNELS + 1, dtype=complex)),
+            drive_per_hz=1.0,
+        )
 
 
 def test_a_vop_that_is_not_hermitian_is_refused(system, model):
