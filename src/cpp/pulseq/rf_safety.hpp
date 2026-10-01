@@ -42,7 +42,7 @@ namespace pulseq
         int channels = 0;
         /** VOP-major, row-major: vops[(k * channels + i) * channels + j]. */
         std::vector<std::complex<double>> vops;
-        /** Global SAR matrix, row-major; empty when there is none. */
+        /** Global SAR matrix of each body model, body-major and row-major; empty when there is none. */
         std::vector<std::complex<double>> global;
         /** Channel drive per Hz of RF amplitude, per channel. */
         std::vector<double> drive;
@@ -63,7 +63,9 @@ namespace pulseq
         /** Largest VOP SAR over the window, in the VOPs' units, and which VOP. */
         double local = 0.0;
         int vop = -1;
+        /** Largest global SAR over the body models, in the same units, and which model. */
         double global = 0.0;
+        int global_body = -1;
         /**
          * Largest over VOPs of this window's SAR over the reference's for that
          * VOP, and which VOP; infinite where a VOP the reference leaves cold

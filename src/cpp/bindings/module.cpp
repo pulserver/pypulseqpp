@@ -1468,6 +1468,10 @@ PYBIND11_MODULE(_ext, module)
             if (!global_matrix.is_none())
             {
                 const auto global = py::cast<ComplexArray>(global_matrix);
+                const size_t square = static_cast<size_t>(model.channels) *
+                    static_cast<size_t>(model.channels);
+                if (global.size() == 0 || static_cast<size_t>(global.size()) % square != 0)
+                    throw std::invalid_argument("global_matrix is (Nc, Nc) or (B, Nc, Nc)");
                 model.global.assign(global.data(), global.data() + global.size());
             }
             if (!reference.is_none())
@@ -1491,6 +1495,7 @@ PYBIND11_MODULE(_ext, module)
 
             const py::ssize_t count = static_cast<py::ssize_t>(found.windows.size());
             py::array_t<int> first(count), last(count), vop(count), ratio_vop(count);
+            py::array_t<int> global_body(count);
             py::array_t<double> duration(count), local(count), global(count), ratio(count);
             for (py::ssize_t i = 0; i < count; ++i)
             {
@@ -1501,6 +1506,7 @@ PYBIND11_MODULE(_ext, module)
                 duration.mutable_data()[i] = window.duration;
                 local.mutable_data()[i] = window.local;
                 global.mutable_data()[i] = window.global;
+                global_body.mutable_data()[i] = window.global_body;
                 ratio.mutable_data()[i] = window.ratio;
                 ratio_vop.mutable_data()[i] = window.ratio_vop;
             }
@@ -1511,6 +1517,7 @@ PYBIND11_MODULE(_ext, module)
             out["local"] = local;
             out["vop"] = vop;
             out["global"] = global;
+            out["global_body"] = global_body;
             out["ratio"] = ratio;
             out["ratio_vop"] = ratio_vop;
             out["worst"] = py::array_t<double>(
@@ -1523,7 +1530,8 @@ PYBIND11_MODULE(_ext, module)
         "Time-averaged VOP and global SAR of each window -- the prologue, each "
         "repetition of `size` blocks from `start`, and the tail -- with each "
         "window's largest per-VOP ratio to `reference` and the per-VOP SAR of "
-        "the worst window.");
+        "the worst window; the global SAR is the largest over the body models "
+        "`global_matrix` stacks, and `global_body` says which.");
 
     module.def(
         "evaluate_labels",
