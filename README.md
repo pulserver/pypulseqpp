@@ -50,6 +50,9 @@ ok, errors = seq.check_timing()
 seq.write("gre2d.seq")
 ```
 
+A PyPulseq script runs with `import pypulseqpp as pp`; [from a PyPulseq script](https://pulserver.github.io/pypulseqpp/latest/user-guide/from-pypulseq.html)
+shows the same script as a sequence application.
+
 ## Documentation
 
 The [user guide](https://pulserver.github.io/pypulseqpp/stable/user-guide/index.html)

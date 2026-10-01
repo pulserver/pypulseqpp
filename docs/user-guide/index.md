@@ -11,6 +11,7 @@ Sequence physics and design concepts are covered in
 | Section | Purpose |
 | --- | --- |
 | This page | Installation, supported platforms, running a shipped sequence, issue reporting and security. |
+| {doc}`from-pypulseq` | A PyPulseq script, and the same script as a sequence application. |
 | {doc}`../developer-guide/index` | Development setup and contribution workflow. |
 | {doc}`../explanations/index` | Pulseq representation, sequence design and constraint models. |
 | {doc}`../examples/index` | A course in sequence design, and a page per shipped sequence. |
@@ -19,6 +20,12 @@ Sequence physics and design concepts are covered in
 | {doc}`../misc/index` | Licensing, related projects and contributors. |
 | [Source](https://github.com/pulserver/pypulseqpp) | Repository, issues and discussions. |
 | [PDF manual](https://github.com/pulserver/pypulseqpp/releases/latest/download/pypulseqpp-docs.pdf) | Single-file documentation from the latest release. |
+
+```{toctree}
+:hidden:
+
+from-pypulseq
+```
 
 ## Prerequisites and supported platforms
 
