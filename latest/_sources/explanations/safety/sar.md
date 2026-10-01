@@ -50,9 +50,10 @@ set $\{Q_k\}$ whose largest value bounds the largest value over the body
 model.[^eichfelder]
 
 {class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ VOP stack, in
-W/kg per unit channel drive squared, and an optional global matrix;
-{func}`~pypulseqpp.safety.read_vops` reads it from a `.mat` or `.npz` file,
-including the one-body file that mariepy's `vop.write` stores.
+W/kg per unit channel drive squared, and optional global matrices, one or one
+per body model; {func}`~pypulseqpp.safety.read_vops` reads them from a `.mat`
+or `.npz` file, MARIE's point-first stack and MATLAB's channel-first one alike,
+including the population file that mariepy's `vop.write` stores.
 {func}`~pypulseqpp.safety.example_vops` returns a synthetic eight-channel model
 of a loop array around a uniform cylinder, with no tissue, coil coupling or
 conservative field, for demonstration only.
@@ -80,7 +81,8 @@ $$
 \mathrm{SAR}_{\mathrm{local}}(W) = \max_k \mathrm{SAR}_k(W),
 $$
 
-and global SAR is the same integral with the global matrix.
+and global SAR is the same integral with the global matrix, or the largest
+over the body models where the file carries one matrix per model.
 
 ## Averaging windows
 
@@ -96,7 +98,7 @@ The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head
 values.
 
 The report states every window's first and last block, duration, local SAR,
-VOP index and global SAR. These per-window quantities may subsequently be
+VOP index, global SAR and the body model that global SAR belongs to. These per-window quantities may subsequently be
 aggregated over a regulatory averaging interval, such as the 6-minute interval
 of IEC 60601-2-33; the check itself does not perform that aggregation.
 

@@ -26,6 +26,7 @@
    :nosignatures:
 
    ~VopModel.global_matrix
+   ~VopModel.metadata
    ~VopModel.vops
 
 

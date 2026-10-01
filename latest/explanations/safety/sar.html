@@ -593,9 +593,10 @@ model. Virtual observation points (VOPs) compress these matrices into a small
 set <span class="math notranslate nohighlight">\(\{Q_k\}\)</span> whose largest value bounds the largest value over the body
 model.<a class="footnote-reference brackets" href="#eichfelder" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 <p><a class="reference internal" href="../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> holds the <span class="math notranslate nohighlight">\((N, N_c, N_c)\)</span> VOP stack, in
-W/kg per unit channel drive squared, and an optional global matrix;
-<a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> reads it from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file,
-including the one-body file that mariepy’s <code class="docutils literal notranslate"><span class="pre">vop.write</span></code> stores.
+W/kg per unit channel drive squared, and optional global matrices, one or one
+per body model; <a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> reads them from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code>
+or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file, MARIE’s point-first stack and MATLAB’s channel-first one alike,
+including the population file that mariepy’s <code class="docutils literal notranslate"><span class="pre">vop.write</span></code> stores.
 <a class="reference internal" href="../../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> returns a synthetic eight-channel model
 of a loop array around a uniform cylinder, with no tissue, coil coupling or
 conservative field, for demonstration only.</p>
@@ -621,7 +622,8 @@ averaging window <span class="math notranslate nohighlight">\(W\)</span> of dura
 \qquad
 \mathrm{SAR}_{\mathrm{local}}(W) = \max_k \mathrm{SAR}_k(W),
 \]</div>
-<p>and global SAR is the same integral with the global matrix.</p>
+<p>and global SAR is the same integral with the global matrix, or the largest
+over the body models where the file carries one matrix per model.</p>
 </section>
 <section id="averaging-windows">
 <h2>Averaging windows<a class="headerlink" href="#averaging-windows" title="Link to this heading">#</a></h2>
@@ -636,7 +638,7 @@ and, with a global matrix, every window’s global SAR is at most <code class="d
 The defaults, 10 W/kg and 3.2 W/kg, are the IEC 60601-2-33 normal-mode head
 values.</p>
 <p>The report states every window’s first and last block, duration, local SAR,
-VOP index and global SAR. These per-window quantities may subsequently be
+VOP index, global SAR and the body model that global SAR belongs to. These per-window quantities may subsequently be
 aggregated over a regulatory averaging interval, such as the 6-minute interval
 of IEC 60601-2-33; the check itself does not perform that aggregation.</p>
 </section>

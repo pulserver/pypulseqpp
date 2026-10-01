@@ -539,28 +539,31 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.safety.read_vops">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">read_vops</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#read_vops"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.read_vops" title="Link to this definition">#</a></dt>
-<dd><p>Read VOPs and a global SAR matrix from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">.mat</span></code> file holds MATLAB’s <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc,</span> <span class="pre">N)</span></code> stack, named <code class="docutils literal notranslate"><span class="pre">VOP</span></code>,
-<code class="docutils literal notranslate"><span class="pre">vops</span></code>, <code class="docutils literal notranslate"><span class="pre">Q10g</span></code> or <code class="docutils literal notranslate"><span class="pre">Q</span></code>, and optionally <code class="docutils literal notranslate"><span class="pre">Sglobal</span></code> or
-<code class="docutils literal notranslate"><span class="pre">global_matrix</span></code>; the stack is read into <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code>. MATLAB v7.3
-(HDF5) files are not read. An <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file holds <code class="docutils literal notranslate"><span class="pre">vops</span></code> as
-<code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code>, <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code> or one
-body’s <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code>, as mariepy’s <code class="docutils literal notranslate"><span class="pre">vop.write</span></code> stores it.</p>
+<dd><p>Read VOPs and the global SAR matrices from a <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file.</p>
+<p>The VOPs are the array named <code class="docutils literal notranslate"><span class="pre">VOP</span></code>, <code class="docutils literal notranslate"><span class="pre">VOPm</span></code>, <code class="docutils literal notranslate"><span class="pre">vops</span></code>, <code class="docutils literal notranslate"><span class="pre">VOPs</span></code>,
+<code class="docutils literal notranslate"><span class="pre">VOP_matrices</span></code>, <code class="docutils literal notranslate"><span class="pre">Q10g</span></code> or <code class="docutils literal notranslate"><span class="pre">Q</span></code>, a stack of one <code class="docutils literal notranslate"><span class="pre">Nc</span></code> by <code class="docutils literal notranslate"><span class="pre">Nc</span></code> matrix
+per point: MARIE’s <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> and MATLAB’s <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc,</span> <span class="pre">N)</span></code> are both
+read, and a lone matrix is read as one point. The global SAR matrices are
+the array named <code class="docutils literal notranslate"><span class="pre">Sglobal</span></code>, <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code>, <code class="docutils literal notranslate"><span class="pre">Qglobal</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Q_global</span></code>, a single matrix or one per body model as mariepy’s
+<code class="docutils literal notranslate"><span class="pre">vop.write</span></code> stores a population’s. An <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file’s <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, a
+JSON string, is read onto the model. MATLAB v7.3 (HDF5) files are not read.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a>) – The <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file to read.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The VOPs and, where the file carries one, the global SAR matrix, for
-<a class="reference internal" href="pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> to take as its <code class="docutils literal notranslate"><span class="pre">model</span></code>.</p>
+<dd class="field-even"><p>The VOPs and, where the file carries them, the global SAR matrices and
+the metadata, for <a class="reference internal" href="pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a> to take as its
+<code class="docutils literal notranslate"><span class="pre">model</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel">VopModel</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file holds no recognised VOP array, one whose shape is not a
-    square stack, or the global SAR matrices of several bodies.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file holds no recognised VOP array, or one whose shape is not a
+    stack of square matrices.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#OSError" title="(in Python v3.14)"><strong>OSError</strong></a> – If the file cannot be read, a MATLAB v7.3 file among them.</p></li>
 </ul>
 </dd>

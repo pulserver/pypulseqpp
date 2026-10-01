@@ -465,6 +465,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
@@ -478,21 +479,25 @@
 <div class="viewcode-block" id="VopModel">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VopModel</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Virtual observation points, and an optional global SAR matrix.</span>
+<span class="w">    </span><span class="sd">"""Virtual observation points, and optional global SAR matrices.</span>
 
-<span class="sd">    ``vops`` is ``(N, Nc, Nc)`` and ``global_matrix`` ``(Nc, Nc)``, or one</span>
-<span class="sd">    body's ``(1, Nc, Nc)`` as mariepy writes it, complex Hermitian, in W/kg per</span>
-<span class="sd">    unit channel drive squared: SAR is ``v^H Q v`` for the channel drive</span>
-<span class="sd">    phasors ``v`` at peak amplitude.</span>
+<span class="sd">    ``vops`` is ``(N, Nc, Nc)``, complex Hermitian, in W/kg per unit channel</span>
+<span class="sd">    drive squared: SAR is ``v^H Q v`` for the channel drive phasors ``v`` at</span>
+<span class="sd">    peak amplitude. ``global_matrix`` is ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with</span>
+<span class="sd">    one matrix per body model as a population's file carries; the global SAR of</span>
+<span class="sd">    a window is the largest over the models. ``metadata`` is what the file says</span>
+<span class="sd">    about itself, such as the coil, the drive unit and the channel order, and</span>
+<span class="sd">    is carried for the caller to read.</span>
 <span class="sd">    """</span>
 
     <span class="n">vops</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-    <span class="n">global_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">global_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
 <span class="c1">#: Variable names a VOP file may use, and a global SAR matrix's.</span>
-<span class="n">_VOP_NAMES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"VOP"</span><span class="p">,</span> <span class="s2">"vops"</span><span class="p">,</span> <span class="s2">"VOPs"</span><span class="p">,</span> <span class="s2">"Q10g"</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">)</span>
+<span class="n">_VOP_NAMES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"VOP"</span><span class="p">,</span> <span class="s2">"VOPm"</span><span class="p">,</span> <span class="s2">"vops"</span><span class="p">,</span> <span class="s2">"VOPs"</span><span class="p">,</span> <span class="s2">"VOP_matrices"</span><span class="p">,</span> <span class="s2">"Q10g"</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">)</span>
 <span class="n">_GLOBAL_NAMES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Sglobal"</span><span class="p">,</span> <span class="s2">"global_matrix"</span><span class="p">,</span> <span class="s2">"Qglobal"</span><span class="p">,</span> <span class="s2">"Q_global"</span><span class="p">)</span>
 
 
@@ -505,6 +510,27 @@
     <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">matrices</span> <span class="o">+</span> <span class="n">conjugate</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_stacked</span><span class="p">(</span><span class="n">matrices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">column_major</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Read a stack of square matrices as ``(K, Nc, Nc)``, whichever axis counts them.</span>
+
+<span class="sd">    A single matrix becomes a stack of one. Of a three-axis array, the two</span>
+<span class="sd">    axes of equal length are the channels and the odd one counts the matrices,</span>
+<span class="sd">    so both ``(K, Nc, Nc)`` and MATLAB's ``(Nc, Nc, K)`` are read. Where all</span>
+<span class="sd">    three are equal the layout is ambiguous, and ``column_major`` -- true for a</span>
+<span class="sd">    ``.mat`` file, false for an ``.npz`` -- decides.</span>
+<span class="sd">    """</span>
+    <span class="n">matrices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">matrices</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matrices</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">matrices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">matrices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">matrices</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">matrices</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">count</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">matrices</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="o">==</span> <span class="n">columns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">column_major</span> <span class="ow">and</span> <span class="n">count</span> <span class="o">==</span> <span class="n">rows</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">matrices</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">matrices</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> are a stack of square matrices, not </span><span class="si">{</span><span class="n">matrices</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_validated</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">VopModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VopModel</span><span class="p">:</span>
     <span class="n">vops</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vops</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -512,34 +538,33 @@
     <span class="n">vops</span> <span class="o">=</span> <span class="n">_hermitian</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="s2">"every VOP"</span><span class="p">)</span>
     <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span>
     <span class="k">if</span> <span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"the global SAR matrix holds </span><span class="si">{</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> bodies; "</span>
-                    <span class="s2">"a model takes the matrix of the body scanned"</span>
-                <span class="p">)</span>
-            <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">global_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">one</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">_stacked</span><span class="p">(</span>
+            <span class="n">global_matrix</span><span class="p">,</span> <span class="s2">"the global SAR matrices"</span><span class="p">,</span> <span class="n">column_major</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"the global SAR matrix is </span><span class="si">{</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, and the VOPs "</span>
+                <span class="sa">f</span><span class="s2">"a global SAR matrix is </span><span class="si">{</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">, and the VOPs "</span>
                 <span class="sa">f</span><span class="s2">"describe </span><span class="si">{</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> channels"</span>
             <span class="p">)</span>
-        <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">_hermitian</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">,</span> <span class="s2">"the global SAR matrix"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">)</span>
+        <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">_hermitian</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">,</span> <span class="s2">"every global SAR matrix"</span><span class="p">)</span>
+        <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">global_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">one</span> <span class="k">else</span> <span class="n">global_matrix</span>
+    <span class="k">return</span> <span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="read_vops">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_vops</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VopModel</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Read VOPs and a global SAR matrix from a ``.mat`` or ``.npz`` file.</span>
+<span class="w">    </span><span class="sd">"""Read VOPs and the global SAR matrices from a ``.mat`` or ``.npz`` file.</span>
 
-<span class="sd">    A ``.mat`` file holds MATLAB's ``(Nc, Nc, N)`` stack, named ``VOP``,</span>
-<span class="sd">    ``vops``, ``Q10g`` or ``Q``, and optionally ``Sglobal`` or</span>
-<span class="sd">    ``global_matrix``; the stack is read into ``(N, Nc, Nc)``. MATLAB v7.3</span>
-<span class="sd">    (HDF5) files are not read. An ``.npz`` file holds ``vops`` as</span>
-<span class="sd">    ``(N, Nc, Nc)`` and optionally ``global_matrix``, ``(Nc, Nc)`` or one</span>
-<span class="sd">    body's ``(1, Nc, Nc)``, as mariepy's ``vop.write`` stores it.</span>
+<span class="sd">    The VOPs are the array named ``VOP``, ``VOPm``, ``vops``, ``VOPs``,</span>
+<span class="sd">    ``VOP_matrices``, ``Q10g`` or ``Q``, a stack of one ``Nc`` by ``Nc`` matrix</span>
+<span class="sd">    per point: MARIE's ``(N, Nc, Nc)`` and MATLAB's ``(Nc, Nc, N)`` are both</span>
+<span class="sd">    read, and a lone matrix is read as one point. The global SAR matrices are</span>
+<span class="sd">    the array named ``Sglobal``, ``global_matrix``, ``Qglobal`` or</span>
+<span class="sd">    ``Q_global``, a single matrix or one per body model as mariepy's</span>
+<span class="sd">    ``vop.write`` stores a population's. An ``.npz`` file's ``metadata``, a</span>
+<span class="sd">    JSON string, is read onto the model. MATLAB v7.3 (HDF5) files are not read.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -549,23 +574,32 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    VopModel</span>
-<span class="sd">        The VOPs and, where the file carries one, the global SAR matrix, for</span>
-<span class="sd">        :func:`~pypulseqpp.safety.check_sar` to take as its ``model``.</span>
+<span class="sd">        The VOPs and, where the file carries them, the global SAR matrices and</span>
+<span class="sd">        the metadata, for :func:`~pypulseqpp.safety.check_sar` to take as its</span>
+<span class="sd">        ``model``.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If the file holds no recognised VOP array, one whose shape is not a</span>
-<span class="sd">        square stack, or the global SAR matrices of several bodies.</span>
+<span class="sd">        If the file holds no recognised VOP array, or one whose shape is not a</span>
+<span class="sd">        stack of square matrices.</span>
 <span class="sd">    OSError</span>
 <span class="sd">        If the file cannot be read, a MATLAB v7.3 file among them.</span>
 <span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".npz"</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">held</span><span class="p">:</span>
-            <span class="n">vops</span> <span class="o">=</span> <span class="n">held</span><span class="p">[</span><span class="s2">"vops"</span><span class="p">]</span>
-            <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"global_matrix"</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_validated</span><span class="p">(</span><span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">))</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">held</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_VOP_NAMES</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> holds none of </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_VOP_NAMES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">vops</span> <span class="o">=</span> <span class="n">_stacked</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="s2">"the VOPs"</span><span class="p">,</span> <span class="n">column_major</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">global_name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">one</span> <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">_GLOBAL_NAMES</span> <span class="k">if</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">names</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">global_matrix</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">global_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">held</span><span class="p">[</span><span class="n">global_name</span><span class="p">]</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">]))</span> <span class="k">if</span> <span class="s2">"metadata"</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_validated</span><span class="p">(</span><span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">,</span> <span class="n">metadata</span><span class="p">))</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">loadmat</span>
 
@@ -578,12 +612,17 @@
     <span class="n">name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_VOP_NAMES</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">held</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> holds none of </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_VOP_NAMES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">stack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">stack</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">vops</span> <span class="o">=</span> <span class="n">_stacked</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="s2">"the VOPs"</span><span class="p">,</span> <span class="n">column_major</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">global_name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_GLOBAL_NAMES</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">held</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">global_matrix</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">global_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="n">global_name</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">_validated</span><span class="p">(</span><span class="n">VopModel</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">global_matrix</span><span class="p">))</span></div>
+    <span class="n">global_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">global_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">whole</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">held</span><span class="p">[</span><span class="n">global_name</span><span class="p">])</span>
+        <span class="n">global_matrix</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">whole</span>
+            <span class="k">if</span> <span class="n">whole</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+            <span class="k">else</span> <span class="n">_stacked</span><span class="p">(</span><span class="n">whole</span><span class="p">,</span> <span class="s2">"the global SAR matrices"</span><span class="p">,</span> <span class="n">column_major</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_validated</span><span class="p">(</span><span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">))</span></div>
 
 
 
@@ -749,8 +788,9 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to check.</span>
 <span class="sd">    model : VopModel</span>
-<span class="sd">        VOPs and optional global matrix, in W/kg per unit drive squared; see</span>
-<span class="sd">        :func:`read_vops` and :func:`example_vops`.</span>
+<span class="sd">        VOPs and optional global matrices, in W/kg per unit drive squared; see</span>
+<span class="sd">        :func:`read_vops` and :func:`example_vops`. With one global matrix per</span>
+<span class="sd">        body model, a window's global SAR is the largest over the models.</span>
 <span class="sd">    drive_per_hz : float or array_like</span>
 <span class="sd">        Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one</span>
 <span class="sd">        value, or one per channel.</span>
@@ -775,11 +815,12 @@
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        The limits; ``tr_size`` and ``tr_start`` (blocks); ``windows``, arrays</span>
 <span class="sd">        ``first``, ``last`` (1-based blocks), ``duration`` (s), ``local_sar``,</span>
-<span class="sd">        ``vop`` and ``global_sar`` (W/kg), and with a reference</span>
-<span class="sd">        ``reference_ratio``; ``worst_local`` and ``worst_global``, each the</span>
-<span class="sd">        ``sar``, ``window`` and its ``first`` and ``last`` block, or None</span>
-<span class="sd">        (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of every</span>
-<span class="sd">        VOP in that window); and ``reference``, or None without one.</span>
+<span class="sd">        ``vop``, ``global_sar`` (W/kg) and ``global_body``, and with a</span>
+<span class="sd">        reference ``reference_ratio``; ``worst_local`` and ``worst_global``,</span>
+<span class="sd">        each the ``sar``, ``window`` and its ``first`` and ``last`` block, or</span>
+<span class="sd">        None (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of</span>
+<span class="sd">        every VOP in that window, and ``worst_global`` its ``body``); and</span>
+<span class="sd">        ``reference``, or None without one.</span>
 
 <span class="sd">        ``reference`` carries ``sar_ratio``, the largest over windows and VOPs</span>
 <span class="sd">        of a VOP's SAR over the reference's for the same VOP, with its ``vop``</span>
@@ -837,6 +878,7 @@
         <span class="n">local_sar</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"local"</span><span class="p">],</span>
         <span class="n">vop</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"vop"</span><span class="p">],</span>
         <span class="n">global_sar</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">]</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_body</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"global_body"</span><span class="p">]</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">reference_ratio</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">against</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">found</span><span class="p">[</span><span class="s2">"ratio"</span><span class="p">],</span>
     <span class="p">)</span>
 
@@ -855,6 +897,7 @@
             <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">global_sar</span><span class="p">))</span>
             <span class="n">worst_global</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
                 <span class="n">sar</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">global_sar</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+                <span class="n">body</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">global_body</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
                 <span class="n">window</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
                 <span class="n">first</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
                 <span class="n">last</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">last</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
