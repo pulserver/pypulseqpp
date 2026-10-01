@@ -304,10 +304,8 @@ namespace pulseq
                     delay.hint = row.rest();
                     out.soft_delays.emplace(id, std::move(delay));
                 }
-                else
-                {
-                    fail(lines[at].line, "unknown extension specification \"" + current + "\"");
-                }
+                // Any other specification is skipped: its type id is kept, and
+                // the chain links that point into it stay unresolved.
                 ++at;
             }
         }
@@ -1029,8 +1027,10 @@ namespace pulseq
             return build_sequence(parse_binary(contents));
 
         Parsed parsed = parse(contents);
-        if (verify && parsed.has_signature)
+        if (verify)
         {
+            if (!parsed.has_signature)
+                throw std::runtime_error("read(): verification was asked for and the file carries no signature");
             // The newline before the header belongs to the digest, and the
             // blank line before that does not: the writer hashes everything it
             // had emitted, then appends "\n[SIGNATURE]\n".

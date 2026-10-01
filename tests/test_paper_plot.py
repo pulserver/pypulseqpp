@@ -194,7 +194,7 @@ def test_drawing_writes_no_repeating_unit_into_the_sequence(system):
 
     seq.paper_plot()
 
-    assert seq.get_definition("TRsize") == ""
+    assert seq.get_definition("TRSize") == ""
 
 
 def test_the_repetitions_underneath_are_the_ones_chosen(system):

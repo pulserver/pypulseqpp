@@ -1736,7 +1736,7 @@ class Sequence:
         table over which blocks match in duration and in the channels they
         play; failing both, the whole sequence. A slice acquired with its own
         preparation and dummy shots is therefore one repetition, and a block
-        played once makes the whole sequence one. A ``TRsize`` definition
+        played once makes the whole sequence one. A ``TRSize`` definition
         shorter than the sequence, dividing it and repeated by the blocks, is
         taken instead, so a longer hyper-TR can be declared. Nothing is
         written into the sequence.
@@ -1752,10 +1752,10 @@ class Sequence:
         ...     _ = seq.add_block(pp.make_delay(10e-3))
         >>> seq.repetition()
         (2, 1)
-        >>> seq.get_definition("TRsize")
+        >>> seq.get_definition("TRSize")
         ''
         """
-        declared = self.get_definition("TRsize")
+        declared = self.get_definition("TRSize")
         if declared != "":
             size = int(declared[0] if isinstance(declared, list) else declared)
             found, start = self._native.locate_repetition(size)
@@ -2348,13 +2348,14 @@ class Sequence:
         remove_duplicates : bool, default=True
             Collapse identical library rows after reading.
         verify : bool, default=False
-            Check the file against the signature it carries.
+            Check the file against the signature it carries. A file that
+            carries none is refused.
 
         Raises
         ------
         RuntimeError
-            If ``verify`` is set and the signature the file carries is not the
-            signature of its contents.
+            If ``verify`` is set and the file carries no signature, or the
+            signature it carries is not the signature of its contents.
         TypeError
             If a file object returns text, as one opened in text mode does.
 
@@ -2395,7 +2396,11 @@ class Sequence:
             # letting the parser say something else about them. The text
             # reader checks its own as it parses.
             found = _cxx.binary_signature(contents)
-            if verify and found["type"] and not found["valid"]:
+            if verify and not found["type"]:
+                raise RuntimeError(
+                    "read(): verification was asked for and the file carries no signature"
+                )
+            if verify and not found["valid"]:
                 raise RuntimeError(
                     f"read(): the file's {found['type']} signature is not the "
                     "signature of its contents"

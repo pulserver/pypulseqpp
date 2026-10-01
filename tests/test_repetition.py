@@ -107,21 +107,21 @@ def test_asking_for_the_repeating_unit_writes_nothing_into_the_sequence(
 
     path = tmp_path / "gre.seq"
     sequence.write(str(path))
-    assert sequence.get_definition("TRsize") == ""
-    assert "TRsize" not in path.read_text()
+    assert sequence.get_definition("TRSize") == ""
+    assert "TRSize" not in path.read_text()
 
 
 def test_a_declared_repeating_unit_survives_a_file(gradient_echo, tmp_path):
     """Declared by the design in `[DEFINITIONS]`, and taken again on reading."""
     sequence = gradient_echo(lines=8)
-    sequence.set_definition("TRsize", 6)
+    sequence.set_definition("TRSize", 6)
     path = tmp_path / "gre.seq"
     sequence.write(str(path))
 
     loaded = pp.Sequence(pp.Opts())
     loaded.read(str(path))
 
-    assert loaded.get_definition("TRsize") == pytest.approx([6])
+    assert loaded.get_definition("TRSize") == pytest.approx([6])
     assert loaded.repetition() == (6, 1)
 
 
@@ -208,14 +208,14 @@ def test_a_repeating_unit_can_be_located_when_its_size_is_known(gradient_echo):
 
 def test_a_declared_hyper_tr_the_blocks_repeat_with_is_taken(gradient_echo):
     sequence = gradient_echo(lines=8)
-    sequence.set_definition("TRsize", 6)
+    sequence.set_definition("TRSize", 6)
 
     assert sequence.repetition() == (6, 1)
 
 
 def test_a_declared_tr_the_blocks_contradict_is_ignored(gradient_echo):
     sequence = gradient_echo(lines=8)
-    sequence.set_definition("TRsize", 4)
+    sequence.set_definition("TRSize", 4)
 
     assert sequence.repetition() == (3, 1)
 
@@ -391,3 +391,16 @@ def test_a_preparation_before_the_slice_loop_makes_the_whole_sequence_one():
             sequence.add_block(flip)
 
     assert sequence.repetition() == (17, 1)
+
+
+def test_declared_tr_size_is_read_under_the_files_own_spelling(tmp_path):
+    sequence = pp.Sequence(pp.Opts())
+    for _ in range(4):
+        sequence.add_block(pp.make_delay(1e-3))
+    sequence.set_definition("TRSize", 2)
+    path = tmp_path / "declared.seq"
+    sequence.write(path)
+    loaded = pp.Sequence()
+    loaded.read(path)
+    assert loaded.repetition() == (2, 1)
+    assert loaded.get_definition("TRsize") == ""

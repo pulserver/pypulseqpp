@@ -133,11 +133,13 @@ def test_a_file_whose_bytes_moved_does_not_verify():
         _ext.read(tampered, True)
 
 
-def test_a_file_carrying_no_signature_is_read_either_way():
+def test_a_file_carrying_no_signature_is_refused_only_under_verification():
     unsigned = _ext.write_text(to_core(reference.ZOO["spin_echo"]()), False)
 
     assert b"[SIGNATURE]" not in unsigned
-    assert _ext.write_text(_ext.read(unsigned, True), False) == unsigned
+    assert _ext.write_text(_ext.read(unsigned), False) == unsigned
+    with pytest.raises(RuntimeError, match="no signature"):
+        _ext.read(unsigned, True)
 
 
 def test_verification_is_off_unless_it_is_asked_for():
