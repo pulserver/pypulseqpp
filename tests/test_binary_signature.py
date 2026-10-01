@@ -98,13 +98,17 @@ def test_a_patched_file_is_refused(sequence, system, tmp_path):
         pp.Sequence(system).read(str(path), verify=True)
 
 
-def test_an_unsigned_file_is_read_without_complaint(sequence, system, tmp_path):
-    """Nothing to check is not the same as a check that fails."""
+def test_an_unsigned_file_is_read_unless_verification_is_asked_for(
+    sequence, system, tmp_path
+):
     path = tmp_path / "unsigned.bseq"
     sequence.write_binary(str(path), create_signature=False)
 
+    with pytest.raises(RuntimeError, match="no signature"):
+        pp.Sequence(system).read(str(path), verify=True)
+
     reread = pp.Sequence(system)
-    reread.read(str(path), verify=True)
+    reread.read(str(path))
 
     assert reread.signature_value is None
     assert len(reread) == len(sequence)

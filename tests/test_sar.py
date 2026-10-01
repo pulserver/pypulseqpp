@@ -167,7 +167,7 @@ def test_checking_sar_writes_no_repeating_unit_into_the_sequence(system, model):
     _, report = safety.check_sar(seq, model, drive_per_hz=1.0)
 
     assert report.tr_size == seq.repetition()[0]
-    assert seq.get_definition("TRsize") == ""
+    assert seq.get_definition("TRSize") == ""
 
 
 def test_the_blocks_before_the_first_repetition_are_a_window_of_their_own(
