@@ -553,13 +553,14 @@ Before revision 1.5.0 the format had nowhere to record it, so a
 file older than that arrives with its pulses unlabelled. Pulses
 the file does label are left alone.</p></li>
 <li><p><strong>remove_duplicates</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Collapse identical library rows after reading.</p></li>
-<li><p><strong>verify</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Check the file against the signature it carries.</p></li>
+<li><p><strong>verify</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Check the file against the signature it carries. A file that
+carries none is refused.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">verify</span></code> is set and the signature the file carries is not the
-    signature of its contents.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">verify</span></code> is set and the file carries no signature, or the
+    signature it carries is not the signature of its contents.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.14)"><strong>TypeError</strong></a> – If a file object returns text, as one opened in text mode does.</p></li>
 </ul>
 </dd>

@@ -557,7 +557,7 @@ possibly cut short; failing that, the shortest period dividing the
 table over which blocks match in duration and in the channels they
 play; failing both, the whole sequence. A slice acquired with its own
 preparation and dummy shots is therefore one repetition, and a block
-played once makes the whole sequence one. A <code class="docutils literal notranslate"><span class="pre">TRsize</span></code> definition
+played once makes the whole sequence one. A <code class="docutils literal notranslate"><span class="pre">TRSize</span></code> definition
 shorter than the sequence, dividing it and repeated by the blocks, is
 taken instead, so a longer hyper-TR can be declared. Nothing is
 written into the sequence.</p>
@@ -571,7 +571,7 @@ written into the sequence.</p>
 <span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="mf">10e-3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span>
 <span class="go">(2, 1)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TRsize"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TRSize"</span><span class="p">)</span>
 <span class="go">''</span>
 </pre></div>
 </div>
