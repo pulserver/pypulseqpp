@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from zoo import SMALL
+from zoo import SMALL, application
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
@@ -35,6 +35,12 @@ def test_a_zoo_entry_takes_its_dummies_and_names_the_axis_of_its_calibration(nam
     # The 3D bSSFP starts its steady state with a chained half flip instead.
     assert ("n_dummy" in parameters) != (name == "bssfp3D_sequence")
     assert all(p in ("n_acs_y", "n_acs_z") for p in calibration)
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_a_zoo_entry_accepts_its_default_protocol(name):
+    """``init_sequence`` refuses a TE, a spacing or a TR the design cannot meet."""
+    application(name)(pp.Opts())
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)

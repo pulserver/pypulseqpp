@@ -104,7 +104,7 @@ class Mprage3DApp(sequences.SequenceApp):
         te: float | None = None,
         esp: float | None = None,
         ti: float | None = 900e-3,
-        tr: float | None = 2300e-3,
+        tr: float | None = 5000e-3,
         readout_bandwidth_hz: float = 250e3,
         ry: int = 1,
         rz: int = 1,
@@ -159,7 +159,7 @@ class Mprage3DApp(sequences.SequenceApp):
             Inversion time (s), from the inversion pulse's centre to the first
             line's excitation. ``None`` is as short as the inversion module
             admits.
-        tr : float | None, default=2.3
+        tr : float | None, default=5.0
             Inversion-to-inversion interval (s). ``None`` leaves one raster of
             recovery after the train.
         readout_bandwidth_hz : float, default=250000.0
