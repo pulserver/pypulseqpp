@@ -16,6 +16,19 @@ represent.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.Sequence` | System limits | `Sequence` holding libraries, blocks, definitions, system limits | Block construction, file I/O, waveform, k-space and timing analysis. |
 
+## RF instances
+
+{meth}`~pypulseqpp.Sequence.rf_instances` returns the RF events a sequence
+plays, one per block that contains one, and the distinct RF pulses they play.
+A waveform is normalised to unit peak magnitude, with its peak held beside it
+in Hz; sample times are in s from the start of the RF event and flip angles in
+degrees.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.RfInstances` | — | `definitions`; `definition` and `amplitude` per instance | The RF events of a sequence in block order, each with the pulse it plays and its amplitude relative to that pulse's base instance. |
+| {obj}`~pypulseqpp.RfDefinition` | — | `waveform`, `peak_hz`, `time`, `delay`, `center`, `use`, `flip_deg` | One RF pulse at unit peak magnitude, with its timing, use and flip angle. |
+
 ## Field-of-view transforms
 
 | Object | Input | Returns | Purpose |
