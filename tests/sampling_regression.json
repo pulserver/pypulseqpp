@@ -246,32 +246,23 @@
   "views": "ade2c4a8aa1efa61"
  },
  "gre_stack_of_blades3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "30eee5af330e1b38",
   "label:LIN": "2fdcb4c32641abb8",
   "label:ONCE": "6f1e46ca51e4d052",
   "label:PAR": "0f0e4ffa92f6dbd6",
-  "label:SEG": "608e2c1d52e97597",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "21eb6957c031a929"
+  "label:SEG": "608e2c1d52e97597"
  },
  "gre_stack_of_spirals3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "5bcddd4e51433a44",
   "label:LIN": "845e7ae3b6d9b17c",
   "label:ONCE": "298b7784d13a28bc",
-  "label:PAR": "5204de22e46d42e6",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "9bcf1b9780d9f43a"
+  "label:PAR": "5204de22e46d42e6"
  },
  "gre_stack_of_stars3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "9dd7a8af074ac480",
   "label:LIN": "520114caedc9aa6e",
   "label:ONCE": "85b3161b146ce000",
-  "label:PAR": "26d85bce843e0ea6",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "22eb34a8edfe6496"
+  "label:PAR": "26d85bce843e0ea6"
  },
  "mprage3D-caipi": {
   "calibration": "f16d3b2a4b3fea6e",
@@ -344,31 +335,22 @@
   "label:SLC": "3dede9761cfb3b4d"
  },
  "se_stack_of_blades3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "30eee5af330e1b38",
   "label:LIN": "2fdcb4c32641abb8",
   "label:ONCE": "6f1e46ca51e4d052",
   "label:PAR": "0f0e4ffa92f6dbd6",
-  "label:SEG": "608e2c1d52e97597",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "21eb6957c031a929"
+  "label:SEG": "608e2c1d52e97597"
  },
  "se_stack_of_spirals3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "5bcddd4e51433a44",
   "label:LIN": "845e7ae3b6d9b17c",
   "label:ONCE": "298b7784d13a28bc",
-  "label:PAR": "5204de22e46d42e6",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "9bcf1b9780d9f43a"
+  "label:PAR": "5204de22e46d42e6"
  },
  "se_stack_of_stars3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:IMA": "9dd7a8af074ac480",
   "label:LIN": "520114caedc9aa6e",
   "label:ONCE": "85b3161b146ce000",
-  "label:PAR": "26d85bce843e0ea6",
-  "partitions": "80c4d2ddd1ea8e5b",
-  "views": "22eb34a8edfe6496"
+  "label:PAR": "26d85bce843e0ea6"
  }
 }
