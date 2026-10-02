@@ -1,6 +1,7 @@
 """The MPRAGE example sequences: Cartesian, stack of stars and stack of spirals."""
 
 import importlib
+from collections import Counter
 
 import numpy as np
 import pytest
@@ -19,20 +20,24 @@ SMALL = {
     SPIRALS: {"n": 32, "n_z": 4, "n_shots": 4, "ti": 100e-3, "tr": 300e-3},
 }
 
-APPS = {
-    CARTESIAN: "Mprage3DApp",
-    STARS: "MprageStackOfStars3DApp",
-    SPIRALS: "MprageStackOfSpirals3DApp",
-}
+#: The definition each stack writes its number of angles in.
+ANGLES = {STARS: "NumSpokes", SPIRALS: "NumArms"}
+
+RASTER = pp.Opts().block_duration_raster
 
 
 def module(name):
     return importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
 
 
-def app(name, **kwargs):
-    cls = getattr(module(name), APPS[name])
-    return cls(pp.Opts(), **{**SMALL[name], "n_dummy": 0, **kwargs})
+def built(name, **kwargs):
+    """The sequence ``name`` designs from its small prescription, without dummy shots."""
+    return module(name).main(pp.Opts(), **{**SMALL[name], "n_dummy": 0, **kwargs})
+
+
+def definition(seq, key):
+    """The first value of a numeric definition."""
+    return np.atleast_1d(seq.definitions[key])[0]
 
 
 def labels(seq, *names):
@@ -41,11 +46,14 @@ def labels(seq, *names):
     return [np.atleast_1d(found.get(name, 0)) for name in names]
 
 
+def blocks(seq):
+    return [seq.get_block(i) for i in range(1, len(seq.block_events) + 1)]
+
+
 def pulse_times(seq, use):
     """Centre time (s) of every RF pulse of ``use``, in play order."""
     t, times = 0.0, []
-    for index in range(1, len(seq.block_events) + 1):
-        block = seq.get_block(index)
+    for block in blocks(seq):
         rf = getattr(block, "rf", None)
         if rf is not None and rf.use == use:
             times.append(t + rf.delay + rf.center)
@@ -53,86 +61,101 @@ def pulse_times(seq, use):
     return np.asarray(times)
 
 
-def shots_of(built):
+def shots_of(seq):
     """How many readout excitations each shot plays."""
-    if hasattr(built, "n_readouts"):
-        return built.n_readouts
-    return len(getattr(built, "spokes", getattr(built, "arms", [])))
+    return int(definition(seq, "EchoTrainLength"))
 
 
-def partitions_of(built):
-    if hasattr(built, "shots"):
-        return [z for z, _ in built.shots]
-    return built.partitions
+def support(ry=1, rz=1, n_acs_y=24, n_acs_z=16, ordering="radial", **_):
+    """The views of a Cartesian prescription: all, and the calibration region, from the sampling helper the sequence calls."""
+    calibrating, imaging = pp.make_cartesian_plane_sampling(
+        (SMALL[CARTESIAN]["n_y"], SMALL[CARTESIAN]["n_z"]),
+        (ry, rz),
+        (n_acs_y, n_acs_z),
+        elliptical=True,
+        sampling="poisson" if ordering == "shuffling" else "lattice",
+        seed=module(CARTESIAN).SHUFFLE_SEED,
+    )
+    return sorted({*calibrating, *imaging}), set(calibrating)
+
+
+def partitions(name, **kwargs):
+    """The partitions a prescription acquires, from the sampling helper the sequence calls."""
+    if name == CARTESIAN:
+        return sorted({z for _, z in support(**kwargs)[0]})
+    calibrating, imaging = pp.make_cartesian_axis_sampling(
+        kwargs.get("n_z", SMALL[name]["n_z"]),
+        kwargs.get("rz", 1),
+        kwargs.get("n_acs_z", 16),
+        partial_fourier=1.0,
+    )
+    return sorted({*calibrating, *imaging})
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_a_small_mprage_passes_its_timing_check_and_repeats_one_shot(name):
-    built = app(name, n_dummy=1)
-    seq = built.design()
+    seq = built(name, n_dummy=1)
     size, start = seq.repetition()
 
     assert seq.check_timing()[0]
     assert start == 1
     # One shot is the repeating unit, the dummy included.
-    assert size * (1 + len(partitions_of(built))) == len(seq.block_events)
+    assert size * (1 + len(partitions(name))) == len(seq.block_events)
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_every_shot_reads_one_partition_in_order(name):
-    built = app(name)
-    par, eco = labels(built.design(), "PAR", "ECO")
-    per_shot = [int(n) for n in np.bincount(par)[partitions_of(built)]]
+    seq = built(name)
+    par, eco = labels(seq, "PAR", "ECO")
+    acquired = partitions(name)
+    per_shot = [int(n) for n in np.bincount(par)[acquired]]
 
-    assert sorted(set(par)) == partitions_of(built)
+    assert sorted(set(par)) == acquired
     assert list(par) == sorted(par)
     assert all(np.diff(eco)[np.diff(par) == 0] == 1)
-    assert max(per_shot) <= shots_of(built)
+    assert max(per_shot) <= shots_of(seq)
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_every_shot_plays_the_same_number_of_excitations(name):
-    built = app(name, n_dummy=2)
-    seq = built.design()
+    seq = built(name, n_dummy=2)
     inversions = pulse_times(seq, "inversion")
     excitations = pulse_times(seq, "excitation")
 
-    assert len(inversions) == 2 + len(partitions_of(built))
-    assert len(excitations) == len(inversions) * shots_of(built)
+    assert len(inversions) == 2 + len(partitions(name))
+    assert len(excitations) == len(inversions) * shots_of(seq)
 
 
 @pytest.mark.parametrize("name", SMALL)
 @pytest.mark.parametrize("ti", [100e-3, 150e-3])
 def test_the_first_excitation_of_a_shot_is_ti_after_its_inversion(name, ti):
-    built = app(name, ti=ti)
-    seq = built.design()
+    seq = built(name, ti=ti)
     inversions = pulse_times(seq, "inversion")
-    excitations = pulse_times(seq, "excitation")[:: shots_of(built)]
-    raster = built.system.block_duration_raster
+    excitations = pulse_times(seq, "excitation")[:: shots_of(seq)]
 
-    assert excitations - inversions == pytest.approx(ti, abs=raster)
+    assert excitations - inversions == pytest.approx(ti, abs=RASTER)
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_the_first_views_central_adc_sample_is_ti_plus_te_after_inversion(name):
-    built = app(name)
-    seq = built.design()
+    seq = built(name)
     sample_times, _ = seq.adc_times()
-    first_centre = sample_times[built.ro.center_sample]
+    first_centre = sample_times[int(definition(seq, "kSpaceCenterSample"))]
     inversion = pulse_times(seq, "inversion")[0]
+    dwell = next(block.adc.dwell for block in blocks(seq) if block.adc is not None)
 
     assert first_centre - inversion == pytest.approx(
-        built.ti + built.ro.echo_time, abs=built.ro.adc.dwell / 2 + 1e-9
+        definition(seq, "TI") + definition(seq, "TE"), abs=dwell / 2 + 1e-9
     )
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_inversions_are_one_tr_apart(name):
-    built = app(name, tr=800e-3, n_dummy=1)
-    inversions = pulse_times(built.design(), "inversion")
+    seq = built(name, tr=800e-3, n_dummy=1)
+    inversions = pulse_times(seq, "inversion")
 
     assert np.diff(inversions) == pytest.approx(800e-3, abs=1e-9)
-    assert built.duration == pytest.approx(800e-3 * len(inversions))
+    assert seq.duration()[0] == pytest.approx(800e-3 * len(inversions))
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -141,36 +164,35 @@ def test_inversions_are_one_tr_apart(name):
     [{"ti": 100.0033e-3, "tr": 800.0047e-3}, {"ti": None, "tr": None}],
     ids=["off the raster", "shortest"],
 )
-def test_the_resolved_ti_and_tr_are_the_intervals_the_inversions_play(name, timing):
-    built = app(name, n_dummy=1, **timing)
-    seq = built.design()
+def test_the_ti_and_tr_written_are_the_intervals_the_inversions_play(name, timing):
+    seq = built(name, n_dummy=1, **timing)
     inversions = pulse_times(seq, "inversion")
-    excitations = pulse_times(seq, "excitation")[:: shots_of(built)]
-    resolved = built.resolved
+    excitations = pulse_times(seq, "excitation")[:: shots_of(seq)]
+    ti, tr = definition(seq, "TI"), definition(seq, "TR")
 
-    assert excitations - inversions == pytest.approx(resolved["ti"], abs=1e-9)
-    assert np.diff(inversions) == pytest.approx(resolved["tr"], abs=1e-9)
-    assert np.atleast_1d(seq.definitions["TI"])[0] == pytest.approx(resolved["ti"])
-    assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(resolved["tr"])
+    assert excitations - inversions == pytest.approx(ti, abs=1e-9)
+    assert np.diff(inversions) == pytest.approx(tr, abs=1e-9)
+    for requested, written in zip(timing.values(), (ti, tr), strict=True):
+        if requested is not None:
+            assert written == pytest.approx(requested, abs=RASTER)
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_navigators_ride_in_the_recovery_without_moving_the_inversions(name):
-    built = app(name, tr=1.5, navigator=True)
-    seq = built.design()
+    seq = built(name, tr=1.5, navigator=True)
+    inversions = pulse_times(seq, "inversion")
 
-    assert built.n_navigators > 0
-    assert np.diff(pulse_times(seq, "inversion")) == pytest.approx(1.5, abs=1e-9)
+    # The navigators excite too, beyond the readout's own excitations.
+    assert len(pulse_times(seq, "excitation")) > len(inversions) * shots_of(seq)
+    assert np.diff(inversions) == pytest.approx(1.5, abs=1e-9)
     assert seq.check_timing()[0]
 
 
 @pytest.mark.parametrize("name", SMALL)
 def test_dummy_shots_acquire_nothing(name):
-    plain, dummied = app(name), app(name, n_dummy=2)
+    plain, dummied = built(name), built(name, n_dummy=2)
 
-    assert len(labels(dummied.design(), "PAR")[0]) == len(
-        labels(plain.design(), "PAR")[0]
-    )
+    assert len(labels(dummied, "PAR")[0]) == len(labels(plain, "PAR")[0])
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -185,7 +207,7 @@ def test_dummy_shots_acquire_nothing(name):
 )
 def test_an_mprage_that_cannot_be_played_is_refused(name, prescription, match):
     with pytest.raises(ValueError, match=match):
-        app(name, **prescription)
+        built(name, **prescription)
 
 
 # -- Cartesian ----------------------------------------------------------------
@@ -193,25 +215,30 @@ def test_an_mprage_that_cannot_be_played_is_refused(name, prescription, match):
 
 @pytest.mark.parametrize("ordering", ["radial", "shuffling"])
 def test_every_sampled_view_is_read_once_inside_the_ellipse(ordering):
-    built = app(CARTESIAN, ordering=ordering, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
-    lin, par = labels(built.design(), "LIN", "PAR")
+    prescription = {
+        "ordering": ordering,
+        "ry": 2,
+        "rz": 2,
+        "n_acs_y": 4,
+        "n_acs_z": 2,
+    }
+    lin, par = labels(built(CARTESIAN, **prescription), "LIN", "PAR")
+    sampled, calibration = support(**prescription)
     views = list(zip(lin, par, strict=True))
     outside = [
         (y, z)
         for y, z in views
-        if ((y - 8) / 16) ** 2 + ((z - 4) / 8) ** 2 > 0.25
-        and (y, z) not in built.calibration
+        if ((y - 8) / 16) ** 2 + ((z - 4) / 8) ** 2 > 0.25 and (y, z) not in calibration
     ]
 
     assert len(views) == len(set(views))
-    assert set(views) == {(y, z) for z, lines in built.shots for y in lines}
+    assert set(views) == set(sampled)
     assert outside == []
-    assert built.calibration <= set(views)
+    assert calibration <= set(views)
 
 
 def test_a_radial_shot_reads_its_lines_centre_out():
-    built = app(CARTESIAN)
-    lin, par = labels(built.design(), "LIN", "PAR")
+    lin, par = labels(built(CARTESIAN), "LIN", "PAR")
 
     for z in set(par):
         distance = np.abs(lin[par == z] - 8)
@@ -220,54 +247,54 @@ def test_a_radial_shot_reads_its_lines_centre_out():
 
 
 def test_a_shuffled_shot_reads_the_same_lines_in_another_order():
-    radial = app(CARTESIAN)
-    shuffled = app(CARTESIAN, ordering="shuffling")
+    def lines(seq):
+        lin, par = labels(seq, "LIN", "PAR")
+        return [list(lin[par == z]) for z in sorted(set(par))]
 
-    assert [sorted(lines) for _, lines in radial.shots] == [
-        sorted(lines) for _, lines in shuffled.shots
-    ]
-    assert [lines for _, lines in radial.shots] != [
-        lines for _, lines in shuffled.shots
-    ]
+    radial = lines(built(CARTESIAN))
+    shuffled = lines(built(CARTESIAN, ordering="shuffling"))
+
+    assert [sorted(shot) for shot in radial] == [sorted(shot) for shot in shuffled]
+    assert radial != shuffled
 
 
 def test_a_partition_with_fewer_lines_pads_its_train_without_acquiring():
-    built = app(CARTESIAN)
-    lengths = {z: len(lines) for z, lines in built.shots}
-    seq = built.design()
+    seq = built(CARTESIAN)
+    lengths = Counter(z for _, z in support()[0])
     (par,) = labels(seq, "PAR")
 
     assert len(set(lengths.values())) > 1
     assert {
         z: int(n) for z, n in zip(*np.unique(par, return_counts=True), strict=True)
     } == lengths
-    assert len(pulse_times(seq, "excitation")) == len(lengths) * built.n_readouts
+    assert shots_of(seq) == max(lengths.values())
+    assert len(pulse_times(seq, "excitation")) == len(lengths) * shots_of(seq)
 
 
 def test_an_elliptical_calibration_region_is_the_inscribed_ellipse():
-    rectangle = app(CARTESIAN, ry=2, rz=2, n_acs_y=8, n_acs_z=6)
-    ellipse = app(CARTESIAN, ry=2, rz=2, n_acs_y=8, n_acs_z=6, elliptical_acs=True)
+    def calibration(**kwargs):
+        seq = built(CARTESIAN, ry=2, rz=2, n_acs_y=8, n_acs_z=6, **kwargs)
+        lin, par, ima = labels(seq, "LIN", "PAR", "IMA")
+        return {(y, z) for y, z, marked in zip(lin, par, ima, strict=True) if marked}
 
-    assert len(rectangle.calibration) == 8 * 6
-    assert ellipse.calibration < rectangle.calibration
-    assert (8, 4) in ellipse.calibration and (4, 1) not in ellipse.calibration
+    rectangle, ellipse = calibration(), calibration(elliptical_acs=True)
+
+    assert len(rectangle) == 8 * 6
+    assert ellipse < rectangle
+    assert (8, 4) in ellipse and (4, 1) not in ellipse
 
 
 def test_the_wave_free_reference_shots_lead_and_are_marked_ref():
-    built = app(
-        CARTESIAN, wave_amplitude=8e-3, wave_cycles=2, ry=2, n_acs_y=4, n_acs_z=2
-    )
-    seq = built.design()
-    ref, ima = labels(seq, "REF", "IMA")
-    n_reference = sum(len(lines) for _, lines in built.reference)
-    reads = [
-        block
-        for block in (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
-        if block.adc is not None
-    ]
+    prescription = {"ry": 2, "n_acs_y": 4, "n_acs_z": 2}
+    seq = built(CARTESIAN, wave_amplitude=8e-3, wave_cycles=2, **prescription)
+    ref, ima, lin, par = labels(seq, "REF", "IMA", "LIN", "PAR")
+    _, calibration = support(**prescription)
+    n_reference = len(calibration)
+    reads = [block for block in blocks(seq) if block.adc is not None]
 
     assert seq.check_timing()[0]
     assert list(ref) == [1] * n_reference + [0] * (len(ref) - n_reference)
+    assert set(zip(lin[:n_reference], par[:n_reference], strict=True)) == calibration
     assert set(ima) == {0}
     assert all(block.gy.amplitude == 0 for block in reads[:n_reference])
     assert all(block.gy.amplitude != 0 for block in reads[n_reference:])
@@ -278,15 +305,17 @@ def test_the_wave_free_reference_shots_lead_and_are_marked_ref():
 
 @pytest.mark.parametrize("name", [STARS, SPIRALS])
 def test_every_angle_is_read_once_at_every_partition(name):
-    built = app(name, rz=2, n_z=8, n_acs_z=2)
-    lin, par, eco, ima = labels(built.design(), "LIN", "PAR", "ECO", "IMA")
-    angles = getattr(built, "spokes", getattr(built, "arms", None))
+    seq = built(name, rz=2, n_z=8, n_acs_z=2)
+    lin, par, eco, ima = labels(seq, "LIN", "PAR", "ECO", "IMA")
+    calibrating, imaging = pp.make_cartesian_axis_sampling(8, 2, 2, partial_fourier=1.0)
+    acquired = sorted({*calibrating, *imaging})
+    angles = module(name).golden_order(int(definition(seq, ANGLES[name])))
 
     assert list(zip(lin, par, strict=True)) == [
-        (a, z) for z in built.partitions for a in angles
+        (a, z) for z in acquired for a in angles
     ]
-    assert list(eco) == list(range(len(angles))) * len(built.partitions)
-    assert list(ima) == [int(z in built.calibration) for z in par]
+    assert list(eco) == list(range(len(angles))) * len(acquired)
+    assert list(ima) == [int(z in calibrating) for z in par]
 
 
 @pytest.mark.parametrize("n", [4, 8, 13, 201])
@@ -301,12 +330,29 @@ def test_the_golden_order_plays_every_angle_once_spread_from_the_start(n):
 
 
 @pytest.mark.parametrize("name", [STARS, SPIRALS])
-def test_a_partition_shift_turns_every_angle_by_the_partition(name):
-    built = app(name, partition_angle_shift="golden")
+@pytest.mark.parametrize("shift", ["none", "golden", "tiny_golden"])
+def test_a_partition_shift_turns_every_angle_by_the_partition(name, shift):
+    seq = built(name, partition_angle_shift=shift)
+    lin, par = labels(seq, "LIN", "PAR")
+    span = np.pi if name == STARS else 2 * np.pi
+    n_angles = int(definition(seq, ANGLES[name]))
+    expected = (
+        span * lin / n_angles + par * module(name).PARTITION_SHIFTS[shift] * span
+    ) % span
+    quaternions = np.asarray(seq.libraries().rotations)
+    row = np.asarray(seq.block_rotations())[
+        [i for i, block in enumerate(blocks(seq)) if block.adc is not None]
+    ]
+    played = 2 * np.arctan2(quaternions[row - 1, 3], quaternions[row - 1, 0])
 
-    first, second = built.rotation(0, 0), built.rotation(0, 1)
-    assert first is not second
-    assert built.rotation(0, 0) is first
+    assert np.all(row > 0)
+    assert ((played - expected + span / 2) % span - span / 2) == pytest.approx(
+        0.0, abs=1e-9
+    )
+    # One rotation per distinct angle.
+    assert len(np.unique(np.round(quaternions, 9), axis=0)) == len(
+        np.unique(np.round(expected % span, 9))
+    )
 
 
 @pytest.mark.parametrize(

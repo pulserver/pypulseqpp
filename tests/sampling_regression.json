@@ -152,31 +152,22 @@
   "label:SEG": "e773f58f3800ee71"
  },
  "fse3D-individual": {
-  "calibration": "4f53cda18c2baa0c",
   "label:ECO": "8e80874ad8094625",
   "label:IMA": "9395f0c2d19beb20",
   "label:LIN": "5b88421106f012c9",
-  "label:PAR": "040495fa9fcabb38",
-  "reference": "4f53cda18c2baa0c",
-  "trains": "65007b6fe3a5038b"
+  "label:PAR": "040495fa9fcabb38"
  },
  "fse3D-radial": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:ECO": "9139ea1097318c35",
   "label:IMA": "a1a791e577c156f8",
   "label:LIN": "c9306b4d56e45b11",
-  "label:PAR": "c47c340c899228de",
-  "reference": "4f53cda18c2baa0c",
-  "trains": "75dba03d370789e4"
+  "label:PAR": "c47c340c899228de"
  },
  "fse3D-shuffling": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:ECO": "a8a6e25c8aabe90b",
   "label:IMA": "cd399c2e1419f26f",
   "label:LIN": "ba8be5eeea6ef5e3",
-  "label:PAR": "c9fbe18d59a666c5",
-  "reference": "4f53cda18c2baa0c",
-  "trains": "8bb6a8ce8c2ce222"
+  "label:PAR": "c9fbe18d59a666c5"
  },
  "gre2D": {
   "label:IMA": "90b44c0fdcab6576",
@@ -249,52 +240,39 @@
   "label:PAR": "26d85bce843e0ea6"
  },
  "mprage3D-caipi": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:ECO": "24114dd05b0e7356",
   "label:IMA": "7b4d6e605bb73e0a",
   "label:LIN": "385d04b6efb678ee",
   "label:ONCE": "75031b52cdaa5329",
-  "label:PAR": "941adc3df1850e62",
-  "reference": "4f53cda18c2baa0c",
-  "shots": "b6574046f28a4a46"
+  "label:PAR": "941adc3df1850e62"
  },
  "mprage3D-radial": {
-  "calibration": "4f53cda18c2baa0c",
   "label:ECO": "9dd48d80cfc5fc24",
   "label:IMA": "9395f0c2d19beb20",
   "label:LIN": "d78f7f10fd9de6b7",
   "label:ONCE": "9395f0c2d19beb20",
-  "label:PAR": "eda5eff8962a50d4",
-  "reference": "4f53cda18c2baa0c",
-  "shots": "01c5b1d72af7a174"
+  "label:PAR": "eda5eff8962a50d4"
  },
  "mprage3D-shuffling": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:ECO": "52ddd0db9d62e6e5",
   "label:IMA": "b7c83705169e2ee8",
   "label:LIN": "42223ce1c7f75784",
   "label:ONCE": "0be4e3c1207c32c0",
-  "label:PAR": "3f6b2ae98ebdeb51",
-  "reference": "4f53cda18c2baa0c",
-  "shots": "36e86ecf86c6bfd4"
+  "label:PAR": "3f6b2ae98ebdeb51"
  },
  "mprage_stack_of_spirals3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:ECO": "ab1133f3e599e2a0",
   "label:IMA": "1e93268a1e1c81f3",
   "label:LIN": "1c65fee3864f1477",
   "label:ONCE": "298b7784d13a28bc",
-  "label:PAR": "5d8d96fb191900b5",
-  "partitions": "80c4d2ddd1ea8e5b"
+  "label:PAR": "5d8d96fb191900b5"
  },
  "mprage_stack_of_stars3D": {
-  "calibration": "21fa2eb01b2eefd6",
   "label:ECO": "e9d41d4f2c543519",
   "label:IMA": "f7b1bca9cb4adbcd",
   "label:LIN": "bf2c403a810cb661",
   "label:ONCE": "85b3161b146ce000",
-  "label:PAR": "6aa196b3e0f8956f",
-  "partitions": "80c4d2ddd1ea8e5b"
+  "label:PAR": "6aa196b3e0f8956f"
  },
  "se2D-accelerated": {
   "label:IMA": "eb27c5568079334f",

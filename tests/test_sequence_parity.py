@@ -10,6 +10,7 @@ Returns and its Examples.
 """
 
 import dataclasses
+import importlib.util
 import inspect
 import re
 from pathlib import Path
@@ -23,6 +24,9 @@ from pypulseqpp.sequences._app import _split_sections
 
 #: The sequences whose SequenceApp form is kept in ``tests/legacy``.
 LEGACY_NAMES = sorted(path.stem for path in LEGACY.glob("*_sequence.py"))
+
+#: Whether torchsim, which designs the trains of ``flip_modulation="optimized"``, is installed.
+TORCHSIM = importlib.util.find_spec("torchsim") is not None
 
 #: Protocols that exercise what the default one leaves out, per sequence. The
 #: first of each changes every parameter; the others reach the packets, the
@@ -1009,6 +1013,288 @@ NON_DEFAULT = {
             "n_acs_z": 4,
         },
     ],
+    "fse3D_sequence": [
+        # Every parameter changed except the order, which individually
+        # parameterized trains require to be radial: a hard-pulse train of
+        # designed refocusing angles, shorter and faster at the periphery,
+        # undersampled with a CAIPIRINHA shift, wave-encoded on one channel
+        # and navigated.
+        {
+            "fov_x": 0.2,
+            "fov_y": 0.18,
+            "fov_z": 0.12,
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "te": 20e-3,
+            "tr": 0.6,
+            "etl": 8,
+            "refocusing_angle_deg": 120.0,
+            "readout_bandwidth_hz": 100e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_x": 0.75,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 1,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.0,
+            "esp": 8e-3,
+            "n_acs_y": 4,
+            "n_acs_z": 2,
+            "elliptical_acs": True,
+            "flip_modulation": "optimized",
+            "tr_periphery": 0.4,
+            "etl_periphery": 5,
+            "wave": "phase",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+            "navigator": True,
+        },
+        # A designed train whose TE echo is past the fifth.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "etl": 10,
+            "te": 70e-3,
+            "esp": 10e-3,
+            "tr": 0.4,
+            "refocusing_angle_deg": 120.0,
+            "flip_modulation": "optimized",
+        },
+        # Shuffled Poisson-disc views, with the calibration region acquired
+        # again wave-free.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "etl": 8,
+            "te": 20e-3,
+            "tr": 0.3,
+            "ry": 2,
+            "rz": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 2,
+            "ordering": "shuffling",
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+        },
+        # The shortest TR and the first echo as TE, with dummy trains.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "etl": 6,
+            "te": None,
+            "tr": None,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "n_acs_y": 4,
+            "n_acs_z": 4,
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+            "n_dummy": 2,
+        },
+        # A periphery with longer trains and a longer TR than the centre.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "etl": 8,
+            "te": 20e-3,
+            "tr": 0.3,
+            "etl_periphery": 12,
+            "tr_periphery": 0.4,
+        },
+    ],
+    "mprage3D_sequence": [
+        # Every parameter changed: shuffled, undersampled, wave-encoded on one
+        # channel, a hard pulse, and navigators in the recovery.
+        {
+            "fov_x": 0.2,
+            "fov_y": 0.18,
+            "fov_z": 0.12,
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "flip_angle_deg": 12.0,
+            "te": 5e-3,
+            "esp": 12e-3,
+            "ti": 0.15,
+            "tr": 1.0,
+            "readout_bandwidth_hz": 100e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_x": 0.75,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.0,
+            "n_acs_y": 4,
+            "n_acs_z": 2,
+            "elliptical_acs": True,
+            "ordering": "shuffling",
+            "wave": "partition",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+            "navigator": True,
+        },
+        # The shortest TI and TR with a spectral-spatial pulse, a CAIPIRINHA
+        # shift and an elliptical calibration region.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "excitation": "spsp",
+            "ti": None,
+            "tr": None,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "n_acs_y": 4,
+            "n_acs_z": 4,
+            "elliptical_acs": True,
+            "partial_fourier_z": 0.75,
+        },
+        # Wave-CAIPI on both channels, with the calibration region acquired
+        # again wave-free ahead of the image shots and no dummy shot.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "ti": 0.1,
+            "tr": 0.3,
+            "ry": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 2,
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+            "n_dummy": 0,
+        },
+        # Poisson-disc support, played in shuffled order.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "ti": 0.1,
+            "tr": 0.3,
+            "ordering": "shuffling",
+            "ry": 2,
+            "rz": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 2,
+        },
+    ],
+    "mprage_stack_of_spirals3D_sequence": [
+        # Every parameter changed: a dual-density spiral under a hard pulse,
+        # undersampled in angle and partition, with navigators.
+        {
+            "fov": 0.22,
+            "n": 32,
+            "fov_z": 0.12,
+            "n_z": 8,
+            "flip_angle_deg": 12.0,
+            "te": 2e-3,
+            "esp": 30e-3,
+            "ti": 0.15,
+            "tr": 1.5,
+            "readout_bandwidth_hz": 125e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+            "n_acs_z": 2,
+            "n_shots": 8,
+            "density": "dual",
+            "periphery_undersampling": 3.0,
+            "transition_speed": 8.0,
+            "navigator": True,
+        },
+        # The shortest TI and TR, variable density, a spectral-spatial pulse
+        # and no turn between partitions.
+        {
+            "n": 32,
+            "n_z": 8,
+            "n_shots": 4,
+            "ti": None,
+            "tr": None,
+            "excitation": "spsp",
+            "partition_angle_shift": "none",
+            "density": "variable",
+        },
+        # Interleaves and partitions undersampled, with the central
+        # partitions acquired as calibration.
+        {
+            "n": 32,
+            "n_z": 8,
+            "n_shots": 8,
+            "ti": 0.1,
+            "tr": 0.5,
+            "ry": 2,
+            "rz": 3,
+            "n_acs_z": 2,
+            "density": "dual",
+            "n_dummy": 0,
+        },
+    ],
+    "mprage_stack_of_stars3D_sequence": [
+        # Every parameter changed: a hard pulse, angular and partition
+        # undersampling, and navigators.
+        {
+            "fov": 0.22,
+            "n": 32,
+            "fov_z": 0.12,
+            "n_z": 8,
+            "flip_angle_deg": 12.0,
+            "te": 2e-3,
+            "esp": 8e-3,
+            "ti": 0.15,
+            "tr": 1.5,
+            "readout_bandwidth_hz": 125e3,
+            "ry": 3,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+            "n_acs_z": 2,
+            "readout_oversampling": 1.0,
+            "navigator": True,
+        },
+        # The shortest TI and TR with a spectral-spatial pulse and no turn
+        # between partitions.
+        {
+            "n": 32,
+            "n_z": 8,
+            "ti": None,
+            "tr": None,
+            "ry": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "none",
+        },
+        # Spokes and partitions undersampled, with the central partitions
+        # acquired as calibration.
+        {
+            "n": 32,
+            "n_z": 8,
+            "ti": 0.1,
+            "tr": 0.5,
+            "ry": 4,
+            "rz": 3,
+            "n_acs_z": 2,
+            "n_dummy": 0,
+        },
+    ],
 }
 
 #: The sections a function that returns a chain documents for itself.
@@ -1031,8 +1317,17 @@ def cases():
     for name in LEGACY_NAMES:
         found.append(pytest.param(name, None, {}, id=f"{name}-default"))
         for index, protocol in enumerate(NON_DEFAULT.get(name, ())):
+            designed = protocol.get("flip_modulation") == "optimized"
             found.append(
-                pytest.param(name, None, protocol, id=f"{name}-non-default-{index}")
+                pytest.param(
+                    name,
+                    None,
+                    protocol,
+                    id=f"{name}-non-default-{index}",
+                    marks=pytest.mark.skipif(
+                        designed and not TORCHSIM, reason="needs torchsim"
+                    ),
+                )
             )
         for label, limits in SYSTEMS.items():
             found.append(
@@ -1123,16 +1418,16 @@ def test_a_function_takes_the_system_and_the_protocol_its_application_takes(name
             for p in signature.parameters.values()
         ]
 
+    def protocol(function):
+        return {
+            key: dataclasses.replace(entry, description=normalised(entry.description))
+            for key, entry in sequences.parameters(function).items()
+        }
+
     assert parameters(shipped) == parameters(legacy)
-    wanted = {
-        key: dataclasses.replace(
-            parameter, description=normalised(parameter.description)
-        )
-        for key, parameter in sequences.parameters(
-            legacy_application(name).function()
-        ).items()
-    }
-    assert sequences.parameters(getattr(sequences, name).main) == wanted
+    assert protocol(getattr(sequences, name).main) == protocol(
+        legacy_application(name).function()
+    )
 
 
 @pytest.mark.parametrize("name", LEGACY_NAMES)

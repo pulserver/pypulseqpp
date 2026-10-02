@@ -26,7 +26,7 @@ def test_a_parameter_carries_its_type_default_unit_and_description():
 
 
 def test_the_choices_of_a_parameter_are_the_values_its_type_lists_in_order():
-    protocol = sequences.fse3D_sequence.Fse3DApp.parameters()
+    protocol = sequences.parameters(sequences.fse3D_sequence.main)
 
     assert protocol["excitation"].choices == ("slab", "nonselective")
     assert protocol["wave"].choices == ("phase", "partition", "both")
