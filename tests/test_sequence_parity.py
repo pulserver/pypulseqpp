@@ -359,6 +359,261 @@ NON_DEFAULT = {
             "n_dummy": 0,
         },
     ],
+    "gre_stack_of_stars3D_sequence": [
+        # A spectral-spatial excitation, golden-angle partition shifts and a
+        # calibration block at every tilt.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "flip_angle_deg": 20.0,
+            "te": 9e-3,
+            "tr": 20e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "readout_oversampling": 1.0,
+        },
+        # A hard pulse without a slab gradient, tiny golden-angle shifts, one
+        # spoke in three and a TR above the shortest.
+        {
+            "n": 32,
+            "n_z": 8,
+            "te": 3e-3,
+            "tr": 10e-3,
+            "ry": 3,
+            "rz": 2,
+            "n_acs_z": 4,
+            "n_dummy": 0,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+        },
+        # Partial Fourier along the partitions, dummies and golden-angle shifts.
+        {
+            "n": 32,
+            "n_z": 8,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 3,
+            "partition_angle_shift": "golden",
+        },
+    ],
+    "se_stack_of_stars3D_sequence": [
+        # An echo time off the block raster, which is rounded up.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "te": 24.013e-3,
+            "tr": 40e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "readout_oversampling": 1.0,
+        },
+        # The shortest TE and TR, with a hard pulse and a calibration block.
+        {
+            "n": 32,
+            "n_z": 8,
+            "te": None,
+            "tr": None,
+            "ry": 3,
+            "rz": 2,
+            "n_acs_z": 4,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+        },
+        # The default TR above the shortest, with dummies.
+        {"n": 32, "n_z": 4, "n_dummy": 2},
+    ],
+    "gre_stack_of_spirals3D_sequence": [
+        # Variable density, a spectral-spatial excitation and a calibration block
+        # at every tilt.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "flip_angle_deg": 20.0,
+            "te": 9e-3,
+            "tr": 20e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "n_shots": 4,
+            "density": "variable",
+            "periphery_undersampling": 1.5,
+            "transition_speed": 8.0,
+        },
+        # Dual density with a hard pulse and tiny golden-angle shifts.
+        {
+            "n": 32,
+            "n_z": 8,
+            "n_shots": 8,
+            "density": "dual",
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+            "rz": 2,
+            "n_acs_z": 4,
+            "n_dummy": 0,
+        },
+        # Constant density with a TR above the shortest and partial Fourier.
+        {
+            "n": 32,
+            "n_z": 8,
+            "n_shots": 4,
+            "tr": 12e-3,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 1,
+        },
+    ],
+    "se_stack_of_spirals3D_sequence": [
+        # An echo time off the block raster, which is rounded up.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "te": 24.013e-3,
+            "tr": 40e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "n_shots": 4,
+            "density": "variable",
+            "periphery_undersampling": 1.5,
+            "transition_speed": 8.0,
+        },
+        # The shortest TE and TR, with dual density and a hard pulse.
+        {
+            "n": 32,
+            "n_z": 8,
+            "te": None,
+            "tr": None,
+            "n_shots": 8,
+            "density": "dual",
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+            "rz": 2,
+            "n_acs_z": 4,
+        },
+        # The default TR above the shortest, with dummies.
+        {"n": 32, "n_z": 4, "n_shots": 4, "n_dummy": 2},
+    ],
+    "gre_stack_of_blades3D_sequence": [
+        # A spectral-spatial excitation, golden-angle partition shifts and a
+        # calibration block at every tilt.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "flip_angle_deg": 20.0,
+            "te": 9e-3,
+            "tr": 20e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "blade_width": 8,
+        },
+        # A hard pulse, four-line blades, tiny golden-angle shifts and one blade
+        # in three.
+        {
+            "n": 32,
+            "n_z": 8,
+            "te": 3e-3,
+            "blade_width": 4,
+            "ry": 3,
+            "rz": 2,
+            "n_acs_z": 4,
+            "n_dummy": 0,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+        },
+        # A TR above the shortest, with dummies.
+        {"n": 32, "n_z": 4, "blade_width": 8, "tr": 10e-3, "n_dummy": 3},
+    ],
+    "se_stack_of_blades3D_sequence": [
+        # An echo time off the block raster, which is rounded up.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "fov_z": 0.1,
+            "n_z": 8,
+            "te": 24.013e-3,
+            "tr": 40e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "spsp",
+            "partition_angle_shift": "golden",
+            "n_acs_z": 2,
+            "blade_width": 8,
+        },
+        # The shortest TE and TR, with a hard pulse and four-line blades.
+        {
+            "n": 32,
+            "n_z": 8,
+            "te": None,
+            "tr": None,
+            "blade_width": 4,
+            "ry": 3,
+            "rz": 2,
+            "n_acs_z": 4,
+            "excitation": "nonselective",
+            "partition_angle_shift": "tiny_golden",
+        },
+        # The default TR above the shortest, with dummies.
+        {"n": 32, "n_z": 4, "blade_width": 8, "n_dummy": 2},
+    ],
+    "zte3D_sequence": [
+        {
+            "fov": 0.24,
+            "n": 24,
+            "flip_angle_deg": 5.0,
+            "tr": 4e-4,
+            "readout_bandwidth_hz": 200e3,
+            "r": 2,
+            "n_shots": 4,
+            "scheme": "meridian",
+            "n_dummy": 1,
+            "readout_oversampling": 1.0,
+            "n_gain_calibration_readouts": 2,
+        },
+        # The shells left to the design, which balances the spacing within one
+        # against the spacing between them.
+        {"n": 16, "n_shots": None, "n_dummy": 0},
+        # Meridian shells, one in two, with two dummy shells.
+        {"n": 24, "n_shots": 4, "scheme": "meridian", "r": 2, "n_dummy": 2},
+    ],
 }
 
 #: ``(max_grad in mT/m, max_slew in T/m/s)`` of a system above the limits a
