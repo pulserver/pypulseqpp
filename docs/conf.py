@@ -78,6 +78,9 @@ autodoc_preserve_defaults = True
 # Minigalleries are reserved for objects that are the subject of an example,
 # rather than objects used incidentally throughout the gallery.
 GALLERY_BACKREFERENCES = {
+    "pypulseqpp.sequences.Labels",
+    "pypulseqpp.sequences.parameters",
+    "pypulseqpp.sequences.write",
     "pypulseqpp.sequences.SequenceApp",
     "pypulseqpp.sequences.SequenceModule",
     "pypulseqpp.sequences.SpatialSelectiveExcitation",

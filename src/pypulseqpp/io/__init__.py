@@ -163,7 +163,8 @@ def read_chain(
 ) -> list[tuple[_pathlib.Path, _typing.Any]]:
     """Read a sequence file and every file its ``NextSequence`` definitions name, in play order.
 
-    :meth:`pypulseqpp.sequences.SequenceApp.write` writes a scan with prescans
+    :func:`pypulseqpp.sequences.write` and
+    :meth:`pypulseqpp.sequences.SequenceApp.write` write a scan with prescans
     as such a chain. A ``NextSequence`` name is relative to the directory of
     the file naming it. Each file is read by :func:`read`, onto a system built
     from it.

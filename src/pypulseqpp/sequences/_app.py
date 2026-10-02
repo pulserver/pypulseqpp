@@ -15,9 +15,20 @@ from typing import Any
 import pypulseqpp as pp
 from pypulseqpp._prescription import accepts_none, documented, scalar
 
-__all__ = ["ProtocolParameter", "SequenceApp"]
+from ._labels import Labels
 
-_MAIN_PARAMETERS = """\
+__all__ = ["ProtocolParameter", "SequenceApp", "parameters"]
+
+_SYSTEM_PARAMETER = """\
+system : pypulseqpp.Opts, default=None
+    System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""
+
+_FUNCTION_RETURNS = """\
+pypulseqpp.Sequence or list of pypulseqpp.Sequence
+    The designed sequence. An application with prescans returns the list of
+    the designed prescans in play order, then the main sequence."""
+
+_MAIN_PARAMETERS = f"""\
 plot : bool, default=False
     Draw the finished sequence in SeqEyes.
 test_report : bool, default=False
@@ -26,15 +37,14 @@ write_seq : bool, default=False
     Write the sequence to a .seq file.
 seq_filename : str, default=None
     Where to write it; ``<NAME>.seq`` when omitted.
-system : pypulseqpp.Opts, default=None
-    System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""
+{_SYSTEM_PARAMETER}"""
 
 
 @dataclass(frozen=True)
 class ProtocolParameter:
-    """One prescribed parameter, as ``init_sequence`` declares and documents it."""
+    """One protocol parameter, as a sequence function or ``init_sequence`` declares and documents it."""
 
-    #: The keyword ``init_sequence`` takes.
+    #: The keyword the sequence function or ``init_sequence`` takes.
     name: str
     #: The scalar the annotation names, bool, int, float or str; None for any
     #: other annotation.
@@ -150,8 +160,7 @@ class SequenceApp(ABC):
             system, max_grad=self.MAX_GRAD, max_slew=self.MAX_SLEW
         )
         self.seq = pp.Sequence(self.system)
-        self._label_state: dict[str, int] = {}
-        self._label_steps: dict[str, int] = {}
+        self._labels = Labels()
         self._requested = dict(protocol)
         self._resolved: dict[str, Any] = {}
         self.init_sequence(**protocol)
@@ -230,7 +239,7 @@ class SequenceApp(ABC):
             If ``prescan`` is not one of the names :meth:`prescans` lists.
         """
         self.seq = pp.Sequence(self.system)
-        self._label_state, self._label_steps = {}, {}
+        self.restart_labels()
         if prescan is None:
             self.loop()
             self.finalize()
@@ -292,23 +301,7 @@ class SequenceApp(ABC):
         list
             The label events to add to the block, empty when nothing changed.
         """
-        once = values.get("ONCE")
-        if once is not None and int(once) != self._label_state.get("ONCE"):
-            self.restart_labels()
-        events = []
-        for name, value in values.items():
-            value = int(value)
-            last = self._label_state.get(name)
-            if last == value:
-                continue
-            step = None if last is None else value - last
-            if step is not None and step == self._label_steps.get(name):
-                events.append(pp.make_label(name, "INC", step))
-            else:
-                events.append(pp.make_label(name, "SET", value))
-            self._label_state[name] = value
-            self._label_steps[name] = step
-        return events
+        return self._labels(**values)
 
     def restart_labels(self) -> None:
         """Write every label's next value as a SET, regardless of what was written before.
@@ -318,8 +311,7 @@ class SequenceApp(ABC):
         on the repeats. :meth:`labels` restarts at every ``ONCE`` it writes;
         call this where a module writes ``ONCE`` itself.
         """
-        self._label_state.clear()
-        self._label_steps.clear()
+        self._labels.restart()
 
     @classmethod
     def protocol(cls) -> dict[str, Any]:
@@ -352,22 +344,7 @@ class SequenceApp(ABC):
         >>> te.description
         'Echo time (s). ``None`` is as short as the readout admits.'
         """
-        hints = typing.get_type_hints(cls.init_sequence)
-        documentation = documented(inspect.getdoc(cls.init_sequence))
-        entries = {}
-        for name, parameter in _prescribed(cls).items():
-            annotation = hints.get(name, parameter.annotation)
-            kind, description = documentation.get(name, ("", ""))
-            entries[name] = ProtocolParameter(
-                name=name,
-                type=scalar(annotation),
-                default=parameter.default,
-                optional=accepts_none(annotation),
-                unit=_unit(description),
-                choices=_choices(kind),
-                description=description,
-            )
-        return entries
+        return parameters(cls.init_sequence)
 
     def resolve(self, **values: Any) -> None:
         """Record the value a prescribed parameter took in the design.
@@ -402,7 +379,7 @@ class SequenceApp(ABC):
         >>> Pause().resolved, Pause(tr=20e-3).resolved
         ({'tr': 0.01}, {'tr': 0.02})
         """
-        unknown = sorted(set(values) - set(_prescribed(type(self))))
+        unknown = sorted(set(values) - set(_prescribed(type(self).init_sequence)))
         if unknown:
             raise TypeError(
                 f"{type(self).__name__}.init_sequence has no parameter "
@@ -420,7 +397,7 @@ class SequenceApp(ABC):
         values = {**self._requested, **self._resolved}
         return {
             name: values.get(name, parameter.default)
-            for name, parameter in _prescribed(type(self)).items()
+            for name, parameter in _prescribed(type(self).init_sequence).items()
         }
 
     def scan_time(self) -> float:
@@ -451,6 +428,72 @@ class SequenceApp(ABC):
         names = [*self.prescans(), None]
         return float(sum(self.design(name).duration()[0] for name in names))
 
+    @classmethod
+    def function(cls) -> Callable[..., pp.Sequence | list[pp.Sequence]]:
+        """Return the application as a sequence function, ``function(system, **protocol)``.
+
+        The function constructs the application from its arguments and returns
+        :meth:`design`. An application with prescans returns the list of its
+        designed prescans, in the order :meth:`prescans` lists them, followed
+        by the main sequence; :func:`pypulseqpp.sequences.write` writes that
+        list as the chain of linked files :meth:`write` writes. The signature
+        is ``system=None`` followed by the keyword parameters of
+        ``init_sequence``, and the documentation is the class's with the
+        ``Parameters`` of ``init_sequence``, so that
+        :func:`pypulseqpp.sequences.parameters` and :func:`pypulseqpp.cli.run`
+        read the protocol from the function as they read it from the class.
+
+        Returns
+        -------
+        callable
+            The sequence function.
+
+        Examples
+        --------
+        >>> from pypulseqpp import sequences
+        >>> gre = sequences.gre2D_sequence.Gre2DApp.function()
+        >>> gre(n_x=32, n_y=16, n_acs_y=0).definitions["Matrix"]
+        [32.0, 16.0, 1.0]
+
+        An application with prescans returns its chain:
+
+        >>> epi = sequences.epi2D_sequence.Epi2DApp.function()
+        >>> [seq.get_definition("Name") for seq in epi(n_x=32, n_y=16)]
+        ['epi_2d_reference', 'epi_2d']
+        """
+
+        def sequence(system: pp.Opts | None = None, **protocol: Any):
+            app = cls(system, **protocol)
+            chain = [app.design(name) for name in app.prescans()]
+            return [*chain, app.design()] if chain else app.design()
+
+        hints = typing.get_type_hints(cls.init_sequence)
+        parameters = [
+            inspect.Parameter(
+                "system",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                default=None,
+                annotation=pp.Opts | None,
+            ),
+            *(
+                parameter.replace(
+                    kind=parameter.KEYWORD_ONLY,
+                    annotation=hints.get(name, parameter.annotation),
+                )
+                for name, parameter in _prescribed(cls.init_sequence).items()
+            ),
+        ]
+        returns = pp.Sequence | list[pp.Sequence]
+        sequence.__signature__ = inspect.Signature(
+            parameters, return_annotation=returns
+        )
+        sequence.__annotations__ = {
+            **{parameter.name: parameter.annotation for parameter in parameters},
+            "return": returns,
+        }
+        sequence.__doc__ = _documentation(cls, _SYSTEM_PARAMETER, _FUNCTION_RETURNS)
+        return sequence
+
     class _Main:
         """Module-level entry point of a concrete sequence implementation.
 
@@ -471,12 +514,66 @@ class SequenceApp(ABC):
     main = _Main()
 
 
-def _prescribed(cls: type[SequenceApp]) -> dict[str, inspect.Parameter]:
+def _prescribed(function: Callable[..., Any]) -> dict[str, inspect.Parameter]:
+    """Return the parameters a protocol names: those after the first, which is ``system`` or ``self``."""
     return {
         name: p
-        for name, p in inspect.signature(cls.init_sequence).parameters.items()
-        if name != "self" and p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+        for name, p in list(inspect.signature(function).parameters.items())[1:]
+        if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
     }
+
+
+def parameters(function: Callable[..., Any]) -> dict[str, ProtocolParameter]:
+    """Return each protocol parameter of a sequence function with its type, default, unit and description.
+
+    The protocol is every parameter after the first, which is ``system``. Its
+    type, default and whether it admits None are read from the annotation and
+    the default; its unit, choices and description from the NumPy
+    ``Parameters`` section of the docstring.
+
+    Parameters
+    ----------
+    function : callable
+        A sequence function ``function(system, **protocol)``.
+
+    Returns
+    -------
+    dict[str, ProtocolParameter]
+        One entry per protocol parameter, in signature order.
+
+    Examples
+    --------
+    >>> from pypulseqpp import sequences
+    >>> def gre(system, *, te: float | None = None, n: int = 64):
+    ...     '''Gradient echo.
+    ...
+    ...     Parameters
+    ...     ----------
+    ...     te : float | None, default=None
+    ...         Echo time (s). ``None`` is as short as the readout admits.
+    ...     n : int, default=64
+    ...         Matrix size.
+    ...     '''
+    >>> protocol = sequences.parameters(gre)
+    >>> list(protocol), protocol["te"].unit, protocol["te"].optional
+    (['te', 'n'], 's', True)
+    """
+    hints = typing.get_type_hints(function)
+    documentation = documented(inspect.getdoc(function))
+    entries = {}
+    for name, parameter in _prescribed(function).items():
+        annotation = hints.get(name, parameter.annotation)
+        kind, description = documentation.get(name, ("", ""))
+        entries[name] = ProtocolParameter(
+            name=name,
+            type=scalar(annotation),
+            default=parameter.default,
+            optional=accepts_none(annotation),
+            unit=_unit(description),
+            choices=_choices(kind),
+            description=description,
+        )
+    return entries
 
 
 def _make_main(cls: type[SequenceApp]):
@@ -534,26 +631,30 @@ def _make_main(cls: type[SequenceApp]):
     main.__qualname__ = "main"
     main.write_to = write_to
 
-    summary, description, sections = _split_sections(inspect.getdoc(cls) or "")
-    parameters = "\n".join(
-        filter(None, (_MAIN_PARAMETERS, _section(cls.init_sequence, "Parameters")))
+    main.__doc__ = _documentation(
+        cls, _MAIN_PARAMETERS, "pypulseqpp.Sequence\n    The designed sequence."
     )
-    raises = _section(cls.init_sequence, "Raises")
-    main.__doc__ = "\n\n".join(
+    return main
+
+
+def _documentation(cls: type[SequenceApp], parameters: str, returns: str) -> str:
+    """Return the class's documentation, with ``parameters`` ahead of ``init_sequence``'s and ``returns`` as the Returns."""
+    summary, description, sections = _split_sections(inspect.getdoc(cls) or "")
+    entries = "\n".join(
+        filter(None, (parameters, _section(cls.init_sequence, "Parameters")))
+    )
+    return "\n\n".join(
         part
         for part in (
             summary,
             description,
-            _numpy_section("Parameters", parameters),
-            _numpy_section(
-                "Returns", "pypulseqpp.Sequence\n    The designed sequence."
-            ),
-            _numpy_section("Raises", raises),
+            _numpy_section("Parameters", entries),
+            _numpy_section("Returns", returns),
+            _numpy_section("Raises", _section(cls.init_sequence, "Raises")),
             *(_numpy_section(name, body) for name, body in sections),
         )
         if part
     )
-    return main
 
 
 def _numpy_section(name: str, body: str) -> str:

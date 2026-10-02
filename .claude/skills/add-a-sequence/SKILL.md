@@ -1,6 +1,6 @@
 ---
 name: add-a-sequence
-description: Add a complete sequence to examples/sequence/, or change one that is already shipped. Use when a new SequenceApp has to be written, classified in the catalogue, given a gallery page and covered by tests, so that the documentation build and the docs tests stay consistent.
+description: Add a complete sequence to examples/sequence/, or change one that is already shipped. Use when a new sequence function has to be written, or a shipped SequenceApp changed, classified in the catalogue, given a gallery page and covered by tests, so that the documentation build and the docs tests stay consistent.
 ---
 
 # Add a shipped sequence
@@ -9,10 +9,37 @@ A shipped sequence is a module under `examples/sequence/`, installed as
 `pypulseqpp.sequences.<name>`. Adding one touches five places; the docs tests
 fail if any is left out.
 
-## 1. The application module
+## 1. The sequence module
 
-One `SequenceApp` subclass per module, with `main = <App>.main` at module
-level, so the module is callable as that `main`.
+A new sequence is a function `sequence(system, **protocol)` that returns a
+`Sequence`, or a list of sequences with the prescans first and the main
+sequence last.
+
+- The keyword parameters after `system` are the protocol. The CLI derives its
+  flags from the signature and its help text from the NumPy-style `Parameters`
+  section, and `sequences.parameters` reads the same for protocol editors. Every
+  parameter with a default records it as ``default=<repr>``, and the documented
+  value has to match the signature — `tests/test_docstring_defaults.py` enforces
+  this.
+- A quantity's unit is the parenthesised group in the first sentence of its
+  description, `Echo time (s).`, and a string parameter lists its values in its
+  type, `{'slab', 'nonselective'}`.
+- The function holds `system` to the limits it is designed under with
+  `pp.cap_system`, raises `ValueError` for a prescription it cannot design,
+  writes label events with `sequences.Labels`, records the definitions a
+  reconstruction reads, and returns the sequence. Settings a user does not
+  prescribe are module constants.
+- Prescans are further sequences in the returned list. `sequences.write` and
+  `cli.run` write the list as files linked through `NextSequence`, so each file
+  stays one repeating unit; a prescan's `Name` definition names its file.
+- Module-level helpers may stay in the script, but nothing may be imported
+  from `examples/`.
+
+### A `SequenceApp` subclass
+
+A shipped sequence that is a `SequenceApp` subclass is one class per module,
+with `main = <App>.main` at module level, so the module is callable as that
+`main`. `<App>.function()` returns the class as a sequence function.
 
 - `MAX_GRAD` and `MAX_SLEW` are class attributes with no default: an
   application states the limits it is designed under. Every other setting a
@@ -36,8 +63,6 @@ level, so the module is callable as that `main`.
   and `finalize`.
 - Prescans listed by `prescans()` are written by `write()` as separate files
   linked through `NextSequence`, so each file stays one repeating unit.
-- Module-level helpers may stay in the script, but nothing may be imported
-  from `examples/`.
 
 The summary line of `main`'s docstring is read verbatim into the catalogue, so
 it classifies or describes the sequence and is not a tagline.
