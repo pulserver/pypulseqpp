@@ -12,7 +12,9 @@ __all__ = [
     "EventDefinitions",
     "GradientStatistics",
     "RfBandwidth",
+    "RfDefinition",
     "RfGradients",
+    "RfInstances",
     "RfTimes",
     "Waveforms",
     "WaveformsAndTimes",
@@ -309,6 +311,79 @@ class EventDefinitions:
     rf: np.ndarray
     gradient: np.ndarray
     adc: np.ndarray
+
+
+@dataclass(frozen=True)
+class RfDefinition:
+    """One RF pulse as the instances of a sequence play it, at unit peak magnitude.
+
+    An instance plays the RF amplitude ``amplitude * peak_hz * waveform`` on
+    its transmit channels, in Hz, at the sample times ``time``; see
+    :meth:`pypulseqpp.Sequence.rf_instances`.
+
+    Attributes
+    ----------
+    waveform : NDArray[np.complex128]
+        ``(channels, samples)``: the complex RF waveform of each transmit
+        channel, scaled to unit peak magnitude over all channels and samples,
+        with the block's RF shim applied. A single-transmit pulse has one
+        row, a dynamic pTx pulse one per channel, and a single-transmit pulse
+        under an RF shim one per shim weight. The RF event's frequency and
+        phase offsets are playout parameters and are not applied.
+    peak_hz : float
+        The peak magnitude, over all channels and samples, of the RF
+        amplitude of the base instance, in Hz.
+    time : NDArray[np.float64]
+        ``(samples,)``: the sample times in s from the start of the RF event,
+        its delay excluded. The channels share one time base.
+    delay : float
+        The delay of the RF event within its block, in s.
+    center : float
+        The RF pulse centre in s from the start of the RF event, as the event
+        states it.
+    use : str
+        The RF use: ``'excitation'``, ``'refocusing'``, ``'inversion'``,
+        ``'saturation'``, ``'preparation'``, ``'other'`` or ``'undefined'``.
+    flip_deg : float
+        The flip angle of the base instance's RF event in degrees, as
+        :meth:`pypulseqpp.Sequence.rf_flip_angles` gives it, so without the
+        RF shim.
+    """
+
+    waveform: np.ndarray
+    peak_hz: float
+    time: np.ndarray
+    delay: float
+    center: float
+    use: str
+    flip_deg: float
+
+
+@dataclass(frozen=True)
+class RfInstances:
+    """The RF events a sequence plays, and the distinct RF pulses they play.
+
+    One instance per block that contains an RF event, in block order; see
+    :meth:`pypulseqpp.Sequence.rf_instances`.
+
+    Attributes
+    ----------
+    definitions : tuple[RfDefinition, ...]
+        The distinct pulses, numbered in order of first play.
+    definition : NDArray[np.intp]
+        ``(n,)``: the index into ``definitions`` of the pulse each instance
+        plays.
+    amplitude : NDArray[np.float64]
+        ``(n,)``: the RF amplitude of each instance over that of the base
+        instance of its definition, which is the first instance with a
+        nonzero RF amplitude and so has amplitude 1. A definition played only
+        at amplitude zero has amplitude 1 for every instance and a zero
+        ``peak_hz``.
+    """
+
+    definitions: tuple[RfDefinition, ...]
+    definition: np.ndarray
+    amplitude: np.ndarray
 
 
 @dataclass(frozen=True)

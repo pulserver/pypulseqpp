@@ -21,7 +21,14 @@ from ._libraries import SequenceLibraries
 from ._libraries import libraries as _libraries
 from ._report import report_data as _report_data
 from ._report import report_text as _report_text
-from ._results import AdcEchoes, EventDefinitions, GradientStatistics, RfGradients
+from ._results import (
+    AdcEchoes,
+    EventDefinitions,
+    GradientStatistics,
+    RfGradients,
+    RfInstances,
+)
+from ._rf_instances import rf_instances as _rf_instances
 from ._sound import SOUND_SAMPLE_RATE
 from ._sound import gradient_sound as _gradient_sound
 from ._waveforms import _expand as _expand_waveforms
@@ -1636,6 +1643,72 @@ class Sequence:
         [1, 1]
         """
         return self._native.instance_definitions()
+
+    def rf_instances(self) -> RfInstances:
+        """Return the RF events the sequence plays, and the distinct RF pulses they play.
+
+        One instance per block that contains an RF event, in block order. An
+        instance plays a definition: an RF pulse of one waveform, timing and
+        use under one RF shim, or none. Its amplitude, frequency offset and
+        phase offset are its own, and the offsets are not returned.
+
+        Returns
+        -------
+        RfInstances
+            ``definitions``, numbered in order of first play; ``definition``,
+            the one each instance plays; and ``amplitude``, each instance's
+            RF amplitude over that of its definition's base instance.
+
+        Raises
+        ------
+        ValueError
+            If a block plays a dynamic pTx pulse under an RF shim of another
+            channel count.
+
+        Notes
+        -----
+        Instances share a definition when they play the same RF event
+        definition, as :meth:`event_definitions` partitions the events, under
+        an equal RF shim. The partition is read from a copy of the sequence
+        with its libraries collapsed as :meth:`write` collapses them by
+        default, rows equal at the precision of the file becoming one row. So
+        equal pulses registered separately, and equal shims, are one
+        definition whether or not :meth:`remove_duplicates` has been called.
+        Waveforms, amplitudes and timing are read from this sequence, which is
+        not changed.
+
+        The base instance of a definition is its first instance with a
+        nonzero RF amplitude, or its first instance when there is none. A
+        dynamic pTx pulse is one instance of one definition, with a row per
+        channel as :func:`split_ptx_pulse` splits it. An RF shim multiplies
+        channel ``c`` by its complex weight ``s_c``, and a single-transmit
+        pulse is played on every channel of its shim.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)
+        >>> for amplitude in (250.0, 125.0):
+        ...     pulse.amplitude = amplitude
+        ...     _ = seq.add_block(pulse)
+        >>> found = seq.rf_instances()
+        >>> found.definition.tolist(), found.amplitude.tolist()
+        ([0, 0], [1.0, 0.5])
+        >>> found.definitions[0].peak_hz, found.definitions[0].flip_deg
+        (250.0, 90.0)
+        >>> found.definitions[0].waveform.tolist()
+        [[(1+0j), (1+0j)]]
+
+        An RF shim gives a single-transmit pulse a row per channel:
+
+        >>> _ = seq.add_block(pulse, pp.make_rf_shim([1.0, 0.5j]))
+        >>> shimmed = seq.rf_instances().definitions[1]
+        >>> shimmed.peak_hz, shimmed.waveform.round(3).tolist()
+        (125.0, [[(1+0j), (1+0j)], [0.5j, 0.5j]])
+        """
+        return _rf_instances(self)
 
     def gradient_statistics(self) -> GradientStatistics:
         """Return statistics of each gradient event's waveform, along its channel axis.

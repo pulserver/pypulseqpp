@@ -45,6 +45,7 @@ from ._opts import Opts as _Opts
 from ._ptx import calc_rf_shim, split_ptx_pulse
 from ._ptx import make_ptx_pulse as _make_ptx_pulse
 from ._ptx import make_spokes_pulse as _make_spokes_pulse
+from ._results import RfDefinition, RfInstances
 from ._rf_pulses import make_2d_selective_pulse as _make_2d_selective_pulse
 from ._rf_pulses import make_half_passages as _make_half_passages
 from ._rf_pulses import make_recursive_slr_pulses as _make_recursive_slr_pulses
