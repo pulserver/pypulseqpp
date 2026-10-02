@@ -4,7 +4,7 @@ import inspect
 
 import numpy as np
 import pytest
-from zoo import APPLICATIONS, FUNCTIONS, SMALL, application, chain, parameters
+from zoo import FUNCTIONS, SMALL, app_class, chain, parameters
 
 import pypulseqpp as pp
 from pypulseqpp import sequences
@@ -122,18 +122,18 @@ def test_without_a_stated_scan_time_the_whole_chain_is_designed_and_timed():
     assert app.seq.duration()[0] == pytest.approx(40e-3)
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_the_scan_time_is_the_time_the_designed_chain_plays(name):
-    app = application(name)(pp.Opts(), **SMALL[name])
+    app = app_class(name)(pp.Opts(), **SMALL[name])
     stated = app.scan_time()
     designed = [app.design(prescan).duration()[0] for prescan in app.prescans()]
 
     assert stated == pytest.approx(sum(designed) + app.design().duration()[0])
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_every_shipped_application_states_its_scan_time(name):
-    assert application(name)(pp.Opts(), **SMALL[name]).duration is not None
+    assert app_class(name)(pp.Opts(), **SMALL[name]).duration is not None
 
 
 #: The definition a shipped application records each prescribed parameter as.
@@ -151,10 +151,10 @@ RECORDED = {
 }
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_the_resolved_prescription_is_what_the_file_records(name):
     """A multi-echo ``TE`` lists every echo: ``te``, then one ``echo_spacing`` apart."""
-    app = application(name)(pp.Opts(), **SMALL[name])
+    app = app_class(name)(pp.Opts(), **SMALL[name])
     written, resolved = app.design().definitions, app.resolved
     recorded = {
         parameter: np.atleast_1d(written[key])
@@ -172,19 +172,19 @@ def test_the_resolved_prescription_is_what_the_file_records(name):
         )
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_the_resolved_prescription_resolves_to_itself(name):
     """Prescribing what a design resolved to designs it again."""
-    app = application(name)(pp.Opts(), **SMALL[name])
-    again = application(name)(pp.Opts(), **app.resolved)
+    app = app_class(name)(pp.Opts(), **SMALL[name])
+    again = app_class(name)(pp.Opts(), **app.resolved)
 
     for parameter, value in app.resolved.items():
         assert again.resolved[parameter] == pytest.approx(value, rel=1e-9), parameter
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
-    app = application(name)(pp.Opts(), **SMALL[name])
+    app = app_class(name)(pp.Opts(), **SMALL[name])
     seq = app.design()
     blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
     (dwell,) = {float(block.adc.dwell) for block in blocks if block.adc is not None}

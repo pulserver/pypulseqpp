@@ -157,6 +157,11 @@ def legacy_application(name):
     return app
 
 
+def app_class(name):
+    """The ``SequenceApp`` subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
+    return application(name) if is_application(name) else legacy_application(name)
+
+
 def function(name):
     """The sequence function of the sequence ``name``, ``function(system, **protocol)``."""
     if is_application(name):

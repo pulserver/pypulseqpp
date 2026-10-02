@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 
 import pytest
-from zoo import APPLICATIONS, SMALL, application, is_application, legacy_application
+from zoo import SMALL, app_class
 
 import pypulseqpp as pp
 from pypulseqpp import _ext, cli, sequences
@@ -22,11 +22,6 @@ def delay(seconds, name=None):
 def events(written):
     """Each label event as its label, its type and its value."""
     return [(event.label, event.type, event.value) for event in written]
-
-
-def app_class(name):
-    """The SequenceApp subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
-    return application(name) if is_application(name) else legacy_application(name)
 
 
 # -- labels ------------------------------------------------------------------
@@ -260,9 +255,9 @@ def test_the_system_is_not_a_protocol_parameter():
     assert (protocol["n"].type, protocol["n"].optional) == (int, True)
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_parameters_of_a_function_match_those_of_its_class(name):
-    app = application(name)
+    app = app_class(name)
 
     assert sequences.parameters(app.function()) == app.parameters()
 
