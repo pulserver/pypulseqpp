@@ -93,8 +93,10 @@ acquisition. A sequence function returns it ahead of the main sequence in a
 list. {func}`~pypulseqpp.sequences.write` writes the list as separate files: the
 first at the given path, and each later one beside it as `<stem>_<Name>.seq`,
 where `Name` is the sequence's `Name` definition, or its position in the list,
-counted from 0 at the first, when it has none. Each file but the last names the
-next with `NextSequence`. The chain represents one acquisition while retaining
+counted from 0 at the first, when it has none. A later file whose name an
+earlier file has taken is written as `<stem>_<Name>_<position>.seq`, so every
+sequence has a file of its own. Each file but the last names the next with
+`NextSequence`. The chain represents one acquisition while retaining
 a single repeating unit per file for repetition-based analyses.
 {func}`~pypulseqpp.sequences.duration` is the sum of the durations of the
 sequences in the chain.

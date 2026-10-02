@@ -13,6 +13,16 @@ def _chain(result: pp.Sequence | list[pp.Sequence]) -> list[pp.Sequence]:
     return [result] if isinstance(result, pp.Sequence) else list(result)
 
 
+def _paths(path: Path, chain: list[pp.Sequence]) -> list[Path]:
+    paths = [path] if chain else []
+    for index, seq in enumerate(chain[1:], start=1):
+        name = f"{path.stem}_{seq.get_definition('Name') or index}"
+        while path.with_name(f"{name}.seq") in paths:
+            name = f"{name}_{index}"
+        paths.append(path.with_name(f"{name}.seq"))
+    return paths
+
+
 def write(
     path: str | Path,
     result: pp.Sequence | list[pp.Sequence],
@@ -25,9 +35,12 @@ def write(
     in order, prescans first and the main sequence last: the first is written
     at ``path`` and each later one beside it as ``<stem>_<Name>.seq``, where
     ``<Name>`` is the sequence's ``Name`` definition, or its position in the
-    chain, counted from 0 at the first, when it has none. Each file but the
-    last records the next file's name as its ``NextSequence`` definition, so
-    an interpreter plays the chain as one scan while every file stays one
+    chain, counted from 0 at the first, when it has none. A later file whose
+    name an earlier file has taken is written as
+    ``<stem>_<Name>_<position>.seq``, where ``<position>`` is its position in
+    the chain, so every sequence has a file of its own. Each file but the last
+    records the next file's name as its ``NextSequence`` definition, so an
+    interpreter plays the chain as one scan while every file stays one
     repeating unit. The definition is recorded in the file and not on the
     sequence.
 
@@ -71,13 +84,7 @@ def write(
     ['scan.seq', 'scan_scan.seq']
     """
     chain = _chain(result)
-    path = Path(path)
-    paths = [
-        path
-        if index == 0
-        else path.with_name(f"{path.stem}_{seq.get_definition('Name') or index}.seq")
-        for index, seq in enumerate(chain)
-    ]
+    paths = _paths(Path(path), chain)
     for index, (seq, target) in enumerate(zip(chain, paths, strict=True)):
         written = seq.remove_duplicates()
         if index + 1 < len(chain):

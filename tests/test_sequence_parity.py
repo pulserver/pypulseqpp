@@ -907,18 +907,10 @@ def function_chain(name, limits, protocol):
 
 
 def written(directory, chain):
-    """``(file name, bytes)`` of each file ``sequences.write`` writes for ``chain``.
-
-    Sequences that record one ``Name`` are written to one file, so each sequence
-    is also written alone, after the chain, and its bytes follow.
-    """
+    """``(file name, bytes)`` of each file ``sequences.write`` writes for ``chain``."""
     directory.mkdir()
     paths = sequences.write(directory / "scan.seq", chain)
-    files = [(Path(path).name, Path(path).read_bytes()) for path in paths]
-    for index, seq in enumerate(chain):
-        (alone,) = sequences.write(directory / f"alone_{index}.seq", seq)
-        files.append((Path(alone).name, Path(alone).read_bytes()))
-    return files
+    return [(Path(path).name, Path(path).read_bytes()) for path in paths]
 
 
 def plays_prescans(name):
