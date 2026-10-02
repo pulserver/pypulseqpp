@@ -572,12 +572,12 @@ phase to it; excitations then alternate between phase pi and 0, the ADC
 following. <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> marks the half flip (1), the train (0) and the closing
 rewind (2), so the whole slice is one repetition of the scan. Slices play
 one after another, since a steady state does not survive interleaving,
-and a slice longer than <code class="xref py py-attr docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code> is refused.</p>
+and a slice longer than <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code> is refused.</p>
 <p>The phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
 <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled for one heartbeat, the
 interpreter’s ECG log binning it into cardiac phases; under
 <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating every heartbeat opens with a trigger event on
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, then plays the segment once per cardiac phase;
+<code class="docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, then plays the segment once per cardiac phase;
 the first heartbeat’s trigger precedes the half flip, so the whole train
 is timed from the R wave, and a slice held in one heartbeat is a triggered
 single shot.
@@ -587,11 +587,8 @@ are marked <code class="docutils literal notranslate"><span class="pre">IMA</spa
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Draw the finished sequence in SeqEyes.</p></li>
-<li><p><strong>test_report</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Print a report on the finished sequence.</p></li>
-<li><p><strong>write_seq</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write the sequence to a .seq file.</p></li>
-<li><p><strong>seq_filename</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Where to write it; <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;.seq</span></code> when omitted.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the application’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the module’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (80 mT/m) and
+<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (200 T/m/s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">pypulseqpp.Opts()</span></code>.</p></li>
 <li><p><strong>fov_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.3</em>) – Field of view along the readout and the phase encode (m).</p></li>
 <li><p><strong>fov_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.3</em>) – Field of view along the readout and the phase encode (m).</p></li>
 <li><p><strong>n_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=192</em>) – Readout matrix size.</p></li>
@@ -631,7 +628,7 @@ without gating.</p></li>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, a prospective heartbeat cannot
     hold its phases, a slice
-    outlasts <code class="xref py py-attr docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code>, or the TR is shorter than the
+    outlasts <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code>, or the TR is shorter than the
     balanced repetition, or too short beside the pulse for the half
     flip.</p>
 </dd>

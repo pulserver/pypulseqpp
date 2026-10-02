@@ -570,8 +570,8 @@
 <span class="sd">    that changes one, and nothing else, is the same sequence under a different</span>
 <span class="sd">    setting::</span>
 
-<span class="sd">        class GentleGre2D(Gre2DApp):</span>
-<span class="sd">            MAX_SLEW = 120.0</span>
+<span class="sd">        class GentlePulseTrain(HardPulseTrain):</span>
+<span class="sd">            MAX_SLEW = 100.0</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -841,11 +841,23 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from pypulseqpp import sequences</span>
-<span class="sd">        &gt;&gt;&gt; te = sequences.gre2D_sequence.Gre2DApp.parameters()["te"]</span>
-<span class="sd">        &gt;&gt;&gt; te.type, te.default, te.optional, te.unit</span>
-<span class="sd">        (&lt;class 'float'&gt;, 0.008, True, 's')</span>
-<span class="sd">        &gt;&gt;&gt; te.description</span>
-<span class="sd">        'Echo time (s). ``None`` is as short as the readout admits.'</span>
+<span class="sd">        &gt;&gt;&gt; class Pause(sequences.SequenceApp):</span>
+<span class="sd">        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0</span>
+<span class="sd">        ...     def init_sequence(self, tr: float | None = None):</span>
+<span class="sd">        ...         '''Design a pause.</span>
+<span class="sd">        ...</span>
+<span class="sd">        ...         Parameters</span>
+<span class="sd">        ...         ----------</span>
+<span class="sd">        ...         tr : float | None, default=None</span>
+<span class="sd">        ...             Repetition time (s). ``None`` is as short as possible.</span>
+<span class="sd">        ...         '''</span>
+<span class="sd">        ...     def loop(self): ...</span>
+<span class="sd">        ...     def kernel(self): ...</span>
+<span class="sd">        &gt;&gt;&gt; tr = Pause.parameters()["tr"]</span>
+<span class="sd">        &gt;&gt;&gt; tr.type, tr.default, tr.optional, tr.unit</span>
+<span class="sd">        (&lt;class 'float'&gt;, None, True, 's')</span>
+<span class="sd">        &gt;&gt;&gt; tr.description</span>
+<span class="sd">        'Repetition time (s). ``None`` is as short as possible.'</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">parameters</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span></div>
 
@@ -925,12 +937,23 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
 <span class="sd">        &gt;&gt;&gt; from pypulseqpp import sequences</span>
-<span class="sd">        &gt;&gt;&gt; app = sequences.gre2D_sequence.Gre2DApp(n_x=32, n_y=16, tr=50e-3, n_dummy=0)</span>
+<span class="sd">        &gt;&gt;&gt; class Pause(sequences.SequenceApp):</span>
+<span class="sd">        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0</span>
+<span class="sd">        ...     def init_sequence(self, n: int = 4):</span>
+<span class="sd">        ...         self.n = n</span>
+<span class="sd">        ...         self.duration = n * 10e-3</span>
+<span class="sd">        ...     def loop(self):</span>
+<span class="sd">        ...         for _ in range(self.n):</span>
+<span class="sd">        ...             self.kernel()</span>
+<span class="sd">        ...     def kernel(self):</span>
+<span class="sd">        ...         self.seq.add_block(pp.make_delay(10e-3))</span>
+<span class="sd">        &gt;&gt;&gt; app = Pause(n=4)</span>
 <span class="sd">        &gt;&gt;&gt; app.scan_time()</span>
-<span class="sd">        0.8</span>
+<span class="sd">        0.04</span>
 <span class="sd">        &gt;&gt;&gt; round(app.design().duration()[0], 9)</span>
-<span class="sd">        0.8</span>
+<span class="sd">        0.04</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
@@ -962,16 +985,34 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
 <span class="sd">        &gt;&gt;&gt; from pypulseqpp import sequences</span>
-<span class="sd">        &gt;&gt;&gt; gre = sequences.gre2D_sequence.Gre2DApp.function()</span>
-<span class="sd">        &gt;&gt;&gt; gre(n_x=32, n_y=16, n_acs_y=0).definitions["Matrix"]</span>
-<span class="sd">        [32.0, 16.0, 1.0]</span>
+<span class="sd">        &gt;&gt;&gt; class Delays(sequences.SequenceApp):</span>
+<span class="sd">        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0</span>
+<span class="sd">        ...     def init_sequence(self, n: int = 2):</span>
+<span class="sd">        ...         self.n = n</span>
+<span class="sd">        ...     def loop(self):</span>
+<span class="sd">        ...         for _ in range(self.n):</span>
+<span class="sd">        ...             self.kernel()</span>
+<span class="sd">        ...     def kernel(self):</span>
+<span class="sd">        ...         self.seq.add_block(pp.make_delay(1e-3))</span>
+<span class="sd">        ...     def finalize(self):</span>
+<span class="sd">        ...         self.seq.set_definition("Name", "delays")</span>
+<span class="sd">        &gt;&gt;&gt; delays = Delays.function()</span>
+<span class="sd">        &gt;&gt;&gt; delays(n=3).num_blocks</span>
+<span class="sd">        3</span>
 
 <span class="sd">        An application with prescans returns its chain:</span>
 
-<span class="sd">        &gt;&gt;&gt; epi = sequences.epi2D_sequence.Epi2DApp.function()</span>
-<span class="sd">        &gt;&gt;&gt; [seq.get_definition("Name") for seq in epi(n_x=32, n_y=16)]</span>
-<span class="sd">        ['epi_2d_reference', 'epi_2d']</span>
+<span class="sd">        &gt;&gt;&gt; class PrimedDelays(Delays):</span>
+<span class="sd">        ...     def prescans(self):</span>
+<span class="sd">        ...         def reference():</span>
+<span class="sd">        ...             self.seq.add_block(pp.make_delay(2e-3))</span>
+<span class="sd">        ...             self.seq.set_definition("Name", "reference")</span>
+<span class="sd">        ...         return {"reference": reference}</span>
+<span class="sd">        &gt;&gt;&gt; primed = PrimedDelays.function()</span>
+<span class="sd">        &gt;&gt;&gt; [seq.get_definition("Name") for seq in primed(n=3)]</span>
+<span class="sd">        ['reference', 'delays']</span>
 <span class="sd">        """</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">sequence</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">protocol</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>

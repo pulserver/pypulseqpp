@@ -553,11 +553,23 @@
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">te</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">gre2D_sequence</span><span class="o">.</span><span class="n">Gre2DApp</span><span class="o">.</span><span class="n">parameters</span><span class="p">()[</span><span class="s2">"te"</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">te</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">optional</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">unit</span>
-<span class="go">(&lt;class 'float'&gt;, 0.008, True, 's')</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">te</span><span class="o">.</span><span class="n">description</span>
-<span class="go">'Echo time (s). ``None`` is as short as the readout admits.'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Pause</span><span class="p">(</span><span class="n">sequences</span><span class="o">.</span><span class="n">SequenceApp</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">MAX_GRAD</span><span class="p">,</span> <span class="n">MAX_SLEW</span> <span class="o">=</span> <span class="mf">40.0</span><span class="p">,</span> <span class="mf">150.0</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">init_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span><span class="w">        </span><span class="sd">'''Design a pause.</span>
+<span class="gp">...</span>
+<span class="gp">... </span><span class="sd">        Parameters</span>
+<span class="gp">... </span><span class="sd">        ----------</span>
+<span class="gp">... </span><span class="sd">        tr : float | None, default=None</span>
+<span class="gp">... </span><span class="sd">            Repetition time (s). ``None`` is as short as possible.</span>
+<span class="gp">... </span><span class="sd">        '''</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span> <span class="o">=</span> <span class="n">Pause</span><span class="o">.</span><span class="n">parameters</span><span class="p">()[</span><span class="s2">"tr"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">optional</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">unit</span>
+<span class="go">(&lt;class 'float'&gt;, None, True, 's')</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span><span class="o">.</span><span class="n">description</span>
+<span class="go">'Repetition time (s). ``None`` is as short as possible.'</span>
 </pre></div>
 </div>
 </dd></dl>
