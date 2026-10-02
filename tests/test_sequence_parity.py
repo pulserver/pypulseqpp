@@ -167,6 +167,198 @@ NON_DEFAULT = {
             "n_dummy": 0,
         },
     ],
+    "gre_radial2D_sequence": [
+        # A TE above the shortest, undersampled, in one packet.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "flip_angle_deg": 20.0,
+            "te": 5e-3,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "readout_oversampling": 1.0,
+        },
+        # Seven slices dealt into packets of three, two and two.
+        {"n": 32, "n_slices": 7, "te": None, "tr": 17e-3, "ry": 3, "n_dummy": 3},
+        # A TR that holds one slice: three packets, no dummies.
+        {"n": 16, "n_slices": 3, "te": None, "tr": 6e-3, "n_dummy": 0},
+    ],
+    "gre_spiral2D_sequence": [
+        # A dual-density interleaf, every second one of four.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "flip_angle_deg": 20.0,
+            "te": 4e-3,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "n_shots": 4,
+            "density": "dual",
+            "periphery_undersampling": 3.0,
+            "transition_speed": 8.0,
+        },
+        # A variable-density interleaf, every third one of six, in packets of
+        # three and two.
+        {
+            "n": 32,
+            "n_slices": 5,
+            "n_shots": 6,
+            "ry": 3,
+            "density": "variable",
+            "periphery_undersampling": 2.5,
+            "te": None,
+            "tr": 20e-3,
+            "n_dummy": 3,
+        },
+        # An odd number of constant-density interleaves, two slices, no dummies.
+        {"n": 24, "n_slices": 2, "n_shots": 5, "te": None, "tr": None, "n_dummy": 0},
+    ],
+    "gre_propeller2D_sequence": [
+        # Blades of eight lines, every second of the seven that cover the disc.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "flip_angle_deg": 20.0,
+            "te": None,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "blade_width": 8,
+        },
+        # Blades of seven lines, an odd width, in packets of three and two.
+        {
+            "n": 32,
+            "n_slices": 5,
+            "blade_width": 7,
+            "te": 4e-3,
+            "tr": 25e-3,
+            "ry": 2,
+            "n_dummy": 3,
+        },
+        # Blades as wide as the matrix, which two orientations cover.
+        {
+            "n": 24,
+            "n_slices": 2,
+            "blade_width": 24,
+            "te": None,
+            "tr": None,
+            "n_dummy": 0,
+        },
+    ],
+    "se_radial2D_sequence": [
+        # A TE above the shortest, which delays the refocusing pulse.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "te": 20e-3,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "readout_oversampling": 1.0,
+        },
+        # A TE off the block raster, which is rounded up, in packets of three
+        # and two.
+        {
+            "n": 32,
+            "n_slices": 5,
+            "te": 16.253e-3,
+            "tr": 60e-3,
+            "ry": 3,
+            "n_dummy": 1,
+        },
+        # A TR that holds one slice: three packets, no dummies.
+        {"n": 24, "n_slices": 3, "te": None, "tr": 15e-3, "n_dummy": 0},
+    ],
+    "se_spiral2D_sequence": [
+        # A dual-density interleaf, every second one of four, with a delayed
+        # refocusing pulse.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "te": 20e-3,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "n_shots": 4,
+            "density": "dual",
+            "periphery_undersampling": 3.0,
+            "transition_speed": 8.0,
+        },
+        # A variable-density interleaf at a TE off the block raster, in packets
+        # of three and two.
+        {
+            "n": 32,
+            "n_slices": 5,
+            "n_shots": 6,
+            "ry": 3,
+            "density": "variable",
+            "periphery_undersampling": 2.5,
+            "te": 16.253e-3,
+            "tr": 70e-3,
+            "n_dummy": 1,
+        },
+        # An odd number of constant-density interleaves, two slices, no dummies.
+        {"n": 24, "n_slices": 2, "n_shots": 5, "te": None, "tr": None, "n_dummy": 0},
+    ],
+    "se_propeller2D_sequence": [
+        # Blades of eight lines, every second of the seven that cover the disc,
+        # at the shortest TE the slower readout admits.
+        {
+            "fov": 0.24,
+            "n": 32,
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1.5e-3,
+            "te": None,
+            "tr": None,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "n_dummy": 2,
+            "blade_width": 8,
+        },
+        # Blades of seven lines at a TE off the block raster, in packets of
+        # three and two.
+        {
+            "n": 32,
+            "n_slices": 5,
+            "blade_width": 7,
+            "te": 16.253e-3,
+            "tr": 70e-3,
+            "ry": 2,
+            "n_dummy": 1,
+        },
+        # Blades as wide as the matrix, which two orientations cover.
+        {
+            "n": 24,
+            "n_slices": 2,
+            "blade_width": 24,
+            "te": 20e-3,
+            "tr": 100e-3,
+            "n_dummy": 0,
+        },
+    ],
 }
 
 #: ``(max_grad in mT/m, max_slew in T/m/s)`` of a system above the limits a
