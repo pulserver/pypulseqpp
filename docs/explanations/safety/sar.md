@@ -90,7 +90,7 @@ over the body models where the file carries one matrix per model.
 {meth}`~pypulseqpp.Sequence.repetition` detects from the sequence's block
 definitions, reported as `tr_size` blocks: consecutive windows of `tr_size`
 blocks from the first block, or the whole sequence as one window when its
-blocks do not divide into repetitions. A `TRsize` definition the sequence
+blocks do not divide into repetitions. A `TRSize` definition the sequence
 records is used when the blocks repeat with it.
 The result is `True` when every window's local SAR is at most `local_limit`
 and, with a global matrix, every window's global SAR is at most `global_limit`.
