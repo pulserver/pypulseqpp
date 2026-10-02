@@ -565,7 +565,7 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.epi2D_sequence">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">epi2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.epi2D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p>
-<p>Every shot reads <code class="xref py py-attr docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> centre lines without blips
+<p>Every shot reads <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> centre lines without blips
 (<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, and every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
 polarity. The trains are ramp-sampled with the blips on the read ramps.
 Segmented shots interleave on the phase-encode lattice, each delayed by
@@ -576,7 +576,7 @@ packets, even ones first. With one frame, slices one TR cannot hold are
 dealt round-robin into packets; a time series must fit every slice in
 one. A multiband shot excites <code class="docutils literal notranslate"><span class="pre">multiband</span></code> slices at once and a
 blipped-CAIPI train encodes the band in <code class="docutils literal notranslate"><span class="pre">PAR</span></code>.</p>
-<p>Two prescans are linked ahead of the imaging (<code class="xref py py-meth docutils literal notranslate"><span class="pre">prescans()</span></code>): the
+<p>Two prescans are linked ahead of the imaging: the
 <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, a single-band gradient echo per slice over the central
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>), when undersampled or multiband; and the
 <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>),
@@ -584,11 +584,8 @@ for distortion correction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Draw the finished sequence in SeqEyes.</p></li>
-<li><p><strong>test_report</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Print a report on the finished sequence.</p></li>
-<li><p><strong>write_seq</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write the sequence to a .seq file.</p></li>
-<li><p><strong>seq_filename</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Where to write it; <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;.seq</span></code> when omitted.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the application’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the module’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (80 mT/m) and
+<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (200 T/m/s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">pypulseqpp.Opts()</span></code>.</p></li>
 <li><p><strong>fov_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.22</em>) – Field of view along the readout and the phase encode (m).</p></li>
 <li><p><strong>fov_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.22</em>) – Field of view along the readout and the phase encode (m).</p></li>
 <li><p><strong>n_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=128</em>) – Readout matrix size.</p></li>
@@ -615,15 +612,18 @@ TE.</p></li>
 non-acquiring shots per slice before each packet.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=24</em>) – Phase-encode lines of the gradient-echo calibration.</p></li>
-<li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="xref py py-attr docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
+<li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
 excitation of every volume, dummy volumes included.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The designed sequence.</p>
+<dd class="field-even"><p>The designed sequences in play order: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code> when
+undersampled or multiband, the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, then the scan, which is
+the main sequence. <code class="docutils literal notranslate"><span class="pre">sequences.write</span></code> writes them as files linked
+through <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, a count is below
@@ -635,7 +635,9 @@ excitation of every volume, dummy volumes included.</p></li>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">*</span><span class="n">prescans</span><span class="p">,</span> <span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">prescan</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prescan</span> <span class="ow">in</span> <span class="n">prescans</span><span class="p">]</span>
+<span class="go">['epi_2d_reference']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"EPIFactor"</span><span class="p">],</span> <span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span>

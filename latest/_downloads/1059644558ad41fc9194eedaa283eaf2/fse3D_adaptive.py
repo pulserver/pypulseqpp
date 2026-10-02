@@ -34,8 +34,6 @@ plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 # sphinx_gallery_end_ignore
 from pypulseqpp import sequences
 
-Fse3DApp = sequences.fse3D_sequence.Fse3DApp
-
 P = {
     "n_x": 96,
     "n_y": 64,
@@ -54,8 +52,8 @@ P = {
     "flip_modulation": "optimized",
     "wave_amplitude": 0.0,
 }
-app = Fse3DApp(**P)
-seq = app.design()
+seq = sequences.fse3D_sequence(**P)
+n_shots = int(seq.get_definition("NumShots")[0])
 
 # %%
 # Train parameters
@@ -69,16 +67,30 @@ seq = app.design()
 # of representative shots are plotted up to each shot's own train length:
 # the central shots reach lower minimum angles, and the peripheral shots have
 # shallower minima and longer trains.
+#
+# The schedules are read from the pulses the sequence plays. The flip angle of
+# each refocusing pulse is that of its pulse definition scaled by the relative
+# amplitude of the instance, which is zero past the shot's own train length.
+# The TR of a shot is the interval from its excitation to the next; the last
+# shot's is recorded as ``TRPeriphery``.
+
+instances, rf_times = seq.rf_instances(), seq.rf_times(compat=False)
+use = np.asarray(rf_times.use)
+flip = np.array([rf.flip_deg for rf in instances.definitions])[instances.definition]
+angles = (flip * instances.amplitude)[use == "refocusing"].reshape(n_shots, -1)
+lengths = np.count_nonzero(angles, axis=1)
+excitations = np.asarray(rf_times.t)[use == "excitation"]
+tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
 
 # sphinx_gallery_start_ignore
-indices = np.unique(np.linspace(0, len(app.trains) - 1, 4, dtype=int))
+indices = np.unique(np.linspace(0, n_shots - 1, 4, dtype=int))
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
 for i in indices:
-    n = app.lengths[i]
-    label = f"shot {i}: ETL {n}, TR {app.times[i] * 1e3:.0f} ms"
-    axes[0].plot(np.arange(1, n + 1), app.flips[i, :n], label=label)
+    n = lengths[i]
+    label = f"shot {i}: ETL {n}, TR {tr[i] * 1e3:.0f} ms"
+    axes[0].plot(np.arange(1, n + 1), angles[i, :n], label=label)
 axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")
-axes[1].plot(np.arange(len(app.trains)), app.lengths, label="ETL")
+axes[1].plot(np.arange(n_shots), lengths, label="ETL")
 axes[1].set(xlabel="Shot index", ylabel="Echo-train length")
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(
@@ -112,7 +124,7 @@ kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.4), sharey=True)
 for ax, val, label in zip(
     axes,
-    (np.asarray(app.lengths)[shot], np.asarray(app.times)[shot] * 1e3),
+    (lengths[shot], tr[shot] * 1e3),
     ("Echo-train length", "TR (ms)"),
     strict=True,
 ):

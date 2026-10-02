@@ -548,9 +548,12 @@
 in order, prescans first and the main sequence last: the first is written
 at <code class="docutils literal notranslate"><span class="pre">path</span></code> and each later one beside it as <code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;.seq</span></code>, where
 <code class="docutils literal notranslate"><span class="pre">&lt;Name&gt;</span></code> is the sequence’s <code class="docutils literal notranslate"><span class="pre">Name</span></code> definition, or its position in the
-chain, counted from 0 at the first, when it has none. Each file but the
-last records the next file’s name as its <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> definition, so
-an interpreter plays the chain as one scan while every file stays one
+chain, counted from 0 at the first, when it has none. A later file whose
+name an earlier file has taken is written as
+<code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;_&lt;position&gt;.seq</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;position&gt;</span></code> is its position in
+the chain, so every sequence has a file of its own. Each file but the last
+records the next file’s name as its <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> definition, so an
+interpreter plays the chain as one scan while every file stays one
 repeating unit. The definition is recorded in the file and not on the
 sequence.</p>
 <dl class="field-list simple">

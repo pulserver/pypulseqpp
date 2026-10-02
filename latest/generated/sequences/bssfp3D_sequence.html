@@ -574,17 +574,14 @@ off-resonance bands; two cycles is CISS. Each cycle is a file of its own,
 a repeating unit from its first excitation, and a <code class="docutils literal notranslate"><span class="pre">catalyst</span></code> file ahead
 of it plays the half flip half a repetition before that excitation, at the
 phase the repetition before the first would have had. The files are
-chained in that order (<code class="xref py py-meth docutils literal notranslate"><span class="pre">prescans()</span></code>), so the scanner plays them as one
+chained in that order, so the scanner plays them as one
 table. Acquisitions carry their line, partition and cycle as <code class="docutils literal notranslate"><span class="pre">LIN</span></code>,
 <code class="docutils literal notranslate"><span class="pre">PAR</span></code> and <code class="docutils literal notranslate"><span class="pre">SET</span></code>, and calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Draw the finished sequence in SeqEyes.</p></li>
-<li><p><strong>test_report</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Print a report on the finished sequence.</p></li>
-<li><p><strong>write_seq</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write the sequence to a .seq file.</p></li>
-<li><p><strong>seq_filename</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Where to write it; <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;.seq</span></code> when omitted.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the application’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the module’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (80 mT/m) and
+<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (200 T/m/s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">pypulseqpp.Opts()</span></code>.</p></li>
 <li><p><strong>fov_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.22</em>) – Field of view along the readout, the phase encode and the
 partition encode (m). A slab excited is <code class="docutils literal notranslate"><span class="pre">fov_z</span></code> thick.</p></li>
 <li><p><strong>fov_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.22</em>) – Field of view along the readout, the phase encode and the
@@ -623,10 +620,11 @@ and the partition encode, when undersampled.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The designed sequence.</p>
+<dd class="field-even"><p>The designed sequences in play order: each phase cycle’s catalyst, then
+its train. The last is the main sequence.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> is unknown, a partial Fourier fraction is outside
@@ -637,8 +635,10 @@ and the partition encode, when undersampled.</p></li>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">bssfp3D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">bssfp3D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"Name"</span><span class="p">)</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">]</span>
+<span class="go">['bssfp_3d_catalyst', 'bssfp_3d']</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">all</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>

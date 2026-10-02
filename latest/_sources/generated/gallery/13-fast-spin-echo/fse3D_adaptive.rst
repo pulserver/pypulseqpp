@@ -32,14 +32,12 @@ assigned by an adaptive radial order. Longer trains and a different TR at the
 periphery can reduce scan time, while the contrast at the centre of k-space
 is set by the parameters of the central shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-60
+.. GENERATED FROM PYTHON SOURCE LINES 16-58
 
 .. code-block:: Python
 
 
     from pypulseqpp import sequences
-
-    Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
     P = {
         "n_x": 96,
@@ -59,8 +57,8 @@ is set by the parameters of the central shots.
         "flip_modulation": "optimized",
         "wave_amplitude": 0.0,
     }
-    app = Fse3DApp(**P)
-    seq = app.design()
+    seq = sequences.fse3D_sequence(**P)
+    n_shots = int(seq.get_definition("NumShots")[0])
 
 
 
@@ -69,7 +67,7 @@ is set by the parameters of the central shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-72
+.. GENERATED FROM PYTHON SOURCE LINES 59-76
 
 Train parameters
 ----------------
@@ -83,7 +81,25 @@ of representative shots are plotted up to each shot's own train length:
 the central shots reach lower minimum angles, and the peripheral shots have
 shallower minima and longer trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-95
+The schedules are read from the pulses the sequence plays. The flip angle of
+each refocusing pulse is that of its pulse definition scaled by the relative
+amplitude of the instance, which is zero past the shot's own train length.
+The TR of a shot is the interval from its excitation to the next; the last
+shot's is recorded as ``TRPeriphery``.
+
+.. GENERATED FROM PYTHON SOURCE LINES 76-107
+
+.. code-block:: Python
+
+
+    instances, rf_times = seq.rf_instances(), seq.rf_times(compat=False)
+    use = np.asarray(rf_times.use)
+    flip = np.array([rf.flip_deg for rf in instances.definitions])[instances.definition]
+    angles = (flip * instances.amplitude)[use == "refocusing"].reshape(n_shots, -1)
+    lengths = np.count_nonzero(angles, axis=1)
+    excitations = np.asarray(rf_times.t)[use == "excitation"]
+    tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
+
 
 
 
@@ -97,7 +113,7 @@ shallower minima and longer trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-105
+.. GENERATED FROM PYTHON SOURCE LINES 108-117
 
 Adaptive radial ordering
 ------------------------
@@ -109,7 +125,7 @@ slots nearest the effective-TE echo of the central shots, and within each group 
 are assigned to shots in order of angle. Colour gives the train length and
 TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 105-127
+.. GENERATED FROM PYTHON SOURCE LINES 117-139
 
 
 
@@ -123,7 +139,7 @@ TR of the shot that acquired each view.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-138
+.. GENERATED FROM PYTHON SOURCE LINES 140-150
 
 References
 ----------
@@ -139,7 +155,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.584 seconds)
+   **Total running time of the script:** (0 minutes 3.032 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

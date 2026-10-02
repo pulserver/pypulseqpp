@@ -527,6 +527,7 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription">Prescription</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.fse3D_sequence"><code class="docutils literal notranslate"><span class="pre">fse3D_sequence()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#designed-and-drawn">Designed and drawn</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
@@ -587,11 +588,8 @@ its TR, so the scan stays one repeating train.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Draw the finished sequence in SeqEyes.</p></li>
-<li><p><strong>test_report</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Print a report on the finished sequence.</p></li>
-<li><p><strong>write_seq</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write the sequence to a .seq file.</p></li>
-<li><p><strong>seq_filename</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Where to write it; <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;.seq</span></code> when omitted.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the application’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits, held under the module’s <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (80 mT/m) and
+<code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (200 T/m/s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">pypulseqpp.Opts()</span></code>.</p></li>
 <li><p><strong>fov_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.16</em>) – Field of view along the readout, the phase encode and the
 partition encode (m). A slab excited is <code class="docutils literal notranslate"><span class="pre">fov_z</span></code> thick.</p></li>
 <li><p><strong>fov_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.16</em>) – Field of view along the readout, the phase encode and the
@@ -652,7 +650,7 @@ marked <code class="docutils literal notranslate"><span class="pre">IMA</span></
 <li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Requested peak wave-encoding gradient amplitude (T/m); zero, the
 default, plays no wave. The slew rate may lower it.</p></li>
 <li><p><strong>navigator</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play three-plane spiral navigators after each train, as many as
-the shortest TR holds up to <code class="xref py py-attr docutils literal notranslate"><span class="pre">NAVIGATOR_COUNT</span></code>.</p></li>
+the shortest TR holds up to <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_COUNT</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -683,6 +681,18 @@ the shortest TR holds up to <code class="xref py py-attr docutils literal notran
 </div>
 </dd></dl>
 
+<section id="designed-and-drawn">
+<h3>Designed and drawn<a class="headerlink" href="#designed-and-drawn" title="Link to this heading">#</a></h3>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to the shots that acquire central and peripheral k-space [BUO25]_. From the central to the peripheral shots, TR and the minimum and maximum angles of the refocusing schedule [BUS08b]_ follow a cubic smooth-step transition between their two limits; the echo-train length follows the same transition, rounded to integer values. The views are assigned by an adaptive radial order. Longer trains and a different TR at the periphery can reduce scan time, while the contrast at the centre of k-space is set by the parameters of the central shots."><img alt="" src="../../_images/sphx_glr_fse3D_adaptive_thumb.png" />
+<p><a class="reference internal" href="../gallery/13-fast-spin-echo/fse3D_adaptive.html"><span class="doc">Individually optimized 3D fast spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Individually optimized 3D fast spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging."><img alt="" src="../../_images/sphx_glr_fse3D_sequence_thumb.png" />
+<p><a class="reference internal" href="../gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">Conventional 3D fast spin echo</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Conventional 3D fast spin echo</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in raster order, and the echo position of each view within its train is random, which determines when each view is acquired. Together, the variable-density support and the random echo positions give each echo time a subset of views spread over the sampled extent without a regular pattern, the sampling condition of echo-resolved subspace reconstruction [TAM17]_; no reconstruction is performed here."><img alt="" src="../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
+<p><a class="reference internal" href="../gallery/13-fast-spin-echo/fse3D_shuffling.html"><span class="doc">Shuffled echo-resolved 3D FSE</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Shuffled echo-resolved 3D FSE</div>
+</div></div></section>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
@@ -722,6 +732,7 @@ the shortest TR holds up to <code class="xref py py-attr docutils literal notran
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription">Prescription</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.fse3D_sequence"><code class="docutils literal notranslate"><span class="pre">fse3D_sequence()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#designed-and-drawn">Designed and drawn</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>

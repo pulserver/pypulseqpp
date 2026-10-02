@@ -38,7 +38,7 @@ each echo train. 3D EPI supports rapid structural and functional imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 145-152
+.. GENERATED FROM PYTHON SOURCE LINES 145-155
 
 Accelerated acquisition
 -----------------------
@@ -48,7 +48,10 @@ shots per shell, and a nonzero CAIPI shift. Each shot reads every third sampled 
 successive echoes therefore contain both the skipped-line displacement and
 the partition jump.
 
-.. GENERATED FROM PYTHON SOURCE LINES 152-171
+``epi3D_sequence`` returns the prescans in play order and then the scan, so
+each design below is the last element of the returned list.
+
+.. GENERATED FROM PYTHON SOURCE LINES 155-174
 
 .. code-block:: Python
 
@@ -63,7 +66,7 @@ the partition jump.
         rz=4,
         n_shots=3,
         n_dummy=0,
-    )
+    )[-1]
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
     print(
         f"CAIPI shift {int(baseline.get_definition('CaipiShift')[0])}, "
@@ -85,12 +88,12 @@ the partition jump.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-174
+.. GENERATED FROM PYTHON SOURCE LINES 175-177
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 174-177
+.. GENERATED FROM PYTHON SOURCE LINES 177-180
 
 .. code-block:: Python
 
@@ -109,7 +112,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-192
+.. GENERATED FROM PYTHON SOURCE LINES 181-195
 
 Skipped-CAIPI traversal
 -----------------------
@@ -126,7 +129,7 @@ are the CAIPI blips: they alternate between amplitudes
 repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 192-199
+.. GENERATED FROM PYTHON SOURCE LINES 195-202
 
 
 
@@ -140,7 +143,7 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 200-208
+.. GENERATED FROM PYTHON SOURCE LINES 203-211
 
 Single-shot comparison
 ----------------------
@@ -151,7 +154,7 @@ distortion along the phase-encode axis. The phase-encode step between
 consecutive echoes of a segmented train spans three sampled lattice lines,
 so its blips are larger than those of the single-shot train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 208-245
+.. GENERATED FROM PYTHON SOURCE LINES 211-248
 
 .. code-block:: Python
 
@@ -164,7 +167,7 @@ so its blips are larger than those of the single-shot train.
         rz=4,
         n_shots=1,
         n_dummy=0,
-    )
+    )[-1]
 
 
 
@@ -188,7 +191,7 @@ so its blips are larger than those of the single-shot train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-253
+.. GENERATED FROM PYTHON SOURCE LINES 249-256
 
 In-plane acceleration
 ---------------------
@@ -198,7 +201,7 @@ increasing lattice spacing along :math:`k_y`. The sampled views remain on a
 single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
 aliases [BRE06]_.
 
-.. GENERATED FROM PYTHON SOURCE LINES 253-274
+.. GENERATED FROM PYTHON SOURCE LINES 256-277
 
 .. code-block:: Python
 
@@ -211,7 +214,7 @@ aliases [BRE06]_.
         rz=2,
         n_shots=3,
         n_dummy=0,
-    )
+    )[-1]
     print(
         f"ry=3, rz=2: CAIPI shift {int(accelerated.get_definition('CaipiShift')[0])}, "
         f"{accelerated.num_blocks} blocks, {accelerated.duration()[0]:.2f} s"
@@ -236,7 +239,7 @@ aliases [BRE06]_.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 275-287
+.. GENERATED FROM PYTHON SOURCE LINES 278-290
 
 References
 ----------
@@ -254,7 +257,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.382 seconds)
+   **Total running time of the script:** (0 minutes 0.394 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

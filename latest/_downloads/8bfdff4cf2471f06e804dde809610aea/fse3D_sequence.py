@@ -64,8 +64,6 @@ def order_figure(seq, ny, nz):
 
 from pypulseqpp import sequences
 
-Fse3DApp = sequences.fse3D_sequence.Fse3DApp
-
 DIAGRAM = {
     "n_x": 64,
     "n_y": 24,
@@ -81,8 +79,7 @@ DIAGRAM = {
     "flip_modulation": "optimized",
     "wave_amplitude": 0.0,
 }
-diagram_app = Fse3DApp(**DIAGRAM)
-diagram = diagram_app.design()
+diagram = sequences.fse3D_sequence(**DIAGRAM)
 
 ANALYSIS = {
     "n_x": 96,
@@ -99,11 +96,11 @@ ANALYSIS = {
     "flip_modulation": "optimized",
     "wave_amplitude": 0.0,
 }
-app = Fse3DApp(**ANALYSIS)
-seq = app.design()
+seq = sequences.fse3D_sequence(**ANALYSIS)
+esp = seq.get_definition("EchoSpacing")[0]
 print(
-    f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
-    f"{seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
+    f"{int(seq.get_definition('NumShots')[0])} shots; {esp * 1e3:.2f} ms echo "
+    f"spacing; {seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
 )
 
 # %%
@@ -130,12 +127,12 @@ diagram.paper_plot()
 # simulator evaluates the resulting T2-dependent echo envelope.
 import torchsim
 
-angles = np.asarray(app.flips[0, : app.lengths[0]])
+angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
 signal = np.abs(
-    np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
+    np.asarray(torchsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
 )
 # sphinx_gallery_start_ignore
-time_ms = np.arange(1, len(angles) + 1) * app.fse.esp * 1e3
+time_ms = np.arange(1, len(angles) + 1) * esp * 1e3
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.0))
 axes[0].plot(np.arange(1, len(angles) + 1), angles)
 axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")

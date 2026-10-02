@@ -31,15 +31,13 @@ evolution onto the ``(k_y, k_z)`` plane and therefore determines the
 modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for
 T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 15-109
+.. GENERATED FROM PYTHON SOURCE LINES 15-106
 
 .. code-block:: Python
 
 
 
     from pypulseqpp import sequences
-
-    Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
     DIAGRAM = {
         "n_x": 64,
@@ -56,8 +54,7 @@ T2- and proton-density-weighted structural imaging.
         "flip_modulation": "optimized",
         "wave_amplitude": 0.0,
     }
-    diagram_app = Fse3DApp(**DIAGRAM)
-    diagram = diagram_app.design()
+    diagram = sequences.fse3D_sequence(**DIAGRAM)
 
     ANALYSIS = {
         "n_x": 96,
@@ -74,11 +71,11 @@ T2- and proton-density-weighted structural imaging.
         "flip_modulation": "optimized",
         "wave_amplitude": 0.0,
     }
-    app = Fse3DApp(**ANALYSIS)
-    seq = app.design()
+    seq = sequences.fse3D_sequence(**ANALYSIS)
+    esp = seq.get_definition("EchoSpacing")[0]
     print(
-        f"{len(app.trains)} shots; {app.fse.esp * 1e3:.2f} ms echo spacing; "
-        f"{seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
+        f"{int(seq.get_definition('NumShots')[0])} shots; {esp * 1e3:.2f} ms echo "
+        f"spacing; {seq.get_definition('TE')[0] * 1e3:.1f} ms effective TE"
     )
 
 
@@ -94,7 +91,7 @@ T2- and proton-density-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 110-116
+.. GENERATED FROM PYTHON SOURCE LINES 107-113
 
 Sequence diagram
 ----------------
@@ -103,7 +100,7 @@ Each echo comprises a variable-angle refocusing pulse, phase and partition
 prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-118
+.. GENERATED FROM PYTHON SOURCE LINES 113-115
 
 .. code-block:: Python
 
@@ -121,7 +118,7 @@ is the echo assigned to k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-131
+.. GENERATED FROM PYTHON SOURCE LINES 116-128
 
 Refocusing schedule and echo signal
 -----------------------------------
@@ -136,15 +133,15 @@ contrast between two of the sequence's design tissues at the effective-TE
 echo, and a penalty on RF power above that of the initial schedule. The same
 simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 131-147
+.. GENERATED FROM PYTHON SOURCE LINES 128-144
 
 .. code-block:: Python
 
     import torchsim
 
-    angles = np.asarray(app.flips[0, : app.lengths[0]])
+    angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
     signal = np.abs(
-        np.asarray(torchsim.fse_sim(flip=angles, ESP=app.fse.esp * 1e3, T1=1200.0, T2=60.0))
+        np.asarray(torchsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
     )
 
 
@@ -159,7 +156,7 @@ simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-155
+.. GENERATED FROM PYTHON SOURCE LINES 145-152
 
 Echo and shot order
 -------------------
@@ -169,7 +166,7 @@ effective-TE echo and progressively larger radii to echoes farther from it. Echo
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-160
+.. GENERATED FROM PYTHON SOURCE LINES 152-157
 
 
 
@@ -183,7 +180,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 161-168
+.. GENERATED FROM PYTHON SOURCE LINES 158-165
 
 K-space weighting
 -----------------
@@ -193,7 +190,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 168-178
+.. GENERATED FROM PYTHON SOURCE LINES 165-175
 
 
 
@@ -207,7 +204,7 @@ image blurring along both phase-encode axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 179-194
+.. GENERATED FROM PYTHON SOURCE LINES 176-191
 
 References
 ----------
@@ -228,7 +225,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.872 seconds)
+   **Total running time of the script:** (0 minutes 0.866 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

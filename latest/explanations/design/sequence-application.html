@@ -571,10 +571,10 @@ order.</p></li>
 files, each naming the next with <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>, so each file retains a single
 repeating unit. <a class="reference internal" href="../../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">duration()</span></code></a> is the time the chain
 plays.</p></li>
-<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>, the base class of the shipped
-sequences, divides the function into the prescription (<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>), the
-sampling order (<code class="docutils literal notranslate"><span class="pre">loop</span></code>), one repetition (<code class="docutils literal notranslate"><span class="pre">kernel</span></code>) and the Pulseq definitions
-required by reconstruction (<code class="docutils literal notranslate"><span class="pre">finalize</span></code>). Construction checks a prescription
+<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> divides the function into the
+prescription (<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>), the sampling order (<code class="docutils literal notranslate"><span class="pre">loop</span></code>), one repetition
+(<code class="docutils literal notranslate"><span class="pre">kernel</span></code>) and the Pulseq definitions required by reconstruction
+(<code class="docutils literal notranslate"><span class="pre">finalize</span></code>). Construction checks a prescription
 and records the resolved prescription and the scan time without playing the
 loop, and <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.function.html#pypulseqpp.sequences.SequenceApp.function" title="pypulseqpp.sequences.SequenceApp.function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">function()</span></code></a> returns a
 subclass as a sequence function.</p></li>
@@ -671,8 +671,10 @@ acquisition. A sequence function returns it ahead of the main sequence in a
 list. <a class="reference internal" href="../../generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">write()</span></code></a> writes the list as separate files: the
 first at the given path, and each later one beside it as <code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;.seq</span></code>,
 where <code class="docutils literal notranslate"><span class="pre">Name</span></code> is the sequence’s <code class="docutils literal notranslate"><span class="pre">Name</span></code> definition, or its position in the list,
-counted from 0 at the first, when it has none. Each file but the last names the
-next with <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>. The chain represents one acquisition while retaining
+counted from 0 at the first, when it has none. A later file whose name an
+earlier file has taken is written as <code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;_&lt;position&gt;.seq</span></code>, so every
+sequence has a file of its own. Each file but the last names the next with
+<code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>. The chain represents one acquisition while retaining
 a single repeating unit per file for repetition-based analyses.
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">duration()</span></code></a> is the sum of the durations of the
 sequences in the chain.</p>
@@ -699,8 +701,9 @@ linked files ahead of the main sequence.</p>
 <code class="docutils literal notranslate"><span class="pre">parameters</span></code>, the command line, and protocol editors. Its NumPy-style Parameters
 section defines units and defaults. Fixed design choices are class attributes.
 Every concrete application specifies <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>; construction
-caps the supplied system limits to these values.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">GentleEpi</span><span class="p">(</span><span class="n">Epi2DApp</span><span class="p">):</span>
+caps the supplied system limits to these values. A subclass of a concrete
+application, <code class="docutils literal notranslate"><span class="pre">BaseApp</span></code> below, assigns the attribute to change a limit.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LowSlewApp</span><span class="p">(</span><span class="n">BaseApp</span><span class="p">):</span>
     <span class="n">MAX_SLEW</span> <span class="o">=</span> <span class="mf">60.0</span>
 </pre></div>
 </div>

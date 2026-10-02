@@ -38,7 +38,7 @@ and functional MRI.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-100
+.. GENERATED FROM PYTHON SOURCE LINES 94-103
 
 Single-shot acquisition
 -----------------------
@@ -47,7 +47,10 @@ Every phase-encode line is acquired after one excitation. Echo-train length
 equals the number of acquired lines and determines the accumulated
 off-resonance phase across k-space.
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-118
+``epi2D_sequence`` returns the prescans in play order and then the scan, so
+each design below is the last element of the returned list.
+
+.. GENERATED FROM PYTHON SOURCE LINES 103-121
 
 .. code-block:: Python
 
@@ -62,8 +65,8 @@ off-resonance phase across k-space.
         n_dummy=0,
         fat_saturation=True,
         tr=None,
-    )
-    single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
+    )[-1]
+    single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)[-1]
     print(
         f"{diagram.num_blocks} blocks, {diagram.duration()[0] * 1e3:.1f} ms, "
         f"TE {diagram.get_definition('TE')[0] * 1e3:.2f} ms"
@@ -82,12 +85,12 @@ off-resonance phase across k-space.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 119-121
+.. GENERATED FROM PYTHON SOURCE LINES 122-124
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 121-124
+.. GENERATED FROM PYTHON SOURCE LINES 124-127
 
 .. code-block:: Python
 
@@ -106,7 +109,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-138
+.. GENERATED FROM PYTHON SOURCE LINES 128-141
 
 Segmentation and in-plane acceleration
 --------------------------------------
@@ -122,13 +125,13 @@ and displaces the image along the phase-encode axis by
 :math:`N_\mathrm{etl}` is the echo-train length. Both segmentation and
 acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
 
-.. GENERATED FROM PYTHON SOURCE LINES 138-163
+.. GENERATED FROM PYTHON SOURCE LINES 141-166
 
 .. code-block:: Python
 
 
-    segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)
-    accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)
+    segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)[-1]
+    accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)[-1]
 
     designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
 
@@ -149,7 +152,7 @@ acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 164-171
+.. GENERATED FROM PYTHON SOURCE LINES 167-174
 
 Echo traversal
 --------------
@@ -159,7 +162,7 @@ single shot traverses the axis one line at a time. A segmented acquisition
 traverses it in steps of ``n_shots``, each shot starting one line further
 on. An accelerated acquisition traverses it once in steps of ``ry``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 171-176
+.. GENERATED FROM PYTHON SOURCE LINES 174-179
 
 
 
@@ -173,7 +176,7 @@ on. An accelerated acquisition traverses it once in steps of ``ry``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-183
+.. GENERATED FROM PYTHON SOURCE LINES 180-186
 
 Which lines are acquired
 ------------------------
@@ -182,7 +185,7 @@ Segmentation and acceleration produce the same train length from different
 sets of lines: the segmented acquisition acquires every line, the accelerated
 acquisition one line in three.
 
-.. GENERATED FROM PYTHON SOURCE LINES 183-188
+.. GENERATED FROM PYTHON SOURCE LINES 186-191
 
 
 
@@ -196,7 +199,7 @@ acquisition one line in three.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-196
+.. GENERATED FROM PYTHON SOURCE LINES 192-199
 
 Functional MRI time series
 ---------------------------
@@ -206,7 +209,7 @@ slices in four multiband groups. ``REP`` identifies the volume and ``SLC``
 identifies the group; acquisition times are the start times of the ADC
 blocks in the sequence.
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-228
+.. GENERATED FROM PYTHON SOURCE LINES 199-231
 
 .. code-block:: Python
 
@@ -221,7 +224,7 @@ blocks in the sequence.
         n_dummy=0,
         fat_saturation=False,
         tr=1.0,
-    )
+    )[-1]
     labels = fmri.evaluate_labels(evolution="adc")
 
 
@@ -238,7 +241,7 @@ blocks in the sequence.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.617 seconds)
+   **Total running time of the script:** (0 minutes 0.619 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

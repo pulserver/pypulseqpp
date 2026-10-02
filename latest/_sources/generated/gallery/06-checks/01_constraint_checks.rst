@@ -62,16 +62,17 @@ After this lesson, you should be able to:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-73
+.. GENERATED FROM PYTHON SOURCE LINES 67-74
 
 Echo-planar test sequence
 -------------------------
 
 A single-shot echo-planar readout provides high slew rates and a periodic
 gradient waveform, making both PNS and mechanical-resonance diagnostics
-informative.
+informative. ``epi2D_sequence`` returns the prescans in play order and then
+the scan, and the checks run on the scan, the last element of the list.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-80
+.. GENERATED FROM PYTHON SOURCE LINES 74-81
 
 .. code-block:: Python
 
@@ -79,7 +80,7 @@ informative.
     from pypulseqpp import safety
     from pypulseqpp.sequences import epi2D_sequence
 
-    seq = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
+    seq = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)[-1]
     print(f"{seq.num_blocks} blocks, {seq.duration()[0] * 1e3:.1f} ms")
 
 
@@ -95,7 +96,7 @@ informative.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-93
+.. GENERATED FROM PYTHON SOURCE LINES 82-94
 
 Timing and gradient hardware
 ----------------------------
@@ -110,7 +111,7 @@ axis; the vector reading is reported beside it. ``check_grad_continuity`` looks 
 discontinuities between adjacent blocks. A discontinuity corresponds to an
 undefined instantaneous slew in the Pulseq waveform.
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-105
+.. GENERATED FROM PYTHON SOURCE LINES 94-106
 
 .. code-block:: Python
 
@@ -139,7 +140,7 @@ undefined instantaneous slew in the Pulseq waveform.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-117
+.. GENERATED FROM PYTHON SOURCE LINES 107-118
 
 Peripheral nerve stimulation
 ----------------------------
@@ -153,7 +154,7 @@ The chronaxie model below takes its three coefficients from the
 strength-duration relationship; a scanner supplies a SAFE model instead,
 which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-127
+.. GENERATED FROM PYTHON SOURCE LINES 118-128
 
 .. code-block:: Python
 
@@ -181,12 +182,12 @@ which :func:`~pypulseqpp.safety.read_safe_model` reads from an ``.asc`` file.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-130
+.. GENERATED FROM PYTHON SOURCE LINES 129-131
 
 ``trace=True`` returns the response the peak was taken from, so a diagram of
 it is the check's own calculation rather than a second one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 130-147
+.. GENERATED FROM PYTHON SOURCE LINES 131-148
 
 
 
@@ -200,7 +201,7 @@ it is the check's own calculation rather than a second one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-154
+.. GENERATED FROM PYTHON SOURCE LINES 149-155
 
 Mechanical resonance
 --------------------
@@ -209,7 +210,7 @@ Gradient-coil mechanical modes define forbidden frequency bands and amplitude
 tolerances. The check computes the gradient spectrum in overlapping windows
 and reports the largest amplitude within each band.
 
-.. GENERATED FROM PYTHON SOURCE LINES 154-168
+.. GENERATED FROM PYTHON SOURCE LINES 155-169
 
 .. code-block:: Python
 
@@ -241,14 +242,14 @@ and reports the largest amplitude within each band.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 169-173
+.. GENERATED FROM PYTHON SOURCE LINES 170-174
 
 ``mech_resonance_spectrum`` returns one window's spectrum through the same
 windowed pass, so the figure and the verdict use the same numbers. The
 readout train is periodic, so its spectrum is a comb at the echo-spacing
 frequency and its harmonics.
 
-.. GENERATED FROM PYTHON SOURCE LINES 173-198
+.. GENERATED FROM PYTHON SOURCE LINES 174-199
 
 .. code-block:: Python
 
@@ -270,7 +271,7 @@ frequency and its harmonics.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 199-208
+.. GENERATED FROM PYTHON SOURCE LINES 200-209
 
 Specific absorption rate
 ------------------------
@@ -282,7 +283,7 @@ circularly polarised shim: it is shaped like a real one and its numbers mean
 nothing about any coil or any subject. A scanner's model is read from a file
 with :func:`~pypulseqpp.safety.read_vops`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 208-223
+.. GENERATED FROM PYTHON SOURCE LINES 209-224
 
 .. code-block:: Python
 
@@ -315,12 +316,12 @@ with :func:`~pypulseqpp.safety.read_vops`.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 224-226
+.. GENERATED FROM PYTHON SOURCE LINES 225-227
 
 Every verdict together
 ----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 226-253
+.. GENERATED FROM PYTHON SOURCE LINES 227-254
 
 
 
@@ -342,7 +343,7 @@ Every verdict together
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 254-260
+.. GENERATED FROM PYTHON SOURCE LINES 255-261
 
 This short-echo-spacing echo-planar train exceeds the demonstration nerve
 model's threshold.

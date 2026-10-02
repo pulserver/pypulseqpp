@@ -479,6 +479,16 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">result</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_paths</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="k">if</span> <span class="n">chain</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">seq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chain</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s1">'Name'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">index</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">while</span> <span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.seq"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.seq"</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">paths</span>
+
+
 <div class="viewcode-block" id="write">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span>
@@ -493,9 +503,12 @@
 <span class="sd">    in order, prescans first and the main sequence last: the first is written</span>
 <span class="sd">    at ``path`` and each later one beside it as ``&lt;stem&gt;_&lt;Name&gt;.seq``, where</span>
 <span class="sd">    ``&lt;Name&gt;`` is the sequence's ``Name`` definition, or its position in the</span>
-<span class="sd">    chain, counted from 0 at the first, when it has none. Each file but the</span>
-<span class="sd">    last records the next file's name as its ``NextSequence`` definition, so</span>
-<span class="sd">    an interpreter plays the chain as one scan while every file stays one</span>
+<span class="sd">    chain, counted from 0 at the first, when it has none. A later file whose</span>
+<span class="sd">    name an earlier file has taken is written as</span>
+<span class="sd">    ``&lt;stem&gt;_&lt;Name&gt;_&lt;position&gt;.seq``, where ``&lt;position&gt;`` is its position in</span>
+<span class="sd">    the chain, so every sequence has a file of its own. Each file but the last</span>
+<span class="sd">    records the next file's name as its ``NextSequence`` definition, so an</span>
+<span class="sd">    interpreter plays the chain as one scan while every file stays one</span>
 <span class="sd">    repeating unit. The definition is recorded in the file and not on the</span>
 <span class="sd">    sequence.</span>
 
@@ -539,13 +552,7 @@
 <span class="sd">    ['scan.seq', 'scan_scan.seq']</span>
 <span class="sd">    """</span>
     <span class="n">chain</span> <span class="o">=</span> <span class="n">_chain</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">path</span>
-        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="k">else</span> <span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s1">'Name'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">index</span><span class="si">}</span><span class="s2">.seq"</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">seq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="n">_paths</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">chain</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
         <span class="n">written</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">remove_duplicates</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">chain</span><span class="p">):</span>

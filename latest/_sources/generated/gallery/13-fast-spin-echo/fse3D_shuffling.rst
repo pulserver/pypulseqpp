@@ -33,14 +33,12 @@ spread over the sampled extent without a regular pattern, the sampling
 condition of echo-resolved subspace reconstruction [TAM17]_; no
 reconstruction is performed here.
 
-.. GENERATED FROM PYTHON SOURCE LINES 17-62
+.. GENERATED FROM PYTHON SOURCE LINES 17-59
 
 .. code-block:: Python
 
 
     from pypulseqpp import sequences
-
-    Fse3DApp = sequences.fse3D_sequence.Fse3DApp
 
     P = {
         "n_x": 128,
@@ -61,8 +59,7 @@ reconstruction is performed here.
         "flip_modulation": "optimized",
         "wave_amplitude": 0.0,
     }
-    app = Fse3DApp(**P)
-    seq = app.design()
+    seq = sequences.fse3D_sequence(**P)
 
 
 
@@ -71,7 +68,7 @@ reconstruction is performed here.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-71
+.. GENERATED FROM PYTHON SOURCE LINES 60-68
 
 Variable-density sampling
 -------------------------
@@ -82,7 +79,7 @@ Poisson-disc support, selected with
 each view is then assigned by :func:`~pypulseqpp.make_shuffling_order` rather
 than by its distance from the k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-92
+.. GENERATED FROM PYTHON SOURCE LINES 68-89
 
 
 
@@ -96,7 +93,7 @@ than by its distance from the k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-104
+.. GENERATED FROM PYTHON SOURCE LINES 90-101
 
 Echo-time distribution
 ----------------------
@@ -110,7 +107,7 @@ not confined to a radial k-space band. The figure gives the distance of
 every acquired view from the k-space centre against its echo time: every
 echo time samples views from the centre to the edge of the support.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-117
+.. GENERATED FROM PYTHON SOURCE LINES 101-114
 
 
 
@@ -124,7 +121,7 @@ echo time samples views from the centre to the edge of the support.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-125
+.. GENERATED FROM PYTHON SOURCE LINES 115-122
 
 References
 ----------
@@ -137,7 +134,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.497 seconds)
+   **Total running time of the script:** (0 minutes 0.492 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

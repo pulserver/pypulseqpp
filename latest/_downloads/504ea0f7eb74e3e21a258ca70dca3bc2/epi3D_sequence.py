@@ -149,6 +149,9 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
 # shots per shell, and a nonzero CAIPI shift. Each shot reads every third sampled lattice line;
 # successive echoes therefore contain both the skipped-line displacement and
 # the partition jump.
+#
+# ``epi3D_sequence`` returns the prescans in play order and then the scan, so
+# each design below is the last element of the returned list.
 
 from pypulseqpp.sequences import epi3D_sequence
 
@@ -160,7 +163,7 @@ baseline = epi3D_sequence(
     rz=4,
     n_shots=3,
     n_dummy=0,
-)
+)[-1]
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 print(
     f"CAIPI shift {int(baseline.get_definition('CaipiShift')[0])}, "
@@ -214,7 +217,7 @@ single_shot = epi3D_sequence(
     rz=4,
     n_shots=1,
     n_dummy=0,
-)
+)[-1]
 
 # sphinx_gallery_start_ignore
 print(f"{'':9} {'echoes':>7} {'trains':>7} {'per train':>10} {'TE (ms)':>9}")
@@ -259,7 +262,7 @@ accelerated = epi3D_sequence(
     rz=2,
     n_shots=3,
     n_dummy=0,
-)
+)[-1]
 print(
     f"ry=3, rz=2: CAIPI shift {int(accelerated.get_definition('CaipiShift')[0])}, "
     f"{accelerated.num_blocks} blocks, {accelerated.duration()[0]:.2f} s"

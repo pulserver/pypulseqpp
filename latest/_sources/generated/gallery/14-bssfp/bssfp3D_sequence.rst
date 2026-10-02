@@ -37,15 +37,16 @@ T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 33-39
 
 Fully sampled acquisition
 -------------------------
 
 Every ``(line, partition)`` view inside the ellipse inscribed in the
-phase-encode plane is acquired.
+phase-encode plane is acquired. The function returns the sequences in play
+order: the half-flip catalyst, then the train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-46
+.. GENERATED FROM PYTHON SOURCE LINES 39-47
 
 .. code-block:: Python
 
@@ -53,7 +54,7 @@ phase-encode plane is acquired.
     import pypulseqpp as pp
     from pypulseqpp.sequences import bssfp3D_sequence
 
-    baseline = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, tr=None)
+    catalyst, baseline = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, tr=None)
     print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
 
@@ -70,12 +71,12 @@ phase-encode plane is acquired.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-49
+.. GENERATED FROM PYTHON SOURCE LINES 48-50
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 50-53
 
 .. code-block:: Python
 
@@ -94,14 +95,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-57
+.. GENERATED FROM PYTHON SOURCE LINES 54-58
 
 Sampling order
 --------------
 
 Colour encodes acquisition order in the phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 58-61
 
 .. code-block:: Python
 
@@ -120,7 +121,7 @@ Colour encodes acquisition order in the phase-encode plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-67
+.. GENERATED FROM PYTHON SOURCE LINES 62-68
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -129,12 +130,12 @@ Subsampling the line and partition axes reduces the number of repetitions.
 TR, flip angle, RF phase alternation and the balanced gradient moments of
 each repetition are unchanged, so the steady state is the same.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-79
+.. GENERATED FROM PYTHON SOURCE LINES 68-80
 
 .. code-block:: Python
 
 
-    alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
+    _, alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
 
 
 
@@ -152,7 +153,7 @@ each repetition are unchanged, so the steady state is the same.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 81-83
 
 .. code-block:: Python
 
@@ -173,7 +174,7 @@ each repetition are unchanged, so the steady state is the same.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 18.052 seconds)
+   **Total running time of the script:** (0 minutes 18.252 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp3D_sequence.py:
