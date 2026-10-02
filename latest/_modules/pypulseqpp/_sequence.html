@@ -487,7 +487,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">libraries</span> <span class="k">as</span> <span class="n">_libraries</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_data</span> <span class="k">as</span> <span class="n">_report_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._report</span><span class="w"> </span><span class="kn">import</span> <span class="n">report_text</span> <span class="k">as</span> <span class="n">_report_text</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdcEchoes</span><span class="p">,</span> <span class="n">EventDefinitions</span><span class="p">,</span> <span class="n">GradientStatistics</span><span class="p">,</span> <span class="n">RfGradients</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._results</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AdcEchoes</span><span class="p">,</span>
+    <span class="n">EventDefinitions</span><span class="p">,</span>
+    <span class="n">GradientStatistics</span><span class="p">,</span>
+    <span class="n">RfGradients</span><span class="p">,</span>
+    <span class="n">RfInstances</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._rf_instances</span><span class="w"> </span><span class="kn">import</span> <span class="n">rf_instances</span> <span class="k">as</span> <span class="n">_rf_instances</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOUND_SAMPLE_RATE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._sound</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_sound</span> <span class="k">as</span> <span class="n">_gradient_sound</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._waveforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">_expand</span> <span class="k">as</span> <span class="n">_expand_waveforms</span>
@@ -2202,6 +2209,75 @@
 <span class="sd">        [1, 1]</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">instance_definitions</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Sequence.rf_instances">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.rf_instances.html#pypulseqpp.Sequence.rf_instances">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rf_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RfInstances</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the RF events the sequence plays, and the distinct RF pulses they play.</span>
+
+<span class="sd">        One instance per block that contains an RF event, in block order. An</span>
+<span class="sd">        instance plays a definition: an RF pulse of one waveform, timing and</span>
+<span class="sd">        use under one RF shim, or none. Its amplitude, frequency offset and</span>
+<span class="sd">        phase offset are its own, and the offsets are not returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        RfInstances</span>
+<span class="sd">            ``definitions``, numbered in order of first play; ``definition``,</span>
+<span class="sd">            the one each instance plays; and ``amplitude``, each instance's</span>
+<span class="sd">            RF amplitude over that of its definition's base instance.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If a block plays a dynamic pTx pulse under an RF shim of another</span>
+<span class="sd">            channel count.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Instances share a definition when they play the same RF event</span>
+<span class="sd">        definition, as :meth:`event_definitions` partitions the events, under</span>
+<span class="sd">        an equal RF shim. The partition is read from a copy of the sequence</span>
+<span class="sd">        with its libraries collapsed as :meth:`write` collapses them by</span>
+<span class="sd">        default, rows equal at the precision of the file becoming one row. So</span>
+<span class="sd">        equal pulses registered separately, and equal shims, are one</span>
+<span class="sd">        definition whether or not :meth:`remove_duplicates` has been called.</span>
+<span class="sd">        Waveforms, amplitudes and timing are read from this sequence, which is</span>
+<span class="sd">        not changed.</span>
+
+<span class="sd">        The base instance of a definition is its first instance with a</span>
+<span class="sd">        nonzero RF amplitude, or its first instance when there is none. A</span>
+<span class="sd">        dynamic pTx pulse is one instance of one definition, with a row per</span>
+<span class="sd">        channel as :func:`split_ptx_pulse` splits it. An RF shim multiplies</span>
+<span class="sd">        channel ``c`` by its complex weight ``s_c``, and a single-transmit</span>
+<span class="sd">        pulse is played on every channel of its shim.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; pulse = pp.make_block_pulse(np.pi / 2, duration=1e-3)</span>
+<span class="sd">        &gt;&gt;&gt; for amplitude in (250.0, 125.0):</span>
+<span class="sd">        ...     pulse.amplitude = amplitude</span>
+<span class="sd">        ...     _ = seq.add_block(pulse)</span>
+<span class="sd">        &gt;&gt;&gt; found = seq.rf_instances()</span>
+<span class="sd">        &gt;&gt;&gt; found.definition.tolist(), found.amplitude.tolist()</span>
+<span class="sd">        ([0, 0], [1.0, 0.5])</span>
+<span class="sd">        &gt;&gt;&gt; found.definitions[0].peak_hz, found.definitions[0].flip_deg</span>
+<span class="sd">        (250.0, 90.0)</span>
+<span class="sd">        &gt;&gt;&gt; found.definitions[0].waveform.tolist()</span>
+<span class="sd">        [[(1+0j), (1+0j)]]</span>
+
+<span class="sd">        An RF shim gives a single-transmit pulse a row per channel:</span>
+
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pulse, pp.make_rf_shim([1.0, 0.5j]))</span>
+<span class="sd">        &gt;&gt;&gt; shimmed = seq.rf_instances().definitions[1]</span>
+<span class="sd">        &gt;&gt;&gt; shimmed.peak_hz, shimmed.waveform.round(3).tolist()</span>
+<span class="sd">        (125.0, [[(1+0j), (1+0j)], [0.5j, 0.5j]])</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">_rf_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Sequence.gradient_statistics">

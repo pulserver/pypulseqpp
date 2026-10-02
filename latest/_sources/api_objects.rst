@@ -246,6 +246,8 @@ from.
    :toctree: generated
    :nosignatures:
 
+   RfInstances
+   RfDefinition
    TransformFOV
    Opts
    default_system
