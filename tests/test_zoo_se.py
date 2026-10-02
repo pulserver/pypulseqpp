@@ -29,19 +29,12 @@ SMALL = {
 }
 
 #: The ``Name`` definition each sequence writes.
-NAMES = {"se2D_sequence": se2D.NAME, "se3D_sequence": se3D.Se3DApp.NAME}
-
-#: The sequences written as applications.
-APPS = {"se3D_sequence": se3D.Se3DApp}
+NAMES = {"se2D_sequence": se2D.NAME, "se3D_sequence": se3D.NAME}
 
 
 def built(name, **kwargs):
     """The sequence ``name`` designs from its small prescription."""
     return MODULES[name].main(**{**SMALL[name], **kwargs})
-
-
-def app(name, **kwargs):
-    return APPS[name](pp.Opts(), **{**SMALL[name], **kwargs})
 
 
 def adc_labels(seq, *names):
@@ -162,16 +155,20 @@ def test_a_spin_echo_shorter_than_it_can_play_is_refused(name, prescription, mat
 
 
 def test_each_3d_acquisition_carries_its_view_calibration_rectangle_first():
-    se = app("se3D_sequence", ry=2, n_acs_y=4, n_acs_z=2, tr=50e-3)
-    seq = se.design()
+    seq = built("se3D_sequence", ry=2, n_acs_y=4, n_acs_z=2, tr=50e-3)
     lin, par, ima, seg = adc_labels(seq, "LIN", "PAR", "IMA", "SEG")
-    calibrating = [int(view in se.calibration) for view in se.views]
+    shape = (SMALL["se3D_sequence"]["n_y"], SMALL["se3D_sequence"]["n_z"])
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, (2, 1), (4, 2), elliptical=True
+    )
+    views = [*calibration, *imaging]
+    marked = [int(view in calibration) for view in views]
 
-    assert se.views[: len(se.calibration)] == sorted(se.calibration)
-    assert list(zip(lin, par, strict=True)) == se.views
-    assert list(ima) == calibrating
-    assert list(seg) == [1 - c for c in calibrating]
-    assert len(played(seq)[0]) == 2 * len(se.views)
+    assert views[: len(calibration)] == sorted(calibration)
+    assert list(zip(lin, par, strict=True)) == views
+    assert list(ima) == marked
+    assert list(seg) == [1 - mark for mark in marked]
+    assert len(played(seq)[0]) == 2 * len(views)
 
 
 @pytest.mark.parametrize("excitation", ["slab", "nonselective", "spsp"])

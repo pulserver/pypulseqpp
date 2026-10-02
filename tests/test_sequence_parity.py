@@ -614,7 +614,256 @@ NON_DEFAULT = {
         # Meridian shells, one in two, with two dummy shells.
         {"n": 24, "n_shots": 4, "scheme": "meridian", "r": 2, "n_dummy": 2},
     ],
+    "gre3D_sequence": [
+        # A nonselective pulse, undersampling along both phase encodes with a
+        # CAIPIRINHA shift, the whole grid with an elliptical calibration region,
+        # and a wave on the partition encode.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "fov_z": 0.1,
+            "n_x": 32,
+            "n_y": 24,
+            "n_z": 6,
+            "flip_angle_deg": 20.0,
+            "te": 6e-3,
+            "tr": 16e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_x": 0.75,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.0,
+            "n_acs_y": 6,
+            "n_acs_z": 4,
+            "elliptical_sampling": False,
+            "elliptical_acs": True,
+            "wave": "partition",
+            "wave_cycles": 3,
+            "wave_amplitude": 8e-3,
+        },
+        # A spectral-spatial pulse, waves on both phase encodes with the
+        # wave-free reference, and a TR above the shortest.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "excitation": "spsp",
+            "n_dummy": 3,
+            "ry": 2,
+            "rz": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 4,
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+            "tr": 20e-3,
+        },
+        # The shortest TE and TR with a partial echo and a wave on the phase
+        # encode, undersampled along the phase encode alone.
+        {
+            "n_x": 32,
+            "n_y": 18,
+            "n_z": 6,
+            "ry": 3,
+            "rz": 1,
+            "n_acs_y": 6,
+            "n_acs_z": 6,
+            "partial_fourier_x": 0.75,
+            "wave": "phase",
+            "wave_cycles": 2,
+            "wave_amplitude": 6e-3,
+            "n_dummy": 0,
+        },
+    ],
+    "se3D_sequence": [
+        # A nonselective pulse, undersampling along both phase encodes with a
+        # CAIPIRINHA shift, the whole grid with an elliptical calibration region,
+        # and a wave on the partition encode, at a TE and a TR above the shortest.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "fov_z": 0.1,
+            "n_x": 32,
+            "n_y": 24,
+            "n_z": 6,
+            "te": 12e-3,
+            "tr": 40e-3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_x": 0.75,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.0,
+            "n_acs_y": 6,
+            "n_acs_z": 4,
+            "elliptical_sampling": False,
+            "elliptical_acs": True,
+            "wave": "partition",
+            "wave_cycles": 3,
+            "wave_amplitude": 8e-3,
+        },
+        # A spectral-spatial pulse at the shortest TE and TR, with waves on both
+        # phase encodes and the wave-free reference.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "excitation": "spsp",
+            "te": None,
+            "tr": None,
+            "n_dummy": 1,
+            "ry": 2,
+            "rz": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 4,
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+        },
+        # A partial echo and a wave on the phase encode, undersampled along the
+        # phase encode alone.
+        {
+            "n_x": 32,
+            "n_y": 18,
+            "n_z": 6,
+            "te": None,
+            "tr": None,
+            "ry": 3,
+            "rz": 1,
+            "n_acs_y": 6,
+            "n_acs_z": 6,
+            "partial_fourier_x": 0.75,
+            "wave": "phase",
+            "wave_cycles": 2,
+            "wave_amplitude": 6e-3,
+        },
+    ],
+    "bssfp3D_sequence": [
+        # A slab excitation and two phase cycles, a catalyst and a train each,
+        # undersampled along both phase encodes with a CAIPIRINHA shift.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "fov_z": 0.1,
+            "n_x": 64,
+            "n_y": 24,
+            "n_z": 6,
+            "flip_angle_deg": 60.0,
+            "tr": 6e-3,
+            "readout_bandwidth_hz": 50e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "excitation": "slab",
+            "readout_oversampling": 1.0,
+            "n_acs_y": 6,
+            "n_acs_z": 4,
+            "elliptical_acs": True,
+            "n_phase_cycles": 2,
+        },
+        # Three phase cycles at a TR above the shortest.
+        {"n_x": 64, "n_y": 16, "n_z": 4, "n_phase_cycles": 3, "tr": 4e-3},
+        # One phase cycle at the shortest TR, undersampled along the phase
+        # encode alone, with a partial partition extent.
+        {
+            "n_x": 64,
+            "n_y": 20,
+            "n_z": 6,
+            "ry": 2,
+            "n_acs_y": 6,
+            "n_acs_z": 4,
+            "partial_fourier_z": 0.75,
+        },
+    ],
+    "gre_multiecho3D_sequence": [
+        # A bipolar train, which reads even echoes backwards and takes a full echo,
+        # at an echo spacing above the shortest, with a nonselective pulse,
+        # undersampling along both phase encodes and a wave on the partition encode.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "fov_z": 0.1,
+            "n_x": 32,
+            "n_y": 24,
+            "n_z": 6,
+            "flip_angle_deg": 20.0,
+            "te": 3e-3,
+            "tr": 14e-3,
+            "n_echoes": 3,
+            "readout_bandwidth_hz": 200e3,
+            "ry": 2,
+            "rz": 2,
+            "caipi_shift": 1,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_dummy": 2,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.0,
+            "n_acs_y": 6,
+            "n_acs_z": 4,
+            "elliptical_sampling": False,
+            "elliptical_acs": True,
+            "wave": "partition",
+            "wave_cycles": 3,
+            "wave_amplitude": 8e-3,
+            "echo_spacing": 2e-3,
+            "flyback": False,
+        },
+        # A monopolar train with a partial echo and a wait after every echo but
+        # the last, a spectral-spatial pulse and waves on both phase encodes.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 8,
+            "n_echoes": 3,
+            "flyback": True,
+            "echo_spacing": 5e-3,
+            "te": 8e-3,
+            "tr": 40e-3,
+            "partial_fourier_x": 0.75,
+            "excitation": "spsp",
+            "n_dummy": 2,
+            "ry": 2,
+            "rz": 2,
+            "n_acs_y": 4,
+            "n_acs_z": 4,
+            "wave": "both",
+            "wave_cycles": 2,
+            "wave_amplitude": 8e-3,
+        },
+        # A bipolar train of two echoes at the shortest spacing, with a wave on
+        # the phase encode, undersampled along the phase encode alone.
+        {
+            "n_x": 32,
+            "n_y": 18,
+            "n_z": 6,
+            "n_echoes": 2,
+            "flyback": False,
+            "ry": 3,
+            "rz": 1,
+            "n_acs_y": 6,
+            "n_acs_z": 6,
+            "wave": "phase",
+            "wave_cycles": 2,
+            "wave_amplitude": 6e-3,
+            "n_dummy": 0,
+        },
+    ],
 }
+
+#: The sections a function that returns a chain documents for itself.
+CHAIN_SECTIONS = ("Returns", "Examples")
 
 #: ``(max_grad in mT/m, max_slew in T/m/s)`` of a system above the limits a
 #: sequence is designed under, and of one below them.
@@ -658,15 +907,33 @@ def function_chain(name, limits, protocol):
 
 
 def written(directory, chain):
-    """``(file name, bytes)`` of each file ``sequences.write`` writes for ``chain``."""
+    """``(file name, bytes)`` of each file ``sequences.write`` writes for ``chain``.
+
+    Sequences that record one ``Name`` are written to one file, so each sequence
+    is also written alone, after the chain, and its bytes follow.
+    """
     directory.mkdir()
     paths = sequences.write(directory / "scan.seq", chain)
-    return [(Path(path).name, Path(path).read_bytes()) for path in paths]
+    files = [(Path(path).name, Path(path).read_bytes()) for path in paths]
+    for index, seq in enumerate(chain):
+        (alone,) = sequences.write(directory / f"alone_{index}.seq", seq)
+        files.append((Path(alone).name, Path(alone).read_bytes()))
+    return files
+
+
+def plays_prescans(name):
+    """Whether the application of ``name`` has prescans, so its function returns a chain."""
+    return legacy_application(name).prescans is not sequences.SequenceApp.prescans
 
 
 def normalised(text):
-    """``text`` with a role on a class attribute as the literal of a module constant."""
-    return re.sub(r":attr:`([^`]+)`", r"``\1``", text)
+    """``text`` with a role on a class attribute as the literal of a module constant.
+
+    A reference to the application's ``prescans`` method is dropped: a function
+    has no such method.
+    """
+    text = re.sub(r":attr:`([^`]+)`", r"``\1``", text)
+    return re.sub(r" \(:meth:`prescans`\)", "", text)
 
 
 def test_every_sequence_with_a_legacy_application_is_written_as_a_function():
@@ -723,9 +990,14 @@ def test_a_function_takes_the_system_and_the_protocol_its_application_takes(name
 
 @pytest.mark.parametrize("name", LEGACY_NAMES)
 def test_a_function_documents_what_its_application_documents(name):
-    """The protocol's own entries are compared through ``sequences.parameters``."""
+    """The protocol's own entries are compared through ``sequences.parameters``.
+
+    A function that returns a chain documents the chain in its Returns and its
+    Examples, where the application's ``main`` documents the main sequence.
+    """
     shipped = _split_sections(inspect.getdoc(getattr(sequences, name).main))
     legacy = _split_sections(inspect.getdoc(legacy_application(name).main))
+    chain = plays_prescans(name)
 
     assert shipped[0] == normalised(legacy[0])
     assert shipped[1] == normalised(legacy[1])
@@ -733,5 +1005,7 @@ def test_a_function_documents_what_its_application_documents(name):
         heading for heading, _ in legacy[2]
     ]
     for (heading, body), (_, wanted) in zip(shipped[2], legacy[2], strict=True):
-        if heading != "Parameters":
+        if heading != "Parameters" and not (chain and heading in CHAIN_SECTIONS):
             assert body == normalised(wanted), heading
+    if chain:
+        assert dict(shipped[2])["Returns"].startswith("list of pypulseqpp.Sequence\n")

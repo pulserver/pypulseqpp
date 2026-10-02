@@ -157,6 +157,11 @@ def parameters(name):
     return sequences.parameters(function(name))
 
 
+def chain(result):
+    """The sequences a sequence function returned, in play order, main sequence last."""
+    return result if isinstance(result, list) else [result]
+
+
 def packets(seq):
     """The slices each packet of a multi-slice sequence excites, in play order.
 

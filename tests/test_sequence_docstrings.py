@@ -16,6 +16,10 @@ LEADING = ("Parameters", "Returns")
 #: The only return entry: the designed sequence, and nothing else.
 RETURNS = "pypulseqpp.Sequence\n    The designed sequence."
 
+#: The type of the only return entry of a function that returns a chain of
+#: sequences, prescans first and the main sequence last.
+CHAIN_RETURNS = "list of pypulseqpp.Sequence"
+
 
 @pytest.fixture(params=sequences.ZOO)
 def entry_point(request):
@@ -23,15 +27,27 @@ def entry_point(request):
     return getattr(sequences, request.param)
 
 
-def test_an_entry_point_returns_a_sequence(entry_point):
+def returns_a_chain(entry_point):
+    """Whether the entry point returns a list of sequences, not one sequence."""
+    signature = inspect.signature(entry_point.main, eval_str=True)
+    return signature.return_annotation == list[pp.Sequence]
+
+
+def test_an_entry_point_returns_a_sequence_or_a_chain_of_them(entry_point):
     signature = inspect.signature(entry_point.main, eval_str=True)
 
-    assert signature.return_annotation is pp.Sequence
+    assert signature.return_annotation in (pp.Sequence, list[pp.Sequence])
 
 
 def test_the_returns_section_holds_the_return_value_and_nothing_else(entry_point):
     sections = dict(_split_sections(inspect.getdoc(entry_point) or "")[2])
-    assert sections["Returns"] == RETURNS
+    if returns_a_chain(entry_point):
+        kind, *description = sections["Returns"].splitlines()
+        assert kind == CHAIN_RETURNS
+        assert description
+        assert all(line.startswith("    ") for line in description)
+    else:
+        assert sections["Returns"] == RETURNS
 
 
 def test_the_sections_are_independent_and_ordered(entry_point):
@@ -55,9 +71,10 @@ def test_the_docstring_parses_as_numpy(entry_point):
     doc = inspect.getdoc(entry_point) or ""
     rendered = str(NumpyDocstring(doc, Config()))
     returns = rendered.partition(":returns:")[2].partition("\n:")[0]
-    assert "The designed sequence." in returns
+    assert "The designed sequence" in returns
     assert ">>>" not in returns
-    assert ":rtype: pypulseqpp.Sequence" in rendered
+    kind = CHAIN_RETURNS if returns_a_chain(entry_point) else "pypulseqpp.Sequence"
+    assert f":rtype: {kind}\n" in rendered
     if "Raises" in dict(_split_sections(doc)[2]):
         assert ":raises" in rendered
     assert ".. rubric:: Examples" in rendered

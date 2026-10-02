@@ -8,12 +8,10 @@
   "label:SLC": "94d0e6543843bb74"
  },
  "bssfp3D-caipi": {
-  "calibration": "4997e74f94bc5a9e",
   "label:IMA": "8a229fc420eeaba6",
   "label:LIN": "785e92747609e593",
   "label:PAR": "6233f1fa1add0107",
-  "label:SET": "76b25cdd1535b0bb",
-  "views": "4997e74f94bc5a9e"
+  "label:SET": "76b25cdd1535b0bb"
  },
  "calls": {
   "axis-15-1-0-0.7": "52e4f7a5a3dc3286",
@@ -197,34 +195,25 @@
   "label:SLC": "c14bc7d02c76f1ae"
  },
  "gre3D": {
-  "calibration": "4f53cda18c2baa0c",
   "label:IMA": "9395f0c2d19beb20",
   "label:LIN": "ab9199798c903d2d",
   "label:ONCE": "9395f0c2d19beb20",
   "label:PAR": "06b3c8dca07faafe",
-  "label:SEG": "2be63eda24b888b7",
-  "reference": "4f53cda18c2baa0c",
-  "views": "c64dc9e89cc8283f"
+  "label:SEG": "2be63eda24b888b7"
  },
  "gre3D-caipi": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:IMA": "11d85663f386d21e",
   "label:LIN": "eb6d590f18ca9b0b",
   "label:ONCE": "b236d0f0b98a2845",
   "label:PAR": "e10267ebda1c2487",
-  "label:SEG": "a7613a2c9f173784",
-  "reference": "4f53cda18c2baa0c",
-  "views": "ade2c4a8aa1efa61"
+  "label:SEG": "a7613a2c9f173784"
  },
  "gre3D-elliptical": {
-  "calibration": "6152273e89ffb0d6",
   "label:IMA": "e27b24551a78f956",
   "label:LIN": "4a73dda48d0eb70c",
   "label:ONCE": "2fc1d7e09200ebba",
   "label:PAR": "1f057e629e17eae2",
-  "label:SEG": "14ffdeb3bed61220",
-  "reference": "4f53cda18c2baa0c",
-  "views": "a4306d43247caf51"
+  "label:SEG": "14ffdeb3bed61220"
  },
  "gre_multiecho2D-accelerated": {
   "label:ECO": "d81e08e622cec03a",
@@ -235,15 +224,12 @@
   "label:SLC": "298b7784d13a28bc"
  },
  "gre_multiecho3D-caipi": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:ECO": "78cc494ace0530c3",
   "label:IMA": "107c56c176d7ad1a",
   "label:LIN": "0d72ef30cb2afe8d",
   "label:ONCE": "6c30e7b051c7bd20",
   "label:PAR": "d3c81ef894383872",
-  "label:SEG": "f9e9c7863d41a384",
-  "reference": "4f53cda18c2baa0c",
-  "views": "ade2c4a8aa1efa61"
+  "label:SEG": "f9e9c7863d41a384"
  },
  "gre_stack_of_blades3D": {
   "label:IMA": "30eee5af330e1b38",
@@ -320,14 +306,11 @@
   "label:SLC": "94d0e6543843bb74"
  },
  "se3D-caipi": {
-  "calibration": "f16d3b2a4b3fea6e",
   "label:IMA": "11d85663f386d21e",
   "label:LIN": "eb6d590f18ca9b0b",
   "label:ONCE": "b236d0f0b98a2845",
   "label:PAR": "e10267ebda1c2487",
-  "label:SEG": "a7613a2c9f173784",
-  "reference": "4f53cda18c2baa0c",
-  "views": "ade2c4a8aa1efa61"
+  "label:SEG": "a7613a2c9f173784"
  },
  "se_epi_propeller2D": {
   "label:LIN": "d3292c18ea0d0690",

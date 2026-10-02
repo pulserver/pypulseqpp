@@ -4,7 +4,7 @@ import inspect
 
 import numpy as np
 import pytest
-from zoo import APPLICATIONS, FUNCTIONS, SMALL, application, parameters
+from zoo import APPLICATIONS, FUNCTIONS, SMALL, application, chain, parameters
 
 import pypulseqpp as pp
 from pypulseqpp import sequences
@@ -199,13 +199,13 @@ def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
 def test_a_function_designs_the_definitions_it_wrote_again_from_them(name):
     """Prescribing what a design wrote down designs it again."""
     main = getattr(sequences, name).main
-    written = main(**SMALL[name]).definitions
+    written = chain(main(**SMALL[name]))[-1].definitions
     prescribed = {
         parameter: np.atleast_1d(written[key])[0]
         for parameter, key in RECORDED.items()
         if parameter in parameters(name) and key in written
     }
-    again = main(**{**SMALL[name], **prescribed}).definitions
+    again = chain(main(**{**SMALL[name], **prescribed}))[-1].definitions
 
     assert "tr" in prescribed
     for parameter, key in RECORDED.items():
@@ -217,8 +217,10 @@ def test_a_function_designs_the_definitions_it_wrote_again_from_them(name):
 
 @pytest.mark.parametrize("name", FUNCTIONS)
 def test_every_acquisition_of_a_function_samples_at_one_receiver_bandwidth(name):
-    seq = getattr(sequences, name).main(**SMALL[name])
-    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    built = chain(getattr(sequences, name).main(**SMALL[name]))
+    blocks = (
+        seq.get_block(i) for seq in built for i in range(1, len(seq.block_events) + 1)
+    )
     dwells = {float(block.adc.dwell) for block in blocks if block.adc is not None}
 
     assert len(dwells) == 1
