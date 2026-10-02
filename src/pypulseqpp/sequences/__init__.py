@@ -3,7 +3,9 @@
 Modules expose reusable events and block layouts. The caller supplies the
 acquisition loop, sampling order and per-shot event changes. Complete
 sequences built from them are reached as ``sequences.<name>`` and are
-callable as their ``main``.
+callable as their ``main``. For a sequence written as a function,
+:class:`Labels` writes its label events, :func:`parameters` reads its protocol,
+and :func:`write` and :func:`duration` write and time what it returns.
 """
 
 from __future__ import annotations
@@ -13,8 +15,10 @@ import inspect as _inspect
 from types import ModuleType as _ModuleType
 from typing import Any
 
-from ._app import ProtocolParameter, SequenceApp
+from ._app import ProtocolParameter, SequenceApp, parameters
+from ._labels import Labels
 from ._module import SequenceModule
+from ._write import duration, write
 from .excitation import (
     EXCITATIONS,
     FrequencySelectiveExcitation,
@@ -145,8 +149,12 @@ __all__ = sorted(
         *TRAJECTORIES,
         *BASES,
         *ZOO,
+        "Labels",
         "ProtocolParameter",
         "SequenceApp",
+        "duration",
+        "parameters",
+        "write",
     }
 )
 

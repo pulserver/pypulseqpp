@@ -27,7 +27,7 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 | --- | --- | --- |
 | {doc}`sampling` | `pypulseqpp` | Cartesian sampling support, the ordering of a selected set into loop, shot and echo positions, EPI shot offsets, non-Cartesian orientations, and per-repetition RF schedules. |
 | {doc}`modules` | `pypulseqpp.sequences` | The excitation, preparation and readout modules, and the non-Cartesian interleaves a readout plays. |
-| {doc}`apps` | `pypulseqpp.sequences` | {class}`~pypulseqpp.sequences.SequenceApp`, which holds a prescription, the sampling order derived from it, and the kernel one repetition plays. |
+| {doc}`apps` | `pypulseqpp.sequences` | The functions that read the protocol of a sequence function, label its blocks, write the sequences it returns and time them, and {class}`~pypulseqpp.sequences.SequenceApp`, which holds a prescription, the sampling order derived from it, and the kernel one repetition plays. |
 | {doc}`../sequences` | `pypulseqpp.sequences` | Every complete sequence the package ships, grouped by family, each with its own reference page. |
 
 ## Analysis and tools
@@ -36,7 +36,7 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 | --- | --- | --- |
 | {doc}`safety` | `pypulseqpp.safety` | The gradient amplitude, slew-rate, continuity, mechanical-resonance, nerve-stimulation and SAR checks, and the readings they return beside a verdict. |
 | {doc}`plotting` | `pypulseqpp.plot` | The SeqEyes view, the publication diagram, and the k-space and RF-profile figures. |
-| {doc}`cli` | `pypulseqpp.cli` | Running a sequence application from the shell, and writing the file it produces. |
+| {doc}`cli` | `pypulseqpp.cli` | Running a sequence function or a sequence script from the shell, and writing the files it produces. |
 
 ```{toctree}
 :hidden:

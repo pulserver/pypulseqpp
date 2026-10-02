@@ -51,7 +51,7 @@ def run(
     description: str | None = None,
     default_output: str = "sequence.seq",
 ) -> int:
-    """Run a sequence script's ``main`` from the command line.
+    """Run a sequence function, or a sequence script's ``main``, from the command line.
 
     Every keyword parameter of ``main`` annotated with a scalar becomes an
     option, described by what ``main``'s own docstring says about it. Five
@@ -62,7 +62,9 @@ def run(
     Parameters
     ----------
     main : callable
-        The script's entry point. Returns the sequence.
+        A sequence function ``main(system, **protocol)``, or the script's
+        entry point. Returns the sequence, or for a sequence function a list
+        of sequences.
     argv : list of str, default=None
         The arguments, without the program name. ``sys.argv[1:]`` when
         omitted.
@@ -79,7 +81,14 @@ def run(
 
     Notes
     -----
-    The sequence ``main`` returns is written to ``--output`` with
+    A sequence function takes ``system`` as its first parameter. It is called
+    with the limit options built into a :class:`~pypulseqpp.Opts`, the
+    default limits when none is given, and its result is written to
+    ``--output`` with :func:`pypulseqpp.sequences.write`, in binary form under
+    ``--binary``: one file for a sequence, linked files for a list of them.
+    ``--report`` prints each sequence's test report.
+
+    The sequence a script's ``main`` returns is written to ``--output`` with
     :func:`pypulseqpp.io.write`, in binary form under ``--binary``. The
     ``main`` of a :class:`~pypulseqpp.sequences.SequenceApp` subclass instead
     writes the application's chain of prescan and main-sequence files through
@@ -110,6 +119,27 @@ def run(
     ...     run(main, ["--help"])
     >>> "--n-x" in text.getvalue(), "Readout samples." in text.getvalue()
     (True, True)
+
+    A sequence function takes the system first, and the options are its
+    keyword parameters:
+
+    >>> import pathlib, tempfile
+    >>> def gre(system, *, n_x: int = 128) -> pp.Sequence:
+    ...     '''One line.
+    ...
+    ...     Parameters
+    ...     ----------
+    ...     n_x : int, default=128
+    ...         Readout samples.
+    ...     '''
+    ...     seq = pp.Sequence(system)
+    ...     seq.add_block(pp.make_delay(n_x * 1e-6))
+    ...     return seq
+    >>> path = pathlib.Path(tempfile.mkdtemp()) / "gre.seq"
+    >>> with contextlib.redirect_stdout(text):
+    ...     status = run(gre, ["-o", str(path), "--n-x", "64"])
+    >>> status, pp.io.read(path).num_blocks
+    (0, 1)
     """
     signature = _inspect.signature(main)
     try:
@@ -160,6 +190,17 @@ def run(
 
     kwargs = {name: getattr(args, name) for name in derived}
     kwargs = {name: value for name, value in kwargs.items() if value is not None}
+
+    # A sequence function takes the system first and returns a sequence or a chain.
+    if next(iter(signature.parameters), None) == "system":
+        result = main(_pp.Opts(**limits), **kwargs)
+        if args.report:
+            for seq in [result] if isinstance(result, _pp.Sequence) else result:
+                print(seq.test_report())
+        for path in _pp.sequences.write(args.output, result, offline=not args.binary):
+            print(f"Wrote sequence: {path}")
+        return 0
+
     if "system" in signature.parameters:
         kwargs["system"] = _pp.Opts(**limits) if limits else None
     if "test_report" in signature.parameters:

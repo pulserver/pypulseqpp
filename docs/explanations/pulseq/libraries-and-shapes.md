@@ -100,10 +100,10 @@ sample, and the slice positions.
 
 `NextSequence` links files into a chain. A calibration prescan and the imaging
 scan it belongs to are two files played in order rather than one file with a
-mode flag, which {meth}`~pypulseqpp.sequences.SequenceApp.write`
-produces from an application's
-{meth}`~pypulseqpp.sequences.SequenceApp.prescans`, and which keeps each file a
-single repeating unit.
+mode flag, which {func}`~pypulseqpp.sequences.write` produces from a list of
+sequences and {meth}`~pypulseqpp.sequences.SequenceApp.write` from an
+application's {meth}`~pypulseqpp.sequences.SequenceApp.prescans`, and which
+keeps each file a single repeating unit.
 
 `[SIGNATURE]` closes the file with an MD5 digest of everything above it, so a
 reader can establish that the file is the one that was written.
