@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.946** total execution time for 3 files **from generated/gallery/03-gre-to-epi**:
+**00:00.944** total execution time for 3 files **from generated/gallery/03-gre-to-epi**:
 
 .. container::
 
@@ -39,5 +39,5 @@ Computation times
      - 00:00.338
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_03-gre-to-epi_01_multi_echo.py` (``01_multi_echo.py``)
-     - 00:00.243
+     - 00:00.242
      - 0.0
