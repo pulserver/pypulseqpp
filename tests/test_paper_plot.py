@@ -109,7 +109,7 @@ def test_epi_plot_unit_is_one_complete_shot():
         n_dummy=0,
         fat_saturation=True,
         tr=None,
-    )
+    )[-1]
 
     size, start, main, _ = select_trs(seq)
     labels = seq.evaluate_labels(evolution="adc")

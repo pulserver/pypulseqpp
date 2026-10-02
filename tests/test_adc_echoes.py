@@ -131,7 +131,7 @@ def test_each_readout_starts_at_its_column_of_adc_kspace(system):
         lambda: sequences.gre_radial2D_sequence(
             fov=220e-3, n=64, n_slices=1, tr=None, n_dummy=0
         ),
-        lambda: sequences.epi2D_sequence(n_slices=1),
+        lambda: sequences.epi2D_sequence(n_slices=1)[-1],
         lambda: sequences.gre_spiral2D_sequence(),
     ],
     ids=["radial", "epi", "spiral"],

@@ -50,7 +50,7 @@ def prewinder(system, gx, duration=1e-3):
         lambda: sequences.gre_radial2D_sequence(
             fov=220e-3, n=64, n_slices=1, tr=None, n_dummy=0
         ),
-        lambda: sequences.epi2D_sequence(n_slices=1),
+        lambda: sequences.epi2D_sequence(n_slices=1)[-1],
         lambda: sequences.gre_spiral2D_sequence(),
         lambda: sequences.se2D_sequence(n_slices=1),
     ],
@@ -72,7 +72,7 @@ def test_each_readout_is_where_the_whole_sequence_puts_it(build):
 
 
 def test_a_run_of_readouts_is_the_columns_they_hold_in_the_whole_trajectory():
-    seq = sequences.epi2D_sequence(n_slices=2)
+    seq = sequences.epi2D_sequence(n_slices=2)[-1]
     count = seq.adc_echoes().block.size
 
     for first, stop in ((0, count), (1, count // 2), (count // 3, count - 1)):

@@ -51,9 +51,21 @@ SMALL = {
         "n_blades": 4,
         "te": None,
         "tr": None,
+        "readout_bandwidth_hz": 50e3,
     },
-    "epi2D_sequence": {"n_x": 32, "n_y": 16, "n_dummy": 0},
-    "epi3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 4, "n_dummy": 0},
+    "epi2D_sequence": {
+        "n_x": 32,
+        "n_y": 16,
+        "readout_bandwidth_hz": 50e3,
+        "n_dummy": 0,
+    },
+    "epi3D_sequence": {
+        "n_x": 32,
+        "n_y": 16,
+        "n_z": 4,
+        "readout_bandwidth_hz": 50e3,
+        "n_dummy": 0,
+    },
     "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
     "se3D_sequence": {
         "n_x": 32,

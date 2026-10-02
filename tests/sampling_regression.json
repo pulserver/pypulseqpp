@@ -136,7 +136,6 @@
   "traversal-sequential-7": "068ff0cf40cd49ec"
  },
  "epi2D-segmented": {
-  "calibration": "be2af200787b297a",
   "label:LIN": "f2d88791f7edc357",
   "label:NAV": "8db366ff50d15880",
   "label:REP": "e4983b662d4238b6",
@@ -145,7 +144,6 @@
   "label:SLC": "e4983b662d4238b6"
  },
  "epi3D-caipi": {
-  "calibration": "d056ed1dd2532ada",
   "label:LIN": "3395740352aa1a32",
   "label:NAV": "a76a5dd8b646782c",
   "label:PAR": "1aae69306c72906a",

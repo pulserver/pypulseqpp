@@ -13,7 +13,7 @@ from pypulseqpp.sequences._app import _split_sections
 #: The sections every entry point carries, in the order NumPy prescribes.
 LEADING = ("Parameters", "Returns")
 
-#: The only return entry: the designed sequence, and nothing else.
+#: The only return entry of a function that designs one sequence.
 RETURNS = "pypulseqpp.Sequence\n    The designed sequence."
 
 #: The type of the only return entry of a function that returns a chain of

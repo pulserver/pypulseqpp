@@ -69,12 +69,13 @@ def summary(rows):
 #
 # A single-shot echo-planar readout provides high slew rates and a periodic
 # gradient waveform, making both PNS and mechanical-resonance diagnostics
-# informative.
+# informative. ``epi2D_sequence`` returns the prescans in play order and then
+# the scan, and the checks run on the scan, the last element of the list.
 
 from pypulseqpp import safety
 from pypulseqpp.sequences import epi2D_sequence
 
-seq = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
+seq = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)[-1]
 print(f"{seq.num_blocks} blocks, {seq.duration()[0] * 1e3:.1f} ms")
 
 # %%

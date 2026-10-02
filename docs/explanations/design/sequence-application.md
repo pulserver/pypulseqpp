@@ -125,10 +125,11 @@ The `init_sequence` signature is the prescription exposed by `protocol`,
 `parameters`, the command line, and protocol editors. Its NumPy-style Parameters
 section defines units and defaults. Fixed design choices are class attributes.
 Every concrete application specifies `MAX_GRAD` and `MAX_SLEW`; construction
-caps the supplied system limits to these values.
+caps the supplied system limits to these values. A subclass of a concrete
+application, `BaseApp` below, assigns the attribute to change a limit.
 
 ```python
-class GentleEpi(Epi2DApp):
+class LowSlewApp(BaseApp):
     MAX_SLEW = 60.0
 ```
 

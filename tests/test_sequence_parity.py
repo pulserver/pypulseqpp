@@ -5,9 +5,11 @@ For the default protocol, for each protocol in ``NON_DEFAULT`` and for system
 limits above and below the sequence's own, the files of the application's chain
 of prescans and main sequence are the files of the function's result, byte for
 byte. The function takes the same system and protocol as the application and
-documents them identically.
+documents them identically; one that returns a chain describes the list in its
+Returns and its Examples.
 """
 
+import dataclasses
 import inspect
 import re
 from pathlib import Path
@@ -860,6 +862,153 @@ NON_DEFAULT = {
             "n_dummy": 0,
         },
     ],
+    "se_epi_propeller2D_sequence": [
+        # Golden-angle blades, the slices in reverse order, a TE above the
+        # shortest, and dummy blades.
+        {
+            "fov": 0.24,
+            "n_x": 32,
+            "blade_width": 8,
+            "n_blades": 3,
+            "angle_scheme": "golden",
+            "n_slices": 3,
+            "slice_thickness": 4e-3,
+            "slice_gap": 1e-3,
+            "slice_order": "reverse",
+            "te": 50e-3,
+            "tr": 400e-3,
+            "readout_bandwidth_hz": 200e3,
+            "crusher_cycles": 3.0,
+            "n_dummy": 1,
+            "n_gain_calibration_readouts": 5,
+        },
+        # Five slices dealt into passes of three and two, centre out.
+        {
+            "n_x": 32,
+            "blade_width": 8,
+            "n_slices": 5,
+            "slice_order": "center_out",
+            "te": 40e-3,
+            "tr": 150e-3,
+            "n_dummy": 2,
+        },
+        # The shortest TE, and a TR that holds four slices in one pass.
+        {
+            "n_x": 32,
+            "blade_width": 8,
+            "n_blades": 3,
+            "n_slices": 4,
+            "te": None,
+            "tr": 100e-3,
+        },
+    ],
+    "epi2D_sequence": [
+        # Multiband and segmented, accelerated with calibration lines and
+        # partial Fourier, with fat saturation, a time series and the volume
+        # output.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "n_x": 32,
+            "n_y": 24,
+            "n_slices": 4,
+            "slice_thickness": 4e-3,
+            "slice_spacing": 1e-3,
+            "flip_angle_deg": 60.0,
+            "te": 9e-3,
+            "tr": 90e-3,
+            "n_frames": 2,
+            "readout_bandwidth_hz": 250e3,
+            "ry": 2,
+            "partial_fourier_y": 0.75,
+            "n_shots": 2,
+            "multiband": 2,
+            "fat_saturation": True,
+            "n_dummy": 1,
+            "readout_oversampling": 1.5,
+            "n_acs_y": 8,
+            "volume_output": True,
+        },
+        # Seven slices dealt into packets of three, two and two by a TR too
+        # short for one, with calibration lines.
+        {
+            "n_x": 32,
+            "n_y": 24,
+            "n_slices": 7,
+            "slice_spacing": 1e-3,
+            "tr": 30e-3,
+            "ry": 2,
+            "n_acs_y": 8,
+            "partial_fourier_y": 0.75,
+        },
+        # Three shots of three slices over two frames, with a TE above the
+        # shortest and no dummies.
+        {
+            "n_x": 32,
+            "n_y": 24,
+            "n_slices": 3,
+            "n_frames": 2,
+            "n_shots": 3,
+            "te": 12e-3,
+            "tr": 170e-3,
+            "n_dummy": 0,
+        },
+    ],
+    "epi3D_sequence": [
+        # A hard pulse, skipped-CAIPI shells under partial Fourier on both
+        # axes with a calibration rectangle, a time series and the volume
+        # output.
+        {
+            "fov_x": 0.24,
+            "fov_y": 0.2,
+            "fov_z": 0.08,
+            "n_x": 32,
+            "n_y": 24,
+            "n_z": 8,
+            "flip_angle_deg": 15.0,
+            "te": 6e-3,
+            "tr": 60e-3,
+            "n_frames": 2,
+            "readout_bandwidth_hz": 250e3,
+            "ry": 2,
+            "rz": 2,
+            "partial_fourier_y": 0.75,
+            "partial_fourier_z": 0.75,
+            "n_shots": 2,
+            "n_dummy": 1,
+            "excitation": "nonselective",
+            "readout_oversampling": 1.5,
+            "n_acs_y": 8,
+            "n_acs_z": 4,
+            "volume_output": True,
+        },
+        # A spectral-spatial pulse and three-partition shells under partial
+        # Fourier.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 12,
+            "rz": 3,
+            "partial_fourier_z": 0.75,
+            "excitation": "spsp",
+            "n_dummy": 1,
+            "n_acs_y": 8,
+            "n_acs_z": 4,
+        },
+        # A 2x4 lattice with a CAIPI shift of two, in two shots over two
+        # frames.
+        {
+            "n_x": 32,
+            "n_y": 16,
+            "n_z": 16,
+            "ry": 2,
+            "rz": 4,
+            "n_shots": 2,
+            "n_frames": 2,
+            "n_acs_y": 8,
+            "n_acs_z": 4,
+        },
+    ],
 }
 
 #: The sections a function that returns a chain documents for itself.
@@ -975,9 +1124,15 @@ def test_a_function_takes_the_system_and_the_protocol_its_application_takes(name
         ]
 
     assert parameters(shipped) == parameters(legacy)
-    assert sequences.parameters(getattr(sequences, name).main) == sequences.parameters(
-        legacy_application(name).function()
-    )
+    wanted = {
+        key: dataclasses.replace(
+            parameter, description=normalised(parameter.description)
+        )
+        for key, parameter in sequences.parameters(
+            legacy_application(name).function()
+        ).items()
+    }
+    assert sequences.parameters(getattr(sequences, name).main) == wanted
 
 
 @pytest.mark.parametrize("name", LEGACY_NAMES)
