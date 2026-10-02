@@ -23,42 +23,53 @@ A sequence application
 =========================
 
 The two previous lessons designed an excitation and a readout with modules.
-This lesson assembles them into a complete acquisition: a prescription, a
-sampling order, and a kernel that is played once per repetition.
-:class:`~pypulseqpp.sequences.SequenceApp` separates these three and is the
-base class of every shipped sequence, so the application written here has the
-same form as a sequence in :doc:`/sequences`.
+This lesson assembles them into a complete acquisition. A sequence application
+is a function of the system limits and a prescription: it designs the modules,
+plays one repetition per line of k-space and returns the sequence. The function
+records the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
+:func:`~pypulseqpp.sequences.parameters` reads its protocol, and
+:func:`~pypulseqpp.sequences.write` writes the sequence it returns.
 
 The sequence is the RF-spoiled slice-selective gradient echo of
-:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as an
-application rather than as a loop over events. The architecture is described
-in :doc:`/explanations/design/sequence-application`.
+:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as a sequence
+function rather than as a loop over events. Each sequence in :doc:`/sequences` is
+available as such a function through :meth:`SequenceApp.function()
+<pypulseqpp.sequences.SequenceApp.function>`. The structure is described in
+:doc:`/explanations/design/sequence-application`.
 
 Learning objectives
 -------------------
 
 After this lesson, you should be able to:
 
-- state the responsibilities of ``init_sequence``, ``loop``, ``kernel`` and
-  ``finalize`` in a sequence application;
-- subclass :class:`~pypulseqpp.sequences.SequenceApp` to design and play a
-  sequence from a prescription;
+- state what a sequence function designs before its loop, plays in the loop
+  and records after it;
+- write a function of the system limits and a protocol of keyword parameters
+  that designs and plays a sequence, recording its encoding indices with
+  :class:`~pypulseqpp.sequences.Labels`;
 - read the acquisition order back from the ``LIN`` labels of the sequence;
-- derive the command-line flags of an application from its ``init_sequence``
-  signature.
+- read the protocol of a sequence function with
+  :func:`~pypulseqpp.sequences.parameters`, derive its command-line options
+  from the same signature, and write what it returns with
+  :func:`~pypulseqpp.sequences.write`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-41
+.. GENERATED FROM PYTHON SOURCE LINES 39-52
 
-Application methods
--------------------
+Sequence function
+-----------------
 
-``init_sequence`` receives the prescription and designs the modules and the
-sampling order from it. ``loop`` calls ``kernel`` once per repetition.
-``finalize`` records the definitions a reconstruction reads. Settings a user
-does not prescribe are class attributes, and ``MAX_GRAD`` and ``MAX_SLEW``
-have no default, so every application states them.
+``system`` is the first parameter and the keyword parameters after it are the
+protocol. Before the loop, the function lowers the limits of ``system`` to the
+gradient and slew limits it is designed for with
+:func:`~pypulseqpp.cap_system`, which never raises a limit, and designs the
+excitation and readout modules; the readout module solves the echo and
+repetition times that are ``None``. The loop plays one repetition per line of
+k-space. A label keeps its value until an event changes it, so
+:class:`~pypulseqpp.sequences.Labels` returns only the ``LIN`` events a block
+needs. After the loop, the geometry a reconstruction reads is recorded as
+definitions and the function returns the sequence.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-134
+.. GENERATED FROM PYTHON SOURCE LINES 52-128
 
 .. code-block:: Python
 
@@ -67,93 +78,75 @@ have no default, so every application states them.
 
     import pypulseqpp as pp
     import pypulseqpp.sequences as design
-    from pypulseqpp.sequences import SequenceApp
 
 
-    class SpoiledGradientEcho(SequenceApp):
-        """RF-spoiled 2D Cartesian gradient echo, one line per repetition."""
+    def spoiled_gradient_echo(
+        system: pp.Opts,
+        *,
+        fov: float = 220e-3,
+        matrix: int = 128,
+        slice_thickness: float = 5e-3,
+        flip_angle_deg: float = 12.0,
+        te: float | None = None,
+        tr: float | None = None,
+    ) -> pp.Sequence:
+        """RF-spoiled 2D Cartesian gradient echo, one line per repetition.
 
-        NAME = "tour_gre_2d"
-        MAX_GRAD = 40.0
-        MAX_SLEW = 150.0
-        PULSE_DURATION = 3e-3
-        RF_SPOILING_INCREMENT_DEG = 117.0
+        Parameters
+        ----------
+        fov : float, default=0.22
+            Isotropic field of view (m).
+        matrix : int, default=128
+            Matrix size along both encoded axes.
+        slice_thickness : float, default=0.005
+            Slice thickness (m).
+        flip_angle_deg : float, default=12.0
+            Excitation flip angle (degrees).
+        te : float | None, default=None
+            Echo time (s). ``None`` is as short as the readout admits.
+        tr : float | None, default=None
+            Repetition time (s). ``None`` is as short as possible.
+        """
+        system = pp.cap_system(system, max_grad=40.0, max_slew=150.0)
+        excitation = design.SpatialSelectiveExcitation(
+            system,
+            flip_angle_deg=flip_angle_deg,
+            thickness_m=slice_thickness,
+            duration_s=3e-3,
+        )
+        readout = design.LineReadout2D(
+            system,
+            excitation.rf,
+            excitation.gz,
+            excitation.gz_reph,
+            fov=(fov, fov),
+            matrix=(matrix, matrix),
+            te=te,
+            tr=tr,
+        )
 
-        def init_sequence(
-            self,
-            fov: float = 220e-3,
-            matrix: int = 128,
-            slice_thickness: float = 5e-3,
-            flip_angle_deg: float = 12.0,
-            te: float | None = None,
-            tr: float | None = None,
-        ) -> None:
-            """Design the excitation, the readout and the line order.
+        # Quadratic RF spoiling: the phase increment grows by 117 degrees per
+        # repetition.
+        phases = np.deg2rad(117.0) * np.cumsum(np.arange(matrix))
 
-            Parameters
-            ----------
-            fov : float, optional
-                Isotropic field of view (m).
-            matrix : int, optional
-                Matrix size along both encoded axes.
-            slice_thickness : float, optional
-                Slice thickness (m).
-            flip_angle_deg : float, optional
-                Excitation flip angle (degrees).
-            te : float | None, optional
-                Echo time (s). ``None`` is as short as the readout admits.
-            tr : float | None, optional
-                Repetition time (s). ``None`` is as short as possible.
-            """
-            self.matrix = matrix
-            self.excitation = design.SpatialSelectiveExcitation(
-                self.system,
-                flip_angle_deg=flip_angle_deg,
-                thickness_m=slice_thickness,
-                duration_s=self.PULSE_DURATION,
-            )
-            self.readout = design.LineReadout2D(
-                self.system,
-                self.excitation.rf,
-                self.excitation.gz,
-                self.excitation.gz_reph,
-                fov=(fov, fov),
-                matrix=(matrix, matrix),
-                te=te,
-                tr=tr,
-            )
-            self.lines = list(range(matrix))
-            self.phases = np.deg2rad(self.RF_SPOILING_INCREMENT_DEG) * np.cumsum(
-                np.arange(len(self.lines) + 1)
-            )
-            self.fov, self.slice_thickness = fov, slice_thickness
-
-        def loop(self) -> None:
-            """Play every phase-encode line in order."""
-            for index, line in enumerate(self.lines):
-                self.kernel(line, float(self.phases[index]))
-
-        def kernel(self, line: int, phase: float) -> None:
-            """One repetition: excitation, encoding, acquisition, spoiling."""
-            readout = self.readout
-            readout.rf.phase_offset = phase % (2 * np.pi)
-            readout.adc.phase_offset = phase % (2 * np.pi)
-            step = (line - self.matrix // 2) / (self.matrix / 2)
-            self.seq.add_block(readout.rf, readout.gz, *self.labels(LIN=line))
-            self.seq.add_block(
+        seq, labels = pp.Sequence(system), design.Labels()
+        for line in range(matrix):
+            phase = phases[line] % (2 * np.pi)
+            readout.rf.phase_offset = readout.adc.phase_offset = phase
+            step = (line - matrix // 2) / (matrix / 2)
+            seq.add_block(readout.rf, readout.gz, *labels(LIN=line))
+            seq.add_block(
                 readout.gx_pre, pp.scale_grad(readout.gy_pre, step), readout.gz_reph
             )
-            self.seq.add_block(readout.gx, readout.adc)
-            self.seq.add_block(readout.gx_spoil, pp.scale_grad(readout.gy_rew, step))
+            seq.add_block(readout.gx, readout.adc)
+            seq.add_block(readout.gx_spoil, pp.scale_grad(readout.gy_rew, step))
             if getattr(readout, "wait_tr", None) is not None:
-                self.seq.add_block(readout.wait_tr)
+                seq.add_block(readout.wait_tr)
 
-        def finalize(self) -> None:
-            """Record the geometry a reconstruction reads."""
-            self.seq.set_definition("FOV", [self.fov, self.fov, self.slice_thickness])
-            self.seq.set_definition("Matrix", [self.matrix, self.matrix, 1])
-            self.seq.set_definition("Name", self.NAME)
-
+        seq.set_definition("FOV", [fov, fov, slice_thickness])
+        seq.set_definition("Matrix", [matrix, matrix, 1])
+        seq.set_definition("Name", "tour_gre_2d")
+        return seq
 
 
 
@@ -162,22 +155,22 @@ have no default, so every application states them.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-141
+
+.. GENERATED FROM PYTHON SOURCE LINES 129-135
 
 Sequence construction
 ---------------------
 
-Construction calls ``init_sequence`` to prepare the modules and sampling
-order. ``design`` creates a new sequence, executes ``loop`` and records the
-reconstruction definitions in ``finalize``.
+Calling the function designs the whole scan. The system is the default
+:class:`~pypulseqpp.Opts`, whose limits the function lowers to at most
+40 mT/m and 150 T/m/s.
 
-.. GENERATED FROM PYTHON SOURCE LINES 141-148
+.. GENERATED FROM PYTHON SOURCE LINES 135-141
 
 .. code-block:: Python
 
 
-    app = SpoiledGradientEcho(matrix=128)
-    seq = app.design()
+    seq = spoiled_gradient_echo(pp.Opts(), matrix=128)
     print(f"{seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
     print("timing:", seq.check_timing()[0])
     print("definitions:", sorted(seq.definitions))
@@ -197,12 +190,12 @@ reconstruction definitions in ``finalize``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 149-151
+.. GENERATED FROM PYTHON SOURCE LINES 142-144
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-154
+.. GENERATED FROM PYTHON SOURCE LINES 144-147
 
 .. code-block:: Python
 
@@ -221,15 +214,46 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-160
+.. GENERATED FROM PYTHON SOURCE LINES 148-153
 
 Acquisition order
 -----------------
 
-``kernel`` writes a ``LIN`` label on every acquisition, so the order the loop
-played is read back from the sequence rather than reconstructed.
+The first change of a label is a SET, a change that repeats the previous
+change is an INC, and an unchanged value writes no event.
 
-.. GENERATED FROM PYTHON SOURCE LINES 160-163
+.. GENERATED FROM PYTHON SOURCE LINES 153-158
+
+.. code-block:: Python
+
+
+    labels = design.Labels()
+    for line in (0, 1, 2, 3, 3):
+        print(f"LIN={line}:", [(e.type, e.value) for e in labels(LIN=line)])
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    LIN=0: [('labelset', 0)]
+    LIN=1: [('labelset', 1)]
+    LIN=2: [('labelinc', 1)]
+    LIN=3: [('labelinc', 1)]
+    LIN=3: []
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 159-161
+
+Every acquisition of the sequence carries its ``LIN`` label, so the order the
+loop played is read back from the sequence rather than reconstructed.
+
+.. GENERATED FROM PYTHON SOURCE LINES 161-164
 
 .. code-block:: Python
 
@@ -248,22 +272,27 @@ played is read back from the sequence rather than reconstructed.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 164-170
+.. GENERATED FROM PYTHON SOURCE LINES 165-172
 
-Command-line interface
-----------------------
+Protocol
+--------
 
-``main`` is derived from the class, and its parameters are those of
-``init_sequence``, so a subclass gets a command-line interface without
-declaring one.
+The type and default of a protocol parameter are read from the signature, and
+its unit from the first parenthesised group of its description in the
+``Parameters`` section. A protocol editor reads this record, and the command
+line derives its options from the same signature and ``Parameters`` section.
 
-.. GENERATED FROM PYTHON SOURCE LINES 170-173
+.. GENERATED FROM PYTHON SOURCE LINES 172-179
 
 .. code-block:: Python
 
 
-    main = SpoiledGradientEcho.main
-    print(str(__import__("inspect").signature(main))[:120], "...")
+    for name, parameter in design.parameters(spoiled_gradient_echo).items():
+        print(
+            f"{name:16}{parameter.type.__name__:7}{parameter.unit:9}"
+            f"default {parameter.default}"
+        )
+
 
 
 
@@ -272,7 +301,54 @@ declaring one.
 
  .. code-block:: none
 
-    (plot: 'bool' = False, test_report: 'bool' = False, write_seq: 'bool' = False, seq_filename: 'str | None' = None, *, sys ...
+    fov             float  m        default 0.22
+    matrix          int             default 128
+    slice_thickness float  m        default 0.005
+    flip_angle_deg  float  degrees  default 12.0
+    te              float  s        default None
+    tr              float  s        default None
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 180-196
+
+Command-line interface
+----------------------
+
+:func:`pypulseqpp.cli.run` derives one option from each keyword parameter,
+with the help text from the ``Parameters`` section, builds ``system`` from
+the limit options and writes the result with
+:func:`~pypulseqpp.sequences.write`. A script that ends with
+
+.. code-block:: python
+
+   if __name__ == "__main__":
+       raise SystemExit(cli.run(spoiled_gradient_echo, sys.argv[1:]))
+
+is run as ``python gre.py --matrix 64 --te 5e-3 -o gre.seq``. A function that
+returns a list of sequences is written as a chain of files, each naming the
+next with ``NextSequence``.
+
+.. GENERATED FROM PYTHON SOURCE LINES 196-202
+
+.. code-block:: Python
+
+
+    from pathlib import Path
+    from tempfile import mkdtemp
+
+    path = Path(mkdtemp()) / "tour_gre_2d.seq"
+    print([Path(written).name for written in design.write(path, seq)])
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    ['tour_gre_2d.seq']
 
 
 
@@ -280,7 +356,7 @@ declaring one.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.342 seconds)
+   **Total running time of the script:** (0 minutes 0.461 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_03_sequence_app.py:

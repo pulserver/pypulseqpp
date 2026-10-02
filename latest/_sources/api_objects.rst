@@ -14,8 +14,12 @@ from.
    :toctree: generated
    :nosignatures:
 
-   SequenceApp
+   parameters
    ProtocolParameter
+   Labels
+   write
+   duration
+   SequenceApp
 
 .. currentmodule:: pypulseqpp.cli
 

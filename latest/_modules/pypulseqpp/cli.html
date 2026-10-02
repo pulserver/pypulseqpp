@@ -519,7 +519,7 @@
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sequence.seq"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Run a sequence script's ``main`` from the command line.</span>
+<span class="w">    </span><span class="sd">"""Run a sequence function, or a sequence script's ``main``, from the command line.</span>
 
 <span class="sd">    Every keyword parameter of ``main`` annotated with a scalar becomes an</span>
 <span class="sd">    option, described by what ``main``'s own docstring says about it. Five</span>
@@ -530,7 +530,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    main : callable</span>
-<span class="sd">        The script's entry point. Returns the sequence.</span>
+<span class="sd">        A sequence function ``main(system, **protocol)``, or the script's</span>
+<span class="sd">        entry point. Returns the sequence, or for a sequence function a list</span>
+<span class="sd">        of sequences.</span>
 <span class="sd">    argv : list of str, default=None</span>
 <span class="sd">        The arguments, without the program name. ``sys.argv[1:]`` when</span>
 <span class="sd">        omitted.</span>
@@ -547,7 +549,14 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    The sequence ``main`` returns is written to ``--output`` with</span>
+<span class="sd">    A sequence function takes ``system`` as its first parameter. It is called</span>
+<span class="sd">    with the limit options built into a :class:`~pypulseqpp.Opts`, the</span>
+<span class="sd">    default limits when none is given, and its result is written to</span>
+<span class="sd">    ``--output`` with :func:`pypulseqpp.sequences.write`, in binary form under</span>
+<span class="sd">    ``--binary``: one file for a sequence, linked files for a list of them.</span>
+<span class="sd">    ``--report`` prints each sequence's test report.</span>
+
+<span class="sd">    The sequence a script's ``main`` returns is written to ``--output`` with</span>
 <span class="sd">    :func:`pypulseqpp.io.write`, in binary form under ``--binary``. The</span>
 <span class="sd">    ``main`` of a :class:`~pypulseqpp.sequences.SequenceApp` subclass instead</span>
 <span class="sd">    writes the application's chain of prescan and main-sequence files through</span>
@@ -578,6 +587,27 @@
 <span class="sd">    ...     run(main, ["--help"])</span>
 <span class="sd">    &gt;&gt;&gt; "--n-x" in text.getvalue(), "Readout samples." in text.getvalue()</span>
 <span class="sd">    (True, True)</span>
+
+<span class="sd">    A sequence function takes the system first, and the options are its</span>
+<span class="sd">    keyword parameters:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pathlib, tempfile</span>
+<span class="sd">    &gt;&gt;&gt; def gre(system, *, n_x: int = 128) -&gt; pp.Sequence:</span>
+<span class="sd">    ...     '''One line.</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     Parameters</span>
+<span class="sd">    ...     ----------</span>
+<span class="sd">    ...     n_x : int, default=128</span>
+<span class="sd">    ...         Readout samples.</span>
+<span class="sd">    ...     '''</span>
+<span class="sd">    ...     seq = pp.Sequence(system)</span>
+<span class="sd">    ...     seq.add_block(pp.make_delay(n_x * 1e-6))</span>
+<span class="sd">    ...     return seq</span>
+<span class="sd">    &gt;&gt;&gt; path = pathlib.Path(tempfile.mkdtemp()) / "gre.seq"</span>
+<span class="sd">    &gt;&gt;&gt; with contextlib.redirect_stdout(text):</span>
+<span class="sd">    ...     status = run(gre, ["-o", str(path), "--n-x", "64"])</span>
+<span class="sd">    &gt;&gt;&gt; status, pp.io.read(path).num_blocks</span>
+<span class="sd">    (0, 1)</span>
 <span class="sd">    """</span>
     <span class="n">signature</span> <span class="o">=</span> <span class="n">_inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -628,6 +658,17 @@
 
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">derived</span><span class="p">}</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="c1"># A sequence function takes the system first and returns a sequence or a chain.</span>
+    <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"system"</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span><span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="o">**</span><span class="n">limits</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">report</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="p">[</span><span class="n">result</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">test_report</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_pp</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">offline</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">binary</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrote sequence: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
     <span class="k">if</span> <span class="s2">"system"</span> <span class="ow">in</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="o">**</span><span class="n">limits</span><span class="p">)</span> <span class="k">if</span> <span class="n">limits</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="s2">"test_report"</span> <span class="ow">in</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>

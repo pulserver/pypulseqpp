@@ -527,6 +527,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-functions">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#base-class">Base class</a></li>
 </ul>
             </nav>
@@ -541,17 +542,67 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="complete-sequences">
 <h1>Complete sequences<a class="headerlink" href="#complete-sequences" title="Link to this heading">#</a></h1>
-<p>The base class every shipped complete sequence is written against. The
-sequences themselves are listed in <a class="reference internal" href="../sequences.html"><span class="doc">Sequence catalogue</span></a>; the structure of an
-application, its scan loop and its prescan chain are described in
+<p>A complete sequence is a function <code class="docutils literal notranslate"><span class="pre">sequence(system,</span> <span class="pre">**protocol)</span></code> that returns a
+<a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>, or a list of them with the prescans first and the
+main sequence last. The functions below read its protocol, label its blocks,
+write what it returns and time it; <a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>
+is the base class the shipped sequences are written against. The sequences
+themselves are listed in <a class="reference internal" href="../sequences.html"><span class="doc">Sequence catalogue</span></a>; the structure of a sequence
+function, its protocol and its prescan chain are described in
 <a class="reference internal" href="../explanations/design/sequence-application.html"><span class="doc">Sequence applications</span></a>.</p>
+<section id="sequence-functions">
+<h2>Sequence functions<a class="headerlink" href="#sequence-functions" title="Link to this heading">#</a></h2>
+<p>The protocol of a sequence function is its keyword parameters after <code class="docutils literal notranslate"><span class="pre">system</span></code>.
+<code class="docutils literal notranslate"><span class="pre">parameters</span></code> reads each one’s type and default from the signature, and its unit,
+choices and description from the NumPy-style Parameters section.
+<a class="reference internal" href="../generated/pypulseqpp.cli.run.html#pypulseqpp.cli.run" title="pypulseqpp.cli.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.cli.run()</span></code></a> derives the command-line options from the same
+signature.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code></a></p></td>
+<td><p>Sequence function</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> of <code class="docutils literal notranslate"><span class="pre">ProtocolParameter</span></code>, in signature order</p></td>
+<td><p>Protocol of a sequence function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a></p></td>
+<td><p>Returned by <code class="docutils literal notranslate"><span class="pre">parameters</span></code> and <code class="docutils literal notranslate"><span class="pre">SequenceApp.parameters()</span></code></p></td>
+<td><p>Frozen record</p></td>
+<td><p>One protocol parameter: its type, default, unit, choices and description.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.Labels.html#pypulseqpp.sequences.Labels" title="pypulseqpp.sequences.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels</span></code></a></p></td>
+<td><p>The new value of each label, by Pulseq name</p></td>
+<td><p>Label events to add to the block</p></td>
+<td><p>Writer of the label events a block changes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a></p></td>
+<td><p>Path, a sequence or a list of sequences</p></td>
+<td><p>Written paths, in play order</p></td>
+<td><p>Write a sequence, or a chain of linked sequences, as Pulseq files.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
+<td><p>A sequence or a list of sequences</p></td>
+<td><p>Duration (s)</p></td>
+<td><p>Return the time a sequence, or a chain, plays.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="base-class">
 <h2>Base class<a class="headerlink" href="#base-class" title="Link to this heading">#</a></h2>
 <p>Every concrete subclass sets <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (mT/m) and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (T/m/s);
 <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>’s signature and Parameters section are the prescription.
 <code class="docutils literal notranslate"><span class="pre">parameters()</span></code> returns that prescription one parameter at a time, and a
 constructed application reports its resolved prescription, <code class="docutils literal notranslate"><span class="pre">resolved</span></code>, and its
-scan time, <code class="docutils literal notranslate"><span class="pre">scan_time()</span></code>, without playing the loop.</p>
+scan time, <code class="docutils literal notranslate"><span class="pre">scan_time()</span></code>, without playing the loop. <code class="docutils literal notranslate"><span class="pre">function()</span></code> returns the
+class as a sequence function.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
@@ -563,13 +614,8 @@ scan time, <code class="docutils literal notranslate"><span class="pre">scan_tim
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceApp</span></code></a></p></td>
 <td><p>System limits, prescription keywords for <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code></p></td>
-<td><p>Application; <code class="docutils literal notranslate"><span class="pre">design()</span></code> returns the <code class="docutils literal notranslate"><span class="pre">Sequence</span></code></p></td>
+<td><p>Application; <code class="docutils literal notranslate"><span class="pre">design()</span></code> returns the <code class="docutils literal notranslate"><span class="pre">Sequence</span></code>, <code class="docutils literal notranslate"><span class="pre">function()</span></code> the sequence function</p></td>
 <td><p>Base class of complete sequence implementations.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a></p></td>
-<td><p>Returned by <code class="docutils literal notranslate"><span class="pre">SequenceApp.parameters()</span></code></p></td>
-<td><p>Frozen record</p></td>
-<td><p>One prescribed parameter: its type, default, unit, choices and description.</p></td>
 </tr>
 </tbody>
 </table>
@@ -624,6 +670,7 @@ scan time, <code class="docutils literal notranslate"><span class="pre">scan_tim
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-functions">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#base-class">Base class</a></li>
 </ul>
   </nav></div>

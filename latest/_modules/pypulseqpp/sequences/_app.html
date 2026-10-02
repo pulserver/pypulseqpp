@@ -481,9 +481,20 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp._prescription</span><span class="w"> </span><span class="kn">import</span> <span class="n">accepts_none</span><span class="p">,</span> <span class="n">documented</span><span class="p">,</span> <span class="n">scalar</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ProtocolParameter"</span><span class="p">,</span> <span class="s2">"SequenceApp"</span><span class="p">]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
 
-<span class="n">_MAIN_PARAMETERS</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ProtocolParameter"</span><span class="p">,</span> <span class="s2">"SequenceApp"</span><span class="p">,</span> <span class="s2">"parameters"</span><span class="p">]</span>
+
+<span class="n">_SYSTEM_PARAMETER</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
+<span class="s2">system : pypulseqpp.Opts, default=None</span>
+<span class="s2">    System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""</span>
+
+<span class="n">_FUNCTION_RETURNS</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
+<span class="s2">pypulseqpp.Sequence or list of pypulseqpp.Sequence</span>
+<span class="s2">    The designed sequence. An application with prescans returns the list of</span>
+<span class="s2">    the designed prescans in play order, then the main sequence."""</span>
+
+<span class="n">_MAIN_PARAMETERS</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span><span class="se">\</span>
 <span class="s2">plot : bool, default=False</span>
 <span class="s2">    Draw the finished sequence in SeqEyes.</span>
 <span class="s2">test_report : bool, default=False</span>
@@ -492,17 +503,16 @@
 <span class="s2">    Write the sequence to a .seq file.</span>
 <span class="s2">seq_filename : str, default=None</span>
 <span class="s2">    Where to write it; ``&lt;NAME&gt;.seq`` when omitted.</span>
-<span class="s2">system : pypulseqpp.Opts, default=None</span>
-<span class="s2">    System limits, held under the application's ``MAX_GRAD`` and ``MAX_SLEW``."""</span>
+<span class="si">{</span><span class="n">_SYSTEM_PARAMETER</span><span class="si">}</span><span class="s2">"""</span>
 
 
 <div class="viewcode-block" id="ProtocolParameter">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ProtocolParameter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One prescribed parameter, as ``init_sequence`` declares and documents it."""</span>
+<span class="w">    </span><span class="sd">"""One protocol parameter, as a sequence function or ``init_sequence`` declares and documents it."""</span>
 
-    <span class="c1">#: The keyword ``init_sequence`` takes.</span>
+    <span class="c1">#: The keyword the sequence function or ``init_sequence`` takes.</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="c1">#: The scalar the annotation names, bool, int, float or str; None for any</span>
     <span class="c1">#: other annotation.</span>
@@ -621,8 +631,7 @@
             <span class="n">system</span><span class="p">,</span> <span class="n">max_grad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_GRAD</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_SLEW</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_steps</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">Labels</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resolved</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">(</span><span class="o">**</span><span class="n">protocol</span><span class="p">)</span>
@@ -718,7 +727,7 @@
 <span class="sd">            If ``prescan`` is not one of the names :meth:`prescans` lists.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_steps</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restart_labels</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">prescan</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
@@ -786,23 +795,7 @@
 <span class="sd">        list</span>
 <span class="sd">            The label events to add to the block, empty when nothing changed.</span>
 <span class="sd">        """</span>
-        <span class="n">once</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ONCE"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">once</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">once</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ONCE"</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">restart_labels</span><span class="p">()</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">last</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">last</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">value</span> <span class="o">-</span> <span class="n">last</span>
-            <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_steps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-                <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"INC"</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"SET"</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_label_steps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">step</span>
-        <span class="k">return</span> <span class="n">events</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">(</span><span class="o">**</span><span class="n">values</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SequenceApp.restart_labels">
@@ -815,8 +808,7 @@
 <span class="sd">        on the repeats. :meth:`labels` restarts at every ``ONCE`` it writes;</span>
 <span class="sd">        call this where a module writes ``ONCE`` itself.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_state</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_label_steps</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="o">.</span><span class="n">restart</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="SequenceApp.protocol">
@@ -855,22 +847,7 @@
 <span class="sd">        &gt;&gt;&gt; te.description</span>
 <span class="sd">        'Echo time (s). ``None`` is as short as the readout admits.'</span>
 <span class="sd">        """</span>
-        <span class="n">hints</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">get_type_hints</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span>
-        <span class="n">documentation</span> <span class="o">=</span> <span class="n">documented</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">))</span>
-        <span class="n">entries</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">_prescribed</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">annotation</span> <span class="o">=</span> <span class="n">hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
-            <span class="n">kind</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">documentation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
-            <span class="n">entries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ProtocolParameter</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-                <span class="nb">type</span><span class="o">=</span><span class="n">scalar</span><span class="p">(</span><span class="n">annotation</span><span class="p">),</span>
-                <span class="n">default</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">default</span><span class="p">,</span>
-                <span class="n">optional</span><span class="o">=</span><span class="n">accepts_none</span><span class="p">(</span><span class="n">annotation</span><span class="p">),</span>
-                <span class="n">unit</span><span class="o">=</span><span class="n">_unit</span><span class="p">(</span><span class="n">description</span><span class="p">),</span>
-                <span class="n">choices</span><span class="o">=</span><span class="n">_choices</span><span class="p">(</span><span class="n">kind</span><span class="p">),</span>
-                <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="n">entries</span></div>
+        <span class="k">return</span> <span class="n">parameters</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SequenceApp.resolve">
@@ -908,7 +885,7 @@
 <span class="sd">        &gt;&gt;&gt; Pause().resolved, Pause(tr=20e-3).resolved</span>
 <span class="sd">        ({'tr': 0.01}, {'tr': 0.02})</span>
 <span class="sd">        """</span>
-        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">_prescribed</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))))</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">_prescribed</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.init_sequence has no parameter "</span>
@@ -927,7 +904,7 @@
         <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolved</span><span class="p">}</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">name</span><span class="p">:</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">_prescribed</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">_prescribed</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="SequenceApp.scan_time">
@@ -961,6 +938,75 @@
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">))</span></div>
 
 
+<div class="viewcode-block" id="SequenceApp.function">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.SequenceApp.function.html#pypulseqpp.sequences.SequenceApp.function">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Return the application as a sequence function, ``function(system, **protocol)``.</span>
+
+<span class="sd">        The function constructs the application from its arguments and returns</span>
+<span class="sd">        :meth:`design`. An application with prescans returns the list of its</span>
+<span class="sd">        designed prescans, in the order :meth:`prescans` lists them, followed</span>
+<span class="sd">        by the main sequence; :func:`pypulseqpp.sequences.write` writes that</span>
+<span class="sd">        list as the chain of linked files :meth:`write` writes. The signature</span>
+<span class="sd">        is ``system=None`` followed by the keyword parameters of</span>
+<span class="sd">        ``init_sequence``, and the documentation is the class's with the</span>
+<span class="sd">        ``Parameters`` of ``init_sequence``, so that</span>
+<span class="sd">        :func:`pypulseqpp.sequences.parameters` and :func:`pypulseqpp.cli.run`</span>
+<span class="sd">        read the protocol from the function as they read it from the class.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        callable</span>
+<span class="sd">            The sequence function.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pypulseqpp import sequences</span>
+<span class="sd">        &gt;&gt;&gt; gre = sequences.gre2D_sequence.Gre2DApp.function()</span>
+<span class="sd">        &gt;&gt;&gt; gre(n_x=32, n_y=16, n_acs_y=0).definitions["Matrix"]</span>
+<span class="sd">        [32.0, 16.0, 1.0]</span>
+
+<span class="sd">        An application with prescans returns its chain:</span>
+
+<span class="sd">        &gt;&gt;&gt; epi = sequences.epi2D_sequence.Epi2DApp.function()</span>
+<span class="sd">        &gt;&gt;&gt; [seq.get_definition("Name") for seq in epi(n_x=32, n_y=16)]</span>
+<span class="sd">        ['epi_2d_reference', 'epi_2d']</span>
+<span class="sd">        """</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">sequence</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">protocol</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+            <span class="n">app</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="o">**</span><span class="n">protocol</span><span class="p">)</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">app</span><span class="o">.</span><span class="n">design</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">prescans</span><span class="p">()]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">chain</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">design</span><span class="p">()]</span> <span class="k">if</span> <span class="n">chain</span> <span class="k">else</span> <span class="n">app</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
+
+        <span class="n">hints</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">get_type_hints</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span>
+                <span class="s2">"system"</span><span class="p">,</span>
+                <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">POSITIONAL_OR_KEYWORD</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">annotation</span><span class="o">=</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="o">*</span><span class="p">(</span>
+                <span class="n">parameter</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">KEYWORD_ONLY</span><span class="p">,</span>
+                    <span class="n">annotation</span><span class="o">=</span><span class="n">hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">annotation</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">_prescribed</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">returns</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">]</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="n">__signature__</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Signature</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">return_annotation</span><span class="o">=</span><span class="n">returns</span>
+        <span class="p">)</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="vm">__annotations__</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">parameter</span><span class="o">.</span><span class="n">annotation</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">},</span>
+            <span class="s2">"return"</span><span class="p">:</span> <span class="n">returns</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">_documentation</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_SYSTEM_PARAMETER</span><span class="p">,</span> <span class="n">_FUNCTION_RETURNS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sequence</span></div>
+
+
     <span class="k">class</span><span class="w"> </span><span class="nc">_Main</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Module-level entry point of a concrete sequence implementation.</span>
 
@@ -982,12 +1028,69 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_prescribed</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">SequenceApp</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prescribed</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the parameters a protocol names: those after the first, which is ``system`` or ``self``."""</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="n">name</span><span class="p">:</span> <span class="n">p</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">"self"</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">VAR_POSITIONAL</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">VAR_KEYWORD</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">function</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">VAR_POSITIONAL</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">VAR_KEYWORD</span><span class="p">)</span>
     <span class="p">}</span>
+
+
+<div class="viewcode-block" id="parameters">
+<a class="viewcode-back" href="../../../generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ProtocolParameter</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return each protocol parameter of a sequence function with its type, default, unit and description.</span>
+
+<span class="sd">    The protocol is every parameter after the first, which is ``system``. Its</span>
+<span class="sd">    type, default and whether it admits None are read from the annotation and</span>
+<span class="sd">    the default; its unit, choices and description from the NumPy</span>
+<span class="sd">    ``Parameters`` section of the docstring.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    function : callable</span>
+<span class="sd">        A sequence function ``function(system, **protocol)``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict[str, ProtocolParameter]</span>
+<span class="sd">        One entry per protocol parameter, in signature order.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp import sequences</span>
+<span class="sd">    &gt;&gt;&gt; def gre(system, *, te: float | None = None, n: int = 64):</span>
+<span class="sd">    ...     '''Gradient echo.</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     Parameters</span>
+<span class="sd">    ...     ----------</span>
+<span class="sd">    ...     te : float | None, default=None</span>
+<span class="sd">    ...         Echo time (s). ``None`` is as short as the readout admits.</span>
+<span class="sd">    ...     n : int, default=64</span>
+<span class="sd">    ...         Matrix size.</span>
+<span class="sd">    ...     '''</span>
+<span class="sd">    &gt;&gt;&gt; protocol = sequences.parameters(gre)</span>
+<span class="sd">    &gt;&gt;&gt; list(protocol), protocol["te"].unit, protocol["te"].optional</span>
+<span class="sd">    (['te', 'n'], 's', True)</span>
+<span class="sd">    """</span>
+    <span class="n">hints</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">get_type_hints</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+    <span class="n">documentation</span> <span class="o">=</span> <span class="n">documented</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">function</span><span class="p">))</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">_prescribed</span><span class="p">(</span><span class="n">function</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">annotation</span> <span class="o">=</span> <span class="n">hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
+        <span class="n">kind</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">documentation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+        <span class="n">entries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ProtocolParameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">scalar</span><span class="p">(</span><span class="n">annotation</span><span class="p">),</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">optional</span><span class="o">=</span><span class="n">accepts_none</span><span class="p">(</span><span class="n">annotation</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="n">_unit</span><span class="p">(</span><span class="n">description</span><span class="p">),</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">_choices</span><span class="p">(</span><span class="n">kind</span><span class="p">),</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">entries</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_make_main</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">SequenceApp</span><span class="p">]):</span>
@@ -1045,26 +1148,30 @@
     <span class="n">main</span><span class="o">.</span><span class="vm">__qualname__</span> <span class="o">=</span> <span class="s2">"main"</span>
     <span class="n">main</span><span class="o">.</span><span class="n">write_to</span> <span class="o">=</span> <span class="n">write_to</span>
 
-    <span class="n">summary</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">sections</span> <span class="o">=</span> <span class="n">_split_sections</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
-    <span class="n">parameters</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">_MAIN_PARAMETERS</span><span class="p">,</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Parameters"</span><span class="p">)))</span>
+    <span class="n">main</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">_documentation</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">_MAIN_PARAMETERS</span><span class="p">,</span> <span class="s2">"pypulseqpp.Sequence</span><span class="se">\n</span><span class="s2">    The designed sequence."</span>
     <span class="p">)</span>
-    <span class="n">raises</span> <span class="o">=</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Raises"</span><span class="p">)</span>
-    <span class="n">main</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="k">return</span> <span class="n">main</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_documentation</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">SequenceApp</span><span class="p">],</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">returns</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the class's documentation, with ``parameters`` ahead of ``init_sequence``'s and ``returns`` as the Returns."""</span>
+    <span class="n">summary</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">sections</span> <span class="o">=</span> <span class="n">_split_sections</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Parameters"</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="n">part</span>
         <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="n">summary</span><span class="p">,</span>
             <span class="n">description</span><span class="p">,</span>
-            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Parameters"</span><span class="p">,</span> <span class="n">parameters</span><span class="p">),</span>
-            <span class="n">_numpy_section</span><span class="p">(</span>
-                <span class="s2">"Returns"</span><span class="p">,</span> <span class="s2">"pypulseqpp.Sequence</span><span class="se">\n</span><span class="s2">    The designed sequence."</span>
-            <span class="p">),</span>
-            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Raises"</span><span class="p">,</span> <span class="n">raises</span><span class="p">),</span>
+            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Parameters"</span><span class="p">,</span> <span class="n">entries</span><span class="p">),</span>
+            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Returns"</span><span class="p">,</span> <span class="n">returns</span><span class="p">),</span>
+            <span class="n">_numpy_section</span><span class="p">(</span><span class="s2">"Raises"</span><span class="p">,</span> <span class="n">_section</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">init_sequence</span><span class="p">,</span> <span class="s2">"Raises"</span><span class="p">)),</span>
             <span class="o">*</span><span class="p">(</span><span class="n">_numpy_section</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">part</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">main</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_numpy_section</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

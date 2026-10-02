@@ -16,6 +16,7 @@
 
    ~SequenceApp.design
    ~SequenceApp.finalize
+   ~SequenceApp.function
    ~SequenceApp.init_sequence
    ~SequenceApp.kernel
    ~SequenceApp.labels

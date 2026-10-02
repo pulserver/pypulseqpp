@@ -57,7 +57,7 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition: a prescription, a sampling order, and a kernel that is played once per repetition. SequenceApp separates these three and is the base class of every shipped sequence, so the application written here has the same form as a sequence in /sequences.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence application is a function of the system limits and a prescription: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns.">
 
 .. only:: html
 

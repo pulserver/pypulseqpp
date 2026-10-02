@@ -634,7 +634,8 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Read a sequence file and every file its ``NextSequence`` definitions name, in play order.</span>
 
-<span class="sd">    :meth:`pypulseqpp.sequences.SequenceApp.write` writes a scan with prescans</span>
+<span class="sd">    :func:`pypulseqpp.sequences.write` and</span>
+<span class="sd">    :meth:`pypulseqpp.sequences.SequenceApp.write` write a scan with prescans</span>
 <span class="sd">    as such a chain. A ``NextSequence`` name is relative to the directory of</span>
 <span class="sd">    the file naming it. Each file is read by :func:`read`, onto a system built</span>
 <span class="sd">    from it.</span>

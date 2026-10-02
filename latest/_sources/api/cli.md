@@ -1,7 +1,8 @@
 # Command-line helpers
 
-The command-line entry point of the sequence scripts. The options are derived
-from the entry point's signature and its NumPy-style `Parameters` section.
+The command-line entry point of a sequence function and of the sequence scripts.
+The options are derived from the callable's signature and its NumPy-style
+`Parameters` section.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.cli
@@ -11,4 +12,4 @@ from the entry point's signature and its NumPy-style `Parameters` section.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.cli.run` | Script's `main`, argument list | Exit status; writes the `.seq` file or file chain | Run a sequence script from the command line. |
+| {obj}`~pypulseqpp.cli.run` | Sequence function or script's `main`, argument list | Exit status; writes the `.seq` file or file chain | Run a sequence function, or a sequence script, from the command line. |

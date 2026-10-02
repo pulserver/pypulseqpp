@@ -537,11 +537,23 @@ writing them here keeps them out of the toctree the sidebar is built
 from.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceApp</span></code></a></p></td>
-<td><p>A complete sequence, designed from a prescription and played one repetition at a time.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code></a></p></td>
+<td><p>Return each protocol parameter of a sequence function with its type, default, unit and description.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a></p></td>
-<td><p>One prescribed parameter, as <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> declares and documents it.</p></td>
+<td><p>One protocol parameter, as a sequence function or <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> declares and documents it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.Labels.html#pypulseqpp.sequences.Labels" title="pypulseqpp.sequences.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels</span></code></a></p></td>
+<td><p>Writer of label events for the sticky label state of a Pulseq sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a></p></td>
+<td><p>Write a sequence, or a chain of sequences, as Pulseq files.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
+<td><p>Return the time a sequence, or a chain of sequences, plays, in seconds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceApp</span></code></a></p></td>
+<td><p>A complete sequence, designed from a prescription and played one repetition at a time.</p></td>
 </tr>
 </tbody>
 </table>
@@ -549,7 +561,7 @@ from.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.cli.run.html#pypulseqpp.cli.run" title="pypulseqpp.cli.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></p></td>
-<td><p>Run a sequence script's <code class="docutils literal notranslate"><span class="pre">main</span></code> from the command line.</p></td>
+<td><p>Run a sequence function, or a sequence script's <code class="docutils literal notranslate"><span class="pre">main</span></code>, from the command line.</p></td>
 </tr>
 </tbody>
 </table>
